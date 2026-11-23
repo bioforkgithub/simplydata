@@ -1978,7 +1978,13 @@ class SummaryWords:
         instead of r: r, its 95 % interval, the p-value (from the formula or, with
         p_value_by="shuffling", from shuffling; the interval from interval_by=), which directions
         were tested, the rows used and the strength in words; with three or more it is the same as
-        show="each pair". show="covariance" gives the covariance table instead (pandas
+        show="each pair".
+        allowing_for="height" (two columns and one to allow for) gives the partial correlation: the link left
+        after taking out what both columns share with the third, from R ppcor::pcor.test() (Pearson,
+        Spearman or Kendall). With show="result table" it is a one-row table of pcor.test()'s numbers: r,
+        its statistic (t, or z for Kendall), the p-value and the rows (no interval: ppcor gives none):
+        table.find_correlation_between("hours", "marks", allowing_for="height", show="result table")
+        show="covariance" gives the covariance table instead (pandas
         DataFrame.cov(), dividing by n - 1, each pair on the rows where both columns have a number,
         as R cov(use = "pairwise.complete.obs")), also for two columns: covariances are in the units
         of the two columns multiplied; the correlation is the same link without units.
@@ -2078,9 +2084,9 @@ class SummaryWords:
                 'and the sentence gives its p-value; show="result table" gives r, its interval, the p-value and the '
                 "rows as a one-row table."
             )
-        if shown == "result table" and (test_method in ORDINAL_METHODS or allowing_for is not None):
-            raise SimplydataError('show="result table" goes with test_method="pearson", "spearman" or "kendall", without '
-                                  "allowing_for=; leave out show= here.")
+        if shown == "result table" and test_method in ORDINAL_METHODS:
+            raise SimplydataError('show="result table" goes with test_method="pearson", "spearman" or "kendall"; leave '
+                                  "out show= here.")
         if shown == "result table" and len(names) > 2:
             shown = "each pair"  # for three or more columns the result table is one row per pair
         from .stat_tests import _direction
@@ -2111,7 +2117,8 @@ class SummaryWords:
                 raise SimplydataError("allowing_for= gives the two-sided partial correlation; leave out sides=, "
                                       "p_value_by= and interval_by=.")
             return self._partial_correlation(step, self._number_frame(step, names + [allowing_for]), names[0],
-                                             names[1], allowing_for, test_method)
+                                             names[1], allowing_for, test_method,
+                                             result_table=shown == "result table")
         frame = self._number_frame(step, names)
         if test_method in ORDINAL_METHODS:
             return self._ordinal_association(step, frame, names[0], names[1], test_method)
@@ -2324,8 +2331,9 @@ class SummaryWords:
         print(f"It is {meaning}. Method: R DescTools::{r_name}.")
         return value
 
-    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method):
-        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none)."""
+    def _partial_correlation(self, step, frame, column_a, column_b, allowing_for, method, result_table=False):
+        """The partial correlation of two columns allowing for a third, from R ppcor::pcor.test() (Python has none).
+        With result_table=True (show="result table") it gives back pcor.test()'s numbers as a one-row table."""
         from .._r import r_call
 
         names = [column_a, column_b, allowing_for]
@@ -2336,7 +2344,7 @@ class SummaryWords:
                   + " or ".join(f'"{n}"' for n in names) + f" {'was' if skipped == 1 else 'were'} skipped.")
         x, y, z = (rows[c].to_numpy().astype(float) for c in names)
         found = r_call("p <- ppcor::pcor.test(x, y, z, method = m); list(r = p$estimate, p = p$p.value, "
-                       "stat = p$statistic)", packages=("ppcor",),
+                       "stat = p$statistic, n = p$n)", packages=("ppcor",),
                        what="the partial correlation (R ppcor::pcor.test())",
                        python_note="SciPy and statsmodels have no partial correlation test", x=x, y=y, z=z, m=method)
         r, p = float(np.asarray(found["r"])[0]), float(np.asarray(found["p"])[0])
@@ -2350,7 +2358,17 @@ class SummaryWords:
         print(f'Method: partial correlation, as R ppcor::pcor.test(method = "{method}"): the link that is left after '
               f'taking out what both columns share with "{allowing_for}". A correlation does not show that one thing '
               "causes the other.")
-        return r
+        if not result_table:
+            return r
+        # ppcor's statistic: t on n - 2 - (columns allowed for) degrees of freedom for Pearson and Spearman, z for
+        # Kendall (ppcor's own normal approximation); every number is pcor.test()'s
+        data = {"column 1": [column_a], "column 2": [column_b], "allowing for": [allowing_for],
+                "method": [f"partial {METHOD_NAMES[method]}"], "r": [r],
+                "statistic name": ["z" if method == "kendall" else "t"],
+                "statistic": [float(np.asarray(found["stat"])[0])], "p-value": [p], "tested": ["both directions"],
+                "rows": [int(np.asarray(found["n"])[0])], "strength": [_strength(r)]}
+        print('Gives back the result as a one-row table (show="result table").')
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     def _covariance_table(self, step, frame, names):
         """find_correlation_between(show="covariance"): pandas DataFrame.cov() (n - 1, pairwise complete rows), as R

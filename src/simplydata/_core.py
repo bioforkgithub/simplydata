@@ -436,7 +436,8 @@ class BaseChart:
           x, y    where the point is (dates on a date axis, group names on an axis of groups); for a
                   bar, x is its middle and y its height (sideways bars: x is the length, y the middle)
           low, high  the two ends of a bar, a band, a stem or an error bar
-          value   the number in a heat map square, or a pie slice's share of the whole
+          value   the number in a heat map square, a pie slice's share of the whole, or the
+                  number written at a marked point (the best cut-off of trade_off_curve)
         The numbers are read back from what matplotlib drew (nothing is worked out again), so they
         are exactly what you see: the points of a fitted curve, a forecast band, the survival steps.
         """

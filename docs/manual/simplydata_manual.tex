@@ -5262,8 +5262,8 @@ One row per drawn point, in layers: each line, group of dots, set of bars, band,
 \code{\textquotedbl{}cell\textquotedbl{}} (a heat map square), \code{\textquotedbl{}slice\textquotedbl{}} (a pie slice) or \code{\textquotedbl{}shape\textquotedbl{}} series  the name of the layer in the legend (empty when it has none)\\
 \codeline{x, y}\enspace where the point is (dates on a date axis, group names on an axis of groups); for a\\
 bar, x is its middle and y its height (sideways bars: x is the length, y the middle) low, high  the two ends of a bar, a band, a stem or an error bar\\
-\codeline{value}\enspace the number in a heat map square, or a pie slice's share of the whole\\
-The numbers are read back from what matplotlib drew (nothing is worked out again), so they are exactly what you see: the points of a fitted curve, a forecast band, the survival steps.
+\codeline{value}\enspace the number in a heat map square, a pie slice's share of the whole, or the\\
+number written at a marked point (the best cut-off of \code{trade\_\allowbreak{}off\_\allowbreak{}curve}) The numbers are read back from what matplotlib drew (nothing is worked out again), so they are exactly what you see: the points of a fitted curve, a forecast band, the survival steps.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -9809,7 +9809,9 @@ How strongly columns of numbers go up or down together, from -1 to 1.
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
 \code{test\_\allowbreak{}method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy; Spearman's p-value for fewer than 1290 rows without tied values comes from R \code{cor.\allowbreak{}test()} (algorithm AS 89, R's default; SciPy has only the t approximation, used without R, with a note). With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
-Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. With two columns, \code{show=\textquotedbl{}result table\textquotedbl{}} gives back a one-row table instead of r: r, its 95 \% interval, the p-value (from the formula or, with \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, from shuffling; the interval from \code{interval\_\allowbreak{}by=}), which directions were tested, the rows used and the strength in words; with three or more it is the same as \code{show=\textquotedbl{}each pair\textquotedbl{}}. \code{show=\textquotedbl{}covariance\textquotedbl{}} gives the covariance table instead (pandas \code{DataFrame.\allowbreak{}cov()}, dividing by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}), also for two columns: covariances are in the units of the two columns multiplied; the correlation is the same link without units. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in the empty cells 20 times from the other columns named (statsmodels MICEData, as \code{explain()}) and pools the correlations with Rubin's rules on Fisher's z (R miceadds::\code{micombine.\allowbreak{}cor()}); \code{with\_\allowbreak{}seed=} fixes the random filling. \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} (two columns) gives the Bayes factor and a 95 \% credible interval of the correlation instead of a p-value: R BayesFactor::\code{correlationBF()} with a stretched beta prior whose width \code{prior\_\allowbreak{}width=} sets (\code{\textquotedbl{}medium\textquotedbl{}} 1/3, the default; \code{\textquotedbl{}wide\textquotedbl{}} 0.577; \code{\textquotedbl{}ultrawide\textquotedbl{}} 1; or a number); 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor). A correlation does not show that one thing causes the other.
+Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. With two columns, \code{show=\textquotedbl{}result table\textquotedbl{}} gives back a one-row table instead of r: r, its 95 \% interval, the p-value (from the formula or, with \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, from shuffling; the interval from \code{interval\_\allowbreak{}by=}), which directions were tested, the rows used and the strength in words; with three or more it is the same as \code{show=\textquotedbl{}each pair\textquotedbl{}}. \code{allowing\_\allowbreak{}for=\textquotedbl{}height\textquotedbl{}} (two columns and one to allow for) gives the partial correlation: the link left after taking out what both columns share with the third, from R ppcor::\code{pcor.\allowbreak{}test()} (Pearson, Spearman or Kendall). With \code{show=\textquotedbl{}result table\textquotedbl{}} it is a one-row table of \code{pcor.\allowbreak{}test()}'s numbers: r, its statistic (t, or z for Kendall), the p-value and the rows (no interval: ppcor gives none):\\
+\codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, allowing\_for=\textquotedbl{}height\textquotedbl{}, show=\textquotedbl{}result table\textquotedbl{})}\\
+\code{show=\textquotedbl{}covariance\textquotedbl{}} gives the covariance table instead (pandas \code{DataFrame.\allowbreak{}cov()}, dividing by n - 1, each pair on the rows where both columns have a number, as R \code{cov(use = \textquotedbl{}pairwise.\allowbreak{}complete.\allowbreak{}obs\textquotedbl{})}), also for two columns: covariances are in the units of the two columns multiplied; the correlation is the same link without units. Strength words for the size of r: below 0.2 very weak, from 0.2 weak, from 0.4 medium, from 0.6 strong, from 0.8 very strong (after Evans 1996). The p-value is said as how often a link this strong or stronger would turn up in studies like this one if there were truly no link (\code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}, p = 0.031). \code{sides=1}, \code{higher=\textquotedbl{}positive\textquotedbl{}} (or \code{\textquotedbl{}negative\textquotedbl{}}) tests in one direction only, as decided before seeing the data (R \code{cor.\allowbreak{}test(alternative = \textquotedbl{}greater\textquotedbl{})}); two columns only. Two columns only: \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} gives the p-value from shuffling one column against the other \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy \code{permutation\_\allowbreak{}test}), and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} adds a 95 \% interval of r from drawing the rows again with replacement \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}; SciPy bootstrap, BCa, as R boot::\code{boot.\allowbreak{}ci()}). With \code{rows\_\allowbreak{}back=12} and two columns (\code{sorted\_\allowbreak{}by=} the time column): the correlation for shifts -12 to 12 (cross-correlation, as R ccf with the sign of the lag reversed): shift 2 pairs the first column with the second 2 rows later. It says which column follows the other. \code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} fills in the empty cells 20 times from the other columns named (statsmodels MICEData, as \code{explain()}) and pools the correlations with Rubin's rules on Fisher's z (R miceadds::\code{micombine.\allowbreak{}cor()}); \code{with\_\allowbreak{}seed=} fixes the random filling. \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} (two columns) gives the Bayes factor and a 95 \% credible interval of the correlation instead of a p-value: R BayesFactor::\code{correlationBF()} with a stretched beta prior whose width \code{prior\_\allowbreak{}width=} sets (\code{\textquotedbl{}medium\textquotedbl{}} 1/3, the default; \code{\textquotedbl{}wide\textquotedbl{}} 0.577; \code{\textquotedbl{}ultrawide\textquotedbl{}} 1; or a number); 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor). A correlation does not show that one thing causes the other.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9913,6 +9915,24 @@ ci = res.confidence_interval(0.95)                 # (1)
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the 95 \% interval of Pearson's r from Fisher's z, as SciPy pearsonr and R cor.test.}
 \undertext{With \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} or \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} the table holds those (SciPy \code{permutation\_\allowbreak{}test}, bootstrap) and says so; Spearman's and Kendall's intervals come from R DescTools. With three or more columns the result table is the table of \code{show=\textquotedbl{}each pair\textquotedbl{}}.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{allowing\_\allowbreak{}for=,\allowbreak{} show=\textquotedbl{}result table\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# find_correlation_between("hours", "marks", allowing_for="height", show="result table")
+p <- ppcor::pcor.test(hours, marks, height, method = "pearson")      # (1)
+list(r = p$estimate, statistic = p$statistic, p = p$p.value, rows = p$n)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"r": r, "statistic": statistic, "p-value": p, "rows": rows}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the partial correlation of R ppcor::\code{pcor.\allowbreak{}test()}: the link left after taking out what both columns share with the third; its statistic is t (z for Kendall) and it gives no interval.}
+\undertext{\textit{In Python only:} SciPy and statsmodels have no partial correlation test, so the numbers come from R ppcor.}
+\undertext{simplydata also prints the correlation without allowing for the third column, on the same rows, and says the strength in words.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \unsection{Statistical tests}{group:Statistical-tests}
@@ -11091,7 +11111,9 @@ sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)
 How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).\\
 \codeline{chart.trade\_off\_curve(score=\textquotedbl{}crp\textquotedbl{}, truth=\textquotedbl{}infected\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}clinic\textquotedbl{}))}
 
-Each possible cut-off of the score gives a point: along, the share of those without it who test positive anyway (false alarms, 1 - specificity); up, the share of those with it that the test finds (sensitivity). A good score climbs steeply to the top left; the diagonal is no better than chance. The legend gives the AUC with its DeLong 95 \% interval, and a dot marks the best cut-off by Youden's index. \code{score=[\textquotedbl{}crp\textquotedbl{},\allowbreak{} \textquotedbl{}procalcitonin\textquotedbl{}]} draws one curve per score; \code{colour=\textquotedbl{}ward\textquotedbl{}} one curve per group. Higher scores count as positive; \code{positive\_\allowbreak{}when=\textquotedbl{}lower\textquotedbl{}} turns it round. The numbers come from R pROC (simplydata[r]), the same as \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth}.
+Each possible cut-off of the score gives a point: along, the share of those without it who test positive anyway (false alarms, 1 - specificity); up, the share of those with it that the test finds (sensitivity). A good score climbs steeply to the top left; the diagonal is no better than chance. The legend gives the AUC with its DeLong 95 \% interval, and a dot marks the best cut-off by Youden's index. \code{score=[\textquotedbl{}crp\textquotedbl{},\allowbreak{} \textquotedbl{}procalcitonin\textquotedbl{}]} draws one curve per score; \code{colour=\textquotedbl{}ward\textquotedbl{}} one curve per group. Higher scores count as positive; \code{positive\_\allowbreak{}when=\textquotedbl{}lower\textquotedbl{}} turns it round. The numbers come from R pROC (simplydata[r]), the same as \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth}.\\
+\codeline{chart.get\_numbers\_drawn() gives the best cut-off as a number: in the row of the marked dot}\\
+(kind \code{\textquotedbl{}dot\textquotedbl{}}, series the curve's name) the value column holds the cut-off, y the sensitivity there and x the false alarms (1 - specificity), all from R pROC::\code{coords(roc,\allowbreak{} \textquotedbl{}best\textquotedbl{},\allowbreak{} best.\allowbreak{}method = \textquotedbl{}youden\textquotedbl{})}. The specificity is not in that table: \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth} gives pROC's specificity at the same cut-off, with its sensitivity, as a result table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -11151,6 +11173,28 @@ ax.plot([0, 1], [0, 1], linestyle="--")             # no better than chance
 \undertext{\textit{In Python only:} Python's stack (SciPy, statsmodels) has no ROC analysis with DeLong's interval, so the numbers come from R.}
 \undertext{simplydata also writes the AUC and the cut-off on the chart and labels both axes in words. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the lines and the numbers in the legend (the chart's data, not its pixels).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{get\_\allowbreak{}numbers\_\allowbreak{}drawn()}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# trade_off_curve(score="crp", truth="infected"), then get_numbers_drawn():
+# the marked dot's row
+r <- pROC::roc(infected, crp, levels = c(0, 1),
+               direction = "<", quiet = TRUE)
+b <- pROC::coords(r, "best", best.method = "youden",         # (1)
+                  ret = c("threshold", "sensitivity"), transpose = FALSE)
+list(cut = b$threshold[1], se = b$sensitivity[1])
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"value": cut, "y": se}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the best cut-off by Youden's index, R pROC::\code{coords(\textquotedbl{}best\textquotedbl{},\allowbreak{} best.\allowbreak{}method = \textquotedbl{}youden\textquotedbl{})}; its threshold is the value of the marked dot, its sensitivity the dot's y.}
+\undertext{\textit{In Python only:} Python's stack (SciPy, statsmodels) has no ROC analysis with DeLong's interval, so the numbers come from R.}
+\undertext{The dot's x is the false alarms there (1 - specificity), as drawn; \code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth} gives the same cut-off with its sensitivity and specificity as a result table.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table.}
 \end{underneathbox}
 \unsection{Agreement and reliability}{group:Agreement-and-reliability}
 \wordentry{table.agreement\_between()}{word:table.agreement-between}
@@ -13872,7 +13916,7 @@ pd.DataFrame(points * s, columns=["LD1", "LD2"])
 Add correspondence axes (CA for counts, MCA for text columns), in new columns CA1, CA2.
 
 \codeline{table.add\_correspondence\_axes(columns=[\textquotedbl{}blaTEM\textquotedbl{}, \textquotedbl{}blaCTXM\textquotedbl{}, \textquotedbl{}sul1\textquotedbl{}, \textquotedbl{}sul2\textquotedbl{}, \textquotedbl{}tetA\textquotedbl{}, \textquotedbl{}tetM\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}resistome\textquotedbl{}))}\\
-Correspondence analysis draws the rows of a table of counts as points, so that rows with similar profiles (shares of each column) lie close: R vegan::\code{cca(x)} with no explaining columns (ter Braak's CA, the ecologists' engine). With text columns (answers such as \code{\textquotedbl{}agree\textquotedbl{}}, \code{\textquotedbl{}disagree\textquotedbl{}}) it runs multiple correspondence analysis instead: R ca::\code{mjca(lambda = \textquotedbl{}adjusted\textquotedbl{})}, with Greenacre's adjusted inertia. The first line printed says which ran. \code{how\_\allowbreak{}many=} axes are added; the share of the inertia (the chi-square differences) each shows is printed. \code{columns=} is required. Rows with an empty cell get empty cells. Signs are arbitrary. Needs R (vegan; ca for text columns). \code{show=\textquotedbl{}numbers\textquotedbl{}} gives back the axes as a table instead of adding columns: each row's number in the table, its coordinates and the share of the inertia of each axis, as R gives them.
+Correspondence analysis draws the rows of a table of counts as points, so that rows with similar profiles (shares of each column) lie close: R vegan::\code{cca(x)} with no explaining columns (ter Braak's CA, the ecologists' engine). With text columns (answers such as \code{\textquotedbl{}agree\textquotedbl{}}, \code{\textquotedbl{}disagree\textquotedbl{}}) it runs multiple correspondence analysis instead: R ca::\code{mjca(lambda = \textquotedbl{}adjusted\textquotedbl{})}, with Greenacre's adjusted inertia. The first line printed says which ran. \code{how\_\allowbreak{}many=} axes are added; the share of the inertia (the chi-square differences) each shows is printed. \code{columns=} is required. Rows with an empty cell get empty cells. Signs are arbitrary. Needs R (vegan; ca for text columns). \code{show=\textquotedbl{}numbers\textquotedbl{}} gives back the axes as a table instead of adding columns: each row's number in the table, its coordinates, the eigenvalue of each axis (\code{\textquotedbl{}CA1 eigenvalue\textquotedbl{}}), its share of the inertia (\code{\textquotedbl{}CA1 share of the inertia\textquotedbl{}}) and the total inertia, as R gives them (vegan: \code{summary(eigenvals())} and tot.chi). For text columns (MCA) the table holds the shares and the total of the adjusted inertia (ca::mjca inertia.e and inertia.t). The MCA eigenvalues are not shown: R ca gives them only rounded (to 6 decimals, in \code{summary()} and \code{print()}), and no field of the mjca result holds them unrounded.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13911,6 +13955,28 @@ pd.DataFrame(points * s, columns=["CA1", "CA2"])
 \undertext{\textit{In Python only:} No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.}
 \undertext{simplydata also prints each axis's share of the inertia, and runs MCA (R ca::mjca) on text columns.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
+\undertext{\textbf{With \code{show=\textquotedbl{}numbers\textquotedbl{}}}: the same job with this option.}
+\underlib{R (simplydata runs this in R for you, through rpy2)}
+\begin{lstlisting}[style=underr]
+# add_correspondence_axes(columns=genes, show="numbers")
+m <- vegan::cca(x)
+e <- summary(vegan::eigenvals(m))                               # (1)
+list(eig1 = e[1, 1], eig2 = e[1, 2], share1 = e[2, 1], share2 = e[2, 2],
+     total = m$tot.chi)                                         # (2)
+\end{lstlisting}
+\underlib{Python (with what R gives back)}
+\begin{lstlisting}[style=under]
+{"CA1 eigenvalue": eig1, "CA2 eigenvalue": eig2, "CA1 share of the inertia": share1,
+ "CA2 share of the inertia": share2, "total inertia": total}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each axis's eigenvalue and share of the inertia as vegan's \code{summary(eigenvals())} gives them.}
+\undertext{(2) the total inertia is vegan's tot.chi, the sum of all the eigenvalues.}
+\undertext{\textit{In Python only:} No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.}
+\undertext{simplydata also gives each row's coordinates (CA1, CA2) and its number in the table, and repeats the numbers of the whole map on every row. For text columns (MCA) the table holds the shares and the total of the adjusted inertia (ca::mjca inertia.e, inertia.t).}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.find\_hidden\_factors\_behind()}{word:table.find-hidden-factors-behind}
 Find the hidden factors behind many columns: how many there are, and which columns go with which.
@@ -20272,7 +20338,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 342 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 159 follow the convention of the package named so that results match it, and 40 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 345 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 162 follow the convention of the package named so that results match it, and 40 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -20748,7 +20814,14 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{With two columns, one row: r, its 95 \% interval (Fisher's z for Pearson, SciPy pearsonr; R DescTools for Spearman and Kendall), the p-value, which directions were tested, the rows used and the strength in words.}
 \wordfield{Alternatives}{\code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} and \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}} fill the row with those (and say so); with three or more columns it is \code{show=\textquotedbl{}each pair\textquotedbl{}}.}
 \wordfield{Why (P3)}{The same calls as the printed sentence, so the table and the sentence agree; Fisher's z interval is the one R cor.test and SciPy give (Fisher 1915). \textit{Basis: convention.}}
-\wordfield{Checks}{Somers' d, gamma and \code{allowing\_\allowbreak{}for=} are refused with \code{show=\textquotedbl{}result table\textquotedbl{}}.}
+\wordfield{Checks}{Somers' d and gamma are refused with \code{show=\textquotedbl{}result table\textquotedbl{}}.}
+\wordfield{References}{Fisher 1915}
+\wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-correlation-between-allowing-for-eq-show-eq-result-table}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()} \code{allowing\_\allowbreak{}for=,\allowbreak{} show=\textquotedbl{}result table\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{With \code{allowing\_\allowbreak{}for=} one row of R ppcor::\code{pcor.\allowbreak{}test()}'s numbers: the partial r, its statistic (t on n - 3 degrees of freedom for Pearson and Spearman, z for Kendall), the two-sided p-value and the rows; no interval, as ppcor gives none.}
+\wordfield{Alternatives}{leave out \code{show=} for the number r alone; leave out \code{allowing\_\allowbreak{}for=} for the plain correlation with its interval.}
+\wordfield{Why (P3)}{The same call as the printed sentence, so the table and the sentence agree; every number is ppcor's own, nothing is worked out again. The partial correlation is the correlation of what is left of the two columns after the third is taken out (Fisher 1915 for the distribution of r). \textit{Basis: convention.}}
+\wordfield{Checks}{Exactly two columns and one to allow for; \code{sides=}, \code{p\_\allowbreak{}value\_\allowbreak{}by=} and \code{interval\_\allowbreak{}by=} are refused.}
 \wordfield{References}{Fisher 1915}
 \wordfield{In the dictionary}{\hyperref[word:table.find-correlation-between]{page \pageref{word:table.find-correlation-between}}}
 \unsection{Statistical tests}{basis-group:Statistical-tests}
@@ -21124,6 +21197,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P2)}{DeLong's interval needs no assumption about the score's distribution (DeLong et al. 1988). Youden's index is the usual summary of a cut-off (Youden 1950), though other criteria choose other points (Perkins \& Schisterman 2006), and a cut-off chosen on the same data is optimistic (Leeflang et al. 2008). The direction is fixed, not pROC's 'auto', which can hide a test that works the wrong way round.}
 \wordfield{Checks}{Needs R pROC; the score must hold numbers.}
 \wordfield{References}{DeLong et al. 1988; Youden 1950; Perkins \& Schisterman 2006; Leeflang et al. 2008}
+\wordfield{In the dictionary}{\hyperref[word:trade-off-curve]{page \pageref{word:trade-off-curve}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:trade-off-curve-get-numbers-drawn}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()} \code{get\_\allowbreak{}numbers\_\allowbreak{}drawn()}}\par\nopagebreak
+\wordfield{Default}{The row of the marked dot holds the best cut-off by Youden's index in its value column (R pROC::\code{coords(roc,\allowbreak{} \textquotedbl{}best\textquotedbl{},\allowbreak{} best.\allowbreak{}method = \textquotedbl{}youden\textquotedbl{})} threshold), the sensitivity there as y and the false alarms (1 - specificity) as x, as drawn.}
+\wordfield{Alternatives}{\code{table.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth} gives the same cut-off with its sensitivity and specificity as a result table.}
+\wordfield{Why (P3)}{The number written next to the dot is pROC's threshold, given back unchanged. Youden's index is the usual summary of a cut-off (Youden 1950), though other criteria choose other points (Perkins \& Schisterman 2006). \textit{Basis: convention.}}
+\wordfield{Checks}{Needs R pROC; one marked dot per curve.}
+\wordfield{References}{Youden 1950; Perkins \& Schisterman 2006}
 \wordfield{In the dictionary}{\hyperref[word:trade-off-curve]{page \pageref{word:trade-off-curve}}}
 \unsection{Agreement and reliability}{basis-group:Agreement-and-reliability}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.agreement-between}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}\par\nopagebreak
@@ -21880,6 +21960,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{Correspondence analysis (reciprocal averaging; Hill 1973b) fits counts with unimodal responses (ter Braak 1985); it weights rare kinds heavily (Legendre \& Gallagher 2001). Site scaling keeps the chi-square distances between rows, which is why it is chosen for axes added to the rows. \textit{Basis: convention.}}
 \wordfield{Checks}{Negative values, empty rows and columns of zeros are refused.}
 \wordfield{References}{Hill 1973b; ter Braak 1985; Legendre \& Gallagher 2001}
+\wordfield{In the dictionary}{\hyperref[word:table.add-correspondence-axes]{page \pageref{word:table.add-correspondence-axes}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-correspondence-axes-show-eq-numbers}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}correspondence\_\allowbreak{}axes()} \code{show=\textquotedbl{}numbers\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{The axes as a table instead of new columns: each row's number and coordinates, each axis's eigenvalue and share of the inertia (vegan \code{summary(eigenvals())}) and the total inertia (vegan tot.chi); for text columns (MCA) the shares and the total of the adjusted inertia (ca::mjca inertia.e and inertia.t).}
+\wordfield{Alternatives}{leave out \code{show=} to add the columns CA1, CA2 to the table.}
+\wordfield{Why (P3)}{Every number is the package's own, so it can be compared with a published table such as Oksanen's vegan tutorial (eigenvalues 0.5249 and 0.3568 of 2.083 on varespec). The MCA eigenvalues are not shown: R ca gives them only rounded (to 6 decimals), and simplydata does not work them out again (ter Braak 1985 for the eigenvalues of correspondence analysis). \textit{Basis: convention.}}
+\wordfield{Checks}{The same checks as \code{add\_\allowbreak{}correspondence\_\allowbreak{}axes}.}
+\wordfield{References}{ter Braak 1985}
 \wordfield{In the dictionary}{\hyperref[word:table.add-correspondence-axes]{page \pageref{word:table.add-correspondence-axes}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-hidden-factors-behind}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}hidden\_\allowbreak{}factors\_\allowbreak{}behind()}}\par\nopagebreak
 \wordfield{Default}{Exploratory factor analysis by R psych::\code{fa()}: the number of factors by parallel analysis (psych \code{fa.\allowbreak{}parallel(fa = \textquotedbl{}fa\textquotedbl{})}), minimum residuals (minres) fitting and an oblimin rotation (through GPArotation), with R's random numbers seeded (\code{with\_\allowbreak{}seed=1}); rows with any empty cell left out.}

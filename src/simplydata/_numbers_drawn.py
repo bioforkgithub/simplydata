@@ -255,8 +255,10 @@ def numbers_of_panel(ax, panel: int):
                         and str(line.get_marker()).lower() not in ("none", "", " "))  # dots drawn by plot()
         kind, series = roles.get(id(line), ("dot" if only_markers else "line", name_of(line)))
         xs, ys = _data_axes(line, ax)
+        # a number simplydata wrote next to a point (the best cut-off of trade_off_curve), kept on the line
+        value = getattr(line, "simplydata_value", math.nan)
         for x, y in zip(xv, yv):
-            rows.add(panel, layer, kind, series, x=x if xs else math.nan, y=y if ys else math.nan)
+            rows.add(panel, layer, kind, series, x=x if xs else math.nan, y=y if ys else math.nan, value=value)
     dot_ids = set()
     for coll, offsets in dots_of(ax):
         if not coll.get_visible():

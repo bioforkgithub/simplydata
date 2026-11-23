@@ -702,7 +702,11 @@ class CommunityWords:
         differences) each shows is printed. columns= is required. Rows with an empty cell get
         empty cells. Signs are arbitrary. Needs R (vegan; ca for text columns).
         show="numbers" gives back the axes as a table instead of adding columns: each row's number in the
-        table, its coordinates and the share of the inertia of each axis, as R gives them.
+        table, its coordinates, the eigenvalue of each axis ("CA1 eigenvalue"), its share of the inertia
+        ("CA1 share of the inertia") and the total inertia, as R gives them (vegan: summary(eigenvals()) and
+        tot.chi). For text columns (MCA) the table holds the shares and the total of the adjusted inertia
+        (ca::mjca inertia.e and inertia.t). The MCA eigenvalues are not shown: R ca gives them only rounded (to
+        6 decimals, in summary() and print()), and no field of the mjca result holds them unrounded.
         """
         step = "add_correspondence_axes"
         if show is not None:
@@ -732,14 +736,16 @@ class CommunityWords:
         found = correspondence(x, how_many)
         names = [f"CA{i}" for i in range(1, how_many + 1)]
         scores = _flip(found["scores"][:, :how_many])
-        parts = [f"{n} {_pct(found['share'][i])}" for i, n in enumerate(names)]
+        parts = [f"{n} {_pct(found['share'][i])} (eigenvalue {_num(found['eig'][i])})" for i, n in enumerate(names)]
         print(f"Correspondence analysis (CA) of {_columns_used(columns)} in {len(x)} rows: {_list_words(parts)} of the "
-              "inertia (the chi-square differences between the rows' profiles).")
-        print(f"Method: R vegan::cca(x) with no explaining columns, summary(eigenvals()), and the row scores with "
-              f'scaling = "sites". Added {_list_words(names)}; their signs are arbitrary.')
+              f"total inertia {_num(found['total'])} (the chi-square differences between the rows' profiles).")
+        print(f"Method: R vegan::cca(x) with no explaining columns, summary(eigenvals()), tot.chi, and the row scores "
+              f'with scaling = "sites". Added {_list_words(names)}; their signs are arbitrary.')
         if show == "numbers":
             return self._numbers_table([(n, scores[:, i]) for i, n in enumerate(names)], keep,
-                                       [(f"{n} share of the inertia", found["share"][i]) for i, n in enumerate(names)])
+                                       [(f"{n} eigenvalue", found["eig"][i]) for i, n in enumerate(names)]
+                                       + [(f"{n} share of the inertia", found["share"][i]) for i, n in enumerate(names)]
+                                       + [("total inertia", found["total"])])
         return self._with_new_columns(f"add correspondence axes {', '.join(names)} of {', '.join(map(str, columns))}",
                                       [(n, scores[:, i]) for i, n in enumerate(names)], keep)
 
@@ -770,13 +776,16 @@ class CommunityWords:
         scores = _flip(found["scores"][:, :how_many])
         parts = [f"axis {i + 1} {_pct(found['share'][i])}" for i in range(how_many)]
         print(f"Multiple correspondence analysis (MCA) of {len(columns)} text columns ({comp.short_list(columns)}) in "
-              f"{int(keep.sum())} rows: {_list_words(parts)} of the adjusted inertia (Greenacre's adjustment).")
-        print('Method: R ca::mjca(x, lambda = "adjusted"), and the rows\' principal coordinates. FactoMineR\'s MCA() '
+              f"{int(keep.sum())} rows: {_list_words(parts)} of the total adjusted inertia {_num(found['total'])} "
+              "(Greenacre's adjustment).")
+        print('Method: R ca::mjca(x, lambda = "adjusted"), inertia.e and inertia.t, and the rows\' principal '
+              "coordinates. FactoMineR's MCA() "
               "reports the unadjusted inertia, which looks much smaller for the same axes. Added "
               f"{_list_words(names)}; their signs are arbitrary.")
         if show == "numbers":
             return self._numbers_table([(n, scores[:, i]) for i, n in enumerate(names)], keep,
-                                       [(f"{n} share of the inertia", found["share"][i]) for i, n in enumerate(names)])
+                                       [(f"{n} share of the inertia", found["share"][i]) for i, n in enumerate(names)]
+                                       + [("total inertia", found["total"])])
         return self._with_new_columns(f"add correspondence axes {', '.join(names)} of {', '.join(columns)} (MCA)",
                                       [(n, scores[:, i]) for i, n in enumerate(names)], keep)
 

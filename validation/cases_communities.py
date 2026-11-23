@@ -444,6 +444,22 @@ def _cases(Case):
                  list(`CA1 %` = round(100 * e2[2, 1], 1), `CA2 %` = round(100 * e2[2, 2], 1), `CA1 row 1 size` = abs(s[1, 1]))
              """, r_packages=("vegan",), r_tolerance=1e-9,
              note="The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares."),
+        Case("table.add_correspondence_axes", 'show="numbers": varespec, the eigenvalues and the total inertia',
+             "varespec and varechem (vegan)", "published", option='show="numbers"',
+             ours=vare + """
+                 numbers = sdata.table(data).add_correspondence_axes(columns=species, show="numbers")
+                 {"CA1 eigenvalue": numbers.get_cell_at(row=1, column="CA1 eigenvalue"),
+                  "CA2 eigenvalue": numbers.get_cell_at(row=1, column="CA2 eigenvalue"),
+                  "total inertia": numbers.get_cell_at(row=1, column="total inertia")}
+             """,
+             published={"CA1 eigenvalue": (0.5249, 0.00005, oksanen), "CA2 eigenvalue": (0.3568, 0.00005, oksanen),
+                        "total inertia": (2.083, 0.0005, oksanen)},
+             r=LOAD["vare"] + """
+                 m <- vegan::cca(x); e2 <- summary(vegan::eigenvals(m))
+                 list(`CA1 eigenvalue` = e2[1, 1], `CA2 eigenvalue` = e2[1, 2], `total inertia` = m$tot.chi)
+             """, r_packages=("vegan",), r_tolerance=1e-10,
+             note="The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given "
+                  "back as numbers; the tutorial prints them to 4 and 3 decimals."),
         Case("table.add_correspondence_axes", "wg93: multiple correspondence analysis (MCA) of questions A to D",
              "wg93 (ca)", "published",
              ours=_printed('table = sdata.table(data).add_correspondence_axes(columns=["A", "B", "C", "D"])') + """

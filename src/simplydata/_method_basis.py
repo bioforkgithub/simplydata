@@ -2577,6 +2577,16 @@ BASIS["table.add_correspondence_axes"] = _b(
     "between rows, which is why it is chosen for axes added to the rows.",
     ("hill1973b", "terbraak1985", "legendre2001"), "P3",
     "Negative values, empty rows and columns of zeros are refused.", "convention")
+BASIS["table.add_correspondence_axes show=\"numbers\""] = _b(
+    "The axes as a table instead of new columns: each row's number and coordinates, each axis's eigenvalue and share "
+    "of the inertia (vegan summary(eigenvals())) and the total inertia (vegan tot.chi); for text columns (MCA) the "
+    "shares and the total of the adjusted inertia (ca::mjca inertia.e and inertia.t).",
+    "leave out show= to add the columns CA1, CA2 to the table.",
+    "Every number is the package's own, so it can be compared with a published table such as Oksanen's vegan "
+    "tutorial (eigenvalues 0.5249 and 0.3568 of 2.083 on varespec). The MCA eigenvalues are not shown: R ca "
+    "gives them only rounded (to 6 decimals), and simplydata does not work them out again (ter Braak 1985 for "
+    "the eigenvalues of correspondence analysis).", ("terbraak1985",), "P3",
+    "The same checks as add_correspondence_axes.", "convention")
 
 
 # ---- Hidden factors (S3c-2)
@@ -3476,7 +3486,24 @@ BASIS["table.find_correlation_between show=\"result table\""] = _b(
     "columns it is show=\"each pair\".",
     "The same calls as the printed sentence, so the table and the sentence agree; Fisher's z interval is the one R "
     "cor.test and SciPy give (Fisher 1915).", ("fisher1915",), "P3",
-    "Somers' d, gamma and allowing_for= are refused with show=\"result table\".", "convention")
+    "Somers' d and gamma are refused with show=\"result table\".", "convention")
+BASIS["table.find_correlation_between allowing_for=, show=\"result table\""] = _b(
+    "With allowing_for= one row of R ppcor::pcor.test()'s numbers: the partial r, its statistic (t on n - 3 degrees "
+    "of freedom for Pearson and Spearman, z for Kendall), the two-sided p-value and the rows; no interval, as ppcor "
+    "gives none.",
+    "leave out show= for the number r alone; leave out allowing_for= for the plain correlation with its interval.",
+    "The same call as the printed sentence, so the table and the sentence agree; every number is ppcor's own, "
+    "nothing is worked out again. The partial correlation is the correlation of what is left of the two columns "
+    "after the third is taken out (Fisher 1915 for the distribution of r).", ("fisher1915",), "P3",
+    "Exactly two columns and one to allow for; sides=, p_value_by= and interval_by= are refused.", "convention")
+BASIS["trade_off_curve get_numbers_drawn()"] = _b(
+    "The row of the marked dot holds the best cut-off by Youden's index in its value column (R pROC::coords(roc, "
+    "\"best\", best.method = \"youden\") threshold), the sensitivity there as y and the false alarms (1 - "
+    "specificity) as x, as drawn.",
+    "table.compare_to_truth gives the same cut-off with its sensitivity and specificity as a result table.",
+    "The number written next to the dot is pROC's threshold, given back unchanged. Youden's index is the usual "
+    "summary of a cut-off (Youden 1950), though other criteria choose other points (Perkins & Schisterman 2006).",
+    ("youden1950", "perkins2006"), "P3", "Needs R pROC; one marked dot per curve.", "convention")
 BASIS["sdata.get_example from_r_package="] = _b(
     "R itself loads the dataset of an installed R package (utils::data, from the data file that holds it); groups "
     "(factors) become text, R's NA empty cells, and row names that carry information a first column \"row name\".",
