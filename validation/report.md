@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1640 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**1661 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2001,6 +2001,21 @@ Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the print
 | axis 1 % | R | 44.9 | 44.9 | relative 1e-09 | pass |
 | axis 2 % | R | 34.2 | 34.2 | relative 1e-09 | pass |
 
+### `table.add_correspondence_axes show="numbers"`
+
+**show="numbers": varespec, the eigenvalues and the total inertia** (published; data: varespec and varechem (vegan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280495 | 0.5249 | within 5e-05 (printed rounding) | pass |
+| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083954 | 0.3568 | within 5e-05 (printed rounding) | pass |
+| total inertia | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 2.08319828789077 | 2.083 | within 0.0005 (printed rounding) | pass |
+| CA1 eigenvalue | R | 0.524931994280495 | 0.524931994280495 | relative 1e-10 | pass |
+| CA2 eigenvalue | R | 0.356798023083954 | 0.356798023083954 | relative 1e-10 | pass |
+| total inertia | R | 2.08319828789077 | 2.08319828789077 | relative 1e-10 | pass |
+
+Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given back as numbers; the tutorial prints them to 4 and 3 decimals.
+
 ### `table.find_hidden_factors_behind`
 
 **nine ability tests: parallel analysis, minres, oblimin (the defaults)** (real data; data: Holzinger & Swineford 1939 (lavaan))
@@ -2056,15 +2071,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.51252787423805 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735138749758 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774188028801 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192927162165 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.24287755302512 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215666079075 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208885003163 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549576366819 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246368743385 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528649559236 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735641806596 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774079743593 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192890881216 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877397025249 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215603297131 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208666474325 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549926596706 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246714488787 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
@@ -3428,6 +3443,34 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 | high | R | -0.744087196460113 | -0.744087196460113 | relative 1e-09 | pass |
 | p | R | 1.29395870135051e-10 | 1.29395870135052e-10 | relative 1e-09 | pass |
 
+### `table.find_correlation_between allowing_for=, show="result table"`
+
+**allowing_for=, show="result table": mtcars mpg and wt, allowing for hp** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| partial r | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
+| t | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
+| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620001e-06 | relative 1e-09 | pass |
+| rows | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 32 | 32 | relative 1e-09 | pass |
+| partial r | R | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
+| t | R | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
+| p | R | 1.11964713620002e-06 | 1.11964713620002e-06 | relative 1e-09 | pass |
+| rows | R | 32 | 32 | relative 1e-09 | pass |
+
+Note: simplydata gives back R ppcor's own numbers; the residual route is the definition, as a check.
+
+### `trade_off_curve get_numbers_drawn()`
+
+**aSAH, s100b for a poor outcome: the best cut-off from chart.get_numbers_drawn()** (real data; data: aSAH (pROC))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| best cut-off | R | 0.205 | 0.205 | relative 1e-12 | pass |
+| sensitivity there | R | 0.634146341463415 | 0.634146341463415 | relative 1e-12 | pass |
+
+Note: The cut-off written next to the marked dot is R pROC's coords("best", best.method = "youden") threshold, given back in the value column of get_numbers_drawn().
+
 ## 2. The same underneath (the manual's boxes)
 
 Each box's library code is run next to the simplydata word and compared. Table words run on a pandas and on a Polars table.
@@ -3731,6 +3774,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.add_axes_that_separate_groups` | R + Python | polars | table | relative 1e-09 | pass |
 | `table.add_correspondence_axes` | R + Python | pandas | table | relative 1e-09 | pass |
 | `table.add_correspondence_axes` | R + Python | polars | table | relative 1e-09 | pass |
+| `table.add_correspondence_axes show="numbers"` | R + Python | pandas | result | relative 1e-10 | pass |
+| `table.add_correspondence_axes show="numbers"` | R + Python | polars | result | relative 1e-10 | pass |
 | `table.find_hidden_factors_behind` | R + Python | pandas | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind` | R + Python | polars | result | relative 1e-06 | pass |
 | `table.find_hidden_factors_behind how_many=` | R + Python | pandas | result | relative 1e-06 | pass |
@@ -3861,6 +3906,9 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.check_model_of show="numbers"` | statsmodels | polars | result | relative 1e-09 | pass |
 | `table.find_correlation_between show="result table"` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.find_correlation_between show="result table"` | SciPy | polars | result | relative 1e-09 | pass |
+| `table.find_correlation_between allowing_for=, show="result table"` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.find_correlation_between allowing_for=, show="result table"` | R + Python | polars | result | relative 1e-09 | pass |
+| `trade_off_curve get_numbers_drawn()` | R + Python | pandas | result | relative 1e-12 | pass |
 | `sdata.table` | pandas | pandas | table | relative 1e-09 | pass |
 | `sdata.get_example` | pandas | pandas | table | relative 1e-09 | pass |
 | `sdata.chart` | seaborn | pandas | chart | relative 1e-09 | pass |
@@ -4107,6 +4155,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.add_correspondence_axes` (1): correspondence analysis as ter Braak's CA in vegan (cca with no explaining columns).
 - `table.add_correspondence_axes` (2): row scores with scaling = "sites" (vegan's default is "species").
 - `table.add_correspondence_axes` (3): each axis turned so its biggest value is positive.
+- `table.add_correspondence_axes show="numbers"` (1): each axis's eigenvalue and share of the inertia as vegan's summary(eigenvals()) gives them.
+- `table.add_correspondence_axes show="numbers"` (2): the total inertia is vegan's tot.chi, the sum of all the eigenvalues.
 - `table.find_hidden_factors_behind` (1): with_seed=1: parallel analysis compares the data with random data, and the oblimin rotation starts from random numbers too, so R's random numbers are seeded and the answer repeats.
 - `table.find_hidden_factors_behind` (2): how_many="automatic": parallel analysis (Horn 1965) keeps the factors that stand out more than in random data of the same size; the 'eigenvalue above 1' rule finds too many (Zwick & Velicer 1986).
 - `table.find_hidden_factors_behind` (3): test_method="minres", psych's default: it gives an answer where maximum likelihood can fail (base R factanal uses maximum likelihood).
@@ -4206,6 +4256,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `sdata.get_example from_r_package=` (1): R itself loads the dataset (utils::data, from the data file that holds it: lung is kept in "cancer"); groups (factors) become text and R's NA empty cells; row names that carry information become a first column "row name".
 - `table.check_model_of show="numbers"` (1): Koenker's studentised Breusch-Pagan test (robust=True, as R lmtest::bptest's default), which does not assume bell-shaped errors.
 - `table.find_correlation_between show="result table"` (1): the 95 % interval of Pearson's r from Fisher's z, as SciPy pearsonr and R cor.test.
+- `table.find_correlation_between allowing_for=, show="result table"` (1): the partial correlation of R ppcor::pcor.test(): the link left after taking out what both columns share with the third; its statistic is t (z for Kendall) and it gives no interval.
+- `trade_off_curve get_numbers_drawn()` (1): the best cut-off by Youden's index, R pROC::coords("best", best.method = "youden"); its threshold is the value of the marked dot, its sensitivity the dot's y.
 - `sdata.table` (1): the separator is guessed from the file (sep=None), so a file with ; or tabs between the values is read too; separator= sets it yourself.
 - `sdata.get_example` (1): a column of dates is read as dates (parse_dates=), so date words work on it at once.
 - `sdata.numbers` (1): the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.
