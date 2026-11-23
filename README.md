@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1640 reliability checks.** Every word hands the work to
+87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 1661 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -27,7 +27,7 @@ Approximate, counted on 2026-11-21.
 |---|---|---|
 | Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 400 commands and 371 options, about 93 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 1454 lines and 1441 function calls in the 224 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 620 lines and 723 calls (median 2 lines a task), about 57 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 1469 lines and 1452 function calls in the 227 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 629 lines and 733 calls (median 2 lines a task), about 57 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
