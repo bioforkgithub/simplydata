@@ -108,6 +108,10 @@ def test_in_sheet_needs_an_excel_file(tmp_path, kind):
     ("", r"at least one letter or digit"),
     ("   ", r"at least one letter or digit"),
     (2025, r'in_sheet= is the name of a sheet, in quotes: in_sheet="2025"'),
+    ("'raw", r"apostrophe \('\) at the start or the end of a sheet name\. Try in_sheet=\"raw\""),
+    ("raw'", r"apostrophe .* Try in_sheet=\"raw\""),
+    ("History", r'Excel keeps the sheet name "History" for itself \(in any capitals\)'),
+    ("HISTORY", r'in_sheet="HISTORY" cannot be used'),
 ])
 def test_sheet_names_follow_excel_rules(tmp_path, name, message):
     results = tmp_path / "results.xlsx"
@@ -201,3 +205,11 @@ def test_the_underneath_box_needs_mode_a():
     changed = {"pandas": entry.code["pandas"].replace('mode="a", if_sheet_exists="replace"', 'mode="w"')}
     outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
     assert outcomes and not any(o.passed for o in outcomes)
+
+
+def test_apostrophe_inside_and_history_inside_a_name_are_allowed(tmp_path):
+    results = tmp_path / "results.xlsx"
+    made_up()[0].save(results, in_sheet="Ben's marks")
+    made_up()[1].save(results, in_sheet="History of changes")
+    assert sheets_in(results) == ["Ben's marks", "History of changes"]
+    assert sdata.table(results, sheet="Ben's marks").count_rows() == 3

@@ -259,7 +259,8 @@ class BaseTable:
         If the file does not exist yet, it is made with that sheet. If it already has a sheet of that
         name, that sheet is replaced (simplydata says so) and the other sheets are kept. Only .xlsx
         files have sheets. Sheet names follow Excel's rules: at most 31 characters, none of
-        : \\ / ? * [ ], and Excel counts "Cleaned" and "cleaned" as the same name.
+        : \\ / ? * [ ], no apostrophe at the start or end, not "History" (Excel keeps it), and Excel
+        counts "Cleaned" and "cleaned" as the same name.
 
         Mind the two names: sheet= reads a sheet, in_sheet= saves one. To read the workbook back:
             sdata.table("results.xlsx", sheet="2026")               one sheet
@@ -312,7 +313,8 @@ class BaseTable:
         """table.save("x.xlsx", in_sheet=...): pandas ExcelWriter with openpyxl, adding to the file if it exists.
 
         The sheet name is checked first with Excel's rules as openpyxl states them (its INVALID_TITLE_REGEX, its
-        31-character warning, a name of at least one character), so a bad name never leaves a half-written file.
+        31-character warning, a name of at least one character) and Excel's own two (the reserved name "History" in any
+        capitals, no apostrophe at the start or end), so a bad name never leaves a half-written file.
         """
         import pandas as pd
         from openpyxl.workbook.child import INVALID_TITLE_REGEX
@@ -330,6 +332,12 @@ class BaseTable:
         if len(in_sheet) > 31:
             raise SimplydataError(f'Excel allows at most 31 characters in a sheet name; "{in_sheet}" has '
                                   f'{len(in_sheet)}. Try in_sheet="{in_sheet[:31].strip()}".')
+        if in_sheet.startswith("'") or in_sheet.endswith("'"):
+            raise SimplydataError(f"Excel does not allow an apostrophe (') at the start or the end of a sheet name. "
+                                  f"Try in_sheet=\"{in_sheet.strip(chr(39)).strip() or 'cleaned'}\".")
+        if in_sheet.lower() == "history":
+            raise SimplydataError(f'Excel keeps the sheet name "History" for itself (in any capitals), so '
+                                  f'in_sheet="{in_sheet}" cannot be used. Try in_sheet="history of changes".')
         if not path.exists():
             with pd.ExcelWriter(path, engine="openpyxl") as writer:
                 self._frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)

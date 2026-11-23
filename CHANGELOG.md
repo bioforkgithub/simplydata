@@ -10,8 +10,8 @@ working for one release and prints a one-line note with its new name.
 - `table.save("results.xlsx", in_sheet="cleaned")` saves the table as one sheet and keeps the other sheets of the
   file (pandas `ExcelWriter(mode="a", if_sheet_exists="replace")` with openpyxl). A sheet of the same name is
   replaced, and simplydata says so; a file that does not exist is made. Sheet names follow Excel's rules (at most 31
-  characters, none of `: \ / ? * [ ]`, the same name in other capitals counts as the same sheet). Only .xlsx files
-  have sheets. `sheet=` reads a sheet, `in_sheet=` saves one; `sheet_name=` (pandas) and `sheetName=` (R openxlsx)
+  characters, none of `: \ / ? * [ ]`, no apostrophe at the start or end, not `History`, and the same name in other
+  capitals counts as the same sheet). Only .xlsx files have sheets. `sheet=` reads a sheet, `in_sheet=` saves one; `sheet_name=` (pandas) and `sheetName=` (R openxlsx)
   point to `in_sheet=`. Without `in_sheet=`, saving replaces the whole file, as before.
 - `sdata.table("results.xlsx", sheet="all")`: when the sheets do not have the same columns, the message still lists
   the differing columns and now gives a line to copy for each sheet, such as
