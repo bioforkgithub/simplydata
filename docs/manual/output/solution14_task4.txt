@@ -1,10 +1,11 @@
-Outliers in "marks" by Tukey's rule: values more than 1.5 x IQR below the first quartile (Q1) or above the third quartile (Q3).
+The average of "marks" for each "class" and "name": A / Asha 68, A / Ben 80.67, A / Chen 62, A / Dina 70, A / Emil 69.67, A / Fatima 80.67, B / Gus 64.67, B / Hana 79.67 ... and 10 more (the new table has them all).
+Outliers in "average of marks" by Tukey's rule: values more than 1.5 x IQR below the first quartile (Q1) or above the third quartile (Q3).
 IQR, the interquartile range, is Q3 - Q1: the spread of the middle half of the values.
 For each class:
-  A: below 34.88 or above 107.88 (Q1 = 62.25, Q3 = 80.5); 0 rows found
-  B: below 33.25 or above 97.25 (Q1 = 57.25, Q3 = 73.25); 1 row found
-  C: below 14.88 or above 103.88 (Q1 = 48.25, Q3 = 70.5); 0 rows found
-Removed 1 of 54 rows. 53 rows left.
-The average "marks" is 71.8 in A, 66.1 in B and 58.6 in C. Omega-squared = 0.109 (95 % CI 0 to 0.272): the groups explain about 11 % of the differences in "marks".
-If the groups were truly alike, differences this big or bigger between them would turn up in about 3 of 100 studies like this one (p = 0.028).
-Test: Welch's one-way ANOVA (F = 3.97, df = 2 and 33.3), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair_of("marks", for_each_group_in="class").
+  A: below 54.04 or above 92.38 (Q1 = 68.42, Q3 = 78); 0 rows found
+  B: below 51.33 or above 74.67 (Q1 = 60.08, Q3 = 65.92); 1 row found
+  C: below 29.62 or above 84.62 (Q1 = 50.25, Q3 = 64); 0 rows found
+Removed 1 of 18 rows. 17 rows left.
+The average "average of marks" is 71.8 in A, 61.2 in B and 58.6 in C. Omega-squared = 0.291 (95 % CI 0 to 0.576): the groups explain about 29 % of the differences in "average of marks".
+If the groups were truly alike, differences this big or bigger between them would turn up in about 4 of 100 studies like this one (p = 0.042).
+Test: Welch's one-way ANOVA (F = 4.58, df = 2 and 9.14), the usual test for three or more averages; it does not assume the groups have the same spread. To see which groups differ: table.compare_each_pair_of("average of marks", for_each_group_in="class").
