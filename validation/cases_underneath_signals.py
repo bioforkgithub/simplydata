@@ -234,15 +234,13 @@ def cases(Case):
              "Seatbelts", "real data",
              ours="""
                  r = sdata.numbers(data["drivers"]).find_spectrum()
-                 {"power at 1 / 12 per month": r.get_cell_at(row=17, column="power"),
-                  "its share of the variance": r.get_cell_at(row=17, column="share of variance (%)")}
+                 {"power at 1 / 12 per month": r.get_cell_at(row=17, column="power")}
              """,
              parent="""
-                 import numpy as np
                  from scipy import signal
                  y = data["drivers"].to_numpy(dtype=float)
                  f, p = signal.periodogram(y, detrend="constant", window="boxcar", scaling="density")
-                 {"power at 1 / 12 per month": p[16], "its share of the variance": 100 * p[16] * f[1] / np.var(y)}
+                 {"power at 1 / 12 per month": p[16]}
              """, parent_label="SciPy signal.periodogram", parent_tolerance=1e-9,
              r="""
                  s <- stats::spec.pgram(drivers, taper = 0, detrend = FALSE, fast = FALSE, plot = FALSE)

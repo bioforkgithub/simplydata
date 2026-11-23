@@ -9,14 +9,16 @@ matplotlib.
 
 from . import Entry
 
-SENSOR = 'df = sdata.get_example("sensor").sort_values("time")'
+SENSOR = 'df = pd.read_csv("sensor.csv").sort_values("time")'
 HARBOUR = """
-    visitors_table = sdata.get_example("visitors")
+    import pandas as pd
+    visitors_table = pd.read_csv("visitors.csv", parse_dates=["month"])
     harbour = visitors_table[visitors_table["museum"] == "Harbour Museum"].sort_values("month")
     x = harbour["visitors"].to_numpy(dtype=float)
 """
 SIGNAL = """
-    x = sdata.get_example("sensor").sort_values("time")["signal"].to_numpy(dtype=float)
+    import pandas as pd
+    x = pd.read_csv("sensor.csv").sort_values("time")["signal"].to_numpy(dtype=float)
 """
 STEP_UP = """
     import numpy as np
@@ -76,13 +78,14 @@ ENTRIES = [
         word="table.add_trend_and_season",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year")
         """,
         code={"statsmodels": """
+            import pandas as pd
             from statsmodels.tsa.seasonal import STL
-            df = sdata.get_example("visitors")
+            df = pd.read_csv("visitors.csv", parse_dates=["month"])
             df = df[df["museum"] == "Harbour Museum"].sort_values("month")
             # add_trend_and_season("visitors", sorted_by="month", repeats_every="year")
             stl = STL(df["visitors"].to_numpy(dtype=float), period=12,  # (1)
@@ -109,7 +112,7 @@ ENTRIES = [
         word="nums.find_autocorrelation",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.find_autocorrelation()
         """,
         code={"statsmodels": """
@@ -117,7 +120,7 @@ ENTRIES = [
             from scipy import stats
             from statsmodels.stats.diagnostic import acorr_ljungbox
             from statsmodels.tsa.stattools import acf
-            x = sdata.get_example("sensor")["signal"].to_numpy(dtype=float)
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy(dtype=float)
             # find_autocorrelation()
             k = int(np.floor(10 * np.log10(len(x))))               # (1)
             r = acf(x, nlags=k, adjusted=False, fft=False)[1:]     # (2)
@@ -141,7 +144,7 @@ ENTRIES = [
         word="table.check_steady_over_time",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.check_steady_over_time("signal", sorted_by="time")
         """,
         code={
@@ -219,7 +222,7 @@ ENTRIES += [
         word="nums.forecast",
         data="visitors",
         ours="""
-            nums = sdata.numbers(sdata.get_example("visitors")["visitors"][:144])
+            nums = sdata.get_example("visitors").keep_rows_by_position(1, to=144).get_column("visitors")
             nums.forecast(steps_ahead=12, repeats_every=12)
         """,
         code={
@@ -237,7 +240,8 @@ ENTRIES += [
             """,
         },
         r_inputs="""
-            x = sdata.get_example("visitors")["visitors"].to_numpy(dtype=float)[:144]
+            import pandas as pd
+            x = pd.read_csv("visitors.csv", parse_dates=["month"])["visitors"].to_numpy(dtype=float)[:144]
         """,
         r_packages=("forecast",),
         compare="table",
@@ -255,7 +259,7 @@ ENTRIES += [
         word="table.compare_forecasts_for",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year")
         """,
@@ -267,8 +271,9 @@ ENTRIES += [
                 fs <- list(forecast::naive(y, h = 12), forecast::snaive(y, h = 12),
                            forecast::rwf(y, h = 12, drift = TRUE),
                            forecast::forecast(stats::HoltWinters(y), h = 12))
-                a <- sapply(fs, function(f) forecast::accuracy(f, test)["Test set", c("MAE", "RMSE", "MAPE", "MASE")])
-                list(mae = a[1, ], rmse = a[2, ], mape = a[3, ], mase = a[4, ])   # (2)
+                a <- sapply(fs, function(f) forecast::accuracy(f, stats::ts(test, frequency = 12,     # (2)
+                    start = stats::tsp(f$mean)[1]))["Test set", c("MAE", "RMSE", "MAPE", "MASE")])
+                list(mae = a[1, ], rmse = a[2, ], mape = a[3, ], mase = a[4, ])
             """,
             "Python": """
                 import pandas as pd
@@ -284,8 +289,9 @@ ENTRIES += [
         compare="table",
         tolerance=1e-9,
         choices=("each method is fitted on all but the last 12 readings (check_on_last=12) and forecasts them.",
-                 "MASE divides the average error by the average error of the same season last time inside the fitted "
-                 "readings (forecast::accuracy on a seasonal series; the last value without repeats_every=).",
+                 "the held-back readings are given to forecast::accuracy as a series with 12 readings a cycle, so MASE "
+                 "divides the average error by that of the same season last time inside the fitted readings (the last "
+                 "value without repeats_every=); given as plain numbers, accuracy would scale by the last value.",
                  "the methods are ranked by MASE, best first.",),
         python_note="statsmodels has the methods but not R's intervals and accuracy measures, so every forecast and "
                     "error comes from R forecast.",
@@ -348,13 +354,13 @@ ENTRIES += [
         word="table.find_each_dip_that",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.035)
         """,
         code={"SciPy": """
             import pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             # find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.035)
             y, step = -df["signal"].to_numpy(), 0.005                       # (1)
             dips, _ = signal.find_peaks(y, height=1, distance=round(0.035 / step, 9))   # (2)
@@ -378,29 +384,27 @@ ENTRIES += [
         word="table.find_spectrum_of",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.find_spectrum_of("signal", sorted_by="time")
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             y = df["signal"].to_numpy()
             # find_spectrum_of("signal", sorted_by="time")
             f, p = signal.periodogram(y, fs=1 / 0.005, detrend="constant",          # (1)
                                       window="boxcar", scaling="density")       # (2)
             with np.errstate(divide="ignore"):
                 every = 1 / f
-            pd.DataFrame({"frequency": f, "repeats every": every, "power": p,
-                          "share of variance (%)": 100 * p * (f[1] - f[0]) / np.var(y)})   # (3)
+            pd.DataFrame({"frequency": f, "repeats every": every, "power": p})
         """},
         compare="table",
         tolerance=1e-9,
         choices=("sorted_by=\"time\" gives the time between readings (0.005), so the frequencies are per second.",
                  "the periodogram as SciPy makes it: the average taken away, no taper, one-sided and scaled so that "
                  "power x frequency step adds up to the variance; that is 2 x R spec.pgram(x, taper = 0, detrend = "
-                 "FALSE, fast = FALSE)$spec at every frequency but the top one.",
-                 "the share of the variance divides by the variance with n, so the shares add up to 100 %.",),
+                 "FALSE, fast = FALSE)$spec at every frequency but the top one.",),
         also="test_method=\"welch\" (SciPy welch, pieces with half overlap) and \"lomb-scargle\" (R lomb::lsp itself, "
              "for uneven times) are the other methods. simplydata also names the 3 strongest cycles.",
     ),
@@ -408,20 +412,19 @@ ENTRIES += [
         word="nums.find_spectrum",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.find_spectrum()
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
             from scipy import signal
-            x = sdata.get_example("sensor")["signal"].to_numpy()
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy()
             # find_spectrum()
             f, p = signal.periodogram(x, fs=1.0, detrend="constant", window="boxcar",   # (1)
                                       scaling="density")                            # (2)
             with np.errstate(divide="ignore"):
                 every = 1 / f
-            pd.DataFrame({"frequency": f, "repeats every": every, "power": p,
-                          "share of variance (%)": 100 * p * (f[1] - f[0]) / np.var(x)})
+            pd.DataFrame({"frequency": f, "repeats every": every, "power": p})
         """},
         compare="table",
         tolerance=1e-9,
@@ -436,12 +439,13 @@ ENTRIES += [
         word="nums.keep_each_frequency_that",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.keep_each_frequency_that(is_below=10, time_step=0.005)
         """,
         code={"SciPy": """
+            import pandas as pd
             from scipy import signal
-            x = sdata.get_example("sensor")["signal"].to_numpy(dtype=float)
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy(dtype=float)
             # keep_each_frequency_that(is_below=10, time_step=0.005)
             sos = signal.butter(4, 10, btype="lowpass", output="sos", fs=1 / 0.005)   # (1)
             signal.sosfiltfilt(sos, x)                                               # (2)
@@ -459,12 +463,13 @@ ENTRIES += [
         word="nums.remove_each_frequency_that",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
         """,
         code={"SciPy": """
+            import pandas as pd
             from scipy import signal
-            x = sdata.get_example("sensor")["signal"].to_numpy(dtype=float)
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy(dtype=float)
             # remove_each_frequency_that(is_equal_to=50, time_step=0.005)
             b, a = signal.iirnotch(50, 50 / 1, fs=1 / 0.005)   # (1)
             signal.filtfilt(b, a, x)                           # (2)
@@ -482,14 +487,14 @@ ENTRIES += [
         word="table.add_filtered_column",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.sort_by("signal")              # the rows out of time order
             table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
         """,
         code={"SciPy": """
             import pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("signal", kind="stable")
+            df = pd.read_csv("sensor.csv").sort_values("signal", kind="stable")
             # add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")
             in_time = df.sort_values("time")                                    # (1)
             sos = signal.butter(4, 10, btype="lowpass", output="sos", fs=1 / 0.005)   # (2)
@@ -532,13 +537,14 @@ ENTRIES += [
         word="nums.find_envelope",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.find_envelope()
         """,
         code={"SciPy": """
+            import pandas as pd
             import numpy as np
             from scipy import signal
-            x = sdata.get_example("sensor")["signal"].to_numpy(dtype=float)
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy(dtype=float)
             # find_envelope()
             np.abs(signal.hilbert(x))
         """},
@@ -551,14 +557,14 @@ ENTRIES += [
         word="table.add_envelope_column",
         data="sensor",
         ours="""
-            table = sdata.table(sdata.get_example("sensor"))
+            table = sdata.get_example("sensor")
             table.sort_by("signal")              # the rows out of time order
             table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("signal", kind="stable")
+            df = pd.read_csv("sensor.csv").sort_values("signal", kind="stable")
             # add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")
             in_time = df.sort_values("time")
             z = signal.hilbert(in_time["signal"].to_numpy(dtype=float))    # (1)
@@ -654,12 +660,13 @@ ENTRIES += [
         word="nums.change_time_step",
         data="sensor",
         ours="""
-            nums = sdata.numbers(sdata.get_example("sensor")["signal"])
+            nums = sdata.get_example("sensor").get_column("signal")
             nums.change_time_step(to=0.01, time_step=0.005)
         """,
         code={"SciPy": """
+            import pandas as pd
             from scipy import signal
-            x = sdata.get_example("sensor")["signal"].to_numpy(dtype=float)
+            x = pd.read_csv("sensor.csv")["signal"].to_numpy(dtype=float)
             # change_time_step(to=0.01, time_step=0.005)
             n_new = round(len(x) * 0.005 / 0.01)     # (1)
             signal.resample(x, n_new)                # (2)
@@ -997,15 +1004,16 @@ ENTRIES += [
         word="autocorrelation_bars",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
             chart.autocorrelation_bars("visitors", sorted_by="month")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from statsmodels.tsa.stattools import acf
-            df = sdata.get_example("visitors")
+            df = pd.read_csv("visitors.csv", parse_dates=["month"])
             y = df[df["museum"] == "Harbour Museum"].sort_values("month")["visitors"]
             # autocorrelation_bars("visitors", sorted_by="month")
             k = int(np.floor(10 * np.log10(len(y))))                       # (1)
@@ -1033,9 +1041,10 @@ ENTRIES += [
             chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from statsmodels.tsa.stattools import ccf
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             a, b = df["signal"], df["vibration"]
             # cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
             later, earlier = ccf(b, a, adjusted=False, fft=False)[:21], ccf(a, b, adjusted=False, fft=False)[:21]
@@ -1059,14 +1068,15 @@ ENTRIES += [
         word="lag_dots",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
             chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("visitors")
+            df = pd.read_csv("visitors.csv", parse_dates=["month"])
             y = df[df["museum"] == "Harbour Museum"].sort_values("month")["visitors"].reset_index(drop=True)
             fig, ax = plt.subplots()
             # lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
@@ -1093,9 +1103,10 @@ ENTRIES += [
             chart.peak_dots(is_at_least=1, apart=0.035)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             t, y = df["time"].to_numpy(), df["signal"].to_numpy()
             fig, ax = plt.subplots()
             ax.plot(t, y)
@@ -1120,9 +1131,10 @@ ENTRIES += [
             chart.spectrum("signal", sorted_by="time")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from scipy import signal
-            y = sdata.get_example("sensor").sort_values("time")["signal"].to_numpy()
+            y = pd.read_csv("sensor.csv").sort_values("time")["signal"].to_numpy()
             # spectrum("signal", sorted_by="time")
             f, p = signal.periodogram(y, fs=1 / 0.005, detrend="constant", window="boxcar", scaling="density")  # (1)
             fig, ax = plt.subplots()
@@ -1150,9 +1162,10 @@ ENTRIES += [
             chart.spectrum_over_time("signal", sorted_by="time", window=100)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             # spectrum_over_time("signal", sorted_by="time", window=100)
             f, t, p = signal.spectrogram(df["signal"].to_numpy(), fs=1 / 0.005, window="hann",   # (1)
                                          nperseg=100, noverlap=50, detrend="constant")      # (2)
@@ -1179,15 +1192,16 @@ ENTRIES += [
         word="trend_and_season",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
             chart.trend_and_season(x="month", y="visitors", repeats_every="year")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             from statsmodels.tsa.seasonal import STL
-            df = sdata.get_example("visitors")
+            df = pd.read_csv("visitors.csv", parse_dates=["month"])
             df = df[df["museum"] == "Harbour Museum"].sort_values("month")
             # trend_and_season(x="month", y="visitors", repeats_every="year")
             fit = STL(df["visitors"].to_numpy(dtype=float), period=12, seasonal=7, trend=23, low_pass=13,
@@ -1216,7 +1230,7 @@ ENTRIES += [
         word="forecast",
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart().draw_lines(x="month", y="visitors")
             chart.forecast(steps_ahead=12, repeats_every="year")
@@ -1230,7 +1244,7 @@ ENTRIES += [
             """,
             "matplotlib": """
                 import matplotlib.pyplot as plt, pandas as pd, seaborn as sns
-                df = sdata.get_example("visitors")
+                df = pd.read_csv("visitors.csv", parse_dates=["month"])
                 df = df[df["museum"] == "Harbour Museum"].sort_values("month")
                 fig, ax = plt.subplots()
                 sns.lineplot(df, x="month", y="visitors", ax=ax)
