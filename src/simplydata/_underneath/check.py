@@ -160,7 +160,8 @@ def chart_facts(ax) -> dict:
     dots              every dot's (x, y), group by group as drawn
     dot_size_shares   each dot's size as a share of the biggest (simplydata's look scales all sizes)
     dot_colour_groups which dots share a colour
-    lines             (x values, y values) of every line
+    lines             (x values, y values) of every line (names on a category axis read as their places 0, 1,
+                      2 ...; straight lines right across the chart are in ax_lines instead)
     labels            (x label, y label, title)
     ticks             the words under the x axis and beside the y axis
     legend            the legend's title and entries
@@ -179,7 +180,8 @@ def chart_facts(ax) -> dict:
     shapes            the corners of every filled shape that is not a bar (violins, boxes, bands)
     cells             the numbers behind each grid of coloured cells (a heatmap), its colour map and the two
                       numbers at the ends of the colour scale
-    line_styles       the dash pattern, the width and the zorder (drawing order) of every line
+    line_styles       the dash pattern, the width (none for a line of markers only), the zorder (drawing order)
+                      and the marker of every line
     text_places       each word on the chart (sorted): where it points (annotations), where it sits, its angle and
                       alignment, and the box behind it (or none)
     shape_colours     the fill colour of every filled shape that is not a bar (as #rrggbbaa)
@@ -187,8 +189,22 @@ def chart_facts(ax) -> dict:
                       colours of its bars, its drawing order and whether its background is drawn
     every_panel       for each set of axes shown in the figure (second y-axes too): its labels, title, dots,
                       bars, lines, filled shapes and axis ranges
+    grid              whether grid lines are shown across the x axis and across the y axis
+    fonts             the font each of the title, the x label and the y label is written in
+    polar_start       on a round (polar) chart: where 0 sits (the angle from the right, in radians) and the
+                      direction angles go (1 anticlockwise, -1 clockwise); empty on a flat chart
+    in_3d             on a 3D chart: the z label, the z range, every 3D dot's (x, y, z) and the height behind the
+                      colour of each piece of a surface; empty on a flat chart
+    segments          the short lines drawn as one set (vlines, hlines, error bars): their ends and their widths
+    insets            each small chart inside the chart (side histograms, zoom boxes): its place inside the chart
+                      and what it shows (as every_panel)
+    colour_bars       each colour bar beside the chart: its label and the range of its scale
+    ax_lines          each straight line drawn right across the chart (axline): a point on it, a second point or
+                      its slope
+    tick_places       where the ticks are, along the x axis and along the y axis (in the axis's own numbers: names
+                      under bars sit at 0, 1, 2 ...)
     """
-    from .._numbers_drawn import dots_of, lines_of, rectangles_of  # the readers of chart.get_numbers_drawn()
+    from .._numbers_drawn import dots_of, rectangles_of  # the readers of chart.get_numbers_drawn()
 
     bars = sorted(((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()), r.get_facecolor())
                    for r in rectangles_of(ax)), key=lambda b: b[:4])
@@ -212,7 +228,7 @@ def chart_facts(ax) -> dict:
         "dots": dots,
         "dot_size_shares": list(sizes / biggest) if sizes.size else [],
         "dot_colour_groups": _colour_groups(dot_colours),
-        "lines": [(x, y) for _, x, y in lines_of(ax)],
+        "lines": [_line_xy(line) for line in ax.get_lines() if not _is_ax_line(line)],
         "labels": (ax.get_xlabel(), ax.get_ylabel(), ax.get_title()),
         "ticks": ([t.get_text() for t in ax.get_xticklabels()], [t.get_text() for t in ax.get_yticklabels()]),
         "legend": (([legend.get_title().get_text()] + [t.get_text() for t in legend.get_texts()])
@@ -231,12 +247,81 @@ def chart_facts(ax) -> dict:
         "shapes": _shapes(ax),
         "cells": _cells(ax),
         "every_panel": [_panel(a) for a in _panels(ax)],
-        "line_styles": [(str(line.get_linestyle()), float(line.get_linewidth()), float(line.get_zorder()))
+        # a line drawn only as markers (linestyle "None") has no width to see, so its width is left out (nan)
+        "line_styles": [(str(line.get_linestyle()),
+                         float(line.get_linewidth()) if str(line.get_linestyle()) != "None" else math.nan,
+                         float(line.get_zorder()), str(line.get_marker()))
                         for line in ax.get_lines()],
         "text_places": sorted((_text_place(t) for t in ax.texts if _shown(t)), key=repr),
         "shape_colours": _shape_colours(ax),
         "panel_styles": [_panel_style(a) for a in _panels(ax)],
+        "grid": tuple(any(g.get_visible() for g in axis.get_gridlines()) for axis in (ax.xaxis, ax.yaxis)),
+        "fonts": tuple(t.get_fontname() for t in (ax.title, ax.xaxis.label, ax.yaxis.label)),
+        "polar_start": ((float(ax.get_theta_offset()), float(ax.get_theta_direction())) if ax.name == "polar"
+                        else ()),
+        "in_3d": _in_3d(ax),
+        "segments": [(_sized(np.concatenate(c.get_segments()) if c.get_segments() else []),
+                      list(np.asarray(c.get_linewidths(), dtype=float)))
+                     for c in ax.collections if c.__class__.__name__ == "LineCollection"],
+        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible()],
+        "colour_bars": [(a.get_ylabel() or a.get_xlabel(),
+                         tuple(map(float, a.get_ylim() if a.get_ylabel() or not a.get_xlabel() else a.get_xlim())))
+                        for a in (fig.axes if fig is not None else []) if a.get_label() == "<colorbar>"],
+        "ax_lines": [_ax_line(line) for line in ax.get_lines() if _is_ax_line(line)],
+        "tick_places": ([float(v) for v in ax.get_xticks()], [float(v) for v in ax.get_yticks()]),
     }
+
+
+def _is_ax_line(line) -> bool:
+    return line.__class__.__name__ in ("AxLine", "_AxLine")
+
+
+def _ax_line(line) -> tuple:
+    """(a point, a second point or None, the slope or None) of a straight line drawn with axline. matplotlib before
+    3.9 has no get_xy1/get_xy2/get_slope, only the private _xy1, _xy2, _slope."""
+    def read(name):
+        getter = getattr(line, f"get_{name}", None)
+        return getter() if getter is not None else getattr(line, f"_{name}", None)
+
+    xy1, xy2, slope = read("xy1"), read("xy2"), read("slope")
+    return (tuple(map(float, xy1)), None if xy2 is None else tuple(map(float, xy2)),
+            None if slope is None else float(slope))
+
+
+def _line_xy(line) -> tuple:
+    """(x values, y values) of a line as numbers; names on a category axis (an error bar at "A") as the places
+    matplotlib puts them (0, 1, 2 ...)."""
+    try:
+        return np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float)
+    except (TypeError, ValueError):
+        return (np.asarray(line.get_xdata(orig=False), dtype=float),
+                np.asarray(line.get_ydata(orig=False), dtype=float))
+
+
+def _in_3d(ax) -> tuple:
+    """(z label, z range, each 3D dot set's (x, y, z), each surface's heights): empty on a flat chart."""
+    if ax.name != "3d":
+        return ()
+    # matplotlib keeps the z of 3D dots only in the private _offsets3d; tests/test_underneath.py pins it
+    dots = [_sized(np.column_stack([np.ma.filled(np.ma.asarray(v, dtype=float), np.nan) for v in c._offsets3d]))
+            for c in ax.collections if c.__class__.__name__ == "Path3DCollection"]
+    heights = [_sized(np.ma.filled(np.ma.asarray(c.get_array(), dtype=float), np.nan))
+               for c in ax.collections if c.__class__.__name__ == "Poly3DCollection" and c.get_array() is not None]
+    return (ax.get_zlabel(), tuple(map(float, ax.get_zlim())), dots, heights)
+
+
+def _inset_place(ax, inset) -> tuple:
+    """[left, bottom, width, height] of a small chart inside ax, as parts of ax (rounded to 6 decimals)."""
+    locator = inset.get_axes_locator()
+    if locator is None:
+        return ()
+    try:
+        holder = inset.get_figure(root=False)
+    except TypeError:  # pragma: no cover - matplotlib before 3.10
+        holder = inset.get_figure()
+    box = locator(inset, None).transformed(holder.transSubfigure)
+    box = box.transformed(ax.transAxes.inverted())
+    return tuple(round(float(v), 6) for v in box.bounds)
 
 
 def _root(ax):
@@ -370,7 +455,8 @@ def _panel(ax) -> tuple:
     bars = sorted((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()))
                   for r in ax.patches if isinstance(r, Rectangle))
     # lines with no points (seaborn adds them for legend entries) show nothing, so they are left out
-    lines = [(_sized(line.get_xdata()), _sized(line.get_ydata())) for line in ax.get_lines() if len(line.get_xdata())]
+    lines = [tuple(_sized(v) for v in _line_xy(line)) for line in ax.get_lines()
+             if len(line.get_xdata()) and not _is_ax_line(line)]
     return (ax.get_xlabel(), ax.get_ylabel(), ax.get_title(), ax.get_title(loc="left"),
             _sized(dots) if dots else (0,), _sized(bars) if bars else (0,), lines, _shapes(ax),
             tuple(map(float, ax.get_xlim())), tuple(map(float, ax.get_ylim())))

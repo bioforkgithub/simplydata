@@ -1879,8 +1879,6 @@ both.show(rows=3)
   \item Looking never changes the table. Only steps that say what they change (\code{keep\_\allowbreak{}rows\_\allowbreak{}where}, \code{sort\_\allowbreak{}by} ...) do, and lesson 10 shows them.
   \item In Jupyter, VS Code or Spyder, write table on the last line of a cell to see it as a nice table.
   \item \code{sdata.\allowbreak{}table} reads the same files as \code{sdata.\allowbreak{}chart}: \code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}. For one sheet of an Excel file: \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}2026\textquotedbl{})}.
-  \item Every sheet at once: everything = \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}all\textquotedbl{})} gives one table with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from. Then \code{everything.\allowbreak{}count\_\allowbreak{}rows(for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})} counts the rows of each sheet, \code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})} gives a summary per sheet, and \code{everything.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}sheet\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}2026\textquotedbl{})} keeps the rows of one sheet (\code{everything.\allowbreak{}undo()} brings the others back). \code{sheet=\textquotedbl{}all\textquotedbl{}} works only when the sheets have the same columns; sheets with different data are read by name, one at a time, and simplydata prints a line to copy for each.
-  \item To write such a file, save each table as a sheet: \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})}, then \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})} keeps the first sheet and adds the second. \code{sheet=} reads a sheet; \code{in\_\allowbreak{}sheet=} saves one.
   \item The row numbers on the left start at 1, the way people count: the last row of a table of 54 rows is row 54. Lesson 10 uses these numbers to choose rows by their place.
   \item A folder works too: \code{sdata.\allowbreak{}table(\textquotedbl{}data/\textquotedbl{})} reads every table file in it. A web address works like a file name: \code{sdata.\allowbreak{}table(\textquotedbl{}https://example.\allowbreak{}org/data.\allowbreak{}csv\textquotedbl{})}.
   \item Files written in another way: \code{separator=\textquotedbl{};\textquotedbl{}}, \code{decimal\_\allowbreak{}mark=\textquotedbl{},\allowbreak{}\textquotedbl{}} (3,5 is three and a half), \code{thousands\_\allowbreak{}mark=\textquotedbl{}.\allowbreak{}\textquotedbl{}}, \code{empty\_\allowbreak{}values=[\textquotedbl{}NA\textquotedbl{},\allowbreak{} \textquotedbl{}-\textquotedbl{}]}, \code{skip\_\allowbreak{}rows=2} and \code{encoding=\textquotedbl{}latin-1\textquotedbl{}}.
@@ -1957,7 +1955,7 @@ table.save("lesson10_summer.xlsx")
   \item[5] Remove two columns we do not need.
   \item[6] Give the column \code{\textquotedbl{}temperature\textquotedbl{}} the shorter name \code{\textquotedbl{}temp\textquotedbl{}}.
   \item[7] Look at what is left: 6 rows and 5 columns.
-  \item[8] Save the table as an Excel file. A name ending in \code{.\allowbreak{}csv} saves a CSV file. \code{in\_\allowbreak{}sheet=\textquotedbl{}summer\textquotedbl{}} would save it as one sheet and keep the file's other sheets.
+  \item[8] Save the table as an Excel file. A name ending in \code{.\allowbreak{}csv} saves a CSV file.
 \end{lineexplain}
 \printedoutput{output/lesson10_example2.txt}
 \section*{Example 3}
@@ -5218,7 +5216,7 @@ In Jupyter, VS Code and Spyder charts appear by themselves.
 
 \wordfield{Good to know}{Not the same as the \code{show=} option inside \code{draw\_\allowbreak{}bars} and \code{draw\_\allowbreak{}lines}: for that, type \code{sdata.\allowbreak{}help(\textquotedbl{}show=\textquotedbl{})}.}
 
-\wordfield{Underneath}{matplotlib (pyplot.show)}
+\wordfield{Underneath}{matplotlib \code{barplot()}, \code{show()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5228,6 +5226,26 @@ chart.draw_bars(x="name", y="marks")
 chart.show()
 chart.save("marks.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_show.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+# show()
+plt.show()
+ax
+\end{lstlisting}
+\undertext{simplydata draws the chart afresh on a Figure of its own and hands it to a pyplot window only for the showing, so other simplydata charts do not pop up with it (\code{plt.\allowbreak{}show()} shows every open pyplot figure). In Jupyter, VS Code and Spyder a chart appears without \code{show()}. The test compares the chart that is shown, not the window. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the tick labels and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.save()}{word:save}
 Save the chart. \code{chart.\allowbreak{}save(\textquotedbl{}marks.\allowbreak{}png\textquotedbl{})} or \code{chart.\allowbreak{}save(\textquotedbl{}marks.\allowbreak{}tif\textquotedbl{},\allowbreak{} resolution=600)}
 
@@ -5482,7 +5500,8 @@ A line with the space under it coloured in.\\
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (\code{fill\_\allowbreak{}between}, or stackplot with \code{stacked=True})}
+\wordfield{Why this method}{\hyperref[basis:draw-area]{How simplydata chooses methods}, page \pageref{basis:draw-area}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{groupby().\allowbreak{}mean()}, \code{fill\_\allowbreak{}between()}, \code{plot()}, \code{set()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5491,6 +5510,30 @@ chart = sdata.chart(growth)
 chart.draw_area(x="year", y="population", colour="country", stacked=True)
 chart.save("draw_area.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_area.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+# draw_area(x="month_number", y="temperature")
+mean = df.groupby("month_number")["temperature"].mean()     # (1)
+ax.fill_between(mean.index, mean, color="#0072B2", alpha=0.35,
+                linewidth=0)                                 # (2)
+ax.plot(mean.index, mean, color="#0072B2")
+ax.set(xlabel="month_number", ylabel="temperature")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) several rows at the same x are averaged, as in \code{draw\_\allowbreak{}lines()}: here the 3 cities of each month.}
+\undertext{(2) the space under the line is filled down to 0 in the same colour, see-through (alpha 0.35), so areas of several groups show through each other.}
+\undertext{With \code{colour=} each group gets its own area; \code{stacked=True} piles them up (matplotlib stackplot, alpha 0.85) so the top edge is the total. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines, the filled shapes, the colours of the filled shapes and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_histogram()}{word:draw-histogram}
 Bars that count how many values fall in each range. \code{chart.\allowbreak{}draw\_\allowbreak{}histogram(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} with\_\allowbreak{}bins=10)} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
 
@@ -5701,7 +5744,8 @@ Without \code{values=} each slice shows how many rows have that label. \code{tra
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (Axes.pie)}
+\wordfield{Why this method}{\hyperref[basis:draw-pie]{How simplydata chooses methods}, page \pageref{basis:draw-pie}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{groupby().\allowbreak{}sum()}, \code{pie()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5710,6 +5754,31 @@ chart = sdata.chart(fruit)
 chart.draw_pie(labels="fruit", values="count")
 chart.save("draw_pie.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_pie.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same filled shapes, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("fruit.csv")
+fig, ax = plt.subplots()
+# draw_pie(labels="fruit", values="count")
+sizes = df.groupby("fruit", sort=False)["count"].sum()       # (1)
+ax.pie(sizes, labels=sizes.index, autopct="%1.0f%%",         # (2)
+       colors=["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9"],
+       startangle=90, counterclock=False,                    # (3)
+       wedgeprops=dict(edgecolor="white", linewidth=1.5))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one slice per label, the total of its values, in the order the labels first appear (without \code{values=} each slice counts the rows).}
+\undertext{(2) each slice is named and shows its share in whole percents.}
+\undertext{(3) the first slice starts at 12 o'clock and the slices go round clockwise, like a clock; matplotlib's own default starts at 3 o'clock and goes anticlockwise.}
+\undertext{Thin white edges keep the slices apart; the colours are simplydata's set (Okabe-Ito). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the filled shapes, the colours of the filled shapes, the words written on the chart and the place and angle of each word (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_polar()}{word:draw-polar}
 Dots on a round chart: how far round, and how far out.\\
 \codeline{chart.draw\_polar(angle=\textquotedbl{}wind\_direction\textquotedbl{}, distance=\textquotedbl{}wind\_speed\textquotedbl{}, colour=\textquotedbl{}city\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
@@ -5726,7 +5795,8 @@ Dots on a round chart: how far round, and how far out.\\
 \code{full\_\allowbreak{}turn=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (polar axes)}
+\wordfield{Why this method}{\hyperref[basis:draw-polar]{How simplydata chooses methods}, page \pageref{basis:draw-polar}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{set\_\allowbreak{}theta\_\allowbreak{}zero\_\allowbreak{}location()}, \code{set\_\allowbreak{}theta\_\allowbreak{}direction()}, \code{zip()}, \code{groupby()}, \code{scatter()}, \code{deg2rad()}, \code{legend()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5735,6 +5805,34 @@ chart = sdata.chart(weather)
 chart.draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
 chart.save("draw_polar.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_polar.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same where a round chart starts and which way it goes, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+# draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
+ax.set_theta_zero_location("N")
+ax.set_theta_direction(-1)                                   # (1)
+colours = ["#0072B2", "#E69F00", "#009E73"]
+for (city, rows), c in zip(df.groupby("city", sort=False), colours):
+    ax.scatter(np.deg2rad(rows["wind_direction"]), rows["wind_speed"],  # (2)
+               color=c, label=city, zorder=3)
+ax.legend(title="city", loc="upper left", bbox_to_anchor=(1.05, 1))  # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a compass: 0 at the top (north) and round clockwise, because the column is named like a direction (\code{wind\_\allowbreak{}direction}, bearing, heading) or \code{full\_\allowbreak{}turn=} is given; other angles start on the right and go anticlockwise, the way maths measures them.}
+\undertext{(2) the angles are in degrees and are turned into radians for matplotlib (\code{full\_\allowbreak{}turn=24} reads hours, \code{full\_\allowbreak{}turn=12} months).}
+\undertext{(3) the legend sits outside the circle, on its right.}
+\undertext{Each group gets its own colour, in the order the groups appear. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares where a round chart starts and which way it goes, the dots, which dots share a colour, the legend and the place of the legend (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_contour()}{word:draw-contour}
 A map where each colour band joins places with the same height.\\
 \codeline{chart.draw\_contour(x=\textquotedbl{}east\textquotedbl{}, y=\textquotedbl{}north\textquotedbl{}, z=\textquotedbl{}height\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}island\textquotedbl{}))}
@@ -5753,7 +5851,8 @@ A map where each colour band joins places with the same height.\\
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (contourf); SciPy (interpolate.griddata) for scattered points}
+\wordfield{Why this method}{\hyperref[basis:draw-contour]{How simplydata chooses methods}, page \pageref{basis:draw-contour}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{contourf()}, \code{to\_\allowbreak{}numpy()}, \code{contour()}, \code{colorbar()}, \code{set()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5762,6 +5861,35 @@ chart = sdata.chart(island)
 chart.draw_contour(x="east", y="north", z="height")
 chart.save("draw_contour.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_contour.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same filled shapes, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+df = pd.read_csv("island.csv")
+fig, ax = plt.subplots()
+# draw_contour(x="east", y="north", z="height")
+wide = df.groupby(["north", "east"])["height"].mean().unstack()   # (1)
+gx, gy = np.meshgrid(wide.columns, wide.index)
+bands = ax.contourf(gx, gy, wide.to_numpy(dtype=float), levels=10,
+                    cmap="viridis")                          # (2)
+ax.contour(bands, colors="white", linewidths=0.5, alpha=0.6,
+           linestyles="solid")                               # (3)
+fig.colorbar(bands, ax=ax, label="height")
+ax.set(xlabel="east", ylabel="north")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every east goes with every north here (a full grid), so the heights are drawn as they are; scattered points are first joined onto a 100 x 100 grid with straight lines in between (SciPy griddata, \code{method=\textquotedbl{}linear\textquotedbl{}}).}
+\undertext{(2) about 10 bands, in the viridis colours (safe for colour-blind readers); \code{use\_\allowbreak{}colour\_\allowbreak{}scale()} chooses others.}
+\undertext{(3) a line along the edge of every band, so neighbouring bands stay apart.}
+\undertext{The lines are thin (0.5 points), white and solid even below 0 (matplotlib dashes one-colour lines there); their colour, width and dashing are not compared. Several heights at one place are averaged. \code{filled=False} draws only the lines, with their heights written on them (clabel). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the filled shapes, the colours of the filled shapes, the axis labels and the colour bar (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_surface()}{word:draw-surface}
 A 3D landscape: \code{z=} is how high the ground is.\\
 \codeline{chart.draw\_surface(x=\textquotedbl{}east\textquotedbl{}, y=\textquotedbl{}north\textquotedbl{}, z=\textquotedbl{}height\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}island\textquotedbl{}))}
@@ -5777,7 +5905,8 @@ The points can be a full grid or scattered; scattered points are joined up.\\
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (mplot3d \code{plot\_\allowbreak{}surface}); SciPy (interpolate.griddata) for scattered points}
+\wordfield{Why this method}{\hyperref[basis:draw-surface]{How simplydata chooses methods}, page \pageref{basis:draw-surface}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{to\_\allowbreak{}numpy()}, \code{plot\_\allowbreak{}surface()}, \code{min()}, \code{max()}, \code{colorbar()}, \code{set()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5786,6 +5915,33 @@ chart = sdata.chart(island)
 chart.draw_surface(x="east", y="north", z="height")
 chart.save("draw_surface.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_surface.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same 3D dots, the surface and the z axis, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt, pandas as pd
+import numpy as np
+df = pd.read_csv("island.csv")
+fig = plt.figure()
+ax = fig.add_subplot(projection="3d")
+# draw_surface(x="east", y="north", z="height")
+wide = df.groupby(["north", "east"])["height"].mean().unstack()   # (1)
+gx, gy = np.meshgrid(wide.columns, wide.index)
+z = wide.to_numpy(dtype=float)
+surface = ax.plot_surface(gx, gy, z, cmap="viridis", vmin=z.min(), vmax=z.max(),
+                          linewidth=0, antialiased=True)
+fig.colorbar(surface, ax=ax, label="height", shrink=0.6, pad=0.1)
+ax.set(xlabel="east", ylabel="north", zlabel="height")
+ax
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a full grid (every east with every north) is drawn as it is; scattered points are first joined onto a 100 x 100 grid (SciPy griddata, straight lines in between).}
+\undertext{Several heights at one place are averaged. The colours run through viridis from the lowest to the highest point (\code{use\_\allowbreak{}colour\_\allowbreak{}scale()} chooses others); the colour map itself is not compared, only the height behind each piece's colour, the z axis and the colour bar. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the 3D dots, the surface and the z axis, the axis labels and the colour bar (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_dots\_3d()}{word:draw-dots-3d}
 Dots floating in a 3D box. \code{chart.\allowbreak{}draw\_\allowbreak{}dots\_\allowbreak{}3d(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}height\textquotedbl{},\allowbreak{} z=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
 
@@ -5800,7 +5956,8 @@ Dots floating in a 3D box. \code{chart.\allowbreak{}draw\_\allowbreak{}dots\_\al
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (mplot3d scatter)}
+\wordfield{Why this method}{\hyperref[basis:draw-dots-3d]{How simplydata chooses methods}, page \pageref{basis:draw-dots-3d}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{zip()}, \code{groupby()}, \code{scatter()}, \code{legend()}, \code{set()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5809,6 +5966,32 @@ chart = sdata.chart(marks)
 chart.draw_dots_3d(x="hours", y="height", z="marks", colour="class")
 chart.save("draw_dots_3d.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_dots_3d.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same 3D dots, the surface and the z axis, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("marks.csv")
+fig = plt.figure()
+ax = fig.add_subplot(projection="3d")
+# draw_dots_3d(x="hours", y="height", z="marks", colour="class")
+colours = ["#0072B2", "#E69F00", "#009E73"]
+for (name, rows), c in zip(df.groupby("class", sort=False), colours):  # (1)
+    ax.scatter(rows["hours"], rows["height"], rows["marks"], color=c,
+               depthshade=False, label=name)
+ax.legend(title="class")
+ax.set(xlabel="hours", ylabel="height", zlabel="marks")
+ax
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) words (or a number column with 8 values or fewer) give each group its own colour, in the order the groups appear; a number column with more values gets a colour scale and a colour bar instead.}
+\undertext{\code{depthshade=False} keeps every dot its own colour; matplotlib's own default fades the dots further back. The fading is not compared. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the 3D dots, the surface and the z axis, which dots share a colour, the legend and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_band()}{word:draw-band}
 A shaded band between a low and a high column, along x.\\
 \codeline{chart.draw\_band(x=\textquotedbl{}month\textquotedbl{}, between=[\textquotedbl{}lowest\textquotedbl{}, \textquotedbl{}highest\textquotedbl{}]) (with a table that has those columns)}
@@ -5824,7 +6007,8 @@ A shaded band between a low and a high column, along x.\\
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (\code{fill\_\allowbreak{}between})}
+\wordfield{Why this method}{\hyperref[basis:draw-band]{How simplydata chooses methods}, page \pageref{basis:draw-band}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{zip()}, \code{groupby()}, \code{fill\_\allowbreak{}between()}, \code{legend()}, \code{set\_\allowbreak{}xlabel()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5837,6 +6021,32 @@ chart.draw_band(x="month", between=["lowest", "highest"], labelled="4 degrees ei
 chart.draw_lines(x="month", y="temperature")
 chart.save("band.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_band.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same filled shapes, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("weather.csv")
+df["lowest"], df["highest"] = df["temperature"] - 4, df["temperature"] + 4
+fig, ax = plt.subplots()
+# draw_band(x="month", between=["lowest", "highest"], colour="city")
+colours = ["#0072B2", "#E69F00", "#009E73"]
+for (city, rows), c in zip(df.groupby("city", sort=False), colours):  # (1)
+    ax.fill_between(rows["month"], rows["lowest"], rows["highest"], color=c,
+                    alpha=0.25, linewidth=0, label=city)     # (2)
+ax.legend(title="city")
+ax.set_xlabel("month")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one band per group, in its group's colour and in the order the groups appear, each named in the legend.}
+\undertext{(2) light bands (alpha 0.25, \code{transparency=0.\allowbreak{}75}) with no edge line, so lines drawn on top stay clear.}
+\undertext{An empty cell leaves a gap in the band rather than a made-up edge, and a low edge above the high one stops with a message. \code{labelled=} names a single band in the legend. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the filled shapes, the colours of the filled shapes, the legend and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_map\_of\_empty\_cells()}{word:draw-map-of-empty-cells}
 A map of the empty cells: one row of the chart for each row of the table, one strip for each column, with empty cells coloured. \code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})})
 
@@ -5847,7 +6057,8 @@ Under each column it says how many of its cells are empty. \code{columns=[\textq
 \code{columns=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas finds the empty cells (isna); matplotlib (imshow) draws the grid}
+\wordfield{Why this method}{\hyperref[basis:draw-map-of-empty-cells]{How simplydata chooses methods}, page \pageref{basis:draw-map-of-empty-cells}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{isna()}, \code{map()}, \code{isinstance()}, \code{strip()}, \code{imshow()}, \code{to\_\allowbreak{}numpy()}, \code{ListedColormap()}, \code{set\_\allowbreak{}xticks()}, \code{sum().\allowbreak{}items()}, \code{set\_\allowbreak{}ylabel()}, \code{legend()}, \code{Patch()}, \code{sum().\allowbreak{}sum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5857,6 +6068,35 @@ chart.draw_map_of_empty_cells()
 chart.write_title_on_top("Where the empty cells are")
 chart.save("draw_map_of_empty_cells.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_map_of_empty_cells.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same coloured cells, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
+df = pd.DataFrame({"sales": [3.0, None, 5.0, 2.0], "shop": ["North", "  ", None, "East"]})
+# draw_map_of_empty_cells()
+empty = df.isna() | df.map(lambda v: isinstance(v, str) and not v.strip())  # (1)
+fig, ax = plt.subplots()
+ax.imshow(empty.to_numpy(dtype=float), aspect="auto", interpolation="nearest", vmin=0, vmax=1,
+          cmap=ListedColormap(["#E3E3E3", "#D55E00"]), extent=(-0.5, 1.5, 4.5, 0.5))  # (2)
+ax.set_xticks([0, 1], labels=[f"{c}\n{n} empty" for c, n in empty.sum().items()])  # (3)
+ax.set_ylabel("row (in table order)")
+ax.legend(handles=[Patch(color="#D55E00", label=f"empty ({empty.sum().sum()} cells)"),
+                   Patch(color="#E3E3E3", label="filled")], loc="upper left", bbox_to_anchor=(1.01, 1))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a cell is empty when it is missing or holds only spaces, as in the table words.}
+\undertext{(2) one strip per column and one line per row, the first row at the top; empty cells in vermilion on light grey (Okabe-Ito, safe for colour-blind readers).}
+\undertext{(3) under each column, how many of its cells are empty.}
+\undertext{\code{columns=} shows only some columns; thin gaps in the background colour separate the strips. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the coloured cells, the axis ranges, the tick labels, the legend and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.sticks()}{word:sticks}
 A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).
 
@@ -5871,7 +6111,8 @@ Good for values at separate places, such as correlations for each number of rows
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (vlines and plot)}
+\wordfield{Why this method}{\hyperref[basis:sticks]{How simplydata chooses methods}, page \pageref{basis:sticks}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{zip()}, \code{groupby()}, \code{vlines()}, \code{plot()}, \code{axhline()}, \code{legend()}, \code{set()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5880,6 +6121,32 @@ chart = sdata.chart(weather)
 chart.sticks(x="month_number", y="rain", colour="city")
 chart.save("sticks.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_sticks.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same short lines drawn as one set, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+# sticks(x="month_number", y="rain", colour="city")
+colours = ["#0072B2", "#E69F00", "#009E73"]
+for (city, rows), c in zip(df.groupby("city", sort=False), colours):
+    ax.vlines(rows["month_number"], 0, rows["rain"], color=c, linewidth=1.5, zorder=2)  # (1)
+    ax.plot(rows["month_number"], rows["rain"], "o", color=c, markersize=5, zorder=3, label=city)
+ax.axhline(0, color="black", linewidth=0.8, zorder=1)                # (2)
+ax.legend(title="city")
+ax.set(xlabel="month_number", ylabel="rain")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each value is a thin stick (1.5 points) from 0, with a small dot on top; \code{thickness=} sets the width.}
+\undertext{(2) a thin line marks 0, behind the sticks, so values below 0 hang down from it.}
+\undertext{matplotlib's \code{stem()} draws the same kind of chart. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the short lines drawn as one set, the lines, the legend and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Statistics}{group:Statistics}
 \wordentry{show=}{word:show-eq}
 What each bar or point on a line stands for, when a group has many rows.
@@ -5973,7 +6240,7 @@ For every x value the bar shows the average of y and how sure or spread it is: \
 \wordfield{Good to know}{Standard deviation or standard error? The standard deviation describes the values (how spread out they are). The standard error describes the average (how sure we are of it). Say in your caption which one you drew.}
 
 \wordfield{Why this method}{\hyperref[basis:draw-error-bars]{How simplydata chooses methods}, page \pageref{basis:draw-error-bars}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas (group averages) and matplotlib (errorbar); SciPy for the t-based confidence interval}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{groupby().\allowbreak{}agg()}, \code{errorbar()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5983,6 +6250,31 @@ chart.draw_lines(x="subject", y="marks", colour="class")
 chart.draw_error_bars("standard error")
 chart.save("draw_error_bars.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_error_bars.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same short lines drawn as one set, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="class", y="marks", ax=ax)
+# draw_error_bars(): the standard deviation
+summary = df.groupby("class", sort=False)["marks"].agg(["mean", "std"])  # (1)
+ax.errorbar(summary.index, summary["mean"], yerr=summary["std"], fmt="_",  # (2)
+            markersize=16, markeredgewidth=2, capsize=4, elinewidth=1.5,
+            capthick=1.5, zorder=3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the standard deviation with n - 1 (pandas std), empty cells skipped; \code{\textquotedbl{}standard error\textquotedbl{}} divides it by the square root of n, \code{\textquotedbl{}confidence interval\textquotedbl{}} is the t interval of the mean.}
+\undertext{(2) on dots a short wide dash marks each average, and the bars end in caps.}
+\undertext{A line is printed saying which error was drawn. With colour groups the bars (with their lines and dots) move a little apart so they do not hide each other; \code{dodge=False} keeps them on the true x. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the short lines drawn as one set, the lines, the style and width of each line and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.fit\_line()}{word:fit-line}
 A straight line that fits the dots best (linear regression). \code{chart.\allowbreak{}fit\_\allowbreak{}line()}
 
@@ -6046,7 +6338,7 @@ A curve that fits the dots best. \code{chart.\allowbreak{}fit\_\allowbreak{}curv
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:fit-curve]{How simplydata chooses methods}, page \pageref{basis:fit-curve}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (least squares on the powers of x), drawn with matplotlib}
+\wordfield{Underneath}{NumPy \code{scatterplot()}, \code{polynomial.\allowbreak{}Polynomial.\allowbreak{}fit()}, \code{linspace()}, \code{min()}, \code{max()}, \code{plot()}, \code{curve()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6056,6 +6348,32 @@ chart.draw_dots(x="month_number", y="temperature", colour="city")
 chart.fit_curve(of_degree=2)
 chart.save("fit_curve.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_fit_curve.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="month_number", y="temperature", ax=ax)
+# fit_curve()
+curve = np.polynomial.Polynomial.fit(df["month_number"], df["temperature"],
+                                     deg=2)                  # (1)
+xs = np.linspace(df["month_number"].min(), df["month_number"].max(), 200)  # (2)
+ax.plot(xs, curve(xs))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a curve with one bend (degree 2) unless \code{of\_\allowbreak{}degree=} says otherwise, fitted by least squares on the powers of x mapped onto -1 to 1, which keeps big x values accurate: simplydata runs statsmodels WLS on them (the engine of \code{table.\allowbreak{}fit\_\allowbreak{}curve}); NumPy's Polynomial.fit, shown here, gives the same curve.}
+\undertext{(2) the curve is drawn only over the range of x in the data, never past it.}
+\undertext{Each colour group gets its own curve; \code{show\_\allowbreak{}equation=True} writes the equation and R squared. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.fit\_formula()}{word:fit-formula}
 The curve of a formula fitted to the dots. \code{chart.\allowbreak{}fit\_\allowbreak{}formula(\textquotedbl{}population = a * exp(b * (year - 2000))\textquotedbl{})}
 
@@ -6128,7 +6446,7 @@ The parameters are found by maximum likelihood, as \code{table.\allowbreak{}fit\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:fit-distribution]{How simplydata chooses methods}, page \pageref{basis:fit-distribution}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (scipy.stats, maximum likelihood as \code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to}), drawn with matplotlib}
+\wordfield{Underneath}{SciPy \code{histplot()}, \code{norm.\allowbreak{}fit()}, \code{dropna()}, \code{linspace()}, \code{patches.\allowbreak{}get\_\allowbreak{}width()}, \code{plot()}, \code{norm.\allowbreak{}pdf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6138,6 +6456,34 @@ chart.draw_histogram(x="marks", show="density")
 chart.fit_distribution("normal")
 chart.save("fit_distribution.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_fit_distribution.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from scipy import stats
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.histplot(df, x="marks", bins=10, ax=ax)
+# fit_distribution("normal")
+average, spread = stats.norm.fit(df["marks"].dropna())          # (1)
+xs = np.linspace(*ax.dataLim.intervalx, 200)                     # (2)
+width = ax.patches[0].get_width()
+ax.plot(xs, stats.norm.pdf(xs, average, spread) * len(df) * width)  # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the values are found by maximum likelihood, as R MASS::\code{fitdistr()}: for the normal distribution simplydata works them out directly (the average, and the standard deviation dividing by n, not n - 1), which equals stats.norm.fit. They are printed once.}
+\undertext{(2) the curve runs over the x range of the histogram, at 200 points.}
+\undertext{(3) over a histogram of counts the curve is scaled to the bars: density x number of values x bar width (x 100 x bar width for percents; a density histogram needs no scaling).}
+\undertext{Each colour group gets its own curve; \code{distribution=} takes any name of \code{sdata.\allowbreak{}distribution}, such as \code{\textquotedbl{}gamma\textquotedbl{}} or \code{\textquotedbl{}lognormal\textquotedbl{}}. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.fit\_dose\_response()}{word:fit-dose-response}
 A dose-response curve through the dots, with its ED50 in the legend. \code{chart.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response()}
 
@@ -6210,7 +6556,8 @@ distribution: its density curve, or for whole-number distributions (binomial, po
 \code{show=} & normally \code{\textquotedbl{}density\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (the formula on a grid of x values) or scipy.stats (a distribution), drawn with matplotlib}
+\wordfield{Why this method}{\hyperref[basis:draw-curve]{How simplydata chooses methods}, page \pageref{basis:draw-curve}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{histplot()}, \code{linspace()}, \code{patches.\allowbreak{}get\_\allowbreak{}width()}, \code{plot()}, \code{norm.\allowbreak{}pdf()}, \code{count()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6220,6 +6567,33 @@ chart.draw_histogram(x="marks", show="density")
 chart.draw_curve(sdata.distribution("normal", average=60, standard_deviation=15), labelled="a bell curve")
 chart.save("draw_curve.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_curve.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from scipy import stats
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.histplot(df, x="marks", bins=10, ax=ax)
+# draw_curve(the normal distribution with average 60 and standard deviation 15)
+xs = np.linspace(*ax.dataLim.intervalx, 200)                     # (1)
+width = ax.patches[0].get_width()
+ax.plot(xs, stats.norm.pdf(xs, 60, 15) * df["marks"].count() * width,  # (2)
+        color="black", linewidth=2, zorder=3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the curve runs over the x range of what is drawn (\code{between=} sets it), at 200 points (\code{steps=}).}
+\undertext{(2) over a histogram of counts the density is scaled to the bars (x number of values x bar width), and a note says so.}
+\undertext{A formula works too: \code{chart.\allowbreak{}draw\_\allowbreak{}curve(\textquotedbl{}y = 100 * exp(-0.\allowbreak{}3 * x)\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 10])}. Whole-number distributions (binomial, poisson ...) are drawn as the chance of each value; \code{show=\textquotedbl{}cumulative\textquotedbl{}} draws the chance at or below x. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines, the style and width of each line and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_smooth\_line()}{word:draw-smooth-line}
 A smooth line that follows the dots (LOWESS). \code{chart.\allowbreak{}draw\_\allowbreak{}smooth\_\allowbreak{}line()}
 
@@ -6596,7 +6970,7 @@ A smooth curve that is high where many values are. \code{chart.\allowbreak{}draw
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-density]{How simplydata chooses methods}, page \pageref{basis:draw-density}: the default, the evidence and the checks.}
-\wordfield{Underneath}{seaborn (kdeplot)}
+\wordfield{Underneath}{seaborn \code{kdeplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6605,6 +6979,27 @@ chart = sdata.chart(marks)
 chart.draw_density(x="marks", colour="class")
 chart.save("draw_density.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_density.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# draw_density(x="marks", colour="class")
+sns.kdeplot(df, x="marks", hue="class", common_norm=False,       # (1)
+            palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each group's curve has an area of 1 on its own (\code{common\_\allowbreak{}norm=False}), so a small group is not squashed flat; seaborn's own default shares one area between all the groups.}
+\undertext{The curve is seaborn's kernel density estimate (Scott's rule for the width). The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines, the colours and the legend (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_count\_bars()}{word:draw-count-bars}
 Bars that count how many rows each group has. \code{chart.\allowbreak{}draw\_\allowbreak{}count\_\allowbreak{}bars(x=\textquotedbl{}fruit\textquotedbl{},\allowbreak{} colour=\textquotedbl{}shop\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}fruit\textquotedbl{})})
 
@@ -6618,7 +7013,8 @@ Bars that count how many rows each group has. \code{chart.\allowbreak{}draw\_\al
 \code{transparency=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{seaborn (countplot)}
+\wordfield{Why this method}{\hyperref[basis:draw-count-bars]{How simplydata chooses methods}, page \pageref{basis:draw-count-bars}: the default, the evidence and the checks.}
+\wordfield{Underneath}{seaborn \code{countplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6627,6 +7023,27 @@ chart = sdata.chart(fruit)
 chart.draw_count_bars(x="fruit", colour="shop")
 chart.save("draw_count_bars.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_count_bars.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("fruit.csv")
+fig, ax = plt.subplots()
+# draw_count_bars(x="fruit", colour="shop")
+sns.countplot(df, x="fruit", hue="shop", palette=["#0072B2", "#E69F00"],
+              saturation=1, ax=ax)                               # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the exact colours (\code{saturation=1}), not seaborn's slightly duller ones.}
+\undertext{Each bar counts the rows of its group; \code{sideways=True} lays the bars down. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the colours, the legend and the tick labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_all\_dots()}{word:draw-all-dots}
 Every value as a dot, spread out so no dot hides another.\\
 \codeline{chart.draw\_all\_dots(x=\textquotedbl{}class\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
@@ -6684,7 +7101,7 @@ Small histograms along the top and right edges of a dots chart. \code{chart.\all
 \wordfield{Options}{none: just write the empty brackets.}
 
 \wordfield{Why this method}{\hyperref[basis:draw-side-histograms]{How simplydata chooses methods}, page \pageref{basis:draw-side-histograms}: the default, the evidence and the checks.}
-\wordfield{Underneath}{matplotlib (hist), with NumPy choosing the bins}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{inset\_\allowbreak{}axes()}, \code{hist()}, \code{histogram\_\allowbreak{}bin\_\allowbreak{}edges()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6694,6 +7111,33 @@ chart.draw_dots(x="hours", y="marks")
 chart.draw_side_histograms()
 chart.save("draw_side_histograms.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_side_histograms.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same small charts inside the chart, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# draw_side_histograms()
+top = ax.inset_axes([0, 1.02, 1, 0.18], sharex=ax)               # (1)
+right = ax.inset_axes([1.02, 0, 0.18, 1], sharey=ax)
+for side, column, way in ((top, "hours", "vertical"), (right, "marks", "horizontal")):
+    side.hist(df[column], bins=np.histogram_bin_edges(df[column], bins="auto"),  # (2)
+              orientation=way, histtype="stepfilled", alpha=0.8, linewidth=0)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) two thin histograms just outside the chart, along the top (x) and the right (y), sharing the chart's axes so each bar lines up with its dots.}
+\undertext{(2) the bins follow NumPy's \code{\textquotedbl{}auto\textquotedbl{}} rule (at most 50); with colour groups each group is an outline, so they stay readable where they overlap.}
+\undertext{seaborn's jointplot draws a similar figure on a grid of its own. The colours are not compared. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the small charts inside the chart and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_qq\_dots()}{word:draw-qq-dots}
 Dots that lie on a straight line when the values follow a normal (bell) curve.\\
 \codeline{chart.draw\_qq\_dots(\textquotedbl{}marks\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
@@ -6761,7 +7205,8 @@ Also called the empirical cumulative distribution (ECDF; seaborn's ecdfplot). It
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{seaborn (ecdfplot)}
+\wordfield{Why this method}{\hyperref[basis:draw-cumulative-share]{How simplydata chooses methods}, page \pageref{basis:draw-cumulative-share}: the default, the evidence and the checks.}
+\wordfield{Underneath}{seaborn \code{ecdfplot()}, \code{set\_\allowbreak{}ylabel()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6770,6 +7215,28 @@ chart = sdata.chart(marks)
 chart.draw_cumulative_share(x="marks", colour="class")
 chart.save("draw_cumulative_share.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_cumulative_share.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# draw_cumulative_share(x="marks", colour="class")
+sns.ecdfplot(df, x="marks", hue="class",
+             palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+ax.set_ylabel("share at or below")                               # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the y-axis is named in words, \code{\textquotedbl{}share at or below\textquotedbl{}}, not seaborn's \code{\textquotedbl{}Proportion\textquotedbl{}}.}
+\undertext{Each group's line climbs from 0 to 1 on its own, so groups of any size compare directly. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines, the axis labels and the legend (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{sdata.draw\_all\_pairs()}{word:sdata.draw-all-pairs}
 Every number column against every other. \code{sdata.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}pairs(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{}),\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}
 
@@ -6944,7 +7411,8 @@ observed against predicted values. \code{through=}(2, 10) makes the line pass th
 \code{thickness=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:draw-line-with-slope]{How simplydata chooses methods}, page \pageref{basis:draw-line-with-slope}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{axline()}, \code{legend()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6954,6 +7422,30 @@ chart.draw_dots(x="hours", y="hours")
 chart.draw_line_with_slope(1, through=(0, 0))
 chart.save("draw_line_with_slope.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_line_with_slope.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same straight lines right across the chart, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# draw_line_with_slope(10, labelled="10 marks an hour")
+line = ax.axline((0, 0), slope=10, color="grey", linestyle="--",     # (1)
+                 linewidth=1.5, zorder=2.5)
+ax.legend([line], ["10 marks an hour"])                          # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) through 0, 0 unless \code{through=} or \code{intercept=} says otherwise, right across the chart: a grey dashed line, 1.5 points wide, above bars and below dots (zorder 2.5).}
+\undertext{(2) \code{labelled=} names the line in the legend, after any groups already there.}
+\undertext{Ordinary axes only: on a log scale a straight line would bend, so simplydata stops with a message. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the straight lines right across the chart, the style and width of each line, the legend and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.shade\_between\_x()}{word:shade-between-x}
 Shade the band between two x values, behind the data. \code{chart.\allowbreak{}shade\_\allowbreak{}between\_\allowbreak{}x(6,\allowbreak{} 8)}
 
@@ -6964,7 +7456,8 @@ Shade the band between two x values, behind the data. \code{chart.\allowbreak{}s
 \code{colour=} & normally \code{\textquotedbl{}grey\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:shade-between-x]{How simplydata chooses methods}, page \pageref{basis:shade-between-x}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{lineplot()}, \code{axvspan()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -6974,6 +7467,28 @@ chart.draw_lines(x="month_number", y="temperature", colour="city")
 chart.shade_between_x(6, 8)
 chart.save("shade_between_x.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_shade_between_x.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+sns.lineplot(df, x="month_number", y="temperature", hue="city", errorbar=None,
+             palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
+# shade_between_x(6, 8)
+ax.axvspan(6, 8, color="grey", alpha=0.2, linewidth=0, zorder=0)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a light grey band (alpha 0.2) from the bottom of the chart to the top, between the two x values.}
+\undertext{The band is drawn behind everything else (zorder 0), so the data stay in front of it; the drawing order is not compared. The two ends may come in either order. The band is a rectangle: the test reads it, and its see-through grey, among the bars. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the colours, the lines and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.shade\_between\_y()}{word:shade-between-y}
 Shade the band between two y values, behind the data. \code{chart.\allowbreak{}shade\_\allowbreak{}between\_\allowbreak{}y(40,\allowbreak{} 60)}
 
@@ -7287,7 +7802,8 @@ column is the column whose words are written (or a list: one name for each dot).
 \code{colour=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (annotate), with simplydata choosing a free place for each name}
+\wordfield{Why this method}{\hyperref[basis:write-names-on-dots]{How simplydata chooses methods}, page \pageref{basis:write-names-on-dots}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{zip()}, \code{annotate()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7298,6 +7814,34 @@ chart.draw_dots(x="hours", y="marks")
 chart.write_names_on_dots("name")
 chart.save("names_on_dots.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_write_names_on_dots.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same place and angle of each word, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+df = df[(df["subject"] == "Maths") & (df["class"] == "A")]
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# write_names_on_dots("name"): the side of each name is what simplydata's search found
+left = {"Chen", "Dina"}                                          # (1)
+for name, x, y in zip(df["name"], df["hours"], df["marks"]):
+    side = -1 if name in left else 1
+    ax.annotate(name, xy=(x, y), xytext=(5.5 * side, 0), textcoords="offset points",
+                ha="left" if side > 0 else "right", va="center", zorder=4,
+                bbox=dict(boxstyle="round,pad=0.1", fc="white", ec="none", alpha=0.7))  # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each name goes just right of its dot (2 points past the dot's edge: 5.5 points from its middle in the paper look); where it would cover another name or dot, or leave the chart, it tries left, above, below and then the corners. Here Chen (at the right edge) and Dina (next to Ben's name) go left. A name with no free place is left out, and a line says how many.}
+\undertext{(2) each name sits on a soft background in the chart's own colour, so it stays readable over lines.}
+\undertext{The search for a free place is simplydata's own; matplotlib only writes each name where it is told. The size of the letters is not compared. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the place and angle of each word, the words written on the chart and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.use\_font\_size()}{word:use-font-size}
 Make all the text bigger or smaller. \code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size(14)} (normal is 12)
 
@@ -7353,7 +7897,8 @@ Any font installed on your computer, such as \code{\textquotedbl{}Arial\textquot
 \code{name} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:use-font]{How simplydata chooses methods}, page \pageref{basis:use-font}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{rc\_\allowbreak{}context()}, \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7363,6 +7908,27 @@ chart.draw_bars(x="class", y="marks")
 chart.use_font("DejaVu Serif")
 chart.save("use_font.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_font.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same fonts, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+# use_font("DejaVu Serif")
+with plt.rc_context({"font.family": "DejaVu Serif"}):            # (1)
+    fig, ax = plt.subplots()
+    sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the font is matplotlib's font.family for every word of the chart, used while it is drawn and saved, so your other charts keep theirs.}
+\undertext{The name is checked against the fonts installed on your computer (any capitals), and a misspelt name gets a list of close ones; \code{\textquotedbl{}serif\textquotedbl{}}, \code{\textquotedbl{}sans-serif\textquotedbl{}} and \code{\textquotedbl{}monospace\textquotedbl{}} work everywhere. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the fonts, the axis labels and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Axes}{group:Axes}
 \wordentry{chart.set\_range\_x()}{word:set-range-x}
 From where to where the x-axis goes. \code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}x(0,\allowbreak{} 10)}
@@ -7375,7 +7941,8 @@ Use None to fix only one end: \code{chart.\allowbreak{}set\_\allowbreak{}range\_
 \code{high=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:set-range-x]{How simplydata chooses methods}, page \pageref{basis:set-range-x}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}xlim()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7385,6 +7952,27 @@ chart.draw_dots(x="hours", y="marks")
 chart.set_range_x(0, 10)
 chart.save("set_range_x.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_set_range_x.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same axis ranges, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# set_range_x(0, None)
+ax.set_xlim(0, None)                                             # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) None keeps that end where matplotlib put it; a flipped axis stays flipped.}
+\undertext{Dates work as ends too. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the axis ranges and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.set\_range\_y()}{word:set-range-y}
 From where to where the y-axis goes. \code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}y(0,\allowbreak{} 100)}
 
@@ -7433,7 +8021,7 @@ A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. \code{chart.\allo
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{set\_\allowbreak{}xscale()}, \code{scatterplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7443,6 +8031,25 @@ chart.draw_dots(x="population", y="forest", colour="country")
 chart.use_log_scale_x()
 chart.save("use_log_scale_x.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_log_scale_x.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same axis scales, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("growth.csv")
+fig, ax = plt.subplots()
+# use_log_scale_x()
+ax.set_xscale("log")
+sns.scatterplot(df, x="population", y="forest", hue="country", ax=ax)
+\end{lstlisting}
+\undertext{The scale is set before drawing, as in \code{use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}, so later ticks and ranges are not undone by it. simplydata stops with a plain message when a value is 0 or below, which a log scale cannot show. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the axis scales, the dots and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.use\_log\_scale\_y()}{word:use-log-scale-y}
 A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}
 
@@ -7494,7 +8101,8 @@ Where the marks on the x-axis go. \code{chart.\allowbreak{}put\_\allowbreak{}tic
 \code{whole\_\allowbreak{}numbers=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:put-ticks-x]{How simplydata chooses methods}, page \pageref{basis:put-ticks-x}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{barplot()}, \code{set\_\allowbreak{}xticks()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7504,6 +8112,27 @@ chart.draw_lines(x="month_number", y="rain", colour="city")
 chart.put_ticks_x(1, 4, 7, 10, labels=["Jan", "Apr", "Jul", "Oct"])
 chart.save("put_ticks_x.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_put_ticks_x.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same tick labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+# put_ticks_x("A", "C")
+ax.set_xticks([0, 2], labels=["A", "C"])                         # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a name is looked up among the names under the bars, which seaborn puts at 0, 1, 2 ..., and keeps its name; numbers are used as they are.}
+\undertext{\code{labels=} writes your own words; \code{every=5} (or \code{every=\textquotedbl{}month\textquotedbl{}} on dates) and \code{how\_\allowbreak{}many=5} use matplotlib's MultipleLocator, the date locators and MaxNLocator. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the tick labels, where the ticks are, the bars and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.put\_ticks\_y()}{word:put-ticks-y}
 Where the marks on the y-axis go. \code{chart.\allowbreak{}put\_\allowbreak{}ticks\_\allowbreak{}y(0,\allowbreak{} 50,\allowbreak{} 100)}
 
@@ -7518,7 +8147,7 @@ Where the marks on the y-axis go. \code{chart.\allowbreak{}put\_\allowbreak{}tic
 \code{whole\_\allowbreak{}numbers=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{barplot()}, \code{set\_\allowbreak{}yticks()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7528,6 +8157,25 @@ chart.draw_bars(x="class", y="marks")
 chart.put_ticks_y(0, 25, 50, 75)
 chart.save("put_ticks_y.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_put_ticks_y.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same tick labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
+# put_ticks_y(0, 25, 50, 75)
+ax.set_yticks([0, 25, 50, 75])
+\end{lstlisting}
+\undertext{\code{labels=} writes your own words at the ticks; \code{every=10} and \code{how\_\allowbreak{}many=5} use matplotlib's MultipleLocator and MaxNLocator (\code{how\_\allowbreak{}many=5} asks for at most 4 gaps), \code{whole\_\allowbreak{}numbers=True} \code{MaxNLocator(integer=True)}. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the tick labels, where the ticks are, the bars and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.rotate\_labels\_x()}{word:rotate-labels-x}
 Turn the names under the x-axis so long ones do not bump into each other.
 
@@ -7583,7 +8231,8 @@ Turn the names beside the y-axis. \code{chart.\allowbreak{}rotate\_\allowbreak{}
 \code{angle=} & normally \code{45}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:rotate-labels-y]{How simplydata chooses methods}, page \pageref{basis:rotate-labels-y}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{barplot()}, \code{get\_\allowbreak{}yticklabels()}, \code{set\_\allowbreak{}rotation()}, \code{set\_\allowbreak{}horizontalalignment()}, \code{set\_\allowbreak{}verticalalignment()}, \code{set\_\allowbreak{}rotation\_\allowbreak{}mode()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7593,6 +8242,31 @@ chart.draw_bars(x="fruit", y="count", sideways=True)
 chart.rotate_labels_y(30)
 chart.save("rotate_labels_y.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_rotate_labels_y.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same angle of the tick labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("fruit.csv")
+fig, ax = plt.subplots()
+sns.barplot(df, x="count", y="fruit", orient="h", errorbar=None, ax=ax)
+# rotate_labels_y: 30 degrees
+for label in ax.get_yticklabels():
+    label.set_rotation(30)
+    label.set_horizontalalignment("right")
+    label.set_verticalalignment("center")
+    label.set_rotation_mode("anchor")                        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each name turns about its right end (rotation mode \code{\textquotedbl{}anchor\textquotedbl{}}), the end next to the axis, so it stays beside its own bar; matplotlib's own default turns it about its middle.}
+\undertext{It runs after \code{put\_\allowbreak{}ticks\_\allowbreak{}y()}, so new tick labels are turned too. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the angle of the tick labels, the tick labels and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.write\_ticks\_x\_as()}{word:write-ticks-x-as}
 How the numbers or dates under the x-axis are written. \code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}x\_\allowbreak{}as(\textquotedbl{}thousands\textquotedbl{})}
 
@@ -7605,7 +8279,8 @@ How the numbers or dates under the x-axis are written. \code{chart.\allowbreak{}
 \code{out\_\allowbreak{}of=} & normally \code{100}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:write-ticks-x-as]{How simplydata chooses methods}, page \pageref{basis:write-ticks-x-as}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{xaxis.\allowbreak{}set\_\allowbreak{}major\_\allowbreak{}formatter()}, \code{StrMethodFormatter()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7615,6 +8290,28 @@ chart.draw_dots(x="population", y="forest")
 chart.write_ticks_x_as("thousands")
 chart.save("write_ticks_x_as.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_write_ticks_x_as.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same tick labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib import ticker
+df = pd.read_csv("shop.csv", parse_dates=["date"])
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="sales", y="customers", ax=ax)
+# write_ticks_x_as("thousands")
+ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a comma between the thousands and no decimals unless \code{with\_\allowbreak{}decimals=} asks (1,000, not 1000.0).}
+\undertext{\code{\textquotedbl{}percent\textquotedbl{}} uses PercentFormatter, \code{\textquotedbl{}scientific\textquotedbl{}} ScalarFormatter, \code{\textquotedbl{}plain\textquotedbl{}} ScalarFormatter without \code{with\_\allowbreak{}decimals=} (StrMethodFormatter with it); on a date axis you write how a date should look, such as \code{\textquotedbl{}Jan 2026\textquotedbl{}} (DateFormatter). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the tick labels and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.write\_ticks\_y\_as()}{word:write-ticks-y-as}
 How the numbers beside the y-axis are written. \code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}y\_\allowbreak{}as(\textquotedbl{}percent\textquotedbl{})}
 
@@ -7721,7 +8418,7 @@ Turn the x-axis around, so numbers grow from right to left. \code{chart.\allowbr
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{invert\_\allowbreak{}xaxis()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7731,12 +8428,31 @@ chart.draw_dots(x="hours", y="marks")
 chart.flip_x()
 chart.save("flip_x.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_flip_x.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same axis ranges, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# flip_x()
+ax.invert_xaxis()
+\end{lstlisting}
+\undertext{The axis is turned round only if it is not turned already, so saying it twice keeps it flipped; \code{set\_\allowbreak{}range\_\allowbreak{}x()} afterwards keeps the flip. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the axis ranges and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.flip\_y()}{word:flip-y}
 Turn the y-axis upside down, for example for depth going down. \code{chart.\allowbreak{}flip\_\allowbreak{}y()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{invert\_\allowbreak{}yaxis()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7746,6 +8462,25 @@ chart.draw_contour(x="east", y="north", z="height")
 chart.flip_y()
 chart.save("flip_y.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_flip_y.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same axis ranges, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# flip_y()
+ax.invert_yaxis()
+\end{lstlisting}
+\undertext{Handy for depth, which grows downwards. The axis is turned round only if it is not turned already; \code{set\_\allowbreak{}range\_\allowbreak{}y()} afterwards keeps the flip. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the axis ranges and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Colours and look}{group:Colours-and-look}
 \wordentry{chart.use\_colour()}{word:use-colour}
 \wordfield{Also written}{\code{chart.\allowbreak{}use\_\allowbreak{}color()}}
@@ -7851,7 +8586,7 @@ A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquoted
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:use-colour-scale]{How simplydata chooses methods}, page \pageref{basis:use-colour-scale}: the default, the evidence and the checks.}
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{min().\allowbreak{}min()}, \code{max().\allowbreak{}max()}, \code{tick\_\allowbreak{}params()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7861,6 +8596,29 @@ chart.draw_heatmap(x="month", y="city", value="rain")
 chart.use_colour_scale("magma")
 chart.save("use_colour_scale.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_colour_scale.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same coloured cells, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+wide = df.pivot_table(index="city", columns="month", values="rain", aggfunc="mean", sort=False)
+fig, ax = plt.subplots()
+# use_colour_scale("magma")
+sns.heatmap(wide, cmap="magma", vmin=wide.min().min(), vmax=wide.max().max(),  # (1)
+            cbar=False, ax=ax)
+ax.tick_params(axis="y", rotation=0)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the colours run from the smallest value to the biggest; \code{between=[low,\allowbreak{} high]} fixes the ends (values beyond get the end colours), \code{log=True} spreads them on a log scale and \code{steps=} cuts the scale into bands (LogNorm, BoundaryNorm). A two-sided scale such as \code{\textquotedbl{}blue to red\textquotedbl{}} with \code{middle=0} goes equally far on both sides.}
+\undertext{Plain names (\code{\textquotedbl{}blue to red\textquotedbl{}}, \code{\textquotedbl{}greens\textquotedbl{}}) and any matplotlib or seaborn colour map name work, and two or more colours make your own (LinearSegmentedColormap). A rainbow map gets a note that it misleads. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the coloured cells and the tick labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.use\_style()}{word:use-style}
 The overall look. \code{chart.\allowbreak{}use\_\allowbreak{}style(\textquotedbl{}school\textquotedbl{})}
 
@@ -7957,7 +8715,8 @@ Grid lines across the chart in both directions. \code{chart.\allowbreak{}show\_\
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:show-grid]{How simplydata chooses methods}, page \pageref{basis:show-grid}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{grid()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7967,12 +8726,33 @@ chart.draw_dots(x="hours", y="marks")
 chart.show_grid()
 chart.save("show_grid.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_show_grid.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same grid lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# show_grid()
+ax.grid(True, axis="both")                                       # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) lines in both directions; simplydata's normal paper look draws only the lines across the chart, from the y-axis.}
+\undertext{The grid is a matplotlib setting (axes.grid) used while the chart is drawn and saved. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the grid lines and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.hide\_grid()}{word:hide-grid}
 No grid lines. \code{chart.\allowbreak{}hide\_\allowbreak{}grid()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{grid()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7982,13 +8762,34 @@ chart.draw_dots(x="hours", y="marks")
 chart.hide_grid()
 chart.save("hide_grid.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_hide_grid.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same grid lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+ax.grid(True, axis="y")                                          # simplydata's paper look
+# hide_grid()
+ax.grid(False)
+\end{lstlisting}
+\undertext{simplydata's paper look normally draws light lines across the chart from the y-axis; \code{hide\_\allowbreak{}grid()} removes them (matplotlib's own default has none). simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the grid lines and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.put\_legend\_at\_top()}{word:put-legend-at-top}
 \wordfield{Also written}{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}top()}}
 The legend above the chart, in one row. \code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:put-legend-at-top]{How simplydata chooses methods}, page \pageref{basis:put-legend-at-top}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{Rectangle()}, \code{legend()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7998,6 +8799,33 @@ chart.draw_lines(x="month", y="temperature", colour="city")
 chart.put_legend_at_top()
 chart.save("put_legend_at_top.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_put_legend_at_top.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same place of the legend, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.patches import Rectangle
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots(layout="constrained")
+sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+# put_legend_at_top(), on a chart with the title "Temperature"
+handles, labels = ax.get_legend_handles_labels()
+ax.get_legend().remove()
+blank = Rectangle((0, 0), 1, 1, visible=False)
+fig.legend([blank] + handles, ["city:"] + labels, title="Temperature",  # (1)
+           loc="outside upper center", ncols=4)              # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the chart's title becomes the legend's heading, so the two never sit on top of each other, and the group name moves to the front of the row.}
+\undertext{(2) one row of entries (up to 6 in a row) above the chart, outside it, so it covers no data.}
+\undertext{Entries from every panel and from a second y-axis are gathered into this one legend. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the place of the legend, the axis labels and the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.put\_legend\_at\_bottom()}{word:put-legend-at-bottom}
 \wordfield{Also written}{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}bottom()}}
 The legend below the chart, in one row under the x-axis name. \code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}
@@ -8086,7 +8914,8 @@ The legend to the right of the chart, outside the plot. \code{chart.\allowbreak{
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:put-legend-on-right]{How simplydata chooses methods}, page \pageref{basis:put-legend-on-right}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{legend()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8096,6 +8925,30 @@ chart.draw_lines(x="month", y="temperature", colour="city")
 chart.put_legend_on_right()
 chart.save("put_legend_on_right.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_put_legend_on_right.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same place of the legend, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots(layout="constrained")
+sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+# put_legend_on_right()
+handles, labels = ax.get_legend_handles_labels()
+ax.get_legend().remove()
+fig.legend(handles, labels, title="city",
+           loc="outside center right")                       # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) outside the chart on the right, so it covers no data; on a figure with several panels one legend holds the entries of them all.}
+\undertext{simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the place of the legend and the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.hide\_legend()}{word:hide-legend}
 No legend. \code{chart.\allowbreak{}hide\_\allowbreak{}legend()}
 
@@ -8140,7 +8993,7 @@ A legend only appears when \code{colour=} (or \code{shape=}) makes groups.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{seaborn \code{lineplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8151,6 +9004,24 @@ chart.hide_legend()
 chart.show_legend()
 chart.save("show_legend.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_show_legend.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same place of the legend, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+# hide_legend(), then show_legend(): the legend seaborn draws, in its usual place
+sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
+\end{lstlisting}
+\undertext{\code{show\_\allowbreak{}legend()} takes back \code{hide\_\allowbreak{}legend()} and any \code{put\_\allowbreak{}legend\_\allowbreak{}}... word, so the legend is the one drawn with the chart. A legend appears only when \code{colour=} (or \code{shape=}) makes groups. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the place of the legend, the legend and the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.label\_legend()}{word:label-legend}
 The name above the legend. \code{chart.\allowbreak{}label\_\allowbreak{}legend(\textquotedbl{}Class\textquotedbl{})} (with \code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})} on \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
 
@@ -8161,7 +9032,8 @@ Without it the legend is named after the \code{colour=} column. \code{label\_\al
 \code{text} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Why this method}{\hyperref[basis:label-legend]{How simplydata chooses methods}, page \pageref{basis:label-legend}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{get\_\allowbreak{}legend().\allowbreak{}set\_\allowbreak{}title()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8171,6 +9043,27 @@ chart.draw_dots(x="hours", y="marks", colour="class")
 chart.label_legend("Class")
 chart.save("label_legend.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_label_legend.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same legend, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", hue="class", ax=ax)
+# label_legend("Class")
+ax.get_legend().set_title("Class")                               # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the legend of every panel (and of a second y-axis) gets the name, and a legend moved outside by \code{put\_\allowbreak{}legend\_\allowbreak{}}... keeps it; \code{label\_\allowbreak{}legend(\textquotedbl{}\textquotedbl{})} leaves the name out.}
+\undertext{Without it the legend is named after the \code{colour=} column, as seaborn names it. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the legend and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.label\_colour\_bar()}{word:label-colour-bar}
 \wordfield{Also written}{\code{chart.\allowbreak{}label\_\allowbreak{}color\_\allowbreak{}bar()}}
 The name beside the colour bar of a heatmap or contour. \code{chart.\allowbreak{}label\_\allowbreak{}colour\_\allowbreak{}bar(\textquotedbl{}Height (m)\textquotedbl{})}
@@ -8180,7 +9073,7 @@ The name beside the colour bar of a heatmap or contour. \code{chart.\allowbreak{
 \code{text} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib}
+\wordfield{Underneath}{matplotlib \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{contourf()}, \code{to\_\allowbreak{}numpy()}, \code{colorbar()}, \code{set\_\allowbreak{}label()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8190,6 +9083,28 @@ chart.draw_contour(x="east", y="north", z="height")
 chart.label_colour_bar("Height (m)")
 chart.save("label_colour_bar.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_label_colour_bar.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same colour bar, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+df = pd.read_csv("island.csv")
+wide = df.groupby(["north", "east"])["height"].mean().unstack()
+gx, gy = np.meshgrid(wide.columns, wide.index)
+fig, ax = plt.subplots()
+bands = ax.contourf(gx, gy, wide.to_numpy(dtype=float), levels=10, cmap="viridis")
+bar = fig.colorbar(bands, ax=ax, label="height")
+# label_colour_bar("Height (m)")
+bar.set_label("Height (m)")
+\end{lstlisting}
+\undertext{Without it the colour bar is named after the \code{z=} (or \code{value=}) column. It works on heatmaps, contour maps, surfaces and dots coloured by a number column. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the colour bar (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Order of groups}{group:Order-of-groups}
 \wordentry{chart.order\_x()}{word:order-x}
 Put the groups along the x-axis in your order. \code{chart.\allowbreak{}order\_\allowbreak{}x(\textquotedbl{}C\textquotedbl{},\allowbreak{} \textquotedbl{}B\textquotedbl{},\allowbreak{} \textquotedbl{}A\textquotedbl{})} (with \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} on \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -8249,7 +9164,8 @@ Works like \code{order\_\allowbreak{}x}, for sideways bars, sideways boxes and h
 \code{biggest\_\allowbreak{}first=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (a stable sort of the rows, so every chart type, colour and panel follows the order)}
+\wordfield{Why this method}{\hyperref[basis:order-y]{How simplydata chooses methods}, page \pageref{basis:order-y}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()}, \code{map()}, \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8259,6 +9175,29 @@ chart.draw_bars(x="class", y="marks", sideways=True)
 chart.order_y("C", "B", "A")
 chart.save("order_y.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_order_y.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same tick labels, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+# order_y("C", "B", "A")
+place = {"C": 0, "B": 1, "A": 2}
+df = df.sort_values("class", key=lambda s: s.map(place),
+                    kind="stable")                           # (1)
+fig, ax = plt.subplots()
+sns.barplot(df, x="marks", y="class", orient="h", errorbar=None, ax=ax)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows are put in that order with a stable sort, and seaborn draws the groups in the order they appear, the first at the top; groups left out come after the ones named.}
+\undertext{\code{biggest\_\allowbreak{}first=True} orders the groups by what the chart shows; it works for sideways bars, sideways boxes and heatmap rows. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the tick labels, where the ticks are and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.order\_legend()}{word:order-legend}
 Put the colour groups in your order: in the legend, the colours and side by side.\\
 \codeline{chart.order\_legend(\textquotedbl{}Science\textquotedbl{}, \textquotedbl{}Maths\textquotedbl{}, \textquotedbl{}English\textquotedbl{})}\\
@@ -8271,7 +9210,8 @@ Groups you leave out come after the ones you name. The slices of a pie follow it
 \code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (a stable sort of the rows, so every chart type, colour and panel follows the order)}
+\wordfield{Why this method}{\hyperref[basis:order-legend]{How simplydata chooses methods}, page \pageref{basis:order-legend}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()}, \code{map()}, \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8281,6 +9221,30 @@ chart.draw_bars(x="class", y="marks", colour="subject")
 chart.order_legend("Science", "Maths", "English")
 chart.save("order_legend.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_order_legend.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same legend, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+# order_legend("Science", "Maths", "English")
+place = {"Science": 0, "Maths": 1, "English": 2}
+df = df.sort_values("subject", key=lambda s: s.map(place), kind="stable")  # (1)
+fig, ax = plt.subplots()
+sns.barplot(df, x="class", y="marks", hue="subject", errorbar=None, saturation=1,
+            palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)  # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows are put in that order with a stable sort, so the legend, the colours and the bars side by side all follow it; groups left out come after the ones named.}
+\undertext{(2) the first group named gets the first colour.}
+\undertext{The slices of a pie follow it too. seaborn's \code{hue\_\allowbreak{}order=} does the same for one call. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the legend, the colours and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Several charts}{group:Several-charts}
 \wordentry{chart.draw\_one\_chart\_for\_each\_group\_in()}{word:draw-one-chart-for-each-group-in}
 One small chart for each group. \code{chart.\allowbreak{}draw\_\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in(\textquotedbl{}class\textquotedbl{},\allowbreak{} per\_\allowbreak{}row=3)} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -8502,7 +9466,8 @@ A small box showing part of the chart close up.
 \code{where=} & normally \code{\textquotedbl{}top right\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{matplotlib (\code{inset\_\allowbreak{}axes} and \code{indicate\_\allowbreak{}inset\_\allowbreak{}zoom})}
+\wordfield{Why this method}{\hyperref[basis:add-zoom-box]{How simplydata chooses methods}, page \pageref{basis:add-zoom-box}: the default, the evidence and the checks.}
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{inset\_\allowbreak{}axes()}, \code{set()}, \code{set\_\allowbreak{}zorder()}, \code{indicate\_\allowbreak{}inset\_\allowbreak{}zoom()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8512,6 +9477,32 @@ chart.draw_dots(x="hours", y="marks")
 chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60], where="top left")
 chart.save("add_zoom_box.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_add_zoom_box.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same small charts inside the chart, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# add_zoom_box(x_between=[2, 4], y_between=[40, 60])
+box = ax.inset_axes([0.58, 0.56, 0.39, 0.4])                     # (1)
+sns.scatterplot(df, x="hours", y="marks", ax=box)                # (2)
+box.set(xlim=(2, 4), ylim=(40, 60), xlabel="", ylabel="")
+box.set_zorder(5)
+ax.indicate_inset_zoom(box, edgecolor="black")
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the box sits in the top right corner (\code{where=} chooses another), 0.39 of the chart wide and 0.4 high.}
+\undertext{(2) the chart's own drawing steps run again inside the box, so it shows exactly what the chart shows, without its legend and axis labels.}
+\undertext{Lines join the box to the part it shows (\code{indicate\_\allowbreak{}inset\_\allowbreak{}zoom}); the box sits above the chart's lines and legend. Its smaller tick labels are not compared. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the small charts inside the chart and the dots (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.animate()}{word:animate}
 A moving chart with one picture for each value of a column.
 
@@ -8578,13 +9569,6 @@ Start a table.
 \codeline{sdata.table(\textquotedbl{}data/*.csv\textquotedbl{})}\enspace several files stacked, with a \code{\textquotedbl{}file\textquotedbl{}} column (or a folder: \code{\textquotedbl{}data/\textquotedbl{}})\\
 \codeline{sdata.table(\textquotedbl{}https://example.org/data.csv\textquotedbl{}) a file on the web}\\
 \codeline{fast=True}\enspace use the fast engine (Polars), for big data
-
-\code{sheet=\textquotedbl{}all\textquotedbl{}} reads every sheet of an Excel file into one table, with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from. simplydata words then work sheet by sheet:\\
-\codeline{everything = sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}all\textquotedbl{})}\\
-\codeline{everything.count\_rows(for\_each\_group\_in=\textquotedbl{}sheet\textquotedbl{})}\enspace how many rows came from each sheet\\
-\code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})}  a summary per sheet\\
-\codeline{everything.keep\_rows\_where(\textquotedbl{}sheet\textquotedbl{}, is\_equal\_to=\textquotedbl{}2026\textquotedbl{})}\enspace just one sheet's rows\\
-(\code{keep\_\allowbreak{}rows\_\allowbreak{}where} changes everything; \code{everything.\allowbreak{}undo()} brings the other sheets back.) \code{sheet=\textquotedbl{}all\textquotedbl{}} stacks the sheets only when they have the same columns. Sheets that hold different data are read by name, each on its own: simplydata says which columns differ and prints a line to copy for each sheet, such as  patients = \code{sdata.\allowbreak{}table(\textquotedbl{}study.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}patients\textquotedbl{})}. To write such a workbook, save each table with \code{in\_\allowbreak{}sheet=} (\code{in\_\allowbreak{}sheet=} saves, \code{sheet=} reads): \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})} \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})}
 
 \code{separator=} is the safe way to read a CSV or text file: give it when you know it, especially for a file with one column. Without it simplydata guesses (only a comma, semicolon, tab or bar, never a letter or a digit) and prints its guess:\\
 \codeline{sdata.table(\textquotedbl{}species.csv\textquotedbl{}, separator=\textquotedbl{},\textquotedbl{})}
@@ -17082,7 +18066,7 @@ Draws each row's x as a dot and its interval as a line, from a result table with
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:forest-plot]{How simplydata chooses methods}, page \pageref{basis:forest-plot}: the default, the evidence and the checks.}
-\wordfield{Underneath}{matplotlib (errorbar), from the interval columns of a result table; on \code{combine\_\allowbreak{}studies}' result squares (scatter), diamonds (fill) and the prediction interval (plot)}
+\wordfield{Underneath}{matplotlib \code{arange()}, \code{errorbar()}, \code{axvline()}, \code{set\_\allowbreak{}yticks()}, \code{set\_\allowbreak{}xscale()}, \code{set\_\allowbreak{}xlabel()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17092,6 +18076,35 @@ chart = pairs.start_chart()
 chart.forest_plot(x="difference", y="group 1")
 chart.save("forest_plot.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_forest_plot.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import numpy as np
+df = {"study": ["A", "B", "C"], "odds ratio": np.array([0.8, 1.5, 1.1]),
+      "low": np.array([0.5, 1.1, 0.7]), "high": np.array([1.3, 2.0, 1.7])}
+fig, ax = plt.subplots()
+# forest_plot(x="odds ratio", y="study")
+where = np.arange(3)[::-1]                                       # (1)
+est = df["odds ratio"]
+ax.errorbar(est, where, xerr=[est - df["low"], df["high"] - est], fmt="o", capsize=3,
+            elinewidth=1.5, markersize=6)
+ax.axvline(1, color="grey", linestyle="--", linewidth=1)         # (2)
+ax.set_yticks(where, labels=df["study"])
+ax.set_xscale("log")
+ax.set_xlabel("odds ratio, with its 95 % confidence interval (the line: 1, no effect)")  # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the first row at the top, as in a table.}
+\undertext{(2) a ratio (the column, or every row's name, says \code{\textquotedbl{}ratio\textquotedbl{}}) gets a log scale and a dashed line at 1, no effect; other results a plain scale with the line at 0. \code{log\_\allowbreak{}scale=} and \code{line\_\allowbreak{}at=} choose.}
+\undertext{(3) the x label names the interval's level and the line.}
+\undertext{It reads the columns \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}\textless{}x\textgreater{} 95 \% CI high\textquotedbl{}} (any level) of a result table, such as \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of}'s. On the result of \code{combine\_\allowbreak{}studies} the studies are squares sized by \code{weight=} and the combined effects diamonds. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the lines, the style and width of each line, the short lines drawn as one set, the tick labels, where the ticks are, the axis scales and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_funnel\_plot()}{word:draw-funnel-plot}
 A funnel plot: each study's effect against its standard error, to look for small-study effects.
 
@@ -19051,23 +20064,11 @@ print(table)
 \wordentry{table.save()}{word:table.save}
 Save the table; the end of the file name decides the type. \code{table.\allowbreak{}save(\textquotedbl{}clean.\allowbreak{}xlsx\textquotedbl{})}
 
-File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}. Without \code{in\_\allowbreak{}sheet=}, saving to an Excel file that already exists replaces the whole file, every sheet in it.
-
-\code{in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{}} saves the table as one sheet of an Excel file and keeps the sheets already in it, so several tables go into one workbook: \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})} \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})} If the file does not exist yet, it is made with that sheet. If it already has a sheet of that name, that sheet is replaced (simplydata says so) and the other sheets are kept. Only \code{.\allowbreak{}xlsx} files have sheets. Sheet names follow Excel's rules: at most 31 characters, none of : \textbackslash{} / ? * [ ], no apostrophe at the start or end, not \code{\textquotedbl{}History\textquotedbl{}} (Excel keeps it), and Excel counts \code{\textquotedbl{}Cleaned\textquotedbl{}} and \code{\textquotedbl{}cleaned\textquotedbl{}} as the same name.
-
-Mind the two names: \code{sheet=} reads a sheet, \code{in\_\allowbreak{}sheet=} saves one. To read the workbook back:\\
-\codeline{sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}2026\textquotedbl{})}\enspace one sheet\\
-\codeline{everything = sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}all\textquotedbl{})}\enspace every sheet, stacked\\
-\code{sheet=\textquotedbl{}all\textquotedbl{}} makes one table with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from, so simplydata words work sheet by sheet:\\
-\codeline{everything.count\_rows(for\_each\_group\_in=\textquotedbl{}sheet\textquotedbl{})}\enspace how many rows came from each sheet\\
-\code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})}  a summary per sheet\\
-\codeline{everything.keep\_rows\_where(\textquotedbl{}sheet\textquotedbl{}, is\_equal\_to=\textquotedbl{}2026\textquotedbl{})}\enspace just one sheet's rows\\
-(\code{keep\_\allowbreak{}rows\_\allowbreak{}where} changes everything; \code{everything.\allowbreak{}undo()} brings the other sheets back.) \code{sheet=\textquotedbl{}all\textquotedbl{}} stacks the sheets only when they have the same columns. Sheets that hold different data are read by name, each on its own: simplydata says which columns differ and prints a line to copy for each sheet, such as  patients = \code{sdata.\allowbreak{}table(\textquotedbl{}study.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}patients\textquotedbl{})}.
+File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{file\_\allowbreak{}name} & needed\\
-\code{in\_\allowbreak{}sheet=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.save]{How simplydata chooses methods}, page \pageref{basis:table.save}: the default, the evidence and the checks.}
@@ -19109,29 +20110,6 @@ saved
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) no row labels are written (\code{index=False}): the file holds only your columns.}
 \undertext{The end of the file name chooses the type: \code{.\allowbreak{}xlsx} (pandas \code{to\_\allowbreak{}excel}), \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} too. The test saves both files in a folder that is deleted afterwards and reads them back.}
-\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
-\end{underneathbox}
-\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
-\undertext{\textbf{With \code{in\_\allowbreak{}sheet=}}: the same job with this option.}
-\underlib{pandas}
-\begin{lstlisting}[style=under]
-import os
-import tempfile
-import pandas as pd
-df = pd.read_csv("marks.csv")
-with tempfile.TemporaryDirectory() as folder:
-    results = os.path.join(folder, "results.xlsx")
-    df.to_excel(results, sheet_name="2025", index=False)
-    # save as results.xlsx with in_sheet="2026", to a file that exists
-    with pd.ExcelWriter(results, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:  # (1)
-        df.to_excel(writer, sheet_name="2026", index=False)
-    sheets = pd.read_excel(results, sheet_name=None)
-both = pd.concat([s.assign(sheet=n)[["sheet", *df.columns]] for n, s in sheets.items()], ignore_index=True)
-both
-\end{lstlisting}
-\undertext{\textbf{simplydata chooses}}
-\undertext{(1) \code{mode=\textquotedbl{}a\textquotedbl{}} adds the sheet to the Excel file that is there and keeps its other sheets; \code{if\_\allowbreak{}sheet\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{}} replaces a sheet of the same name (simplydata prints that it did). A file that does not exist yet is made with pandas ExcelWriter and that one sheet.}
-\undertext{simplydata checks the sheet name first with Excel's rules as openpyxl states them (at most 31 characters, none of : \textbackslash{} / ? * [ ]) and refuses a name Excel would count as the same in other capitals, so a refused name leaves the file as it was. Polars tables go through pandas too. The test reads the workbook back with \code{sheet=\textquotedbl{}all\textquotedbl{}} (pandas \code{read\_\allowbreak{}excel(sheet\_\allowbreak{}name=None)}).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.start\_chart()}{word:table.start-chart}
@@ -23189,7 +24167,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 440 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 233 follow the convention of the package named so that results match it, and 64 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 466 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 248 follow the convention of the package named so that results match it, and 75 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -23230,6 +24208,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P5)}{As for bars: no interval is drawn that was not asked for (seaborn's own default is a bootstrap interval that changes from run to run), and a printed line names the band that is drawn. \textit{Basis: starting value.}}
 \wordfield{Checks}{\code{error=} works only with \code{show=\textquotedbl{}average\textquotedbl{}}.}
 \wordfield{In the dictionary}{\hyperref[word:draw-lines]{page \pageref{word:draw-lines}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-area}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}area()}}\par\nopagebreak
+\wordfield{Default}{Rows at the same x averaged; the space under each line filled down to 0 in its colour, see-through (alpha 0.35).}
+\wordfield{Alternatives}{\code{colour=} for one area per group, \code{stacked=True} to pile them up, \code{transparency=}, \code{thickness=}.}
+\wordfield{Why (P5)}{Showing results: the average follows \code{draw\_\allowbreak{}lines()}, and see-through areas let groups show through each other. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{stacked=True} needs \code{colour=} groups; y must hold numbers.}
+\wordfield{In the dictionary}{\hyperref[word:draw-area]{page \pageref{word:draw-area}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-histogram}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}histogram()}}\par\nopagebreak
 \wordfield{Default}{10 bins of equal width, counts on the y axis.}
 \wordfield{Alternatives}{\code{with\_\allowbreak{}bins=} (a number or the edges), \code{bin\_\allowbreak{}width=}, \code{show=\textquotedbl{}percent\textquotedbl{}} or \code{\textquotedbl{}density\textquotedbl{}}.}
@@ -23256,6 +24240,51 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{\code{cluster=True} with empty cells, or with fewer than 2 rows or columns, is refused.}
 \wordfield{References}{Nu\~nez et al. 2018; Crameri et al. 2020; Harrower \& Brewer 2003}
 \wordfield{In the dictionary}{\hyperref[word:draw-heatmap]{page \pageref{word:draw-heatmap}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-pie}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}pie()}}\par\nopagebreak
+\wordfield{Default}{One slice per label (the total of its values, or its number of rows), in the order the labels appear, from 12 o'clock going clockwise, each with its share in whole percents.}
+\wordfield{Alternatives}{\code{values=} for totals instead of counts; \code{order\_\allowbreak{}legend()} for another order; \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: a pie read like a clock starts at the top and goes clockwise; whole percents are as precise as a slice can be read. \textit{Basis: convention.}}
+\wordfield{Checks}{Values below 0, or all 0, are refused.}
+\wordfield{In the dictionary}{\hyperref[word:draw-pie]{page \pageref{word:draw-pie}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-polar}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}polar()}}\par\nopagebreak
+\wordfield{Default}{Angles in degrees; a compass (0 at the top, clockwise) when the column is named like a direction or \code{full\_\allowbreak{}turn=} is given, otherwise from the right, anticlockwise; the legend outside the circle.}
+\wordfield{Alternatives}{\code{full\_\allowbreak{}turn=360}, 24, 12 or \code{\textquotedbl{}radians\textquotedbl{}}; \code{degrees=False} (the old way of saying radians).}
+\wordfield{Why (P5)}{Showing results: wind and current directions are read on a compass, and maths angles from the right; the column's name tells which one is meant. \textit{Basis: convention.}}
+\wordfield{Checks}{\code{angle=} and \code{distance=} must hold numbers.}
+\wordfield{In the dictionary}{\hyperref[word:draw-polar]{page \pageref{word:draw-polar}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-contour}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}contour()}}\par\nopagebreak
+\wordfield{Default}{A full grid drawn as it is (scattered points joined onto a 100 x 100 grid by straight-line interpolation); about 10 filled bands in viridis with thin solid white lines between them.}
+\wordfield{Alternatives}{\code{filled=False} for lines with their heights written on them; \code{use\_\allowbreak{}colour\_\allowbreak{}scale()} for the colours and the bands.}
+\wordfield{Why (P5)}{Showing results: viridis reads evenly and with colour blindness (as in \code{use\_\allowbreak{}colour\_\allowbreak{}scale}); straight-line interpolation invents no hills between the points. \textit{Basis: starting value.}}
+\wordfield{Checks}{At least 2 different x and y values; scattered points need 3 not on one line.}
+\wordfield{In the dictionary}{\hyperref[word:draw-contour]{page \pageref{word:draw-contour}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-surface}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}surface()}}\par\nopagebreak
+\wordfield{Default}{A full grid drawn as it is (scattered points joined onto a 100 x 100 grid by straight-line interpolation), coloured with viridis from the lowest to the highest point.}
+\wordfield{Alternatives}{\code{use\_\allowbreak{}colour\_\allowbreak{}scale()} for the colours; \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: straight-line interpolation invents no hills between the points. \textit{Basis: starting value.}}
+\wordfield{Checks}{At least 2 different x and y values.}
+\wordfield{In the dictionary}{\hyperref[word:draw-surface]{page \pageref{word:draw-surface}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-dots-3d}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}dots\_\allowbreak{}3d()}}\par\nopagebreak
+\wordfield{Default}{One colour per group for words or a number column with 8 values or fewer; a colour scale for more.}
+\wordfield{Alternatives}{\code{use\_\allowbreak{}colour\_\allowbreak{}scale()} for the scale; \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: more than about 8 colours cannot be told apart, so many values get a scale instead. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:draw-dots-3d]{page \pageref{word:draw-dots-3d}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-band}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}band()}}\par\nopagebreak
+\wordfield{Default}{One light band (alpha 0.25) per group in its colour, no edge line, named in the legend; empty cells leave a gap.}
+\wordfield{Alternatives}{\code{colour=} one colour, \code{labelled=} the legend name, \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: a light band keeps lines drawn on it readable, and a gap is more honest than a made-up edge. \textit{Basis: starting value.}}
+\wordfield{Checks}{The low edge must not be above the high edge; one row per x in each group.}
+\wordfield{In the dictionary}{\hyperref[word:draw-band]{page \pageref{word:draw-band}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-map-of-empty-cells}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()}}\par\nopagebreak
+\wordfield{Default}{Every column, one line per row from the top; an empty cell (missing or only spaces) in vermilion on light grey, with the number of empty cells under each column.}
+\wordfield{Alternatives}{\code{columns=} for some columns only.}
+\wordfield{Why (P5)}{Showing results: the same rule for an empty cell as the table words; the Okabe-Ito vermilion stands out for readers with colour blindness. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:draw-map-of-empty-cells]{page \pageref{word:draw-map-of-empty-cells}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sticks}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}sticks()}}\par\nopagebreak
+\wordfield{Default}{A stick 1.5 points wide from 0 to each value with a small dot on top, and a thin line at 0.}
+\wordfield{Alternatives}{\code{colour=} for groups, \code{thickness=}.}
+\wordfield{Why (P5)}{Showing results: a stick from 0 shows each value at its own place without joining places that are apart. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:sticks]{page \pageref{word:sticks}}}
 \unsection{Statistics}{basis-group:Statistics}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:show-eq}\noindent{\sffamily\bfseries\color{brand}\code{show=}}\par\nopagebreak
 \wordfield{Default}{The average of each group (\code{show=\textquotedbl{}average\textquotedbl{}}).}
@@ -23312,6 +24341,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{As \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}; needs R drc.}
 \wordfield{References}{Ritz et al. 2015; OECD 2006}
 \wordfield{In the dictionary}{\hyperref[word:fit-dose-response]{page \pageref{word:fit-dose-response}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-curve}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}curve()}}\par\nopagebreak
+\wordfield{Default}{The curve over the x range of what is drawn, at 200 points; over a histogram scaled to its bars.}
+\wordfield{Alternatives}{\code{between=}, \code{steps=}, \code{show=\textquotedbl{}cumulative\textquotedbl{}}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}.}
+\wordfield{Why (P5)}{Showing results: 200 points draw a smooth curve; scaling to the bars puts the curve on the same scale as the histogram, and a note says how. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:draw-curve]{page \pageref{word:draw-curve}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-smooth-line}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}smooth\_\allowbreak{}line()}}\par\nopagebreak
 \wordfield{Default}{LOWESS as R \code{lowess()} with its defaults: the nearest 2/3 of the dots, 3 robustness steps, delta = 1 \% of the x range.}
 \wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}loess\textquotedbl{}} (R loess, with a confidence band), \code{\textquotedbl{}spline\textquotedbl{}} (R smooth.spline), or a moving average and the other window methods.}
@@ -23374,6 +24408,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{x must hold numbers.}
 \wordfield{References}{Scott 1992; Silverman 1986}
 \wordfield{In the dictionary}{\hyperref[word:draw-density]{page \pageref{word:draw-density}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-count-bars}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}count\_\allowbreak{}bars()}}\par\nopagebreak
+\wordfield{Default}{One bar per group counting its rows, in simplydata's exact colours.}
+\wordfield{Alternatives}{\code{colour=} to split the bars, \code{sideways=True}, \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: exact colours keep the legend and the bars the same shade. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:draw-count-bars]{page \pageref{word:draw-count-bars}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-all-dots}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}dots()}}\par\nopagebreak
 \wordfield{Default}{Every value as a dot: a swarm (no overlap) when the biggest group has 100 values or fewer, else dots spread at random (fixed seed) and half transparent.}
 \wordfield{Alternatives}{Put \code{draw\_\allowbreak{}boxes()} or \code{draw\_\allowbreak{}violins()} underneath; the dots then turn dark grey.}
@@ -23393,6 +24432,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Fewer than 3 values are refused (a group is left out, with a note).}
 \wordfield{References}{Wilk \& Gnanadesikan 1968; Filliben 1975}
 \wordfield{In the dictionary}{\hyperref[word:draw-qq-dots]{page \pageref{word:draw-qq-dots}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-cumulative-share}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}cumulative\_\allowbreak{}share()}}\par\nopagebreak
+\wordfield{Default}{Each group's share of values at or below each x, from 0 to 1, with the y-axis named in words.}
+\wordfield{Alternatives}{\code{colour=} for groups, \code{thickness=}, \code{transparency=}.}
+\wordfield{Why (P5)}{Showing results: the cumulative share shows every value, needs no bins and compares groups of any size. \textit{Basis: convention.}}
+\wordfield{Checks}{x must hold numbers.}
+\wordfield{In the dictionary}{\hyperref[word:draw-cumulative-share]{page \pageref{word:draw-cumulative-share}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.draw-all-pairs}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}pairs()}}\par\nopagebreak
 \wordfield{Default}{Dots for each pair of columns; on the diagonal a histogram with seaborn's own bins, or with \code{colour=} a density with Scott's bandwidth.}
 \wordfield{Alternatives}{\code{columns=} chooses up to 10 columns.}
@@ -23411,6 +24456,18 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{dashed=False}, \code{colour=}, \code{thickness=}, \code{labelled=}.}
 \wordfield{Why (P5)}{Showing results: a quiet line marks a reference value without hiding the data, and a label outside the chart covers nothing. \textit{Basis: starting value.}}
 \wordfield{In the dictionary}{\hyperref[word:draw-line-at-y]{page \pageref{word:draw-line-at-y}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-line-with-slope}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}with\_\allowbreak{}slope()}}\par\nopagebreak
+\wordfield{Default}{Through 0, 0, right across the chart: grey, dashed, 1.5 points wide, between bars and dots.}
+\wordfield{Alternatives}{\code{through=}, \code{intercept=}, \code{dashed=False}, \code{colour=}, \code{labelled=}, \code{thickness=}.}
+\wordfield{Why (P5)}{Showing results: the 1:1 line of observed against predicted values goes through 0, 0; a grey dashed line reads as a guide, not as data. \textit{Basis: convention.}}
+\wordfield{Checks}{Ordinary axes only; \code{through=} and \code{intercept=} not both.}
+\wordfield{In the dictionary}{\hyperref[word:draw-line-with-slope]{page \pageref{word:draw-line-with-slope}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:shade-between-x}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}shade\_\allowbreak{}between\_\allowbreak{}x()}}\par\nopagebreak
+\wordfield{Default}{A light grey band (alpha 0.2) from the bottom to the top of the chart, behind everything.}
+\wordfield{Alternatives}{\code{colour=}; \code{shade\_\allowbreak{}between\_\allowbreak{}y()} for a band across.}
+\wordfield{Why (P5)}{Showing results: a light band behind the data marks a span without hiding anything. \textit{Basis: starting value.}}
+\wordfield{Checks}{The two ends must differ.}
+\wordfield{In the dictionary}{\hyperref[word:shade-between-x]{page \pageref{word:shade-between-x}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:shade-between-y}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}shade\_\allowbreak{}between\_\allowbreak{}y()}}\par\nopagebreak
 \wordfield{Default}{A light grey band (20 \% solid) behind everything else on the chart.}
 \wordfield{Alternatives}{\code{colour=}; \code{shade\_\allowbreak{}between\_\allowbreak{}x()} for a band across.}
@@ -23447,13 +24504,31 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{with\_\allowbreak{}decimals=} from 0 to 6.}
 \wordfield{Why (P5)}{Showing results: whole numbers keep the chart readable, and a little room is added so the numbers stay inside it. \textit{Basis: starting value.}}
 \wordfield{In the dictionary}{\hyperref[word:write-numbers-on-bars]{page \pageref{word:write-numbers-on-bars}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:write-names-on-dots}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}write\_\allowbreak{}names\_\allowbreak{}on\_\allowbreak{}dots()}}\par\nopagebreak
+\wordfield{Default}{Each name right of its dot, else left, above, below or in a corner, wherever it covers no other name or dot; a name with no free place is left out and counted.}
+\wordfield{Alternatives}{\code{colour=}; a bigger chart (\code{set\_\allowbreak{}size()}) makes room.}
+\wordfield{Why (P5)}{Showing results: names that cover each other cannot be read, so a crowded name is left out and a line says how many. \textit{Basis: starting value.}}
+\wordfield{Checks}{Only after \code{draw\_\allowbreak{}dots()}.}
+\wordfield{In the dictionary}{\hyperref[word:write-names-on-dots]{page \pageref{word:write-names-on-dots}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:use-font-size}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size()}}\par\nopagebreak
 \wordfield{Default}{Every size grows by the same share (the size asked for over the style's text size), so the title stays the biggest.}
 \wordfield{Alternatives}{\code{use\_\allowbreak{}style(\textquotedbl{}presentation\textquotedbl{})} or \code{\textquotedbl{}school\textquotedbl{}} for bigger words and thicker lines together.}
 \wordfield{Why (P5)}{Showing results: keeping the steps between title, labels and tick names keeps the order of importance. \textit{Basis: convention.}}
 \wordfield{Checks}{Sizes outside 4 to 60 are refused.}
 \wordfield{In the dictionary}{\hyperref[word:use-font-size]{page \pageref{word:use-font-size}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:use-font}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}use\_\allowbreak{}font()}}\par\nopagebreak
+\wordfield{Default}{The font for every word of the chart, used while it is drawn and saved.}
+\wordfield{Alternatives}{Any installed font, or \code{\textquotedbl{}serif\textquotedbl{}}, \code{\textquotedbl{}sans-serif\textquotedbl{}}, \code{\textquotedbl{}monospace\textquotedbl{}}.}
+\wordfield{Why (P5)}{Showing results: a setting used only while drawing keeps your other charts as they were. \textit{Basis: convention.}}
+\wordfield{Checks}{A font that is not installed is refused, with close names.}
+\wordfield{In the dictionary}{\hyperref[word:use-font]{page \pageref{word:use-font}}}
 \unsection{Axes}{basis-group:Axes}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:set-range-x}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}x()}}\par\nopagebreak
+\wordfield{Default}{Both ends as given; None keeps that end where matplotlib put it; a flipped axis stays flipped.}
+\wordfield{Alternatives}{\code{set\_\allowbreak{}range\_\allowbreak{}y()} for the other axis.}
+\wordfield{Why (P5)}{Showing results: fixing one end (often 0) and letting the other choose itself is the common case. \textit{Basis: convention.}}
+\wordfield{Checks}{The low end must be below the high end; not 0 or below on a log scale.}
+\wordfield{In the dictionary}{\hyperref[word:set-range-x]{page \pageref{word:set-range-x}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:set-range-y}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}y()}}\par\nopagebreak
 \wordfield{Default}{The y-axis runs from low to high; None keeps that end where matplotlib put it, and a flipped axis stays flipped.}
 \wordfield{Alternatives}{\code{set\_\allowbreak{}range\_\allowbreak{}x()}; \code{flip\_\allowbreak{}y()}.}
@@ -23465,11 +24540,27 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}x()}.}
 \wordfield{Why (P5)}{Showing results: setting it first stops matplotlib from undoing later ranges and ticks; zero and negative values, which a log scale cannot show, are refused with the count of them. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:use-log-scale-y]{page \pageref{word:use-log-scale-y}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:put-ticks-x}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}put\_\allowbreak{}ticks\_\allowbreak{}x()}}\par\nopagebreak
+\wordfield{Default}{Ticks at the places given; a name is looked up among the names under the bars and keeps its name.}
+\wordfield{Alternatives}{\code{labels=}, \code{every=}, \code{how\_\allowbreak{}many=}, \code{whole\_\allowbreak{}numbers=}.}
+\wordfield{Why (P5)}{Showing results: on bar charts the names are what people know, not the places 0, 1, 2 behind them. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:put-ticks-x]{page \pageref{word:put-ticks-x}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:rotate-labels-x}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}rotate\_\allowbreak{}labels\_\allowbreak{}x()}}\par\nopagebreak
 \wordfield{Default}{45 degrees, each name lined up by the end nearest its tick and turned about that end.}
 \wordfield{Alternatives}{Any angle from -360 to 360, such as 90 to stand the names up.}
 \wordfield{Why (P5)}{Showing results: lined up by its end, a turned name stays under its own bar; matplotlib's centred names drift sideways. \textit{Basis: starting value.}}
 \wordfield{In the dictionary}{\hyperref[word:rotate-labels-x]{page \pageref{word:rotate-labels-x}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:rotate-labels-y}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}rotate\_\allowbreak{}labels\_\allowbreak{}y()}}\par\nopagebreak
+\wordfield{Default}{45 degrees, each name turned about its end next to the axis.}
+\wordfield{Alternatives}{Any angle from -360 to 360.}
+\wordfield{Why (P5)}{Showing results: turned about its end, a name stays beside its own bar. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:rotate-labels-y]{page \pageref{word:rotate-labels-y}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:write-ticks-x-as}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}x\_\allowbreak{}as()}}\par\nopagebreak
+\wordfield{Default}{\code{\textquotedbl{}thousands\textquotedbl{}}: a comma between thousands and no decimals unless \code{with\_\allowbreak{}decimals=} asks.}
+\wordfield{Alternatives}{\code{\textquotedbl{}percent\textquotedbl{}} (\code{out\_\allowbreak{}of=}), \code{\textquotedbl{}scientific\textquotedbl{}}, \code{\textquotedbl{}plain\textquotedbl{}}, \code{with\_\allowbreak{}decimals=}, or how a date should look.}
+\wordfield{Why (P5)}{Showing results: 12,500 is read faster than 12500.0. \textit{Basis: convention.}}
+\wordfield{Checks}{A number format on a date axis, or on names, is refused.}
+\wordfield{In the dictionary}{\hyperref[word:write-ticks-x-as]{page \pageref{word:write-ticks-x-as}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:write-ticks-y-as}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}y\_\allowbreak{}as()}}\par\nopagebreak
 \wordfield{Default}{\code{\textquotedbl{}percent\textquotedbl{}} treats the numbers as out of 100; decimals chosen by matplotlib unless \code{with\_\allowbreak{}decimals=} says.}
 \wordfield{Alternatives}{\code{out\_\allowbreak{}of=1} for shares, \code{\textquotedbl{}thousands\textquotedbl{}}, \code{\textquotedbl{}scientific\textquotedbl{}}, \code{\textquotedbl{}plain\textquotedbl{}}, or how a date should look.}
@@ -23513,6 +24604,16 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{unit=\textquotedbl{}cm\textquotedbl{}}, \code{\textquotedbl{}mm\textquotedbl{}} or \code{\textquotedbl{}pixels\textquotedbl{}}.}
 \wordfield{Why (P5)}{Showing results: journals give sizes in centimetres or millimetres, so they are taken as written. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:set-size]{page \pageref{word:set-size}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:show-grid}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}show\_\allowbreak{}grid()}}\par\nopagebreak
+\wordfield{Default}{Grid lines in both directions (the paper look draws only the lines across).}
+\wordfield{Alternatives}{\code{hide\_\allowbreak{}grid()} for none.}
+\wordfield{Why (P5)}{Showing results: lines across help to read values off bars and lines; lines both ways help on dots. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:show-grid]{page \pageref{word:show-grid}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:put-legend-at-top}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}}\par\nopagebreak
+\wordfield{Default}{One row (up to 6 entries) above the chart, outside it; the chart's title becomes the legend's heading.}
+\wordfield{Alternatives}{\code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}left()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}right()}, \code{hide\_\allowbreak{}legend()}.}
+\wordfield{Why (P5)}{Showing results: outside the chart a legend covers no data, and the title as its heading keeps the two from sitting on top of each other. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:put-legend-at-top]{page \pageref{word:put-legend-at-top}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:put-legend-at-bottom}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}}\par\nopagebreak
 \wordfield{Default}{Outside the chart, below the x-axis label, in one row (up to 6 entries in a row).}
 \wordfield{Alternatives}{\code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}left()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}right()}, \code{hide\_\allowbreak{}legend()}.}
@@ -23523,11 +24624,22 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}, \code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}right()}, \code{hide\_\allowbreak{}legend()}.}
 \wordfield{Why (P5)}{Showing results: outside the chart a legend covers no data. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:put-legend-on-left]{page \pageref{word:put-legend-on-left}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:put-legend-on-right}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}right()}}\par\nopagebreak
+\wordfield{Default}{Outside the chart on the right, entries of every panel gathered in one legend.}
+\wordfield{Alternatives}{\code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}, \code{put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}, \code{put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}left()}, \code{hide\_\allowbreak{}legend()}.}
+\wordfield{Why (P5)}{Showing results: outside the chart a legend covers no data. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:put-legend-on-right]{page \pageref{word:put-legend-on-right}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:hide-legend}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}hide\_\allowbreak{}legend()}}\par\nopagebreak
 \wordfield{Default}{The legends of every panel and of a second y-axis are removed.}
 \wordfield{Alternatives}{\code{show\_\allowbreak{}legend()} brings it back; \code{write\_\allowbreak{}names\_\allowbreak{}on\_\allowbreak{}dots()} labels groups on the chart.}
 \wordfield{Why (P5)}{Showing results: the user asks for it; colour is then no longer explained, so it suits charts whose groups are named in another way. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:hide-legend]{page \pageref{word:hide-legend}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:label-legend}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}label\_\allowbreak{}legend()}}\par\nopagebreak
+\wordfield{Default}{The name above every legend of the chart (panels and second y-axis too).}
+\wordfield{Alternatives}{\code{label\_\allowbreak{}legend(\textquotedbl{}\textquotedbl{})} for no name.}
+\wordfield{Why (P5)}{Showing results: without it the legend is named after the \code{colour=} column. \textit{Basis: convention.}}
+\wordfield{Checks}{A chart with no legend is refused.}
+\wordfield{In the dictionary}{\hyperref[word:label-legend]{page \pageref{word:label-legend}}}
 \unsection{Order of groups}{basis-group:Order-of-groups}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:order-x}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}order\_\allowbreak{}x()}}\par\nopagebreak
 \wordfield{Default}{The rows are put in the order named with a stable sort, so every chart type and later step follows it; groups not named come after.}
@@ -23535,6 +24647,16 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P5)}{Showing results: ordering the rows, not one chart call, keeps bars, colours, lines and dots in the same order, and a stable sort changes nothing else. \textit{Basis: convention.}}
 \wordfield{Checks}{Names that are not in the column are refused.}
 \wordfield{In the dictionary}{\hyperref[word:order-x]{page \pageref{word:order-x}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:order-y}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}order\_\allowbreak{}y()}}\par\nopagebreak
+\wordfield{Default}{The groups in the order named, the first at the top, by a stable sort of the rows; others after them.}
+\wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=True} or False.}
+\wordfield{Why (P5)}{Showing results: read from the top, the first group is the one named first. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:order-y]{page \pageref{word:order-y}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:order-legend}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}order\_\allowbreak{}legend()}}\par\nopagebreak
+\wordfield{Default}{The colour groups in the order named, by a stable sort of the rows; the first gets the first colour.}
+\wordfield{Alternatives}{Groups left out come after the ones named.}
+\wordfield{Why (P5)}{Showing results: one order for the legend, the colours and the bars side by side. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:order-legend]{page \pageref{word:order-legend}}}
 \unsection{Several charts}{basis-group:Several-charts}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:draw-one-chart-for-each-group-in}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}draw\_\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in()}}\par\nopagebreak
 \wordfield{Default}{Up to 3 small charts in a row, about 4 x 3.3 inches each, sharing their axis ranges, named by their group.}
@@ -23556,6 +24678,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{per\_\allowbreak{}row=}, \code{same\_\allowbreak{}x=True}, \code{same\_\allowbreak{}y=True}, \code{with\_\allowbreak{}letters=True}.}
 \wordfield{Why (P5)}{Showing results: a part of its own keeps each chart's title, labels and legend with it. \textit{Basis: starting value.}}
 \wordfield{In the dictionary}{\hyperref[word:sdata.put-in-rows-and-columns]{page \pageref{word:sdata.put-in-rows-and-columns}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:add-zoom-box}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}add\_\allowbreak{}zoom\_\allowbreak{}box()}}\par\nopagebreak
+\wordfield{Default}{A box in the top right corner, 0.39 x 0.4 of the chart, showing the chart's own drawing again, with lines to the part it shows.}
+\wordfield{Alternatives}{\code{where=\textquotedbl{}top left\textquotedbl{}}, \code{\textquotedbl{}bottom right\textquotedbl{}} or \code{\textquotedbl{}bottom left\textquotedbl{}}.}
+\wordfield{Why (P5)}{Showing results: drawing the same steps again keeps the box exactly like the chart. \textit{Basis: starting value.}}
+\wordfield{Checks}{Flat charts only; the two ends of each span must differ.}
+\wordfield{In the dictionary}{\hyperref[word:add-zoom-box]{page \pageref{word:add-zoom-box}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:animate}\noindent{\sffamily\bfseries\color{brand}\code{chart.\allowbreak{}animate()}}\par\nopagebreak
 \wordfield{Default}{One picture for each value, smallest first, 0.8 seconds each, every picture with the axis ranges of the whole data; saved as \code{.\allowbreak{}gif} at 100 dots per inch.}
 \wordfield{Alternatives}{\code{seconds\_\allowbreak{}per\_\allowbreak{}frame=}, \code{keep=True}.}
@@ -25826,12 +26954,6 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{The file holds only the columns, without row labels.}
 \wordfield{Alternatives}{The end of the file name chooses the type (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}).}
 \wordfield{Why (P5)}{Data handling: row labels are pandas' own and not part of the data. \textit{Basis: convention.}}
-\wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
-\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.save-in-sheet-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}save()} \code{in\_\allowbreak{}sheet=}}\par\nopagebreak
-\wordfield{Default}{The sheet is added to the Excel file and the other sheets are kept; a sheet of the same name is replaced; a file that does not exist is made with that one sheet.}
-\wordfield{Alternatives}{Without \code{in\_\allowbreak{}sheet=}, the whole file is replaced by one sheet.}
-\wordfield{Why (P5)}{Data handling: pandas' own append mode (ExcelWriter \code{mode=\textquotedbl{}a\textquotedbl{}}, \code{if\_\allowbreak{}sheet\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{}}); replacing the named sheet, not the file, keeps the other sheets, and simplydata says when it replaced one. \textit{Basis: convention.}}
-\wordfield{Checks}{Sheet names are checked with Excel's rules before the file is opened (at most 31 characters, none of : \textbackslash{} / ? * [ ], no apostrophe at the start or end, not History, not the same name in other capitals), so a refused name leaves the file as it was.}
 \wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
 \unsection{Numbers: make and look}{basis-group:Numbers-make-and-look}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}numbers()}}\par\nopagebreak
