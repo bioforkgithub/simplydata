@@ -224,7 +224,8 @@ def predictive_check(model, seed, prior_only=False):
              "if (stats::family(m)$family == 'gaussian') { "
              "r <- range(c(d$y, yrep)); dy <- stats::density(d$y, from = r[1], to = r[2], n = 256L); "
              "out$grid <- dy$x; out$observed <- dy$y; "
-             "out$made <- t(apply(yrep, 1, function(v) stats::density(v, from = r[1], to = r[2], n = 256L)$y)) "
+             "out$made <- t(apply(yrep, 1, function(v) stats::density(v, from = r[1], to = r[2], n = 256L)$y)); "
+             "out$made_band <- t(apply(out$made, 2, stats::quantile, probs = c(0.05, 0.5, 0.95), names = FALSE)) "
              "} else { lv <- sort(unique(c(d$y, as.vector(yrep)))); "
              "out$grid <- lv; out$observed <- as.vector(table(factor(d$y, levels = lv))); "
              "k <- t(apply(yrep, 1, function(v) as.vector(table(factor(v, levels = lv))))); "
@@ -240,6 +241,8 @@ def predictive_check(model, seed, prior_only=False):
     out["observed"] = np.asarray(found["observed"], dtype=float).ravel()
     made = np.asarray(found["made"], dtype=float)
     out["made"] = made.reshape(-1, len(out["grid"])) if model["outcome"] == "numbers" else made.reshape(len(out["grid"]), 3)
+    if found.get("made_band") is not None:  # numbers: the median and 90 % range of the made-up densities, from R
+        out["made_band"] = np.asarray(found["made_band"], dtype=float).reshape(len(out["grid"]), 3)
     return out
 
 

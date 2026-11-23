@@ -409,23 +409,28 @@ def _cases(Case):
              "crabs (MASS)", "real data",
              ours=_printed('table = sdata.table(data).add_axes_that_separate_groups(columns=["FL", "RW", "CL", "CW", '
                            '"BD"], for_each_group_in="kind")') + """
-                 shares = [float(v) for v in re.findall(r"LD\\d ([\\d.]+) %", text)]
-                 {"LD1 % of trace": shares[0], "LD2 % of trace": shares[1],
-                  "leave-one-out % correct": float(re.search(r"([\\d.]+) % classified correctly", text).group(1)),
-                  "LD1 row 1 size": abs(table.as_pandas()["LD1"][0])}
+                 from simplydata.table.community_r import discriminant
+                 shown = [float(v) for v in re.findall(r"LD\\d ([\\d.]+) %", text)]
+                 found = discriminant(data[["FL", "RW", "CL", "CW", "BD"]].to_numpy(dtype=float), data["kind"].to_numpy())
+                 assert all(abs(a - 100 * v) <= 0.05 + 1e-9 for a, v in zip(shown, found["trace"]))  # the printout
+                 {"LD1 share of trace": found["trace"][0], "LD2 share of trace": found["trace"][1],
+                  "LD3 share of trace": found["trace"][2],
+                  "leave-one-out % correct": 100 * float(np.mean(found["loo"] == data["kind"].to_numpy())),
+                  "LD1 row 1 size": abs(table.get_cell_at(row=1, column="LD1"))}
              """,
              r="""
                  d <- MASS::crabs; g <- paste(d$sp, d$sex); x <- as.matrix(d[, c("FL", "RW", "CL", "CW", "BD")])
                  f <- MASS::lda(x, g); cv <- MASS::lda(x, g, CV = TRUE)
-                 list(`LD1 % of trace` = round(100 * f$svd[1]^2 / sum(f$svd^2), 1),
-                      `LD2 % of trace` = round(100 * f$svd[2]^2 / sum(f$svd^2), 1),
-                      `leave-one-out % correct` = round(100 * mean(cv$class == g), 1),
+                 share <- round(f$svd^2 / sum(f$svd^2), 4)  # as MASS:::print.lda prints them
+                 list(`LD1 share of trace` = share[1], `LD2 share of trace` = share[2], `LD3 share of trace` = share[3],
+                      `leave-one-out % correct` = 100 * mean(cv$class == g),
                       `LD1 row 1 size` = abs(predict(f)$x[1, 1]))
-             """, r_packages=("MASS",), r_tolerance=4e-3,
-             note="The shares are read from the printout (one decimal; within one unit of the last printed digit, as "
-                  "simplydata reads MASS's own four-decimal print); R's side computes MASS's proportion of trace "
-                  "(svd squared over their sum, as print.lda does) rounded the same way. The design check found "
-                  "0.686, 0.300 and 0.014, and 95 % correct."),
+             """, r_packages=("MASS",), r_tolerance=1e-9,
+             note="simplydata takes the shares of the trace from MASS's own print (4 decimals, as print.lda rounds "
+                  "them), so R's side rounds svd^2 / sum(svd^2) the same way and they must agree exactly; the "
+                  "leave-one-out share and the scores are compared unrounded. (Before, the check read the "
+                  "one-decimal printout and allowed 0.4 %.) The design check found 0.686, 0.300 and 0.014, and 95 % "
+                  "correct."),
         Case("table.add_correspondence_axes", "varespec: correspondence analysis (CA)",
              "varespec and varechem (vegan)", "published",
              ours=vare + _printed("table = sdata.table(data).add_correspondence_axes(columns=species)") + """

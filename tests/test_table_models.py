@@ -16,6 +16,7 @@ import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.stat_tests import _num as sdata_num
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -28,18 +29,18 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 @pytest.fixture
 def school():
-    return sdata.get_example("school")
+    return example_frame("school")
 
 
 @pytest.fixture
 def class_marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 def rows(result):

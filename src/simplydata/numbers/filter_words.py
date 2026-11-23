@@ -43,6 +43,12 @@ def filter_numbers(values, keep, condition, value, step, method, steepness, both
         f" (steepness {2 * steepness} in effect)" if "sos" in made and condition != "equal_to" else "")
             if both_ways else "run forwards only, from rest (as a live instrument would)")
     sentence = f"{verb} the frequencies {what} in {len(out)} readings ({step:g} apart): {made['words']}, {ways}."
+    if made.get("scipy_only"):  # a SciPy design with no R call to name: say what SciPy runs
+        runs = ("sosfiltfilt" if "sos" in made else "filtfilt") if both_ways else ("sosfilt" if "sos" in made else
+                                                                                  "lfilter")
+        ends = (" (forwards and backwards; the ends as MATLAB filtfilt: odd reflection and a steady start)"
+                if both_ways else " (forwards only, from rest)")
+        return out, sentence, f"Method: {made['r_call']}, run with SciPy signal.{runs}{ends}.", made
     call = (f"signal::filtfilt({made['r_call']}, x) in the middle (SciPy's ends: odd reflection and a steady start, as "
             "MATLAB)" if both_ways else f"signal::filter({made['r_call']}, x)")
     return out, sentence, f"Method: SciPy, as R {call}.", made
@@ -142,7 +148,8 @@ class FilterNumberWords:
 
         nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
         is_between=[49, 51] removes a band; is_equal_to=50 one frequency (a notch, width= how wide; and_multiples
-        =True also removes 100, 150 ...: a comb); is_below= and is_above= remove the slow or the fast cycles.
+        =True also removes 100, 150 ... below half the readings per unit of time, one SciPy iirnotch each; the
+        average stays); is_below= and is_above= remove the slow or the fast cycles.
         The options are those of keep_each_frequency_that (show_filter= too). Undo with nums.undo().
         """
         return self._filter_word(False, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,

@@ -5,6 +5,183 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: `sdata.get_example(name)` gives back a simplydata table (check your 0.2.x code)
+
+- `sdata.get_example("marks")` now gives back a simplydata table, as `get_example(name, from_r_package=)` already
+  did, so every table word works on it at once: `sdata.get_example("marks").count_rows()`. Up to simplydata 0.2.x it
+  gave back a pandas DataFrame. `sdata.table(sdata.get_example("marks"))` and `sdata.chart(sdata.get_example("marks"))`
+  still work as before. Code that used pandas on it, such as `sdata.get_example("marks")["marks"]` or
+  `.groupby(...)`, needs simplydata words now (`table.get_column("marks")`, `table.find_average_of(...)`), or, for
+  another package, `table.as_pandas()`.
+- The "same underneath" boxes of the manual read the practice table from its file with the package itself
+  (`pd.read_csv("marks.csv")`); `sdata.get_example("marks").save("marks.csv")` writes that file.
+
+### Fixed: eleven differences found while writing the Underneath entries and by the reference notebooks
+
+- `table.join_with` on a Polars table gave the rows in no fixed order (Polars joins without `maintain_order`). The
+  rows now come in the order pandas `merge()` gives on a pandas table: this table's rows in order, each followed by
+  its matches in the other table's order; with `keep="all rows from both"` sorted by `using=`. "matching rows" on
+  c, a, b, a, z came back b, a, a, a, a, c; now c, a, a, b, a, a, as on pandas.
+- `describe_columns` wrote 62.001 as "62.0" (it looked for a whole number before rounding to 2 places); now "62".
+- `sdata.compare_rates` and `sdata.compare_risks` said they compared against "the first in sorted order, as R", but
+  used the first group of `names=`. They keep that order, which is what R does with counts given as lists
+  (`poisson.test()`, `prop.test()` take them in the order given), and now say so: "the first given". The table
+  words still sort the groups, as R sorts factor levels.
+- `dist.find_middle_range` lost digits near 100 %: the top end was worked out as the value with 1 - tail below it.
+  It is now SciPy's `isf(tail)` (R `lower.tail = FALSE`). Normal, 99.99999999 %: 6.4669510747 before, 6.4669511822
+  now (= SciPy and R).
+- `nums.remove_each_frequency_that(is_equal_to=..., and_multiples=True)` also removed the average (SciPy `iircomb`
+  puts a notch at frequency 0 too). It is now one SciPy `iirnotch` at the frequency and at each multiple below half
+  the readings per unit of time; the average stays. A signal around 5 came back around 0.012 before, 5.0001 now.
+  `sdata.frequency_filter(remove_at=..., and_multiples=True)` changed the same way.
+- `chart.spectrum` labelled the 3 biggest values, which can sit on one broad peak, while the sentence of
+  `find_spectrum_of` named the strongest peaks. The chart now labels the same peaks as the sentence.
+- `chart.show()` left one pyplot figure open after each call. It is now closed once `show()` has finished with it
+  (in notebooks with a live window, such as `%matplotlib widget`, the window stays open).
+- `round_numbers_in` on a Polars table rounded halves away from zero on Polars before 1.29 (2.5 to 3, 0.125 to 0.13),
+  but to the even neighbour (2.5 to 2) on pandas and newer Polars. simplydata[fast] now needs `polars>=1.29`, and an
+  older Polars gets a message instead of other numbers.
+- `sdata.find_inverse_fourier_transform` trusted the number of readings it stored even after rows of the table were
+  removed or reordered, and SciPy quietly padded or cut them. It now refuses with a message; setting the real and
+  imaginary parts of some frequencies to 0 still works.
+- `compare_each_pair_of(test_method="dunn")`: R FSA's own Holm adjustment leaves out Holm's running maximum, so on
+  InsectSprays B - F got 0.926028 where R `p.adjust()` and PMCMRplus give 1 (A25). The adjustment now comes from R
+  `p.adjust(method = "holm")`.
+- `fit_formula(test_method="trust region")` and `"dogbox"` stopped a little short of the minimum after the A21 change,
+  so some standard errors lost digits: NIST Thurber (start 2) 5.8 digits, MGH09 b2 and b4 5.8 to 6.0, ENSO b6 5.9
+  (A26). SciPy's stopping rules are now 1e-15: Thurber 6.7, MGH09 7.2, ENSO 6.5, and nothing else of the 27 NIST
+  problems got worse (Misra1a, Kirby2 and Hahn1 keep their gains).
+- `round_numbers_in` with a negative number of places (tens, hundreds) did the rounding itself (divide, round,
+  multiply). It is now pandas `round(-1)`; Polars rounds to decimal places only, so on a Polars table the tens come
+  from NumPy's round, the one pandas uses: the same numbers on both.
+- `find_spectrum_of` and `nums.find_spectrum` no longer give the "share of variance (%)" column or the "holds 68 % of
+  the variance" in the sentence: that share was simplydata's own arithmetic. The powers (SciPy) are unchanged; with
+  the periodogram, the powers times the frequency step still add up to the variance.
+- `dist.find_middle_range(99.99999999)` printed "The middle 100 %"; it now prints the percent as given.
+- The method line of a notch or peak filter read "as R SciPy signal.iirnotch"; it now says what SciPy runs.
+### Fixed: closer agreement with certified values, and data licences
+
+- `explain` takes the standard errors of a least-squares model as R `summary.lm()` does, from the QR factor
+  (inv(R) inv(R)', R's chol2inv, done with NumPy and LAPACK), not statsmodels' inv(R'R): on NIST Longley they now agree with the certified values to 12.6 to
+  14.2 digits (before: 7.97 to 9.42).
+- `fit_curve` (polynomials) is unchanged. On NIST Wampler1, 3, 4 and 5 it agrees with the certified values to about
+  7 to 9 digits, depending on the computer's linear-algebra library (NIST asks 9); no existing least-squares routine tried (LAPACK gelsd, gelsy and gelss through SciPy,
+  NumPy's QR, NumPy's Polynomial.fit) does better on all of them without losing digits on Filip. The reliability study
+  now lists these numbers as explained differences (a precision limit), with the reason, and adds Wampler1 to 5.
+- `compare_risks(show="attributable fractions")` no longer calls its intervals "Wald": they are the ones epiR gives
+  for one table (the score interval of the risk ratio; the exact intervals of the two risks), and the printout says so.
+- The power for two percents (`find_chance_of_finding(percents=)` and the "power with that many" of
+  `find_how_many_needed(percents=)`) is now R `power.prop.test()`'s default (strict = FALSE): 0.7401659 on R's help
+  example, where it gave 0.7401672.
+- `combine_studies` (REML, Paule-Mandel), `fit_dose_response` and `find_return_levels_of(values_above=)` ask metafor,
+  drc and extRemes for a tighter stopping rule, so their fits converge (Paule-Mandel tau-squared of the BCG trials:
+  0.3180685, where metafor's default stopped at 0.3180937); the methods are the same.
+- Every practice table is now made up. `job_search`, `bcg`, `passive_smoking`, `ability_tests`, `sea_levels`,
+  `sampled_schools`, `job_training` and `drug_levels` keep the columns and size of the real studies they copied, but
+  their values are drawn with a fixed seed by `docs/make_job_search.py` and `docs/make_practice_tables.py`, with
+  effects built in that the lessons recover; the lessons' answers are updated. simplydata was tested on the real data,
+  which it no longer ships: the tests and the reliability study read them from the installed R packages (metadat,
+  lavaan, ismev, survey, MatchIt, mediation), and the Schütz et al. (2014) reference datasets from a local file named
+  by `SIMPLYDATA_SCHUTZ2014_FILE` (DATA_LICENSES.md).
+- The reliability study no longer stores copies of data from GPL or LGPL R packages; it reads them from the installed
+  R packages (`validation/r_data.py`). New `DATA_LICENSES.md` lists every table with its source, citation and licence.
+- Reliability study: Monte Carlo checks against another generator now allow 4 Monte Carlo standard errors worked out
+  for each check (before, 2 to 6 % of the value), with a same-seed exact check next to them; references read from
+  rounded printouts are taken at full precision; the GEV, generalised Pareto, drc and metafor references are run to
+  convergence. New NIST cases: Longley and Wampler1 to Wampler5. The report counts "explained differences" (a stated
+  precision limit) apart from passes and failures.
+
+### Fixed: one-column CSV files were split at a letter (check your one-column files)
+
+- `sdata.table("file.csv")` on a CSV or text file with **one column** could split it at a letter: simplydata let
+  pandas guess the separator, and it could pick a letter of the column name, so a column `species` came back as
+  columns such as `sp` and `cies`, and `difference` as `diff`, `r`, `nc` (simplydata 0.2.x). If you read one-column
+  files with simplydata 0.2.x without `separator=`, read them again. Now simplydata guesses only a comma, semicolon,
+  tab or bar (never a letter, digit or other sign); a file with none of them is read as one column. When it guesses,
+  it prints one line: `Read "file.csv" with "," between the columns (guessed). To be sure, give separator=",".`
+  `separator=` stays the safe way in (`","`, `";"`, `"tab"`, `"|"`, `"space"`): give it when you know it, especially
+  for a file with one column. Values lined up with spaces are no longer guessed: give `separator="space"`.
+
+### Fixed: four numbers that differed from their reference
+
+- `explain(..., table_of_tests="in order")`: the p-values are now taken on the full model's residual degrees of
+  freedom, as R `anova()` does (statsmodels `anova_lm(typ=1)` on one fit). On `carData::Moore`,
+  `conformity ~ fcategory * partner.status`: partner.status p 0.0027934 before (41 df), 0.0028742 now (39 df, =
+  R). The F values and sums of squares were already right; types 2 and 3 are unchanged.
+- `fit_formula(..., test_method="trust region")` and `"dogbox"`: central differences with a step relative to each
+  value (SciPy `jac="3-point"`, `diff_step`), so a small value such as 1e-7 is no longer stepped by 1.5e-8. NIST
+  Misra1a standard errors agree to 9.9 digits (4.6 before), Kirby2 to 7.8 (3.1), Hahn1 to 8.5 (0.4). The default
+  (Levenberg-Marquardt) is unchanged.
+- `compare_forecasts_for` and `forecast(check_on_last=)`: MASE is now scaled by the in-sample error of the same
+  season last time, as the printout says: the held-back readings go to R `forecast::accuracy()` as a seasonal `ts`.
+  co2, exponential smoothing, last 12: 0.278 before, 0.234 now (= R). With `repeats_every=` the MASE numbers
+  change; MAE, RMSE and MAPE do not.
+- Savitzky-Golay smoothing (`add_smoothed_column`, `nums.smooth`) refused `of_degree=`, the option its help names, so
+  the degree could not be set. `of_degree=` works now; `degree=` is an old name with a note.
+
+### New: six words and options, and four more options
+
+- `chart.get_numbers_drawn()`: a table of the numbers a chart drew (each line, group of dots, set of bars, band,
+  stems, error bars, heat map cells, pie slices), read back from matplotlib, for every chart word, page and
+  `sdata.draw_all_pairs`.
+- `table.show_rows_that_pull_model(...)` now also gives back a table of the rows (or groups) it found.
+- `table.check_model_of(..., show="numbers")`: the numbers it prints, as a table (with `test_method="bayesian"`,
+  R-hat, effective draws and the predictive check).
+- `table.repeat_each_row_by("count")`: one row per thing counted.
+- `sdata.get_example("lung", from_r_package="survival")`: a dataset that comes with an installed R package, as a
+  table (needs simplydata[r]; nothing is downloaded or installed).
+- `table.find_correlation_between("a", "b", show="result table")`: r, its interval, the p-value and the rows as a
+  one-row table.
+- `table.find_survival_over_time(..., show="median")`: the median time of each group with its 95 % CI, as a table
+  (the numbers it prints, as R `print(survfit(...))`).
+- `table.fit_formula(...)` gives back a `note` column: "converged" or "did not converge", followed by the warnings
+  the fit printed.
+- `table.add_nmds(..., show="numbers")`: each row's NMDS coordinates and the stress (vegan::metaMDS) as a table,
+  without adding columns.
+- `table.add_correspondence_axes(..., show="numbers")`: each row's coordinates and the share of the inertia of each
+  axis (vegan::cca, ca::mjca) as a table, without adding columns.
+
+### Fixed: ten differences the reference tests found (A8 to A17)
+
+The reference tests (simplydata_tests, notebooks 18 to 24) ran the words on the examples of their parent packages'
+manuals and on real data. These differences are now fixed, or explained where simplydata's answer was right:
+
+- `compare_each_pair_of(test_method="dunn")` with more than three groups put p-values on the wrong pairs (A12). FSA
+  lists its pairs in another order than simplydata assumed; each result is now matched to its pair by name. On
+  InsectSprays (six sprays) C - B now gets its own p = 5.1e-06, not D - C's 0.586. If you used Dunn's test with four
+  or more groups, run it again.
+- `compare_counts_of(test_method="barnard")` and `"boschloo"` took the outcome, not the `for_each_group_in=` groups,
+  as the two samples (A10). These tests are not symmetric; R Exact fixes the row totals, so it now gets the groups as
+  rows. Fisher's twins: Barnard p = 0.000348 (was 0.000280), as R. `sdata.compare_counts()` was right (the rows are the
+  samples) and now says so.
+- `compare_counts_of(show="cells")` added 0.5 to every cell of a table with an empty cell before working out the
+  residuals and expected counts (statsmodels' default). It no longer does, so the residuals are R
+  `chisq.test()$stdres` (Agresti's job satisfaction: 0.2096, was 0.0802) (A11).
+- Mann-Whitney U with tied values (`compare_averages_of(based_on="ranks")`, `compare_each_pair_of(based_on="ranks")`)
+  used the normal approximation; R 4.6.0 made `wilcox.test()` exact with ties below 50 values. That exact p-value now
+  comes from R `wilcox.test()` itself (SciPy has none); without R the normal approximation stays and the printout says
+  so (A13). InsectSprays C - A after Holm: 1.6e-05 (was 5.1e-04). The Wilcoxon signed-rank test keeps the rule of R
+  before 4.6.
+- Krippendorff's alpha (`agreement_between(test_method="krippendorff")`) came from R irr, which weights the pairs within
+  a row wrongly when three or more raters have no empty cells. It now comes from R icr, which gives Krippendorff's
+  published examples (0.743 nominal, 0.849 interval). irr's `anxiety`: 0.1701 (was 0.1631) (A14).
+- The ICC of the average of raters with absolute agreement, ICC(A,k), had irr's interval, which does not follow McGraw
+  and Wong (1996). Every ICC now comes from R psych `ICC()`: (-0.1266, 0.7451) for irr's `anxiety` (was (-0.1373,
+  0.7463)); every other form's numbers are unchanged (A15).
+- Spearman's p-value (`find_correlation_between(test_method="spearman")`) was SciPy's t approximation. For fewer than
+  1290 rows without ties it is now R `cor.test()`'s default, algorithm AS 89, run in R (without R the t approximation,
+  with a note). R's own example: p = 0.0968 (was 0.088) (A9).
+- `chart.draw_smooth_line()` fitted every point (LOWESS with delta = 0). It now uses R `lowess()`'s default delta of
+  1 % of the x range, and the curve on mtcars is R's to 1e-10 (it differed by up to 5e-4) (A16).
+- `find_percentile_of(interval=)`: the help said the quartiles' intervals are R DescTools' exact intervals. They are
+  SciPy's Thompson (1936) interval, which splits the chance of missing evenly between the two ends; DescTools picks
+  another pair of order statistics away from the median. Both are exact; the help and the printout now say which is
+  used (A8). The median's interval is DescTools' `MedianCI()`, as before.
+- The smoothing spline with a number for `smoothness=` differs from R `smooth.spline(lambda = )` by about 1e-5. This is
+  not about repeated x values: it happens without them too, and SciPy's curve makes the penalised sum a little smaller
+  than R's, so the difference is R's rounding. The help now says so (A17).
+- New R package: icr (CRAN), for Krippendorff's alpha.
+
 ### Changed: one name for choosing the method
 
 - One name for choosing the method: `test_method=` replaces `test=`, `method=`, `rule=` and `methods=` on 57 words,

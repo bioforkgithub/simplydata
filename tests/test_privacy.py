@@ -508,8 +508,9 @@ def _run(tmp_path, body, env_extra=None):
 def _table_with_marks():
     return textwrap.dedent(f'''
         import simplydata as sdata
-        school = sdata.get_example("school").rename(columns={{"school": "{MARK_COLUMN}"}})
-        school["{MARK_COLUMN}"] = "{MARK_VALUE}-" + school["{MARK_COLUMN}"].astype(str)
+        school = sdata.get_example("school")
+        school.rename_column("school", to="{MARK_COLUMN}")
+        school.change_column("{MARK_COLUMN}", by_running=lambda row: "{MARK_VALUE}-" + str(row["{MARK_COLUMN}"]))
         table = sdata.table(school)
     ''')
 
@@ -526,7 +527,7 @@ def test_the_list_of_packages_never_holds_your_data(tmp_path):
     use_r = _r_ready()
     body = _table_with_marks() + textwrap.dedent(f'''
         table.find_average_of("marks", for_each_group_in="{MARK_COLUMN}")
-        table.keep_rows_where("{MARK_COLUMN}", is_equal_to="{MARK_VALUE}-" + str(sdata.get_example("school")["school"].iloc[0]))
+        table.keep_rows_where("{MARK_COLUMN}", is_equal_to="{MARK_VALUE}-" + str(sdata.get_example("school").get_cell_at(row=1, column="school")))
         table.start_chart().draw_bars(x="{MARK_COLUMN}", y="marks").save("asked.png")
         table.save("asked.csv")
         {'big = sdata.table(school); big.explain("marks", using=["hours", "breakfast"], grouped_by="' + MARK_COLUMN

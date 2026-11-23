@@ -1,7 +1,7 @@
 """Planning an experiment and survey answers (phase S3d-1): the design words (R blockrand and agricolae), stratified
 random rows (pandas), patterns of empty cells (pandas), answers on a scale (pandas and matplotlib) and the survey
-words (R survey). Practice tables: "marks", "shop", "course_feedback" (made up) and "sampled_schools" (the R survey
-package's apistrat, real).
+words (R survey). Practice tables: "marks", "shop", "course_feedback" (made up) and "sampled_schools" (made up after the R survey
+package's apistrat).
 """
 
 from . import Entry
@@ -11,7 +11,8 @@ SURVEY_OURS = """
     table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")
 """
 SCHOOLS = """
-    df = sdata.get_example("sampled_schools")
+    import pandas as pd
+    df = pd.read_csv("sampled_schools.csv")
     w = df["weight"].to_numpy(dtype=float)
     s = df["school_type"].to_numpy(dtype=str)
     f = df["schools_of_type"].to_numpy(dtype=float)
@@ -220,7 +221,8 @@ ENTRIES = [
             table.keep_random_rows(2, for_each_group_in="class", with_seed=1)
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # keep_random_rows(2, for_each_group_in="class", with_seed=1)
             df.groupby("class").sample(n=2, random_state=1).sort_index()   # (1)
         """},
@@ -237,7 +239,8 @@ ENTRIES = [
             table.keep_random_rows(percent=30, for_each_group_in="class", with_seed=1)
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # keep_random_rows(percent=30, for_each_group_in="class", with_seed=1)
             df.groupby("class").sample(frac=0.3, random_state=1).sort_index()   # (1)
         """},
@@ -255,7 +258,8 @@ ENTRIES = [
             table.count_empty_cells_in(show="patterns")
         """,
         code={"pandas": """
-            df = sdata.get_example("shop")
+            import pandas as pd
+            df = pd.read_csv("shop.csv", parse_dates=["date"])
             # count_empty_cells_in(show="patterns")
             p = df.isna().value_counts().reset_index(name="rows with this pattern")   # (1)
             p["empty cells"] = p[list(df.columns)].sum(axis=1)
@@ -280,7 +284,8 @@ ENTRIES = [
         """,
         code={"pandas and NumPy": f"""
             import numpy as np
-            df = sdata.get_example("course_feedback")
+            import pandas as pd
+            df = pd.read_csv("course_feedback.csv")
             levels = {LEVELS}
             # count_each(columns=[...], in_order=levels), the first question
             x = df["teaching"].dropna()
@@ -308,7 +313,8 @@ ENTRIES = [
         code={"matplotlib": f"""
             import matplotlib.pyplot as plt
             import numpy as np
-            df = sdata.get_example("course_feedback")
+            import pandas as pd
+            df = pd.read_csv("course_feedback.csv")
             levels = {LEVELS}
             fig, ax = plt.subplots()
             # draw_answer_bars(columns=["teaching", "pace"], in_order=levels)

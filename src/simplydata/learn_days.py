@@ -1002,13 +1002,15 @@ UNITS = {
             "Write your question in one sentence, for example: do pupils who sleep more get better marks?",
             "Keep the raw file as it is: never change it. All the cleaning will be steps on a table, which "
             "you can repeat and undo.",
-            "Open the file with sdata.table and look at it."],
+            "Open the file with sdata.table and look at it. Give separator= when you know it (\",\", \";\", "
+            "\"tab\" or \"|\"), especially for a file with one column; without it simplydata guesses and prints "
+            "its guess."],
         task=["Write your question in one sentence. Open your raw file and write down how many rows and "
               "columns it has, and which columns have empty cells."],
         solutions=[(_code('''
             import simplydata as sdata
             sdata.table(sdata.get_example("school")).save("school_raw.csv")
-            table = sdata.table("school_raw.csv")
+            table = sdata.table("school_raw.csv", separator=",")
             table.count_rows()
             table.describe_columns()'''),
             "The first line only makes a raw file to practise on; with your own data, start at the second "
@@ -1245,9 +1247,11 @@ UNITS = {
             "The simplydata version: one word per step, and each answer printed in a sentence."),
             (_code('''
             import matplotlib.pyplot as plt
+            import pandas as pd
             import simplydata as sdata
             from scipy import stats
-            df = sdata.get_example("marks")
+            sdata.get_example("marks").save("marks.csv")
+            df = pd.read_csv("marks.csv")
             df = df[df["class"].isin(["A", "B"])]
             print(df.groupby("class")["marks"].mean())
             a = df.loc[df["class"] == "A", "marks"]
@@ -1257,7 +1261,8 @@ UNITS = {
             means = df.groupby("class")["marks"].mean()
             ax.bar(means.index, means.values)
             fig.savefig("pandas_bars.png")'''),
-             "The same in pandas, SciPy and matplotlib: equal_var=False makes it Welch's t-test, as in "
+             "The same in pandas, SciPy and matplotlib: the word save writes the practice table to a file, which "
+             "pandas reads with its own read_csv; equal_var=False makes it Welch's t-test, as in "
              "simplydata.")],
     ),
     "look_back": dict(

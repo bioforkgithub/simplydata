@@ -13,6 +13,7 @@ from __future__ import annotations
 
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
+    ('sdata.get_example("lung", from_r_package="survival")', "get_rdataset rdata load_dataset"),
     ('sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])',
      "ttest_ind_from_stats tsum_test"),
     ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")', "date_range seq.Date datetime_range daterange"),
@@ -82,6 +83,7 @@ _SDATA = [
 
 # table.<name>
 _TABLE = [
+    ('table.repeat_each_row_by("count")', "uncount expand_counts repeat_rows"),
     ('table.find_average_of("marks", for_each_group_in="class")', "groupby group_by aggregate agg"),
     ('table.join_with(other_table, using="name")', "merge join left_join inner_join"),
     ("table.add_rows_from(other_table)", "concat append rbind vstack bind_rows"),
@@ -423,6 +425,7 @@ _TABLE = [
 
 # chart.<name>
 _CHART = [
+    ("chart.get_numbers_drawn()", "get_xydata get_offsets layer_data ggplot_build plot_data"),
     ('chart.draw_answer_bars(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree", "neutral", '
      '"agree", "strongly agree"])', "draw_likert_bars plot_likert likert_plot diverging_bars diverging_stacked_bars"),
     ('chart.draw_lines(x="year", y="population")', "plot geom_line line"),

@@ -5,7 +5,8 @@
 from . import Entry
 
 TESTS = """
-    tests = sdata.get_example("ability_tests")
+    import pandas as pd
+    tests = pd.read_csv("ability_tests.csv")
     x = tests[["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"]].to_numpy(dtype=float)
 """
 COLUMNS = '["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"]'

@@ -58,8 +58,13 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     sdata.table("https://example.org/data.csv") a file on the web
     fast=True                              use the fast engine (Polars), for big data
 
+    separator= is the safe way to read a CSV or text file: give it when you know it, especially for
+    a file with one column. Without it simplydata guesses (only a comma, semicolon, tab or bar, never
+    a letter or a digit) and prints its guess:
+    sdata.table("species.csv", separator=",")
+
     Reading options, for files whose values are written differently:
-    separator=";"            the character between values ("tab" for tabs)
+    separator=","            the character between values: ",", ";", "|" or "tab" ("space" too)
     decimal_mark=","         3,5 means three and a half
     thousands_mark="."       1.000 means one thousand
     empty_values=["NA", "-"] markers that mean "no value"

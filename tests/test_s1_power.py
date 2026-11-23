@@ -15,9 +15,10 @@ def row(result):
 
 def test_two_percents_power(capsys):
     got = row(sdata.find_chance_of_finding(for_test="compare_counts", percents=[30, 15], values_per_group=121))
-    # R: power.prop.test(p1 = 0.3, p2 = 0.15, n = 121)$power 0.8017324227189; statsmodels
-    #    power_proportions_2indep gives 0.8017330967 (another normal approximation step), so 1e-5
-    assert got["power"] == pytest.approx(0.8017324227189, rel=1e-5)
+    # R: power.prop.test(p1 = 0.3, p2 = 0.15, n = 121)$power 0.8017324227189 (strict = FALSE, the default).
+    #    statsmodels power_proportions_2indep(alternative="two-sided") gives 0.8017330967, R's strict = TRUE (it also
+    #    counts the far tail); simplydata asks it for one side at half the level, which is R's default exactly
+    assert got["power"] == pytest.approx(0.8017324227189, rel=1e-12)
     assert "power_proportions_2indep" in capsys.readouterr().out
 
 

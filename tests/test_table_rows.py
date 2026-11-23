@@ -7,12 +7,13 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 def _engine_table(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -23,7 +24,7 @@ def engine(request):
 
 @pytest.fixture
 def marks_df():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
@@ -69,7 +70,7 @@ def test_describe_columns(marks, capsys):
     out = capsys.readouterr().out
     assert "54 rows and 6 columns" in out
     line = next(l for l in out.splitlines() if l.strip().startswith("marks"))
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     assert "number" in line and str(df["marks"].min()) in line and str(df["marks"].max()) in line
     assert str(round(df["marks"].mean(), 2)) in line
     name_line = next(l for l in out.splitlines() if l.strip().startswith("name"))
@@ -379,7 +380,7 @@ def test_make_dates_order_must_be_known(messy):
 
 
 def test_make_dates_from_years(engine):
-    growth = _engine_table(sdata.get_example("growth"), engine)
+    growth = _engine_table(example_frame("growth"), engine)
     growth.turn_into_dates("year")
     assert pd.Timestamp(plain(growth)["year"][0]) == pd.Timestamp("2000-01-01")
     with pytest.raises(SimplydataError, match="decimals"):
@@ -387,7 +388,7 @@ def test_make_dates_from_years(engine):
 
 
 def test_make_text(engine, messy):
-    weather = _engine_table(sdata.get_example("weather"), engine)
+    weather = _engine_table(example_frame("weather"), engine)
     weather.turn_into_text("month_number")
     assert plain(weather)["month_number"].tolist()[:3] == ["1", "2", "3"]
     weather.keep_rows_where("month_number", is_equal_to="1")

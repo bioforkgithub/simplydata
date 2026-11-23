@@ -18,7 +18,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # the core of compare_averages_of("days", for_each_group_in="treatment")
             a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
             res = stats.ttest_ind(a, b, equal_var=False)       # (1)
@@ -43,7 +44,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # fit_line(x="hours", y="marks")
             fit = stats.linregress(df["hours"], df["marks"])
             t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
@@ -109,7 +111,8 @@ ENTRIES = [
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # compare_spreads_of("marks", for_each_group_in="class")
             groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
             res = stats.levene(*groups, center="median")                  # (1)
@@ -135,7 +138,8 @@ ENTRIES = [
         code={"SciPy": """
             from scipy import stats
             from statsmodels.stats.proportion import proportion_effectsize
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # compare_percent_to("passed", value="yes", percent=50)
             passed = df["passed"].dropna()
             hits, n = int((passed == "yes").sum()), len(passed)
@@ -166,7 +170,7 @@ ENTRIES = [
             import numpy as np
             import pandas as pd
             from statsmodels.multivariate.pca import PCA
-            df = sdata.get_example("meadow")
+            df = pd.read_csv("meadow.csv")
             # add_principal_components(how_many=2)
             x = df.select_dtypes("number").dropna()                          # (1)
             z = (x - x.mean()) / x.std()                                     # (2)
@@ -194,7 +198,8 @@ ENTRIES = [
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # add_predicted_column("marks", using=["hours", "sleep"])
             fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
             df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
@@ -214,7 +219,8 @@ ENTRIES = [
 
 # ---------------------------------------------------------------- U-batch 2: trends, peaks, NMDS, formulas, matched columns
 HARBOUR = """
-    visitors_table = sdata.get_example("visitors")
+    import pandas as pd
+    visitors_table = pd.read_csv("visitors.csv", parse_dates=["month"])
     harbour = visitors_table[visitors_table["museum"] == "Harbour Museum"].sort_values("month")
     visitors = harbour["visitors"].to_numpy(dtype=float)
 """
@@ -237,8 +243,9 @@ ENTRIES += [
                      S = unname(m$estimates["S"]), tau = unname(m$estimates["tau"]))
             """,
             "SciPy": """
+                import pandas as pd
                 from scipy import stats
-                df = sdata.get_example("visitors")
+                df = pd.read_csv("visitors.csv", parse_dates=["month"])
                 harbour = df[df["museum"] == "Harbour Museum"].sort_values("month")
                 sen = stats.theilslopes(harbour["visitors"], alpha=0.95)        # (2)
                 {"slope": sen.slope, "95 % CI low": sen.low_slope, "95 % CI high": sen.high_slope,
@@ -271,7 +278,7 @@ ENTRIES += [
         code={"SciPy": """
             import pandas as pd
             from scipy import signal
-            df = sdata.get_example("sensor").sort_values("time")
+            df = pd.read_csv("sensor.csv").sort_values("time")
             # find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)
             y, step = df["signal"].to_numpy(), 0.005                 # readings 0.005 apart
             peaks, _ = signal.find_peaks(y, height=1, distance=round(0.05 / step, 9))  # (1)
@@ -312,14 +319,16 @@ ENTRIES += [
                 list(points = unclass(fit$points))
             """,
             "pandas": """
+                import pandas as pd
                 import numpy as np
-                df = sdata.get_example("meadow")
+                df = pd.read_csv("meadow.csv")
                 p = np.asarray(points).reshape(len(df), 2, order="F")
                 df.assign(NMDS1=p[:, 0], NMDS2=p[:, 1])
             """,
         },
         r_inputs="""
-            meadow = sdata.get_example("meadow")
+            import pandas as pd
+            meadow = pd.read_csv("meadow.csv")
             x = meadow.select_dtypes("number").to_numpy(dtype=float)
         """,
         r_packages=("vegan",),
@@ -344,9 +353,10 @@ ENTRIES += [
             table.fit_formula("population = a * exp(b * (year - 2000))")
         """,
         code={"SciPy": """
+            import pandas as pd
             import numpy as np
             from scipy import optimize, stats
-            df = sdata.get_example("growth")
+            df = pd.read_csv("growth.csv")
             rows = df[df["country"] == "Applia"]
             # fit_formula("population = a * exp(b * (year - 2000))")
             f = lambda year, a, b: a * np.exp(b * (year - 2000))
@@ -391,8 +401,9 @@ ENTRIES += [
                 list(w = es$Kendalls_W, low = es$CI_low, high = es$CI_high)
             """,
             "SciPy": """
+                import pandas as pd
                 from scipy import stats
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 wide = df.pivot(index="name", columns="subject", values="marks")
                 res = stats.friedmanchisquare(wide["Maths"], wide["Science"], wide["English"])  # (3)
                 {"statistic": res.statistic, "degrees of freedom": 2, "p-value": res.pvalue,
@@ -400,7 +411,8 @@ ENTRIES += [
             """,
         },
         r_inputs="""
-            marks = sdata.get_example("marks")
+            import pandas as pd
+            marks = pd.read_csv("marks.csv")
             wide = marks.pivot(index="name", columns="subject", values="marks").loc[marks["name"].unique()]
             y = wide[["Maths", "Science", "English"]].dropna().to_numpy(dtype=float)
         """,
@@ -420,35 +432,5 @@ ENTRIES += [
         also="Yes/no columns get Cochran's Q test (statsmodels cochrans_q); test_method=\"quade\" (R quade.test()) and "
              "\"page\" (SciPy page_trend_test) are the other tests. simplydata also gives the median of each "
              "column. " + SENTENCE,
-    ),
-    Entry(
-        word="table.show_rows_that_pull_model",
-        data="school",
-        ours="""
-            table = sdata.table(sdata.get_example("school"))
-            table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])
-        """,
-        code={"statsmodels": """
-            import statsmodels.formula.api as smf
-            df = sdata.get_example("school")
-            # show_rows_that_pull_model("marks", using=["hours", "breakfast"])
-            fit = smf.ols("marks ~ hours + breakfast", data=df).fit()            # (1)
-            s, n = fit.get_influence().summary_frame(), int(fit.nobs)          # OLSInfluence
-            big = s[s["cooks_d"] > 4 / n].sort_values("cooks_d", ascending=False, kind="stable")  # (2)
-            print(f"Found {len(big)} of {n} rows with a Cook's distance above 4 / {n} = {4 / n:#.3g}:")
-            for row, f in big.head(10).iterrows():                               # (3)
-                r = df.loc[row]
-                print(f'  row {row + 1}: marks {r.marks:#.3g}, hours {r.hours:#.3g}, breakfast "{r.breakfast}": '
-                      f"Cook's distance {f.cooks_d:#.3g}, leverage {f.hat_diag:#.3g}, "
-                      f"studentised residual {f.student_resid:#.3g}")
-        """},
-        compare="printed",
-        choices=("the same model as explain(): least squares, with the rows that have an empty cell left out.",
-                 "rows with a Cook's distance above 4 / (number of rows), the usual rule of thumb, biggest first.",
-                 "at most 10 rows are shown, each with its number in the whole table, so remove_rows_by_position() "
-                 "can follow; numbers to 3 significant digits.",),
-        also="simplydata also says how many more rows are above the line, warns when a row's Cook's distance is above "
-             "1, and explains leverage and the studentised residual. For yes/no and count outcomes it uses "
-             "statsmodels GLMInfluence; with grouped_by= it leaves out whole groups (R lme4).",
     ),
 ]

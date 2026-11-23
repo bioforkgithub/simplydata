@@ -53,11 +53,12 @@ def test_periodogram_matches_r_spec_pgram(capsys):
     assert power[100] == pytest.approx(7.99999999999943e-06, rel=1e-8)  # s$spec[100], Nyquist
     # the powers times the frequency step add up to the variance (n divisor): mean((x - mean(x))^2)
     assert power.sum() * 0.5 == pytest.approx(0.724335941758618, rel=1e-10)
-    assert column(got, "share of variance (%)").sum() == pytest.approx(100, rel=1e-10)
+    # no share of the variance: it was simplydata's own arithmetic (power x step / variance), dropped 2026-11-22
+    assert "share of variance (%)" not in got.get_column_names()
     assert column(got, "repeats every")[10] == pytest.approx(0.2)
     out = capsys.readouterr().out
     assert "The strongest cycle in the numbers has frequency 5 per unit of time (it repeats every 0.2 units of " \
-           "time) and holds 69 % of the variance; next: 20 per unit of time (17 %)" in out
+           "time); next: 20 per unit of time" in out
     assert "spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)" in out and "100 readings per unit" in out
 
 

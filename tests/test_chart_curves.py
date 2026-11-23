@@ -16,6 +16,7 @@ from simplydata import SimplydataError
 from simplydata.chart import Chart
 from simplydata.table.between import smoothing_spline
 from simplydata.table.table import Table
+from conftest import example_frame
 
 
 def drawn(chart):
@@ -39,11 +40,11 @@ def test_curve_of_a_formula():
 
 
 def test_curve_over_dots_uses_the_chart_range():
-    chart = Chart(sdata.get_example("marks")).draw_dots(x="hours", y="marks").draw_curve("40 + 5 * hours", dashed=True,
+    chart = Chart(example_frame("marks")).draw_dots(x="hours", y="marks").draw_curve("40 + 5 * hours", dashed=True,
                                                                                  steps=50)
     ax = drawn(chart)
     line = long_lines(ax, 50)[0]
-    hours = sdata.get_example("marks")["hours"].dropna()
+    hours = example_frame("marks")["hours"].dropna()
     assert line.get_xdata()[0] == pytest.approx(hours.min()) and line.get_xdata()[-1] == pytest.approx(hours.max())
     assert np.allclose(line.get_ydata(), 40 + 5 * np.asarray(line.get_xdata()))
     assert line.get_linestyle() == "--"
@@ -89,7 +90,7 @@ def test_curve_of_a_count_distribution_is_bars():
 
 def test_curve_of_a_distribution_on_a_histogram_is_scaled(capsys):
     distributions = pytest.importorskip("simplydata.distributions")
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     dist = distributions.distribution("normal", average=65, standard_deviation=15)
     chart = Chart(marks).draw_histogram(x="marks", with_bins=10).draw_curve(dist)
     ax = drawn(chart)
@@ -109,7 +110,7 @@ def test_curve_of_a_distribution_on_a_histogram_is_scaled(capsys):
 
 # ====================================================================== fit_formula
 def test_fit_formula_on_dots_matches_r(capsys):
-    growth = sdata.get_example("growth")
+    growth = example_frame("growth")
     applia = growth[growth["country"] == "Applia"]
     chart = Chart(applia).draw_dots(x="year", y="population").fit_formula(
         "population = a * exp(b * (year - 2000))", start={"a": 10, "b": 0.03}, show_equation=True)
@@ -131,7 +132,7 @@ def test_fit_formula_on_dots_matches_r(capsys):
 def test_fit_formula_same_values_as_the_table_engine(capsys):
     from simplydata.table.fitting import fit_formula_core
 
-    growth = sdata.get_example("growth")
+    growth = example_frame("growth")
     chart = Chart(growth).draw_dots(x="year", y="population", colour="country").fit_formula(
         "population = a * exp(b * (year - 2000))", start={"a": 10, "b": 0.03})
     lines = long_lines(drawn(chart))
@@ -146,7 +147,7 @@ def test_fit_formula_same_values_as_the_table_engine(capsys):
 
 
 def test_fit_formula_friendly_errors():
-    growth = sdata.get_example("growth")
+    growth = example_frame("growth")
     with pytest.raises(SimplydataError, match="one = sign"):
         Chart(growth).draw_dots(x="year", y="population").fit_formula("a * exp(b * year)")
     with pytest.raises(SimplydataError, match='should start with\\s+"population'):
@@ -158,7 +159,7 @@ def test_fit_formula_friendly_errors():
 # ====================================================================== fit_distribution
 def test_fit_distribution_on_a_histogram(capsys):
     pytest.importorskip("simplydata.distributions")
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     values = marks["marks"].dropna().to_numpy(float)
     ax = drawn(Chart(marks).draw_histogram(x="marks").fit_distribution("normal"))
     out = capsys.readouterr().out
@@ -175,7 +176,7 @@ def test_fit_distribution_on_a_histogram(capsys):
 
 def test_fit_distribution_groups_on_density(capsys):
     distributions = pytest.importorskip("simplydata.distributions")
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     ax = drawn(Chart(marks).draw_density(x="marks", colour="class").fit_distribution("gamma"))
     fitted = ax.lines[-3:]  # drawn after the three density curves
     assert len(ax.lines) == 6 and all(len(line.get_xdata()) == 200 for line in fitted)
@@ -190,7 +191,7 @@ def test_fit_distribution_groups_on_density(capsys):
 # ====================================================================== lines(joined_by=)
 @pytest.mark.parametrize("how", ["smooth curve", "curve without overshoot", "akima"])
 def test_lines_joined_by_a_curve(how):
-    weather = sdata.get_example("weather")
+    weather = example_frame("weather")
     ax = drawn(Chart(weather).draw_lines(x="month_number", y="temperature", colour="city", joined_by=how))
     curves = long_lines(ax, 100)
     assert len(curves) == weather["city"].nunique()
@@ -204,7 +205,7 @@ def test_lines_joined_by_a_curve(how):
 
 
 def test_lines_steps_and_errors():
-    weather = sdata.get_example("weather")
+    weather = example_frame("weather")
     ax = drawn(Chart(weather).draw_lines(x="month_number", y="temperature", colour="city", joined_by="steps"))
     assert ax.lines[0].get_drawstyle() == "steps-post"
     with pytest.raises(SimplydataError, match='Did you mean joined_by="smooth curve"'):
@@ -218,7 +219,7 @@ def test_lines_steps_and_errors():
 
 # ====================================================================== smooth_line(method="spline")
 def test_smooth_line_spline(needs_r):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line(test_method="spline"))
     line = long_lines(ax)[0]
     rows = marks.dropna(subset=["hours", "marks"])
@@ -239,7 +240,7 @@ def test_smooth_line_spline(needs_r):
 def test_smooth_line_lowess_unchanged():
     from simplydata.words.stats import lowess
 
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     ax = drawn(Chart(marks).draw_dots(x="hours", y="marks").draw_smooth_line())
     rows = marks.dropna(subset=["hours", "marks"])
     xs, ys = lowess(rows["hours"].to_numpy(float), rows["marks"].to_numpy(float))
@@ -250,7 +251,7 @@ def test_smooth_line_lowess_unchanged():
 # ====================================================================== qq_dots(distribution=)
 def test_qq_dots_against_a_fitted_gamma(capsys):
     distributions = pytest.importorskip("simplydata.distributions")
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     ax = drawn(Chart(trial).draw_qq_dots("days", distribution="gamma"))
     values = trial["days"].dropna().to_numpy(float)
     dist = distributions.fit(values, "gamma")
@@ -270,7 +271,7 @@ def test_qq_dots_against_a_fitted_gamma(capsys):
 def test_fit_distribution_for_counts_draws_the_chance_of_each_whole_number(capsys):
     from simplydata import distributions
 
-    school = sdata.get_example("school")
+    school = example_frame("school")
     ax = drawn(Chart(school).draw_histogram(x="days_absent", show="density").fit_distribution("negative binomial"))
     fit = distributions.fit(school["days_absent"].dropna().to_numpy(float), "negative binomial")
     dots = [line for line in ax.lines if line.get_marker() == "o"]

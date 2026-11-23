@@ -15,7 +15,9 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 
@@ -33,7 +35,7 @@ def school():
 
 @pytest.fixture
 def school_frame():
-    return sdata.get_example("school")
+    return example_frame("school")
 
 
 def row(result, term):
@@ -60,7 +62,7 @@ def test_spread_changes_with_a_group_column_matches_nlme(school, school_frame, n
 
 
 def test_neighbours_alike_in_even_order_uses_ar1_and_matches_nlme(needs_r, capsys):
-    lake = pd.read_csv(DATA / "lake_huron.csv")
+    lake = r_table("lake_huron.csv")
     result = sdata.table(lake).explain("level", using=["year"], neighbours_alike_in_order_of="year")
     printed = capsys.readouterr().out
     found = r("m <- nlme::gls(level ~ year, correlation = nlme::corAR1(form = ~ year)); "
@@ -96,14 +98,14 @@ def test_gls_refusals(school, options, words):
 
 
 def test_american_spelling_of_neighbours_is_accepted(needs_r, capsys):
-    lake = pd.read_csv(DATA / "lake_huron.csv")
+    lake = r_table("lake_huron.csv")
     sdata.table(lake).explain("level", using=["year"], neighbors_alike_in_order_of="year")
     assert "corAR1" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------- L10 lasso
 def test_lasso_matches_glmnet_with_the_same_seed(needs_r, capsys):
-    swiss = pd.read_csv(DATA / "swiss.csv")
+    swiss = r_table("swiss.csv")
     cols = ["Agriculture", "Examination", "Education", "Catholic", "Infant.Mortality"]
     result = sdata.table(swiss).find_columns_that_predict("Fertility", using=cols)
     printed = capsys.readouterr().out
@@ -121,7 +123,7 @@ def test_lasso_effects_are_a_penalised_least_squares_minimum_as_statsmodels(need
     """At glmnet's chosen penalty, statsmodels' elastic net (no random folds) gives the same effects."""
     import statsmodels.api as sm
 
-    swiss = pd.read_csv(DATA / "swiss.csv")
+    swiss = r_table("swiss.csv")
     cols = ["Agriculture", "Examination", "Education", "Catholic", "Infant.Mortality"]
     result = sdata.table(swiss).find_columns_that_predict("Fertility", using=cols).as_pandas()
     lam = float(result.loc[result["term"] == "penalty chosen (lambda.1se)", "penalty"].iloc[0])
@@ -141,7 +143,7 @@ def test_lasso_refuses_ridge_few_rows_and_one_column(school):
         school.find_columns_that_predict("marks", using=["hours", "sleep"], test_method="ridge")
     with pytest.raises(SimplydataError, match="at least two"):
         school.find_columns_that_predict("marks", using=["hours"])
-    small = sdata.table(sdata.get_example("school").head(15))
+    small = sdata.table(example_frame("school").head(15))
     with pytest.raises(SimplydataError, match="at least 20 rows"):
         small.find_columns_that_predict("marks", using=["hours", "sleep"])
 
@@ -241,7 +243,7 @@ WARP = None
 
 @pytest.fixture
 def warp():
-    return sdata.table(pd.read_csv(DATA / "warpbreaks.csv"))
+    return sdata.table(r_table("warpbreaks.csv"))
 
 
 def emm(code, frame):
@@ -255,7 +257,7 @@ def test_each_with_the_first_matches_emmeans_trt_vs_ctrl(warp, needs_r, capsys):
                                          comparing="each with the first", in_order=["L", "M", "H"])
     printed = capsys.readouterr().out
     found = emm("e <- emmeans::emmeans(m, ~ t); s <- as.data.frame(summary(emmeans::contrast(e, 'trt.vs.ctrl'), "
-                "infer = TRUE)); list(est = s$estimate, p = s$p.value)", pd.read_csv(DATA / "warpbreaks.csv"))
+                "infer = TRUE)); list(est = s$estimate, p = s$p.value)", r_table("warpbreaks.csv"))
     frame = result.as_pandas()
     pairs = frame[frame["term"].str.contains("minus")]
     assert pairs["difference"].to_numpy(float) == pytest.approx(np.asarray(found["est"], float), rel=1e-10)
@@ -268,7 +270,7 @@ def test_helmert_weights_and_trend_names(warp, needs_r, capsys):
                                          comparing="each with the average of the ones before",
                                          in_order=["L", "M", "H"])
     found = emm("e <- emmeans::emmeans(m, ~ t); s <- as.data.frame(emmeans::contrast(e, list(a = c(-1, 1, 0), "
-                "b = c(-0.5, -0.5, 1)))); list(est = s$estimate)", pd.read_csv(DATA / "warpbreaks.csv"))
+                "b = c(-0.5, -0.5, 1)))); list(est = s$estimate)", r_table("warpbreaks.csv"))
     frame = result.as_pandas()
     assert frame["difference"].dropna().to_numpy(float) == pytest.approx(np.asarray(found["est"], float), rel=1e-10)
     assert "H against the average of L and M" in capsys.readouterr().out
@@ -292,7 +294,7 @@ def test_simple_effects_print_the_interaction_test_first(warp, needs_r, capsys):
                                          within_each_group_in="wool", in_order=["L", "M", "H"])
     printed = capsys.readouterr().out
     found = emm("j <- as.data.frame(emmeans::joint_tests(m)); jb <- as.data.frame(emmeans::joint_tests(m, by = 'w')); "
-                "list(f = j$F.ratio[j[[1]] == 'w:t'], fa = jb$F.ratio[jb[[1]] == 't'])", pd.read_csv(DATA / "warpbreaks.csv"))
+                "list(f = j$F.ratio[j[[1]] == 'w:t'], fa = jb$F.ratio[jb[[1]] == 't'])", r_table("warpbreaks.csv"))
     assert row(result, "interaction tension : wool")["statistic"] == pytest.approx(float(found["f"][0]), rel=1e-8)
     assert row(result, "tension within wool A")["statistic"] == pytest.approx(float(found["fa"][0]), rel=1e-8)
     assert printed.index("interaction") < printed.index("within \"wool\" A") < printed.index("Each pair")
@@ -367,7 +369,7 @@ def test_nested_refuses_crossed_units_and_names_matched_by(warp):
 
 
 def test_manova_matches_r_summary_manova(needs_r, capsys):
-    iris = pd.read_csv(DATA / "iris.csv")
+    iris = r_table("iris.csv")
     result = sdata.table(iris).compare_averages_of(["Sepal.Length", "Petal.Length"], for_each_group_in="Species")
     printed = capsys.readouterr().out
     found = r("s <- summary(stats::manova(cbind(a, b) ~ g, data = data.frame(a = a, b = b, g = factor(g))))$stats; "
@@ -392,7 +394,7 @@ def test_manova_refusals(school):
 def test_interaction_lines_are_group_averages_with_t_intervals(capsys):
     from scipy import stats
 
-    frame = pd.read_csv(DATA / "warpbreaks.csv")
+    frame = r_table("warpbreaks.csv")
     chart = sdata.chart(frame).draw_interaction_lines(x="tension", y="breaks", colour="wool")
     ax = chart._render().axes[0]
     printed = capsys.readouterr().out
@@ -414,7 +416,7 @@ def test_interaction_lines_need_three_columns():
 
 # ---------------------------------------------------------------- review fixes
 def test_neighbours_alike_on_uneven_dates_matches_nlme_corcar1_on_days(needs_r):
-    river = sdata.get_example("river")
+    river = example_frame("river")
     part = river[river["station"] == "Station A"].head(60).drop(index=river.index[4]).dropna(subset=["level", "nitrate"])
     result = sdata.table(part).explain("level", using=["nitrate"], neighbours_alike_in_order_of="date")
     days = ((pd.to_datetime(part["date"]) - pd.to_datetime(part["date"]).min()) / pd.Timedelta(days=1)).to_numpy(float)

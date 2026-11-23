@@ -8,10 +8,8 @@ AirPassengers series, NIST's Michelson and Norris data, Student's sleep data and
 metadat, as the combining-studies cases do). Words that show something and give nothing back (show_first_rows,
 describe_columns, show_rows_with_outliers) are checked on what they print: the printed numbers are read back.
 
-Waiting for words (planned in the words-and-fixes PR): the chart cases read what a chart drew with chart._render() and
-chart_facts() until chart.get_numbers_drawn() exists, and show_rows_that_pull_model's case reads its printed rows until
-the word gives them as a table; both switch then. A survey design's degrees of freedom have no word yet (its name
-waits for approval).
+The chart cases read what a chart drew with chart.get_numbers_drawn(), and show_rows_that_pull_model's case reads the
+table the word gives back. A survey design's degrees of freedom have no word yet (its name waits for approval).
 """
 
 from __future__ import annotations
@@ -322,25 +320,26 @@ def _cases(Case):
                      t = pd.read_csv(os.path.join(folder, "iris.csv"), sep=None, engine="python")
                  {"rows": len(t), "total petal width": t["Petal.Width"].sum()}
              """, parent_label="pandas read_csv(sep=None)", parent_tolerance=1e-12),
-        Case("sdata.get_example", "the practice table bcg against the published trials in R metadat (dat.bcg)",
+        Case("sdata.get_example", "the practice table bcg has the shape of the published trials in R metadat (dat.bcg)",
              "BCG trials (metadat)", "real data",
              ours="""
                  bcg = sdata.table(sdata.get_example("bcg"))
-                 {"trials": bcg.get_column("vaccinated").count(), "cases vaccinated": bcg.get_column("tb_vaccinated").find_total(),
-                  "vaccinated": bcg.get_column("vaccinated").find_total(),
-                  "cases unvaccinated": bcg.get_column("tb_unvaccinated").find_total(),
-                  "latitudes": bcg.get_column("latitude").find_total()}
+                 {"trials": bcg.get_column("vaccinated").count(),
+                  "kinds of allocation": len(set(bcg.get_column("allocation"))),
+                  "earliest year": bcg.get_column("year").find_smallest(),
+                  "latest year": bcg.get_column("year").find_biggest()}
              """,
              parent="""
-                 {"trials": len(data), "cases vaccinated": data["tpos"].sum(), "vaccinated": data["vaccinated"].sum(),
-                  "cases unvaccinated": data["cpos"].sum(), "latitudes": data["ablat"].sum()}
-             """, parent_label="R metadat dat.bcg (the published counts)", parent_tolerance=0.0),
+                 {"trials": len(data), "kinds of allocation": data["alloc"].nunique(),
+                  "earliest year": data["year"].min(), "latest year": data["year"].max()}
+             """, parent_label="R metadat dat.bcg (the published trials)", parent_tolerance=0.0,
+             note="Since 2026-11-22 the practice table bcg is made up (DATA_LICENSES.md): it keeps the published "
+                  "trials' columns, number of trials, kinds of allocation and span of years, but not their counts. "
+                  "The counts themselves are checked against metadat in the combine_studies cases."),
         Case("sdata.chart", "the 36 Norris calibration points on a new chart", "NIST Norris", "real data",
              ours="""
-                 from simplydata._underneath.check import chart_facts
-                 ax = sdata.chart(data).draw_dots(x="x", y="y")._render().axes[0]
-                 dots = chart_facts(ax)["dots"]
-                 {"dots": len(dots), "sum of y": sum(d[1] for d in dots)}
+                 drawn = sdata.chart(data).draw_dots(x="x", y="y").get_numbers_drawn()
+                 {"dots": drawn.get_column("y").count(), "sum of y": drawn.get_column("y").find_total()}
              """,
              parent="""
                  import matplotlib.pyplot as plt
@@ -354,10 +353,9 @@ def _cases(Case):
         Case("table.start_chart", "Student's sleep data: a chart of drug 2 only, started from the table",
              "Student's sleep data", "published",
              ours="""
-                 from simplydata._underneath.check import chart_facts
                  t = sdata.table(data).keep_rows_where("group", is_equal_to="drug 2")
-                 ax = t.start_chart().draw_bars(x="group", y="extra")._render().axes[0]
-                 {"bar": chart_facts(ax)["bars"][0][3], "bars": len(chart_facts(ax)["bars"])}
+                 drawn = t.start_chart().draw_bars(x="group", y="extra").get_numbers_drawn()
+                 {"bar": drawn.get_cell_at(row=1, column="y"), "bars": drawn.get_column("y").count()}
              """,
              published={"bar": (2.33, 0.005, "Student (1908)")},
              parent="""
@@ -1389,26 +1387,6 @@ def _cases_batch_2(Case):
                  list(`chi-square` = unname(f$statistic), `degrees of freedom` = unname(f$parameter),
                       `p-value` = f$p.value)
              """, r_tolerance=1e-10),
-        Case("table.show_rows_that_pull_model", "mtcars: the cars that pull the line of fuel use on weight and "
-             "horsepower the most", "mtcars", "real data",
-             ours=_printed('sdata.table(data).show_rows_that_pull_model("mpg", using=["wt", "hp"])', """
-                 first = lines[0].split()
-                 {"rows above 4 / n": int(first[1]), "the row that pulls most": int(lines[1].split()[1].rstrip(":")),
-                  "its Cook's distance": float(lines[1].split("Cook's distance ")[1].split(",")[0])}
-             """),
-             parent="""
-                 import statsmodels.formula.api as smf
-                 s = smf.ols("mpg ~ wt + hp", data=data).fit().get_influence().summary_frame()
-                 {"rows above 4 / n": int((s["cooks_d"] > 4 / len(data)).sum()),
-                  "the row that pulls most": int(s["cooks_d"].to_numpy().argmax()) + 1,
-                  "its Cook's distance": float(f'{s["cooks_d"].max():.3g}')}
-             """, parent_label="statsmodels OLSInfluence (Cook's distance to the 3 digits printed)",
-             parent_tolerance=0.0,
-             r="""
-                 d <- cooks.distance(lm(mpg ~ wt + hp))
-                 list(`rows above 4 / n` = sum(d > 4 / length(d)), `the row that pulls most` = which.max(d)[[1]],
-                      `its Cook's distance` = signif(max(d), 3))
-             """, r_tolerance=0.0),
     ]
 
 
