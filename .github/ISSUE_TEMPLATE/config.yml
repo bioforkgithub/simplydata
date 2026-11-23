@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and ideas (Discussions)
+    url: https://github.com/bioforkgithub/simplydata/discussions
+    about: Ask how to do something, share an idea, or vote on ideas with a thumbs-up.
