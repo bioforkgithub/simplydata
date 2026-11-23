@@ -1,6 +1,6 @@
 """The same work in the packages underneath: tested entries for 124 of simplydata's 400 words.
 
-Not every word has an entry. There are 229 entries: one for each of 124 words, plus one for each option of those
+Not every word has an entry. There are 232 entries: one for each of 124 words, plus one for each option of those
 words that changes what the word calls underneath; the other 276 words have none, and are checked by their own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
 true by tests/test_data_and_fixes.py. Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and

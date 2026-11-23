@@ -758,4 +758,33 @@ ENTRIES = [
         python_note="No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.",
         also="simplydata also prints each axis's share of the inertia, and runs MCA (R ca::mjca) on text columns.",
     ),
+    Entry(
+        word="table.add_correspondence_axes", option='show="numbers"',
+        data="resistome",
+        ours=_ours("""
+            table.add_correspondence_axes(columns=genes, show="numbers")
+        """),
+        code={
+            "R": """
+                # add_correspondence_axes(columns=genes, show="numbers")
+                m <- vegan::cca(x)
+                e <- summary(vegan::eigenvals(m))                               # (1)
+                list(eig1 = e[1, 1], eig2 = e[1, 2], share1 = e[2, 1], share2 = e[2, 2],
+                     total = m$tot.chi)                                         # (2)
+            """,
+            "Python": """
+                {"CA1 eigenvalue": eig1, "CA2 eigenvalue": eig2, "CA1 share of the inertia": share1,
+                 "CA2 share of the inertia": share2, "total inertia": total}
+            """,
+        },
+        r_inputs=RESISTOME, r_packages=("vegan",), compare="result",
+        fields=("CA1 eigenvalue", "CA2 eigenvalue", "CA1 share of the inertia", "CA2 share of the inertia",
+                "total inertia"), tolerance=1e-10,
+        choices=("each axis's eigenvalue and share of the inertia as vegan's summary(eigenvals()) gives them.",
+                 "the total inertia is vegan's tot.chi, the sum of all the eigenvalues."),
+        python_note="No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.",
+        also="simplydata also gives each row's coordinates (CA1, CA2) and its number in the table, and repeats the "
+             "numbers of the whole map on every row. For text columns (MCA) the table holds the shares and the total "
+             "of the adjusted inertia (ca::mjca inertia.e, inertia.t).",
+    ),
 ]

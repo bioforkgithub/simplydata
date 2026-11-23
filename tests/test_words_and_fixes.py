@@ -485,7 +485,8 @@ def test_correspondence_show_numbers_matches_vegan(needs_r, capsys):
     genes = ["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"]
     resistome = example_frame("resistome")
     numbers = sdata.table(resistome).add_correspondence_axes(columns=genes, show="numbers")
-    assert numbers.get_column_names() == ["row", "CA1", "CA2", "CA1 share of the inertia", "CA2 share of the inertia"]
+    assert numbers.get_column_names() == ["row", "CA1", "CA2", "CA1 eigenvalue", "CA2 eigenvalue",
+                                          "CA1 share of the inertia", "CA2 share of the inertia", "total inertia"]
     share = r_call("summary(vegan::eigenvals(vegan::cca(x)))[2, 1:2]", packages=("vegan",),
                    x=resistome[genes].to_numpy(dtype=float))
     assert numbers.get_cell_at(row=1, column="CA1 share of the inertia") == pytest.approx(float(share[0]), rel=1e-9)

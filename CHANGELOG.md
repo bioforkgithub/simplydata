@@ -5,6 +5,18 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: three numbers given back instead of only printed
+
+- `table.add_correspondence_axes(..., show="numbers")` also gives each axis's eigenvalue (`CA1 eigenvalue`) and the
+  `total inertia`, as R vegan gives them (`summary(eigenvals())`, `tot.chi`). On vegan's varespec: 0.5249 and
+  0.3568 of 2.083, as Oksanen's vegan tutorial prints. For text columns (MCA) the table gains the total adjusted
+  inertia (ca::mjca `inertia.t`).
+- `table.find_correlation_between("a", "b", allowing_for="c", show="result table")`: the partial correlation as a
+  one-row table: r, its statistic (t, or z for Kendall), the p-value and the rows, from R `ppcor::pcor.test()`.
+  `show="result table"` no longer refuses `allowing_for=`.
+- `chart.trade_off_curve(...)`: `chart.get_numbers_drawn()` now gives the best cut-off (Youden's index, R
+  `pROC::coords(roc, "best")`) in the `value` column of the marked dot, whose `y` is the sensitivity there.
+
 ### Changed: `sdata.get_example(name)` gives back a simplydata table (check your 0.2.x code)
 
 - `sdata.get_example("marks")` now gives back a simplydata table, as `get_example(name, from_r_package=)` already
