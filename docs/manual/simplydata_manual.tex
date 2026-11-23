@@ -19277,13 +19277,30 @@ Show every number. \code{nums.\allowbreak{}show()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.show]{How simplydata chooses methods}, page \pageref{basis:nums.show}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange()}, \code{array2string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import sys
+import numpy as np
+values = np.arange(1, 1201)
+# show()
+print(np.array2string(values, threshold=sys.maxsize,     # (1)
+                      separator=", "))                   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every number is shown, however many there are (\code{threshold=sys.\allowbreak{}maxsize}); NumPy's own print shortens a list of more than 1000 numbers to its ends with \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{}} in the middle.}
+\undertext{(2) the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas.}
+\undertext{An empty value is shown as nan. Typing nums on its own line shows how many numbers there are and every number up to 60; above that only the first 3 and the last 3 (a grid: above 200 numbers).}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
 \wordentry{nums.show\_first\_numbers()}{word:nums.show-first-numbers}
 Show the first numbers. \code{nums.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}numbers(5)}
 
@@ -19292,13 +19309,28 @@ Show the first numbers. \code{nums.\allowbreak{}show\_\allowbreak{}first\_\allow
 \code{how\_\allowbreak{}many=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.show-first-numbers]{How simplydata chooses methods}, page \pageref{basis:nums.show-first-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array2string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.show_first_numbers(3)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import sys
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# show_first_numbers(how_many=3)
+print(np.array2string(values[:3], threshold=sys.maxsize, separator=", "))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas. \code{threshold=sys.\allowbreak{}maxsize} keeps a long list whole, as in \code{show()}.}
+\undertext{Without a number it shows the first 5. Asking for more than there are shows them all.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
 \wordentry{nums.show\_last\_numbers()}{word:nums.show-last-numbers}
 Show the last numbers. \code{nums.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}numbers(5)}
 
@@ -19307,13 +19339,28 @@ Show the last numbers. \code{nums.\allowbreak{}show\_\allowbreak{}last\_\allowbr
 \code{how\_\allowbreak{}many=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.show-last-numbers]{How simplydata chooses methods}, page \pageref{basis:nums.show-last-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array2string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.show_last_numbers(2)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import sys
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# show_last_numbers(how_many=2)
+print(np.array2string(values[-2:], threshold=sys.maxsize, separator=", "))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas. \code{threshold=sys.\allowbreak{}maxsize} keeps a long list whole, as in \code{show()}.}
+\undertext{Without a number it shows the last 5. \code{show\_\allowbreak{}last\_\allowbreak{}numbers(0)} shows none, where NumPy's values[-0:] would give them all.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
 \wordentry{nums.get\_number\_at()}{word:nums.get-number-at}
 The number at a position, counting from 1: \code{get\_\allowbreak{}number\_\allowbreak{}at(1)} is the first number.
 
@@ -19325,7 +19372,8 @@ Positions count from 1, the way people count and the way charts number the x axi
 \code{position=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.get-number-at]{How simplydata chooses methods}, page \pageref{basis:nums.get-number-at}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19333,30 +19381,67 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 print(nums.get_number_at(1))
 print(nums.get_number_at("last"))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# get_number_at(position=2)
+values[2 - 1]                        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) positions count from 1, the way people count and the way charts number the x axis: 2 is the second number. NumPy's [ ] counts from 0, so the same number is values[1].}
+\undertext{\code{get\_\allowbreak{}number\_\allowbreak{}at(\textquotedbl{}last\textquotedbl{})} is the last number (NumPy values[-1]). A position that is not there stops with a message that says how many numbers there are. The number comes back as a plain Python number.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.count()}{word:nums.count}
 How many numbers there are (empty ones included). \code{nums.\allowbreak{}count()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.count]{How simplydata chooses methods}, page \pageref{basis:nums.count}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 print(nums.count())
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# count()
+values.size                          # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are counted too: \code{count()} is how many places there are. The filled ones alone are \code{count()} minus \code{count\_\allowbreak{}empty\_\allowbreak{}numbers()}, as \code{np.\allowbreak{}count\_\allowbreak{}nonzero(\textasciitilde{}np.\allowbreak{}isnan(values))}.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.count\_empty\_numbers()}{word:nums.count-empty-numbers}
 How many values are empty (missing). \code{nums.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}numbers()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{isnan().\allowbreak{}sum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, None, 9, None, 14])
 print(nums.count_empty_numbers())
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, np.nan, 14])
+# count_empty_numbers()
+int(np.isnan(values).sum())
+\end{lstlisting}
+\undertext{None in the list you give becomes an empty value (nan). Whole numbers can hold no empty value, so their count is 0.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Numbers: maths in words}{group:Numbers-maths-in-words}
 \wordentry{nums.add()}{word:nums.add}
 Add a number to every number (or add numbers one by one). \code{nums.\allowbreak{}add(5)}
@@ -19368,7 +19453,7 @@ For new numbers, write bigger = nums + 5 instead.
 \code{number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19376,6 +19461,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.add(5)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# add(number=5)
+values + 5
+\end{lstlisting}
+\undertext{An empty value stays empty. \code{add()} changes these numbers and can be undone; nums + 5 makes new numbers instead, with the same sum. A list of the same length adds one number to each.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.subtract()}{word:nums.subtract}
 Take a number away from every number. \code{nums.\allowbreak{}subtract(2)}
 
@@ -19386,7 +19482,7 @@ For new numbers, write smaller = nums - 2 instead.
 \code{number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19394,6 +19490,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.subtract(2)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# subtract(number=2)
+values - 2
+\end{lstlisting}
+\undertext{An empty value stays empty. nums - 2 makes new numbers instead, with the same sum.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.times()}{word:nums.times}
 Multiply every number by a number. \code{nums.\allowbreak{}times(2)}
 
@@ -19404,7 +19511,7 @@ For new numbers, write double = nums * 2 instead.
 \code{number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19412,6 +19519,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.times(2)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# times(number=2)
+values * 2
+\end{lstlisting}
+\undertext{An empty value stays empty. nums * 2 makes new numbers instead, with the same sum.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.divide\_by()}{word:nums.divide-by}
 Divide every number by a number. \code{nums.\allowbreak{}divide\_\allowbreak{}by(4)}
 
@@ -19422,7 +19540,8 @@ Dividing by 0 has no answer, so those values become empty and a note says how ma
 \code{number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.divide-by]{How simplydata chooses methods}, page \pageref{basis:nums.divide-by}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{errstate()}, \code{where()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19430,6 +19549,22 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.divide_by(4)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([8, np.nan, 6, 4])
+divisors = np.array([2, 1, 0, 4])
+# divide_by([2, 1, 0, 4])
+with np.errstate(divide="ignore"):
+    result = values / divisors
+np.where(divisors == 0, np.nan, result)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) dividing by 0 has no answer, so the number becomes empty (nan) and a note says how many; NumPy gives inf (or nan for 0 / 0) with a warning.}
+\undertext{\code{divide\_\allowbreak{}by(4)} divides every number by 4. nums / 4 makes new numbers instead, with the same rule.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.raise\_to\_power()}{word:nums.raise-to-power}
 Raise every number to a power: \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)} squares, \code{raise\_\allowbreak{}to\_\allowbreak{}power(3)} cubes. \code{nums.\allowbreak{}raise\_\allowbreak{}to\_\allowbreak{}power(2)}
 
@@ -19440,7 +19575,8 @@ Raise every number to a power: \code{raise\_\allowbreak{}to\_\allowbreak{}power(
 \code{number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.raise-to-power]{How simplydata chooses methods}, page \pageref{basis:nums.raise-to-power}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{errstate()}, \code{power()}, \code{astype()}, \code{where()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19448,6 +19584,22 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.raise_to_power(2)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([2, 0, 4])
+# raise_to_power(-1)
+with np.errstate(divide="ignore"):
+    result = np.power(values.astype(float), -1)   # (1)
+np.where(values == 0, np.nan, result)             # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) whole numbers to a minus power are worked out as decimals; NumPy's np.power on whole numbers stops with an error instead.}
+\undertext{(2) 0 to a minus power means dividing by 0, so it becomes empty (nan) with a note; NumPy gives inf. A negative number to a power with decimals, such as 0.5, becomes empty too.}
+\undertext{Whole numbers to a whole power that is not negative stay whole numbers while the answer fits. nums ** 2 makes new numbers instead, with the same rules.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.take\_square\_root()}{word:nums.take-square-root}
 The square root of every number: 9 becomes 3. \code{nums.\allowbreak{}take\_\allowbreak{}square\_\allowbreak{}root()}
 
@@ -19455,7 +19607,7 @@ Negative numbers have no square root among ordinary numbers, so they become empt
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{sqrt()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19463,12 +19615,23 @@ nums = sdata.numbers([9, 16, 25])
 nums.take_square_root()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([9, 16, np.nan, 2])
+# take_square_root()
+np.sqrt(values)
+\end{lstlisting}
+\undertext{A negative number has no square root among ordinary numbers, so it becomes empty with a note saying how many; NumPy gives nan too, but with a RuntimeWarning.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.take\_absolute\_value()}{word:nums.take-absolute-value}
 Every number without its minus sign: -3 becomes 3. \code{nums.\allowbreak{}take\_\allowbreak{}absolute\_\allowbreak{}value()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{abs()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19476,6 +19639,17 @@ nums = sdata.numbers([-3, 5, -2])
 nums.take_absolute_value()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([-3, 5, np.nan, -2.5])
+# take_absolute_value()
+np.abs(values)
+\end{lstlisting}
+\undertext{An empty value stays empty.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.round\_to()}{word:nums.round-to}
 Round every number to this many decimal places. \code{nums.\allowbreak{}round\_\allowbreak{}to(2)}
 
@@ -19486,7 +19660,8 @@ A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 
 \code{with\_\allowbreak{}decimals=} & normally \code{0}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.round-to]{How simplydata chooses methods}, page \pageref{basis:nums.round-to}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{round()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19494,6 +19669,19 @@ nums = sdata.numbers([2.345, 3.14159, 7.07])
 nums.round_to(1)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([0.5, 1.5, 2.5, -2.5, 2.346])
+# round_to(with_decimals=0)
+np.round(values, 0)                  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as NumPy, pandas and R's \code{round()} do, so a run of halves does not push a total up. Excel and the way taught at school round halves away from 0.}
+\undertext{\code{round\_\allowbreak{}to(2)} keeps 2 decimals; \code{round\_\allowbreak{}to(-1)} rounds to tens. A decimal such as 2.675 is stored a little below its written value, so it can round down.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.take\_log()}{word:nums.take-log}
 The logarithm of every number: natural (base e) unless you give \code{base=10} or \code{base=2}.
 
@@ -19505,7 +19693,8 @@ The logarithm of every number: natural (base e) unless you give \code{base=10} o
 \code{base=} & normally \code{\textquotedbl{}e\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.take-log]{How simplydata chooses methods}, page \pageref{basis:nums.take-log}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{errstate()}, \code{log10()}, \code{where()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19513,12 +19702,27 @@ nums = sdata.numbers([1, 10, 100, 1000])
 nums.take_log(base=10)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([1, 1000, 0, np.nan, 0.01])
+# take_log(base=10)
+with np.errstate(divide="ignore", invalid="ignore"):
+    result = np.log10(values)
+np.where(values <= 0, np.nan, result)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the log only exists for numbers above 0, so 0 and negative numbers become empty (nan) with a note; NumPy gives -inf for 0 and nan for a negative number, with a warning.}
+\undertext{Without \code{base=} it is the natural log (np.log); \code{base=2} is np.log2, and any other base is \code{np.\allowbreak{}log(values)} / \code{np.\allowbreak{}log(base)}. \code{take\_\allowbreak{}exp()} undoes the natural log.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.take\_exp()}{word:nums.take-exp}
 e (about 2.718) to the power of every number; it undoes \code{take\_\allowbreak{}log()}. \code{nums.\allowbreak{}take\_\allowbreak{}exp()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{exp()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19526,6 +19730,17 @@ nums = sdata.numbers([0, 1, 2])
 nums.take_exp()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([0, 1, np.nan, -2])
+# take_exp()
+np.exp(values)
+\end{lstlisting}
+\undertext{An empty value stays empty. An answer too big to hold (above about 1.8e308) is shown as inf, with a note saying how many.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.turn\_into\_running\_total()}{word:nums.turn-into-running-total}
 Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.
 
@@ -19534,7 +19749,8 @@ Empty values stay empty and are skipped in the total, like pandas \code{cumsum()
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.turn-into-running-total]{How simplydata chooses methods}, page \pageref{basis:nums.turn-into-running-total}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{nancumsum()}, \code{where()}, \code{isnan()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19542,6 +19758,19 @@ nums = sdata.numbers([1, 2, 3, 4])
 nums.turn_into_running_total()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([1, np.nan, 2, 3])
+# turn_into_running_total()
+totals = np.nancumsum(values)
+np.where(np.isnan(values), np.nan, totals)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) an empty value stays empty and is skipped in the total (1, empty, 3, 6), as pandas \code{cumsum()} does. NumPy's cumsum would make every total after it empty, and nancumsum would fill the empty place with the total so far.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Numbers: choose, sort and fill}{group:Numbers-choose-sort-and-fill}
 \wordentry{nums.keep\_each\_number\_that()}{word:nums.keep-each-number-that}
 Keep only the numbers that match one condition. \code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that(is\_\allowbreak{}above=50)}
@@ -19602,7 +19831,8 @@ Same conditions as \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbre
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.remove-each-number-that]{How simplydata chooses methods}, page \pageref{basis:nums.remove-each-number-that}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19610,6 +19840,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.remove_each_number_that(is_below=10)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# remove_each_number_that(is_below=10)
+values[~(values < 10)]               # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{is\_\allowbreak{}below=} means strictly below (\textless{}). An empty value is never below a number, so it stays; only \code{is\_\allowbreak{}empty=True} removes empty values. values[values \textgreater{}= 10] would drop it.}
+\undertext{simplydata also says how many numbers it removed and how many are left, and keeps the numbers before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.keep\_first\_numbers()}{word:nums.keep-first-numbers}
 Keep only the first numbers. \code{nums.\allowbreak{}keep\_\allowbreak{}first\_\allowbreak{}numbers(10)}
 
@@ -19618,7 +19861,7 @@ Keep only the first numbers. \code{nums.\allowbreak{}keep\_\allowbreak{}first\_\
 \code{how\_\allowbreak{}many=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19626,6 +19869,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_first_numbers(3)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# keep_first_numbers(how_many=3)
+values[:3]
+\end{lstlisting}
+\undertext{Without a number it keeps the first 5. simplydata also says how many it kept.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.keep\_last\_numbers()}{word:nums.keep-last-numbers}
 Keep only the last numbers. \code{nums.\allowbreak{}keep\_\allowbreak{}last\_\allowbreak{}numbers(10)}
 
@@ -19634,7 +19888,7 @@ Keep only the last numbers. \code{nums.\allowbreak{}keep\_\allowbreak{}last\_\al
 \code{how\_\allowbreak{}many=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19642,6 +19896,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_last_numbers(3)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# keep_last_numbers(how_many=3)
+values[len(values) - 3:]
+\end{lstlisting}
+\undertext{Without a number it keeps the last 5. \code{keep\_\allowbreak{}last\_\allowbreak{}numbers(0)} keeps none (NumPy's values[-0:] would keep them all).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.keep\_random\_numbers()}{word:nums.keep-random-numbers}
 Keep some numbers picked at random (they keep their order); a seed gives the same pick every time.
 
@@ -19653,7 +19918,8 @@ Keep some numbers picked at random (they keep their order); a seed gives the sam
 \code{with\_\allowbreak{}seed=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (random.default\_rng)}
+\wordfield{Why this method}{\hyperref[basis:nums.keep-random-numbers]{How simplydata chooses methods}, page \pageref{basis:nums.keep-random-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{choice()}, \code{sort()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19661,6 +19927,22 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_random_numbers(3, with_seed=1)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([10, 20, 30, 40, 50, 60])
+# keep_random_numbers(3, with_seed=2)
+rng = np.random.default_rng(2)                           # (1)
+picked = rng.choice(len(values), size=3, replace=False)
+values[np.sort(picked)]                                  # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) NumPy's random generator (\code{default\_\allowbreak{}rng}) with the seed you give, picking without repeats; the old \code{np.\allowbreak{}random.\allowbreak{}seed()} gives another pick.}
+\undertext{(2) the numbers kept stay in their order in the list; rng.choice alone gives them in the order they were drawn.}
+\undertext{Without \code{with\_\allowbreak{}seed=} the pick changes every time. Asking for more numbers than there are keeps them all, with a note.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.remove\_duplicate\_numbers()}{word:nums.remove-duplicate-numbers}
 Remove numbers that repeat an earlier number, so each number is left once, in its first place.
 
@@ -19668,7 +19950,8 @@ Remove numbers that repeat an earlier number, so each number is left once, in it
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.remove-duplicate-numbers]{How simplydata chooses methods}, page \pageref{basis:nums.remove-duplicate-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{Series().\allowbreak{}duplicated()}, \code{to\_\allowbreak{}numpy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19676,12 +19959,26 @@ nums = sdata.numbers([3, 5, 3, 8, 5])
 nums.remove_duplicate_numbers()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+values = np.array([3, np.nan, 5, 3, 8, np.nan, 5])
+# remove_duplicate_numbers()
+repeats = pd.Series(values).duplicated(keep="first")   # (1)
+values[~repeats.to_numpy()]
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each number is kept once, in its first place, and the order stays as it was; empty values count as one value, so the first empty one stays. NumPy's np.unique would sort the numbers instead.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.remove\_empty\_numbers()}{word:nums.remove-empty-numbers}
 Remove the empty (missing) values. \code{nums.\allowbreak{}remove\_\allowbreak{}empty\_\allowbreak{}numbers()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{isnan()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19689,6 +19986,17 @@ nums = sdata.numbers([12, None, 9, 14])
 nums.remove_empty_numbers()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, np.nan, 14])
+# remove_empty_numbers()
+values[~np.isnan(values)]
+\end{lstlisting}
+\undertext{simplydata also says how many it removed. The summary words skip empty values without this step.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.keep\_numbers\_by\_position()}{word:nums.keep-numbers-by-position}
 Keep numbers by their position, counting from 1: a run, every n-th number, or a list.
 
@@ -19702,7 +20010,8 @@ Both ends are included. \code{to=\textquotedbl{}last\textquotedbl{}} goes to the
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.keep-numbers-by-position]{How simplydata chooses methods}, page \pageref{basis:nums.keep-numbers-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19710,6 +20019,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_numbers_by_position(2, to=4)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# keep_numbers_by_position(2, to=4)
+values[2 - 1:4]                      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) positions count from 1 and both ends are kept: positions 2 to 4 are three numbers. NumPy counts from 0 and leaves out the end, so the same numbers are values[1:4].}
+\undertext{\code{to=\textquotedbl{}last\textquotedbl{}} goes to the end, \code{step=2} keeps every 2nd number (values[1::2]) and a list such as [4, 1] keeps those numbers in that order (values[[3, 0]]).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.remove\_numbers\_by\_position()}{word:nums.remove-numbers-by-position}
 Remove numbers by their position, counting from 1: a run, every n-th number, or a list.
 
@@ -19723,7 +20045,8 @@ The opposite of \code{keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.remove-numbers-by-position]{How simplydata chooses methods}, page \pageref{basis:nums.remove-numbers-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{delete()}, \code{arange()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19731,6 +20054,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.remove_numbers_by_position("last")
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# remove_numbers_by_position(2, to=3)
+np.delete(values, np.arange(2 - 1, 3))    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) positions count from 1 and both ends go: positions 2 and 3 are removed. NumPy counts from 0, so they are places 1 and 2.}
+\undertext{\code{remove\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position(\textquotedbl{}last\textquotedbl{})} removes the last number (\code{np.\allowbreak{}delete(values,\allowbreak{} -1)}). Removing every number stops with a message.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.replace\_each\_number\_that()}{word:nums.replace-each-number-that}
 Replace a number, or every number that meets one condition; \code{with\_\allowbreak{}value=None} makes them empty.
 
@@ -19753,7 +20089,8 @@ The conditions are those of \code{keep\_\allowbreak{}each\_\allowbreak{}number\_
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.replace-each-number-that]{How simplydata chooses methods}, page \pageref{basis:nums.replace-each-number-that}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{where()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19762,6 +20099,19 @@ nums.replace_each_number_that(-999, with_value=None)
 nums.replace_each_number_that(is_above=14, with_value=14)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([120, np.nan, 80, 101])
+# replace_each_number_that(is_above=100, with_value=100)
+np.where(values > 100, 100, values)      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{is\_\allowbreak{}above=} means strictly above (\textgreater{}). An empty value matches no condition, so it stays empty; only \code{is\_\allowbreak{}empty=True} picks the empty values.}
+\undertext{\code{replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that(-999,\allowbreak{} with\_\allowbreak{}value=None)} turns a code for \code{\textquotedbl{}missing\textquotedbl{}} into empty values (\code{np.\allowbreak{}where(values == -999,\allowbreak{} np.\allowbreak{}nan,\allowbreak{} values)}). simplydata also says how many it replaced.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.fill\_empty\_numbers()}{word:nums.fill-empty-numbers}
 Fill the empty values with a number, or with the average, median, value above or value below.
 
@@ -19774,7 +20124,8 @@ Fill the empty values with a number, or with the average, median, value above or
 \code{with\_\allowbreak{}the=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (interp for the line between neighbours)}
+\wordfield{Why this method}{\hyperref[basis:nums.fill-empty-numbers]{How simplydata chooses methods}, page \pageref{basis:nums.fill-empty-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange()}, \code{isnan()}, \code{interp()}, \code{where()} \textperiodcentered{} pandas \code{Series().\allowbreak{}interpolate()}, \code{to\_\allowbreak{}numpy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19782,6 +20133,33 @@ nums = sdata.numbers([12, None, 9, None, 14])
 nums.fill_empty_numbers(with_the="line between neighbours")
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}\libbadge{pandas}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([np.nan, 12, np.nan, 9, np.nan, np.nan, 18, np.nan])
+# fill_empty_numbers(with_the="line between neighbours")
+places = np.arange(len(values))
+known = ~np.isnan(values)
+line = np.interp(places, places[known], values[known])       # (1)
+inside = (places > places[known][0]) & (places < places[known][-1])
+np.where(inside, line, values)                               # (2)
+\end{lstlisting}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+values = np.array([np.nan, 12, np.nan, 9, np.nan, np.nan, 18, np.nan])
+# fill_empty_numbers(with_the="line between neighbours")
+filled = pd.Series(values).interpolate(limit_area="inside")  # (1) (2)
+filled.to_numpy()
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each gap is filled on the straight line between the values just before and just after it, spaced by position (linear interpolation).}
+\undertext{(2) empty values at the start or the end have a neighbour on one side only, so they stay empty, with a note; np.interp alone would copy the first and last values outward.}
+\undertext{\code{with\_\allowbreak{}value=0} fills with a number; \code{with\_\allowbreak{}the=\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}value above\textquotedbl{}} or \code{\textquotedbl{}value below\textquotedbl{}} fill with np.nanmean, np.nanmedian, pandas \code{ffill()} or \code{bfill()}.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.sort()}{word:nums.sort}
 Put the numbers in order, smallest first; empty values go last. \code{nums.\allowbreak{}sort(biggest\_\allowbreak{}first=True)}
 
@@ -19790,7 +20168,8 @@ Put the numbers in order, smallest first; empty values go last. \code{nums.\allo
 \code{biggest\_\allowbreak{}first=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.sort]{How simplydata chooses methods}, page \pageref{basis:nums.sort}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{isnan()}, \code{sort()}, \code{concatenate()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19798,12 +20177,27 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.sort(biggest_first=True)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+empty = np.isnan(values)
+# sort(biggest_first=True)
+ordered = np.sort(values[~empty])[::-1]
+np.concatenate([ordered, values[empty]])    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values go last, smallest first or biggest first; \code{np.\allowbreak{}sort(values)}[::-1] would put them first.}
+\undertext{Without \code{biggest\_\allowbreak{}first=True} the smallest comes first (np.sort, which already puts empty values last).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.reverse()}{word:nums.reverse}
 Turn the order round: the last number comes first. \code{nums.\allowbreak{}reverse()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19811,6 +20205,17 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.reverse()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# reverse()
+values[::-1]
+\end{lstlisting}
+\undertext{It turns the order round as it is; for biggest first use \code{sort(biggest\_\allowbreak{}first=True)}.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Numbers: summaries}{group:Numbers-summaries}
 \wordentry{nums.find\_average()}{word:nums.find-average}
 The average (mean) of the numbers; empty values are skipped.
@@ -19859,7 +20264,7 @@ nums.find_median()
 \underlib{NumPy}
 \begin{lstlisting}[style=under]
 import numpy as np
-values = np.array([12, 15, 9, 20, 14])
+values = np.array([12, np.nan, 9, 20, 14])
 # find_median()
 np.nanmedian(values)                 # (1)
 \end{lstlisting}
@@ -19875,13 +20280,27 @@ All the numbers added up; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Why this method}{\hyperref[basis:nums.find-total]{How simplydata chooses methods}, page \pageref{basis:nums.find-total}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{nansum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_total()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_total()
+np.nansum(values)                    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nansum), with a note saying how many; NumPy's np.sum would give nan.}
+\undertext{simplydata also says the total in a sentence, with how many numbers it used. With no numbers at all the total is 0.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_smallest()}{word:nums.find-smallest}
 The smallest number; empty values are skipped.
 
@@ -19889,13 +20308,27 @@ The smallest number; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Why this method}{\hyperref[basis:nums.find-smallest]{How simplydata chooses methods}, page \pageref{basis:nums.find-smallest}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{nanmin()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_smallest()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_smallest()
+np.nanmin(values)                    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nanmin), with a note saying how many; NumPy's np.min would give nan.}
+\undertext{simplydata also says the smallest number in a sentence, with how many numbers it used.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_biggest()}{word:nums.find-biggest}
 The biggest number; empty values are skipped.
 
@@ -19903,13 +20336,27 @@ The biggest number; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Why this method}{\hyperref[basis:nums.find-biggest]{How simplydata chooses methods}, page \pageref{basis:nums.find-biggest}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{nanmax()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_biggest()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_biggest()
+np.nanmax(values)                    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nanmax), with a note saying how many; NumPy's np.max would give nan.}
+\undertext{simplydata also says the biggest number in a sentence, with how many numbers it used.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_standard\_deviation()}{word:nums.find-standard-deviation}
 How spread out the numbers are: the sample standard deviation (divide by n - 1).
 
@@ -19920,13 +20367,27 @@ It is the same as pandas .std() and R \code{sd()}. Empty values are skipped.
 \wordfield{Options}{none: just write the empty brackets.}
 
 \wordfield{Why this method}{\hyperref[basis:nums.find-standard-deviation]{How simplydata chooses methods}, page \pageref{basis:nums.find-standard-deviation}: the default, the evidence and the checks.}
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Underneath}{NumPy \code{nanstd()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_standard_deviation()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_standard_deviation()
+np.nanstd(values, ddof=1)            # (1) (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the sample standard deviation, dividing by n - 1 (\code{ddof=1}), as pandas .std() and R \code{sd()}; NumPy's own default divides by n.}
+\undertext{(2) empty values are skipped (np.nanstd), with a note saying how many; np.std would give nan.}
+\undertext{simplydata also says the answer in a sentence. Fewer than 2 numbers give an empty answer, with a note.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_percentile()}{word:nums.find-percentile}
 The number that this percent of the numbers are below: \code{find\_\allowbreak{}percentile(50)} is the median.
 
@@ -19967,13 +20428,33 @@ Biggest count first. Empty values count as a value of their own, so the percents
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Why this method}{\hyperref[basis:nums.count-each]{How simplydata chooses methods}, page \pageref{basis:nums.count-each}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{Series()}, \code{value\_\allowbreak{}counts().\allowbreak{}rename().\allowbreak{}reset\_\allowbreak{}index()}, \code{round()}, \code{sort\_\allowbreak{}values()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([3, 5, 3, 8, 5, 3])
 nums.count_each()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+s = pd.Series([3, np.nan, 5, 3, np.nan, 8, 5], name="number")
+# count_each()
+counts = s.value_counts(dropna=False).rename("count").reset_index()   # (1)
+counts["percent"] = (counts["count"] * 100.0 / len(s)).round(1)        # (2)
+counts.sort_values(["count", "number"], ascending=[False, True],
+                   na_position="last", kind="stable")                  # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are counted as a value of their own (\code{dropna=False}), so the percents are out of all the numbers; pandas' \code{value\_\allowbreak{}counts()} leaves them out by default.}
+\undertext{(2) percents are rounded to 1 decimal place.}
+\undertext{(3) the biggest count comes first; equal counts go smallest number first, with the empty values last, so the order is the same every time.}
+\undertext{simplydata also lists the counts in a sentence. The result is a simplydata table (number, count, percent), so table words work on it.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \unsection{Grids of numbers}{group:Grids-of-numbers}
 \wordentry{sdata.number\_grid()}{word:sdata.number-grid}
 Make a grid of numbers in rows and columns.
@@ -20022,7 +20503,8 @@ Give \code{rows=} or \code{columns=} (or both); the numbers must fill the grid e
 \code{columns=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:nums.make-number-grid]{How simplydata chooses methods}, page \pageref{basis:nums.make-number-grid}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20030,42 +20512,86 @@ nums = sdata.numbers([1, 2, 3, 4, 5, 6])
 grid = nums.make_number_grid(columns=3)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([1, 2, 3, 4, 5, 6])
+# make_number_grid(columns=3)
+values.reshape(-1, 3)                # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers fill the grid row after row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}): 1 2 3, then 4 5 6.}
+\undertext{\code{rows=2} is \code{values.\allowbreak{}reshape(2,\allowbreak{} -1)}. The numbers stay as they are: the grid is new. simplydata stops with a message when the numbers cannot fill the grid exactly.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.count\_rows()}{word:grid.count-rows}
 How many rows the grid has. \code{grid.\allowbreak{}count\_\allowbreak{}rows()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.count_rows())
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# count_rows()
+g.shape[0]
+\end{lstlisting}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.count\_columns()}{word:grid.count-columns}
 How many columns the grid has. \code{grid.\allowbreak{}count\_\allowbreak{}columns()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.count_columns())
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# count_columns()
+g.shape[1]
+\end{lstlisting}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.find\_shape()}{word:grid.find-shape}
 How many rows and columns, as (rows, columns). \code{grid.\allowbreak{}find\_\allowbreak{}shape()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.find_shape())
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# find_shape()
+g.shape
+\end{lstlisting}
+\undertext{The shape is (rows, columns), as plain Python whole numbers.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.show\_first\_rows()}{word:grid.show-first-rows}
 Show the first rows. \code{grid.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
 
@@ -20074,13 +20600,28 @@ Show the first rows. \code{grid.\allowbreak{}show\_\allowbreak{}first\_\allowbre
 \code{rows=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.show-first-rows]{How simplydata chooses methods}, page \pageref{basis:grid.show-first-rows}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{array2string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 grid.show_first_rows(1)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import sys
+import numpy as np
+g = np.arange(1, 13).reshape(-1, 3)
+# show_first_rows(rows=2)
+print(np.array2string(g[:2], threshold=sys.maxsize, separator=", "))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the commas. \code{threshold=sys.\allowbreak{}maxsize} keeps a long grid whole, as in \code{show()}.}
+\undertext{Without a number it shows the first 5 rows.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
 \wordentry{grid.show\_last\_rows()}{word:grid.show-last-rows}
 Show the last rows. \code{grid.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}rows(5)}
 
@@ -20089,13 +20630,28 @@ Show the last rows. \code{grid.\allowbreak{}show\_\allowbreak{}last\_\allowbreak
 \code{rows=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.show-last-rows]{How simplydata chooses methods}, page \pageref{basis:grid.show-last-rows}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{array2string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 grid.show_last_rows(1)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import sys
+import numpy as np
+g = np.arange(1, 13).reshape(-1, 3)
+# show_last_rows(rows=2)
+print(np.array2string(g[-2:], threshold=sys.maxsize, separator=", "))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the commas. \code{threshold=sys.\allowbreak{}maxsize} keeps a long grid whole, as in \code{show()}.}
+\undertext{Without a number it shows the last 5 rows.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
 \wordentry{grid.get\_number\_at()}{word:grid.get-number-at}
 The number at a row and column, counting from 1. \code{grid.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at(row=1,\allowbreak{} column=2)}
 
@@ -20107,13 +20663,27 @@ The number at a row and column, counting from 1. \code{grid.\allowbreak{}get\_\a
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.get-number-at]{How simplydata chooses methods}, page \pageref{basis:grid.get-number-at}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 print(grid.get_number_at(row=1, column=2))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# get_number_at(row=2, column=3)
+g[2 - 1, 3 - 1]                      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows and columns count from 1: row 2, column 3 is the bottom right number here. NumPy counts from 0, so it is g[1, 2].}
+\undertext{\code{row=\textquotedbl{}last\textquotedbl{}} and \code{column=\textquotedbl{}last\textquotedbl{}} are the last row and column (NumPy g[-1, -1]).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.get\_row()}{word:grid.get-row}
 One row of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}row(1)} is the top row. \code{grid.\allowbreak{}get\_\allowbreak{}row(1)}
 
@@ -20124,7 +20694,8 @@ One row of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}row
 \code{position=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.get-row]{How simplydata chooses methods}, page \pageref{basis:grid.get-row}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{copy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20132,6 +20703,19 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 top = grid.get_row(1)
 top.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# get_row(position=2)
+g[2 - 1].copy()                      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows count from 1: \code{get\_\allowbreak{}row(2)} is the second row from the top, NumPy g[1]. It comes back as new numbers (a copy), so changing them leaves the grid as it was.}
+\undertext{\code{get\_\allowbreak{}row(\textquotedbl{}last\textquotedbl{})} is the bottom row.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.get\_column()}{word:grid.get-column}
 One column of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}column(1)} is the left one. \code{grid.\allowbreak{}get\_\allowbreak{}column(1)}
 
@@ -20142,7 +20726,8 @@ One column of the grid as new numbers, counting from 1: \code{get\_\allowbreak{}
 \code{position=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.get-column]{How simplydata chooses methods}, page \pageref{basis:grid.get-column}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{copy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20150,12 +20735,26 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 left = grid.get_column(1)
 left.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# get_column(position=2)
+g[:, 2 - 1].copy()                   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) columns count from 1 at the left: \code{get\_\allowbreak{}column(2)} is NumPy g[:, 1]. It comes back as new numbers (a copy), so changing them leaves the grid as it was.}
+\undertext{\code{get\_\allowbreak{}column(\textquotedbl{}last\textquotedbl{})} is the right-hand column.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.get\_all\_numbers()}{word:grid.get-all-numbers}
 All the numbers of the grid as a list, row by row (flatten). nums = \code{grid.\allowbreak{}get\_\allowbreak{}all\_\allowbreak{}numbers()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.get-all-numbers]{How simplydata chooses methods}, page \pageref{basis:grid.get-all-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{ravel().\allowbreak{}copy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20163,6 +20762,19 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 nums = grid.get_all_numbers()
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# get_all_numbers()
+g.ravel().copy()                     # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are read row by row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}): 3 5 2, then 8 6 4. Column by column would be \code{g.\allowbreak{}ravel(order=\textquotedbl{}F\textquotedbl{})}.}
+\undertext{The list is new numbers, so number words such as \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that} work on it.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.keep\_rows\_by\_position()}{word:grid.keep-rows-by-position}
 Keep rows of the grid by their position, counting from 1: a run, every n-th row, or a list.
 
@@ -20177,7 +20789,8 @@ Both ends are included; \code{to=\textquotedbl{}last\textquotedbl{}} goes to the
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.keep-rows-by-position]{How simplydata chooses methods}, page \pageref{basis:grid.keep-rows-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20185,6 +20798,19 @@ grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
 grid.keep_rows_by_position(2, to=3)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.arange(1, 25).reshape(-1, 6)
+# keep_rows_by_position(2, to=3)
+g[2 - 1:3]                           # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows count from 1 and both ends are kept: rows 2 to 3 are two rows. NumPy counts from 0 and leaves out the end, so the same rows are g[1:3].}
+\undertext{\code{step=2} keeps every 2nd row and a list such as [3, 1] keeps those rows in that order. A grid always stays a grid, even with one row left (\code{get\_\allowbreak{}row} gives it as numbers). simplydata also says the new size.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.keep\_columns\_by\_position()}{word:grid.keep-columns-by-position}
 Keep columns of the grid by their position, counting from 1 at the left. \code{grid.\allowbreak{}keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position(2,\allowbreak{} to=3)}
 
@@ -20197,7 +20823,8 @@ The same positions as \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbrea
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.keep-columns-by-position]{How simplydata chooses methods}, page \pageref{basis:grid.keep-columns-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20206,6 +20833,19 @@ grid.keep_rows_by_position(2, to=3)
 grid.keep_columns_by_position(1, to=3)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.arange(1, 25).reshape(-1, 6)
+# keep_columns_by_position(2, to=4)
+g[:, 2 - 1:4]                        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) columns count from 1 at the left and both ends are kept: columns 2 to 4 are three columns, NumPy g[:, 1:4].}
+\undertext{A block is two steps: \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position(2,\allowbreak{} to=3)} then \code{keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position(2,\allowbreak{} to=4)}, as NumPy g[1:3, 1:4].}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.remove\_rows\_by\_position()}{word:grid.remove-rows-by-position}
 Remove rows of the grid by their position, counting from 1. \code{grid.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position(1)}
 
@@ -20218,7 +20858,8 @@ The same positions as \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbrea
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.remove-rows-by-position]{How simplydata chooses methods}, page \pageref{basis:grid.remove-rows-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{delete()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20226,6 +20867,19 @@ grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
 grid.remove_rows_by_position(1)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.arange(1, 25).reshape(-1, 6)
+# remove_rows_by_position(positions=1)
+np.delete(g, 1 - 1, axis=0)          # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows count from 1: row 1 is the top row, NumPy's row 0.}
+\undertext{The same positions as \code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position} (\code{to=}, \code{step=} or a list). Removing every row stops with a message.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.remove\_columns\_by\_position()}{word:grid.remove-columns-by-position}
 Remove columns of the grid by their position, counting from 1 at the left. \code{grid.\allowbreak{}remove\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position(1)}
 
@@ -20238,7 +20892,8 @@ The same positions as \code{keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowb
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.remove-columns-by-position]{How simplydata chooses methods}, page \pageref{basis:grid.remove-columns-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{delete()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20246,6 +20901,19 @@ grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
 grid.remove_columns_by_position(1, step=2)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.arange(1, 25).reshape(-1, 6)
+# remove_columns_by_position(1, step=2)
+np.delete(g, np.s_[1 - 1::2], axis=1)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) columns count from 1 at the left: from column 1 with \code{step=2} removes columns 1, 3 and 5, NumPy's columns 0, 2 and 4.}
+\undertext{The same positions as \code{keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position} (\code{to=}, \code{step=} or a list).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.replace\_each\_number\_that()}{word:grid.replace-each-number-that}
 Replace a number, or every number that meets one condition; the grid keeps its rows and columns.
 
@@ -20267,7 +20935,8 @@ The conditions are those of \code{keep\_\allowbreak{}each\_\allowbreak{}number\_
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:grid.replace-each-number-that]{How simplydata chooses methods}, page \pageref{basis:grid.replace-each-number-that}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{where()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20275,6 +20944,19 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 grid.replace_each_number_that(is_below=4, with_value=0)
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, np.nan, 4]])
+# replace_each_number_that(is_below=4, with_value=0)
+np.where(g < 4, 0, g)                # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are changed where they are, so the grid keeps its rows and columns (np.where); g[g \textless{} 4] would give a flat list instead. An empty value matches no condition, so it stays empty.}
+\undertext{\code{with\_\allowbreak{}value=None} makes the numbers empty. The conditions are those of \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that}, one at a time.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{grid.swap\_rows\_and\_columns()}{word:grid.swap-rows-and-columns}
 Turn rows into columns and columns into rows (the transpose in maths).
 
@@ -20283,7 +20965,7 @@ A grid of 2 rows and 3 columns becomes 3 rows and 2 columns. Matrix multiplicati
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Underneath}{NumPy \code{T.\allowbreak{}copy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20291,13 +20973,24 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 grid.swap_rows_and_columns()
 print(grid)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+g = np.array([[3, 5, 2], [8, 6, 4]])
+# swap_rows_and_columns()
+g.T.copy()
+\end{lstlisting}
+\undertext{A grid of 2 rows and 3 columns becomes 3 rows and 2 columns. The step can be undone.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Numbers: undo and finish}{group:Numbers-undo-and-finish}
 \wordentry{nums.undo()}{word:nums.undo}
 Take the last step back. \code{nums.\allowbreak{}undo()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the numbers}
+\wordfield{Underneath}{simplydata's own: it keeps the numbers as they were before each step (up to 30 steps) and puts back the last one. With NumPy you keep a copy yourself before a step (before = \code{values.\allowbreak{}copy()}).}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20306,12 +20999,13 @@ nums.add(5)
 nums.undo()
 nums.show()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it keeps the numbers as they were before each step (up to 30 steps) and puts back the last one. With NumPy you keep a copy yourself before a step (before = \code{values.\allowbreak{}copy()}).}
 \wordentry{nums.show\_steps()}{word:nums.show-steps}
 List every step you did, in order. \code{nums.\allowbreak{}show\_\allowbreak{}steps()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the numbers}
+\wordfield{Underneath}{simplydata's own: it writes down each step as you do it and lists them. A NumPy array keeps no list of steps; your script is the record.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20320,12 +21014,13 @@ nums.add(5)
 nums.keep_each_number_that(is_above=15)
 nums.show_steps()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it writes down each step as you do it and lists them. A NumPy array keeps no list of steps; your script is the record.}
 \wordentry{nums.start\_again()}{word:nums.start-again}
 Go back to the numbers as they were at the start. \code{nums.\allowbreak{}start\_\allowbreak{}again()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the numbers}
+\wordfield{Underneath}{simplydata's own: it keeps the numbers you started with and puts them back, as one more step that \code{undo()} can take back. With NumPy you keep the first array yourself.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20335,6 +21030,7 @@ nums.times(2)
 nums.start_again()
 nums.show()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it keeps the numbers you started with and puts them back, as one more step that \code{undo()} can take back. With NumPy you keep the first array yourself.}
 \wordentry{nums.turn\_into\_table()}{word:nums.turn-into-table}
 Turn the numbers into a simplydata table. \code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}table(name=\textquotedbl{}marks\textquotedbl{})}
 
@@ -20343,7 +21039,8 @@ Turn the numbers into a simplydata table. \code{nums.\allowbreak{}turn\_\allowbr
 \code{name=} & normally \code{\textquotedbl{}value\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas}
+\wordfield{Why this method}{\hyperref[basis:nums.turn-into-table]{How simplydata chooses methods}, page \pageref{basis:nums.turn-into-table}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{DataFrame()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20351,12 +21048,27 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 table = nums.turn_into_table(name="marks")
 print(table)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+values = np.array([12, np.nan, 9, 20, 14])
+# turn_into_table()
+pd.DataFrame({"value": values})      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the column is called \code{\textquotedbl{}value\textquotedbl{}} unless you give \code{name=}, such as \code{turn\_\allowbreak{}into\_\allowbreak{}table(name=\textquotedbl{}marks\textquotedbl{})}.}
+\undertext{The result is a simplydata table, so every table word works on it.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{nums.start\_chart()}{word:nums.start-chart}
 Start a chart from these numbers. chart = \code{nums.\allowbreak{}start\_\allowbreak{}chart()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib and seaborn, from a pandas table with one column called value}
+\wordfield{Why this method}{\hyperref[basis:nums.start-chart]{How simplydata chooses methods}, page \pageref{basis:nums.start-chart}: the default, the evidence and the checks.}
+\wordfield{Underneath}{seaborn \code{DataFrame()}, \code{histplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20365,6 +21077,27 @@ chart = nums.start_chart()
 chart.draw_histogram(x="value", with_bins=4)
 chart.save("nums.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_nums_start_chart.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+values = [12, 15, 9, 20, 14, 18, 11, 16]
+# start_chart(): the numbers as a table, the figure and its axes
+df = pd.DataFrame({"value": values})     # (1)
+fig, ax = plt.subplots()
+sns.histplot(df, x="value", bins=10, ax=ax)   # draw_histogram's 10 bins
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers become a table with one column called \code{\textquotedbl{}value\textquotedbl{}}, so chart words name it: \code{draw\_\allowbreak{}histogram(x=\textquotedbl{}value\textquotedbl{})}.}
+\undertext{A grid's chart has columns called \code{\textquotedbl{}1\textquotedbl{}}, \code{\textquotedbl{}2\textquotedbl{}} ... and rows numbered from 1, ready for \code{draw\_\allowbreak{}heatmap()}. simplydata writes the y label in small letters (count) and gives the chart its paper look; both are left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the tick labels and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{nums.save()}{word:nums.save}
 Save the numbers; the end of the file name decides the type. \code{nums.\allowbreak{}save(\textquotedbl{}nums.\allowbreak{}csv\textquotedbl{})}
 
@@ -20377,19 +21110,41 @@ File types: \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbre
 \code{bits=} & normally \code{32}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (\code{to\_\allowbreak{}csv}, \code{to\_\allowbreak{}excel} ...)}
+\wordfield{Why this method}{\hyperref[basis:nums.save]{How simplydata chooses methods}, page \pageref{basis:nums.save}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{DataFrame().\allowbreak{}to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.save("nums.csv")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import numpy as np
+import pandas as pd
+values = np.array([12, np.nan, 9, 20, 14])
+with tempfile.TemporaryDirectory() as folder:
+    # save, into the file nums.csv
+    pd.DataFrame({"value": values}).to_csv(os.path.join(folder, "nums.csv"),
+                                           index=False)              # (1)
+    saved = pd.read_csv(os.path.join(folder, "nums.csv"))
+saved
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers are written as one column called \code{\textquotedbl{}value\textquotedbl{}}, without row numbers (\code{index=False}), so the file reads back as it was.}
+\undertext{The end of the name decides the type: \code{.\allowbreak{}xlsx}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} work as for tables, and .wav writes a sound file (SciPy io.wavfile, with \code{time\_\allowbreak{}step=}). A current limitation of simplydata's own reader: \code{sdata.\allowbreak{}table()} guesses the separator of a file with only one column wrongly, so such a file is read back here with \code{separator=\textquotedbl{},\allowbreak{}\textquotedbl{}} (pandas \code{read\_\allowbreak{}csv} reads it as it is).}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{nums.as\_numpy()}{word:nums.as-numpy}
 Give back the numbers as a plain NumPy array, for other Python tools. array = \code{nums.\allowbreak{}as\_\allowbreak{}numpy()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the numbers}
+\wordfield{Why this method}{\hyperref[basis:nums.as-numpy]{How simplydata chooses methods}, page \pageref{basis:nums.as-numpy}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{copy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -20397,6 +21152,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 array = nums.as_numpy()
 print(type(array))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# as_numpy()
+values.copy()                        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a copy of the numbers as they are now, so changing the array leaves the simplydata numbers as they were.}
+\undertext{Empty values are nan in the array.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Waves and systems}{group:Waves-and-systems}
 \wordentry{nums.convolve\_with()}{word:nums.convolve-with}
 Convolve the numbers with other numbers: each result is a sum of products as one list slides along.
@@ -22377,7 +23145,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 401 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 204 follow the convention of the package named so that results match it, and 54 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 439 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 232 follow the convention of the package named so that results match it, and 64 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -25026,12 +25794,116 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{with\_\allowbreak{}seed=} for the same numbers every time.}
 \wordfield{Why (P3)}{NumPy recommends its Generator over the old global seed; \code{\textquotedbl{}between 1 and 6\textquotedbl{}} includes 6, like a dice. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:sdata.make-random-numbers]{page \pageref{word:sdata.make-random-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.show}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}show()}}\par\nopagebreak
+\wordfield{Default}{Every number, with commas between them, however many there are.}
+\wordfield{Alternatives}{\code{show\_\allowbreak{}first\_\allowbreak{}numbers()} and \code{show\_\allowbreak{}last\_\allowbreak{}numbers()} for the ends only.}
+\wordfield{Why (P5)}{Showing results, not a method: a word called show hides nothing, and commas make the list read like the one you typed. NumPy's print shortens long arrays to their ends. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.show]{page \pageref{word:nums.show}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.show-first-numbers}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{The first 5 numbers, with commas, none hidden.}
+\wordfield{Alternatives}{\code{how\_\allowbreak{}many=} any whole number.}
+\wordfield{Why (P5)}{Showing results: the same look as \code{show()}. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{how\_\allowbreak{}many=} must be a whole number.}
+\wordfield{In the dictionary}{\hyperref[word:nums.show-first-numbers]{page \pageref{word:nums.show-first-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.show-last-numbers}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{The last 5 numbers, with commas, none hidden.}
+\wordfield{Alternatives}{\code{how\_\allowbreak{}many=} any whole number.}
+\wordfield{Why (P5)}{Showing results: the same look as \code{show()}; 0 shows none. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{how\_\allowbreak{}many=} must be a whole number.}
+\wordfield{In the dictionary}{\hyperref[word:nums.show-last-numbers]{page \pageref{word:nums.show-last-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.get-number-at}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at()}}\par\nopagebreak
+\wordfield{Default}{Positions count from 1; \code{\textquotedbl{}last\textquotedbl{}} is the last number.}
+\wordfield{Alternatives}{None: Python's [ ] is not used on simplydata numbers.}
+\wordfield{Why (P5)}{People count from 1, and so do charts' x axes and R; counting from 0 is a frequent beginner's error. \textit{Basis: convention.}}
+\wordfield{Checks}{A position outside 1 to the count stops with a message that gives the count.}
+\wordfield{In the dictionary}{\hyperref[word:nums.get-number-at]{page \pageref{word:nums.get-number-at}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.count}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}count()}}\par\nopagebreak
+\wordfield{Default}{How many places there are, empty values included.}
+\wordfield{Alternatives}{\code{count()} minus \code{count\_\allowbreak{}empty\_\allowbreak{}numbers()} for the filled ones.}
+\wordfield{Why (P3)}{The same as \code{len()} in Python and \code{length()} in R; the empty values are counted on their own. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.count]{page \pageref{word:nums.count}}}
+\unsection{Numbers: maths in words}{basis-group:Numbers-maths-in-words}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.divide-by}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}divide\_\allowbreak{}by()}}\par\nopagebreak
+\wordfield{Default}{Dividing by 0 gives an empty value (nan) and a note saying how many, not inf.}
+\wordfield{Alternatives}{None; fill the empty values afterwards if a number is wanted there.}
+\wordfield{Why (P4)}{There is no answer to dividing by 0. An empty value is skipped by the summary words, while inf would make a total or an average inf. \textit{Basis: starting value.}}
+\wordfield{Checks}{The note counts the numbers that became empty.}
+\wordfield{In the dictionary}{\hyperref[word:nums.divide-by]{page \pageref{word:nums.divide-by}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.raise-to-power}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}raise\_\allowbreak{}to\_\allowbreak{}power()}}\par\nopagebreak
+\wordfield{Default}{Whole numbers to a minus power are worked out as decimals; 0 to a minus power and a negative number to a power with decimals become empty, with a note.}
+\wordfield{Alternatives}{None.}
+\wordfield{Why (P4)}{Neither has an answer among ordinary numbers; NumPy stops with an error for whole numbers to a minus power and gives inf for 0 to a minus power. \textit{Basis: starting value.}}
+\wordfield{Checks}{The note says how many numbers became empty and why.}
+\wordfield{In the dictionary}{\hyperref[word:nums.raise-to-power]{page \pageref{word:nums.raise-to-power}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.round-to}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}round\_\allowbreak{}to()}}\par\nopagebreak
+\wordfield{Default}{A number exactly halfway goes to the even neighbour (0.5 to 0, 2.5 to 2).}
+\wordfield{Alternatives}{None; \code{with\_\allowbreak{}decimals=} sets the places (negative rounds to tens, hundreds).}
+\wordfield{Why (P3)}{The same as NumPy, pandas and R \code{round()}: halves do not all go up, so a total of rounded numbers is not pushed up. Excel rounds halves away from 0. \textit{Basis: convention.}}
+\wordfield{Checks}{\code{with\_\allowbreak{}decimals=} must be a whole number.}
+\wordfield{In the dictionary}{\hyperref[word:nums.round-to]{page \pageref{word:nums.round-to}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.take-log}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}take\_\allowbreak{}log()}}\par\nopagebreak
+\wordfield{Default}{The natural log; 0 and negative numbers become empty, with a note.}
+\wordfield{Alternatives}{\code{base=10}, \code{base=2} or any number above 0 but not 1.}
+\wordfield{Why (P4)}{The log only exists above 0; an empty value is skipped by later summaries, while -inf would spoil them. \textit{Basis: convention.}}
+\wordfield{Checks}{The note says how many numbers became empty.}
+\wordfield{In the dictionary}{\hyperref[word:nums.take-log]{page \pageref{word:nums.take-log}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.turn-into-running-total}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}total()}}\par\nopagebreak
+\wordfield{Default}{An empty value stays empty and is skipped in the total.}
+\wordfield{Alternatives}{\code{fill\_\allowbreak{}empty\_\allowbreak{}numbers()} first to count it as a number.}
+\wordfield{Why (P3)}{The same as pandas \code{cumsum()}: one empty value does not empty every total after it, and its place stays visible. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.turn-into-running-total]{page \pageref{word:nums.turn-into-running-total}}}
 \unsection{Numbers: choose, sort and fill}{basis-group:Numbers-choose-sort-and-fill}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.keep-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
 \wordfield{Default}{\code{is\_\allowbreak{}above=} is strictly above; empty values match only \code{is\_\allowbreak{}empty=True}.}
 \wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}between=} (both ends included) and the other conditions.}
 \wordfield{Why (P5)}{The same conditions as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where}, so one rule holds everywhere. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:nums.keep-each-number-that]{page \pageref{word:nums.keep-each-number-that}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.remove-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}remove\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
+\wordfield{Default}{\code{is\_\allowbreak{}below=} is strictly below; an empty value matches no condition, so it stays.}
+\wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}most=} for \textless{}=; \code{is\_\allowbreak{}empty=True} removes the empty values.}
+\wordfield{Why (P5)}{The same rule as \code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}where}: a condition on a number says nothing about a missing number. \textit{Basis: convention.}}
+\wordfield{Checks}{One condition at a time.}
+\wordfield{In the dictionary}{\hyperref[word:nums.remove-each-number-that]{page \pageref{word:nums.remove-each-number-that}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.keep-random-numbers}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{NumPy's \code{default\_\allowbreak{}rng} with the seed given, picking without repeats; the numbers kept stay in their order.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}seed=} any whole number; leave it out for a new pick each time.}
+\wordfield{Why (P3)}{\code{default\_\allowbreak{}rng} is the generator NumPy recommends; keeping the order keeps a series a series. \textit{Basis: convention.}}
+\wordfield{Checks}{Asking for more numbers than there are keeps them all, with a note.}
+\wordfield{In the dictionary}{\hyperref[word:nums.keep-random-numbers]{page \pageref{word:nums.keep-random-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.remove-duplicate-numbers}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{Each number once, in its first place; empty values count as one value.}
+\wordfield{Alternatives}{\code{sort()} afterwards for the numbers in order.}
+\wordfield{Why (P3)}{The same as pandas \code{duplicated(keep=\textquotedbl{}first\textquotedbl{})}: the order of the list is kept, where np.unique sorts. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.remove-duplicate-numbers]{page \pageref{word:nums.remove-duplicate-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.keep-numbers-by-position}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Positions count from 1 and both ends are kept.}
+\wordfield{Alternatives}{\code{to=}, \code{step=} or a list of positions.}
+\wordfield{Why (P5)}{People count from 1 and say \code{\textquotedbl{}2 to 4\textquotedbl{}} for three numbers, as R's 2:4 does. \textit{Basis: convention.}}
+\wordfield{Checks}{Positions outside the list stop with a message; \code{to=} past the end is cut, with a note.}
+\wordfield{In the dictionary}{\hyperref[word:nums.keep-numbers-by-position]{page \pageref{word:nums.keep-numbers-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.remove-numbers-by-position}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}remove\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Positions count from 1 and both ends go.}
+\wordfield{Alternatives}{\code{to=}, \code{step=}, a list of positions or \code{\textquotedbl{}last\textquotedbl{}}.}
+\wordfield{Why (P5)}{The same positions as \code{keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position}. \textit{Basis: convention.}}
+\wordfield{Checks}{Removing every number is refused.}
+\wordfield{In the dictionary}{\hyperref[word:nums.remove-numbers-by-position]{page \pageref{word:nums.remove-numbers-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.replace-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
+\wordfield{Default}{\code{is\_\allowbreak{}above=} is strictly above; an empty value matches no condition, so it stays empty.}
+\wordfield{Alternatives}{\code{is\_\allowbreak{}empty=True} to replace the empty values; \code{with\_\allowbreak{}value=None} makes numbers empty.}
+\wordfield{Why (P5)}{The same rule as the other condition words: a condition on a number says nothing about a missing number. \textit{Basis: convention.}}
+\wordfield{Checks}{One condition, or one old value, at a time.}
+\wordfield{In the dictionary}{\hyperref[word:nums.replace-each-number-that]{page \pageref{word:nums.replace-each-number-that}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.fill-empty-numbers}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{\code{with\_\allowbreak{}the=\textquotedbl{}line between neighbours\textquotedbl{}} fills each gap on the straight line between its neighbours, spaced by position; empty values at the start or end stay empty, with a note.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}value=}, or \code{with\_\allowbreak{}the=\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}value above\textquotedbl{}} or \code{\textquotedbl{}value below\textquotedbl{}}.}
+\wordfield{Why (P3)}{The same as pandas \code{interpolate(limit\_\allowbreak{}area=\textquotedbl{}inside\textquotedbl{})}: a value outside the filled ones would be a guess beyond the data. \textit{Basis: convention.}}
+\wordfield{Checks}{Exactly one of \code{with\_\allowbreak{}value=} and \code{with\_\allowbreak{}the=}.}
+\wordfield{In the dictionary}{\hyperref[word:nums.fill-empty-numbers]{page \pageref{word:nums.fill-empty-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.sort}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}sort()}}\par\nopagebreak
+\wordfield{Default}{Smallest first; empty values last, also with \code{biggest\_\allowbreak{}first=True}.}
+\wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=True}.}
+\wordfield{Why (P3)}{The same as pandas \code{sort\_\allowbreak{}values(na\_\allowbreak{}position=\textquotedbl{}last\textquotedbl{})} and R \code{sort(na.\allowbreak{}last = TRUE)}: the numbers come first either way. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.sort]{page \pageref{word:nums.sort}}}
 \unsection{Numbers: summaries}{basis-group:Numbers-summaries}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-average}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}average()}}\par\nopagebreak
 \wordfield{Default}{The mean, empty values skipped.}
@@ -25043,6 +25915,21 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
 \wordfield{Why (P3)}{Skipping empty values and saying so is what pandas and R's \code{median(na.\allowbreak{}rm = TRUE)} do. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:nums.find-median]{page \pageref{word:nums.find-median}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-total}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}total()}}\par\nopagebreak
+\wordfield{Default}{Empty values skipped (np.nansum), with a note saying how many.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
+\wordfield{Why (P3)}{pandas and R's \code{sum(na.\allowbreak{}rm = TRUE)} skip empty values too; simplydata also says how many. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.find-total]{page \pageref{word:nums.find-total}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-smallest}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}smallest()}}\par\nopagebreak
+\wordfield{Default}{Empty values skipped (np.nanmin), with a note saying how many.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
+\wordfield{Why (P3)}{pandas and R's \code{min(na.\allowbreak{}rm = TRUE)} skip empty values too; simplydata also says how many. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.find-smallest]{page \pageref{word:nums.find-smallest}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-biggest}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}biggest()}}\par\nopagebreak
+\wordfield{Default}{Empty values skipped (np.nanmax), with a note saying how many.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
+\wordfield{Why (P3)}{pandas and R's \code{max(na.\allowbreak{}rm = TRUE)} skip empty values too; simplydata also says how many. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.find-biggest]{page \pageref{word:nums.find-biggest}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-standard-deviation}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}standard\_\allowbreak{}deviation()}}\par\nopagebreak
 \wordfield{Default}{The sample standard deviation, dividing by n - 1, empty values skipped.}
 \wordfield{Alternatives}{There is no other kind here.}
@@ -25056,12 +25943,111 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} (Hyndman \& Fan 1996). \textit{Basis: convention.}}
 \wordfield{References}{Hyndman \& Fan 1996}
 \wordfield{In the dictionary}{\hyperref[word:nums.find-percentile]{page \pageref{word:nums.find-percentile}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.count-each}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}count\_\allowbreak{}each()}}\par\nopagebreak
+\wordfield{Default}{Empty values counted as a value of their own; percents out of all numbers, rounded to 1 decimal; biggest count first, equal counts smallest number first, empty last.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first to leave the empty values out.}
+\wordfield{Why (P5)}{Showing results: every number is accounted for, so the percents add up to 100 before rounding, and the order is the same every time. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.count-each]{page \pageref{word:nums.count-each}}}
 \unsection{Grids of numbers}{basis-group:Grids-of-numbers}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.number-grid}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}number\_\allowbreak{}grid()}}\par\nopagebreak
 \wordfield{Default}{A list is cut into rows, row after row.}
 \wordfield{Alternatives}{\code{rows=} or \code{columns=}; a list of rows for a grid as it is.}
 \wordfield{Why (P3)}{As NumPy's reshape (order \code{\textquotedbl{}C\textquotedbl{}}), which reads a list the way text is read; R's \code{matrix()} fills by column unless byrow = TRUE. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:sdata.number-grid]{page \pageref{word:sdata.number-grid}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.make-number-grid}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}make\_\allowbreak{}number\_\allowbreak{}grid()}}\par\nopagebreak
+\wordfield{Default}{Filled row after row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}).}
+\wordfield{Alternatives}{\code{rows=} or \code{columns=} (or both).}
+\wordfield{Why (P3)}{Rows are read the way text is read; it is NumPy's own order. R's \code{matrix()} fills column by column unless byrow = TRUE. \textit{Basis: convention.}}
+\wordfield{Checks}{The numbers must fill the grid exactly.}
+\wordfield{In the dictionary}{\hyperref[word:nums.make-number-grid]{page \pageref{word:nums.make-number-grid}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.show-first-rows}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}\par\nopagebreak
+\wordfield{Default}{The first 5 rows, with commas, none hidden.}
+\wordfield{Alternatives}{\code{rows=} any whole number.}
+\wordfield{Why (P5)}{Showing results: the same look as \code{show()}. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{rows=} must be a whole number.}
+\wordfield{In the dictionary}{\hyperref[word:grid.show-first-rows]{page \pageref{word:grid.show-first-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.show-last-rows}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}rows()}}\par\nopagebreak
+\wordfield{Default}{The last 5 rows, with commas, none hidden.}
+\wordfield{Alternatives}{\code{rows=} any whole number.}
+\wordfield{Why (P5)}{Showing results: the same look as \code{show()}. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{rows=} must be a whole number.}
+\wordfield{In the dictionary}{\hyperref[word:grid.show-last-rows]{page \pageref{word:grid.show-last-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.get-number-at}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at()}}\par\nopagebreak
+\wordfield{Default}{Rows and columns count from 1; \code{\textquotedbl{}last\textquotedbl{}} is the last one.}
+\wordfield{Alternatives}{None: Python's [ ] is not used on grids.}
+\wordfield{Why (P5)}{As \code{nums.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at}: people count from 1, and so does R. \textit{Basis: convention.}}
+\wordfield{Checks}{A row or column outside the grid stops with a message.}
+\wordfield{In the dictionary}{\hyperref[word:grid.get-number-at]{page \pageref{word:grid.get-number-at}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.get-row}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}get\_\allowbreak{}row()}}\par\nopagebreak
+\wordfield{Default}{Rows count from 1; the row comes back as new numbers (a copy).}
+\wordfield{Alternatives}{\code{\textquotedbl{}last\textquotedbl{}} for the bottom row.}
+\wordfield{Why (P5)}{As \code{nums.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at}; a copy means a later step on the row never changes the grid. \textit{Basis: convention.}}
+\wordfield{Checks}{A row outside the grid stops with a message.}
+\wordfield{In the dictionary}{\hyperref[word:grid.get-row]{page \pageref{word:grid.get-row}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.get-column}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}get\_\allowbreak{}column()}}\par\nopagebreak
+\wordfield{Default}{Columns count from 1 at the left; the column comes back as new numbers (a copy).}
+\wordfield{Alternatives}{\code{\textquotedbl{}last\textquotedbl{}} for the right-hand column.}
+\wordfield{Why (P5)}{As \code{grid.\allowbreak{}get\_\allowbreak{}row}. \textit{Basis: convention.}}
+\wordfield{Checks}{A column outside the grid stops with a message.}
+\wordfield{In the dictionary}{\hyperref[word:grid.get-column]{page \pageref{word:grid.get-column}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.get-all-numbers}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}get\_\allowbreak{}all\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{Row by row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}).}
+\wordfield{Alternatives}{\code{swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns()} first for column by column.}
+\wordfield{Why (P3)}{The same order as \code{make\_\allowbreak{}number\_\allowbreak{}grid} fills, so the two undo each other. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:grid.get-all-numbers]{page \pageref{word:grid.get-all-numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.keep-rows-by-position}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Rows count from 1 and both ends are kept; the result stays a grid.}
+\wordfield{Alternatives}{\code{to=}, \code{step=} or a list of rows.}
+\wordfield{Why (P5)}{As \code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position}. \textit{Basis: convention.}}
+\wordfield{Checks}{Value conditions are refused: rows are chosen by place.}
+\wordfield{In the dictionary}{\hyperref[word:grid.keep-rows-by-position]{page \pageref{word:grid.keep-rows-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.keep-columns-by-position}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Columns count from 1 at the left and both ends are kept.}
+\wordfield{Alternatives}{\code{to=}, \code{step=} or a list of columns.}
+\wordfield{Why (P5)}{As \code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position}. \textit{Basis: convention.}}
+\wordfield{Checks}{Value conditions are refused: columns are chosen by place.}
+\wordfield{In the dictionary}{\hyperref[word:grid.keep-columns-by-position]{page \pageref{word:grid.keep-columns-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.remove-rows-by-position}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Rows count from 1.}
+\wordfield{Alternatives}{\code{to=}, \code{step=} or a list of rows.}
+\wordfield{Why (P5)}{As \code{grid.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position}. \textit{Basis: convention.}}
+\wordfield{Checks}{Removing every row is refused.}
+\wordfield{In the dictionary}{\hyperref[word:grid.remove-rows-by-position]{page \pageref{word:grid.remove-rows-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.remove-columns-by-position}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}remove\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Columns count from 1 at the left.}
+\wordfield{Alternatives}{\code{to=}, \code{step=} or a list of columns.}
+\wordfield{Why (P5)}{As \code{grid.\allowbreak{}keep\_\allowbreak{}columns\_\allowbreak{}by\_\allowbreak{}position}. \textit{Basis: convention.}}
+\wordfield{Checks}{Removing every column is refused.}
+\wordfield{In the dictionary}{\hyperref[word:grid.remove-columns-by-position]{page \pageref{word:grid.remove-columns-by-position}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.replace-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
+\wordfield{Default}{Numbers are changed where they are, so the grid keeps its rows and columns; an empty value matches no condition.}
+\wordfield{Alternatives}{\code{is\_\allowbreak{}empty=True} for the empty values; \code{with\_\allowbreak{}value=None} makes numbers empty.}
+\wordfield{Why (P5)}{A grid cannot lose single numbers (its rows would differ in length), so the numbers are replaced, never dropped. \textit{Basis: convention.}}
+\wordfield{Checks}{One condition at a time; \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that} is refused on a grid, with what to use.}
+\wordfield{In the dictionary}{\hyperref[word:grid.replace-each-number-that]{page \pageref{word:grid.replace-each-number-that}}}
+\unsection{Numbers: undo and finish}{basis-group:Numbers-undo-and-finish}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.turn-into-table}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}table()}}\par\nopagebreak
+\wordfield{Default}{One column called \code{\textquotedbl{}value\textquotedbl{}}.}
+\wordfield{Alternatives}{\code{name=} any column name.}
+\wordfield{Why (P5)}{A plain name that says what the column holds when nothing else is known. \textit{Basis: starting value.}}
+\wordfield{Checks}{\code{name=} must be text.}
+\wordfield{In the dictionary}{\hyperref[word:nums.turn-into-table]{page \pageref{word:nums.turn-into-table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.start-chart}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}start\_\allowbreak{}chart()}}\par\nopagebreak
+\wordfield{Default}{The numbers become a table with one column called \code{\textquotedbl{}value\textquotedbl{}} (a grid: columns \code{\textquotedbl{}1\textquotedbl{}}, \code{\textquotedbl{}2\textquotedbl{}} ... and rows numbered from 1).}
+\wordfield{Alternatives}{\code{turn\_\allowbreak{}into\_\allowbreak{}table(name=)} first, then \code{sdata.\allowbreak{}chart()}, for another column name.}
+\wordfield{Why (P5)}{The chart words name columns, so the numbers need a column name; the same as \code{turn\_\allowbreak{}into\_\allowbreak{}table()}. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.start-chart]{page \pageref{word:nums.start-chart}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.save}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}save()}}\par\nopagebreak
+\wordfield{Default}{One column called \code{\textquotedbl{}value\textquotedbl{}}, without row numbers.}
+\wordfield{Alternatives}{\code{turn\_\allowbreak{}into\_\allowbreak{}table(name=)}, then the table's own save word, for another name; .wav with \code{time\_\allowbreak{}step=} and \code{bits=}.}
+\wordfield{Why (P5)}{A file without pandas' row labels reads back as it was with pandas \code{read\_\allowbreak{}csv} or R read.csv; simplydata's own reader needs \code{separator=\textquotedbl{},\allowbreak{}\textquotedbl{}} for a file of one column (a current limitation). \textit{Basis: convention.}}
+\wordfield{Checks}{\code{time\_\allowbreak{}step=} and \code{bits=} only go with a .wav file.}
+\wordfield{In the dictionary}{\hyperref[word:nums.save]{page \pageref{word:nums.save}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.as-numpy}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}as\_\allowbreak{}numpy()}}\par\nopagebreak
+\wordfield{Default}{A copy of the numbers as they are now.}
+\wordfield{Alternatives}{None.}
+\wordfield{Why (P5)}{A copy means changing the array never changes the simplydata numbers or their steps. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.as-numpy]{page \pageref{word:nums.as-numpy}}}
 \unsection{References}{basis:references}
 \begingroup\small\raggedright
 \par\noindent\hangindent=1.5em Agresti A, Coull BA (1998). Approximate is Better than `{}`Exact'{}' for Interval Estimation of Binomial Proportions. The American Statistician 52:119-126. \href{https://doi.org/10.1080/00031305.1998.10480550}{doi:10.1080/00031305.1998.10480550}

@@ -144,10 +144,8 @@ def test_leaving_out_a_simplydata_choice_makes_the_comparison_fail(word, setting
     entry = UNDERNEATH[word]
     library = next(iter(entry.code))
     changed = {library: entry.code[library].replace(setting, "")}
-    if word == "nums.find_median":
-        entry = Entry(**{**entry.__dict__, "ours": "sdata.numbers([12, None, 9, 20, 14]).find_median()"})
-        changed = {library: entry.code[library].replace("[12, 15, 9, 20, 14]", "[12, np.nan, 9, 20, 14]")
-                   .replace("nanmedian", "median")}
+    if word == "nums.find_median":  # its example has an empty value, so np.median gives nan
+        changed = {library: entry.code[library].replace("nanmedian", "median")}
     outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
     assert outcomes and not any(o.passed for o in outcomes), f"{word}: the comparison should fail without {setting}"
 
@@ -230,6 +228,16 @@ def test_chart_facts_of_a_simplydata_chart():
     heights = [b[3] for b in sorted(facts["bars"])]
     assert heights == pytest.approx(df.groupby("class", sort=False)["marks"].mean().tolist())
     plt.close("all")
+
+
+def test_numbers_of_another_shape_are_not_the_same():
+    import numpy as np
+
+    from simplydata._underneath.check import compare_values
+
+    assert compare_values(np.array([1.0, 2.0]), np.array([1.0, 2.0]), 1e-9) == []
+    assert compare_values(np.array([[1.0], [2.0]]), np.array([1.0, 2.0]), 1e-9)  # (2, 1) is not (2,)
+    assert compare_values(np.array([[1.0, 2.0], [3.0, 4.0]]), np.array([1.0, 2.0]), 1e-9)  # no broadcast error
 
 
 def test_run_python_gives_the_last_line():

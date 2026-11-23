@@ -3468,6 +3468,181 @@ BASIS["animate"] = _b(
     "seconds_per_frame=, keep=True.",
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
+
+# ---- Phase U3, batch 4: number and grid words
+BASIS["nums.show"] = _b(
+    "Every number, with commas between them, however many there are.",
+    "show_first_numbers() and show_last_numbers() for the ends only.",
+    "Showing results, not a method: a word called show hides nothing, and commas make the list read like the one "
+    "you typed. NumPy's print shortens long arrays to their ends.", (), "P5", "", "starting value")
+BASIS["nums.show_first_numbers"] = _b(
+    "The first 5 numbers, with commas, none hidden.", "how_many= any whole number.",
+    "Showing results: the same look as show().", (), "P5", "how_many= must be a whole number.", "starting value")
+BASIS["nums.show_last_numbers"] = _b(
+    "The last 5 numbers, with commas, none hidden.", "how_many= any whole number.",
+    "Showing results: the same look as show(); 0 shows none.", (), "P5", "how_many= must be a whole number.",
+    "starting value")
+BASIS["nums.get_number_at"] = _b(
+    "Positions count from 1; \"last\" is the last number.", "None: Python's [ ] is not used on simplydata numbers.",
+    "People count from 1, and so do charts' x axes and R; counting from 0 is a frequent beginner's error.", (), "P5",
+    "A position outside 1 to the count stops with a message that gives the count.", "convention")
+BASIS["nums.count"] = _b(
+    "How many places there are, empty values included.",
+    "count() minus count_empty_numbers() for the filled ones.",
+    "The same as len() in Python and length() in R; the empty values are counted on their own.", (), "P3", "",
+    "convention")
+BASIS["nums.divide_by"] = _b(
+    "Dividing by 0 gives an empty value (nan) and a note saying how many, not inf.",
+    "None; fill the empty values afterwards if a number is wanted there.",
+    "There is no answer to dividing by 0. An empty value is skipped by the summary words, while inf would make a "
+    "total or an average inf.", (), "P4", "The note counts the numbers that became empty.", "starting value")
+BASIS["nums.raise_to_power"] = _b(
+    "Whole numbers to a minus power are worked out as decimals; 0 to a minus power and a negative number to a "
+    "power with decimals become empty, with a note.",
+    "None.",
+    "Neither has an answer among ordinary numbers; NumPy stops with an error for whole numbers to a minus power "
+    "and gives inf for 0 to a minus power.", (), "P4", "The note says how many numbers became empty and why.",
+    "starting value")
+BASIS["nums.round_to"] = _b(
+    "A number exactly halfway goes to the even neighbour (0.5 to 0, 2.5 to 2).",
+    "None; with_decimals= sets the places (negative rounds to tens, hundreds).",
+    "The same as NumPy, pandas and R round(): halves do not all go up, so a total of rounded numbers is not "
+    "pushed up. Excel rounds halves away from 0.", (), "P3", "with_decimals= must be a whole number.",
+    "convention")
+BASIS["nums.take_log"] = _b(
+    "The natural log; 0 and negative numbers become empty, with a note.",
+    "base=10, base=2 or any number above 0 but not 1.",
+    "The log only exists above 0; an empty value is skipped by later summaries, while -inf would spoil them.",
+    (), "P4", "The note says how many numbers became empty.", "convention")
+BASIS["nums.turn_into_running_total"] = _b(
+    "An empty value stays empty and is skipped in the total.",
+    "fill_empty_numbers() first to count it as a number.",
+    "The same as pandas cumsum(): one empty value does not empty every total after it, and its place stays "
+    "visible.", (), "P3", "", "convention")
+BASIS["nums.remove_each_number_that"] = _b(
+    "is_below= is strictly below; an empty value matches no condition, so it stays.",
+    "is_at_most= for <=; is_empty=True removes the empty values.",
+    "The same rule as table.remove_rows_where: a condition on a number says nothing about a missing number.", (),
+    "P5", "One condition at a time.", "convention")
+BASIS["nums.keep_random_numbers"] = _b(
+    "NumPy's default_rng with the seed given, picking without repeats; the numbers kept stay in their order.",
+    "with_seed= any whole number; leave it out for a new pick each time.",
+    "default_rng is the generator NumPy recommends; keeping the order keeps a series a series.", (), "P3",
+    "Asking for more numbers than there are keeps them all, with a note.", "convention")
+BASIS["nums.remove_duplicate_numbers"] = _b(
+    "Each number once, in its first place; empty values count as one value.",
+    "sort() afterwards for the numbers in order.",
+    "The same as pandas duplicated(keep=\"first\"): the order of the list is kept, where np.unique sorts.", (),
+    "P3", "", "convention")
+BASIS["nums.keep_numbers_by_position"] = _b(
+    "Positions count from 1 and both ends are kept.", "to=, step= or a list of positions.",
+    "People count from 1 and say \"2 to 4\" for three numbers, as R's 2:4 does.", (), "P5",
+    "Positions outside the list stop with a message; to= past the end is cut, with a note.", "convention")
+BASIS["nums.remove_numbers_by_position"] = _b(
+    "Positions count from 1 and both ends go.", "to=, step=, a list of positions or \"last\".",
+    "The same positions as keep_numbers_by_position.", (), "P5", "Removing every number is refused.",
+    "convention")
+BASIS["nums.replace_each_number_that"] = _b(
+    "is_above= is strictly above; an empty value matches no condition, so it stays empty.",
+    "is_empty=True to replace the empty values; with_value=None makes numbers empty.",
+    "The same rule as the other condition words: a condition on a number says nothing about a missing number.",
+    (), "P5", "One condition, or one old value, at a time.", "convention")
+BASIS["nums.fill_empty_numbers"] = _b(
+    "with_the=\"line between neighbours\" fills each gap on the straight line between its neighbours, spaced by "
+    "position; empty values at the start or end stay empty, with a note.",
+    "with_value=, or with_the=\"average\", \"median\", \"value above\" or \"value below\".",
+    "The same as pandas interpolate(limit_area=\"inside\"): a value outside the filled ones would be a guess "
+    "beyond the data.", (), "P3", "Exactly one of with_value= and with_the=.", "convention")
+BASIS["nums.sort"] = _b(
+    "Smallest first; empty values last, also with biggest_first=True.", "biggest_first=True.",
+    "The same as pandas sort_values(na_position=\"last\") and R sort(na.last = TRUE): the numbers come first "
+    "either way.", (), "P3", "", "convention")
+BASIS["nums.find_total"] = _b(
+    "Empty values skipped (np.nansum), with a note saying how many.",
+    "remove_empty_numbers() first if you want them gone for later steps too.",
+    "pandas and R's sum(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
+    "convention")
+BASIS["nums.find_smallest"] = _b(
+    "Empty values skipped (np.nanmin), with a note saying how many.",
+    "remove_empty_numbers() first if you want them gone for later steps too.",
+    "pandas and R's min(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
+    "convention")
+BASIS["nums.find_biggest"] = _b(
+    "Empty values skipped (np.nanmax), with a note saying how many.",
+    "remove_empty_numbers() first if you want them gone for later steps too.",
+    "pandas and R's max(na.rm = TRUE) skip empty values too; simplydata also says how many.", (), "P3", "",
+    "convention")
+BASIS["nums.count_each"] = _b(
+    "Empty values counted as a value of their own; percents out of all numbers, rounded to 1 decimal; biggest "
+    "count first, equal counts smallest number first, empty last.",
+    "remove_empty_numbers() first to leave the empty values out.",
+    "Showing results: every number is accounted for, so the percents add up to 100 before rounding, and the order is the same "
+    "every time.", (), "P5", "", "starting value")
+BASIS["nums.make_number_grid"] = _b(
+    "Filled row after row (NumPy's order \"C\").", "rows= or columns= (or both).",
+    "Rows are read the way text is read; it is NumPy's own order. R's matrix() fills column by column unless "
+    "byrow = TRUE.", (), "P3", "The numbers must fill the grid exactly.", "convention")
+BASIS["grid.show_first_rows"] = _b(
+    "The first 5 rows, with commas, none hidden.", "rows= any whole number.",
+    "Showing results: the same look as show().", (), "P5", "rows= must be a whole number.", "starting value")
+BASIS["grid.show_last_rows"] = _b(
+    "The last 5 rows, with commas, none hidden.", "rows= any whole number.",
+    "Showing results: the same look as show().", (), "P5", "rows= must be a whole number.", "starting value")
+BASIS["grid.get_number_at"] = _b(
+    "Rows and columns count from 1; \"last\" is the last one.", "None: Python's [ ] is not used on grids.",
+    "As nums.get_number_at: people count from 1, and so does R.", (), "P5",
+    "A row or column outside the grid stops with a message.", "convention")
+BASIS["grid.get_row"] = _b(
+    "Rows count from 1; the row comes back as new numbers (a copy).", "\"last\" for the bottom row.",
+    "As nums.get_number_at; a copy means a later step on the row never changes the grid.", (), "P5",
+    "A row outside the grid stops with a message.", "convention")
+BASIS["grid.get_column"] = _b(
+    "Columns count from 1 at the left; the column comes back as new numbers (a copy).",
+    "\"last\" for the right-hand column.",
+    "As grid.get_row.", (), "P5", "A column outside the grid stops with a message.", "convention")
+BASIS["grid.get_all_numbers"] = _b(
+    "Row by row (NumPy's order \"C\").", "swap_rows_and_columns() first for column by column.",
+    "The same order as make_number_grid fills, so the two undo each other.", (), "P3", "", "convention")
+BASIS["grid.keep_rows_by_position"] = _b(
+    "Rows count from 1 and both ends are kept; the result stays a grid.", "to=, step= or a list of rows.",
+    "As nums.keep_numbers_by_position.", (), "P5", "Value conditions are refused: rows are chosen by place.",
+    "convention")
+BASIS["grid.keep_columns_by_position"] = _b(
+    "Columns count from 1 at the left and both ends are kept.", "to=, step= or a list of columns.",
+    "As nums.keep_numbers_by_position.", (), "P5", "Value conditions are refused: columns are chosen by place.",
+    "convention")
+BASIS["grid.remove_rows_by_position"] = _b(
+    "Rows count from 1.", "to=, step= or a list of rows.", "As grid.keep_rows_by_position.", (), "P5",
+    "Removing every row is refused.", "convention")
+BASIS["grid.remove_columns_by_position"] = _b(
+    "Columns count from 1 at the left.", "to=, step= or a list of columns.", "As grid.keep_columns_by_position.",
+    (), "P5", "Removing every column is refused.", "convention")
+BASIS["grid.replace_each_number_that"] = _b(
+    "Numbers are changed where they are, so the grid keeps its rows and columns; an empty value matches no "
+    "condition.",
+    "is_empty=True for the empty values; with_value=None makes numbers empty.",
+    "A grid cannot lose single numbers (its rows would differ in length), so the numbers are replaced, never "
+    "dropped.", (), "P5", "One condition at a time; keep_each_number_that is refused on a grid, with what to use.",
+    "convention")
+BASIS["nums.turn_into_table"] = _b(
+    "One column called \"value\".", "name= any column name.",
+    "A plain name that says what the column holds when nothing else is known.", (), "P5",
+    "name= must be text.", "starting value")
+BASIS["nums.start_chart"] = _b(
+    "The numbers become a table with one column called \"value\" (a grid: columns \"1\", \"2\" ... and rows "
+    "numbered from 1).", "turn_into_table(name=) first, then sdata.chart(), for another column name.",
+    "The chart words name columns, so the numbers need a column name; the same as turn_into_table().", (), "P5",
+    "", "starting value")
+BASIS["nums.save"] = _b(
+    "One column called \"value\", without row numbers.", "turn_into_table(name=), then the table's own save word, for another name; "
+    ".wav with time_step= and bits=.",
+    "A file without pandas' row labels reads back as it was with pandas read_csv or R read.csv; "
+    "simplydata's own reader needs separator=\",\" for a file of one column (a current limitation).", (), "P5",
+    "time_step= and bits= only go with a .wav file.", "convention")
+BASIS["nums.as_numpy"] = _b(
+    "A copy of the numbers as they are now.", "None.",
+    "A copy means changing the array never changes the simplydata numbers or their steps.", (), "P5", "",
+    "convention")
 # ---- Phase U3, batch 3: table words
 BASIS["table.show_last_rows"] = _b(
     "Each row numbered with its place in the whole table, counted from 1; only the display changes.",
