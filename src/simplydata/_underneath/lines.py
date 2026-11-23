@@ -70,9 +70,9 @@ ENTRIES = [
         word="fit_dose_response",
         data="toxicity",
         ours="""
-            import pandas as pd
-            tox = pd.read_csv("toxicity.csv")
-            chart = sdata.chart(tox[tox["chemical"] == "A"])
+            tox = sdata.get_example("toxicity")
+            tox.keep_rows_where("chemical", is_equal_to="A")
+            chart = sdata.chart(tox)
             chart.draw_dots(x="concentration", y="root_length").fit_dose_response()
         """,
         code={
@@ -431,9 +431,9 @@ OPTION_ENTRIES = [
         option='test_method="loess", with_confidence_band=',
         data="culture",
         ours="""
-            import pandas as pd
-            culture = pd.read_csv("culture.csv")
-            chart = sdata.chart(culture[culture["flask"] == "A"]).draw_dots(x="hour", y="density")
+            culture = sdata.get_example("culture")
+            culture.keep_rows_where("flask", is_equal_to="A")
+            chart = sdata.chart(culture).draw_dots(x="hour", y="density")
             chart.draw_smooth_line(test_method="loess", with_confidence_band=True)
         """,
         code={
