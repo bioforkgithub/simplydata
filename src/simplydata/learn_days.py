@@ -7,8 +7,11 @@ docs/make_30_days.py). The tests run every piece of code in it and check that th
 There are two tracks of 30 days, about an hour a day:
   "python"    for people who already write some Python: about two lessons a day, then an
               eight-day project of their own;
-  "beginner"  for people who have never programmed: three days of just enough Python first, then
-              about one lesson a day and a small project.
+  "beginner"  for people who have never programmed: just enough Python over the first three days,
+              with a real table on day 2, then about one lesson a day and a small project.
+Both tracks open a practice table early and test a difference within the first week; charts are woven
+in on a few days. Two extra days (31 and 32) are optional and never opened by show_today(). A progress
+file from the order before 2026-11-23 (no "course" in it) is moved to this order when it is read.
 
 A day is made of units (UNITS below). A unit belongs to a lesson (sdata.show_lesson(n)) or is a day of
 its own (Python first steps, review, project, final test). Each unit has recall questions about its
@@ -65,16 +68,18 @@ TRACKS = {
     "python": dict(
         title="Python track",
         who="for people who already write some Python",
-        about="One or two lessons a day for 20 days, with review days on days 7 and 14, then an eight-day "
-              "project of your own (days 21 to 28, which start and end with a review), a final test from memory "
-              "(day 29) and a look at the same work in pandas and matplotlib (day 30).",
+        about="One or two lessons a day for 20 days, with review days on days 7 and 14: a table on day 2, a "
+              "first test on day 4, and charts woven in between. Then an eight-day project of your own (days 21 "
+              "to 28, which start and end with a review), a final test from memory (day 29) and a look at the "
+              "same work in pandas and matplotlib (day 30). Two extra days (31 and 32) are optional.",
     ),
     "beginner": dict(
         title="Beginner track",
         who="for people who have never programmed",
-        about="Three days of just enough Python first, then about one lesson a day, with review days on "
-              "days 7, 14 and 21, a small project of your own (days 28 and 30), a final test from memory "
-              "(day 29) and a look back.",
+        about="Just enough Python first, with a real table on day 2 and a first test on day 6, then about "
+              "one lesson a day, with charts woven in and review days on days 7, 14, 21 and 28, a small project "
+              "of your own (days 26 and 27), a final test from memory (day 29) and a look back. Two extra days "
+              "(31 and 32) are optional.",
     ),
 }
 
@@ -113,8 +118,10 @@ UNITS = {
         lessons=[],
         manual=[("start:install", "Install and first steps")],
         words=[],
-        do=["Open a place to type Python: a Jupyter notebook, VS Code, Spyder, or IDLE (it comes with "
-            "Python). The manual's \"Install and first steps\" says how.",
+        do=["Open a place to type Python that completes names for you. We recommend VS Code (with its Python "
+            "and Jupyter extensions) or Jupyter (JupyterLab or Notebook); the manual's \"Install and first "
+            "steps\" sets up either in a few steps. Other editors (PyCharm, Spyder) also complete names; IDLE "
+            "does very little, so it is not recommended.",
             "Type each line of the example below, run it, and read what it prints.",
             "Then save the same lines in a file called day1.py and run the whole file: in a terminal, "
             "type python day1.py. A file of lines like this is called a script."],
@@ -150,7 +157,10 @@ UNITS = {
         do=["Type and run the example below, one line at a time.",
             "Look closely at the brackets: square brackets [ ] make a list, round brackets ( ) call a "
             "word, and curly brackets { } make a table by hand.",
-            'Then type sdata.help("find_average") and read what it says.'],
+            'Then type sdata.help("find_average") and read what it says.',
+            "Let the editor type the long names: type nums.find and press Tab in Jupyter, or wait a moment in "
+            "VS Code (Ctrl+Space brings the list up). Every word that starts with find appears; choose one with "
+            "the arrow keys and Enter."],
         examples=[[
             ("marks = [48, 71, 55, 88, 62]", "A list: values in square brackets, with commas between."),
             ("print(len(marks))", "len is a word of Python that counts: 5. A word is called with round "
@@ -193,7 +203,7 @@ UNITS = {
         do=["Errors are normal: everybody gets them, every day. Today you make some on purpose.",
             "Type each of the errors to make on purpose, below, and read the error from the bottom up: "
             "the last line says what went wrong.",
-            "Then start lesson 1, below."],
+            "Then go on with lesson 10, below."],
         errors=[
             ("print(nmae)", "is not defined",
              "NameError: a name is misspelt (nmae, not name), or was never given a value with = first."),
@@ -269,7 +279,7 @@ UNITS = {
         manual=[("start:welcome", "Welcome")],
         words=["sdata.table", "table.keep_rows_where", "table.find_average_of", "table.start_chart"],
         do=["Run the example below: your first table. A table and a chart are separate things: one clean "
-            "table can feed many charts. Tables get their own lessons on day 6."],
+            "table can feed many charts. Tables get their own lessons tomorrow, on day 2."],
         examples=[[
             ("import simplydata as sdata", "Load simplydata."),
             ('table = sdata.table(sdata.get_example("marks"))', "Start a table from the marks practice table."),
@@ -693,15 +703,39 @@ UNITS = {
             "Question, test, figure, saved table: the whole analysis in eight lines.")],
     ),
     # ------------------------------------------------------------ going further (lessons 16 to 21)
-    "lesson16": dict(
+    "models_one": dict(
         lessons=[16],
         words=["table.explain", "table.add_predicted_column"],
+        do=["Work through sdata.show_lesson(16), example 1 only: type each example yourself (do not copy and paste), "
+            "run it and read what each line does. Each line of the model is the effect of one column with the "
+            "others held the same."],
         recall=[
             ("Which word explains marks from hours, sleep and breakfast together?",
              'table.explain("marks", using=["hours", "sleep", "breakfast"])'),
-            ('How do you explain a yes-or-no column such as "passed"?', 'outcome="yes or no" (logistic regression)'),
             ("Which word adds the values a model predicts as a new column?",
              'table.add_predicted_column("marks", using=["hours", "breakfast"])'),
+        ],
+        task=['School table: explain "marks" using "hours" and "breakfast". How much do the marks change with '
+              "each extra hour of study?"],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.get_example("school"))
+            table.explain("marks", using=["hours", "breakfast"])'''),
+            "Read the line for hours: the change in marks for each extra hour, with breakfast held the same.")],
+    ),
+    "models_kinds": dict(
+        lessons=[16],
+        words=["table.explain"],
+        do=["Work through sdata.show_lesson(16), examples 2 and 4: type each example yourself (do not copy and "
+            "paste), run it and read what each line does. Then do tasks 2, 3 and 4 of the lesson and check them "
+            "with sdata.show_lesson(16, solutions=True)."],
+        recall=[
+            ('How do you explain a yes-or-no column such as "passed"?', 'outcome="yes or no" (logistic regression)'),
+            ("Which outcome= explains a count, such as the days a pupil was absent?",
+             'outcome="counts" (Poisson regression)'),
+            ("Yes is common in your data. Why is the odds ratio not the change in risk?",
+             "When yes is common, the odds ratio lies further from 1 than the risk ratio; "
+             'show="risk ratios" gives the risks.'),
         ],
         task=['School table: explain "days_absent" using "sleep" and "breakfast" with outcome="counts". '
               "Does breakfast matter?"],
@@ -710,6 +744,29 @@ UNITS = {
             table = sdata.table(sdata.get_example("school"))
             table.explain("days_absent", using=["sleep", "breakfast"], outcome="counts")'''),
             "Counts of days call for Poisson regression; read the line for breakfast and its p-value.")],
+    ),
+    "models_mixed": dict(
+        lessons=[16],
+        words=["table.explain"],
+        do=["Work through sdata.show_lesson(16), example 3: type it yourself (do not copy and paste), run it and "
+            "read what each line does. Then do task 1 of the lesson and check it with "
+            "sdata.show_lesson(16, solutions=True)."],
+        recall=[
+            ("Pupils of one school are alike in ways the columns do not show. Which option of explain allows for "
+             "that?", 'grouped_by="school": a mixed model, as in table.explain("marks", using=["hours"], '
+                      'grouped_by="school")'),
+            ("What does a mixed model give each school?",
+             "Its own starting level (a random intercept), so the pupils of one school are not counted as if "
+             "they were independent."),
+        ],
+        task=['School table: explain "marks" using "sleep", with grouped_by="school". How much of the spread lies '
+              "between the schools?"],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.get_example("school"))
+            table.explain("marks", using=["sleep"], grouped_by="school")'''),
+            "The printout gives the share of the spread that lies between schools, and the effect of sleep "
+            "within a school.")],
     ),
     "lesson21": dict(
         lessons=[21],
@@ -726,6 +783,11 @@ UNITS = {
              'table.add_predicted_column("marks", using=["hours"], interval=95, for_new_rows=True)'),
             ("Which word lists the rows that pull a model the most?",
              'table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])'),
+        ],
+        # a core word of working with a model: asked again 3 and 7 days later and in the final test
+        spaced=[
+            ("Which word asks whether adding a column helps a model?",
+             'table.compare_models("marks", using=["hours"], against=["hours", "breakfast"])'),
         ],
         task=['School table: does "sleep" help a yes-or-no model of "passed" that already has "hours"? Check the '
               "model with its pictures first."],
@@ -756,10 +818,12 @@ UNITS = {
             table.count_rows(for_each_group_in="cluster", across="field")'''),
             "If each cluster is mostly one field, the fields have different plants.")],
     ),
-    "lesson18": dict(
+    "survival": dict(
         lessons=[18],
-        manual=[("ideas:errors", "Two kinds of mistake, and power")],
-        words=["table.find_survival_over_time", "draw_survival_curves", "table.compare_survival", "sdata.find_how_many_needed"],
+        words=["table.find_survival_over_time", "draw_survival_curves", "table.compare_survival", "table.explain_survival"],
+        do=["Work through sdata.show_lesson(18), examples 1 and 2: type each example yourself (do not copy and "
+            "paste), run it and read what each line does. Then do task 1 of the lesson and check it with "
+            "sdata.show_lesson(18, solutions=True)."],
         more=_more(f"sdata.show_lesson({lesson_number(RISKS_LESSON)}), risks, diagnostic tests and agreement (for the "
                    "life sciences): risks out of 100, how many of 1000 people a test finds, and how well two raters "
                    f"agree; sdata.show_lesson({lesson_number(OUTLIERS_LESSON)}), a model that gives outliers less "
@@ -777,7 +841,31 @@ UNITS = {
             ("Which word draws survival curves?", 'chart.draw_survival_curves(time="days", event="died", colour="treatment")'),
             ("Which word tests whether survival differs between groups?",
              'table.compare_survival(time="days", event="died", for_each_group_in="treatment")'),
+            ("Which word explains the risk from several columns at once (a Cox model)?",
+             'table.explain_survival(time="days", event="died", using=["treatment", "age"])'),
+        ],
+        task=["Trial table: draw the survival curves of the two treatments, and save them."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.get_example("trial"))
+            chart = table.start_chart()
+            chart.draw_survival_curves(time="days", event="died", colour="treatment")
+            chart.save("survival.png")'''),
+            "Each curve steps down when a patient dies; a patient still alive at the end of follow-up still counts "
+            "until then.")],
+    ),
+    "power": dict(
+        lessons=[18],
+        manual=[("ideas:errors", "Two kinds of mistake, and power")],
+        words=["sdata.find_how_many_needed", "sdata.find_chance_of_finding"],
+        do=["Work through sdata.show_lesson(18), example 3: type it yourself (do not copy and paste), run it and "
+            "read what each line does. Then do tasks 2 and 3 of the lesson and check them with "
+            "sdata.show_lesson(18, solutions=True).",
+            'Read "Two kinds of mistake, and power" in the manual.'],
+        recall=[
             ("Which word says how many values you need in each group?", "sdata.find_how_many_needed(effect_size=0.5, power=0.8)"),
+            ("Which word gives the chance to find a difference with the values you can collect?",
+             "sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)"),
         ],
         task=["How many values does each group need to find a large difference (effect_size=0.8) with power "
               "0.8? And with a small one (0.2)?"],
@@ -881,37 +969,42 @@ UNITS = {
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
             "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
             "Then do the mixed task without looking back. It uses words from the whole week."],
-        task=['Marks table: keep only class "A", draw bars of the average "marks" for each subject with '
-              "standard error bars, give the chart a title and save it as a PDF."],
+        task=['Marks table: keep the Maths rows (one row for each child), give the average "marks" of each '
+              "class, test whether the classes differ, and draw boxes of the marks for each class with all the "
+              "dots and a title. Save the chart as a PDF."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("marks"))
-            table.keep_rows_where("class", is_equal_to="A")
+            table.keep_rows_where("subject", is_equal_to="Maths")
+            table.find_average_of("marks", for_each_group_in="class")
+            table.compare_averages_of("marks", for_each_group_in="class")
             chart = table.start_chart()
-            chart.draw_bars(x="subject", y="marks", error="standard error")
-            chart.write_title_on_top("Class A")
-            chart.save("class_a.pdf")'''),
-            "Day 1 (bars, save), day 4 (error=) and day 6 (keep_rows_where) in one small program.")],
+            chart.draw_boxes(x="class", y="marks")
+            chart.draw_all_dots(x="class", y="marks")
+            chart.write_title_on_top("Maths marks in each class")
+            chart.save("maths_classes.pdf")'''),
+            "Day 2 (keep_rows_where), day 3 (find_average_of), day 4 (the test), day 6 (boxes and dots) and "
+            "day 1 (title and save) in one small program.")],
     ),
     "review_p14": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
             "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
-            "Then do the mixed task without looking back."],
-        task=['School table: count the empty cells, remove the rows with an empty "sleep", give the average '
-              'sleep for each value of "passed", test the difference, and draw boxes with all the dots.'],
+            "Then do the mixed task without looking back. It uses words from the whole week."],
+        task=['School table: is the share of pupils who "passed" different with and without breakfast? Then '
+              'make a figure with two panels: bars of the average "marks" for each breakfast group with 95 % '
+              "confidence intervals, and a histogram of the marks."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("school"))
-            table.count_empty_cells_in()
-            table.remove_rows_with_empty_cells_in("sleep")
-            table.find_average_of("sleep", for_each_group_in="passed")
-            table.compare_averages_of("sleep", for_each_group_in="passed")
-            chart = table.start_chart()
-            chart.draw_boxes(x="passed", y="sleep")
-            chart.draw_all_dots(x="passed", y="sleep")
-            chart.save("sleep.png")'''),
-            "Clean, sum up, test, draw: the order of every analysis.")],
+            table.compare_counts_of("passed", for_each_group_in="breakfast")
+            a = table.start_chart()
+            a.draw_bars(x="breakfast", y="marks", error="confidence interval")
+            b = table.start_chart()
+            b.draw_histogram(x="marks")
+            figure = sdata.put_side_by_side(a, b, with_letters=True)
+            figure.save("review_week_2.png")'''),
+            "Counts are tested with compare_counts_of (day 8), error bars come from day 9 and panels from day 11.")],
     ),
     "review_p21": dict(
         lessons=[],
@@ -947,19 +1040,21 @@ UNITS = {
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
             "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
-            "Then do the mixed task without looking back."],
-        task=["Make numbers of five marks and give their average. Then draw bars of the marks table with "
-              'x="subject", y="marks", one colour for each class, and a title. Save it.'],
+            "Then do the mixed task without looking back. It uses words from the whole week."],
+        task=["Open the marks table, keep the Maths rows (one row for each child), count the rows of each class "
+              'and give the average "marks" of each class. Then draw bars of the marks for each class, with a '
+              "title, and save the chart."],
         solutions=[(_code('''
             import simplydata as sdata
-            nums = sdata.numbers([48, 71, 55, 88, 62])
-            nums.find_average()
-            marks = sdata.get_example("marks")
-            chart = sdata.chart(marks)
-            chart.draw_bars(x="subject", y="marks", colour="class")
-            chart.write_title_on_top("Marks in each subject")
-            chart.save("subjects.png")'''),
-            "Python lists (day 2), bars and save (day 3), titles (day 4) and colours (day 5).")],
+            table = sdata.table(sdata.get_example("marks"))
+            table.keep_rows_where("subject", is_equal_to="Maths")
+            table.count_each("class")
+            table.find_average_of("marks", for_each_group_in="class")
+            chart = table.start_chart()
+            chart.draw_bars(x="class", y="marks")
+            chart.write_title_on_top("Maths marks in each class")
+            chart.save("maths_marks.png")'''),
+            "A table (day 2), choosing rows (day 3), bars and a title (day 4) and a summary (day 5).")],
     ),
     "review_b14": dict(
         lessons=[],
@@ -978,24 +1073,45 @@ UNITS = {
             chart.draw_lines(x="month_number", y="temperature")
             chart.draw_line_at_y(0, labelled="freezing")
             chart.save("frostby.png")'''),
-            "Tables (days 12 and 13) feed charts (days 3 to 11).")],
+            "A table and its rows (days 2 and 3) feed charts (days 4, 9 and 11).")],
     ),
     "review_b21": dict(
         lessons=[],
         do=["Answer the warm-up on paper, from memory, before you look anything up.",
             "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
-            "Then do the mixed task without looking back."],
-        task=['School table: the average "marks" for each value of "breakfast", a test of the difference, and '
-              "boxes of the marks for each group."],
+            "Then do the mixed task without looking back. It uses words from the whole week."],
+        task=['School table: explain "marks" using "hours" and "breakfast", check the model with its pictures, '
+              'and draw dots of "hours" against "marks" with a fitted line.'],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("school"))
-            table.find_average_of("marks", for_each_group_in="breakfast")
-            table.compare_averages_of("marks", for_each_group_in="breakfast")
+            table.explain("marks", using=["hours", "breakfast"])
+            page = table.check_model_of("marks", using=["hours", "breakfast"])
+            page.save("marks_checks.png")
             chart = table.start_chart()
-            chart.draw_boxes(x="breakfast", y="marks")
-            chart.save("breakfast.png")'''),
-            "A summary, a test and a chart of the same question.")],
+            chart.draw_dots(x="hours", y="marks")
+            chart.fit_line()
+            chart.save("hours_and_marks.png")'''),
+            "A model (days 17 to 19), its check (day 20) and a chart with a fitted line (day 11).")],
+    ),
+    "review_b28": dict(
+        lessons=[],
+        do=["Answer the warm-up on paper, from memory, before you look anything up.",
+            "For each question you could not answer, open its day with sdata.show_day(n) and run its example again.",
+            "Then do the mixed task without looking back. It uses words from the whole course."],
+        task=['School table: remove the rows with an empty "sleep", test whether the sleep of pupils who passed '
+              'differs from the others, fit a line of "marks" on "sleep", and draw boxes of the sleep for each '
+              "group."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            table = sdata.table(sdata.get_example("school"))
+            table.remove_rows_with_empty_cells_in("sleep")
+            table.compare_averages_of("sleep", for_each_group_in="passed")
+            table.fit_line(x="sleep", y="marks")
+            chart = table.start_chart()
+            chart.draw_boxes(x="passed", y="sleep")
+            chart.save("sleep.png")'''),
+            "Clean, test, fit and draw: the order of most analyses, with words from every week.")],
     ),
     # ------------------------------------------------------------ your own project
     "proj_question": dict(
@@ -1292,65 +1408,68 @@ UNITS = {
 }
 
 # ---------------------------------------------------------------- the two tracks
-# (title, goal, units, kind). kind: "learn", "review", "project" or "final".
+# (title, goal, units, kind). kind: "learn", "review", "project", "final" or "extra".
+# The order (course 2, 2026-11-23): a real table by day 2, a first test by day 4 (Python) or 6 (beginner),
+# charts woven in on three or four days, and the dense topics split over more days. Patterns across many
+# columns and planning a study are extra days (31 and 32), outside the 30.
 _PYTHON = [
     ("Your first chart and your first table",
      "Make a bar chart with titles and labels, and a first table you keep rows of and sum up.",
      ["lesson1", "lesson2", "first_table"], "learn"),
-    ("Colours, word families and saving",
-     "Give groups their own colours, learn how simplydata words are built, and save in every file type.",
-     ["lesson3", "families_saving"], "learn"),
-    ("Every kind of chart",
-     "Draw lines, dots, histograms, boxes, violins, pies and areas, and know when to use each.",
-     ["lesson4"], "learn"),
-    ("Statistics on charts, and axes",
-     "Show averages with error bars and fit lines, and control the axes with ranges and reference lines.",
-     ["lesson5", "lesson6"], "learn"),
-    ("Several charts, and a figure for a journal",
-     "Put charts side by side or in a grid, and save a figure at the size and resolution a journal asks for.",
-     ["lesson7", "lesson8"], "learn"),
     ("Open a table, choose rows and columns",
      "Look at a table, keep and remove rows and columns (by value and by position), sort, and undo.",
      ["lesson9", "lesson10"], "learn"),
-    ("Review of the first week",
-     "Remember the words of days 1 to 6 without looking, and use them together in one program.",
-     ["review_p7"], "review"),
-    ("Clean the data and add columns",
-     "Find and fill empty cells, fix text and numbers, and add new columns, groups and dates.",
-     ["lesson11"], "learn"),
-    ("Summaries, numbers and grids",
-     "Sum up columns for each group, join and reshape tables, and work with lists and grids of numbers.",
-     ["lesson12", "lesson13"], "learn"),
+    ("Summaries, and how the words are built",
+     "Sum up columns for each group, join and reshape tables, and learn the patterns that make words easy to guess.",
+     ["lesson12", "families_saving"], "learn"),
     ("Is a difference real? Tests and effect sizes",
      "Test whether averages differ, find which groups differ, and say how big the difference is.",
      ["tests_a"], "learn"),
+    ("Clean the data and add columns",
+     "Find and fill empty cells, fix text and numbers, and add new columns, groups and dates.",
+     ["lesson11"], "learn"),
+    ("Colours, and every kind of chart",
+     "Give groups their own colours, and draw lines, dots, histograms, boxes, violins, pies and areas.",
+     ["lesson3", "lesson4"], "learn"),
+    ("Review of the first week",
+     "Remember the words of days 1 to 6 without looking, and use them together in one program.",
+     ["review_p7"], "review"),
     ("Counts, outliers and many tests",
      "Test counts of categories, check shapes and outliers, and correct the p-values of many tests.",
      ["tests_b"], "learn"),
+    ("Statistics on charts, and axes",
+     "Show averages with error bars and fit lines, and control the axes with ranges and reference lines.",
+     ["lesson5", "lesson6"], "learn"),
     ("Choosing a test, and writing it up",
      "Choose the right test with four questions, and write a results sentence a reader can check.",
      ["choose_test"], "learn"),
+    ("Several charts, and a figure for a journal",
+     "Put charts side by side or in a grid, and save a figure at the size and resolution a journal asks for.",
+     ["lesson7", "lesson8"], "learn"),
     ("A whole analysis",
      "Go from a question and a file to a tested answer and a figure with panels A and B.",
      ["lesson15"], "learn"),
+    ("Numbers and grids",
+     "Work with lists and grids of numbers, and make random numbers that are the same every time.",
+     ["lesson13"], "learn"),
     ("Review of the second week",
-     "Remember the table and test words of days 6 to 13 without looking, and use them together.",
+     "Remember the words of days 8 to 13 without looking, and use them together.",
      ["review_p14"], "review"),
     ("Models: explain one column from several",
-     "Explain one column from several others: multiple, logistic, Poisson and mixed regression.",
-     ["lesson16"], "learn"),
-    ("Working with a model",
-     "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
-     ["lesson21"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
-     ["lesson17"], "learn"),
-    ("Survival, and planning a study",
-     "Draw and test survival curves, and work out how many values a study needs.",
-     ["lesson18"], "learn"),
-    ("Fitting, and distributions",
-     "Fit lines, curves and formulas of your own, and work out chances from a distribution.",
-     ["fitting", "distributions"], "learn"),
+     "Explain one column from several others, for numbers, yes-or-no answers and counts.",
+     ["models_one", "models_kinds"], "learn"),
+    ("Working with a model, and groups within groups",
+     "Check a model, say how sure a prediction is, and allow for pupils in the same school with a mixed model.",
+     ["lesson21", "models_mixed"], "learn"),
+    ("Fitting lines, curves and formulas",
+     "Fit lines, curves and formulas of your own to a table.",
+     ["fitting"], "learn"),
+    ("Distributions and chances",
+     "Work out chances and percentiles from a distribution, and fit one to a column.",
+     ["distributions"], "learn"),
+    ("Survival curves",
+     "Draw and test survival curves, and explain the risk from several columns.",
+     ["survival"], "learn"),
     ("Time series: dates, time windows, smoothing and trend",
      "Add the missing days of a series, average it over time windows, smooth it, test its trend and find its "
      "peaks.",
@@ -1391,81 +1510,75 @@ _BEGINNER = [
     ("Python first steps: values and names",
      "Run your first lines of Python: text in quotes, numbers, names for values, and print.",
      ["py_values"], "learn"),
-    ("Python first steps: lists and words",
-     "Make lists, call a word with brackets and options, and use simplydata for the first time.",
-     ["py_lists"], "learn"),
-    ("Reading an error, and your first chart",
-     "Read an error message calmly from the bottom up, then make and save your first chart.",
-     ["py_errors", "lesson1"], "learn"),
-    ("Titles and labels",
-     "Put a title, axis names and a caption on a chart, and make its text easy to read.",
-     ["lesson2"], "learn"),
-    ("Colours, groups and legends",
-     "Give each group its own colour and place the legend where it helps.",
-     ["lesson3"], "learn"),
-    ("Different chart types",
-     "Draw lines, dots, histograms, boxes, violins, pies and areas.",
-     ["lesson4"], "learn"),
-    ("Review of the first week",
-     "Remember the Python and chart words of days 1 to 6 without looking, and use them together.",
-     ["review_b7"], "review"),
-    ("Averages, error bars and fit lines",
-     "Show averages and medians with error bars, and draw a line through dots.",
-     ["lesson5"], "learn"),
-    ("Axes and reference lines",
-     "Choose the range of an axis, and add lines and shading at the values that matter.",
-     ["lesson6"], "learn"),
-    ("Several charts together",
-     "Put several charts on one page: one chart per group, side by side, or in a grid.",
-     ["lesson7"], "learn"),
-    ("A figure for a journal, and word families",
-     "Size and save a figure for a journal, and learn the patterns that make words easy to guess.",
-     ["lesson8", "families_saving"], "learn"),
-    ("Open a table and look at it",
-     "Open a table, look at its first rows and columns, and count its rows.",
-     ["lesson9"], "learn"),
-    ("Choose rows and columns, and undo",
-     "Keep and remove rows and columns, sort, and take back any step.",
-     ["lesson10"], "learn"),
-    ("Review of the second week",
-     "Remember the words of days 8 to 13 without looking, and use them together.",
-     ["review_b14"], "review"),
-    ("Clean the data and add columns",
-     "Find and fill empty cells, fix text and numbers, and add new columns.",
-     ["lesson11"], "learn"),
-    ("Summaries, and from a table to a chart",
+    ("Lists, words, and your first table",
+     "Make lists, call a word with brackets and options, and open a real practice table and look at it.",
+     ["py_lists", "lesson9"], "learn"),
+    ("Reading an error, and choosing rows and columns",
+     "Read an error message calmly from the bottom up, then keep and remove rows and columns, sort, and undo.",
+     ["py_errors", "lesson10"], "learn"),
+    ("Your first chart, with titles and labels",
+     "Make and save your first chart, with a title, axis names and a caption.",
+     ["lesson1", "lesson2"], "learn"),
+    ("Summaries for each group",
      "Sum up columns for each group, and draw a summary as a chart.",
      ["lesson12"], "learn"),
-    ("Lists and grids of numbers",
-     "Do maths on lists and grids of numbers, and make random numbers.",
-     ["lesson13"], "learn"),
     ("Is a difference real? Tests and effect sizes",
      "Test whether averages differ, and say how big the difference is.",
      ["tests_a"], "learn"),
+    ("Review of the first week",
+     "Remember the words of days 1 to 6 without looking, and use them together.",
+     ["review_b7"], "review"),
+    ("Clean the data and add columns",
+     "Find and fill empty cells, fix text and numbers, and add new columns.",
+     ["lesson11"], "learn"),
+    ("Colours, groups and chart types",
+     "Give each group its own colour, and draw lines, dots, histograms, boxes, violins, pies and areas.",
+     ["lesson3", "lesson4"], "learn"),
     ("Counts, outliers and many tests",
      "Test counts of categories, and check shapes and outliers.",
      ["tests_b"], "learn"),
-    ("Choosing a test, and a whole analysis",
-     "Choose the right test, and go from a question to a tested answer and a figure.",
-     ["choose_test", "lesson15"], "learn"),
-    ("Review of the third week",
-     "Remember the words of days 15 to 20 without looking, and use them together.",
-     ["review_b21"], "review"),
+    ("Averages, error bars, fit lines and axes",
+     "Show averages with error bars, draw a line through dots, and choose the range of an axis.",
+     ["lesson5", "lesson6"], "learn"),
+    ("Choosing a test, and how the words are built",
+     "Choose the right test with four questions, and learn the patterns that make words easy to guess.",
+     ["choose_test", "families_saving"], "learn"),
+    ("Several charts, and a figure for a journal",
+     "Put several charts on one page, and size and save a figure for a journal.",
+     ["lesson7", "lesson8"], "learn"),
+    ("Review of the second week",
+     "Remember the words of days 8 to 13 without looking, and use them together.",
+     ["review_b14"], "review"),
+    ("A whole analysis",
+     "Go from a question and a file to a tested answer and a figure with panels A and B.",
+     ["lesson15"], "learn"),
+    ("Lists and grids of numbers",
+     "Do maths on lists and grids of numbers, and make random numbers.",
+     ["lesson13"], "learn"),
     ("Models: explain one column from several",
      "Explain one column from several others with a model.",
-     ["lesson16"], "learn"),
+     ["models_one"], "learn"),
+    ("Models for yes-or-no answers and counts",
+     "Explain a yes-or-no column and a count, and read an odds ratio.",
+     ["models_kinds"], "learn"),
+    ("Groups within groups: mixed models",
+     "Allow for pupils in the same school with a mixed model.",
+     ["models_mixed"], "learn"),
     ("Working with a model",
      "Check a model with its pictures, ask whether a column helps, and say how sure a prediction is.",
      ["lesson21"], "learn"),
-    ("Patterns across many columns",
-     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
-     ["lesson17"], "learn"),
-    ("Survival, and planning a study",
-     "Draw survival curves, and work out how many values a study needs.",
-     ["lesson18"], "learn"),
-    ("Fitting, and distributions",
-     "Fit lines, curves and formulas, and work out chances from a distribution.",
-     ["fitting", "distributions"], "learn"),
+    ("Review of the third week",
+     "Remember the words of days 15 to 20 without looking, and use them together.",
+     ["review_b21"], "review"),
+    ("Fitting lines, curves and formulas",
+     "Fit lines, curves and formulas to a table.",
+     ["fitting"], "learn"),
+    ("Distributions and chances",
+     "Work out chances from a distribution, and fit one to a column.",
+     ["distributions"], "learn"),
+    ("Survival curves",
+     "Draw and test survival curves.",
+     ["survival"], "learn"),
     ("Time series: dates, time windows, smoothing and trend",
      "Add the missing days of a series, average it over time windows, smooth it, test its trend and find its "
      "peaks.",
@@ -1473,15 +1586,53 @@ _BEGINNER = [
     ("Small project: look, clean and sum up",
      "Choose a question and a file, then look at it, clean it and sum it up.",
      ["bproj_a"], "project"),
+    ("Small project: test, figure and results",
+     "Finish your project with a test, a figure and two sentences of results.",
+     ["bproj_b"], "project"),
+    ("Review of the whole course",
+     "Remember words from every week without looking, and use them together in one program.",
+     ["review_b28"], "review"),
     ("Final test from memory",
      "Answer questions on the whole course and write a whole analysis from memory.",
      ["final_test"], "final"),
-    ("Small project: test, figure and results, and a look back",
-     "Finish your project with a test, a figure and two sentences of results, then look back over the course.",
-     ["bproj_b", "look_back"], "project"),
+    ("A look back",
+     "Look back over the course, do your hardest day again, and take a first look at pandas.",
+     ["look_back"], "learn"),
 ]
 
-DAYS = {"python": _PYTHON, "beginner": _BEGINNER}
+# Extra days, after the 30 and the same in both tracks: optional, opened only with sdata.show_day(31) or (32).
+_EXTRA = [
+    ("Patterns across many columns",
+     "Find patterns across many columns with principal components, clusters, NMDS and PERMANOVA.",
+     ["lesson17"], "extra"),
+    ("Planning a study: how many values you need",
+     "Work out how many values a study needs, and the chance of finding a difference with the values you have.",
+     ["power"], "extra"),
+]
+EXTRA_DAYS = tuple(range(DAYS_IN_A_TRACK + 1, DAYS_IN_A_TRACK + 1 + len(_EXTRA)))
+
+DAYS = {"python": _PYTHON + _EXTRA, "beginner": _BEGINNER + _EXTRA}
+
+# ---------------------------------------------------------------- the order before 2026-11-23 (course 1)
+# Only the units of each day, to move an old progress file to the new order: a new day counts as done when
+# every one of its units was on a day opened before. A unit split since then stands for its parts.
+COURSE = 2
+_COURSE_1_UNITS = {
+    "python": [["lesson1", "lesson2", "first_table"], ["lesson3", "families_saving"], ["lesson4"],
+               ["lesson5", "lesson6"], ["lesson7", "lesson8"], ["lesson9", "lesson10"], ["review_p7"], ["lesson11"],
+               ["lesson12", "lesson13"], ["tests_a"], ["tests_b"], ["choose_test"], ["lesson15"], ["review_p14"],
+               ["lesson16"], ["lesson21"], ["lesson17"], ["lesson18"], ["fitting", "distributions"],
+               ["time_series"], ["review_p21", "proj_question"], ["proj_clean"], ["proj_explore"],
+               ["proj_figures"], ["proj_tests"], ["proj_model"], ["proj_text"], ["review_p28", "proj_finish"],
+               ["final_test"], ["compare_pandas"]],
+    "beginner": [["py_values"], ["py_lists"], ["py_errors", "lesson1"], ["lesson2"], ["lesson3"], ["lesson4"],
+                 ["review_b7"], ["lesson5"], ["lesson6"], ["lesson7"], ["lesson8", "families_saving"], ["lesson9"],
+                 ["lesson10"], ["review_b14"], ["lesson11"], ["lesson12"], ["lesson13"], ["tests_a"], ["tests_b"],
+                 ["choose_test", "lesson15"], ["review_b21"], ["lesson16"], ["lesson21"], ["lesson17"],
+                 ["lesson18"], ["fitting", "distributions"], ["time_series"], ["bproj_a"], ["final_test"],
+                 ["bproj_b", "look_back"]],
+}
+_SPLIT_UNITS = {"lesson16": ("models_one", "models_kinds", "models_mixed"), "lesson18": ("survival", "power")}
 
 
 # ---------------------------------------------------------------- putting a day together
@@ -1533,7 +1684,7 @@ def _warm_up_sources(track: str, number: int, last_asked: dict[int, int], used: 
     questions not asked yet, then the days asked about longest ago; on a tie, the earlier day first,
     so the newest days do not crowd out an old question that has not come up yet."""
     sources = _source_days(track, number)
-    if DAYS[track][number - 1][3] != "learn":
+    if DAYS[track][number - 1][3] not in ("learn", "extra"):
         earlier = [d for d in range(1, number) if _has_recall(track, d)]
         unasked = {d: used.get(d, 0) < len(_recall_of(track, d)) for d in earlier}
         earlier.sort(key=lambda d: (not unasked[d], last_asked.get(d, 0), d))
@@ -1571,7 +1722,7 @@ def _warm_up_table(track: str) -> list[list[tuple[str, str, int]]]:
     used: dict[int, int] = {}
     last_asked: dict[int, int] = {}
     out = []
-    for number in range(1, DAYS_IN_A_TRACK + 1):
+    for number in range(1, len(DAYS[track]) + 1):
         final = DAYS[track][number - 1][3] == "final"
         found = []
         for source in _warm_up_sources(track, number, last_asked, used):
@@ -1678,26 +1829,72 @@ def _read_progress() -> dict | None:
         return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
+        course = data.get("course", 1)
         progress = dict(track=data["track"], started=datetime.date.fromisoformat(data["started"]),
-                        opened={int(n): datetime.date.fromisoformat(d) for n, d in data.get("opened", {}).items()})
-        if progress["track"] not in TRACK_NAMES or not all(1 <= n <= DAYS_IN_A_TRACK for n in progress["opened"]):
-            raise ValueError("unknown track or day")
+                        opened={int(n): datetime.date.fromisoformat(d) for n, d in data.get("opened", {}).items()},
+                        skipped={int(n) for n in data.get("skipped", [])})
+        days = progress["opened"].keys() | progress["skipped"]
+        if (progress["track"] not in TRACK_NAMES or course not in (1, COURSE)
+                or not all(1 <= n <= DAYS_IN_A_TRACK for n in days)):
+            raise ValueError("unknown track, course or day")
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         print(_wrap(f"(Your progress file {path} could not be read, so this is shown as if you had not started. "
                     "sdata.start_30_days(start_again=True) makes a new one.)"))
         print()
         return None
+    if course == 1:
+        progress = _move_to_new_order(progress)
+        _write_progress(progress)
+        if progress["opened"]:
+            done, number = len(progress["opened"]), _next_number(progress)
+            where = (f"today carries on with day {number}, the first day not done yet" if number <= DAYS_IN_A_TRACK
+                     else "you have done them all")
+            print(_wrap(f"(The 30 days have a new order: tables and tests now come earlier. Your progress was "
+                        f"moved to it: the {done} days whose lessons you had done are ticked, and {where}. "
+                        "sdata.show_day() lists them all.)"))
+            print()
     return progress
+
+
+def _move_to_new_order(progress: dict) -> dict:
+    """A progress file of the order before 2026-11-23 (course 1, no "course" in the file), in the new order: a
+    new day is done when every one of its units was on a day opened before, on the latest of those dates. A
+    track that was finished stays finished."""
+    old = progress["opened"]
+    days = DAYS[progress["track"]][:DAYS_IN_A_TRACK]
+    if DAYS_IN_A_TRACK in old:
+        opened = {n: old[DAYS_IN_A_TRACK] for n in range(1, DAYS_IN_A_TRACK + 1)}
+        return dict(progress, opened=opened, skipped=set())
+    done: dict[str, datetime.date] = {}
+    for number, date in old.items():
+        for unit in _COURSE_1_UNITS[progress["track"]][number - 1]:
+            for part in _SPLIT_UNITS.get(unit, (unit,)):
+                done[part] = max(date, done.get(part, date))
+    opened = {}
+    for number, (_, _, units, _) in enumerate(days, start=1):
+        if all(u in done for u in units):
+            opened[number] = max(done[u] for u in units)
+    return dict(progress, opened=opened, skipped=set())
+
+
+def _next_number(progress: dict) -> int:
+    """The day to do next: the first day neither opened nor passed over with follow_calendar=True
+    (DAYS_IN_A_TRACK + 1 when there is none)."""
+    return next((n for n in range(1, DAYS_IN_A_TRACK + 1)
+                 if n not in progress["opened"] and n not in progress["skipped"]), DAYS_IN_A_TRACK + 1)
 
 
 def _write_progress(progress: dict) -> None:
     path = progress_file()
     data = {
         "about": "Progress in 30 days of simplydata, kept only on this computer. Delete this file to forget it.",
+        "course": COURSE,
         "track": progress["track"],
         "started": progress["started"].isoformat(),
         "opened": {str(n): d.isoformat() for n, d in sorted(progress["opened"].items())},
     }
+    if progress.get("skipped"):
+        data["skipped"] = sorted(progress["skipped"])
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
@@ -1722,10 +1919,12 @@ def _track(track) -> str:
 
 
 def _day_number(number, word: str) -> int:
-    if isinstance(number, bool) or not isinstance(number, int) or not 1 <= number <= DAYS_IN_A_TRACK:
+    if isinstance(number, bool) or not isinstance(number, int) or not 1 <= number <= EXTRA_DAYS[-1]:
+        extra = " and ".join(map(str, EXTRA_DAYS))
         raise SimplydataError(
-            f"There are days 1 to {DAYS_IN_A_TRACK}, so sdata.{word}({number!r}) does not exist.\n"
-            f"Write the day as a whole number, such as sdata.{word}(5); sdata.show_day() lists all {DAYS_IN_A_TRACK} days.")
+            f"There are days 1 to {DAYS_IN_A_TRACK} and the extra days {extra}, so sdata.{word}({number!r}) does "
+            f"not exist.\nWrite the day as a whole number, such as sdata.{word}(5); sdata.show_day() lists all "
+            f"{DAYS_IN_A_TRACK} days and the extra days.")
     return number
 
 
@@ -1749,7 +1948,10 @@ def _track_title(track: str) -> str:
 
 def _print_day(p: dict, footer: str) -> None:
     number, track = p["number"], p["track"]
-    title = f"Day {number} of {DAYS_IN_A_TRACK} ({_track_title(track)}): {p['title']}"
+    if number in EXTRA_DAYS:
+        title = f"Extra day {number}, after the {DAYS_IN_A_TRACK} days ({_track_title(track)}): {p['title']}"
+    else:
+        title = f"Day {number} of {DAYS_IN_A_TRACK} ({_track_title(track)}): {p['title']}"
     print(title)
     print("=" * min(len(title), WIDTH))
     print(_wrap("Goal: " + p["goal"] + " About an hour."))
@@ -1822,6 +2024,10 @@ def _print_answers(p: dict) -> None:
 
 
 def _next_footer(track: str, number: int, browsing: bool) -> str:
+    if number in EXTRA_DAYS:
+        after = (f" Next: sdata.show_day({number + 1})  {DAYS[track][number][0]}" if number < EXTRA_DAYS[-1] else "")
+        return ("An extra day: it is optional, and sdata.show_today() never opens it, so your place in the 30 "
+                "days stays where it was." + after)
     if number >= DAYS_IN_A_TRACK:
         return ("This is the last day. Well done for getting here! Go back to any day with sdata.show_day(n), "
                 "and keep using sdata.help() as you work.")
@@ -1868,7 +2074,7 @@ def start_30_days(track="python", start_again=False) -> None:
     """Start 30 days of simplydata: an hour a day of warm-up questions, lessons and tasks. sdata.start_30_days()
 
     track="python" (the normal choice) is for people who already write some Python; track="beginner"
-    starts with three days of just enough Python. The day you start is kept in a small file on this
+    starts with just enough Python, spread over the first three days. The day you start is kept in a small file on this
     computer (nothing is sent anywhere), so that sdata.show_today() knows which day comes next. If you have
     started already, it says so and changes nothing; start_again=True starts again from day 1:
     sdata.start_30_days(track="beginner", start_again=True).
@@ -1884,7 +2090,7 @@ def start_30_days(track="python", start_again=False) -> None:
                     f'sdata.start_30_days(track="{again}", start_again=True); to switch to the '
                     f'{_track_title(other)}, type sdata.start_30_days(track="{other}", start_again=True).'))
         return None
-    progress = dict(track=track, started=_date_today(), opened={})
+    progress = dict(track=track, started=_date_today(), opened={}, skipped=set())
     info = TRACKS[track]
     print(_wrap(f"Welcome to 30 days of simplydata: the {info['title']}, {info['who']}."))
     print(_wrap(info["about"]))
@@ -1895,7 +2101,7 @@ def start_30_days(track="python", start_again=False) -> None:
     print()
     print("  sdata.show_today()       shows the day to do next; type it every day")
     print("  sdata.show_answers()     the answers to the warm-up and the task")
-    print("  sdata.show_day()         all 30 days, with the ones you have opened ticked")
+    print("  sdata.show_day()         all 30 days and the extra days, with the ones you have opened ticked")
     print("  sdata.go_to_next_day()    goes on to the next day now, to do two in one go")
     print()
     print(_wrap("Missed a few days? That is fine: sdata.show_today() carries on where you stopped."))
@@ -1909,7 +2115,7 @@ def start_30_days(track="python", start_again=False) -> None:
 def show_today(follow_calendar=False) -> None:
     """Show today's day of the 30 days of simplydata: warm-up questions, what to do and a task. sdata.show_today()
 
-    The day after the one you last opened comes next, so a day you miss is never lost: show_today() carries
+    The first day you have not done comes next, so a day you miss is never lost: show_today() carries
     on where you stopped (on the same date it shows the same day again). If you have fallen more than
     a day behind the calendar it says so; follow_calendar=True jumps to the calendar's day instead:
     sdata.show_today(follow_calendar=True). Not started yet? It shows how to start, and day 1.
@@ -1923,19 +2129,25 @@ def show_today(follow_calendar=False) -> None:
     calendar = max(1, (date - progress["started"]).days + 1)
     opened = progress["opened"]
     last = max(opened, default=0)
+    opened_today = [n for n, d in opened.items() if d == date]
     notes = []
     if follow_calendar:
         number = max(min(calendar, DAYS_IN_A_TRACK), 1)
-        if number > last + 1:
-            skipped = f"Day {last + 1} was" if number == last + 2 else f"Days {last + 1} to {number - 1} were"
+        passed = [n for n in range(1, number) if n not in opened and n not in progress["skipped"]]
+        if passed:
+            progress["skipped"] |= set(passed)
+            skipped = (f"Day {passed[0]} was" if len(passed) == 1 else
+                       f"Days {passed[0]} to {passed[-1]} were" if passed[-1] - passed[0] == len(passed) - 1 else
+                       "Days " + ", ".join(map(str, passed[:-1])) + f" and {passed[-1]} were")
             notes.append(f"Following the calendar: day {number}. {skipped} not opened; sdata.show_day(n) shows any day.")
-    elif last == 0:
-        number = 1
-    elif opened[last] == date:
-        number = last
+            if number in opened:
+                _write_progress(progress)
+    elif opened_today:
+        number = max(opened_today)
     else:
-        number = last + 1
-        if calendar - number >= 2 and number <= DAYS_IN_A_TRACK:
+        number = _next_number(progress)
+        last = max(opened, key=lambda n: (opened[n], n), default=0)  # the day opened last, by date
+        if last and calendar - number >= 2 and number <= DAYS_IN_A_TRACK:
             notes.append(f"By the calendar it is day {min(calendar, DAYS_IN_A_TRACK)}. You last opened day {last}, "
                          f"on {_when(opened[last])}. The days build on each other, so today carries on with day "
                          f"{number}: nothing is lost by taking a break. To follow the calendar instead, type "
@@ -1950,15 +2162,15 @@ def show_today(follow_calendar=False) -> None:
 def go_to_next_day() -> None:
     """Go on to the next day now, without waiting for tomorrow. sdata.go_to_next_day()
 
-    It opens the day after the last one you opened, so two days can be done in one go. Tomorrow,
-    sdata.show_today() carries on from there.
+    It opens the next day not done yet, so two days can be done in one go. Tomorrow, sdata.show_today()
+    carries on from there.
     """
     progress = _read_progress()
     if progress is None:
         _print_not_started()
         _print_day(plan("python", 1), "To start, type sdata.start_30_days().")
         return None
-    number = max(progress["opened"], default=0) + 1
+    number = _next_number(progress)
     if number > DAYS_IN_A_TRACK:
         _print_finished(progress)
         return None
@@ -1976,7 +2188,8 @@ def _chosen_track(track) -> str:
 def show_day(number=None, track=None) -> None:
     """Show any day of the 30 days, without changing where you are. sdata.show_day(5)
 
-    sdata.show_day() on its own lists all 30 days, with a tick for each day you have opened. The track is
+    sdata.show_day() on its own lists all 30 days and the two extra days (31 and 32, optional), with a tick
+    for each day you have opened. The track is
     the one you started, else "python": sdata.show_day(1, track="beginner") shows the other one.
     """
     track = _chosen_track(track)
@@ -1990,9 +2203,12 @@ def show_day(number=None, track=None) -> None:
     print(heading)
     print("=" * min(len(heading), WIDTH))
     for n, (title, _, units, kind) in enumerate(DAYS[track], start=1):
+        if n == EXTRA_DAYS[0]:
+            print()
+            print(_wrap("Extra days, optional (sdata.show_today() never opens them; type sdata.show_day(n)):"))
         tick = "[x]" if n in opened else "[ ]"
         lessons = sorted({les for u in units for les in UNITS[u]["lessons"]})
-        where = f"  (lesson {', '.join(map(str, lessons))})" if lessons and kind == "learn" else ""
+        where = f"  (lesson {', '.join(map(str, lessons))})" if lessons and kind in ("learn", "extra") else ""
         mark = {"review": "  - review", "project": "  - project", "final": "  - final test"}.get(kind, "")
         print(_wrap(f"{title}{where}{mark}", "            ", f"{tick} {n:>2}. "))
     print()
