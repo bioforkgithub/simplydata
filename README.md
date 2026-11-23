@@ -4,7 +4,7 @@
 
 **Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.**
 
-*simplydata is a package that is easy for a beginner, honest with a reviewer, and [safe for patient data](#privacy-your-data-stays-on-your-computer), all at once.*
+*simplydata is a package that is easy for a beginner, honest with a reviewer, and [safe for sensitive data](#privacy-your-data-stays-on-your-computer), all at once.*
 
 **For researchers and students who want to be fast and correct.**
 
@@ -169,11 +169,11 @@ They are good tools that do a different job. simplydata gives:
 - **answers checked against R:** the answers are compared with the package underneath and with R in a public
   reliability study, and many printouts name the R function that gives the same answer.
 
-**Is it safe for patient data?**
+**Is it safe for sensitive data?**
 simplydata itself sends nothing anywhere: no telemetry, no update checks, no crash reports. It reaches the network
 only when you give `sdata.table` a web address, writes files only where you ask, and the tests check this on every
 change with the network blocked. Details in [Privacy](#privacy-your-data-stays-on-your-computer). It does not
-encrypt or anonymise data, so your institution's rules on where patient data may be stored still apply.
+encrypt or anonymise data, so your institution's rules on where sensitive data, such as patient records, may be stored still apply.
 
 **Do I need R?**
 Not to start. `pip install simplydata` gives tables, charts, numbers, the common tests (t-tests, ANOVA, rank tests,
@@ -348,7 +348,7 @@ conda-forge, and the R packages too (for example `conda install -c conda-forge r
 
 ## Privacy: your data stays on your computer
 
-simplydata is made for sensitive data too, such as patient records and surveillance data. "Safe for patient
+simplydata is made for sensitive data too, such as patient records and surveillance data. "Safe for sensitive
 data" at the top of this page means the promises below, and automatic tests check each of them on every change.
 
 - **Nothing is sent anywhere.** simplydata has no telemetry, no analytics, no update checks and no crash reports.

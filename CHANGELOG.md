@@ -13,8 +13,10 @@ working for one release and prints a one-line note with its new name.
   and 30-day guide.
 - A tagline under it, in bold italics, in the README's first screen, on the manual's title page and on the
   30-day guide's front page: ***Easy to do, and you know why you're doing it.***
+- The second line says "safe for sensitive data" (was "patient data"), and so do the README's question on it and
+  the issue form.
 - The README now opens with who it is for, install, a quick start with its real output and where to go next,
-  then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, patient data, R). The long
+  then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, sensitive data, R). The long
   lists (packages, tasks, fields, lessons, examples by area) moved to
   [docs/what_simplydata_handles.md](docs/what_simplydata_handles.md); the tests check them there.
 - The README says why the names are long (you read them more than you type them, you can guess them, and the
