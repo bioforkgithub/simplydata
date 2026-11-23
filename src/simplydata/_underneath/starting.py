@@ -192,3 +192,71 @@ ENTRIES = [
           note="simplydata's own: the 30 days are written in simplydata (learn_days.py) and printed in plain "
                "Python; nothing is computed."),
 ]
+
+
+# ---------------------------------------------------------------- U3 batch 3: the lessons, the 30 days and the packages used
+DAYS_NOTE = ("simplydata's own: the 30 days are written in simplydata (learn_days.py) and printed in plain Python; "
+             "the day you reached is kept in a small JSON file on this computer (json, pathlib), and nothing is "
+             "computed or sent anywhere.")
+
+ENTRIES += [
+    Entry(word="sdata.show_lesson", ours="sdata.show_lesson(1)", compare="none",
+          note="simplydata's own: the lessons are written in simplydata (learn.py) and printed in plain Python; "
+               "nothing is computed."),
+    Entry(word="sdata.show_packages_used", ours="""
+              table = sdata.get_example("marks")
+              table.find_average_of("marks", for_each_group_in="class")
+              sdata.show_packages_used()
+          """, compare="none",
+          note="simplydata's own: it notes which packages its words called, reads their versions from the installed "
+               "metadata (Python's importlib.metadata; R's packageVersion() and citation() through rpy2 for R "
+               "packages) and prints each reference with a sentence for your methods. No data are worked on; "
+               "importlib.metadata.version(\"pandas\") gives one version yourself."),
+    Entry(word="sdata.start_30_days", ours="""
+              import os
+              import tempfile
+              before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
+              with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
+                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
+                  try:
+                      sdata.start_30_days()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+          """, compare="none",
+          note=DAYS_NOTE),
+    Entry(word="sdata.show_today", ours="""
+              import os
+              import tempfile
+              before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
+              with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
+                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
+                  try:
+                      sdata.start_30_days()
+                      sdata.show_today()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+          """,
+          compare="none", note=DAYS_NOTE),
+    Entry(word="sdata.show_answers", ours="sdata.show_answers(5)", compare="none",
+          note="simplydata's own: the answers are written in simplydata (learn_days.py) and printed in plain "
+               "Python; nothing is computed."),
+    Entry(word="sdata.go_to_next_day", ours="""
+              import os
+              import tempfile
+              before = os.environ.get("SIMPLYDATA_PROGRESS_FILE")   # the test keeps the progress in a
+              with tempfile.TemporaryDirectory() as folder:          # folder deleted afterwards
+                  os.environ["SIMPLYDATA_PROGRESS_FILE"] = os.path.join(folder, "progress.json")
+                  try:
+                      sdata.start_30_days()
+                      sdata.go_to_next_day()
+                  finally:
+                      os.environ.pop("SIMPLYDATA_PROGRESS_FILE")
+                      if before is not None:
+                          os.environ["SIMPLYDATA_PROGRESS_FILE"] = before
+          """,
+          compare="none", note=DAYS_NOTE),
+]

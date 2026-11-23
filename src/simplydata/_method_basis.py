@@ -3468,6 +3468,159 @@ BASIS["animate"] = _b(
     "seconds_per_frame=, keep=True.",
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
+# ---- Phase U3, batch 3: table words
+BASIS["table.show_last_rows"] = _b(
+    "Each row numbered with its place in the whole table, counted from 1; only the display changes.",
+    "show_first_rows(), show(rows=).",
+    "Showing data, not a statistical method: the numbers are the ones keep_rows_by_position() and "
+    "remove_rows_by_position() take.", (), "P5", "", "convention")
+BASIS["table.show"] = _b(
+    "Every row and column (up to 1,000 rows), numbered from 1.",
+    "rows= for the first rows only.",
+    "Showing data: pandas hides the middle of a long table behind \"...\"; a beginner who asks to see the table "
+    "wants to see it. The limit keeps a huge table from flooding the screen, and a line says how to see more.",
+    (), "P5", "A table of more than 1,000 rows shows its first 1,000 and says so.", "starting value")
+BASIS["table.get_row"] = _b(
+    "Rows counted from 1; empty cells become None, the same on both engines.",
+    "get_row(\"last\").",
+    "Data handling: counting from 1 matches the other position words, and None is Python's own word for "
+    "nothing, where pandas would give nan.", (), "P5", "", "convention")
+BASIS["table.get_cell_at"] = _b(
+    "Rows counted from 1, the column by name; an empty cell gives None with a note.",
+    "row=\"last\".",
+    "Data handling: counting from 1 matches the other position words.", (), "P5", "", "convention")
+BASIS["table.keep_columns_by_position"] = _b(
+    "Columns counted from 1 at the left, both ends kept.",
+    "\"last\", step=, a list of positions.",
+    "Data preparation: \"columns 1 to 3\" means three columns, as people (and R) say it.", (), "P5",
+    "simplydata names the columns it kept.", "convention")
+BASIS["table.remove_columns_by_position"] = _b(
+    "Columns counted from 1 at the left, both ends removed.",
+    "\"last\", step=, a list of positions.",
+    "Data preparation: the same counting as keep_columns_by_position().", (), "P5",
+    "Removing every column is refused; the removed columns are named.", "convention")
+BASIS["table.remove_rows_where"] = _b(
+    "A row whose cell is empty is never removed by a comparison on that cell.",
+    "is_empty=True removes the empty rows; the same conditions as keep_rows_where().",
+    "Data preparation: an empty cell is not known to be below or above anything, so a comparison never removes "
+    "it; pandas behaves so, and Polars is made to agree.", (), "P3",
+    "The sentence says how many rows were removed.", "convention")
+BASIS["table.remove_rows_by_position"] = _b(
+    "Rows counted from 1; a run keeps both ends.",
+    "step=, to=, a list of positions.",
+    "Data preparation: the numbers are the ones show_first_rows() and show_rows_with_outliers() print.", (),
+    "P5", "Removing every row is refused.", "convention")
+BASIS["table.remove_duplicate_rows"] = _b(
+    "The first of the repeated rows is kept, and the rows keep their order.",
+    "columns= to look only at some columns.",
+    "Data preparation: keeping the first, in order, gives the same table every time (Polars' own default "
+    "keeps any one of them).", (), "P3", "The sentence says how many rows were removed.", "convention")
+BASIS["table.keep_biggest_rows"] = _b(
+    "Exactly n rows; on a tie at the cut the rows higher up in the table are kept; empty cells never kept; "
+    "groups in order, biggest first.",
+    "for_each_group_in=; keep_smallest_rows().",
+    "Data preparation: a fixed number of rows and the table's own order for ties make the result repeat; a note "
+    "says when tied rows were left out, so nothing is hidden.", (), "P5",
+    "Notes for rows left out on a tie and for empty cells.", "convention")
+BASIS["table.keep_smallest_rows"] = _b(
+    "Exactly n rows; on a tie at the cut the rows higher up in the table are kept; empty cells never kept; "
+    "groups in order, smallest first.",
+    "for_each_group_in=; keep_biggest_rows().",
+    "Data preparation: as keep_biggest_rows().", (), "P5",
+    "Notes for rows left out on a tie and for empty cells.", "convention")
+BASIS["table.remove_rows_with_empty_cells_in"] = _b(
+    "Missing cells, NaN and cells of only spaces all count as empty.",
+    "A column name, a list of them, or none for every column.",
+    "Data preparation: a blank text cell holds no value, so it is treated like a missing one everywhere in "
+    "simplydata.", (), "P5", "The sentence says how many rows were removed.", "convention")
+BASIS["table.add_is_empty_column"] = _b(
+    "True where the cell is missing, NaN or blank text.",
+    "Use it before fill_empty_cells_in().",
+    "Data preparation: the same meaning of empty as every other simplydata word; marking filled cells lets a "
+    "report say which values were filled in.", (), "P5", "The sentence says how many rows are True.",
+    "convention")
+BASIS["table.turn_into_text"] = _b(
+    "Dates as year-month-day (with the time only when some date has one); True/False as \"True\"/\"False\"; "
+    "empty cells stay empty.",
+    "turn_into_numbers(), turn_into_dates().",
+    "Data preparation: ISO 8601 dates sort in time order as text, and an empty cell should not become the word "
+    "\"nan\".", (), "P5", "A column that is already text is left as it is.", "convention")
+BASIS["table.turn_into_dates"] = _b(
+    "26 ways of writing a date tried in order, day first before month first (03/04/2026 is 3 April); a cell "
+    "that fits none becomes empty; whole years become 1 January.",
+    "order=\"day month year\", \"month day year\" or \"year month day\" so nothing is guessed.",
+    "Data preparation: day first is how most of the world writes dates; month first is used only when day "
+    "first cannot work, and order= removes the guess. The cells that could not be read are counted and shown.",
+    (), "P4", "Decimal numbers and true/false columns are refused.", "convention")
+BASIS["table.add_column_with_part_of_date"] = _b(
+    "Weekdays and weeks follow ISO 8601: 1 is Monday ... 7 is Sunday; the week is the ISO week.",
+    "part= year, quarter, month, month name, week, day, weekday, weekday name, day of year, hour, minute.",
+    "Data preparation: ISO 8601 is the international standard for dates; pandas counts Monday as 0.", (), "P5",
+    "A column that is not dates, or an hour asked of dates without times, is refused.", "convention")
+BASIS["table.add_column_with_part_of_text"] = _b(
+    "before= and after= look for the first mark; the part is trimmed of spaces, and a cell without the mark "
+    "gives an empty cell.",
+    "first_characters=, last_characters=, characters=, matches_pattern=.",
+    "Data preparation: an empty cell where the mark is missing says plainly that there was no part, and the "
+    "sentence counts those cells.", (), "P5", "", "convention")
+BASIS["table.split_column"] = _b(
+    "At most as many pieces as new names; the last keeps the rest; missing pieces are empty; the new columns "
+    "take the old one's place.",
+    "separator=, into=.",
+    "Data preparation: no text is lost (the rest stays in the last column), and the sentence counts the cells "
+    "with too few or too many pieces.", (), "P5", "Names already in the table are refused.", "convention")
+BASIS["table.replace_text_in"] = _b(
+    "The old text is plain text (not a pattern), replaced everywhere it appears; capitals matter.",
+    "matches_pattern= for a regular expression.",
+    "Data preparation: plain text does what a beginner expects (a full stop is a full stop); patterns are one "
+    "option away.", (), "P5", "The sentence says in how many cells the text was replaced.", "convention")
+BASIS["table.add_previous_value_column"] = _b(
+    "The row before in the order of sorted_by=, within each group; the rows keep their place; the first row of "
+    "each group is empty.",
+    "rows_back=, for_each_group_in=, sorted_by=.",
+    "Data preparation: the order of the calculation and the order of the table are kept apart, so a later sort "
+    "never mixes them up.", (), "P5", "", "convention")
+BASIS["table.add_change_column"] = _b(
+    "This value minus the one before (in the order of sorted_by=, within each group); in_percent=True divides by "
+    "the previous value, and a previous 0 gives an empty cell.",
+    "in_percent=, rows_back=, for_each_group_in=, sorted_by=.",
+    "Data preparation: a change from 0 has no percent, so an empty cell is more honest than infinity.", (),
+    "P5", "", "convention")
+BASIS["table.find_smallest_of"] = _b(
+    "Empty cells skipped; one row for each group, groups sorted.",
+    "every=, across=; find_biggest_of().",
+    "A summary, not a test: skipping empty cells is what pandas, Polars and R min(na.rm = TRUE) do; sorted "
+    "groups make the table easy to read.", (), "P3", "A column that is not numbers is refused.", "convention")
+BASIS["table.count_different_values_in"] = _b(
+    "Empty cells not counted (a note says how many); capitals matter; groups sorted.",
+    "for_each_group_in=, every=.",
+    "A count: an empty cell is not a value, as pandas nunique() and R length(unique(na.omit(x))) see it.", (),
+    "P3", "The note gives the number of empty cells.", "convention")
+BASIS["table.find_most_common_of"] = _b(
+    "The value that turns up most often; on a tie the smallest (first in order) is given and a note names the "
+    "others; empty cells skipped.",
+    "for_each_group_in= gives the count, percent and number of tied values for each group.",
+    "A summary: one value has to be given back, so the smallest makes it repeat (as pandas mode() sorts), and "
+    "the note keeps the tie in view.", (), "P5", "A column with every cell empty is refused.", "convention")
+BASIS["table.add_rows_from"] = _b(
+    "Columns matched by their names; the new rows go under.",
+    "join_with() to add columns instead of rows.",
+    "Data preparation: matching by name stops values landing in the wrong column when two files list them in "
+    "another order.", (), "P4",
+    "Columns found in only one table, or holding different kinds of values, are refused with their names.",
+    "convention")
+BASIS["table.turn_columns_into_rows"] = _b(
+    "The other columns stay beside each value; the new columns are called \"column\" and \"value\".",
+    "names_to=, values_to=.",
+    "Data preparation: a long table is what charts and models take; plain names say what each new column "
+    "holds.", (), "P5", "Mixing text and number columns, or a name already in the table, is refused.",
+    "convention")
+BASIS["table.turn_rows_into_columns"] = _b(
+    "Rows and new columns stay in the order they first appear; all the other columns say which row is which.",
+    "names_from=, values_from=.",
+    "Data preparation: keeping the table's own order (pandas would sort) and refusing to choose between two "
+    "values for one cell keep the result honest.", (), "P4",
+    "When two rows would fill one cell simplydata stops and suggests an average first.", "convention")
 # ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
 BASIS["table.check_model_of show=\"numbers\""] = _b(
     "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "

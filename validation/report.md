@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**1922 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**2268 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2084,15 +2084,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528044388348 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735523243696 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774283070068 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192850742328 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.24287741743361 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305216014679024 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208507227208 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549700470763 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246781804757 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512527366209553 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736312884227 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.54277436825938 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192917616397 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.24287720949446 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215659201569 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.50220836729044 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549729383404 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246470083785 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
@@ -3924,6 +3924,479 @@ Note: The years run 1875 to 1972 without a gap, so the slope per year equals R's
 | degrees of freedom | R | 2 | 2 | relative 1e-10 | pass |
 | p-value | R | 0.00380504077551138 | 0.00380504077551136 | relative 1e-10 | pass |
 
+### `table.show_last_rows`
+
+**the last 3 of Fisher's 150 iris flowers, numbered 148 to 150** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows shown | pandas tail | 3 | 3 | relative 1e-12 | pass |
+| first row number | pandas tail | 148 | 148 | relative 1e-12 | pass |
+| sepal length total | pandas tail | 18.6 | 18.6 | relative 1e-12 | pass |
+| rows shown | R | 3 | 3 | relative 1e-12 | pass |
+| first row number | R | 148 | 148 | relative 1e-12 | pass |
+| sepal length total | R | 18.6 | 18.6 | relative 1e-12 | pass |
+
+### `table.show`
+
+**all 144 months of AirPassengers shown, numbered from 1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows shown | pandas (every row) | 144 | 144 | exact | pass |
+| last row number | pandas (every row) | 144 | 144 | exact | pass |
+| total passengers | pandas (every row) | 40363 | 40363 | exact | pass |
+| rows shown | R | 144 | 144 | exact | pass |
+| total passengers | R | 40363 | 40363 | exact | pass |
+
+### `table.get_column_names`
+
+**the 12 column names of mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas columns | 12 | 12 | exact | pass |
+| mpg is second | pandas columns | 1 | 1 | exact | pass |
+
+### `table.get_column`
+
+**NHANES body mass index taken out as numbers, with its 9 empty cells** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| values | pandas to_numpy | 25 | 25 | relative 1e-12 | pass |
+| empty | pandas to_numpy | 9 | 9 | relative 1e-12 | pass |
+| total | pandas to_numpy | 425 | 425 | relative 1e-12 | pass |
+| values | R | 25 | 25 | relative 1e-12 | pass |
+| empty | R | 9 | 9 | relative 1e-12 | pass |
+| total | R | 425 | 425 | relative 1e-12 | pass |
+
+### `table.get_row`
+
+**the first NHANES person: an age and three empty cells** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age group | pandas iloc[0] | 1 | 1 | exact | pass |
+| empty cells | pandas iloc[0] | 3 | 3 | exact | pass |
+| age group | R | 1 | 1 | exact | pass |
+| empty cells | R | 3 | 3 | exact | pass |
+
+### `table.get_cell_at`
+
+**the horsepower of the third car in mtcars (Datsun 710)** (published; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| hp | Henderson & Velleman (1981) | 93 | 93 | within 0 (printed rounding) | pass |
+| hp | pandas iloc[2] | 93 | 93 | exact | pass |
+| hp | R | 93 | 93 | exact | pass |
+
+### `table.remove_columns`
+
+**mtcars without the car names** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas drop(columns=) | 11 | 11 | relative 1e-12 | pass |
+| total mpg | pandas drop(columns=) | 642.9 | 642.9 | relative 1e-12 | pass |
+
+### `table.keep_columns_by_position`
+
+**columns 2 to 4 of mtcars (mpg, cyl, disp)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas iloc[:, 1:4] | 3 | 3 | relative 1e-12 | pass |
+| total disp | pandas iloc[:, 1:4] | 7383.1 | 7383.1 | relative 1e-12 | pass |
+| columns | R | 3 | 3 | relative 1e-12 | pass |
+| total disp | R | 7383.1 | 7383.1 | relative 1e-12 | pass |
+
+### `table.remove_columns_by_position`
+
+**mtcars without its first column (the car names)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas drop(columns=) | 11 | 11 | exact | pass |
+| mpg is first | pandas drop(columns=) | 1 | 1 | exact | pass |
+
+### `table.remove_rows_where`
+
+**NHANES: people with a body mass index below 25 removed (empty cells stay)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | pandas boolean indexing | 19 | 19 | relative 1e-12 | pass |
+| empty left | pandas boolean indexing | 9 | 9 | relative 1e-12 | pass |
+| total | pandas boolean indexing | 290.8 | 290.8 | relative 1e-12 | pass |
+| rows left | R | 19 | 19 | relative 1e-12 | pass |
+| empty left | R | 9 | 9 | relative 1e-12 | pass |
+| total | R | 290.8 | 290.8 | relative 1e-12 | pass |
+
+### `table.keep_first_rows`
+
+**the first 10 cars of mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas head | 10 | 10 | relative 1e-12 | pass |
+| total mpg | pandas head | 203.7 | 203.7 | relative 1e-12 | pass |
+| rows | R | 10 | 10 | relative 1e-12 | pass |
+| total mpg | R | 203.7 | 203.7 | relative 1e-12 | pass |
+
+### `table.keep_last_rows`
+
+**the last 10 cars of mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas tail | 10 | 10 | relative 1e-12 | pass |
+| total mpg | pandas tail | 203.3 | 203.3 | relative 1e-12 | pass |
+| rows | R | 10 | 10 | relative 1e-12 | pass |
+| total mpg | R | 203.3 | 203.3 | relative 1e-12 | pass |
+
+### `table.remove_rows_by_position`
+
+**mtcars without its first and last car** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas drop(index=) | 30 | 30 | relative 1e-12 | pass |
+| total mpg | pandas drop(index=) | 600.5 | 600.5 | relative 1e-12 | pass |
+| rows | R | 30 | 30 | relative 1e-12 | pass |
+| total mpg | R | 600.5 | 600.5 | relative 1e-12 | pass |
+
+### `table.reverse_rows`
+
+**AirPassengers turned upside down: the last month first** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | pandas iloc[::-1] | 432 | 432 | exact | pass |
+| last | pandas iloc[::-1] | 112 | 112 | exact | pass |
+| first | R | 432 | 432 | exact | pass |
+| last | R | 112 | 112 | exact | pass |
+
+### `table.remove_duplicate_rows`
+
+**mtcars: the first car of each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas drop_duplicates | 3 | 3 | relative 1e-12 | pass |
+| total mpg | pandas drop_duplicates | 62.5 | 62.5 | relative 1e-12 | pass |
+| rows | R | 3 | 3 | relative 1e-12 | pass |
+| total mpg | R | 62.5 | 62.5 | relative 1e-12 | pass |
+
+### `table.keep_biggest_rows`
+
+**mtcars: the 3 most powerful cars for each number of cylinders (in 8 cylinders two cars tie at 245 hp for third place)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values (stable) and groupby().head() | 9 | 9 | exact | pass |
+| total hp | pandas sort_values (stable) and groupby().head() | 1584 | 1584 | exact | pass |
+| first hp | pandas sort_values (stable) and groupby().head() | 113 | 113 | exact | pass |
+| third 8-cylinder hp | pandas sort_values (stable) and groupby().head() | 245 | 245 | exact | pass |
+| row of the third 8-cylinder car | pandas sort_values (stable) and groupby().head() | 7 | 7 | exact | pass |
+| total hp | R | 1584 | 1584 | exact | pass |
+| first hp | R | 113 | 113 | exact | pass |
+| third 8-cylinder hp | R | 245 | 245 | exact | pass |
+| row of the third 8-cylinder car | R | 7 | 7 | exact | pass |
+
+### `table.keep_smallest_rows`
+
+**mtcars: the 3 thirstiest cars for each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values (stable) and groupby().head() | 9 | 9 | relative 1e-12 | pass |
+| total mpg | pandas sort_values (stable) and groupby().head() | 154.9 | 154.9 | relative 1e-12 | pass |
+| first mpg | pandas sort_values (stable) and groupby().head() | 21.4 | 21.4 | relative 1e-12 | pass |
+| total mpg | R | 154.9 | 154.9 | relative 1e-12 | pass |
+| first mpg | R | 21.4 | 21.4 | relative 1e-12 | pass |
+
+### `table.remove_rows_with_outliers`
+
+**mtcars horsepower: Tukey's outliers within each number of cylinders removed** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | pandas quantile (linear) and Tukey's rule | 31 | 31 | exact | pass |
+| total hp | pandas quantile (linear) and Tukey's rule | 4519 | 4519 | exact | pass |
+| rows left | R | 31 | 31 | exact | pass |
+| total hp | R | 4519 | 4519 | exact | pass |
+
+### `table.remove_rows_with_empty_cells_in`
+
+**NHANES: the people without a body mass index removed** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | pandas dropna(subset=) | 16 | 16 | relative 1e-12 | pass |
+| total | pandas dropna(subset=) | 425 | 425 | relative 1e-12 | pass |
+| rows left | R | 16 | 16 | relative 1e-12 | pass |
+| total | R | 425 | 425 | relative 1e-12 | pass |
+
+### `table.add_is_empty_column`
+
+**NHANES: which people have no cholesterol value** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty | pandas isna | 10 | 10 | exact | pass |
+| rows | pandas isna | 25 | 25 | exact | pass |
+| empty | R | 10 | 10 | exact | pass |
+| rows | R | 25 | 25 | exact | pass |
+
+### `table.turn_into_text`
+
+**mtcars miles per gallon written as text** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells reading 21.0 | pandas astype(str) | 2 | 2 | exact | pass |
+| cells reading 10.4 | pandas astype(str) | 2 | 2 | exact | pass |
+
+### `table.turn_into_dates`
+
+**the 144 months of AirPassengers read as dates** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | pandas to_datetime | 1949 | 1949 | exact | pass |
+| last year | pandas to_datetime | 1960 | 1960 | exact | pass |
+| last month | pandas to_datetime | 12 | 12 | exact | pass |
+| first year | R | 1949 | 1949 | exact | pass |
+| last year | R | 1960 | 1960 | exact | pass |
+| last month | R | 12 | 12 | exact | pass |
+
+### `table.turn_into_lowercase`
+
+**warpbreaks: the wool types written in small letters** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| a | pandas str.lower | 27 | 27 | exact | pass |
+| b | pandas str.lower | 27 | 27 | exact | pass |
+| a | R | 27 | 27 | exact | pass |
+| b | R | 27 | 27 | exact | pass |
+
+### `table.turn_into_uppercase`
+
+**iris: the species written in capital letters** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| SETOSA | pandas str.upper | 50 | 50 | exact | pass |
+| VIRGINICA | pandas str.upper | 50 | 50 | exact | pass |
+| SETOSA | R | 50 | 50 | exact | pass |
+| VIRGINICA | R | 50 | 50 | exact | pass |
+
+### `table.round_numbers_in`
+
+**mtcars weights rounded to 1 decimal** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas round | 102.7 | 102.7 | relative 1e-12 | pass |
+| first | pandas round | 2.6 | 2.6 | relative 1e-12 | pass |
+
+### `table.change_column`
+
+**mtcars miles per gallon changed into kilometres per litre** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas multiplication | 273.3250776 | 273.3250776 | relative 1e-12 | pass |
+| cars | pandas multiplication | 32 | 32 | relative 1e-12 | pass |
+| total | R | 273.3250776 | 273.3250776 | relative 1e-12 | pass |
+
+### `table.add_rank_column`
+
+**mtcars cars ranked by fuel use, ties sharing the best place** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first car | pandas rank(method="min") | 13 | 13 | exact | pass |
+| sum of places | pandas rank(method="min") | 521 | 521 | exact | pass |
+| first car | R | 13 | 13 | exact | pass |
+| sum of places | R | 521 | 521 | exact | pass |
+
+### `table.add_column_with_part_of_date`
+
+**AirPassengers: the weekday of the first day of each month (1 is Monday)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas dt.dayofweek + 1 | 578 | 578 | exact | pass |
+| first | pandas dt.dayofweek + 1 | 6 | 6 | exact | pass |
+| total | R | 578 | 578 | exact | pass |
+| first | R | 6 | 6 | exact | pass |
+
+### `table.add_column_with_part_of_text`
+
+**mtcars: the make of each car, the text before the first space** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Merc | pandas str.extract | 7 | 7 | exact | pass |
+| Toyota | pandas str.extract | 2 | 2 | exact | pass |
+| empty | pandas str.extract | 1 | 1 | exact | pass |
+| Merc | R | 7 | 7 | exact | pass |
+| Toyota | R | 2 | 2 | exact | pass |
+| empty | R | 1 | 1 | exact | pass |
+
+### `table.split_column`
+
+**mtcars car names split into the make and the rest** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Merc | pandas str.split(n=1) | 7 | 7 | exact | pass |
+| no type | pandas str.split(n=1) | 1 | 1 | exact | pass |
+| columns | pandas str.split(n=1) | 13 | 13 | exact | pass |
+
+### `table.replace_text_in`
+
+**mtcars: Merc written out as Mercedes in the car names** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| with Mercedes | pandas str.replace(regex=False) | 7 | 7 | exact | pass |
+| Mercedes 240D | pandas str.replace(regex=False) | 1 | 1 | exact | pass |
+| with Mercedes | R | 7 | 7 | exact | pass |
+| Mercedes 240D | R | 1 | 1 | exact | pass |
+
+### `table.add_previous_value_column`
+
+**AirPassengers: each month beside the month before** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty | pandas shift(1) | 1 | 1 | exact | pass |
+| total | pandas shift(1) | 39931 | 39931 | exact | pass |
+| row 2 | pandas shift(1) | 112 | 112 | exact | pass |
+| empty | R | 1 | 1 | exact | pass |
+| total | R | 39931 | 39931 | exact | pass |
+| row 2 | R | 112 | 112 | exact | pass |
+
+### `table.add_change_column`
+
+**AirPassengers: the change from the month before, in percent** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| last | pandas shift(1) | 10.7692307692308 | 10.7692307692308 | relative 1e-12 | pass |
+| total | pandas shift(1) | 216.910059911928 | 216.910059911928 | relative 1e-12 | pass |
+| empty | pandas shift(1) | 1 | 1 | relative 1e-12 | pass |
+| last | R | 10.7692307692308 | 10.7692307692308 | relative 1e-12 | pass |
+| total | R | 216.910059911928 | 216.910059911928 | relative 1e-12 | pass |
+| empty | R | 1 | 1 | relative 1e-12 | pass |
+
+### `table.find_smallest_of`
+
+**the shortest sepal of each iris species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa | pandas groupby().min() | 4.3 | 4.3 | exact | pass |
+| versicolor | pandas groupby().min() | 4.9 | 4.9 | exact | pass |
+| virginica | pandas groupby().min() | 4.9 | 4.9 | exact | pass |
+| setosa | R | 4.3 | 4.3 | exact | pass |
+| versicolor | R | 4.9 | 4.9 | exact | pass |
+| virginica | R | 4.9 | 4.9 | exact | pass |
+
+### `table.find_biggest_of`
+
+**the most powerful car in mtcars (Maserati Bora, 335 hp)** (published; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| hp | Henderson & Velleman (1981) | 335 | 335 | within 0 (printed rounding) | pass |
+| hp | pandas max | 335 | 335 | exact | pass |
+| hp | R | 335 | 335 | exact | pass |
+
+### `table.find_standard_deviation_of`
+
+**the spread of petal length in each iris species (n - 1)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa | pandas groupby().std(ddof=1) | 0.173663996480184 | 0.173663996480184 | relative 1e-12 | pass |
+| versicolor | pandas groupby().std(ddof=1) | 0.469910977239958 | 0.469910977239958 | relative 1e-12 | pass |
+| virginica | pandas groupby().std(ddof=1) | 0.551894695663984 | 0.551894695663984 | relative 1e-12 | pass |
+| setosa | R | 0.173663996480184 | 0.173663996480184 | relative 1e-12 | pass |
+| versicolor | R | 0.469910977239958 | 0.469910977239958 | relative 1e-12 | pass |
+| virginica | R | 0.551894695663984 | 0.551894695663983 | relative 1e-12 | pass |
+
+### `table.count_different_values_in`
+
+**NHANES: how many different body mass index values (empty cells not counted)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different values | pandas nunique | 16 | 16 | exact | pass |
+| different values | R | 16 | 16 | exact | pass |
+
+### `table.find_most_common_of`
+
+**the most common number of cylinders in mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| most common | pandas mode | 8 | 8 | exact | pass |
+| most common | R | 8 | 8 | exact | pass |
+
+### `table.find_interval_of`
+
+**mtcars miles per gallon: the average with a 95 % BCa bootstrap interval** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average | SciPy stats.bootstrap (BCa, 9999 resamples, seed 1) | 20.090625 | 20.090625 | relative 1e-12 | pass |
+| low | SciPy stats.bootstrap (BCa, 9999 resamples, seed 1) | 18.225 | 18.225 | relative 1e-12 | pass |
+| high | SciPy stats.bootstrap (BCa, 9999 resamples, seed 1) | 22.3451879927405 | 22.3451879927405 | relative 1e-12 | pass |
+
+Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same seed, gives the same interval.
+
+### `table.add_rows_from`
+
+**Fisher's iris data put under itself** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas concat | 300 | 300 | relative 1e-12 | pass |
+| total petal width | pandas concat | 359.8 | 359.8 | relative 1e-12 | pass |
+| rows | R | 300 | 300 | relative 1e-12 | pass |
+| total petal width | R | 359.8 | 359.8 | relative 1e-12 | pass |
+
+### `table.turn_columns_into_rows`
+
+**iris sepal length and width turned into rows** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas melt | 300 | 300 | relative 1e-12 | pass |
+| total | pandas melt | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| columns | pandas melt | 5 | 5 | relative 1e-12 | pass |
+| rows | R | 300 | 300 | relative 1e-12 | pass |
+| total | R | 1335.1 | 1335.1 | relative 1e-12 | pass |
+
+### `table.turn_rows_into_columns`
+
+**Student's sleep data: one row for each patient, a column for each drug** (published; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average drug 2 | Student (1908) | 2.33 | 2.33 | within 0.005 (printed rounding) | pass |
+| patients | pandas pivot | 10 | 10 | relative 1e-12 | pass |
+| average drug 2 | pandas pivot | 2.33 | 2.33 | relative 1e-12 | pass |
+| patient 1 drug 1 | pandas pivot | 0.7 | 0.7 | relative 1e-12 | pass |
+| average drug 2 | R | 2.33 | 2.33 | relative 1e-12 | pass |
+| patient 1 drug 1 | R | 0.7 | 0.7 | relative 1e-12 | pass |
+
 ### `get_numbers_drawn`
 
 **Anscombe's first set: the drawn fitted line is the least-squares line** (published; data: Anscombe's quartet)
@@ -4147,6 +4620,169 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.add_rolling_column` | Polars | polars | table | relative 1e-09 | pass |
 | `table.show_rows_with_outliers` | pandas | pandas | printed | relative 1e-09 | pass |
 | `table.show_rows_with_outliers` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show_last_rows` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_last_rows` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.get_column_names` | pandas | pandas | value | relative 0 | pass |
+| `table.get_column_names` | Polars | pandas | value | relative 0 | pass |
+| `table.get_column_names` | pandas | polars | value | relative 0 | pass |
+| `table.get_column_names` | Polars | polars | value | relative 0 | pass |
+| `table.get_column` | pandas | pandas | value | relative 0 | pass |
+| `table.get_column` | Polars | pandas | value | relative 0 | pass |
+| `table.get_column` | pandas | polars | value | relative 0 | pass |
+| `table.get_column` | Polars | polars | value | relative 0 | pass |
+| `table.get_row` | pandas | pandas | value | relative 0 | pass |
+| `table.get_row` | Polars | pandas | value | relative 0 | pass |
+| `table.get_row` | pandas | polars | value | relative 0 | pass |
+| `table.get_row` | Polars | polars | value | relative 0 | pass |
+| `table.get_cell_at` | pandas | pandas | value | relative 0 | pass |
+| `table.get_cell_at` | Polars | pandas | value | relative 0 | pass |
+| `table.get_cell_at` | pandas | polars | value | relative 0 | pass |
+| `table.get_cell_at` | Polars | polars | value | relative 0 | pass |
+| `table.remove_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_columns_by_position` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_columns_by_position` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_columns_by_position` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_columns_by_position` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_by_position` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_by_position` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_by_position` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_by_position` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_where` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_where` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_where` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_where` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_last_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_last_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_last_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_last_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_by_position` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_by_position` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_by_position` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_by_position` | Polars | polars | table | relative 1e-09 | pass |
+| `table.reverse_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.reverse_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.reverse_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.reverse_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_duplicate_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_duplicate_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_duplicate_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_duplicate_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_biggest_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_biggest_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_biggest_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_biggest_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_smallest_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_smallest_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_smallest_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_smallest_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_with_outliers` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_with_outliers` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_with_outliers` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_with_outliers` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_with_empty_cells_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_with_empty_cells_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_with_empty_cells_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_with_empty_cells_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_is_empty_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_is_empty_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_is_empty_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_is_empty_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_dates` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_dates` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_dates` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_dates` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_lowercase` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_lowercase` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_lowercase` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_lowercase` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_uppercase` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_uppercase` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_uppercase` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_uppercase` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_numbers_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_numbers_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.round_numbers_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.round_numbers_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.change_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.change_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.change_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.change_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text` | Polars | polars | table | relative 1e-09 | pass |
+| `table.split_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.split_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.split_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.split_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.replace_text_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.replace_text_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.replace_text_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.replace_text_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_previous_value_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_previous_value_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_previous_value_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_previous_value_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_change_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_change_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_change_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_change_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.find_smallest_of` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.find_smallest_of` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.find_smallest_of` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_smallest_of` | Polars | polars | table | relative 1e-09 | pass |
+| `table.find_biggest_of` | pandas | pandas | value | relative 0 | pass |
+| `table.find_biggest_of` | Polars | pandas | value | relative 0 | pass |
+| `table.find_biggest_of` | pandas | polars | value | relative 0 | pass |
+| `table.find_biggest_of` | Polars | polars | value | relative 0 | pass |
+| `table.find_standard_deviation_of` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.find_standard_deviation_of` | Polars | pandas | table | relative 1e-12 | pass |
+| `table.find_standard_deviation_of` | pandas | polars | table | relative 1e-12 | pass |
+| `table.find_standard_deviation_of` | Polars | polars | table | relative 1e-12 | pass |
+| `table.count_different_values_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.count_different_values_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.count_different_values_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.count_different_values_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.find_most_common_of` | pandas | pandas | value | relative 0 | pass |
+| `table.find_most_common_of` | Polars | pandas | value | relative 0 | pass |
+| `table.find_most_common_of` | pandas | polars | value | relative 0 | pass |
+| `table.find_most_common_of` | Polars | polars | value | relative 0 | pass |
+| `table.find_interval_of` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.find_interval_of` | SciPy | polars | table | relative 1e-12 | pass |
+| `table.add_rows_from` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rows_from` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_rows_from` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rows_from` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_columns_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_columns_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_columns_into_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_columns_into_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_rows_into_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_rows_into_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_rows_into_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_rows_into_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.start_again` | - | - | none | relative 0 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_percentile` | NumPy | pandas | value | relative 1e-12 | pass |
@@ -4516,6 +5152,12 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `sdata.help` | - | - | none | relative 0 | pass |
 | `sdata.show_all_words` | - | - | none | relative 0 | pass |
 | `sdata.show_day` | - | - | none | relative 0 | pass |
+| `sdata.show_lesson` | - | - | none | relative 0 | pass |
+| `sdata.show_packages_used` | - | - | none | relative 0 | pass |
+| `sdata.start_30_days` | - | - | none | relative 0 | pass |
+| `sdata.show_today` | - | - | none | relative 0 | pass |
+| `sdata.show_answers` | - | - | none | relative 0 | pass |
+| `sdata.go_to_next_day` | - | - | none | relative 0 | pass |
 
 How each kind is compared:
 
@@ -4628,6 +5270,53 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.show_rows_with_outliers` (1): the quartiles of each class by pandas' (and R's type 7) linear method; rows with an empty class are a group of their own (dropna=False).
 - `table.show_rows_with_outliers` (2): Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.
 - `table.show_rows_with_outliers` (3): each row is shown with its place in the whole table, counted from 1, so remove_rows_by_position() can follow.
+- `table.show_last_rows` (1): each row is numbered with its place in the whole table, counted from 1: the last 3 of 54 rows are 52, 53 and 54, the numbers keep_rows_by_position() takes.
+- `table.show` (1): the rows are numbered from 1, the way people count; pandas numbers them from 0.
+- `table.show` (2): every row and every column is shown (up to 1,000 rows); pandas on its own shows the first and last 5 of these 180 rows with "..." between.
+- `table.get_row` (1): rows are counted from 1, so row 45 is Python's position 44.
+- `table.get_row` (2): an empty cell becomes None, on both engines (pandas gives nan, Polars None); row 45 has no sales.
+- `table.get_cell_at` (1): rows are counted from 1, so row 3 is Python's position 2.
+- `table.keep_columns_by_position` (1): columns are counted from 1 at the left and both ends are kept, so columns 1 to 3 are Python's 0:3.
+- `table.remove_columns_by_position` (1): columns are counted from 1 at the left and both ends are removed, so columns 2 to 3 are Python's 1:3.
+- `table.remove_rows_where` (1): a row whose cell is empty is never removed by a comparison: the 10 rows without sales stay. In pandas an empty cell is never below 300; in Polars the comparison gives null, which is made False first (without it Polars' filter would drop those rows too).
+- `table.remove_rows_by_position` (1): rows are counted from 1, so rows 12 and 40 are Python's positions 11 and 39.
+- `table.remove_duplicate_rows` (1): the first row of each name is kept and the rows stay in their order; Polars' own default keeps any one of them, in any order.
+- `table.keep_biggest_rows` (1): exactly 4 rows: when rows tie at the cut, the ones higher up in the table are kept (a stable sort). Here English and Maths each have two 4th-best marks; a note says so.
+- `table.keep_biggest_rows` (2): the groups come in order (English, Maths, Science), biggest first within each.
+- `table.keep_smallest_rows` (1): exactly 3 rows: when rows tie at the cut, the one higher up in the table is kept (a stable sort). Here Maths has two marks of 47 at the cut; a note says so.
+- `table.keep_smallest_rows` (2): the groups come in order (English, Maths, Science), smallest first within each.
+- `table.remove_rows_with_outliers` (1): the quartiles of each school by the linear method (pandas' default, R's type 7); Polars' own default is "nearest", which would remove 5 rows here instead of 4.
+- `table.remove_rows_with_outliers` (2): Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.
+- `table.remove_rows_with_outliers` (3): rows with an empty cell stay: the 19 pupils without a sleep value are not outliers.
+- `table.remove_rows_with_empty_cells_in` (1): a cell of only spaces counts as empty, as a missing one does; pandas' dropna() would keep it.
+- `table.add_is_empty_column` (1): empty means missing, NaN or blank text ("" or only spaces); pandas' isna() finds only the missing one.
+- `table.turn_into_text` (1): dates are written year-month-day (2026-01-01), with the time of day only when some date has one; Polars' own cast to text would add 00:00:00.000000 to every cell.
+- `table.turn_into_dates` (1): each cell gets the first way of writing that fits, day first before month first: 03/04/2026 is 3 April, and 12/25/2026 can only be 25 December. simplydata's list holds 26 ways (dots, dashes, month names, times of day); these 3 are the ones these cells need.
+- `table.turn_into_dates` (2): a cell that fits none of them becomes empty (errors="coerce", strict=False); simplydata says how many and shows one ("soon").
+- `table.add_rank_column` (1): rows that tie share the best place and the next place is skipped, as in sports tables (1, 2, 2, 4); pandas' own default gives both 2.5.
+- `table.add_rank_column` (2): the biggest value gets place 1 (biggest_first=False gives it to the smallest).
+- `table.add_column_with_part_of_date` (1): 1 is Monday and 7 is Sunday, as the ISO 8601 standard and Polars count; pandas counts Monday as 0.
+- `table.add_column_with_part_of_text` (1): the text before the first comma ("Big Market", not "Big Market , east"); a cell without a comma gives an empty cell, and simplydata says how many.
+- `table.add_column_with_part_of_text` (2): spaces at the ends of the part are removed ("Big Market " becomes "Big Market"), and a part that is blank becomes empty.
+- `table.split_column` (1): at most as many pieces as names in into=: the last keeps the rest of the text ("Lee Park"), and a cell with fewer pieces gives an empty cell ("Cara" has no rest). simplydata says how many of each.
+- `table.split_column` (2): the new columns take the place of the old one; spaces at the ends of each piece are removed ("Dev   Shah" gives "Shah", not "  Shah").
+- `table.replace_text_in` (1): the old text is plain text, not a pattern: "." is a full stop, not "any character"; and it is replaced everywhere it appears (Polars' replace() changes only the first).
+- `table.add_previous_value_column` (1): "the row before" follows sorted_by=, but the rows keep their place in the table (here sorted by temperature; assign lines the values up by row).
+- `table.add_previous_value_column` (2): within each city; the first month of each city has no row before it and stays empty.
+- `table.add_change_column` (1): the previous value is the one before in order of sorted_by= (year), within each country; the rows keep their place, and the first year of each country stays empty.
+- `table.add_change_column` (2): in_percent=True is (this - previous) / previous x 100, and a previous value of 0 gives an empty cell (pandas and Polars would give inf).
+- `table.find_smallest_of` (1): one row for each city, the cities sorted A to Z (Polars' group_by gives them in any order).
+- `table.find_standard_deviation_of` (1): the standard deviation of a sample (divide by n - 1), as pandas, Polars and R sd(); NumPy's own default divides by n.
+- `table.find_standard_deviation_of` (2): one row for each class, the classes sorted A to Z.
+- `table.count_different_values_in` (1): empty cells are not counted as a value (pandas' nunique() leaves them out; Polars' n_unique() would count the empty value once); a note says how many there were (19).
+- `table.count_different_values_in` (2): one row for each school, the schools sorted A to Z.
+- `table.find_most_common_of` (1): when values tie (1 and 3 each turn up twice), the smallest is given and a note names the others; empty cells are skipped. pandas' mode() is sorted; Polars' mode() comes in any order.
+- `table.find_interval_of` (1): the bias-corrected and accelerated (BCa) bootstrap interval, the usual choice; "percentile bootstrap" and "reverse percentile bootstrap" are the others.
+- `table.find_interval_of` (2): 9999 resamples (resamples= changes it).
+- `table.find_interval_of` (3): NumPy's random generator with seed 1 (with_seed=), printed, so the same call gives the same interval.
+- `table.add_rows_from` (1): columns are matched by their names, so the other table's columns may come in any order; pandas' concat matches them by name itself, Polars' needs them put in the same order first (select(df.columns)).
+- `table.turn_columns_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
+- `table.turn_rows_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).
