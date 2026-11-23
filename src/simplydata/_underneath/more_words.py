@@ -155,12 +155,14 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_correlation_between("hours", "marks", show="result table")
         """,
         code={"SciPy": """
             from scipy import stats
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # find_correlation_between("hours", "marks", show="result table")
             res = stats.pearsonr(df["hours"], df["marks"])
             ci = res.confidence_interval(0.95)                 # (1)
@@ -182,6 +184,7 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_correlation_between("hours", "marks", allowing_for="height", show="result table")
         """,
         code={
@@ -197,6 +200,7 @@ ENTRIES = [
         r_inputs="""
             import pandas as pd
             df = pd.read_csv("marks.csv").dropna(subset=["hours", "marks", "height"])
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             hours = df["hours"].to_numpy(dtype=float)
             marks = df["marks"].to_numpy(dtype=float)
             height = df["height"].to_numpy(dtype=float)

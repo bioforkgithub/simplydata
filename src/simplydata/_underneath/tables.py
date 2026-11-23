@@ -673,11 +673,13 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.show_rows_with_outliers("marks", for_each_group_in="class")
         """,
         code={"pandas": """
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # show_rows_with_outliers("marks", for_each_group_in="class")
             marks = df.groupby("class", dropna=False)["marks"]
             q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
@@ -1761,6 +1763,7 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_interval_of("marks", "average")
         """,
         code={"SciPy": """
@@ -1768,6 +1771,7 @@ ENTRIES += [
             import pandas as pd
             from scipy import stats
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # find_interval_of("marks", "average")
             x = df["marks"].dropna().to_numpy(dtype=float)
             ci = stats.bootstrap((x,), np.mean, n_resamples=9999, method="BCa",            # (1) (2)
