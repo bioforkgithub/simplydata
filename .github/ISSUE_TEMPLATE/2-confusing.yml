@@ -1,0 +1,30 @@
+name: Something was confusing
+description: A name, a message, the manual or a lesson was hard to understand.
+title: "Confusing: "
+labels: ["confusing"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Confusing parts are bugs too. Tell us where you got stuck, even if you found your way in the end.
+  - type: input
+    id: where
+    attributes:
+      label: Where?
+      description: The word, message, manual section or lesson day.
+      placeholder: 'e.g. turn_rows_into_columns, or "30-day guide, day 14"'
+    validations:
+      required: true
+  - type: textarea
+    id: confusing
+    attributes:
+      label: What was confusing?
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: What would have made it clear?
+      description: A better name, a sentence, an example. Any idea helps.
+    validations:
+      required: false

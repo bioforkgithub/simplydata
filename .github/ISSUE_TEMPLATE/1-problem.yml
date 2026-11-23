@@ -1,0 +1,41 @@
+name: Report a problem
+description: A word gave an error, a wrong result, or did something you did not expect.
+title: "Problem: "
+labels: ["problem"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for telling us. **Please never paste real patient or personal data here.** Use a practice table (`sdata.get_example(...)`) or a few made-up rows instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What did you do?
+      description: The simplydata lines you ran.
+      render: python
+      placeholder: |
+        import simplydata as sdata
+        table = sdata.get_example("marks")
+        table.compare_averages_of("marks", for_each_group_in="class")
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened?
+      description: The message or result you got (copy it in).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Your setup
+      description: Paste the output of `sdata.show_packages_used()`, and say your operating system.
+    validations:
+      required: false
