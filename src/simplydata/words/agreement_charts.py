@@ -282,8 +282,8 @@ class AgreementChartWords:
         chart.get_numbers_drawn() gives the best cut-off as a number: in the row of the marked dot
         (kind "dot", series the curve's name) the value column holds the cut-off, y the sensitivity
         there and x the false alarms (1 - specificity), all from R pROC::coords(roc, "best",
-        best.method = "youden"). table.compare_to_truth gives the same cut-off with its
-        sensitivity and specificity as a result table.
+        best.method = "youden"). The specificity is not in that table: table.compare_to_truth
+        gives pROC's specificity at the same cut-off, with its sensitivity, as a result table.
         """
         from .._r import need_r
 
