@@ -585,4 +585,23 @@ def cases(Case):
              r="""
                  list(`average drug 2` = mean(extra[group == "drug 2"]), `patient 1 drug 1` = extra[group == "drug 1"][1])
              """, r_tolerance=1e-12),
+        Case("table.swap_rows_and_columns", "Student's sleep data, one row per drug: a column for each patient",
+             "Student's sleep data", "published",
+             ours="""
+                 t = sdata.table(data).spread_into_columns(names_from="ID", values_from="extra")
+                 t.swap_rows_and_columns()
+                 {"rows": t.count_rows(), "patient 1 drug 1": t.get_cell_at(row=1, column="drug 1"),
+                  "patient 1 drug 2": t.get_cell_at(row=1, column="drug 2"),
+                  "average drug 2": t.get_column("drug 2").find_total() / t.count_rows()}
+             """,
+             published={"patient 1 drug 2": (1.9, 0.005, "Student (1908)"),
+                        "average drug 2": (2.33, 0.005, "Student (1908)")},
+             parent="""
+                 flipped = data.pivot(index="group", columns="ID", values="extra").T
+                 {"rows": len(flipped), "patient 1 drug 1": flipped["drug 1"].iloc[0],
+                  "patient 1 drug 2": flipped["drug 2"].iloc[0], "average drug 2": flipped["drug 2"].mean()}
+             """, parent_label="pandas pivot, then .T", parent_tolerance=1e-12,
+             r="""
+                 list(`patient 1 drug 2` = extra[group == "drug 2"][1], `average drug 2` = mean(extra[group == "drug 2"]))
+             """, r_tolerance=1e-12),
     ]
