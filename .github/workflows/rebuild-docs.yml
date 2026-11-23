@@ -3,6 +3,9 @@
 #   docs/manual/: the manual, the dictionary and the 30-day guide, .tex and .pdf, with figures/ and output/
 #                                     (docs/make_manual.py, which calls make_dictionary.py and make_30_days.py)
 #   validation/report.md              (validation/make_report.py, with R)
+#   the counts in README.md           (validation/update_readme_counts.py, from the rebuilt report)
+# GitHub's Linux runners are the one builder of these files: a build on another computer can differ in the last
+# digits of some numbers and in the count of machine-dependent precision-limit rows of the report.
 # The result is ONE artifact, "rebuild": rebuild.patch (git diff --binary against the commit that was built),
 # with base.txt, changed.txt, checks.txt and summary.md. The workflow never pushes (a commit pushed with
 # GITHUB_TOKEN starts no CI, and main's ruleset needs CI on the head commit): run
@@ -190,6 +193,9 @@ jobs:
         with:
           name: report
           path: validation
+      # The README's generated numbers (words, options, reliability checks, lines and calls) from the rebuilt report
+      - name: Update the counts in README.md
+        run: python validation/update_readme_counts.py
       - name: Make the patch
         run: |
           rm -f docs/manual/figures/* docs/manual/output/*

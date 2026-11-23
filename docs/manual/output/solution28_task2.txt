@@ -8,7 +8,7 @@ Compare the groups with the interaction test, not by which of the tests below ha
   within "class" red: "breakfast" F = 0.0710, df = 1 and 174; about 79 of 100 studies would show this much if the averages truly did not differ there (p = 0.790).
     averages: no 48.4 (95 % CI 44.1 to 52.7), yes 47.6 (95 % CI 43.9 to 51.4)
 Each pair of groups (difference, one pair, so nothing to adjust for):
-  blue: no minus yes: difference -5.88 (95 % CI -11.6 to -0.130); about 5 of 100 studies would show this much if the groups truly did not differ (p = 0.045).
+  blue: no minus yes: difference -5.87 (95 % CI -11.6 to -0.130); about 5 of 100 studies would show this much if the groups truly did not differ (p = 0.045).
   green: no minus yes: difference -4.76 (95 % CI -11.3 to 1.74); about 15 of 100 studies would show this much if the groups truly did not differ (p = 0.151).
   red: no minus yes: difference 0.767 (95 % CI -4.91 to 6.45); about 79 of 100 studies would show this much if the groups truly did not differ (p = 0.790).
 Method: the model lm(marks ~ class * breakfast), then R emmeans::emmeans(m, ~ breakfast | class) and contrast(e, method = "pairwise"), with emmeans' own adjustment for this method (none); joint_tests(m) and joint_tests(m, by = "class") for the F tests.

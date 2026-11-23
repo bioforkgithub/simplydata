@@ -24,6 +24,13 @@ report on every setup with `SIMPLYDATA_REQUIRE_R=1`, so there a missing R fails 
 runs the same checks (`tests/test_underneath.py`, `tests/test_validation.py`) on Windows, macOS and Linux
 with Python 3.11 to 3.13 for every change.
 
+**Where the committed files are built:** the generated files (this report, the manual, the dictionary, the
+30-day guide, `docs/how_simplydata_chooses.md` and the counts in the README) are built on GitHub's Linux runners
+by the workflow `.github/workflows/rebuild-docs.yml` (`python validation/update_readme_counts.py` writes the
+README's counts from the report). Counts of machine-dependent precision-limit rows (the explained differences,
+such as the NIST Wampler polynomials below) can differ by one or two on other machines, because the last digits
+depend on the computer's linear-algebra library.
+
 ## What is checked
 
 1. **Real data with published answers** (`cases.py`). Each word runs on real data, and what it gives is
