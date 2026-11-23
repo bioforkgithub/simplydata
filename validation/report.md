@@ -701,9 +701,9 @@ Note: The hardest NIST linear problem (condition number of the powers 1.8e15). s
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | b0 | NIST certified | 1.00000000058208 | 1 | at least 9 digits (LRE 9.2) | pass |
-| b0 standard error | NIST certified | 1.55712885651003e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b0 standard error | NIST certified | 1.55712885651003e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b1 | NIST certified | 0.999999999708962 | 1 | at least 9 digits (LRE 9.5) | pass |
-| b1 standard error | NIST certified | 1.70994272613356e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b1 standard error | NIST certified | 1.70994272613356e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b2 | NIST certified | 0.999999999949068 | 1 | at least 9 digits (LRE 10.3) | pass |
 | b2 standard error | NIST certified | 5.63826368184418e-10 | 0 | at least 9 digits (LRE 9.2) | pass |
 | b3 | NIST certified | 1.00000000001637 | 1 | at least 9 digits (LRE 10.8) | pass |
@@ -738,7 +738,7 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.0000000015134 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b0 | NIST certified | 1.0000000015134 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b0 standard error | NIST certified | 2152.32624678175 | 2152.3262467817 | at least 9 digits (LRE 13.6) | pass |
 | b1 | NIST certified | 0.999999999592546 | 1 | at least 9 digits (LRE 9.4) | pass |
 | b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.7) | pass |
@@ -776,13 +776,13 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000001234002 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b0 | NIST certified | 1.00000001234002 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b0 standard error | NIST certified | 21523262.4678171 | 21523262.467817 | at least 9 digits (LRE 14.2) | pass |
-| b1 | NIST certified | 1.00000001394073 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b1 | NIST certified | 1.00000001394073 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 15.0) | pass |
-| b2 | NIST certified | 0.999999991876393 | 1 | at least 9 digits (LRE 8.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b2 | NIST certified | 0.999999991876393 | 1 | at least 9 digits (LRE 8.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 14.8) | pass |
-| b3 | NIST certified | 1.00000000125374 | 1 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself |
+| b3 | NIST certified | 1.00000000125374 | 1 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b3 standard error | NIST certified | 1014755.0755035 | 1014755.0755035 | at least 9 digits (LRE 14.6) | pass |
 | b4 | NIST certified | 0.999999999925702 | 1 | at least 9 digits (LRE 10.1) | pass |
 | b4 standard error | NIST certified | 56456.6512170752 | 56456.6512170752 | at least 9 digits (LRE 15.0) | pass |
@@ -2056,15 +2056,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512527698748379 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736320299187 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774739407856 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192815000396 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877502611101 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215849612033 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208483925654 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549204945232 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246657204936 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528313303025 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736200138594 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774163467372 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192856668304 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877361358615 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.30521565458485 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.50220853359183 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549477475517 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246597207566 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
