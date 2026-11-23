@@ -1,5 +1,6 @@
 The average of "marks" is 64.91 (54 values).
 The average of "marks" for each "class": A 71.83, B 64.28, C 58.61.
 The biggest of "marks" for each "subject": English 81, Maths 91, Science 98.
-The correlation between "hours" and "marks" is r = 0.83 (Pearson, 54 rows): very strong, going up; values from 0.725 to 0.899 fit the data (95 % CI).
+Kept 18 of 54 rows.
+The correlation between "hours" and "marks" is r = 0.88 (Pearson, 18 rows): very strong, going up; values from 0.702 to 0.955 fit the data (95 % CI).
 If there were truly no link, a link this strong or stronger would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).

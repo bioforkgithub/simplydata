@@ -1,10 +1,11 @@
-The standard deviation of "marks" is 13.7 in A, 14.9 in B and 14.2 in C.
-If the groups truly had the same spread, differences in spread this big or bigger would turn up in about 91 of 100 studies like this one (p = 0.911). This does not show that the groups have the same spread.
-Test: Levene's test centred on the medians, the Brown-Forsythe form (F = 0.0937, df = 2 and 51), as R car::leveneTest() and SciPy levene(center="median"); it copes well with values that are not bell-shaped.
-Each pair of "class" groups compared on "marks" with Tukey's honest significant difference, as R TukeyHSD(aov(marks ~ class)): the p-values and 95 % confidence intervals hold for all 3 pairs at once, so the chance of any false alarm stays at 5 %. It assumes the groups have the same spread.
-  A vs B: the average of A is 7.56 higher (95 % CI -3.93 to 19.0); Tukey-adjusted p = 0.260.
-  A vs C: the average of A is 13.2 higher (95 % CI 1.74 to 24.7); Tukey-adjusted p = 0.020.
-  B vs C: the average of B is 5.67 higher (95 % CI -5.82 to 17.1); Tukey-adjusted p = 0.464.
+Kept 18 of 54 rows.
+The standard deviation of "marks" is 12.3 in A, 20.4 in B and 14.1 in C.
+If the groups truly had the same spread, differences in spread this big or bigger would turn up in about 61 of 100 studies like this one (p = 0.609). This does not show that the groups have the same spread.
+Test: Levene's test centred on the medians, the Brown-Forsythe form (F = 0.513, df = 2 and 15), as R car::leveneTest() and SciPy levene(center="median"); it copes well with values that are not bell-shaped.
+Each pair of "class" groups compared on "marks" with Tukey's honest significant difference, as R TukeyHSD(aov(marks ~ class)): the p-values and 95 % confidence intervals hold for all 3 pairs at once, so the chance of any false alarm is at most 5 %. It assumes the groups have the same spread.
+  A vs B: the average of A is 2.67 higher (95 % CI -21.3 to 26.6); Tukey-adjusted p = 0.955.
+  A vs C: the average of A is 14.0 higher (95 % CI -9.98 to 38.0); Tukey-adjusted p = 0.311.
+  B vs C: the average of B is 11.3 higher (95 % CI -12.6 to 35.3); Tukey-adjusted p = 0.456.
 Counts of "breakfast" (180 rows): yes 115 (expected 108), no 65 (expected 72.0). Cohen's w = 0.0794 (95 % CI 0 to 0.225).
 If the expected shares were true, differences this big or bigger from the expected counts would turn up in about 29 of 100 studies like this one (p = 0.287). This does not show that the expected shares are right.
 Test: chi-square goodness-of-fit test (chi-square = 1.13, df = 1), as R chisq.test(x, p = ...); the usual test of counts against expected shares.

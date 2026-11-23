@@ -14,7 +14,7 @@ them first.
 ## What simplydata handles
 
 **402 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 2751 reliability checks.** Every word hands the work to
+87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 2755 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
 `[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -25,10 +25,10 @@ Approximate, counted on 2026-11-21.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 773 names: 402 commands and 371 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 773 names: 402 commands and 371 options, about 93 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 2689 lines and 2333 function calls in the 413 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1099 lines and 1119 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
-| Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
+| Code per task | 2698 lines and 2342 function calls in the 413 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1113 lines and 1133 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) (you can also choose the method you want) |
 
 ### Packages underneath
 
@@ -153,11 +153,11 @@ R users, not packages simplydata needs.
 | Education | pupils in classes in schools (`explain(grouped_by=["school", "class"])`); comparing classes (`compare_averages_of`, `compare_each_pair_of`); the course itself: lessons, the 30-day course and plain words for teaching charts, tables and statistics (`sdata.show_lesson`, `sdata.start_30_days`) |
 
 Every number comes from the package named above. How much of that is checked, counted on 2026-11-23: the public
-[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 316 of the
-401 words with the package underneath and with R (2751 checks), and the separate test repository
+[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 317 of the
+401 words with the package underneath and with R (2755 checks), and the separate test repository
 [simplydata_tests](https://github.com/bioforkgithub/simplydata_tests#what-the-comparisons-found) makes 26,718
 comparisons on published reference data in 32 notebooks: 26,265 agree, 422 differ for a reason it explains, 29 are
-simplydata errors being fixed and 2 were skipped. The other 85 words are not compared in the reliability study yet. The
+simplydata errors being fixed and 2 were skipped. The other 84 words are not compared in the reliability study yet. The
 [manual](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf) has every word, with its
 "same underneath" code for the words that have it.
 
@@ -196,7 +196,7 @@ The design follows what the research on learning and on programming languages sa
   pandas, Polars, NumPy, SciPy, statsmodels or R code it runs underneath, so you can move on to those libraries
   whenever you want.
 - **Trust comes from checking.** simplydata does not compute statistics itself: every number comes from the
-  established package, and a public reliability study compares most words (316 of the 401 so far) with that
+  established package, and a public reliability study compares most words (317 of the 401 so far) with that
   package, with R and with published certified values.
 
 ### References

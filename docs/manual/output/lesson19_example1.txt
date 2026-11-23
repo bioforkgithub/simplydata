@@ -1,5 +1,7 @@
-"marks" goes up by 5.20 for each 1 more "hours" (95 % CI 4.24 to 6.17). R squared = 0.69: "hours" explains about 69 % of the differences in "marks".
+Kept 18 of 54 rows.
+"marks" goes up by 6.16 for each 1 more "hours" (95 % CI 4.40 to 7.91). R squared = 0.78: "hours" explains about 78 % of the differences in "marks".
 If there were truly no slope, a slope this steep or steeper would turn up in fewer than 1 in 1000 studies like this one (p < 0.0001).
-Line: marks = 5.20 * hours + 37.2, by least squares over 54 rows. A link does not show that one thing causes the other.
-Curve: marks = 31.0 + 8.26 * hours - 0.297 * hours**2 (each with its 95 % CI in the table); R squared = 0.70, adjusted 0.69.
+Line: marks = 6.16 * hours + 30.3, by least squares over 18 rows. A link does not show that one thing causes the other.
+Note: the distances from the line don't look bell-shaped (Shapiro-Wilk p = 0.011); the p-value and confidence intervals may be off.
+Curve: marks = 23.0 + 10.2 * hours - 0.420 * hours**2 (each with its 95 % CI in the table); R squared = 0.80, adjusted 0.77.
 Method: least squares on powers of hours, as R lm(marks ~ poly(hours, 2, raw = TRUE)).
