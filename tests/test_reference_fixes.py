@@ -333,3 +333,22 @@ def test_a17_spline_with_repeated_x_is_within_rs_rounding():
     t = sdata.table(pd.DataFrame({"wt": WEIGHT, "mpg": MPG}))
     got = [r["mpg"] for r in rows_of(t.values_at("mpg", at={"wt": at}, smoothness=0.001))]
     assert np.max(np.abs(np.asarray(got) - r_curve) / np.abs(r_curve)) < 2e-5
+
+
+@pytest.mark.parametrize("smoothness", [0.01, 0.001])
+def test_a17_spline_is_scipys_curve_at_the_same_lambda(smoothness, capsys):
+    # The package simplydata calls: SciPy make_smoothing_spline on the distinct weights (x mapped onto 0 to 1, as R
+    # does), the mpg of repeated weights averaged with weight = how many (as R smooth.spline). The gap to R is not
+    # about the repeats: with every weight made distinct (+ 1e-4 per row) R and SciPy still differ by 1.17e-5 at
+    # lambda = 0.01, and SciPy's curve gives the smaller penalised sum (checked 2026-11-23, R 4.6.2, SciPy 1.18.1).
+    from scipy.interpolate import make_smoothing_spline
+
+    ux, where, counts = np.unique(WEIGHT, return_inverse=True, return_counts=True)
+    uy = np.bincount(where, weights=MPG) / counts
+    at = np.linspace(min(WEIGHT), max(WEIGHT), 9)
+    scipy_curve = make_smoothing_spline((ux - ux[0]) / (ux[-1] - ux[0]), uy, w=counts.astype(float),
+                                        lam=smoothness)((at - ux[0]) / (ux[-1] - ux[0]))
+    t = sdata.table(pd.DataFrame({"wt": WEIGHT, "mpg": MPG}))
+    got = [r["mpg"] for r in rows_of(t.values_at("mpg", at={"wt": list(at)}, smoothness=smoothness))]
+    assert np.asarray(got) == pytest.approx(scipy_curve, rel=1e-12)
+    capsys.readouterr()

@@ -176,6 +176,50 @@ def test_misra1a_trust_region_and_dogbox_reach_nist_digits(method, capsys):
     capsys.readouterr()
 
 
+# NIST StRD Lanczos1 (public domain): y at x = 0, 0.05, ..., 1.15, generated to 14 digits from
+# 0.0951 exp(-x) + 0.8607 exp(-3x) + 1.5576 exp(-5x); certified estimates and standard errors (start 2: 0.5, 0.7, 3.6,
+# 4.2, 4, 6.3)
+LANCZOS1_Y = [2.5134, 2.044333373291, 1.668404436564, 1.366418021208, 1.123232487372, 0.9268897180037,
+              0.7679338563728, 0.6388775523106, 0.5337835317402, 0.4479363617347, 0.377584788435, 0.3197393199326,
+              0.2720130773746, 0.2324965529032, 0.1996589546065, 0.1722704126914, 0.1493405660168, 0.1300700206922,
+              0.1138119324644, 0.1000415587559, 0.0883320908454, 0.0783354401935, 0.06976693743449,
+              0.06239312536719]
+LANCZOS1 = {"b1": (9.5100000027e-02, 5.3347304234e-11), "b2": (1.0000000001e00, 2.7473038179e-10),
+            "b3": (8.6070000013e-01, 1.3576062225e-10), "b4": (3.0000000002e00, 3.3308253069e-10),
+            "b5": (1.5575999998e00, 1.8815731448e-10), "b6": (5.0000000001e00, 1.1057500538e-10)}
+
+
+@pytest.mark.parametrize("method", ["trust region", "dogbox", "levenberg-marquardt"])
+def test_lanczos1_standard_errors_stop_at_the_double_precision_limit(method, capsys):
+    # The residual standard deviation is 8.9e-14: the residuals are the rounding of the generated y to 13 digits, and
+    # evaluating the formula in double precision moves each of them by about 1e-16 (adding the three terms in another
+    # order moves the residual SD in its 4th digit). So the residual SD, and every standard error with it, agree with
+    # NIST to 3 to 3.6 digits with all three methods, while the estimates reach 10 (simplydata_tests notebook 27:
+    # 3.34 and 3.57 on Ubuntu, 3.5 for the default method; FINDINGS B1). The values are SciPy curve_fit's.
+    from scipy import optimize
+
+    x = np.arange(24) * 0.05
+    y = np.asarray(LANCZOS1_Y)
+    start = {"b1": 0.5, "b2": 0.7, "b3": 3.6, "b4": 4.2, "b5": 4.0, "b6": 6.3}
+    data = sdata.table({"y": LANCZOS1_Y, "x": list(x)})
+    result = data.fit_formula("y = b1*exp(-b2*x) + b3*exp(-b4*x) + b5*exp(-b6*x)", start=start, test_method=method)
+    for name, (estimate, error) in LANCZOS1.items():
+        assert _lre(result.get_cell_at(row=1, column=name), estimate) >= 10
+        assert _lre(result.get_cell_at(row=1, column=f"standard error of {name}"), error) >= 2.9
+    # the package underneath, called with the options simplydata passes, gives the same numbers
+    if method == "levenberg-marquardt":
+        options = {"method": "lm", "maxfev": 20000, "xtol": 1e-12, "ftol": 1e-12}
+    else:
+        options = {"method": {"trust region": "trf", "dogbox": "dogbox"}[method], "max_nfev": 20000, "xtol": 1e-15,
+                   "ftol": 1e-15, "gtol": 1e-15, "jac": "3-point", "diff_step": np.finfo(float).eps ** (1 / 3)}
+    found, cov = optimize.curve_fit(lambda x, b1, b2, b3, b4, b5, b6: b1 * np.exp(-b2 * x) + b3 * np.exp(-b4 * x)
+                                    + b5 * np.exp(-b6 * x), x, y, p0=list(start.values()), **options)
+    for name, value, error in zip(start, found, np.sqrt(np.diag(cov))):
+        assert result.get_cell_at(row=1, column=name) == pytest.approx(value, rel=1e-9)
+        assert result.get_cell_at(row=1, column=f"standard error of {name}") == pytest.approx(error, rel=1e-2)
+    capsys.readouterr()
+
+
 # ---------------------------------------------------------------- A22: MASE on the seasonal scale
 def test_compare_forecasts_scales_mase_by_the_same_season_last_time(needs_r, capsys):
     # R: y <- ts(co2[1:456], frequency = 12); f <- forecast(HoltWinters(y), 12)
