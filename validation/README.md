@@ -38,6 +38,8 @@ with Python 3.11 to 3.13 for every change.
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
    rows left, an exact line): 3 of the 606 cases, each labelled *made-up* in the report.
+   Words that take no data at all (a system, a wave, a window shape) are checked against the answer
+   worked out by hand from their formula; the report labels them *closed form*.
 
    Each check states its tolerance and why: about 1e-9 (relative) for a calculation with no iteration and
    no random numbers; the NIST digits above, or the same method run to convergence, for an iterative fit;
@@ -47,13 +49,13 @@ with Python 3.11 to 3.13 for every change.
    a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
    difference*, with its reason, and counted apart from the passes and the failures.
 
-2. **The same underneath** (`src/simplydata/_underneath/`). For 355 of simplydata's 402 words (468
+2. **The same underneath** (`src/simplydata/_underneath/`). For 402 of simplydata's 402 words (517
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 336 of the 468 run on made-up
-   practice tables (all practice tables are made up; 132 need no table). The report counts them together with the cases of
+   it says it makes; they are not checks against an independent answer, and 358 of the 517 run on made-up
+   practice tables (all practice tables are made up; 159 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
@@ -68,38 +70,23 @@ when its checks pass.
 
 ### Which words are compared, and where
 
-simplydata has 400 words (and 2 options listed as words, `show=` and `error=`). Of the 400:
+simplydata has 402 words (and 2 options listed as words, `show=` and `error=`). Every one of the 402 has a
+same-underneath box (part 2). Of the 402:
 
-- **347 are compared with a reference here**: 349 have a case on real data (part 1) and 317 a same-underneath box (part
-  2); together they cover 362 words, and 347 of these compare a number, a table or a drawn chart with a reference.
-- **15 have nothing to compare** (counted among the 362 because each has a box): the help and learning words
-  `sdata.help`, `sdata.show_all_words`, `sdata.show_lesson`, `sdata.show_day`, `sdata.show_today`, `sdata.show_answers`,
-  `sdata.start_30_days`, `sdata.go_to_next_day`, `sdata.show_packages_used`, and the steps words `table.undo`,
-  `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps` and `nums.start_again`. They print help, a
-  lesson, the list of packages used or the steps taken, or put a table back as it was: they compute no number, so there
-  is no published answer or parent package to compare them with. Their box is run to show that it runs, and the report
-  marks it "none".
-- **38 are compared only in the separate test study** (the notebooks of `simplydata_tests`, 26,718 comparisons, each
-  difference explained), not here:
-  - notebook 12 (factor analysis) and 21 (agreement and diagnostic tests): `table.reliability_of`;
-  - notebook 19 (averages, spreads and shapes): `sdata.compare_averages`, `table.compare_shapes_of`,
-    `table.check_if_random_order`;
-  - notebook 20 (counts, pairs, matched columns): `sdata.compare_counts`, `table.compare_counts_to`,
-    `table.compare_correlations`;
-  - notebook 21: `table.agreement_between`, `table.limits_of_agreement`, `table.compare_to_truth`,
-    `sdata.compare_to_truth`, `table.compare_accuracy`;
-  - notebook 22 (risks and rates): `sdata.compare_risks`, `sdata.compare_rates`;
-  - notebook 23 (distributions): `nums.fit_distribution`, `table.compare_distributions_for` and the distribution words
-    `dist.find_density_at`, `dist.find_cut_off`, `dist.find_middle_range`, `dist.find_average`, `dist.find_median`,
-    `dist.find_standard_deviation`, `dist.find_variance`, `dist.show_summary`, `dist.show_parameters`,
-    `dist.make_random_numbers`, `dist.draw_chart` and `dist.turn_into_table` (also in notebook 13);
-  - notebook 24 (charts): `difference_dots`;
-  - notebook 28 (patterns across columns): `table.find_principal_components_of`;
-  - notebook 29 (forecasts, smoothing, trend): `nums.smooth`, `nums.remove_trend`, `nums.find_autocorrelation`,
-    `nums.forecast`, `table.add_trend_and_season`, `table.check_steady_over_time`, `table.find_change_points_in`,
-    `table.compare_forecasts_for`.
+- **386 are compared with a reference here**: each has a case (part 1), and its box compares a number, a table or a
+  drawn chart with the package underneath.
+- **16 have nothing to compare**: the help and learning words `sdata.help`, `sdata.show_all_words`,
+  `sdata.show_lesson`, `sdata.show_day`, `sdata.show_today`, `sdata.show_answers`, `sdata.start_30_days`,
+  `sdata.go_to_next_day`, `sdata.show_packages_used`, the steps words `table.undo`, `table.show_steps`,
+  `table.start_again`, `nums.undo`, `nums.show_steps` and `nums.start_again`, and `dist.show_parameters`, which gives
+  back the parameters it was given. They print help, a lesson, the list of packages used or the steps taken, or put a
+  table back as it was: they compute no number, so there is no published answer or parent package to compare them
+  with. Their box is run to show that it runs, and the report marks it "none".
 
-No word is left without a comparison. The other 46 words had no case here before 2026-11-23: cycles, peaks, filters,
+The separate test study (the notebooks of `simplydata_tests`, 26,718 comparisons, each difference explained) compares
+many of these words a second time, on other published data.
+
+No word is left without a comparison. 46 words had no case here before 2026-11-23: cycles, peaks, filters,
 the Fourier transform, the time-series charts, joining the dots, solving and optimising, waves and linear systems. 5 of
 them, the chart words `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`, `trend_and_season` and `forecast`,
 were already compared in notebook 29 of the test study; the other 41 were compared nowhere. All 46 now have a case in

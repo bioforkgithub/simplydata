@@ -232,7 +232,7 @@ def test_readme_counts_of_the_study_are_true():
     assert f"They cover {len(words)} words, or {len(options)} words and options" in text
     assert f"{kinds['made-up']} of the {len(study.CASES)} cases, each labelled" in text
     all_words = [k for _, keys in learn.GROUPS for k in keys if learn._kind(k) != "option"]
-    with_entry = {k.split(" ")[0] for k in UNDERNEATH}
+    with_entry = {k.split(" ")[0] for k in UNDERNEATH} & set(all_words)  # words only, not show= and error=
     assert f"For {len(with_entry)} of simplydata's {len(all_words)} words ({len(UNDERNEATH)} entries" in text
     tables = [getattr(e, "data", None) for e in UNDERNEATH.values()]
     from simplydata.data import EXAMPLES
