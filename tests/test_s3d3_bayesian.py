@@ -17,6 +17,7 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 from simplydata.table import bayes_r, bayes_words
 
@@ -26,12 +27,12 @@ VERDICT_WORDS = re.compile(r"significant|strong evidence|moderate evidence|anecd
 
 
 def _sleep():
-    d = pd.read_csv(DATA / "sleep.csv")
+    d = r_table("sleep.csv")
     return sdata.table(d.assign(group=d["group"].map({1: "drug 1", 2: "drug 2"})))
 
 
 def _sleep_wide():
-    d = pd.read_csv(DATA / "sleep.csv")
+    d = r_table("sleep.csv")
     return sdata.table(pd.DataFrame({"drug_1": d["extra"][:10].to_numpy(), "drug_2": d["extra"][10:].to_numpy()}))
 
 
@@ -76,7 +77,7 @@ def test_two_groups_give_the_bayes_factor_and_the_interval(needs_bayesfactor, ca
 
 def test_the_interval_is_r_with_the_same_seed(needs_bayesfactor):
     r = _sleep().compare_averages_of("extra", for_each_group_in="group", test_method="bayesian", with_seed=7).as_pandas()
-    d = pd.read_csv(DATA / "sleep.csv")
+    d = r_table("sleep.csv")
     from simplydata._r import r_call
 
     found = r_call('b <- BayesFactor::ttestBF(x = x, y = y, rscale = "medium"); '
@@ -93,7 +94,7 @@ def test_the_interval_is_within_monte_carlo_error_of_a_long_run(needs_bayesfacto
     # on these draws, 2026-11-21). A run of 200,000 draws (MCSE about a fifth of those) is the reference; four MCSE
     # of the short run leave a chance below 1 in 10,000 of a false failure for a correct interval.
     r = _sleep().compare_averages_of("extra", for_each_group_in="group", test_method="bayesian").as_pandas()
-    d = pd.read_csv(DATA / "sleep.csv")
+    d = r_table("sleep.csv")
     from simplydata._r import r_call
 
     long = r_call('b <- BayesFactor::ttestBF(x = x, y = y, rscale = "medium"); set.seed(2); '
@@ -131,7 +132,7 @@ def test_prior_width_changes_the_bayes_factor_and_is_printed(needs_bayesfactor, 
 
 
 def test_correlation_and_counts(needs_bayesfactor, capsys):
-    m = sdata.table(pd.read_csv(DATA / "mtcars.csv"))
+    m = sdata.table(r_table("mtcars.csv"))
     r = m.find_correlation_between("mpg", "wt", test_method="bayesian").as_pandas()
     assert r["Bayes factor"][0] == pytest.approx(1.3286626e7, rel=1e-6)
     assert r["prior width"][0] == pytest.approx(1 / 3)
@@ -139,12 +140,12 @@ def test_correlation_and_counts(needs_bayesfactor, capsys):
     out = capsys.readouterr().out
     assert "more than a million times as likely" in out and "JASP's default width is 1" in out
     _plain_rules(out)
-    c = sdata.table(pd.read_csv(DATA / "mtcars.csv").astype({"am": str, "vs": str}))
+    c = sdata.table(r_table("mtcars.csv").astype({"am": str, "vs": str}))
     r = c.compare_counts_of("am", for_each_group_in="vs", test_method="bayesian").as_pandas()
     assert r["Bayes factor"][0] == pytest.approx(0.6313164, rel=1e-6)
     from simplydata._r import r_call
 
-    mt = pd.read_csv(DATA / "mtcars.csv")
+    mt = r_table("mtcars.csv")
     same = r_call("tab <- table(factor(vs), factor(am)); "
                   "b <- BayesFactor::contingencyTableBF(tab, sampleType = 'indepMulti', fixedMargin = 'rows'); "
                   "set.seed(1, kind = 'Mersenne-Twister', normal.kind = 'Inversion', sample.kind = 'Rejection'); "
@@ -175,7 +176,7 @@ def test_correlation_and_counts(needs_bayesfactor, capsys):
      "Give test_method= only once (bayesian= is its old name)"),
 ])
 def test_wrong_bayesian_calls_are_explained(call, message):
-    t = sdata.table(pd.read_csv(DATA / "sleep.csv").assign(group=lambda d: d["group"].astype(str)))
+    t = sdata.table(r_table("sleep.csv").assign(group=lambda d: d["group"].astype(str)))
     with pytest.raises(SimplydataError, match=re.escape(message)):
         call(t)
 
@@ -188,7 +189,7 @@ def test_numpy_false_keeps_the_usual_test(capsys):
 
 def test_polars_tables_work_the_bayesian_way(needs_bayesfactor):
     pl = pytest.importorskip("polars")
-    d = pd.read_csv(DATA / "sleep.csv")
+    d = r_table("sleep.csv")
     pandas_answer = _sleep().compare_averages_of("extra", for_each_group_in="group", test_method="bayesian").as_pandas()
     t = sdata.table(pl.from_pandas(d.assign(group=d["group"].map({1: "drug 1", 2: "drug 2"}))))
     polars_answer = t.compare_averages_of("extra", for_each_group_in="group", test_method="bayesian").as_pandas()
@@ -250,7 +251,7 @@ def test_warnings_come_before_the_estimates(needs_rstanarm, monkeypatch, capsys)
 
 
 def test_explain_matches_r_and_a_long_run(needs_rstanarm, capsys):
-    mt = pd.read_csv(DATA / "mtcars.csv")
+    mt = r_table("mtcars.csv")
     r = sdata.table(mt).explain("mpg", using=["wt", "hp"], test_method="bayesian").as_pandas().set_index("term")
     out = capsys.readouterr().out
     prior = out[out.index("Prior used"):out.index("Convergence:")]
@@ -273,7 +274,7 @@ def test_explain_matches_r_and_a_long_run(needs_rstanarm, capsys):
 
 
 def test_yes_or_no_gives_odds_ratios_and_the_mixed_model_runs(needs_rstanarm, capsys):
-    mt = pd.read_csv(DATA / "mtcars.csv")
+    mt = r_table("mtcars.csv")
     r = sdata.table(mt).explain("am", using=["wt"], outcome="yes or no", test_method="bayesian").as_pandas()
     from simplydata._r import r_call
 

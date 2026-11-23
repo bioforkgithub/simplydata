@@ -153,7 +153,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error", "p-value"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("REML, nlme's default, for the effects.",
                  "a group column gives each group its own spread (varIdent); a number column would give a spread "
                  "that grows as a power of it (varPower)."),
@@ -193,7 +193,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("evenly spaced values give the AR(1) correlation (corAR1), each step one step apart; uneven gaps "
                  "give corCAR1, which allows for the size of each gap.",),
         python_note="statsmodels GLSAR iterates instead of maximising the likelihood, so the model comes from R nlme.",

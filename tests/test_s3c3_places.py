@@ -14,11 +14,14 @@ import pytest
 from scipy import stats
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 
 
 def _table(name):
-    return sdata.table(sdata.get_example(name))
+    """A practice table; for sea_levels the real Port Pirie series, read from R ismev, whose published answers the
+    tests check (the practice table itself is made up since 2026-11-22)."""
+    return sdata.table(r_table(name) if name == "sea_levels" else sdata.get_example(name))
 
 
 def _r(code):
@@ -40,13 +43,15 @@ def test_stations_and_rain_are_made_up_and_say_so():
     assert len(sdata.get_example("rain")) == 3653
 
 
-def test_sea_levels_are_the_published_port_pirie_series():
+def test_sea_levels_are_made_up_like_the_port_pirie_series(needs_r):
     from simplydata.data import EXAMPLES
 
-    assert EXAMPLES["sea_levels"][0].startswith("REAL DATA") and "Coles" in EXAMPLES["sea_levels"][0]
-    frame = sdata.get_example("sea_levels")
-    assert len(frame) == 65 and frame["year"].tolist() == list(range(1923, 1988))
-    assert frame["sea_level"].iloc[:4].tolist() == [4.03, 3.83, 3.65, 3.88]
+    assert EXAMPLES["sea_levels"][0].startswith("MADE-UP DATA") and "Coles" in EXAMPLES["sea_levels"][0]
+    made_up = sdata.table(sdata.get_example("sea_levels"))
+    assert len(made_up.get_column("year")) == 65 and made_up.get_cell_at(row=1, column="year") == 1923
+    real = r_table("sea_levels")  # the published series (Coles 2001, section 3.4.1), from R ismev
+    assert len(real) == 65 and real["year"].tolist() == list(range(1923, 1988))
+    assert real["sea_level"].iloc[:4].tolist() == [4.03, 3.83, 3.65, 3.88]
 
 
 # ---------------------------------------------------------------- AC01: circular summaries
@@ -249,7 +254,7 @@ def test_return_level_refusals_need_no_r():
 
 
 def test_yearly_maxima_with_their_dates_are_block_maxima(needs_r):
-    frame = sdata.get_example("sea_levels")
+    frame = r_table("sea_levels")
     rng = np.random.default_rng(5)
     days = pd.to_datetime([f"{y}-01-01" for y in frame["year"]]) + pd.to_timedelta(rng.integers(0, 365, len(frame)),
                                                                                     unit="D")
@@ -278,7 +283,8 @@ def test_values_above_a_threshold(needs_r, capsys):
     x = sdata.get_example("rain")["rain"].to_numpy(dtype=float)
     from simplydata._r import r_call
 
-    found = r_call("f <- extRemes::fevd(x, threshold = 20, type = 'GP', time.units = 'days'); "
+    found = r_call("f <- extRemes::fevd(x, threshold = 20, type = 'GP', time.units = 'days', "
+                   "optim.args = list(method = 'BFGS', control = list(reltol = 1e-12))); "
                    "as.numeric(extRemes::return.level(f, return.period = 10))", packages=(), x=x)
     assert result["level"][0] == pytest.approx(float(np.atleast_1d(found)[0]), rel=1e-9)
     out = capsys.readouterr().out
@@ -290,7 +296,7 @@ def test_gev_fit_keeps_xi_and_matches_scipy_with_c_turned_round():
     fit = _table("sea_levels").fit_distribution_to("sea_level", "gev")
     shape = fit.turn_into_table().as_pandas()["shape"][0]
     assert shape == pytest.approx(-0.0501095, abs=2e-5)  # extRemes / Coles: xi = -0.050
-    x = sdata.get_example("sea_levels")["sea_level"].to_numpy(dtype=float)
+    x = r_table("sea_levels")["sea_level"].to_numpy(dtype=float)
     c, loc, scale = stats.genextreme.fit(x)
     assert -c == pytest.approx(shape, abs=2e-3)
     assert fit.find_percentile(99) == pytest.approx(

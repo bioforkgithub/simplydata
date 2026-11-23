@@ -1381,7 +1381,10 @@ BASIS["dist.find_chance_that_value"] = _b(
 BASIS["table.explain"] = _b(
     "A linear model by least squares (as R lm()), with t-based 95 % intervals, R squared and the F test. Group "
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
-    "itself.",
+    "itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's "
+    "summary.lm() takes them, with chol2inv() (R's own method, done here with NumPy's QR and LAPACK's dpotri, the "
+    "routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on "
+    "nearly collinear columns (NIST Longley).",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
     "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "
@@ -2872,7 +2875,9 @@ BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "weighting); rows left without a match are counted and named in a note.", "convention")
 BASIS['table.compare_risks show="attributable fractions"'] = _b(
     "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
-    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "\"cohort.count\"), with the intervals epiR gives for one table (among the exposed, from the score interval of "
+    "the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with "
+    "fewer events, the "
     "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
     "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
     "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "

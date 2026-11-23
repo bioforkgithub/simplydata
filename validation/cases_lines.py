@@ -76,6 +76,27 @@ def _datasets(Dataset):
                 "difficulty: the powers of x are nearly in proportion)",
                 "Filippelli, A., NIST. In: NIST StRD, Linear Regression, dataset Filip.", nist,
                 "https://www.itl.nist.gov/div898/strd/lls/data/Filip.shtml"),
+        Dataset("NIST Longley", "nist/Longley.dat",
+                "16 years of US macroeconomic data (1947-1962): total employment and six predictors that move almost "
+                "together; certified multiple regression (NIST StRD linear regression, higher difficulty)",
+                "Longley, J. W. (1967). An appraisal of least squares programs for the electronic computer from the "
+                "viewpoint of the user. Journal of the American Statistical Association 62, 819-841. In: NIST StRD, "
+                "Linear Regression, dataset Longley.", nist,
+                "https://www.itl.nist.gov/div898/strd/lls/data/Longley.shtml"),
+        *[Dataset(f"NIST {name}", f"nist/{name}.dat",
+                  f"21 points (x = 0 to 20) {what}; certified polynomial of "
+                  "degree 5 (NIST StRD linear regression, higher difficulty)",
+                  f"Wampler, R. H. (1970). A report on the accuracy of some widely used least squares computer "
+                  f"programs. Journal of the American Statistical Association 65, 549-565. In: NIST StRD, Linear "
+                  f"Regression, dataset {name}.", nist,
+                  f"https://www.itl.nist.gov/div898/strd/lls/data/{name}.shtml")
+          for name, what in {"Wampler1": "exactly on y = 1 + x + x^2 + x^3 + x^4 + x^5 (certified standard errors 0)",
+                             "Wampler2": "exactly on y = 1 + 0.1 x + 0.01 x^2 + ... + 0.00001 x^5",
+                             "Wampler3": "on y = 1 + x + ... + x^5 plus noise (residual standard deviation 2360)",
+                             "Wampler4": "on y = 1 + x + ... + x^5 plus larger noise (residual standard deviation "
+                                         "236,000)",
+                             "Wampler5": "on y = 1 + x + ... + x^5 plus noise far larger than the curve (residual "
+                                         "standard deviation 23,600,000)"}.items()],
         Dataset("NIST Roszman1", "nist/Roszman1.dat",
                 "quantum defects in iodine atoms (25 points); certified fit of y = b1 - b2 x - arctan(b3 / (x - b4)) "
                 "/ pi (NIST StRD, average difficulty)",
@@ -154,6 +175,22 @@ def read_certified_polynomial(file: str, data_dir) -> dict[str, float]:
     return found
 
 
+# NIST Wampler1, 3, 4 and 5: simplydata agrees with the certified values to about 8 to 9 digits on these numbers (NIST
+# asks 9). Tested 2026-11-22: no existing least-squares routine gets them all past 9 digits without losing digits on
+# Filip or Wampler5 (on the raw powers: LAPACK gelsd, gelsy and gelss through SciPy lstsq, NumPy's QR as R lm() fits
+# them; on the mapped powers: NumPy Polynomial.fit). So they are reported as explained differences, not hidden.
+WAMPLER_LIMIT = ("the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which "
+                 "adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on "
+                 "the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached "
+                 "varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and "
+                 "7.1 on Wampler5)")
+# Every estimate and standard error of these four is listed: how many digits they reach varies with the computer's
+# linear-algebra library (BLAS/LAPACK), from about 8.4 (Wampler1, macOS) and 7.1 (Wampler5, Ubuntu and Windows) on
+# GitHub's runners to about 9 on Windows here, so which numbers fall short depends on the machine.
+_TERMS = tuple(f"b{j}" for j in range(6)) + tuple(f"b{j} standard error" for j in range(6))
+EXPLAINED_WAMPLER = {name: _TERMS for name in ("Wampler1", "Wampler3", "Wampler4", "Wampler5")}
+
+
 def _cases(Case, data_dir):
     def cert(file, name):
         return (read_certified_nonlinear(file, data_dir)[name], "lre:6", "NIST certified")
@@ -170,14 +207,27 @@ def _cases(Case, data_dir):
                  {"b": t["b (steepness)"], "c": t["c (lower limit)"], "d": t["d (upper limit)"], "ED10": t["ED10"],
                   "ED50": t["ED50"], "ED90": t["ED90"], "ED50 95 % CI low": low["ED50"]}
              """,
+             parent="""
+                 from scipy.optimize import curve_fit
+                 def ll4(x, b, c, d, e):
+                     with np.errstate(divide="ignore"):
+                         return c + (d - c) / (1 + np.exp(b * (np.log(x) - np.log(e))))
+                 (b, c, d, e), _ = curve_fit(ll4, data["conc"], data["rootl"], p0=[3, 0.5, 7.8, 3],
+                                             xtol=1e-15, ftol=1e-15, gtol=1e-15, maxfev=100000)
+                 {"b": b, "c": c, "d": d, "ED10": e * (10 / 90) ** (1 / b), "ED50": e, "ED90": e * 9 ** (1 / b)}
+             """, parent_label="SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit)",
+             parent_tolerance=2e-6,
              r="""
-                 m <- drc::drm(rootl ~ conc, fct = drc::LL.4())
+                 m <- drc::drm(rootl ~ conc, fct = drc::LL.4(), control = drc::drmc(relTol = 1e-15))
                  e <- drc::ED(m, c(10, 50, 90), interval = "delta", display = FALSE)
                  list(b = coef(m)[1], c = coef(m)[2], d = coef(m)[3], ED10 = e[1, 1], ED50 = e[2, 1], ED90 = e[3, 1],
                       `ED50 95 % CI low` = e[2, 3])
              """, r_packages=("drc",), r_tolerance=1e-9,
-             note="Python has no dose-response package with drc's ED intervals, so R drc itself is the second "
-                  "calculation. Ritz et al. (2015) analyse these data with the same LL.4 model."),
+             note="Python has no dose-response package with drc's ED intervals, so R drc itself gives the intervals; "
+                  "SciPy curve_fit, run to 1e-15, is the independent fit of the curve. The optimum is flat (the "
+                  "residual sum of squares of the two fits agrees to 1e-12), so the estimates agree to about 1e-6. "
+                  "drc's default stopping rule (relTol 1e-7) stopped 1e-6 to 1.4e-5 short; simplydata asks for "
+                  "1e-15. Ritz et al. (2015) analyse these data with the same LL.4 model."),
         Case("table.fit_dose_response", "Bliss's beetles: LD50 from the logistic curve on log dose (yes or no)",
              "Bliss beetles", "published", option='outcome="yes or no"', ours_r=("drc",),
              ours="""
@@ -208,7 +258,7 @@ def _cases(Case, data_dir):
                  {"points": len(x), "curve at the highest dose": y[-1], "curve at dose 0": y[0]}
              """,
              r="""
-                 m <- drc::drm(rootl ~ conc, fct = drc::LL.4())
+                 m <- drc::drm(rootl ~ conc, fct = drc::LL.4(), control = drc::drmc(relTol = 1e-15))
                  list(points = 301, `curve at the highest dose` = predict(m, data.frame(conc = max(conc))),
                       `curve at dose 0` = predict(m, data.frame(conc = 0)))
              """, r_packages=("drc",), r_tolerance=1e-9),
@@ -274,6 +324,35 @@ def _cases(Case, data_dir):
                   "onto [-1, 1] and turns the answer back into the raw powers with statsmodels t_test(); a QR fit on "
                   "the raw powers (simplydata 0.2.0) gave no standard errors for b5 to b10, and R lm() drops two "
                   "terms."),
+        *[Case("table.fit_curve", f"{name}: a polynomial of degree 5, {what} (NIST certified)",
+               f"NIST {name}", "published",
+               ours="""
+                   r = sdata.table(data).fit_curve(x="x", y="y", of_degree=5)
+                   {**{f"b{j}": v for j, v in enumerate(r.get_column("estimate"))},
+                    **{f"b{j} standard error": v for j, v in enumerate(r.get_column("standard error"))}}
+               """,
+               published={n: (v, "lre", "NIST certified")
+                          for n, v in read_certified_polynomial(f"nist/{name}.dat", data_dir).items()},
+               explained={n: WAMPLER_LIMIT for n in EXPLAINED_WAMPLER.get(name, ())},
+               note="simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer "
+                    "back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 "
+                    "lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an "
+                    "explained difference may fall a little short of 9 digits; the reason is given with it.")
+          for name, what in {"Wampler1": "points exactly on the curve",
+                             "Wampler2": "points exactly on a curve with small coefficients",
+                             "Wampler3": "with noise", "Wampler4": "with large noise",
+                             "Wampler5": "with noise far larger than the curve"}.items()],
+        Case("table.explain", "Longley: six predictors that move almost together (NIST certified)",
+             "NIST Longley", "published",
+             ours="""
+                 r = sdata.table(data).explain("y", using=["x1", "x2", "x3", "x4", "x5", "x6"])
+                 {**{f"b{j}": v for j, v in enumerate(r.get_column("effect"))},
+                  **{f"b{j} standard error": v for j, v in enumerate(r.get_column("standard error"))}}
+             """,
+             published={n: (v, "lre", "NIST certified")
+                        for n, v in read_certified_polynomial("nist/Longley.dat", data_dir).items()},
+             note="The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor; statsmodels' own "
+                  "inv(R'R) after its QR fit gave only 7.97 to 9.42 digits here."),
         Case("table.fit_formula", "Roszman1: a formula with arctan, from NIST's start 1 (NIST certified)",
              "NIST Roszman1", "published",
              ours="""

@@ -1,7 +1,7 @@
 """Directions, places and extremes (phase S3c-3): the new words find_average_direction_of, find_variogram_of,
 find_return_levels_of, draw_variogram and draw_threshold_check, and one entry for each new option or value that
 changes what a word calls (keyed by word and option), on the practice tables "stations" (made up), "rain" (made up)
-and "sea_levels" (real: Port Pirie, Coles 2001).
+and "sea_levels" (made up after Port Pirie, Coles 2001).
 """
 
 from . import Entry
@@ -282,8 +282,10 @@ ENTRIES = [
         code={
             "R": """
                 # find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date")
-                f <- extRemes::fevd(x, threshold = 20, type = "GP",
-                                    time.units = "days")                                   # (1)
+                f <- extRemes::fevd(x, threshold = 20, type = "GP", time.units = "days",  # (1)
+                                    optim.args = list(method = "BFGS",
+                                                      control = list(reltol = 1e-12,
+                                                                     maxit = 10000)))   # (3)
                 rl <- extRemes::return.level(f, return.period = 10, do.ci = TRUE)
                 w <- rl[3] - rl[1]
                 p <- extRemes::ci.fevd(f, type = "return.level", return.period = 10,
@@ -298,7 +300,9 @@ ENTRIES = [
         r_inputs=RAIN, r_packages=("extRemes",), compare="result", fields=("level", "95 % CI low", "95 % CI high"),
         tolerance=1e-9,
         choices=("the readings per year from the dates: daily readings are time.units = \"days\" (365.25 a year).",
-                 PROFILE),
+                 PROFILE,
+                 "a tighter stopping rule for optim (reltol 1e-12) than its default, so that the fit has converged; "
+                 "the method is the same."),
         python_note=EXTREMES_NOTE,
         also="simplydata also gives the extremal index (extRemes::extremalindex) and, below 0.7, says the values above "
              "come in runs; it does not decluster without asking.",
@@ -344,7 +348,8 @@ ENTRIES = [
         code={
             "R": """
                 # fit_distribution_to("sea_level", distribution="gev")
-                f <- extRemes::fevd(x, type = "GEV", method = "MLE")   # (1)
+                f <- extRemes::fevd(x, type = "GEV", method = "MLE",   # (1)
+                                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
                 p <- f$results$par
                 list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
             """,
@@ -353,7 +358,8 @@ ENTRIES = [
             """,
         },
         r_inputs=SEALEVEL, r_packages=("extRemes",), compare="result", fields=("location", "scale", "shape"),
-        tolerance=1e-4,
+        # SciPy fit + polish against extRemes run to reltol 1e-14: two optimisers, both converged, agree to 1e-7
+        tolerance=1e-6,
         choices=("the shape kept in the sign of extRemes and Coles (xi); SciPy's genextreme, which simplydata uses for "
                  "the numbers, takes c = -xi.",),
         python_note="simplydata fits it with SciPy (genextreme.fit, then a numerical polish of the likelihood); "
@@ -373,7 +379,8 @@ ENTRIES = [
         code={
             "R": """
                 # fit_distribution_to("excess", distribution="generalised pareto") on the rain above 20
-                f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE")   # (1)
+                f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE",   # (1)
+                                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
                 p <- f$results$par
                 list(scale = p[["scale"]], shape = p[["shape"]])
             """,
@@ -381,7 +388,8 @@ ENTRIES = [
                 {"scale": scale, "shape": shape}
             """,
         },
-        r_inputs=RAIN, r_packages=("extRemes",), compare="result", fields=("scale", "shape"), tolerance=1e-4,
+        r_inputs=RAIN, r_packages=("extRemes",), compare="result", fields=("scale", "shape"), tolerance=1e-5,
+        # SciPy genpareto + polish against extRemes run to reltol 1e-14: two optimisers, both converged, agree to 1e-6
         choices=("the shape in the sign of extRemes, Coles and SciPy's genpareto (xi), with the threshold at 0: the "
                  "values are the amounts above a threshold.",),
         python_note="simplydata fits it with SciPy (genpareto.fit with loc = 0, then a numerical polish of the "

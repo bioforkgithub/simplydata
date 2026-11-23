@@ -65,7 +65,9 @@ def attributable_rows(counts, ref, level, what, group_column):
     print(f"{what}: {listed}. Exposed: {exposed}; not exposed: {ref} (against=).")
     found = attributable(counts[exposed], counts[ref], level)
     af, paf, rr = found["af"], found["paf"], found["rr"]
-    method = 'R epiR::epi.2by2(method = "cohort.count"), Wald intervals from the risk ratio'
+    method = ('R epiR::epi.2by2(method = "cohort.count"); intervals as epiR gives them for one table: among the '
+              'exposed from the score interval of the risk ratio, in the population from the exact intervals of the '
+              'two risks')
     rows = []
     if not math.isnan(rr[0]) and rr[0] < 1:
         # fewer events among the exposed: the preventable fraction, epiR's attributable fraction with the roles swapped

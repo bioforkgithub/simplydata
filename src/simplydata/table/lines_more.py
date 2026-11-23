@@ -778,7 +778,8 @@ def dose_response_word(table, x, y, doses_for_effect, of_kind, outcome, out_of, 
                 (f", curveid = {for_each}" if for_each else "")
     left = f"{y} / {out_of}" if binomial else y
     percent_text = ", ".join(_p_word(p) for p in percents)
-    print(f"Method: R drc::drm({left} ~ {x}{r_options}, fct = {DRC_FCT[kind]}()) (Ritz et al. 2015); "
+    print(f"Method: R drc::drm({left} ~ {x}{r_options}, fct = {DRC_FCT[kind]}(), control = drc::drmc(relTol = "
+          "1e-15, maxIt = 10000)) (Ritz et al. 2015); "
           f"drc::ED(m, c({percent_text}), interval = \"delta\"). simplydata chooses the "
           f"{'2 parameter log-logistic curve (from 0 to 100 %)' if binomial and kind == '2 parameter log-logistic' else kind + ' curve'} "
           "and delta-method intervals (drc's ED() gives none unless asked)"
