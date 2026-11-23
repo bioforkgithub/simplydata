@@ -592,7 +592,7 @@ class SurvivalWords:
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"}, others={"at_times": "at_time_points"})
     def find_survival_over_time(self, time=None, event=None, for_each_group_in=None, at_time_points=None,
                                 test_method="kaplan-meier", allowing_for=None, followed_from=None,
-                                average_time_up_to=None, value=None):
+                                average_time_up_to=None, value=None, show=None):
         """The share still without the event over time (Kaplan-Meier), with the median time.
 
         table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")   (with sdata.get_example("trial"))
@@ -617,8 +617,16 @@ class SurvivalWords:
         row's curve is predicted as if in each group, then averaged over all rows (direct adjustment, R
         adjustedCurves; needs R), never the curve of an "average" row. followed_from="entry_age" gives each
         row the time its follow-up started (delayed entry: the row counts as at risk only after it).
+        show="median" gives back the medians it prints instead, one row per group: rows, events, the median
+        time and its 95 % CI (empty when not reached), as R print(survfit(...)) shows them.
         """
         step = "find_survival_over_time"
+        if show is not None:
+            self._check_choice(step, "show", show, ("median",))
+            if at_time_points is not None or test_method != "kaplan-meier" or allowing_for is not None \
+                    or average_time_up_to is not None:
+                raise SimplydataError('show="median" gives the median times of the Kaplan-Meier curves; leave out '
+                                      "at_time_points=, test_method=, allowing_for= and average_time_up_to=.")
         example = EXAMPLE.format(word=step, more=', for_each_group_in="treatment"')
         test_method = _choice(step, "test_method", test_method, METHODS, METHOD_SPELLINGS)
         if for_each_group_in is not None:
@@ -663,6 +671,8 @@ class SurvivalWords:
         columns = ["time", "at risk", "events", "censored", "survival", "95 % CI low", "95 % CI high"]
         keys = ("time", "at_risk", "events", "censored", "survival", "low", "high")
         out = {c: [] for c in ([for_each_group_in] if for_each_group_in else []) + columns}
+        medians = {c: [] for c in ([for_each_group_in] if for_each_group_in else [])
+                   + ["rows", "events", "median", "95 % CI low", "95 % CI high"]}
         print("Median time until the event (by then half have had it), with its 95 % CI:")
         shaky = []
         for j, name in enumerate(names):
@@ -675,6 +685,11 @@ class SurvivalWords:
             if entries is not None and len(km["at_risk"]) and km["at_risk"][0] < 10:
                 shaky.append((name, int(km["at_risk"][0])))
             med, low, high = median_time(km)
+            if for_each_group_in:
+                medians[for_each_group_in].append(name)
+            for c, v in (("rows", int(km["n"])), ("events", int(km["total_events"])), ("median", float(med)),
+                         ("95 % CI low", float(low)), ("95 % CI high", float(high))):
+                medians[c].append(v)
             who = f"{name}: " if for_each_group_in else ""
             count = f"{km['n']} rows, {km['total_events']} events"
             if not km["total_events"]:
@@ -696,6 +711,9 @@ class SurvivalWords:
             who = f'"{name}": ' if name is not None else ""
             print(f"Note: {who}only {n} {'row was' if n == 1 else 'rows were'} followed at the first event, so the "
                   "start of the curve is shaky where few rows were followed (delayed entry).")
+        if show == "median":
+            print('Gives back the median times as a table (show="median"); an empty cell means not reached.')
+            return self._new_table(nw.from_dict(medians, backend=self._frame.implementation))
         return self._new_table(nw.from_dict(out, backend=self._frame.implementation))
 
     def _survival_at(self, time, event, yes, times, events, entries, names, codes, for_each, points, followed_from):

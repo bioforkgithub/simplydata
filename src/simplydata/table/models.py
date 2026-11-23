@@ -242,12 +242,33 @@ def _design(data: dict, kinds: dict, levels: dict, terms: list[tuple], bases: di
 # ---------------------------------------------------------------------------- the fits
 def _least_squares(X, y, weights=None):
     """Least squares (R lm()) with statsmodels OLS, or WLS with precision weights (R lm(weights =)): beta,
-    unscaled covariance, fitted values, RSS (weighted), log-likelihood (as R logLik())."""
+    unscaled covariance, fitted values, RSS (weighted), log-likelihood (as R logLik()).
+
+    The estimates come from statsmodels' QR fit. The unscaled covariance is taken as R summary.lm() takes it,
+    chol2inv() of the QR factor R, that is inv(R) inv(R)' (_qr_unscaled_covariance), and not statsmodels'
+    inv(R'R), which squares the condition number: on NIST Longley the standard errors went from 7.97 to 9.42
+    digits to 12.6 to 14.2 digits (R lm: about 13)."""
     from statsmodels.regression.linear_model import OLS, WLS
 
-    result = OLS(y, X).fit(method="qr") if weights is None else WLS(y, X, weights=weights).fit(method="qr")
-    return (np.asarray(result.params), np.asarray(result.normalized_cov_params), np.asarray(result.fittedvalues),
+    model = OLS(y, X) if weights is None else WLS(y, X, weights=weights)
+    result = model.fit(method="qr")
+    return (np.asarray(result.params), _qr_unscaled_covariance(model.wexog), np.asarray(result.fittedvalues),
             float(result.ssr), float(result.llf))
+
+
+def _qr_unscaled_covariance(wexog):
+    """[D] inv(X'X) as R summary.lm() computes it, chol2inv(qr.R(qr(X))): NumPy's QR gives the factor R (the
+    columns already whitened by the weights, as statsmodels does), and LAPACK dpotri, through SciPy, gives
+    inv(R) inv(R)' from it (dpotri is the routine R's chol2inv calls). This is R's own method, done with NumPy and
+    LAPACK instead of taking statsmodels' covariance; it is listed in tests/test_no_own_methods.py, approved by
+    Manish 2026-11-22. Source: R's summary.lm() and chol2inv() (R Core Team, the stats and base packages)."""
+    from scipy.linalg import lapack
+
+    upper = np.linalg.qr(np.asarray(wexog, dtype=float), mode="r")
+    inverse, info = lapack.dpotri(upper)
+    if info != 0:  # a zero on R's diagonal: the columns repeat others (the rank check catches this first)
+        return np.full((upper.shape[1], upper.shape[1]), np.nan)
+    return np.triu(inverse) + np.triu(inverse, 1).T  # dpotri fills the upper triangle only
 
 
 def _glm(X, y, kind, scale=None, exposure=None, trials=None, alpha=None, link=None, var_weights=None):

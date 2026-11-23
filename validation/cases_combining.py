@@ -17,7 +17,7 @@ R_DATA_COMBINING = {
     "BCG trials (metadat)": (("metadat",), (
         "d <- metadat::dat.bcg; list(trial = paste(d$author, d$year), tpos = d$tpos, tneg = d$tneg, cpos = d$cpos, "
         "cneg = d$cneg, vaccinated = d$tpos + d$tneg, unvaccinated = d$cpos + d$cneg, ablat = d$ablat, "
-        "alloc = d$alloc)")),
+        "alloc = d$alloc, year = d$year)")),
     "passive smoking (metadat)": (("metadat",), (
         "d <- metadat::dat.hackshaw1998; list(study = paste(d$author, d$year), `odds ratio` = d$or, "
         "`odds ratio 95 % CI low` = d$or.lb, `odds ratio 95 % CI high` = d$or.ub)")),
@@ -103,7 +103,8 @@ def _cases(Case):
              published={"log estimate": (-0.7145, 5e-5, viechtbauer), "tau squared": (0.3132, 5e-5, viechtbauer),
                         "I squared %": (92.22, 5e-3, viechtbauer), "Q": (152.2330, 5e-5, viechtbauer)},
              r=RR + """
-                 f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc", control = tight)
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval,
                       `tau squared` = f$tau2, `I squared %` = f$I2, Q = f$QE)
@@ -117,7 +118,8 @@ def _cases(Case):
                                        '"log high": np.log(c["estimate 95 % CI high"])'),
              published={"log low": (-1.0669, 5e-5, viechtbauer), "log high": (-0.3622, 5e-5, viechtbauer)},
              r=RR + """
-                 f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z", control = tight)
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval)
              """, r_packages=("metafor",), r_tolerance=1e-8),
@@ -144,11 +146,13 @@ def _cases(Case):
         Case("table.combine_studies", "test_method=: BCG trials, Paule-Mandel", "BCG trials (metadat)", "real data",
              ours=combined.format(call=BCG + ', test_method="paule-mandel"', more=', "tau squared": c["tau squared"]'),
              r=RR + """
-                 f <- metafor::rma(yi, vi, data = e, method = "PM", test = "adhoc")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, data = e, method = "PM", test = "adhoc", control = tight)
                  p <- predict(f, transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub, `p-value` = f$pval, `tau squared` = f$tau2)
-             """, r_packages=("metafor",), r_tolerance=1e-6,
-             note="Paule-Mandel is found by iteration, so the numbers agree to metafor's own tolerance."),
+             """, r_packages=("metafor",), r_tolerance=1e-8,
+             note="Paule-Mandel is found by iteration. simplydata runs metafor to 1e-10 (its default, 1e-5, left "
+                  "tau squared 7.9e-5 short) and the reference to 1e-12, so they agree to 1e-8."),
         Case("table.combine_studies", "test_method=: BCG trials, a common effect", "BCG trials (metadat)", "real data",
              ours=combined.format(call=BCG + ', test_method="common effect"', more=""),
              r=RR + """
@@ -189,8 +193,9 @@ def _cases(Case):
              """,
              r=RR + """
                  g <- sort(unique(alloc))
-                 f <- lapply(g, function(x) metafor::rma(yi, vi, data = e, subset = alloc == x, test = "adhoc"))
-                 z <- lapply(g, function(x) metafor::rma(yi, vi, data = e, subset = alloc == x, test = "z"))
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- lapply(g, function(x) metafor::rma(yi, vi, data = e, subset = alloc == x, test = "adhoc", control = tight))
+                 z <- lapply(g, function(x) metafor::rma(yi, vi, data = e, subset = alloc == x, test = "z", control = tight))
                  b <- sapply(z, function(m) m$b[1]); s <- sapply(z, function(m) m$se)
                  q <- metafor::rma(b, sei = s, mods = ~ factor(g), method = "EE")
                  list(`Q between` = q$QM, `p between` = q$QMp, random = exp(f[[2]]$b[1]), `random tau2` = f[[2]]$tau2)
@@ -207,7 +212,8 @@ def _cases(Case):
                  {"slope": s["estimate"], "low": s["estimate 95 % CI low"], "p-value": s["p-value"]}
              """,
              r=RR + """
-                 f <- metafor::rma(yi, vi, mods = ~ ablat, data = e, method = "REML", test = "adhoc")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, mods = ~ ablat, data = e, method = "REML", test = "adhoc", control = tight)
                  list(slope = f$b[2], low = f$ci.lb[2], `p-value` = f$pval[2])
              """, r_packages=("metafor",), r_tolerance=1e-8),
         Case("table.combine_studies", "estimates=: passive smoking, odds ratios with their 95 % intervals",
@@ -240,7 +246,8 @@ def _cases(Case):
              r="""
                  e <- metafor::escalc(measure = "SMD", m1i = m1i, sd1i = sd1i, n1i = n1i, m2i = m2i, sd2i = sd2i,
                                       n2i = n2i)
-                 f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, data = e, test = "adhoc", control = tight)
                  list(estimate = f$b[1], low = f$ci.lb, `first study` = e$yi[1])
              """, r_packages=("metafor",), r_tolerance=1e-8,
              note="metafor's Hedges' g (exact correction, large-sample variance) is the reference; statsmodels' "
@@ -257,7 +264,8 @@ def _cases(Case):
              r="""
                  e <- metafor::escalc(measure = "ROM", m1i = m1i, sd1i = sd1i, n1i = n1i, m2i = m2i, sd2i = sd2i,
                                       n2i = n2i)
-                 f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::rma(yi, vi, data = e, test = "adhoc", control = tight)
                  list(estimate = exp(f$b[1]), `tau squared` = f$tau2)
              """, r_packages=("metafor",), r_tolerance=1e-6),
         Case("table.combine_studies", "time=: Hart 1999, rate ratios of stroke with warfarin",
@@ -270,7 +278,8 @@ def _cases(Case):
              """,
              r="""
                  e <- metafor::escalc(measure = "IRR", x1i = x1i, t1i = t1i, x2i = x2i, t2i = t2i)
-                 p <- predict(metafor::rma(yi, vi, data = e, test = "adhoc"), transf = exp)
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 p <- predict(metafor::rma(yi, vi, data = e, test = "adhoc", control = tight), transf = exp)
                  list(estimate = p$pred, low = p$ci.lb, high = p$ci.ub)
              """, r_packages=("metafor",), r_tolerance=1e-8),
         Case("table.combine_studies", "correlations=: McDaniel 1994, interview ratings and job performance",
@@ -282,7 +291,8 @@ def _cases(Case):
              """,
              r="""
                  e <- metafor::escalc(measure = "ZCOR", ri = ri, ni = ni)
-                 p <- predict(metafor::rma(yi, vi, data = e, test = "adhoc"), transf = metafor::transf.ztor)
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 p <- predict(metafor::rma(yi, vi, data = e, test = "adhoc", control = tight), transf = metafor::transf.ztor)
                  list(estimate = p$pred, low = p$ci.lb)
              """, r_packages=("metafor",), r_tolerance=1e-8),
         Case("table.combine_studies", "BCG trials: Peters' test of small-study effects (risk ratios from counts)",
@@ -314,7 +324,8 @@ def _cases(Case):
                                          ci.ub = `odds ratio 95 % CI high`, transf = log)
                  m <- meta::metagen(e$yi, sqrt(e$vi), sm = "OR")
                  b <- meta::metabias(m, method.bias = "Egger", k.min = 10)
-                 f <- metafor::trimfill(metafor::rma(yi, vi, data = e, test = "adhoc"))
+                 tight <- list(tol = 1e-12, threshold = 1e-12, maxiter = 1000)  # metafor run to convergence
+                 f <- metafor::trimfill(metafor::rma(yi, vi, data = e, test = "adhoc", control = tight))
                  list(t = unname(b$statistic), `p-value` = b$pval, `studies added` = f$k0,
                       `filled odds ratio` = exp(f$b[1]))
              """, r_packages=("meta", "metafor"), r_tolerance=1e-6,

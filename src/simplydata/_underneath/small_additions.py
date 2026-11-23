@@ -7,19 +7,21 @@ comparisons of percents. Practice tables: "fruit", "marks", "visitors", "many_te
 from . import Entry
 
 PAIN = """
-    df = sdata.get_example("clinic").melt(id_vars="patient", value_vars=["pain_week_0", "pain_week_4", "pain_week_8"],
+    import pandas as pd
+    df = pd.read_csv("clinic.csv").melt(id_vars="patient", value_vars=["pain_week_0", "pain_week_4", "pain_week_8"],
                                           var_name="week", value_name="pain")
     y = df["pain"].to_numpy(dtype=float)
     g = df["week"].to_numpy(dtype=str)
     b = df["patient"].to_numpy(dtype=str)
 """
 PAIN_OURS = """
-    table = sdata.table(sdata.get_example("clinic"))
+    table = sdata.get_example("clinic")
     table.turn_columns_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
 """
 PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
 MANY = """
-    df = sdata.get_example("many_tests")
+    import pandas as pd
+    df = pd.read_csv("many_tests.csv")
     p = df["p-value"].to_numpy(dtype=float)
 """
 QVALUE_NOTE = ("No Python package gives Storey's pi0 with qvalue's smoother (statsmodels fdrcorrection_twostage is "
@@ -33,12 +35,13 @@ ENTRIES = [
         word="table.find_percentile_of", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_percentile_of("price", 90, weights="count")
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_percentile_of("price", 90, weights="count")
             rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
             np.percentile(rows, 90)                                           # (2)
@@ -54,12 +57,13 @@ ENTRIES = [
         word="table.find_percentile_of", option='weight_kind="analytic"',
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_percentile_of("price", 90, weights="count", weight_kind="analytic")
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_percentile_of("price", 90, weights="count", weight_kind="analytic")
             np.percentile(df["price"], 90, weights=df["count"],
                           method="inverted_cdf")                              # (1)
@@ -74,12 +78,13 @@ ENTRIES = [
         word="table.find_median_of", option="weights=",
         data="fruit",
         ours="""
-            table = sdata.table(sdata.get_example("fruit"))
+            table = sdata.get_example("fruit")
             table.find_median_of("price", weights="count")
         """,
         code={"NumPy": """
             import numpy as np
-            df = sdata.get_example("fruit")
+            import pandas as pd
+            df = pd.read_csv("fruit.csv")
             # find_median_of("price", weights="count")
             rows = np.repeat(df["price"].to_numpy(), df["count"].to_numpy())   # (1)
             np.median(rows)
@@ -94,11 +99,12 @@ ENTRIES = [
         word="table.find_correlation_between", option='show="covariance"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_correlation_between("hours", "marks", "height", show="covariance")
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # find_correlation_between("hours", "marks", "height", show="covariance")
             cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
             cov.rename_axis("column").reset_index()
@@ -115,7 +121,7 @@ ENTRIES = [
         word="table.forecast", option='order="automatic"',
         data="visitors",
         ours="""
-            table = sdata.table(sdata.get_example("visitors"))
+            table = sdata.get_example("visitors")
             table.forecast("visitors", sorted_by="month", test_method="arima", order="automatic", repeats_every=12,
                            for_each_group_in="museum")
         """,
@@ -132,7 +138,8 @@ ENTRIES = [
             """,
         },
         r_inputs="""
-            df = sdata.get_example("visitors").sort_values("month")
+            import pandas as pd
+            df = pd.read_csv("visitors.csv", parse_dates=["month"]).sort_values("month")
             x = df[df["museum"] == "Harbour Museum"]["visitors"].to_numpy(dtype=float)
         """,
         r_packages=("forecast",), compare="result",
@@ -151,7 +158,7 @@ ENTRIES = [
         word="table.add_adjusted_p_value_column", option='test_method="storey"',
         data="many_tests",
         ours="""
-            table = sdata.table(sdata.get_example("many_tests"))
+            table = sdata.get_example("many_tests")
             table.add_adjusted_p_value_column(test_method="storey")
         """,
         code={
@@ -161,7 +168,8 @@ ENTRIES = [
                 list(q = q$qvalues)
             """,
             "Python": """
-                df = sdata.get_example("many_tests")
+                import pandas as pd
+                df = pd.read_csv("many_tests.csv")
                 df["p-value (Storey q-value)"] = q
                 df
             """,
@@ -177,7 +185,7 @@ ENTRIES = [
         word="table.add_adjusted_p_value_column", option='test_method="local fdr"',
         data="many_tests",
         ours="""
-            table = sdata.table(sdata.get_example("many_tests"))
+            table = sdata.get_example("many_tests")
             table.add_adjusted_p_value_column(test_method="local fdr")
         """,
         code={
@@ -187,7 +195,8 @@ ENTRIES = [
                 list(lfdr = q$lfdr)
             """,
             "Python": """
-                df = sdata.get_example("many_tests")
+                import pandas as pd
+                df = pd.read_csv("many_tests.csv")
                 df["local false discovery rate"] = lfdr
                 df
             """,
@@ -248,14 +257,14 @@ ENTRIES = [
         word="table.compare_each_pair_of", option='based_on="percents"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
         """,
         code={"SciPy and statsmodels": """
             import pandas as pd
             from scipy import stats
             from statsmodels.stats.multitest import multipletests
-            df = sdata.get_example("clinic")
+            df = pd.read_csv("clinic.csv")
             # compare_each_pair_of("infected", for_each_group_in="age_group", based_on="percents", value="yes")
             t = pd.crosstab(df["age_group"], df["infected"] == "yes").to_numpy()
             pairs = [(i, j) for i in range(len(t)) for j in range(i + 1, len(t))]

@@ -12,6 +12,7 @@ import pytest
 
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -624,7 +625,7 @@ def test_change_matches_diff_and_pct_change(engine, capsys):
 def test_change_on_example_growth(engine):
     import simplydata as sdata
 
-    data = sdata.get_example("growth").sample(frac=1, random_state=1).reset_index(drop=True)
+    data = example_frame("growth").sample(frac=1, random_state=1).reset_index(drop=True)
     t = build(data, engine)
     t.add_change_column("growth", from_column="population", in_percent=True, for_each_group_in="country", sorted_by="year")
     expected = data.sort_values("year", kind="stable").groupby("country")["population"].pct_change().sort_index() * 100

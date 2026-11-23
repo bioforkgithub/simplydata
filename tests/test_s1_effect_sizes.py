@@ -1,7 +1,7 @@
 """S1: effect sizes and their 95 % intervals come from R effectsize (or a Python package that gives
 the same number), never from a formula in simplydata.
 
-Reference values: R 4.6.2, effectsize 1.0.3, on sdata.get_example("marks") (m <- read.csv(".../marks.csv");
+Reference values: R 4.6.2, effectsize 1.0.3, on example_frame("marks") (m <- read.csv(".../marks.csv");
 a, b = the marks of classes A and B; w = one row per child, a column per subject) and the counts
 written next to each value. Every interval is two-sided (alternative = "two.sided").
 """
@@ -14,6 +14,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
@@ -26,7 +27,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -42,7 +43,7 @@ def check(got, value, low, high, rel=REL):
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 def wide(marks):

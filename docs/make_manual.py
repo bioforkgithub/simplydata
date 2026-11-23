@@ -97,9 +97,11 @@ UNDERNEATH = {
                                 "requested reference; for R, utils::citation() and packageVersion() through rpy2",
     # start, show and save
     "sdata.chart": "pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn",
-    "sdata.get_example": "pandas (read_csv of a small file inside simplydata)",
+    "sdata.get_example": "pandas (read_csv of a small file inside simplydata), as a simplydata table",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
+    "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
+                         "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types
     "draw_bars": "seaborn (barplot; countplot for show=\"count\")",
     "draw_lines": "seaborn (lineplot); SciPy (interpolate) for joined_by= curves",
@@ -123,7 +125,7 @@ UNDERNEATH = {
     "draw_error_bars": "pandas (group averages) and matplotlib (errorbar); SciPy for the t-based confidence interval",
     "fit_line": "SciPy (stats.linregress); the confidence band from statsmodels OLS, drawn with matplotlib",
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
-    "draw_smooth_line": "statsmodels (lowess, which follows R's lowess()) or SciPy (make_smoothing_spline, for "
+    "draw_smooth_line": "statsmodels (lowess with R lowess()'s default delta, 1 % of the x range) or SciPy (make_smoothing_spline, for "
                    "test_method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
                    "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "draw_density": "seaborn (kdeplot)",
@@ -182,7 +184,8 @@ UNDERNEATH = {
     "table.add_rows_from": "pandas (concat) or Polars (concat), whichever holds the table",
     "table.find_correlation_between": "SciPy (stats.pearsonr, spearmanr or kendalltau; permutation_test and bootstrap "
                                  "for p_value_by=\"shuffling\" and interval_by=\"bootstrap\"); R DescTools (SpearmanRho, "
-                                 "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals and ppcor::pcor.test for "
+                                 "KendallTauB, SomersDelta, GoodmanKruskalGamma) for intervals, R cor.test for Spearman's p-value "
+                                 "below 1290 rows without ties (AS 89), ppcor::pcor.test for "
                                  "allowing_for= (simplydata[r]); pandas DataFrame.cov for show=\"covariance\"; "
                                  "statsmodels MICEData and R miceadds::micombine.cor for empty_cells=\"multiple "
                                  "imputation\"",
@@ -192,11 +195,12 @@ UNDERNEATH = {
                               "statsmodels (stats.oneway.anova_oneway for Welch's ANOVA; weightstats.ttost_ind "
                               "and CompareMeans for same_within=; nonparametric.jonckheere_terpstra); SciPy "
                               "permutation_test for p_value_by=\"shuffling\"; R wilcox.test for the Hodges-Lehmann "
-                              "shift (simplydata[r]); R afex::aov_ez for matched_by= (repeated measures, "
+                              "shift and for the exact Mann-Whitney p-value with tied values (simplydata[r]); R afex::aov_ez for matched_by= (repeated measures, "
                               "Greenhouse-Geisser; needs R); statsmodels OLS on the log scale for period= (the "
                               "2 x 2 crossover, EMA model)",
     "table.compare_each_pair_of": "SciPy (stats.ttest_ind or mannwhitneyu, tukey_hsd, dunnett), with Holm's correction "
-                               "from statsmodels (multipletests); R rstatix::games_howell_test, "
+                               "from statsmodels (multipletests); R wilcox.test for exact Mann-Whitney p-values with "
+                               "tied values; R rstatix::games_howell_test, "
                                "DescTools::ScheffeTest and PostHocTest, FSA::dunnTest, "
                                "PMCMRplus::kwAllPairsConoverTest and multcompView::multcompLetters for "
                                "show=\"letters\" (simplydata[r]); SciPy ttest_rel and wilcoxon for matched_by=, "
@@ -237,14 +241,15 @@ UNDERNEATH = {
                               "and pROC (roc, ci.auc, coords) for a score column (simplydata[r])",
     "table.compare_accuracy": "R pROC::roc.test (DeLong) and ci.auc (simplydata[r])",
     "sdata.compare_to_truth": "statsmodels (proportion_confint) and R epiR::epi.tests, as table.compare_to_truth",
-    "table.agreement_between": "statsmodels (inter_rater.cohens_kappa, fleiss_kappa); R irr::kappam.fleiss for the p-value of Fleiss' kappa, irr::icc, irr::kripp.alpha and DescTools::CCC (simplydata[r])",
+    "table.agreement_between": "statsmodels (inter_rater.cohens_kappa, fleiss_kappa); R irr::kappam.fleiss for the p-value of Fleiss' kappa, psych::ICC, icr::krippalpha and DescTools::CCC (simplydata[r])",
     "table.limits_of_agreement": "R BlandAltmanLeh::bland.altman.stats and DescTools::CCC (simplydata[r])",
     "table.reliability_of": "R psych::alpha and psych::alpha.ci (simplydata[r])",
     "table.compare_average_to": "SciPy (stats.ttest_1samp or stats.wilcoxon); statsmodels "
                                 "(DescrStatsW.ttost_mean for same_within=); R BSDA::z.test for test_method=\"z\" (simplydata[r])",
     "table.compare_counts_of": "SciPy (stats.chi2_contingency, or fisher_exact with test_method=\"fisher\", with a seeded "
                             "MonteCarloMethod for bigger tables; contingency.association for Cramer's V); statsmodels "
-                            "Table.standardized_resids for show=\"cells\"; R fisher.test and prop.trend.test "
+                            "Table(shift_zeros=False).standardized_resids for show=\"cells\"; R fisher.test, "
+                            "prop.trend.test and Exact::exact.test for test_method=\"barnard\" / \"boschloo\" "
                             "(simplydata[r])",
     "table.show_rows_with_outliers": "narwhals (quartiles, average and standard deviation per group); R "
                                      "outliers::grubbs.test, dixon.test and EnvStats::rosnerTest for the test rules "
@@ -334,7 +339,8 @@ UNDERNEATH = {
     "nums.find_autocorrelation": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution_to)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+    "table.explain": "statsmodels (OLS by QR, with the standard errors as R summary.lm() takes them: chol2inv of the "
+                     "QR factor, R's method done with NumPy and LAPACK dpotri; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
                      "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
                      "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
@@ -859,7 +865,9 @@ def _practice_tables() -> str:
     lines = [r"\unchapter{The practice tables}{start:tables}",
              "All the examples use small made-up tables that come with simplydata, so they run "
              "anywhere without a file. Every number in them is invented. Get one with "
-             + code('sdata.get_example("marks")') + ", and list them all with " + code("sdata.get_example()") + "."]
+             + code('sdata.get_example("marks")') + ", and list them all with " + code("sdata.get_example()") + ". "
+             "It gives back a simplydata table, so every table word works on it straight away: "
+             + code('sdata.get_example("marks").count_rows()') + "."]
     for name, (about, columns) in EXAMPLES.items():
         lines.append(f"\\section*{{{esc(name)}}}")
         lines.append(rich(about) + " " + code(f'sdata.get_example("{name}")'))
@@ -1035,7 +1043,11 @@ _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colo
                "cells": "the coloured cells", "every_panel": "the labels, dots, bars, lines, shapes and axis ranges of every panel",
                "line_styles": "the style and width of each line", "text_places": "the place and angle of each word",
                "shape_colours": "the colours of the filled shapes",
-               "panel_styles": "the dot sizes, rims and colours, bar colours and drawing order of every panel"}
+               "panel_styles": "the dot sizes, rims and colours, bar colours and drawing order of every panel",
+               "grid": "the grid lines", "fonts": "the fonts", "polar_start": "where a round chart starts and which way it goes",
+               "in_3d": "the 3D dots, the surface and the z axis", "segments": "the short lines drawn as one set",
+               "insets": "the small charts inside the chart", "colour_bars": "the colour bar",
+               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are"}
 
 
 def _checked(entry) -> str:
@@ -1336,7 +1348,10 @@ def make() -> str:
         "readers who know one of these packages or want to learn it; if you are learning simplydata, you can "
         "skip it. Each setting that simplydata chooses for you is marked in the code with a number, (1), (2) "
         "and so on, and explained under the code. A test runs the code in each box next to the simplydata word "
-        "and checks that both give the same result, so the box cannot drift from simplydata. simplydata runs "
+        "and checks that both give the same result, so the box cannot drift from simplydata. The code in the box "
+        "reads the practice table from its file with the package itself, for example "
+        + code('pd.read_csv("marks.csv")') + "; " + code('sdata.get_example("marks").save("marks.csv")')
+        + " writes that file, to run the box yourself. simplydata runs "
         "its table steps on pandas and Polars through narwhals; narwhals is only the link between the two and "
         "is not shown.",
         _dictionary(aliases),

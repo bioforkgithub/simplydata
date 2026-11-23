@@ -12,16 +12,17 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
 
 @pytest.fixture(params=["pandas", "polars"])
 def clinic(request):
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     if request.param == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 

@@ -347,7 +347,7 @@ class TimeChartWords:
 
     @friendly(renamed={"method": "test_method", "y": "column", "x": "sorted_by"})
     def spectrum(self, column=None, sorted_by=None, test_method="periodogram", show="power", window=None, log_scale=True):
-        """Power against frequency: which cycles a column holds, the 3 strongest labelled with their period.
+        """Power against frequency: which cycles a column holds, the 3 strongest peaks labelled with their period.
 
         chart.spectrum("signal", sorted_by="time")   (with sdata.get_example("sensor"))
         The column first, sorted_by= the time column, as table.find_spectrum_of: the numbers are its numbers
@@ -366,10 +366,14 @@ class TimeChartWords:
                                                  for_each_group_in=group))
         column = [c for c in got.columns if c not in ("frequency", "repeats every", "share of variance (%)")
                   and c != group][-1]
+        from .._signals import strongest_cycles
+
         peaks = []
         for name, part in ([(None, got)] if group is None else list(got.groupby(group, sort=False))):
-            part = part[part["frequency"] > 0]
-            for _, row in part.nlargest(3, "share of variance (%)").iterrows():
+            # the same cycles as the printed sentence: the strongest local peaks, not the 3 biggest values (which
+            # can sit side by side on one broad peak)
+            at = strongest_cycles(part["frequency"].to_numpy(dtype=float), part[column].to_numpy(dtype=float))
+            for _, row in part.iloc[at].iterrows():
                 peaks.append((row["frequency"], row[column], row["repeats every"], rcParams["text.color"]))
         if self._steps and any(s.name == "spectrum" for s in self._steps):
             raise SimplydataError(".spectrum() is already on this chart.")

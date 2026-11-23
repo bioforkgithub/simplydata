@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 RATES = pd.DataFrame({
     "area": ["north"] * 4 + ["south"] * 4 + ["east"] * 4,
@@ -53,7 +54,7 @@ def test_negative_binomial_matches_glm_nb(capsys):
 
 
 def test_overdispersion_note_names_both_choices(capsys):
-    school = sdata.get_example("school").assign(days_absent=lambda d: d.days_absent * 3)
+    school = example_frame("school").assign(days_absent=lambda d: d.days_absent * 3)
     make_table(school).explain("days_absent", using="hours", outcome="counts")
     out = capsys.readouterr().out
     assert 'outcome="counts that vary a lot" (negative binomial)' in out and "(quasi-Poisson)" in out

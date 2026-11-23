@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 ORDER = ["mild", "moderate", "severe"]
@@ -23,10 +24,10 @@ def engine(request):
 
 
 def make(engine, data=None):
-    data = sdata.get_example("clinic") if data is None else data
+    data = example_frame("clinic") if data is None else data
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -64,7 +65,7 @@ def test_weighted_kappa_and_level(engine):
 
 
 def test_fleiss_kappa(engine, needs_r):
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     data["crp_rating"] = np.where(data.crp > 3, "severe", np.where(data.crp > 1.5, "moderate", "mild"))
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "crp_rating"))
     # R: irr::kappam.fleiss(cbind(nurse, doctor, crp coded 1-3)): value, statistic
@@ -73,8 +74,9 @@ def test_fleiss_kappa(engine, needs_r):
 
 
 @pytest.mark.parametrize("options, name, expected", [
-    # R: irr::icc(cbind(device_a, device_b), model =, type =, unit =): value, lbound, ubound
-    ({}, "twoway_agreement_single", (0.938834756965, 0.8937258725702, 0.9616016437585)),
+    # R: irr::icc(cbind(device_a, device_b), model =, type =, unit =): value, lbound, ubound; psych::ICC, which
+    # simplydata now calls, gives the same numbers for these forms
+    ({},"twoway_agreement_single", (0.938834756965, 0.8937258725702, 0.9616016437585)),
     ({"raters": "these only", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different per row"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064,
@@ -83,7 +85,10 @@ def test_fleiss_kappa(engine, needs_r):
     ({"raters": "fixed", "checking_for": "consistency"}, "twoway_consistency_single",
      (0.9483786034937, 0.9323498556937, 0.9606868305061)),
     ({"raters": "different"}, "oneway_consistency_single", (0.9385254375713, 0.9195943831064, 0.9531126639668)),
-    ({"of": "average of raters"}, "twoway_agreement_average", (0.9684525755404, 0.9434971279195, 0.9805034834157)),
+    # psych::ICC(cbind(device_a, device_b), lmer = FALSE), row ICC2k: McGraw and Wong's interval (irr::icc gave
+    # 0.9434971279195 to 0.9805034834157)
+    ({"of": "average of raters"}, "twoway_agreement_average", (0.9684525755403928, 0.9438809338937905,
+                                                               0.9804249979277266)),
 ])
 def test_icc(engine, needs_r, options, name, expected):
     got = row(make(engine).agreement_between("device_a", "device_b", **options))
@@ -179,7 +184,7 @@ def test_fleiss_without_r_keeps_kappa(engine, monkeypatch, capsys):
         raise _r.RMissing("no R")
 
     monkeypatch.setattr(_r, "r_call", missing)
-    data = sdata.get_example("clinic")
+    data = example_frame("clinic")
     data["third"] = data["doctor_rating"]
     got = row(make(engine, data).agreement_between("nurse_rating", "doctor_rating", "third"))
     assert math.isnan(got["p-value"]) and got["estimate"] > 0

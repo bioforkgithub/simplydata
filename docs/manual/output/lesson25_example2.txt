@@ -1,6 +1,6 @@
 Removed the frequencies at 50 in "signal": 1000 readings (0.005 apart): notch filter at 50 (width 1), run forwards and backwards so nothing moves in time.
-Method: SciPy, as R signal::filtfilt(SciPy signal.iirnotch, x) in the middle (SciPy's ends: odd reflection and a steady start, as MATLAB). Added "no_hum".
-The strongest cycle in "no_hum" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time") and holds 71 % of the variance; next: 20 per unit of "time" (12 %) and 0.2 per unit of "time" (2 %).
+Method: SciPy signal.iirnotch, run with SciPy signal.filtfilt (forwards and backwards; the ends as MATLAB filtfilt: odd reflection and a steady start). Added "no_hum".
+The strongest cycle in "no_hum" has frequency 5 per unit of "time" (it repeats every 0.2 units of "time"); next: 20 per unit of "time" and 0.2 per unit of "time".
 Method: periodogram (squared size of the Fourier transform, one-sided, scaled so the powers add up to the variance), as 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec. Readings: one reading every 0.005 in "time" (1000 readings).
 Kept the frequencies below 10 in "signal": 1000 readings (0.005 apart): Butterworth filter, steepness 4, run forwards and backwards so nothing moves in time (steepness 8 in effect).
 Method: SciPy, as R signal::filtfilt(signal::butter(4, 0.1), x) in the middle (SciPy's ends: odd reflection and a steady start, as MATLAB). Added "slow".

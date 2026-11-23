@@ -1,38 +1,38 @@
-"study","year","country","design","cases","odds ratio","odds ratio 95 % CI low","odds ratio 95 % CI high"
-"Garfinkel 1981",1981,"USA","cohort",153,1.18,0.9,1.54
-"Hirayama 1984",1984,"Japan","cohort",200,1.45,1.02,2.08
-"Butler 1988",1988,"USA","cohort",8,2.02,0.48,8.56
-"Cardenas 1997",1997,"USA","cohort",150,1.2,0.8,1.6
-"Chan 1982",1982,"Hong Kong","case-control",84,0.75,0.43,1.3
-"Correa 1983",1983,"USA","case-control",22,2.07,0.81,5.25
-"Trichopolous 1983",1983,"Greece","case-control",62,2.13,1.19,3.83
-"Buffler 1984",1984,"USA","case-control",41,0.8,0.34,1.9
-"Kabat 1984",1984,"USA","case-control",24,0.79,0.25,2.45
-"Lam 1985",1985,"Hong Kong","case-control",60,2.01,1.09,3.72
-"Garfinkel 1985",1985,"USA","case-control",134,1.23,0.81,1.87
-"Wu 1985",1985,"USA","case-control",29,1.2,0.5,3.3
-"Akiba 1986",1986,"Japan","case-control",94,1.52,0.87,2.63
-"Lee 1986",1986,"UK","case-control",32,1.03,0.41,2.55
-"Koo 1987",1987,"Hong Kong","case-control",86,1.55,0.9,2.67
-"Pershagen 1987",1987,"Sweden","case-control",70,1.03,0.61,1.74
-"Humble 1987",1987,"USA","case-control",20,2.34,0.81,6.75
-"Lam 1987",1987,"Hong Kong","case-control",199,1.65,1.16,2.35
-"Gao 1987",1987,"China","case-control",246,1.19,0.82,1.73
-"Brownson 1987",1987,"USA","case-control",19,1.52,0.39,5.96
-"Geng 1988",1988,"China","case-control",54,2.16,1.08,4.29
-"Shimizu 1988",1988,"Japan","case-control",90,1.08,0.64,1.82
-"Inoue 1988",1988,"Japan","case-control",22,2.55,0.74,8.78
-"Kalandidi 1990",1990,"Greece","case-control",90,1.62,0.9,2.91
-"Sobue 1990",1990,"Japan","case-control",144,1.06,0.74,1.52
-"Wu-Williams 1990",1990,"China","case-control",417,0.79,0.62,1.02
-"Liu 1991",1991,"China","case-control",54,0.74,0.32,1.69
-"Jockel 1991",1991,"Germany","case-control",23,2.27,0.75,6.82
-"Brownson 1992",1992,"USA","case-control",431,0.97,0.78,1.21
-"Stockwell 1992",1992,"USA","case-control",210,1.6,0.8,3
-"Du 1993",1993,"China","case-control",75,1.19,0.66,2.13
-"Liu 1993",1993,"China","case-control",38,1.66,0.73,3.78
-"Fontham 1994",1994,"USA","case-control",651,1.26,1.04,1.54
-"Kabat 1995",1995,"USA","case-control",67,1.1,0.62,1.96
-"Zaridze 1995",1995,"Russia","case-control",162,1.66,1.12,2.45
-"Sun 1996",1996,"China","case-control",230,1.16,0.8,1.69
-"Wang 1996",1996,"China","case-control",135,1.11,0.67,1.84
+study,year,country,design,cases,odds ratio,odds ratio 95 % CI low,odds ratio 95 % CI high
+Study 1 1981,1981,USA,cohort,599,1.38,1.0,1.9
+Study 2 1981,1981,USA,case-control,509,1.43,1.01,2.03
+Study 3 1981,1981,Japan,case-control,529,1.46,1.04,2.05
+Study 4 1981,1981,China,case-control,343,1.4,0.92,2.14
+Study 5 1982,1982,Hong Kong,case-control,124,0.76,0.38,1.54
+Study 6 1982,1982,Hong Kong,case-control,342,1.33,0.87,2.04
+Study 7 1982,1982,USA,case-control,218,0.96,0.57,1.64
+Study 8 1982,1982,Hong Kong,case-control,162,0.71,0.38,1.31
+Study 9 1982,1982,Japan,case-control,180,1.09,0.61,1.95
+Study 10 1982,1982,USA,case-control,471,1.11,0.78,1.6
+Study 11 1984,1984,USA,case-control,437,1.39,0.96,2.02
+Study 12 1985,1985,Japan,case-control,453,1.12,0.78,1.63
+Study 13 1988,1988,USA,case-control,415,1.41,0.96,2.08
+Study 14 1988,1988,USA,cohort,550,1.3,0.93,1.82
+Study 15 1988,1988,Hong Kong,case-control,443,0.94,0.65,1.36
+Study 16 1989,1989,China,case-control,585,1.48,1.07,2.05
+Study 17 1989,1989,Europe,cohort,169,2.73,1.49,4.99
+Study 18 1989,1989,USA,cohort,488,1.3,0.91,1.85
+Study 19 1990,1990,USA,cohort,628,1.39,1.02,1.9
+Study 20 1990,1990,Europe,case-control,462,1.64,1.14,2.37
+Study 21 1991,1991,Hong Kong,case-control,625,1.27,0.93,1.74
+Study 22 1991,1991,Europe,case-control,420,2.09,1.43,3.06
+Study 23 1992,1992,Japan,case-control,339,1.7,1.11,2.59
+Study 24 1993,1993,China,case-control,274,1.05,0.66,1.69
+Study 25 1994,1994,Japan,case-control,96,0.77,0.34,1.7
+Study 26 1994,1994,Hong Kong,case-control,345,0.91,0.6,1.4
+Study 27 1995,1995,USA,cohort,433,1.94,1.33,2.83
+Study 28 1995,1995,USA,case-control,149,1.39,0.73,2.63
+Study 29 1996,1996,USA,case-control,88,2.01,0.87,4.64
+Study 30 1996,1996,China,case-control,286,1.33,0.84,2.12
+Study 31 1996,1996,USA,case-control,397,1.55,1.05,2.3
+Study 32 1996,1996,USA,case-control,211,1.4,0.81,2.39
+Study 33 1996,1996,USA,case-control,641,1.38,1.01,1.88
+Study 34 1996,1996,USA,case-control,41,0.88,0.26,2.98
+Study 35 1996,1996,USA,case-control,88,1.69,0.73,3.9
+Study 36 1997,1997,USA,case-control,637,1.09,0.8,1.48
+Study 37 1997,1997,USA,case-control,574,1.21,0.87,1.68

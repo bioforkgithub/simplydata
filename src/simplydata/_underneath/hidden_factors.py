@@ -5,12 +5,13 @@
 from . import Entry
 
 TESTS = """
-    tests = sdata.get_example("ability_tests")
+    import pandas as pd
+    tests = pd.read_csv("ability_tests.csv")
     x = tests[["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"]].to_numpy(dtype=float)
 """
 COLUMNS = '["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9"]'
 EXPLORE = """
-    table = sdata.table(sdata.get_example("ability_tests"))
+    table = sdata.get_example("ability_tests")
     table.find_hidden_factors_behind({columns}{more})
 """
 LOADINGS = ("factor 1", "factor 2", "factor 3", "shared part")
@@ -99,7 +100,7 @@ ENTRIES = [
         word="table.check_hidden_factors",
         data="ability_tests",
         ours=f"""
-            table = sdata.table(sdata.get_example("ability_tests"))
+            table = sdata.get_example("ability_tests")
             table.check_hidden_factors(measured_by={MEASURED_BY})
         """,
         code={
@@ -134,7 +135,7 @@ ENTRIES = [
         option="formula=",
         data="ability_tests",
         ours="""
-            table = sdata.table(sdata.get_example("ability_tests"))
+            table = sdata.get_example("ability_tests")
             table.check_hidden_factors(formula="visual =~ x1 + x2 + x3; "
                                        "speed =~ x7 + x8 + x9; speed ~ visual")
         """,

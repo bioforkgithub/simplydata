@@ -7,6 +7,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -15,7 +16,7 @@ def build(data, engine):
     data = pd.DataFrame(data)
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -355,7 +356,7 @@ def test_join_with_any_kind_of_other(engine, marks, people, tmp_path, capsys):
     pl = pytest.importorskip("polars")
     people_file = tmp_path / "people.csv"
     people.to_csv(people_file, index=False)
-    others = [people, pl.from_pandas(people), make_table(people), make_table(pl.from_pandas(people)),
+    others = [people, pl.from_pandas(people), make_table(people), make_table(people, fast=True),
               str(people_file), {"name": ["Asha"], "age": [12]}]
     for other in others:
         t = build(marks, engine)
@@ -457,7 +458,7 @@ def test_turn_rows_into_columns_matches_pandas(engine, marks):
 
 
 def test_round_trip_long_and_wide(engine):
-    weather = sdata.get_example("weather")[["month", "city", "temperature", "rain"]]
+    weather = example_frame("weather")[["month", "city", "temperature", "rain"]]
     t = build(weather, engine)
     t.turn_columns_into_rows(["temperature", "rain"])
     t.turn_rows_into_columns(names_from="column", values_from="value")
@@ -477,7 +478,7 @@ def test_turn_rows_into_columns_errors(table):
 # ---------------------------------------------------------------------------- docstrings
 def test_docstring_examples_run():
     for engine in ENGINES:
-        marks = build(sdata.get_example("marks"), engine)
+        marks = build(example_frame("marks"), engine)
         marks.sort_by("marks", biggest_first=True)
         marks.add_column("study_and_marks", by_adding=["hours", "marks"])
         marks.add_column("half", from_column="marks", divide_by=2)
@@ -487,7 +488,7 @@ def test_docstring_examples_run():
         marks.add_rank_column("place", from_column="marks")
         marks.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")
         marks.add_rows_from(marks)
-        weather = build(sdata.get_example("weather"), engine)
+        weather = build(example_frame("weather"), engine)
         weather.turn_columns_into_rows(["temperature", "rain"])
         weather.undo()
         weather.turn_rows_into_columns(names_from="city", values_from="temperature")

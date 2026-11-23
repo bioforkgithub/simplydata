@@ -1026,5 +1026,5 @@ def frequency_filter(keep_below=None, keep_above=None, keep_between=None, remove
              f"The filter that {verb} the frequencies {what} ({made['words']})")
     system_ = System.from_coefficients(b, a, time_step=step, sos=made.get("sos"), label=label)
     print(system_._describe())
-    print(f"Method: SciPy, as R {made['r_call']}.")
+    print(f"Method: {made['r_call']}." if made.get("scipy_only") else f"Method: SciPy, as R {made['r_call']}.")
     return system_

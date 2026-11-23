@@ -12,6 +12,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 A = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 15.6]
@@ -27,12 +28,12 @@ def engine(request):
 def make(engine, data):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 def clinic(engine):
-    return make(engine, sdata.get_example("clinic"))
+    return make(engine, example_frame("clinic"))
 
 
 def row(result):
@@ -128,7 +129,7 @@ def test_page(engine):
 
 
 def test_correlation_intervals(engine, needs_r, capsys):
-    t = make(engine, sdata.get_example("marks"))
+    t = make(engine, example_frame("marks"))
     t.find_correlation_between("hours", "marks")
     # R: cor.test(hours, marks)$conf.int = 0.7248775809032 to 0.8989551498483
     assert "values from 0.725 to 0.899 fit the data (95 % CI)" in capsys.readouterr().out
@@ -141,7 +142,7 @@ def test_correlation_intervals(engine, needs_r, capsys):
 
 
 def test_somers_and_gamma(engine, needs_r, capsys):
-    t = make(engine, sdata.get_example("marks"))
+    t = make(engine, example_frame("marks"))
     # R: DescTools::SomersDelta(hours, marks, direction = "column") = 0.6409893992933 (= SciPy somersd(hours, marks))
     assert t.find_correlation_between("hours", "marks", test_method="somers") == pytest.approx(0.6409893992933, rel=REL)
     # R: DescTools::GoodmanKruskalGamma(hours, marks, conf.level = 0.95): 0.6529877609791 (0.5397892889546 to
@@ -152,7 +153,7 @@ def test_somers_and_gamma(engine, needs_r, capsys):
 
 
 def test_partial_correlation(engine, needs_r, capsys):
-    t = make(engine, sdata.get_example("marks"))
+    t = make(engine, example_frame("marks"))
     # R: ppcor::pcor.test(hours, marks, height): estimate 0.8313328118386, p 1.295704900218e-14
     assert t.find_correlation_between("hours", "marks", allowing_for="height") == pytest.approx(0.8313328118386, rel=REL)
     assert "p < 0.0001" in capsys.readouterr().out or True
@@ -164,7 +165,7 @@ def test_partial_correlation(engine, needs_r, capsys):
 
 
 def _pain_long(engine):
-    d = sdata.get_example("clinic")
+    d = example_frame("clinic")
     long = pd.DataFrame({"patient": list(d.patient) * 3,
                          "week": ["week 0"] * 200 + ["week 4"] * 200 + ["week 8"] * 200,
                          "pain": list(d.pain_week_0) + list(d.pain_week_4) + list(d.pain_week_8)})
@@ -190,7 +191,7 @@ def test_pairs_within_matched_rows(engine, capsys):
 
 
 def test_compare_correlations(engine, needs_r, capsys):
-    t = make(engine, sdata.get_example("marks"))
+    t = make(engine, example_frame("marks"))
     t.keep_rows_where("class", is_one_of=["A", "B"])
     got = row(t.compare_correlations("hours", "marks", for_each_group_in="class"))
     # R: cocor::cocor.indep.groups(r_A, r_B, n_A, n_B, test = c("fisher1925", "zou2007")) (cocor_ref.R)
@@ -198,7 +199,7 @@ def test_compare_correlations(engine, needs_r, capsys):
     assert (got["statistic"], got["p-value"]) == pytest.approx((0.6450970362209, 0.5188643043876), rel=1e-6)
     assert (got["difference 95 % CI low"], got["difference 95 % CI high"]) == pytest.approx(
         (-0.1486109707038, 0.3343463571511), rel=1e-6)
-    got = row(make(engine, sdata.get_example("marks")).compare_correlations(["hours", "marks"], ["height", "marks"]))
+    got = row(make(engine, example_frame("marks")).compare_correlations(["hours", "marks"], ["height", "marks"]))
     # R: cocor::cocor.dep.groups.overlap(r(marks, hours), r(marks, height), r(hours, height), n, steiger1980 / zou2007)
     assert (got["statistic"], got["p-value"]) == pytest.approx((5.77722766837, 7.594149753487e-09), rel=1e-6)
     assert (got["difference 95 % CI low"], got["difference 95 % CI high"]) == pytest.approx(

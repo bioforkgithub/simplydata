@@ -9,7 +9,8 @@ from . import Entry
 GENES = ('["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", '
          '"mphA", "vanA", "mcr1"]')
 RESISTOME = """
-    df = sdata.get_example("resistome")
+    import pandas as pd
+    df = pd.read_csv("resistome.csv")
     x = df.iloc[:, 5:].to_numpy(dtype=float)
     site = df["site"].to_numpy(dtype=object)
     temperature = df["temperature"].to_numpy(dtype=float)
@@ -18,7 +19,7 @@ RESISTOME = """
 """
 START = """
             genes = {genes}
-            table = sdata.table(sdata.get_example("resistome"))
+            table = sdata.get_example("resistome")
 """
 
 
@@ -39,7 +40,7 @@ FLIP = """
     s = np.sign(points[np.abs(points).argmax(axis=0), np.arange(points.shape[1])])  # ({n})
     pd.DataFrame(points * s, columns={names})
 """
-GENE_NAMES = 'names = list(sdata.get_example("resistome").columns[5:])'
+GENE_NAMES = 'names = list(pd.read_csv("resistome.csv").columns[5:])'
 TESTS_ALSO = ("simplydata also tests each column after all the others, says the result in words with the W2 sentence "
               "and the permutation floor, and notes overlapping columns (vif.cca) and the sequencing-depth trap.")
 
@@ -55,7 +56,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes)
-            table.as_pandas()[["richness", "shannon", "simpson"]]
+            table.keep_columns(*["richness", "shannon", "simpson"])
         """),
         code={
             "R": """
@@ -83,7 +84,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="richness", at_total_count=2000)
-            table.as_pandas()[["richness", "expected richness at 2000"]]
+            table.keep_columns(*["richness", "expected richness at 2000"])
         """),
         code={
             "R": """
@@ -110,7 +111,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="chao1")
-            table.as_pandas()[["chao1", "chao1 standard error"]]
+            table.keep_columns(*["chao1", "chao1 standard error"])
         """),
         code={
             "R": """
@@ -134,7 +135,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_diversity_columns(columns=genes, show="hill numbers")
-            table.as_pandas()[["hill number 0", "hill number 1", "hill number 2"]]
+            table.keep_columns(*["hill number 0", "hill number 1", "hill number 2"])
         """),
         code={
             "R": """
@@ -194,7 +195,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes)
-            table.as_pandas()[["clr_" + g for g in genes]]
+            table.keep_columns(*["clr_" + g for g in genes])
         """),
         code={
             "R": """
@@ -227,7 +228,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, test_method="alr", against="sul1")
-            table.as_pandas()[["alr_" + g for g in genes if g != "sul1"]]
+            table.keep_columns(*["alr_" + g for g in genes if g != "sul1"])
         """),
         code={
             "R": """
@@ -253,7 +254,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, test_method="ilr")
-            table.as_pandas()[[f"ilr{i}" for i in range(1, 14)]]
+            table.keep_columns(*[f"ilr{i}" for i in range(1, 14)])
         """),
         code={
             "R": """
@@ -279,7 +280,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_log_ratio_columns(columns=genes, zeros_replaced_by="adding 1")
-            table.as_pandas()[["clr_" + g for g in genes]]
+            table.keep_columns(*["clr_" + g for g in genes])
         """),
         code={
             "R": """
@@ -305,7 +306,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_principal_coordinates(columns=genes)
-            table.as_pandas()[["PCo1", "PCo2"]]
+            table.keep_columns(*["PCo1", "PCo2"])
         """),
         code={
             "R": """
@@ -330,7 +331,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_principal_coordinates(columns=genes, measure="aitchison")
-            table.as_pandas()[["PCo1", "PCo2"]]
+            table.keep_columns(*["PCo1", "PCo2"])
         """),
         code={
             "R": """
@@ -356,7 +357,7 @@ ENTRIES = [
         word="table.explain_profiles_of",
         data="resistome",
         ours=_ours("""
-            table.explain_profiles_of(genes, using=["temperature", "salinity"]).as_pandas()
+            table.explain_profiles_of(genes, using=["temperature", "salinity"])
         """),
         code={
             "R": """
@@ -385,7 +386,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature", "salinity"], measure="hellinger")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -415,7 +416,7 @@ ENTRIES = [
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature", "salinity"],
                                                test_method="canonical correspondence")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -441,7 +442,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.explain_profiles_of(genes, using=["temperature"], allowing_for="site")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -470,7 +471,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             result = table.find_correlation_between_profiles(first=genes, second=["temperature", "salinity"])
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -500,7 +501,7 @@ ENTRIES = [
         ours=_ours("""
             result = table.find_correlation_between_profiles(first=genes, second=["temperature", "salinity"],
                                                              test_method="procrustes")
-            result.as_pandas()
+            result
         """),
         code={
             "R": """
@@ -527,7 +528,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='test_method="anosim"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", test_method="anosim").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", test_method="anosim")
         """),
         code={
             "R": """
@@ -550,7 +551,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='show="contributions"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", show="contributions").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", show="contributions")
         """),
         code={
             "R": """
@@ -574,7 +575,7 @@ ENTRIES = [
         word="table.compare_profiles_of", option='measure="aitchison"',
         data="resistome",
         ours=_ours("""
-            table.compare_profiles_of(genes, for_each_group_in="site", measure="aitchison").as_pandas()
+            table.compare_profiles_of(genes, for_each_group_in="site", measure="aitchison")
         """),
         code={
             "R": """
@@ -600,7 +601,7 @@ ENTRIES = [
         word="table.find_distances_between_rows", option='measure="aitchison"',
         data="resistome",
         ours=_ours("""
-            table.find_distances_between_rows(columns=genes, measure="aitchison").as_pandas()
+            table.find_distances_between_rows(columns=genes, measure="aitchison")
         """),
         code={
             "R": """
@@ -630,7 +631,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_clusters(columns=genes, how_many="automatic", test_method="hierarchical", measure="bray-curtis")
-            table.as_pandas()[["cluster"]]
+            table.keep_columns(*["cluster"])
         """),
         code={
             "R": """
@@ -660,7 +661,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_clusters(columns=genes, how_many=3, test_method="hierarchical", measure="bray-curtis")
-            table.as_pandas()[["cluster"]]
+            table.keep_columns(*["cluster"])
         """),
         code={
             "R": """
@@ -693,7 +694,8 @@ ENTRIES = [
                 import matplotlib.pyplot as plt
                 from scipy.cluster import hierarchy
                 from scipy.spatial.distance import pdist
-                df = sdata.get_example("resistome")
+                import pandas as pd
+                df = pd.read_csv("resistome.csv")
                 x = df.iloc[:, 5:].to_numpy(dtype=float)
                 tree = hierarchy.linkage(pdist(x, "braycurtis"), method="average")  # (1)
                 found = hierarchy.dendrogram(tree, labels=list(df["sample"]), no_plot=True)
@@ -715,7 +717,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_axes_that_separate_groups(columns=["temperature", "salinity", "reads"], for_each_group_in="site")
-            table.as_pandas()[["LD1", "LD2"]]
+            table.keep_columns(*["LD1", "LD2"])
         """),
         code={
             "R": """
@@ -738,7 +740,7 @@ ENTRIES = [
         data="resistome",
         ours=_ours("""
             table.add_correspondence_axes(columns=genes)
-            table.as_pandas()[["CA1", "CA2"]]
+            table.keep_columns(*["CA1", "CA2"])
         """),
         code={
             "R": """
@@ -755,5 +757,34 @@ ENTRIES = [
                  "each axis turned so its biggest value is positive."),
         python_note="No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.",
         also="simplydata also prints each axis's share of the inertia, and runs MCA (R ca::mjca) on text columns.",
+    ),
+    Entry(
+        word="table.add_correspondence_axes", option='show="numbers"',
+        data="resistome",
+        ours=_ours("""
+            table.add_correspondence_axes(columns=genes, show="numbers")
+        """),
+        code={
+            "R": """
+                # add_correspondence_axes(columns=genes, show="numbers")
+                m <- vegan::cca(x)
+                e <- summary(vegan::eigenvals(m))                               # (1)
+                list(eig1 = e[1, 1], eig2 = e[1, 2], share1 = e[2, 1], share2 = e[2, 2],
+                     total = m$tot.chi)                                         # (2)
+            """,
+            "Python": """
+                {"CA1 eigenvalue": eig1, "CA2 eigenvalue": eig2, "CA1 share of the inertia": share1,
+                 "CA2 share of the inertia": share2, "total inertia": total}
+            """,
+        },
+        r_inputs=RESISTOME, r_packages=("vegan",), compare="result",
+        fields=("CA1 eigenvalue", "CA2 eigenvalue", "CA1 share of the inertia", "CA2 share of the inertia",
+                "total inertia"), tolerance=1e-10,
+        choices=("each axis's eigenvalue and share of the inertia as vegan's summary(eigenvals()) gives them.",
+                 "the total inertia is vegan's tot.chi, the sum of all the eigenvalues."),
+        python_note="No Python package simplydata uses has correspondence analysis, so the numbers come from R vegan.",
+        also="simplydata also gives each row's coordinates (CA1, CA2) and its number in the table, and repeats the "
+             "numbers of the whole map on every row. For text columns (MCA) the table holds the shares and the total "
+             "of the adjusted inertia (ca::mjca inertia.e, inertia.t).",
     ),
 ]

@@ -197,18 +197,60 @@ def _kind_of(suffix: str, label: str) -> str:
     return kind
 
 
-def _guess_separator(source) -> str:
-    """The character between values in a text file (for the fast engine)."""
+SEPARATORS = ",;\t|"  # the only characters ever guessed as the separator: never a letter, digit or other sign
+_SEPARATOR_WORDS = {",": '","', ";": '";"', "\t": "a tab", "|": '"|"'}
+_SEPARATOR_OPTION = {",": '","', ";": '";"', "\t": '"tab"', "|": '"|"'}
+_guesses: list | None = None  # while a folder is read, the guesses are collected and said once
+
+
+def _guess_separator(source, encoding="utf-8", skip_rows=0) -> str:
+    """The character between values in a text file: Python's csv.Sniffer, allowed to choose only a comma,
+    semicolon, tab or bar. Anything else it might find (a letter such as the "e" of "species", a digit, a
+    space or another sign) is refused. A file with one column has none of the four, so the sniffer fails and
+    "," is used: the file is read as one column."""
     try:
         if isinstance(source, io.BytesIO):
             sample = source.getvalue()[:65536]
         else:
             with open(source, "rb") as fh:
                 sample = fh.read(65536)
-        text = sample.decode("utf-8", errors="ignore")
-        return csv.Sniffer().sniff(text, delimiters=",;\t|").delimiter
-    except (csv.Error, OSError):
+        lines = sample.decode(encoding, errors="ignore").splitlines()
+    except (OSError, LookupError):
         return ","
+    lines = lines[skip_rows or 0:]  # the lines above the column names (skip_rows=) are not part of the table
+    if len(sample) == 65536 and len(lines) > 1:
+        lines = lines[:-1]  # the sample ends in the middle of a line
+    if not lines:
+        return ","
+    try:
+        found = csv.Sniffer().sniff("\n".join(lines), delimiters=SEPARATORS).delimiter
+    except csv.Error:
+        # rows of different lengths, or very wide rows: the column names alone decide; the separator is the one
+        # of the four that turns up most often in them (none of them: one column)
+        header = lines[0]
+        counts = {sep: header.count(sep) for sep in SEPARATORS}
+        found = max(counts, key=counts.get) if max(counts.values()) else ","
+    return found if found in SEPARATORS else ","
+
+
+def _say_guess(label, sep) -> None:
+    """One plain line when simplydata guessed the separator (none when separator= was given)."""
+    if _guesses is not None:
+        _guesses.append(sep)
+        return
+    print(f'Read "{label}" with {_SEPARATOR_WORDS[sep]} between the columns (guessed). '
+          f"To be sure, give separator={_SEPARATOR_OPTION[sep]}.")
+
+
+def _separator_for(source, kind, label, options) -> str:
+    """separator= when given, a tab for .tsv files, otherwise the guess (said in one line)."""
+    if options.get("separator"):
+        return options["separator"]
+    if kind == "tsv":
+        return "\t"
+    sep = _guess_separator(_rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0))
+    _say_guess(label, sep)
+    return sep
 
 
 def _rewind(source):
@@ -265,7 +307,7 @@ def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False
             if kind == "parquet":
                 fast_table = pl.read_parquet(_rewind(source))
             else:
-                sep = options.get("separator") or ("\t" if kind == "tsv" else _guess_separator(source))
+                sep = _separator_for(source, kind, label, options)
                 extra = {}
                 if options.get("decimal_mark") == ",":
                     extra["decimal_comma"] = True
@@ -308,10 +350,8 @@ def _read_text(source, kind, label, options):
     extra = _pandas_text_options(options)
     if "encoding" in options:
         extra["encoding"] = options["encoding"]
-    sep = options.get("separator") or ("\t" if kind == "tsv" else None)
+    sep = _separator_for(source, kind, label, options)
     try:
-        if sep is None:
-            return pd.read_csv(_rewind(source), sep=None, engine="python", **extra)
         engine = {} if len(sep) == 1 else {"engine": "python"}
         return pd.read_csv(_rewind(source), sep=sep, **engine, **extra)
     except UnicodeDecodeError:
@@ -466,12 +506,22 @@ def _labels(files: list[Path]) -> list[str]:
 
 
 def _read_many(files, sheet, fast, keep_fast, options, asked_for):
+    global _guesses
     labels = _labels(files)
     parts = []
-    for path, label in zip(files, labels):
-        kind = _kind_of(path.suffix, path.name)
-        parts.append((label, _read_one(path, kind, path.stat().st_size, label, sheet=sheet, fast=fast,
-                                       keep_fast=keep_fast, options=options)))
+    _guesses = []
+    try:
+        for path, label in zip(files, labels):
+            kind = _kind_of(path.suffix, path.name)
+            parts.append((label, _read_one(path, kind, path.stat().st_size, label, sheet=sheet, fast=fast,
+                                           keep_fast=keep_fast, options=options)))
+        guessed = sorted(set(_guesses), key=SEPARATORS.index)
+    finally:
+        _guesses = None
+    if guessed:
+        said = " or ".join(_SEPARATOR_WORDS[g] for g in guessed)
+        print(f"Read the files with {said} between the columns (guessed). "
+              f"To be sure, give separator={_SEPARATOR_OPTION[guessed[0]]}.")
     is_folder = Path(asked_for).is_dir()
     folder = Path(asked_for) if is_folder else files[0].parent
     example = f'sdata.table("{(files[0].parent / files[0].name).as_posix()}")'
