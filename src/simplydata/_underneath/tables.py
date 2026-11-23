@@ -670,11 +670,12 @@ ENTRIES += [
         word="table.show_last_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.show_last_rows(3)
         """,
         code={"pandas": """
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # show_last_rows(rows=3)
             last = df.tail(3)
             last.index = range(len(df) - 2, len(df) + 1)     # (1)
@@ -690,12 +691,12 @@ ENTRIES += [
         word="table.show",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.show()
         """,
         code={"pandas": """
             import pandas as pd
-            df = sdata.get_example("shop")
+            df = pd.read_csv("shop.csv", parse_dates=["date"])
             # show()
             shown = df.copy()
             shown.index = range(1, len(df) + 1)                   # (1)
@@ -714,18 +715,19 @@ ENTRIES += [
         word="table.get_column_names",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.get_column_names()
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # get_column_names()
                 list(df.columns)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # get_column_names()
                 df.columns
             """,
@@ -738,18 +740,19 @@ ENTRIES += [
         word="table.get_column",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.get_column("sales")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # get_column("sales")
                 df["sales"].to_numpy(dtype=float)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # get_column("sales")
                 df["sales"].to_numpy()
             """,
@@ -764,20 +767,20 @@ ENTRIES += [
         word="table.get_row",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.get_row(45)
         """,
         code={
             "pandas": """
                 import pandas as pd
-                df = sdata.get_example("shop")
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # get_row(position=45)
                 row = df.iloc[44].to_dict()                                  # (1)
                 {k: None if pd.isna(v) else v for k, v in row.items()}       # (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", schema_overrides={"date": pl.Datetime})   # dates with a time, as pandas
                 # get_row(position=45)
                 df.row(44, named=True)                                       # (1) (2)
             """,
@@ -793,18 +796,19 @@ ENTRIES += [
         word="table.get_cell_at",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.get_cell_at(row=3, column="marks")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # get_cell_at(row=3, column="marks")
                 df["marks"].iloc[2]              # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # get_cell_at(row=3, column="marks")
                 df.item(2, "marks")              # (1)
             """,
@@ -818,18 +822,19 @@ ENTRIES += [
         word="table.remove_columns",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.remove_columns("height")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # remove_columns("height")
                 df.drop(columns=["height"])
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # remove_columns("height")
                 df.drop("height")
             """,
@@ -842,18 +847,19 @@ ENTRIES += [
         word="table.keep_columns_by_position",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_columns_by_position(1, to=3)
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_columns_by_position(1, to=3)
                 df.iloc[:, 0:3]                     # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_columns_by_position(1, to=3)
                 df.select(df.columns[0:3])          # (1)
             """,
@@ -868,18 +874,19 @@ ENTRIES += [
         word="table.remove_columns_by_position",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.remove_columns_by_position(2, to=3)
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # remove_columns_by_position(2, to=3)
                 df.drop(columns=df.columns[1:3])    # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # remove_columns_by_position(2, to=3)
                 df.drop(df.columns[1:3])            # (1)
             """,
@@ -894,18 +901,19 @@ ENTRIES += [
         word="table.remove_rows_where",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.remove_rows_where("sales", is_below=300)
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # remove_rows_where("sales", is_below=300)
                 df[~(df["sales"] < 300)]                                 # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # remove_rows_where("sales", is_below=300)
                 df.filter(~(pl.col("sales") < 300).fill_null(False))     # (1)
             """,
@@ -921,18 +929,19 @@ ENTRIES += [
         word="table.keep_first_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_first_rows(10)
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_first_rows(n=10)
                 df.head(10)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_first_rows(n=10)
                 df.head(10)
             """,
@@ -944,18 +953,19 @@ ENTRIES += [
         word="table.keep_last_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_last_rows(10)
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_last_rows(n=10)
                 df.tail(10)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_last_rows(n=10)
                 df.tail(10)
             """,
@@ -967,18 +977,19 @@ ENTRIES += [
         word="table.remove_rows_by_position",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.remove_rows_by_position([12, 40])
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # remove_rows_by_position([12, 40])
                 df.drop(index=df.index[[11, 39]])                         # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # remove_rows_by_position([12, 40])
                 df.filter(~pl.int_range(pl.len()).is_in([11, 39]))        # (1)
             """,
@@ -992,18 +1003,19 @@ ENTRIES += [
         word="table.reverse_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.reverse_rows()
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # reverse_rows()
                 df.iloc[::-1]
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # reverse_rows()
                 df.reverse()
             """,
@@ -1015,18 +1027,19 @@ ENTRIES += [
         word="table.remove_duplicate_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.remove_duplicate_rows(columns=["name"])
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # remove_duplicate_rows(columns=["name"])
                 df.drop_duplicates(subset=["name"], keep="first")                   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # remove_duplicate_rows(columns=["name"])
                 df.unique(subset=["name"], keep="first", maintain_order=True)       # (1)
             """,
@@ -1041,12 +1054,13 @@ ENTRIES += [
         word="table.keep_biggest_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_biggest_rows(4, by="marks", for_each_group_in="subject")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_biggest_rows(4, by="marks", for_each_group_in="subject")
                 ordered = df.sort_values("marks", ascending=False, kind="stable")   # (1)
                 top = ordered.groupby("subject").head(4)
@@ -1054,7 +1068,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_biggest_rows(4, by="marks", for_each_group_in="subject")
                 ordered = df.sort("marks", descending=True, maintain_order=True)   # (1)
                 top = ordered.filter(pl.int_range(pl.len()).over("subject") < 4)
@@ -1072,12 +1086,13 @@ ENTRIES += [
         word="table.keep_smallest_rows",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # keep_smallest_rows(3, by="marks", for_each_group_in="subject")
                 ordered = df.sort_values("marks", kind="stable")                  # (1)
                 low = ordered.groupby("subject").head(3)
@@ -1085,7 +1100,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # keep_smallest_rows(3, by="marks", for_each_group_in="subject")
                 ordered = df.sort("marks", maintain_order=True)                   # (1)
                 low = ordered.filter(pl.int_range(pl.len()).over("subject") < 3)
@@ -1103,12 +1118,13 @@ ENTRIES += [
         word="table.remove_rows_with_outliers",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.remove_rows_with_outliers("sleep", for_each_group_in="school")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("school")
+                import pandas as pd
+                df = pd.read_csv("school.csv")
                 # remove_rows_with_outliers("sleep", for_each_group_in="school")
                 sleep = df.groupby("school")["sleep"]
                 q1, q3 = sleep.transform("quantile", 0.25), sleep.transform("quantile", 0.75)   # (1)
@@ -1118,7 +1134,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("school"))
+                df = pl.read_csv("school.csv")
                 # remove_rows_with_outliers("sleep", for_each_group_in="school")
                 s = pl.col("sleep")
                 q1, q3 = s.quantile(0.25, "linear").over("school"), s.quantile(0.75, "linear").over("school")  # (1)
@@ -1194,18 +1210,19 @@ ENTRIES += [
         word="table.turn_into_text",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.turn_into_text("date")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # turn_into_text("date")
                 df.assign(date=df["date"].dt.strftime("%Y-%m-%d"))          # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # turn_into_text("date")
                 df.with_columns(pl.col("date").dt.strftime("%Y-%m-%d"))     # (1)
             """,
@@ -1255,18 +1272,19 @@ ENTRIES += [
         word="table.turn_into_lowercase",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.turn_into_lowercase("name")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # turn_into_lowercase("name")
                 df.assign(name=df["name"].str.lower())
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # turn_into_lowercase("name")
                 df.with_columns(pl.col("name").str.to_lowercase())
             """,
@@ -1278,18 +1296,19 @@ ENTRIES += [
         word="table.turn_into_uppercase",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.turn_into_uppercase("name")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # turn_into_uppercase("name")
                 df.assign(name=df["name"].str.upper())
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # turn_into_uppercase("name")
                 df.with_columns(pl.col("name").str.to_uppercase())
             """,
@@ -1328,18 +1347,19 @@ ENTRIES += [
         word="table.change_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.change_column("marks", "marks / 10")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # change_column("marks", "marks / 10")
                 df.assign(marks=df["marks"] / 10)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # change_column("marks", "marks / 10")
                 df.with_columns(pl.col("marks") / 10)
             """,
@@ -1353,18 +1373,19 @@ ENTRIES += [
         word="table.add_rank_column",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.add_rank_column("place", from_column="marks")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # add_rank_column("place", from_column="marks")
                 df.assign(place=df["marks"].rank(method="min", ascending=False))     # (1) (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # add_rank_column("place", from_column="marks")
                 df.with_columns(pl.col("marks").rank("min", descending=True).alias("place"))   # (1) (2)
             """,
@@ -1379,18 +1400,19 @@ ENTRIES += [
         word="table.add_column_with_part_of_date",
         data="shop",
         ours="""
-            table = sdata.table(sdata.get_example("shop"))
+            table = sdata.get_example("shop")
             table.add_column_with_part_of_date("weekday", from_column="date", part="weekday")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("shop")
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
                 # add_column_with_part_of_date("weekday", from_column="date", part="weekday")
                 df.assign(weekday=df["date"].dt.dayofweek + 1)                # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("shop"))
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
                 # add_column_with_part_of_date("weekday", from_column="date", part="weekday")
                 df.with_columns(pl.col("date").dt.weekday().alias("weekday"))   # (1)
             """,
@@ -1493,14 +1515,15 @@ ENTRIES += [
         word="table.add_previous_value_column",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.sort_by("temperature")
             table.add_previous_value_column("last_month", from_column="temperature", for_each_group_in="city",
                                             sorted_by="month_number")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather").sort_values("temperature", kind="stable")
+                import pandas as pd
+                df = pd.read_csv("weather.csv").sort_values("temperature", kind="stable")
                 # add_previous_value_column("last_month", from_column="temperature", ...)
                 ordered = df.sort_values("month_number", kind="stable")                     # (1)
                 before = ordered.groupby("city")["temperature"].shift(1)                    # (2)
@@ -1508,7 +1531,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather")).sort("temperature", maintain_order=True)
+                df = pl.read_csv("weather.csv").sort("temperature", maintain_order=True)
                 # add_previous_value_column("last_month", from_column="temperature", ...)
                 before = pl.col("temperature").shift(1).over("city", order_by="month_number")   # (1) (2)
                 df.with_columns(before.alias("last_month"))
@@ -1561,18 +1584,19 @@ ENTRIES += [
         word="table.find_smallest_of",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.find_smallest_of("temperature", for_each_group_in="city")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather")
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
                 # find_smallest_of("temperature", for_each_group_in="city")
                 df.groupby("city")["temperature"].min().reset_index()                   # (1)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather"))
+                df = pl.read_csv("weather.csv")
                 # find_smallest_of("temperature", for_each_group_in="city")
                 df.group_by("city").agg(pl.col("temperature").min()).sort("city")       # (1)
             """,
@@ -1587,18 +1611,19 @@ ENTRIES += [
         word="table.find_biggest_of",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.find_biggest_of("temperature")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather")
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
                 # find_biggest_of("temperature")
                 df["temperature"].max()
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather"))
+                df = pl.read_csv("weather.csv")
                 # find_biggest_of("temperature")
                 df["temperature"].max()
             """,
@@ -1612,18 +1637,19 @@ ENTRIES += [
         word="table.find_standard_deviation_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_standard_deviation_of("marks", for_each_group_in="class")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("marks")
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
                 # find_standard_deviation_of("marks", for_each_group_in="class")
                 df.groupby("class")["marks"].std(ddof=1).reset_index()                   # (1) (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 # find_standard_deviation_of("marks", for_each_group_in="class")
                 df.group_by("class").agg(pl.col("marks").std(ddof=1)).sort("class")      # (1) (2)
             """,
@@ -1641,18 +1667,19 @@ ENTRIES += [
         word="table.count_different_values_in",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.count_different_values_in("sleep", for_each_group_in="school")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("school")
+                import pandas as pd
+                df = pd.read_csv("school.csv")
                 # count_different_values_in("sleep", for_each_group_in="school")
                 df.groupby("school")["sleep"].nunique().reset_index()                        # (1) (2)
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("school"))
+                df = pl.read_csv("school.csv")
                 # count_different_values_in("sleep", for_each_group_in="school")
                 df.group_by("school").agg(pl.col("sleep").drop_nulls().n_unique()).sort("school")   # (1) (2)
             """,
@@ -1698,14 +1725,14 @@ ENTRIES += [
         word="table.find_interval_of",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.find_interval_of("marks", "average")
         """,
         code={"SciPy": """
             import numpy as np
             import pandas as pd
             from scipy import stats
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # find_interval_of("marks", "average")
             x = df["marks"].dropna().to_numpy(dtype=float)
             ci = stats.bootstrap((x,), np.mean, n_resamples=9999, method="BCa",            # (1) (2)
@@ -1728,14 +1755,14 @@ ENTRIES += [
         word="table.add_rows_from",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.add_rows_from({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
                                  "hours": [5.0], "height": [150]})
         """,
         code={
             "pandas": """
                 import pandas as pd
-                df = sdata.get_example("marks")
+                df = pd.read_csv("marks.csv")
                 other = pd.DataFrame({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
                                       "hours": [5.0], "height": [150]})
                 # add_rows_from(other)
@@ -1743,7 +1770,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("marks"))
+                df = pl.read_csv("marks.csv")
                 other = pl.DataFrame({"marks": [88], "name": ["Zoe"], "class": ["A"], "subject": ["Maths"],
                                       "hours": [5.0], "height": [150]})
                 # add_rows_from(other)
@@ -1762,12 +1789,13 @@ ENTRIES += [
         word="table.turn_columns_into_rows",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.turn_columns_into_rows(["temperature", "rain"])
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather")
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
                 # turn_columns_into_rows(["temperature", "rain"])
                 others = [c for c in df.columns if c not in ("temperature", "rain")]
                 df.melt(id_vars=others, value_vars=["temperature", "rain"],
@@ -1775,7 +1803,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather"))
+                df = pl.read_csv("weather.csv")
                 # turn_columns_into_rows(["temperature", "rain"])
                 others = [c for c in df.columns if c not in ("temperature", "rain")]
                 df.unpivot(on=["temperature", "rain"], index=others,
@@ -1792,13 +1820,14 @@ ENTRIES += [
         word="table.turn_rows_into_columns",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.keep_columns("month", "city", "temperature")
             table.turn_rows_into_columns(names_from="city", values_from="temperature")
         """,
         code={
             "pandas": """
-                df = sdata.get_example("weather")[["month", "city", "temperature"]]
+                import pandas as pd
+                df = pd.read_csv("weather.csv")[["month", "city", "temperature"]]
                 # turn_rows_into_columns(names_from="city", values_from="temperature")
                 wide = df.pivot(index="month", columns="city", values="temperature")
                 wide = wide.loc[df["month"].unique(), df["city"].unique()]              # (1)
@@ -1806,7 +1835,7 @@ ENTRIES += [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.from_pandas(sdata.get_example("weather")).select("month", "city", "temperature")
+                df = pl.read_csv("weather.csv").select("month", "city", "temperature")
                 # turn_rows_into_columns(names_from="city", values_from="temperature")
                 df.pivot(on="city", index="month", values="temperature")                # (1)
             """,
@@ -1818,7 +1847,7 @@ ENTRIES += [
              "stops and suggests find_average_of() first, instead of choosing one. " + SAID,
     ),
     Entry(word="table.start_again", ours="""
-              table = sdata.table(sdata.get_example("marks"))
+              table = sdata.get_example("marks")
               table.keep_rows_where("marks", is_above=50)
               table.start_again()
           """, compare="none",

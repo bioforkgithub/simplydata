@@ -204,7 +204,7 @@ ENTRIES += [
           note="simplydata's own: the lessons are written in simplydata (learn.py) and printed in plain Python; "
                "nothing is computed."),
     Entry(word="sdata.show_packages_used", ours="""
-              table = sdata.table(sdata.get_example("marks"))
+              table = sdata.get_example("marks")
               table.find_average_of("marks", for_each_group_in="class")
               sdata.show_packages_used()
           """, compare="none",
