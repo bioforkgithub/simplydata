@@ -44,8 +44,8 @@ def _datasets(Dataset):
                 "Champely, S. et al. pwr: Basic Functions for Power Analysis, vignette (pwr.f2.test); Kutner, M. H., "
                 "Nachtsheim, C. J., Neter, J. & Li, W. (2005). Applied Linear Statistical Models, 5th ed., "
                 "exercise 8.43.", facts, "https://cran.r-project.org/package=pwr"),
-        Dataset(CHECKS, "", "no data: the inputs are written in the code, and R (or SciPy with the same seed) is the "
-                            "reference; used where no published worked example was read",
+        Dataset(CHECKS, "", "no data: the inputs are written in the code, and R (or SciPy with the same seed, or "
+                            "python-control) is the reference; used where no published worked example was read",
                 "simplydata's reliability study. Simulation checks follow Arnold, B. F., Hogan, D. R., Colford, J. M. "
                 "& Hubbard, A. E. (2011). Simulation methods to estimate design power. BMC Medical Research "
                 "Methodology 11, 94.", facts, "https://doi.org/10.1186/1471-2288-11-94"),

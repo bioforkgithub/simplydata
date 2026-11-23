@@ -24,13 +24,6 @@ report on every setup with `SIMPLYDATA_REQUIRE_R=1`, so there a missing R fails 
 runs the same checks (`tests/test_underneath.py`, `tests/test_validation.py`) on Windows, macOS and Linux
 with Python 3.11 to 3.13 for every change.
 
-**Where the committed files are built:** the generated files (this report, the manual, the dictionary, the
-30-day guide, `docs/how_simplydata_chooses.md` and the counts in the README) are built on GitHub's Linux runners
-by the workflow `.github/workflows/rebuild-docs.yml` (`python validation/update_readme_counts.py` writes the
-README's counts from the report). Counts of machine-dependent precision-limit rows (the explained differences,
-such as the NIST Wampler polynomials below) can differ by one or two on other machines, because the last digits
-depend on the computer's linear-algebra library.
-
 ## What is checked
 
 1. **Real data with published answers** (`cases.py`). Each word runs on real data, and what it gives is
@@ -44,7 +37,7 @@ depend on the computer's linear-algebra library.
    that agree. A word must match at least 9 digits; for the nonlinear (curve) problems, at least 6, the
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
-   rows left, an exact line): 3 of the 473 cases, each labelled *made-up* in the report.
+   rows left, an exact line): 3 of the 516 cases, each labelled *made-up* in the report.
 
    Each check states its tolerance and why: about 1e-9 (relative) for a calculation with no iteration and
    no random numbers; the NIST digits above, or the same method run to convergence, for an iterative fit;
@@ -54,25 +47,66 @@ depend on the computer's linear-algebra library.
    a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
    difference*, with its reason, and counted apart from the passes and the failures.
 
-2. **The same underneath** (`src/simplydata/_underneath/`). For 319 of simplydata's 402 words (428
+2. **The same underneath** (`src/simplydata/_underneath/`). For 317 of simplydata's 400 words (425
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 317 of the 428 run on made-up
+   it says it makes; they are not checks against an independent answer, and 314 of the 425 run on made-up
    practice tables (all practice tables are made up; 111 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 473 cases on 94 datasets (83 with a published or certified answer, 387 compared with the
+The study now has 516 cases on 100 datasets (86 with a published or certified answer, 427 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
-manuals, design tables): 6 of the 387 are simulation and formula checks against R that use no data at all; the
-other 381 run on real data. A word passes when it agrees with the reference to the stated, justified tolerance. They cover 305 words, or 431 words and options;
-the other words of simplydata's 398 are not checked on real data here (some have a same-underneath box,
-part 2, and all have their own tests). Words are added with each release; a word counts as done only when
-its checks pass.
+manuals, design tables, worked examples): 23 of the 427 are simulation and formula checks against R that use no data at
+all; the other 404 run on real data. A word passes when it agrees with the reference to the stated, justified
+tolerance. They cover 349 words, or 474 words and options. Words are added with each release; a word counts as done only
+when its checks pass.
+
+### Which words are compared, and where
+
+simplydata has 400 words (and 2 options listed as words, `show=` and `error=`). Of the 400:
+
+- **347 are compared with a reference here**: 349 have a case on real data (part 1) and 317 a same-underneath box (part
+  2); together they cover 362 words, and 347 of these compare a number, a table or a drawn chart with a reference.
+- **15 have nothing to compare** (counted among the 362 because each has a box): the help and learning words
+  `sdata.help`, `sdata.show_all_words`, `sdata.show_lesson`, `sdata.show_day`, `sdata.show_today`, `sdata.show_answers`,
+  `sdata.start_30_days`, `sdata.go_to_next_day`, `sdata.show_packages_used`, and the steps words `table.undo`,
+  `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps` and `nums.start_again`. They print help, a
+  lesson, the list of packages used or the steps taken, or put a table back as it was: they compute no number, so there
+  is no published answer or parent package to compare them with. Their box is run to show that it runs, and the report
+  marks it "none".
+- **38 are compared only in the separate test study** (the notebooks of `simplydata_tests`, 26,718 comparisons, each
+  difference explained), not here:
+  - notebook 12 (factor analysis) and 21 (agreement and diagnostic tests): `table.reliability_of`;
+  - notebook 19 (averages, spreads and shapes): `sdata.compare_averages`, `table.compare_shapes_of`,
+    `table.check_if_random_order`;
+  - notebook 20 (counts, pairs, matched columns): `sdata.compare_counts`, `table.compare_counts_to`,
+    `table.compare_correlations`;
+  - notebook 21: `table.agreement_between`, `table.limits_of_agreement`, `table.compare_to_truth`,
+    `sdata.compare_to_truth`, `table.compare_accuracy`;
+  - notebook 22 (risks and rates): `sdata.compare_risks`, `sdata.compare_rates`;
+  - notebook 23 (distributions): `nums.fit_distribution`, `table.compare_distributions_for` and the distribution words
+    `dist.find_density_at`, `dist.find_cut_off`, `dist.find_middle_range`, `dist.find_average`, `dist.find_median`,
+    `dist.find_standard_deviation`, `dist.find_variance`, `dist.show_summary`, `dist.show_parameters`,
+    `dist.make_random_numbers`, `dist.draw_chart` and `dist.turn_into_table` (also in notebook 13);
+  - notebook 24 (charts): `difference_dots`;
+  - notebook 28 (patterns across columns): `table.find_principal_components_of`;
+  - notebook 29 (forecasts, smoothing, trend): `nums.smooth`, `nums.remove_trend`, `nums.find_autocorrelation`,
+    `nums.forecast`, `table.add_trend_and_season`, `table.check_steady_over_time`, `table.find_change_points_in`,
+    `table.compare_forecasts_for`.
+
+No word is left without a comparison. The other 46 words had no case here before 2026-11-23: cycles, peaks, filters,
+the Fourier transform, the time-series charts, joining the dots, solving and optimising, waves and linear systems. 5 of
+them, the chart words `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`, `trend_and_season` and `forecast`,
+were already compared in notebook 29 of the test study; the other 41 were compared nowhere. All 46 now have a case in
+`cases_signals.py`: on the yearly sunspot numbers, the El Nino sea temperatures and US inflation and unemployment (all
+public domain, read from the installed statsmodels), on published worked examples (Newton's cubic, Rosenbrock's valley,
+the Wyndor Glass linear program of Hillier & Lieberman), and, for the system words, which take a formula and no data,
+against python-control and base R.
 
 An option that changes what a word calls underneath is checked on its own, with its own box and case:
 `table.explain` with `weights=`, `outcome="yes or no (overdispersed)"`, `matched_by=`, `show="risk ratios"`,
@@ -163,6 +197,10 @@ which table is in [DATA_LICENSES.md](../DATA_LICENSES.md).
 | leaflife | not stored | Wright, I. J., Westoby, M. & Reich, P. B. (2002). Journal of Ecology 90, 534-543; shipped with R's smatr | GPL-2 (smatr); read from smatr, so it needs R |
 | creatinine | not stored | The method-comparison example of R's mcr (Roche Diagnostics) | GPL-3 (mcr); read from mcr, so it needs R |
 | Engel food expenditure | not stored | Engel, E. (1857); Koenker, R. & Bassett, G. (1982). Econometrica 50, 43-61; copy in statsmodels | Public domain (1857); read from statsmodels |
+| yearly sunspot numbers, 1700-2008 (gaps, 2026-11-23) | not stored | NOAA National Geophysical Data Center (from SIDC, Royal Observatory of Belgium); the 11-year cycle: Schwabe, H. (1844). Astronomische Nachrichten 21, 233-236; Hathaway, D. H. (2015). Living Reviews in Solar Physics 12, 4. Copy in statsmodels (`sunspots`) | Public domain (a US Government copy, as statsmodels states); read from statsmodels |
+| El Nino sea surface temperatures, Nino 1+2, 1950-2010 (gaps) | not stored | NOAA Climate Prediction Center, ERSST v3b. Copy in statsmodels (`elnino`) | Public domain; read from statsmodels |
+| US inflation and unemployment, 1959-2009 (gaps) | not stored | Federal Reserve Bank of St. Louis (FRED) and the US Bureau of Labor Statistics. Copy in statsmodels (`macrodata`) | Public domain; read from statsmodels |
+| Newton's cubic, Rosenbrock's valley, the Wyndor Glass linear program (gaps) | no data | Wallis, J. (1685). A Treatise of Algebra (Newton's example x^3 - 2x - 5 = 0), as in Ypma, T. J. (1995). SIAM Review 37(4), 531-551; Rosenbrock, H. H. (1960). The Computer Journal 3(3), 175-184; Hillier, F. S. & Lieberman, G. J. (2015). Introduction to Operations Research, 10th ed., sections 3.1 and 4.7 | Published worked examples (facts); only the printed answers are quoted |
 | Standard normal table | not stored | NIST/SEMATECH e-Handbook of Statistical Methods, 1.3.6.7.1. https://www.itl.nist.gov/div898/handbook/eda/section3/eda3671.htm | Public domain in the US; one number quoted |
 
 The same list, with what each dataset holds, is at the end of the report.
@@ -171,7 +209,9 @@ The same list, with what each dataset holds, is at the end of the report.
 
 - `make_report.py`: builds the report (one command, above).
 - `cases.py`: the cases on real data, the datasets with their licences and citations, and the edge cases.
-- `cases_lines.py`: the same for the lines and curves of phase S3a-2 (loaded by `cases.py`).
+- `cases_lines.py`: the same for the lines and curves of phase S3a-2 (loaded by `cases.py`); the other
+  `cases_*.py` files likewise, one per phase (`cases_signals.py`: the words that had no check before
+  2026-11-23).
 - `r_data.py`: the tables read from installed R packages instead of stored copies.
 - `data/`: the stored datasets (public domain or published facts; see DATA_LICENSES.md).
 - `report.md`: the last report made and committed.
