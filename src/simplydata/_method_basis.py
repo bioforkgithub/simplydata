@@ -3243,6 +3243,15 @@ BASIS["table.save"] = _b(
     "The file holds only the columns, without row labels.",
     "The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json).",
     "Data handling: row labels are pandas' own and not part of the data.", (), "P5", "", "convention")
+BASIS["table.save in_sheet="] = _b(
+    "The sheet is added to the Excel file and the other sheets are kept; a sheet of the same name is replaced; a "
+    "file that does not exist is made with that one sheet.",
+    "Without in_sheet=, the whole file is replaced by one sheet.",
+    "Data handling: pandas' own append mode (ExcelWriter mode=\"a\", if_sheet_exists=\"replace\"); replacing the "
+    "named sheet, not the file, keeps the other sheets, and simplydata says when it replaced one.", (), "P5",
+    "Sheet names are checked with Excel's rules before the file is opened (at most 31 characters, none of "
+    ": \\ / ? * [ ], no apostrophe at the start or end, not History, not the same name in other capitals), so a "
+    "refused name leaves the file as it was.", "convention")
 BASIS["table.add_missing_dates"] = _b(
     "Each group gets its own run of dates from its first to its last date; the table comes back sorted by the "
     "groups and the dates; rows with an empty group cell are a group of their own.",
