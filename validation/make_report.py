@@ -55,7 +55,7 @@ def _load_cases():
 study = _load_cases()
 
 PACKAGES = ("simplydata", "pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "matplotlib", "seaborn",
-            "rpy2")
+            "control", "rpy2")
 
 
 # ---------------------------------------------------------------- the setup
@@ -326,7 +326,8 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
         "Each simplydata word is run on real, published data and compared with the published answer, with the "
         "package simplydata uses underneath called directly, and with R. Each \"same underneath\" box of the "
         "manual is run next to its word and compared too. How it works, and the datasets with their licences: "
-        "[validation/README.md](README.md).",
+        "[validation/README.md](README.md); which words are compared here, which in the separate test study "
+        "(simplydata_tests) and which have nothing to compare: its section \"Which words are compared, and where\".",
         "",
         f"**{passed} checks passed, {explained} explained differences, {failed} failed, {skipped} skipped** "
         f"(skipped: R or an R package is not installed on this computer, or, for {local}, the data may not be "
@@ -382,6 +383,12 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
                    f"relative {r['tolerance']:g} | {result} |")
     out += ["", "How each kind is compared:", ""]
     out += [f"- **{kind}**: {what}" for kind, what in COMPARE_KINDS.items() if kind != "none"]
+    nothing = [k for k, e in UNDERNEATH.items() if e.compare == "none"]
+    if nothing:
+        out += [f"- **none** ({len(nothing)} words: " + ", ".join(f"`{k}`" for k in nothing) + "): help, learning, "
+                "undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put "
+                "a table back as it was; they compute no number, so there is nothing to compare them with. Their box "
+                "is run to show that it runs."]
     out += ["", "## Choices simplydata makes", "",
             "Where simplydata's default differs from the package underneath, it is listed here, so a difference "
             "is never hidden. The manual shows each one as a numbered mark in the code.", ""]
