@@ -48,6 +48,10 @@ def test_keys_are_current_words_not_old_names(entry):
     # "sdata.table" is a current word although "table" alone was once a numbers word (now turn_into_table): for an
     # sdata. word only the old names of sdata. words count
     old = [o for o in learn._old_names(entry.word) if not entry.word.startswith("sdata.") or o[2].startswith("sdata.")]
+    # the chart word fit_distribution is current although "fit_distribution" was once the table word now called
+    # fit_distribution_to: for a word without a prefix (a chart word) only old names of other unprefixed words count
+    if "." not in entry.word:
+        old = [o for o in old if "." not in o[2]]
     assert not old, f"{entry.word} is an old name"
 
 
@@ -202,7 +206,7 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
     assert facts["legend_place"] == [("figure", 8, "lower", 1, ["key", "line"])]
     assert facts["colours"][0] == ["#800080ff", "#800080ff"] and facts["colours"][2] == ["#ff0000ff"]
     assert facts["tick_angles"][0] == [(45.0, "right", "default"), (45.0, "right", "default")]
-    assert facts["line_styles"] == [("-", 1.5, 2.0)]
+    assert facts["line_styles"] == [("-", 1.5, 2.0, "None")]
     assert facts["text_places"] == [("note", (0.0, 1.0), (0.0, 1.0), 0.0, "left", "baseline", None)]
     assert len(facts["shape_colours"]) == 1 and facts["panel_styles"][0][3] == ["#800080ff", "#800080ff"]
     assert facts["every_panel"][0][8] == tuple(map(float, ax.get_xlim()))  # each panel's axis ranges
@@ -218,6 +222,49 @@ def test_chart_facts_read_words_sizes_legends_colours_angles_shapes_cells_and_pa
     assert cells[0][2:] == ("viridis", 1.0, 3.0)
     ax2.set_visible(False)
     assert chart_facts(ax2)["every_panel"] == []  # hidden axes are not panels
+    plt.close("all")
+
+
+def test_chart_facts_read_grids_fonts_round_and_3d_charts_segments_insets_colour_bars_and_straight_lines():
+    """The facts for the chart words of phase U3, batch 5."""
+    import numpy as np
+
+    with plt.rc_context({"font.family": "DejaVu Serif"}):
+        fig, ax = plt.subplots()
+    ax.grid(True, axis="y")
+    ax.vlines([1, 2], 0, [3, 4], linewidth=1.5)
+    ax.errorbar(["a", "b"], [1, 2], yerr=[0.5, 0.5])  # names on a category axis
+    ax.axline((0, 1), slope=2)
+    inset = ax.inset_axes([0.5, 0.5, 0.4, 0.3])
+    inset.scatter([1], [2])
+    bands = ax.contourf(np.arange(9.0).reshape(3, 3))
+    fig.colorbar(bands, ax=ax, label="height")
+    ax.set_xticks([0, 1])
+    facts = chart_facts(ax)
+    assert facts["grid"] == (False, True)
+    assert facts["fonts"] == ("DejaVu Serif", "DejaVu Serif", "DejaVu Serif")
+    assert facts["polar_start"] == () and facts["in_3d"] == ()
+    segments = [s for s in facts["segments"] if s[1] == [1.5]][0]
+    assert segments[0][0] == 4 and segments[0][1][3].tolist() == [2.0, 4.0]
+    assert any(len(x) == 2 and x.tolist() == [0.0, 1.0] for x, _ in facts["lines"])  # "a", "b" read as 0, 1
+    assert facts["insets"][0][0] == (0.5, 0.5, 0.4, 0.3) and facts["insets"][0][1][4][0] == 1
+    assert facts["colour_bars"][0][0] == "height"
+    assert facts["ax_lines"] == [((0.0, 1.0), None, 2.0)]
+    assert facts["tick_places"][0] == [0.0, 1.0]
+    assert compare_charts(facts, chart_facts(ax), CHART_FACTS, 1e-9) == []
+    polar = plt.figure().add_subplot(projection="polar")
+    polar.set_theta_zero_location("N")
+    polar.set_theta_direction(-1)
+    assert chart_facts(polar)["polar_start"] == (np.pi / 2, -1.0)
+    # in_3d reads matplotlib's private _offsets3d (the z of 3D dots): this pins it
+    space = plt.figure().add_subplot(projection="3d")
+    space.scatter([1, 2], [3, 4], [5, 6])
+    gx, gy = np.meshgrid([0.0, 1.0, 2.0], [0.0, 1.0])
+    space.plot_surface(gx, gy, gx + gy, cmap="viridis")
+    space.set_zlabel("z words")
+    found = chart_facts(space)["in_3d"]
+    assert found[0] == "z words" and found[2][0][1].tolist() == [[1, 3, 5], [2, 4, 6]]
+    assert found[3][0][1].tolist() == [1.0, 2.0]  # the average height of each of the 2 pieces
     plt.close("all")
 
 

@@ -1043,7 +1043,11 @@ _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colo
                "cells": "the coloured cells", "every_panel": "the labels, dots, bars, lines, shapes and axis ranges of every panel",
                "line_styles": "the style and width of each line", "text_places": "the place and angle of each word",
                "shape_colours": "the colours of the filled shapes",
-               "panel_styles": "the dot sizes, rims and colours, bar colours and drawing order of every panel"}
+               "panel_styles": "the dot sizes, rims and colours, bar colours and drawing order of every panel",
+               "grid": "the grid lines", "fonts": "the fonts", "polar_start": "where a round chart starts and which way it goes",
+               "in_3d": "the 3D dots, the surface and the z axis", "segments": "the short lines drawn as one set",
+               "insets": "the small charts inside the chart", "colour_bars": "the colour bar",
+               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are"}
 
 
 def _checked(entry) -> str:
