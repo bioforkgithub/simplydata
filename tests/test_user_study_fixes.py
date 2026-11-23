@@ -35,24 +35,48 @@ def test_brackets_for_a_column_never_there_list_the_columns(marks):
 
 
 # ---------------------------------------------------------------- count_empty_cells_in("OD600")
-def test_count_empty_cells_in_with_a_column_says_how_to_use_it(marks):
-    with pytest.raises(SimplydataError) as error:
-        marks.count_empty_cells_in("hours")
-    text = str(error.value)
-    assert "takes no column name" in text and "does not know" not in text
-    assert "table.count_empty_cells_in() with nothing in the brackets" in text
-    assert 'table.keep_rows_where("hours", is_empty=True)' in text
-    assert 'table.remove_rows_with_empty_cells_in("hours")' in text
+@pytest.fixture
+def plates():
+    return sdata.table(pd.DataFrame({"well": ["A1", "A2", "A3", "A4"], "OD600": [0.31, None, 0.30, None],
+                                     "notes": [None, "x", None, None]}))
 
 
-def test_count_empty_cells_in_with_a_near_column_name(marks):
-    with pytest.raises(SimplydataError, match='show="patterns"') as error:
-        marks.count_empty_cells_in("hour")
-    assert 'Did you mean the column "hours"?' in str(error.value)
+def test_count_empty_cells_in_one_column(plates, capsys):
+    assert plates.count_empty_cells_in("OD600") is None
+    out = capsys.readouterr().out
+    assert out.startswith("Empty cells in 4 rows:\n  OD600  2\n")
+    assert "notes" not in out and "well" not in out
 
 
-def test_count_empty_cells_in_patterns_still_works(marks, capsys):
+def test_count_empty_cells_in_a_list_of_columns(plates, capsys):
+    plates.count_empty_cells_in(["OD600", "notes"])
+    out = capsys.readouterr().out
+    assert "OD600  2" in out and "notes  3" in out and "well" not in out
+
+
+def test_count_empty_cells_in_every_column_as_before(plates, capsys):
+    plates.count_empty_cells_in()
+    out = capsys.readouterr().out
+    assert out.startswith("Empty cells in each column:") and "well   0" in out
+
+
+def test_count_empty_cells_in_a_column_not_there(plates):
+    with pytest.raises(SimplydataError, match="OD600"):
+        plates.count_empty_cells_in("OD60")
+
+
+def test_count_empty_cells_in_patterns_still_works(marks):
     assert marks.count_empty_cells_in(show="patterns") is not None
+
+
+def test_count_empty_cells_in_patterns_of_the_columns_named(plates):
+    found = plates.count_empty_cells_in(["OD600", "notes"], show="patterns")
+    assert found.get_column_names() == ["rows with this pattern", "OD600", "notes", "empty cells"]
+
+
+def test_count_empty_cells_in_show_with_a_column_name(plates):
+    with pytest.raises(SimplydataError, match=r'table\.count_empty_cells_in\("OD600"\)'):
+        plates.count_empty_cells_in(show="OD600")
 
 
 # ---------------------------------------------------------------- remove_duplicate_rows() that removes nothing

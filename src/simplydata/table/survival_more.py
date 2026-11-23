@@ -14,6 +14,8 @@ event columns made from dates.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import narwhals as nw
@@ -39,8 +41,8 @@ def one_minus(values):
 class SurvivalMoreWords:
     # ------------------------------------------------------------------ find_risk_over_time
     @friendly(renamed={"for_each": "for_each_group_in"}, others={"at_times": "at_time_points"})
-    def find_risk_over_time(self, time=None, event=None, value=None, competing_with=None, for_each_group_in=None,
-                            at_time_points=None):
+    def find_risk_over_time(self: _Same, time=None, event=None, value=None, competing_with=None, for_each_group_in=None,
+                            at_time_points=None) -> _Same:
         """The chance of having had the event by each time, when another event can come first (competing risks).
 
         table.find_risk_over_time(time="time", event="event", value="first_esbl", competing_with="discharged", for_each_group_in="ward")
@@ -206,8 +208,8 @@ class SurvivalMoreWords:
 
     # ------------------------------------------------------------------ add_time_and_event_columns
     @friendly
-    def add_time_and_event_columns(self, from_date=None, to_date=None, event_date=None, until=None, unit="days",
-                                   time="time", event="event", competing_with=None):
+    def add_time_and_event_columns(self: _Same, from_date=None, to_date=None, event_date=None, until=None, unit="days",
+                                   time="time", event="event", competing_with=None) -> _Same:
         """Add the time followed and whether the event happened, from date columns (person-time).
 
         table.add_time_and_event_columns(from_date="admitted", to_date="discharged", event_date="first_esbl")   (with sdata.get_example("admissions"))

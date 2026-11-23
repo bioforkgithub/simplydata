@@ -22,6 +22,14 @@ Rules shared by every word (the same as tables):
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..chart import Chart
+    from ..table import Table
+
 import numbers as _nb
 import sys
 
@@ -362,7 +370,7 @@ class BaseNumbers:
 
     # ------------------------------------------------------------------ history words
     @friendly
-    def undo(self):
+    def undo(self: _Same) -> _Same:
         """Take the last step back. nums.undo()"""
         if not self._history:
             print(f"Nothing to undo: these {self._noun} have no steps yet.")
@@ -375,7 +383,7 @@ class BaseNumbers:
         return self
 
     @friendly
-    def show_steps(self):
+    def show_steps(self: _Same) -> _Same:
         """List every step you did, in order. nums.show_steps()"""
         if not self._history:
             print("No steps yet.")
@@ -385,7 +393,7 @@ class BaseNumbers:
         return self
 
     @friendly
-    def start_again(self):
+    def start_again(self: _Same) -> _Same:
         """Go back to the numbers as they were at the start. nums.start_again()"""
         first_step = self._history[0][2] if self._history else getattr(self, "_time_step", None)
         self._change("start again", self._original)
@@ -417,21 +425,21 @@ class BaseNumbers:
         return self._values.copy()
 
     @friendly
-    def turn_into_table(self, name="value"):
+    def turn_into_table(self, name="value") -> Table:
         """Turn the numbers into a simplydata table. nums.turn_into_table(name="marks")"""
         from ..table import Table
 
         return Table(self._as_pandas(name=name))
 
     @friendly
-    def start_chart(self):
+    def start_chart(self) -> Chart:
         """Start a chart from these numbers. chart = nums.start_chart()"""
         from ..chart import chart
 
         return chart(self)
 
     @friendly
-    def save(self, file_name, time_step=None, bits=32):
+    def save(self: _Same, file_name, time_step=None, bits=32) -> _Same:
         """Save the numbers; the end of the file name decides the type. nums.save("nums.csv")
 
         File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables, and .wav (sound:

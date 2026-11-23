@@ -91,6 +91,7 @@ _TABLE = [
      "pivot pivot_wider pivot_table spread unstack"),
     ('table.gather_into_rows(["temperature", "rain"])', "melt pivot_longer gather stack unpivot"),
     ("table.swap_rows_and_columns()", "transpose T t"),
+    ("table.make_copy(), as in backup = table.make_copy()", "copy clone deepcopy duplicate"),
     ("table.show_first_rows()", "head"),
     ("table.show_last_rows()", "tail"),
     ('table.keep_rows_where("marks", is_above=50)', "loc filter query where subset"),

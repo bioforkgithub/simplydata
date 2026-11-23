@@ -11,6 +11,8 @@ the standard errors). table.use_survey_design() with no options turns the settin
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import narwhals as nw
 import numpy as np
 
@@ -60,7 +62,7 @@ class SurveyWords:
     # ------------------------------------------------------------------ the setting
     @friendly(others={"weight": "weights", "pw": "weights", "stratum": "strata", "cluster": "clusters",
                       "ids": "clusters", "id": "clusters", "psu": "clusters", "fpc": "population_sizes"})
-    def use_survey_design(self, weights=None, strata=None, clusters=None, population_sizes=None):
+    def use_survey_design(self: _Same, weights=None, strata=None, clusters=None, population_sizes=None) -> _Same:
         """Treat the table as a survey sample, so that the survey words give answers for the population.
 
         table.use_survey_design(weights="weight", strata="school_type", population_sizes="schools_of_type")   (with sdata.get_example("sampled_schools"))

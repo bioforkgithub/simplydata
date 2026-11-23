@@ -3953,6 +3953,24 @@ BASIS["table.swap_rows_and_columns"] = _b(
     "first text column as names keeps the row labels, as in pandas and R t() on a data frame with row names.",
     (), "P5", "A table with no rows or no columns is refused; a first column that cannot name columns gives a note.",
     "convention")
+# ---- 2026-11-23 (PR new-user-code): a copy word, and empty cells of the columns named
+BASIS["table.make_copy"] = _b(
+    "An independent copy that keeps the steps so far (backup.undo() and backup.show_steps() work on it); steps on "
+    "one table never change the other. pandas df.copy() (free until one changes under copy-on-write), Polars "
+    "df.clone().",
+    "sdata.table(table) starts a new table from this one without its steps; table.start_again() goes back to the "
+    "table as it was read.",
+    "A learner who writes backup = table expects a copy and gets a second name for the same table (the Python "
+    "behaviour that surprised users in the 2026-11-23 study); a word that says copy makes the difference visible, "
+    "as pandas copy() and Polars clone() do.",
+    (), "P5", "copy.copy(table) and copy.deepcopy(table) give the same copy.", "convention")
+BASIS["table.count_empty_cells_in columns="] = _b(
+    "Counts the empty cells of the columns named, in the order named; an empty cell is a missing value, NaN or text "
+    "of only spaces, as for every column.",
+    "table.count_empty_cells_in() for every column; show=\"patterns\" for which columns are empty together.",
+    "A learner who wants the empty cells of one column names it, as in pandas df[\"OD600\"].isna().sum(); spaces-only "
+    "text counts as empty because a spreadsheet shows it as an empty cell.",
+    (), "P5", "A column not in the table is refused with the nearest name.", "convention")
 # ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
 BASIS["table.check_model_of show=\"numbers\""] = _b(
     "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "

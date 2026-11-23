@@ -24,6 +24,8 @@ Every word needs R (simplydata[r]); the R calls are in community_r.py. simplydat
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import narwhals as nw
 import numpy as np
 
@@ -100,7 +102,7 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ diversity
     @friendly
-    def add_diversity_columns(self, columns=None, show=None, at_total_count=None, names=None):
+    def add_diversity_columns(self: _Same, columns=None, show=None, at_total_count=None, names=None) -> _Same:
         """Add diversity columns: how many kinds each row holds, and how evenly (richness, Shannon, Simpson).
 
         table.add_diversity_columns(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"])   (with sdata.get_example("resistome"))
@@ -246,8 +248,8 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ log ratios
     @friendly(renamed={"method": "test_method"})
-    def add_log_ratio_columns(self, columns=None, test_method="clr", zeros_replaced_by="estimated small values",
-                              against=None):
+    def add_log_ratio_columns(self: _Same, columns=None, test_method="clr", zeros_replaced_by="estimated small values",
+                              against=None) -> _Same:
         """Add log ratio columns: counts that are parts of a whole, turned into logs of ratios (clr, alr, ilr).
 
         table.add_log_ratio_columns(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"])   (with sdata.get_example("resistome"))
@@ -323,7 +325,7 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ principal coordinates
     @friendly
-    def add_principal_coordinates(self, columns=None, measure="bray-curtis", how_many=2):
+    def add_principal_coordinates(self: _Same, columns=None, measure="bray-curtis", how_many=2) -> _Same:
         """Add principal coordinates (PCoA): a map of the rows from their distances, in new columns PCo1, PCo2.
 
         table.add_principal_coordinates(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"])   (with sdata.get_example("resistome"))
@@ -382,8 +384,8 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ constrained ordination
     @friendly(renamed={"method": "test_method", "seed": "with_seed"})
-    def explain_profiles_of(self, columns=None, using=None, measure=None, test_method=None, allowing_for=None,
-                            permutations=999, with_seed=1):
+    def explain_profiles_of(self: _Same, columns=None, using=None, measure=None, test_method=None, allowing_for=None,
+                            permutations=999, with_seed=1) -> _Same:
         """How much of the differences in make-up between rows do other columns explain (RDA, db-RDA, CCA)?
 
         table.explain_profiles_of(["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"], using=["temperature", "salinity"])   (with sdata.get_example("resistome"))
@@ -518,8 +520,8 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ Mantel and Procrustes
     @friendly(renamed={"method": "test_method", "seed": "with_seed"})
-    def find_correlation_between_profiles(self, first=None, second=None, measure="bray-curtis", test_method="mantel",
-                                          permutations=999, with_seed=1):
+    def find_correlation_between_profiles(self: _Same, first=None, second=None, measure="bray-curtis", test_method="mantel",
+                                          permutations=999, with_seed=1) -> _Same:
         """Do rows that differ in one set of columns also differ in another (Mantel, Procrustes)?
 
         table.find_correlation_between_profiles(first=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"], second=["temperature", "salinity"])   (with sdata.get_example("resistome"))
@@ -612,7 +614,7 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ discriminant axes
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_axes_that_separate_groups(self, columns=None, for_each_group_in=None, how_many=2):
+    def add_axes_that_separate_groups(self: _Same, columns=None, for_each_group_in=None, how_many=2) -> _Same:
         """Add the axes that separate groups most (linear discriminant analysis), in new columns LD1, LD2.
 
         table.add_axes_that_separate_groups(columns=["temperature", "salinity"], for_each_group_in="site")   (with sdata.get_example("resistome"))
@@ -689,7 +691,7 @@ class CommunityWords:
 
     # ------------------------------------------------------------------ correspondence axes
     @friendly
-    def add_correspondence_axes(self, columns=None, how_many=2, show=None):
+    def add_correspondence_axes(self: _Same, columns=None, how_many=2, show=None) -> _Same:
         """Add correspondence axes (CA for counts, MCA for text columns), in new columns CA1, CA2.
 
         table.add_correspondence_axes(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"])   (with sdata.get_example("resistome"))

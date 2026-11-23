@@ -15,6 +15,8 @@ never true and never false (as in SQL), so "not" never brings back empty cells e
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import datetime as _dt
 import math
 import numbers
@@ -518,46 +520,59 @@ class RowWords:
         return None
 
     @friendly(others={"pattern": "show"})
-    def count_empty_cells_in(self, show=None):
-        """Show how many empty cells each column has.
+    def count_empty_cells_in(self, columns=None, show=None):
+        """Show how many empty cells each column has, or only the columns you name.
 
         table.count_empty_cells_in()   (with sdata.get_example("shop"))
+        table.count_empty_cells_in("sales") counts only that column, and
+        table.count_empty_cells_in(["sales", "customers"]) only those columns.
         show="patterns" gives one row for each pattern of empty cells (which columns are empty
         together), with how many rows have it and how many cells it leaves empty, as R
         mice::md.pattern(): table.count_empty_cells_in(show="patterns")
         """
+        if (isinstance(columns, str) and columns not in self._columns and show is None
+                and columns.strip().lower() in ("patterns", "pattern")):
+            columns, show = None, columns  # count_empty_cells_in("patterns"), the older way to write show=
+        if columns is None:
+            names = list(self._columns)
+        else:
+            names = list(dict.fromkeys([columns] if isinstance(columns, str) else _as_list(columns)))
+            if not names:
+                raise SimplydataError("count_empty_cells_in() got an empty list of columns. Name a column, for "
+                                      'example table.count_empty_cells_in("sales"), or write '
+                                      "table.count_empty_cells_in() for every column.")
+            self._need_columns(*names)
         if show is not None:
-            if isinstance(show, str) and show in self._columns:  # count_empty_cells_in("OD600"): a column, not show=
-                raise SimplydataError(
-                    "count_empty_cells_in() counts the empty cells of every column at once, so it takes no column "
-                    f'name; "{show}" is in its list. Write table.count_empty_cells_in() with nothing in the brackets.\n'
-                    f'To look at the rows where "{show}" is empty: table.keep_rows_where("{show}", is_empty=True), then '
-                    f'table.undo() brings the other rows back. To remove them: table.remove_rows_with_empty_cells_in("{show}").')
             if not isinstance(show, str) or show.strip().lower() not in ("patterns", "pattern"):
                 guess = suggest(show, self._columns, n=1) if isinstance(show, str) else []
+                if isinstance(show, str) and show in self._columns:
+                    raise SimplydataError(
+                        f'show= takes only "patterns"; "{show}" is a column. To count its empty cells: '
+                        f'table.count_empty_cells_in("{show}").')
                 raise SimplydataError(
-                    "count_empty_cells_in() counts the empty cells of every column at once and takes no column name.\n"
-                    "Write table.count_empty_cells_in() for a count in each column, or "
-                    'table.count_empty_cells_in(show="patterns") for the patterns of empty cells (show= takes only '
-                    f'"patterns", not {show!r}).'
-                    + (f'\nDid you mean the column "{guess[0]}"? The count for it is in table.count_empty_cells_in().'
+                    'count_empty_cells_in() takes show="patterns" for the patterns of empty cells (show= takes only '
+                    f'"patterns", not {show!r}).\n'
+                    "Write table.count_empty_cells_in() for a count in each column, or name the columns: "
+                    'table.count_empty_cells_in("sales").'
+                    + (f'\nDid you mean the column "{guess[0]}"? Its count: table.count_empty_cells_in("{guess[0]}").'
                        if guess else ""))
-            return self._empty_patterns()
-        counts = {name: self._count(self._empty(name)) for name in self._columns}
+            return self._empty_patterns(names)
+        counts = {name: self._count(self._empty(name)) for name in names}
         width = max((len(str(n)) for n in counts), default=0)
-        print("Empty cells in each column:")
+        print("Empty cells in each column:" if columns is None else
+              f"Empty cells in {_rows(len(self._frame))}:")
         for name, n in counts.items():
             print(f"  {str(name).ljust(width)}  {n}")
         total = sum(counts.values())
         print(f"Total: {_cells(total)} empty." if total else "No empty cells.")
         return None
 
-    def _empty_patterns(self):
+    def _empty_patterns(self, columns=None):
         """count_empty_cells_in(show="patterns"): the rows grouped by which cells are empty (narwhals group_by and
-        len, as pandas df.isna().value_counts() and R mice::md.pattern())."""
+        len, as pandas df.isna().value_counts() and R mice::md.pattern()); columns= limits it to those columns."""
         import pandas as pd
 
-        columns = self._columns
+        columns = list(self._columns) if columns is None else list(columns)
         if not columns or not len(self._frame):
             print("The table has no rows, so there are no patterns of empty cells.")
             return None
@@ -695,8 +710,8 @@ class RowWords:
         return chosen, words, False
 
     @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
-    def keep_columns(self, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
-                     matches_pattern=None):
+    def keep_columns(self: _Same, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
+                     matches_pattern=None) -> _Same:
         """Keep only these columns: by name (in the order you list them), a run of names, or by kind.
 
         table.keep_columns("name", "marks")   (with sdata.get_example("marks"))
@@ -713,8 +728,8 @@ class RowWords:
         return self._change("keep columns " + words, self._frame.select(chosen))
 
     @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
-    def remove_columns(self, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
-                       matches_pattern=None):
+    def remove_columns(self: _Same, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
+                       matches_pattern=None) -> _Same:
         """Remove these columns: by name, a run of names, or by kind.
 
         table.remove_columns("height")   (with sdata.get_example("marks"))
@@ -733,7 +748,7 @@ class RowWords:
         return self._change("remove columns " + words, self._frame.drop(chosen))
 
     @friendly
-    def rename_column(self, old=None, to=None):
+    def rename_column(self: _Same, old=None, to=None) -> _Same:
         """Give a column a new name.
 
         table.rename_column("marks", to="score")   (with sdata.get_example("marks"))
@@ -793,10 +808,10 @@ class RowWords:
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
                        "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
-    def keep_rows_where(self, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
+    def keep_rows_where(self: _Same, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
                         is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
                         is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                        is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
+                        is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
         """Keep only the rows that match a condition.
 
         table.keep_rows_where("marks", is_above=50)   (with sdata.get_example("marks"))
@@ -816,10 +831,10 @@ class RowWords:
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
                        "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
-    def remove_rows_where(self, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
+    def remove_rows_where(self: _Same, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
                           is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
                           is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                          is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
+                          is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
         """Remove the rows that match a condition (the opposite of keep_rows_where).
 
         table.remove_rows_where("subject", is_equal_to="English")   (with sdata.get_example("marks"))
@@ -834,7 +849,7 @@ class RowWords:
         return self._filter(f"remove rows where {words}", ~cond, kept_word=False, note=note)
 
     @friendly
-    def keep_first_rows(self, n=5):
+    def keep_first_rows(self: _Same, n=5) -> _Same:
         """Keep only the first rows.
 
         table.keep_first_rows(10)   (with sdata.get_example("marks"))
@@ -846,7 +861,7 @@ class RowWords:
         return self._change(f"keep the first {_rows(n)}", new)
 
     @friendly
-    def keep_last_rows(self, n=5):
+    def keep_last_rows(self: _Same, n=5) -> _Same:
         """Keep only the last rows.
 
         table.keep_last_rows(10)   (with sdata.get_example("marks"))
@@ -859,7 +874,7 @@ class RowWords:
 
     @friendly(renamed={"seed": "with_seed"}, others={"strata": "for_each_group_in", "by": "for_each_group_in",
                                                      "frac": "percent", "fraction": "percent"})
-    def keep_random_rows(self, n=None, for_each_group_in=None, percent=None, with_seed=None):
+    def keep_random_rows(self: _Same, n=None, for_each_group_in=None, percent=None, with_seed=None) -> _Same:
         """Keep some rows picked at random; give a seed to get the same rows every time.
 
         table.keep_random_rows(10, with_seed=1)   (with sdata.get_example("marks"))
@@ -961,8 +976,8 @@ class RowWords:
             what = f"keep {n} random rows from each group of {label}"
         return self._change(what + said_seed, new)
 
-    @friendly
-    def remove_duplicate_rows(self, columns=None):
+    @friendly(others={"subset": "columns"})  # pandas drop_duplicates(subset=)
+    def remove_duplicate_rows(self: _Same, columns=None) -> _Same:
         """Remove rows that repeat an earlier row, or that repeat it in the columns you name.
 
         table.remove_duplicate_rows(columns=["name"])   (with sdata.get_example("marks"))
@@ -1008,7 +1023,7 @@ class RowWords:
               f"table.remove_duplicate_rows(columns=[{keep}]).")
 
     @friendly
-    def repeat_each_row_by(self, column=None):
+    def repeat_each_row_by(self: _Same, column=None) -> _Same:
         """Repeat each row as many times as the count in a column: one row per thing counted.
 
         table.repeat_each_row_by("count")   (with sdata.table({"answer": ["yes", "no"], "count": [12, 5]}))
@@ -1058,7 +1073,7 @@ class RowWords:
 
     # ================================================================== empty cells
     @friendly
-    def remove_rows_with_empty_cells_in(self, column=None):
+    def remove_rows_with_empty_cells_in(self: _Same, column=None) -> _Same:
         """Remove rows with an empty cell (in any column, or only in the column you name).
 
         table.remove_rows_with_empty_cells_in("sales")   (with sdata.get_example("shop"))
@@ -1073,7 +1088,7 @@ class RowWords:
         return self._filter(what, ~any_empty.fill_null(False), kept_word=False)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def fill_empty_cells_in(self, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None):
+    def fill_empty_cells_in(self: _Same, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None) -> _Same:
         """Fill the empty cells of a column with a value, or with the average, median, value above or value below.
 
         table.fill_empty_cells_in("customers", with_the="median")   (with sdata.get_example("shop"))
@@ -1212,7 +1227,7 @@ class RowWords:
 
     # ================================================================== fixing columns
     @friendly
-    def turn_into_numbers(self, column=None):
+    def turn_into_numbers(self: _Same, column=None) -> _Same:
         """Turn a column into numbers; cells that are not numbers become empty.
 
         table.turn_into_numbers("marks")   (with sdata.get_example("marks"))
@@ -1246,7 +1261,7 @@ class RowWords:
         return self._change(f"turn {column} into numbers", self._frame.with_columns(values))
 
     @friendly
-    def turn_into_dates(self, column=None, order=None):
+    def turn_into_dates(self: _Same, column=None, order=None) -> _Same:
         """Turn a column into dates; cells that are not dates become empty.
 
         table.turn_into_dates("year")   (with sdata.get_example("growth"))
@@ -1288,7 +1303,7 @@ class RowWords:
         return self._change(what, self._frame.with_columns(values))
 
     @friendly
-    def turn_into_text(self, column=None):
+    def turn_into_text(self: _Same, column=None) -> _Same:
         """Turn a column into text.
 
         table.turn_into_text("month_number")   (with sdata.get_example("weather"))
@@ -1323,7 +1338,7 @@ class RowWords:
         return self._change(what, self._frame.with_columns(change(text).alias(column)))
 
     @friendly
-    def turn_into_lowercase(self, column=None):
+    def turn_into_lowercase(self: _Same, column=None) -> _Same:
         """Write all the text in a column in small letters.
 
         table.turn_into_lowercase("name")   (with sdata.get_example("marks"))
@@ -1331,7 +1346,7 @@ class RowWords:
         return self._text_step("turn_into_lowercase", column, f"turn {column} into lowercase", lambda t: t.str.to_lowercase())
 
     @friendly
-    def turn_into_uppercase(self, column=None):
+    def turn_into_uppercase(self: _Same, column=None) -> _Same:
         """Write all the text in a column in capital letters.
 
         table.turn_into_uppercase("name")   (with sdata.get_example("marks"))
@@ -1339,7 +1354,7 @@ class RowWords:
         return self._text_step("turn_into_uppercase", column, f"turn {column} into uppercase", lambda t: t.str.to_uppercase())
 
     @friendly
-    def remove_extra_spaces_in(self, column=None):
+    def remove_extra_spaces_in(self: _Same, column=None) -> _Same:
         """Remove spaces at the start and end of the text, and double spaces inside it.
 
         table.remove_extra_spaces_in("name")   (with sdata.get_example("marks"))
@@ -1352,10 +1367,10 @@ class RowWords:
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
                        "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
-    def replace_values_in(self, column=None, old=_NOT_GIVEN, with_value=_NOT_GIVEN, *, is_above=_NOT_GIVEN,
+    def replace_values_in(self: _Same, column=None, old=_NOT_GIVEN, with_value=_NOT_GIVEN, *, is_above=_NOT_GIVEN,
                           is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN,
                           is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN,
-                          starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN):
+                          starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
         """Replace a value (or a list of values) in a column; with_value=None makes those cells empty.
 
         table.replace_values_in("subject", "Maths", with_value="Math")   (with sdata.get_example("marks"))
@@ -1470,7 +1485,7 @@ class RowWords:
         return self._change(f"replace {what} in {column}", new)
 
     @friendly(renamed={"decimals": "with_decimals"})
-    def round_numbers_in(self, column=None, with_decimals=_NOT_GIVEN):
+    def round_numbers_in(self: _Same, column=None, with_decimals=_NOT_GIVEN) -> _Same:
         """Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
         table.round_numbers_in("hours", 0)   table.round_numbers_in(["hours", "marks"], 1)   table.round_numbers_in(1)
@@ -1609,7 +1624,7 @@ class RowWords:
         return self._change(f"keep the {_rows(n)} with the {word} {by}{each}", kept)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def keep_biggest_rows(self, n=None, by=None, for_each_group_in=None):
+    def keep_biggest_rows(self: _Same, n=None, by=None, for_each_group_in=None) -> _Same:
         """Keep the n rows with the biggest values in a column (also for each group).
 
         table.keep_biggest_rows(3, by="marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
@@ -1619,7 +1634,7 @@ class RowWords:
         return self._keep_extreme("keep_biggest_rows", n, by, for_each_group_in, biggest=True)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def keep_smallest_rows(self, n=None, by=None, for_each_group_in=None):
+    def keep_smallest_rows(self: _Same, n=None, by=None, for_each_group_in=None) -> _Same:
         """Keep the n rows with the smallest values in a column (also for each group).
 
         table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")   (with sdata.get_example("marks"))
@@ -1790,7 +1805,7 @@ class RowWords:
         return None
 
     @friendly(renamed={"rule": "test_method", "for_each": "for_each_group_in"})
-    def remove_rows_with_outliers(self, column=None, for_each_group_in=None, test_method="1.5 IQR"):
+    def remove_rows_with_outliers(self: _Same, column=None, for_each_group_in=None, test_method="1.5 IQR") -> _Same:
         """Remove the rows whose value in a column is an outlier, and say how many and why.
 
         table.remove_rows_with_outliers("marks", for_each_group_in="subject")   (with sdata.get_example("marks"))

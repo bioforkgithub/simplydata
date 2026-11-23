@@ -42,6 +42,8 @@ Problems are printed notes, never silent switches.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 import warnings
 
@@ -701,7 +703,7 @@ class FittingWords:
 
     # ------------------------------------------------------------------ fit_curve
     @friendly(renamed={"degree": "of_degree", "for_each": "for_each_group_in"})
-    def fit_curve(self, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None, of_kind=None):
+    def fit_curve(self: _Same, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None, of_kind=None) -> _Same:
         """Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
         table.fit_curve(x="hours", y="marks", of_degree=2)   (with sdata.get_example("marks"), one subject)
@@ -819,8 +821,8 @@ class FittingWords:
         return parsed, fits
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def fit_formula(self, formula=None, start=None, between=None, weights=None, for_each_group_in=None,
-                    search="from start", test_method=None):
+    def fit_formula(self: _Same, formula=None, start=None, between=None, weights=None, for_each_group_in=None,
+                    search="from start", test_method=None) -> _Same:
         """Find the values in a formula that make it follow the data best.
 
         table.fit_formula("population = a * exp(b * (year - 2000))")   (with sdata.get_example("growth"))

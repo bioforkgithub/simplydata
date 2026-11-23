@@ -18,6 +18,8 @@ SettingWithCopy surprises; undo() takes each step back.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 from .._errors import SimplydataError, friendly, option_error
 from .._positions import read_positions
 from .columns import _plain_cell
@@ -87,7 +89,7 @@ class PositionWords:
 
     # ================================================================== rows by position
     @friendly
-    def keep_rows_by_position(self, positions=None, to=None, step=None, **conditions):
+    def keep_rows_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep rows by their position, counting from 1: a run, every n-th row, or a list.
 
         table.keep_rows_by_position(10, to=20)   (with sdata.get_example("marks"))
@@ -110,7 +112,7 @@ class PositionWords:
         return self._change(f"keep {picked.short_words()}", new)
 
     @friendly
-    def remove_rows_by_position(self, positions=None, to=None, step=None, **conditions):
+    def remove_rows_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove rows by their position, counting from 1: a run, every n-th row, or a list.
 
         table.remove_rows_by_position([12, 40])   (with sdata.get_example("marks"))
@@ -131,7 +133,7 @@ class PositionWords:
 
     # ================================================================== columns by position
     @friendly
-    def keep_columns_by_position(self, positions=None, to=None, step=None, **conditions):
+    def keep_columns_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep columns by their position, counting from 1 at the left; it says which columns they were.
 
         table.keep_columns_by_position(1, to=3)   (with sdata.get_example("marks"))
@@ -148,7 +150,7 @@ class PositionWords:
         return self._change(f"keep {picked.short_words()} ({', '.join(names)})", self._frame.select(names))
 
     @friendly
-    def remove_columns_by_position(self, positions=None, to=None, step=None, **conditions):
+    def remove_columns_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove columns by their position, counting from 1 at the left; it says which columns they were.
 
         table.remove_columns_by_position(1)   (with sdata.get_example("marks"))
@@ -224,7 +226,7 @@ class PositionWords:
 
     # ================================================================== order
     @friendly
-    def reverse_rows(self):
+    def reverse_rows(self: _Same) -> _Same:
         """Turn the table upside down: the last row comes first. table.reverse_rows()
 
         table.reverse_rows()   (with sdata.get_example("marks"))

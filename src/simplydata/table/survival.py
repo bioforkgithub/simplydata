@@ -43,6 +43,8 @@ Methods (the same defaults as R's survival package, so results can be checked th
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import contextlib
 import io
 import math
@@ -590,9 +592,9 @@ class SurvivalWords:
 
     # ------------------------------------------------------------------ find_survival_over_time
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"}, others={"at_times": "at_time_points"})
-    def find_survival_over_time(self, time=None, event=None, for_each_group_in=None, at_time_points=None,
+    def find_survival_over_time(self: _Same, time=None, event=None, for_each_group_in=None, at_time_points=None,
                                 test_method="kaplan-meier", allowing_for=None, followed_from=None,
-                                average_time_up_to=None, value=None, show=None):
+                                average_time_up_to=None, value=None, show=None) -> _Same:
         """The share still without the event over time (Kaplan-Meier), with the median time.
 
         table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")   (with sdata.get_example("trial"))
@@ -877,8 +879,8 @@ class SurvivalWords:
 
     # ------------------------------------------------------------------ compare_survival
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def compare_survival(self, time=None, event=None, for_each_group_in=None, allowing_for=None, followed_from=None,
-                         average_time_up_to=None, value=None, competing_with=None):
+    def compare_survival(self: _Same, time=None, event=None, for_each_group_in=None, allowing_for=None, followed_from=None,
+                         average_time_up_to=None, value=None, competing_with=None) -> _Same:
         """Do the groups really differ in the time until the event? (log-rank test)
 
         table.compare_survival(time="days", event="died", for_each_group_in="treatment")   (with sdata.get_example("trial"))

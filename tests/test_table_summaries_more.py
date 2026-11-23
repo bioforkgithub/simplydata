@@ -444,7 +444,9 @@ def test_correlation_table_prints_strongest(marks, capsys):
 def test_correlation_two_columns_unchanged(engine, marks, capsys):
     r = make(marks, engine).find_correlation_between(["marks", "height"])
     assert r == pytest.approx(stats.pearsonr(marks["marks"], marks["height"])[0])
-    assert capsys.readouterr().out.count("\n") == 2  # the r sentence and the p-value sentence
+    out = capsys.readouterr().out
+    # the r sentence, the p-value sentence, and the note that "name" repeats (each child has three rows)
+    assert out.count("\n") == 3 and 'Note: "name" repeats' in out
 
 
 def test_correlation_table_errors(engine, marks):

@@ -496,7 +496,42 @@ ENTRIES += [
             df.to_pandas()
         """},
         compare="table",
-        also="A table that is already pandas comes back as it is; a Polars table is turned into pandas.",
+        also="It is a copy: changing it never changes the table, and later steps on the table never change it "
+             "(a pandas table is copied with df.copy(), which costs nothing until one of them changes under pandas 3; "
+             "a Polars table is turned into pandas).",
+    ),
+    Entry(
+        word="table.make_copy",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            backup = table.make_copy()
+            table.keep_rows_where("class", is_equal_to="A")
+            backup
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # backup = make_copy()
+                backup = df.copy()                                    # (1)
+                df = df[df["class"] == "A"]
+                backup
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # backup = make_copy()
+                backup = df.clone()
+                df = df.filter(pl.col("class") == "A")
+                backup
+            """,
+        },
+        compare="table",
+        choices=("the copy keeps the steps so far, so backup.undo() and backup.show_steps() work on it; pandas "
+                 "df.copy() keeps only the data.",),
+        also="copy.copy(table) and copy.deepcopy(table) give the same independent copy. A plain backup = table gives "
+             "the same table a second name, so a step on one shows in both.",
     ),
     Entry(
         word="table.as_polars",

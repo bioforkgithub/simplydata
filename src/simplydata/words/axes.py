@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import datetime as _dt
 import numbers
 
@@ -555,7 +557,7 @@ class AxesWords:
         return self._replace(step, "axes", _range, axis=axis, low=low, high=high)
 
     @friendly
-    def set_range_x(self, low=None, high=None):
+    def set_range_x(self: _Same, low=None, high=None) -> _Same:
         """From where to where the x-axis goes. chart.set_range_x(0, 10)
 
         Use None to fix only one end: chart.set_range_x(0, None) starts at 0 and lets the top choose itself.
@@ -563,7 +565,7 @@ class AxesWords:
         return self._range_word("x", low, high)
 
     @friendly
-    def set_range_y(self, low=None, high=None):
+    def set_range_y(self: _Same, low=None, high=None) -> _Same:
         """From where to where the y-axis goes. chart.set_range_y(0, 100)
 
         Use None to fix only one end: chart.set_range_y(None, 100) stops at 100.
@@ -586,12 +588,12 @@ class AxesWords:
         return self._replace(f"log_scale_{axis}_check", "axes", _check_log, axis=axis)
 
     @friendly
-    def use_log_scale_x(self):
+    def use_log_scale_x(self: _Same) -> _Same:
         """A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_x()"""
         return self._log_word("x")
 
     @friendly
-    def use_log_scale_y(self):
+    def use_log_scale_y(self: _Same) -> _Same:
         """A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_y()"""
         return self._log_word("y")
 
@@ -645,7 +647,7 @@ class AxesWords:
         return self._replace(step, "axes", _ticks, axis=axis, values=list(values), labels=labels)
 
     @friendly
-    def put_ticks_x(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
+    def put_ticks_x(self: _Same, *values, labels=None, every=None, how_many=None, whole_numbers=False) -> _Same:
         """Where the marks on the x-axis go. chart.put_ticks_x(1, 4, 7, 10)
 
         labels=["Jan", "Apr", "Jul", "Oct"] writes your own words at those places.
@@ -656,7 +658,7 @@ class AxesWords:
         return self._ticks_word("x", values, labels, every, how_many, whole_numbers)
 
     @friendly
-    def put_ticks_y(self, *values, labels=None, every=None, how_many=None, whole_numbers=False):
+    def put_ticks_y(self: _Same, *values, labels=None, every=None, how_many=None, whole_numbers=False) -> _Same:
         """Where the marks on the y-axis go. chart.put_ticks_y(0, 50, 100)
 
         labels=["low", "mid", "high"] writes your own words at those places.
@@ -711,7 +713,7 @@ class AxesWords:
                              out_of=out_of, date_code=date_code)
 
     @friendly(renamed={"decimals": "with_decimals"})
-    def write_ticks_x_as(self, style=None, with_decimals=None, out_of=100):
+    def write_ticks_x_as(self: _Same, style=None, with_decimals=None, out_of=100) -> _Same:
         """How the numbers or dates under the x-axis are written. chart.write_ticks_x_as("thousands")
 
         "percent" adds a % sign (out_of=1 if your numbers are shares, so 0.25 shows as 25 %);
@@ -723,7 +725,7 @@ class AxesWords:
         return self._tick_format_word("x", style, with_decimals, out_of)
 
     @friendly(renamed={"decimals": "with_decimals"})
-    def write_ticks_y_as(self, style=None, with_decimals=None, out_of=100):
+    def write_ticks_y_as(self: _Same, style=None, with_decimals=None, out_of=100) -> _Same:
         """How the numbers beside the y-axis are written. chart.write_ticks_y_as("percent")
 
         "percent" adds a % sign (out_of=1 if your numbers are shares, so 0.25 shows as 25 %);
@@ -743,7 +745,7 @@ class AxesWords:
         return self._replace(f"rotate_labels_{axis}", "text", _rotate, axis=axis, angle=float(angle))
 
     @friendly
-    def rotate_labels_x(self, angle=45):
+    def rotate_labels_x(self: _Same, angle=45) -> _Same:
         """Turn the names under the x-axis so long ones do not bump into each other.
 
         chart.rotate_labels_x() turns them 45 degrees; chart.rotate_labels_x(90) stands them up.
@@ -751,18 +753,18 @@ class AxesWords:
         return self._rotate_word("x", angle)
 
     @friendly
-    def rotate_labels_y(self, angle=45):
+    def rotate_labels_y(self: _Same, angle=45) -> _Same:
         """Turn the names beside the y-axis. chart.rotate_labels_y(30)"""
         return self._rotate_word("y", angle)
 
     # -------------------------------------------------------------- flip
     @friendly
-    def flip_x(self):
+    def flip_x(self: _Same) -> _Same:
         """Turn the x-axis around, so numbers grow from right to left. chart.flip_x()"""
         return self._replace("flip_x", "axes", _flip, axis="x")
 
     @friendly
-    def flip_y(self):
+    def flip_y(self: _Same) -> _Same:
         """Turn the y-axis upside down, for example for depth going down. chart.flip_y()"""
         return self._replace("flip_y", "axes", _flip, axis="y")
 
@@ -791,7 +793,7 @@ class AxesWords:
 
     # -------------------------------------------------------------- second y-axis
     @friendly(renamed={"chart": "drawn_as", "label": "labelled"})
-    def add_second_y(self, y, drawn_as="lines", labelled=None, colour=None):
+    def add_second_y(self: _Same, y, drawn_as="lines", labelled=None, colour=None) -> _Same:
         """A second y-axis on the right, for a column measured in other units.
 
         chart.draw_lines(x="month", y="temperature")

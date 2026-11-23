@@ -24,6 +24,8 @@ statsmodels or R (through simplydata[r]); simplydata only checks the input and w
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 import warnings
 
@@ -250,7 +252,7 @@ class MoreTestWords:
 
     # ------------------------------------------------------------------ compare_shapes_of
     @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
-    def compare_shapes_of(self, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1):
+    def compare_shapes_of(self: _Same, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1) -> _Same:
         """Do the groups differ in the whole shape of their values, not only in the average?
 
         table.compare_shapes_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
@@ -338,7 +340,7 @@ class MoreTestWords:
 
     # ------------------------------------------------------------------ check_if_random_order
     @friendly
-    def check_if_random_order(self, column=None, sorted_by=None):
+    def check_if_random_order(self: _Same, column=None, sorted_by=None) -> _Same:
         """Do the values come in a random order, or in clumps or waves?
 
         table.check_if_random_order("marks")   (the rows in table order)

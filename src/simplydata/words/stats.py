@@ -31,6 +31,8 @@ phase, after every chart type. Methods, written so they can be stated in a paper
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import datetime as _dt
 import math
 
@@ -677,7 +679,7 @@ class StatsWords:
         return step
 
     @friendly(renamed={"kind": "of_kind"})
-    def draw_error_bars(self, of_kind="standard deviation", column=None, dodge=True):
+    def draw_error_bars(self: _Same, of_kind="standard deviation", column=None, dodge=True) -> _Same:
         """Error bars on dots or lines. chart.draw_error_bars("standard error")
 
         For every x value the bar shows the average of y and how sure or spread it is:
@@ -706,7 +708,7 @@ class StatsWords:
                          dodge=bool(dodge))
 
     @friendly(renamed={"band": "with_confidence_band", "confidence_band": "with_confidence_band"})
-    def fit_line(self, with_confidence_band=False, show_equation=False, colour=None, thickness=None):
+    def fit_line(self: _Same, with_confidence_band=False, show_equation=False, colour=None, thickness=None) -> _Same:
         """A straight line that fits the dots best (linear regression). chart.fit_line()
 
         The line is found by least squares: it makes the squared distances from the dots
@@ -724,7 +726,7 @@ class StatsWords:
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
     @friendly(renamed={"degree": "of_degree"})
-    def fit_curve(self, of_degree=2, show_equation=False, colour=None, thickness=None):
+    def fit_curve(self: _Same, of_degree=2, show_equation=False, colour=None, thickness=None) -> _Same:
         """A curve that fits the dots best. chart.fit_curve(of_degree=2)
 
         of_degree=2 is a curve with one bend (x²), of_degree=3 can bend twice (x³), and so on.
@@ -743,7 +745,7 @@ class StatsWords:
                          show_equation=bool(show_equation), colour=colour, thickness=thickness)
 
     @friendly
-    def fit_dose_response(self, of_kind=None, colour=None, thickness=None):
+    def fit_dose_response(self: _Same, of_kind=None, colour=None, thickness=None) -> _Same:
         """A dose-response curve through the dots, with its ED50 in the legend. chart.fit_dose_response()
 
         The same curve as table.fit_dose_response(): a 4 parameter log-logistic curve by R
@@ -763,8 +765,8 @@ class StatsWords:
                          thickness=thickness)
 
     @friendly(renamed={"method": "test_method", "degree": "of_degree"})
-    def draw_smooth_line(self, colour=None, thickness=None, test_method="lowess", smoothness="auto", window=5, ends=None,
-                         weights=None, of_degree=None, newest_weight=None, width=None, with_confidence_band=False):
+    def draw_smooth_line(self: _Same, colour=None, thickness=None, test_method="lowess", smoothness="auto", window=5, ends=None,
+                         weights=None, of_degree=None, newest_weight=None, width=None, with_confidence_band=False) -> _Same:
         """A smooth line that follows the dots (LOWESS). chart.draw_smooth_line()
 
         Good for seeing a trend that is not straight. Each colour group gets its own line.
@@ -843,13 +845,13 @@ class StatsWords:
                          method=test_method, smoothness=smoothness)
 
     @friendly
-    def draw_side_histograms(self):
+    def draw_side_histograms(self: _Same) -> _Same:
         """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()"""
         self._check_layer_now("draw_side_histograms", {"dots"})
         return self._add("side_histograms", "extra", _draw_side_histograms)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_x(self, value, dashed=True, colour="grey", labelled=None, thickness=None):
+    def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
         """A straight up-and-down line at one x value. chart.draw_line_at_x(2010, labelled="2010")
 
         thickness=3 draws a thicker line (normal is 1.5).
@@ -861,7 +863,7 @@ class StatsWords:
                          colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_y(self, value, dashed=True, colour="grey", labelled=None, thickness=None):
+    def draw_line_at_y(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
         """A straight side-to-side line at one y value. chart.draw_line_at_y(50, labelled="pass mark")
 
         thickness=3 draws a thicker line (normal is 1.5).
@@ -873,8 +875,8 @@ class StatsWords:
                          colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_with_slope(self, slope, through=None, intercept=None, dashed=True, colour="grey", labelled=None,
-                             thickness=None):
+    def draw_line_with_slope(self: _Same, slope, through=None, intercept=None, dashed=True, colour="grey", labelled=None,
+                             thickness=None) -> _Same:
         """A straight line with a given slope, right across the chart. chart.draw_line_with_slope(1, through=(0, 0))
 
         chart.draw_line_with_slope(1, labelled="1:1") draws the 1:1 line (y = x) on a chart of
@@ -924,12 +926,12 @@ class StatsWords:
         return self._add(word, "extra", _draw_shade, axis=axis, low=low, high=high, colour=colour)
 
     @friendly
-    def shade_between_x(self, low, high, colour="grey"):
+    def shade_between_x(self: _Same, low, high, colour="grey") -> _Same:
         """Shade the band between two x values, behind the data. chart.shade_between_x(6, 8)"""
         return self._shade("x", low, high, colour)
 
     @friendly
-    def shade_between_y(self, low, high, colour="grey"):
+    def shade_between_y(self: _Same, low, high, colour="grey") -> _Same:
         """Shade the band between two y values, behind the data. chart.shade_between_y(40, 60)"""
         return self._shade("y", low, high, colour)
 
@@ -1028,6 +1030,7 @@ class PairsChart(TextWords, LookWords, BaseChart):
         return fig
 
 
+@friendly
 def draw_all_pairs(data, colour=None, columns=None):
     """Every number column against every other. sdata.draw_all_pairs(sdata.get_example("marks"), colour="class")
 

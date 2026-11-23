@@ -13,7 +13,7 @@ them first.
 
 ## What simplydata handles
 
-**401 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+**402 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 2751 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-21.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 772 names: 401 commands and 371 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 773 names: 402 commands and 371 options, about 93 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 2678 lines and 2324 function calls in the 411 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1093 lines and 1114 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 2689 lines and 2333 function calls in the 413 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1099 lines and 1119 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -541,7 +541,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 467 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 469 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

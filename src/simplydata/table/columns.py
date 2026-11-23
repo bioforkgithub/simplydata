@@ -22,6 +22,8 @@ against plain pandas.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import ast
 import datetime as _dt
 import keyword
@@ -679,7 +681,7 @@ class ColumnWords:
 
     # ------------------------------------------------------------------ sorting
     @friendly
-    def sort_by(self, *columns, biggest_first=False):
+    def sort_by(self: _Same, *columns, biggest_first=False) -> _Same:
         """Put the rows in order of one or more columns; empty cells go last.
 
         Numbers go smallest first and text goes A to Z. biggest_first=True turns this round:
@@ -920,7 +922,7 @@ class ColumnWords:
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def add_column(
-        self,
+        self: _Same,
         name=None,
         formula=None,
         by_adding=None,
@@ -937,7 +939,7 @@ class ColumnWords:
         times=None,
         divide_by=None,
         value=None,
-    ):
+    ) -> _Same:
         """Add a new column, worked out from other columns in plain words or with a formula.
 
         Choose one way:
@@ -973,7 +975,7 @@ class ColumnWords:
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def change_column(
-        self,
+        self: _Same,
         column=None,
         formula=None,
         by_adding=None,
@@ -990,7 +992,7 @@ class ColumnWords:
         times=None,
         divide_by=None,
         value=None,
-    ):
+    ) -> _Same:
         """Change the values of a column in place, with the same ways as add_column().
 
         The column keeps its name and its place in the table; undo() brings the old values back.
@@ -1008,7 +1010,7 @@ class ColumnWords:
         return self._finish(column, frame, f'change column "{column}" = {words}')
 
     @friendly
-    def add_group_column(self, name=None, from_column=None, cut_at=None, names=None, rules=None, otherwise=None):
+    def add_group_column(self: _Same, name=None, from_column=None, cut_at=None, names=None, rules=None, otherwise=None) -> _Same:
         """Add a column that puts each row into a group, like turning marks into grades.
 
         Two ways. With numbers: cut_at= says where one group ends and the next begins; names=
@@ -1122,7 +1124,7 @@ class ColumnWords:
         return self._finish(name, frame, f'add group column "{name}" by rules ({rule_words})')
 
     @friendly
-    def add_rank_column(self, name=None, from_column=None, biggest_first=True):
+    def add_rank_column(self: _Same, name=None, from_column=None, biggest_first=True) -> _Same:
         """Add a column with each row's place, where 1 is the best.
 
         The biggest value gets place 1 (biggest_first=False gives 1 to the smallest). Rows that
@@ -1146,7 +1148,7 @@ class ColumnWords:
         return self._put_column(name, expr, f'add rank column "{name}" from {from_column} ({order})')
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_z_score_column(self, name=None, from_column=None, for_each_group_in=None):
+    def add_z_score_column(self: _Same, name=None, from_column=None, for_each_group_in=None) -> _Same:
         """Add a column with each value's z-score: how many standard deviations it lies above the average.
 
         A z-score of 2 is two standard deviations above the average, -1 one below. It puts
@@ -1182,7 +1184,7 @@ class ColumnWords:
         return self._finish(name, frame, f'add z-score column "{name}" from {from_column}')
 
     @friendly
-    def add_is_empty_column(self, name=None, from_column=None):
+    def add_is_empty_column(self: _Same, name=None, from_column=None) -> _Same:
         """Add a true/false column: True where a cell of from_column is empty.
 
         Add it before filling empty cells, to keep track of which values were filled in.
@@ -1205,7 +1207,7 @@ class ColumnWords:
 
     # ------------------------------------------------------------------ dates
     @friendly
-    def add_column_with_part_of_date(self, name=None, from_column=None, part=None):
+    def add_column_with_part_of_date(self: _Same, name=None, from_column=None, part=None) -> _Same:
         """Add a column with one part of each date, such as its year, month or weekday.
 
         part= can be "year", "quarter" (1 to 4), "month" (1 to 12), "month name" ("March"),
@@ -1273,7 +1275,7 @@ class ColumnWords:
 
     # ------------------------------------------------------------------ text
     @friendly
-    def split_column(self, column=None, separator=" ", into=None):
+    def split_column(self: _Same, column=None, separator=" ", into=None) -> _Same:
         """Split a text column into several columns at a separator, such as a comma or a space.
 
         into= names the new columns; they take the place of the old column. The last new
@@ -1332,7 +1334,7 @@ class ColumnWords:
         return self._change(f"split {column} at {_plain(separator)} into {', '.join(into)}", frame)
 
     @friendly(renamed={"pattern": "matches_pattern"})
-    def replace_text_in(self, column=None, old=None, with_value=None, matches_pattern=None):
+    def replace_text_in(self: _Same, column=None, old=None, with_value=None, matches_pattern=None) -> _Same:
         """Replace a piece of text inside the cells of a text column, wherever it appears.
 
         The old text is plain text and capitals matter. with_value="" removes it.
@@ -1403,8 +1405,8 @@ class ColumnWords:
         return SimplydataError(f"The text could not be changed: {str(error).splitlines()[0]}")
 
     @friendly(renamed={"pattern": "matches_pattern"})
-    def add_column_with_part_of_text(self, name=None, from_column=None, first_characters=None, last_characters=None,
-                                     characters=None, before=None, after=None, matches_pattern=None):
+    def add_column_with_part_of_text(self: _Same, name=None, from_column=None, first_characters=None, last_characters=None,
+                                     characters=None, before=None, after=None, matches_pattern=None) -> _Same:
         """Add a column with one part of each text, such as its first letters or the text before a mark.
 
         Choose one way:
@@ -1499,8 +1501,8 @@ class ColumnWords:
         return int(rows_back)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_rolling_column(self, name=None, from_column=None, window=3, show="average", for_each_group_in=None, sorted_by=None,
-                           centre=False, percent=None, center=None):
+    def add_rolling_column(self: _Same, name=None, from_column=None, window=3, show="average", for_each_group_in=None, sorted_by=None,
+                           centre=False, percent=None, center=None) -> _Same:
         """Add a rolling (moving) summary: for each row, the average of this row and the rows just before it.
 
         window= is how many rows go into each summary (this row and the window - 1 rows
@@ -1630,7 +1632,7 @@ class ColumnWords:
                                    f'add rolling column "{name}" = {what} over {size}{group}')
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_previous_value_column(self, name=None, from_column=None, rows_back=1, for_each_group_in=None, sorted_by=None):
+    def add_previous_value_column(self: _Same, name=None, from_column=None, rows_back=1, for_each_group_in=None, sorted_by=None) -> _Same:
         """Add a column with the value from the row before (or rows_back= rows before).
 
         The first row of each group has no row before it, so it gets an empty cell.
@@ -1653,8 +1655,8 @@ class ColumnWords:
             name, keys, order, make, f'add previous value column "{name}" = {from_column} from {back}{group}')
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_change_column(self, name=None, from_column=None, in_percent=False, rows_back=1, for_each_group_in=None,
-                          sorted_by=None):
+    def add_change_column(self: _Same, name=None, from_column=None, in_percent=False, rows_back=1, for_each_group_in=None,
+                          sorted_by=None) -> _Same:
         """Add a column with the change from the row before: this value minus the previous one.
 
         in_percent=True gives the change as a percent of the previous value,
@@ -1686,8 +1688,8 @@ class ColumnWords:
             name, keys, order, make, f'add change column "{name}" = change in {from_column} from {back}{unit}{group}')
 
     # ------------------------------------------------------------------ combining tables
-    @friendly
-    def join_with(self, other=None, using=None, keep="matching rows"):
+    @friendly(others={"on": "using", "by": "using"})
+    def join_with(self: _Same, other=None, using=None, keep="matching rows") -> _Same:
         """Bring in the columns of another table, matching rows on a column such as a name.
 
         keep= says which rows stay:
@@ -1700,6 +1702,7 @@ class ColumnWords:
         table; with "all rows from both" the rows are sorted by using= instead. That is the order of pandas
         merge(), and Polars tables are joined in the same order (join(maintain_order="left_right")).
         table.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")   (with sdata.get_example("marks"))
+        on= (pandas merge) and by= (R merge, dplyr joins) work too, with a note once: they are using= here.
         """
         step = "join_with"
         self._check_choice(step, "keep", keep, list(KEEP_CHOICES))
@@ -1757,7 +1760,7 @@ class ColumnWords:
         return self._change(f"join with another table using {', '.join(keys)} (keep {keep})", frame)
 
     @friendly
-    def add_rows_from(self, other=None):
+    def add_rows_from(self: _Same, other=None) -> _Same:
         """Put the rows of another table under this one; columns are matched by their names.
 
         table.add_rows_from(sdata.get_example("marks"))   (with sdata.get_example("marks"): the class twice)
@@ -1793,7 +1796,7 @@ class ColumnWords:
 
     # ------------------------------------------------------------------ reshaping
     @friendly
-    def gather_into_rows(self, columns=None, names_to="column", values_to="value"):
+    def gather_into_rows(self: _Same, columns=None, names_to="column", values_to="value") -> _Same:
         """Turn some columns into rows: each value gets its own row, with its old column name beside it.
 
         This makes a "long" table, which most charts like. The new column names_to= holds the
@@ -1829,7 +1832,7 @@ class ColumnWords:
         return self._change(f"turn columns {', '.join(cols)} into rows", frame)
 
     @friendly
-    def spread_into_columns(self, names_from=None, values_from=None):
+    def spread_into_columns(self: _Same, names_from=None, values_from=None) -> _Same:
         """Turn rows into columns: each different value in names_from= becomes a new column, filled from values_from=.
 
         This makes a "wide" table, the opposite of gather_into_rows(). All the other
@@ -1894,7 +1897,7 @@ class ColumnWords:
               f"then table.keep_columns({keep}) and spread_into_columns again.")
 
     @friendly
-    def swap_rows_and_columns(self):
+    def swap_rows_and_columns(self: _Same) -> _Same:
         """Flip the whole table: each row becomes a column and each column a row (the transpose).
 
         table.swap_rows_and_columns()

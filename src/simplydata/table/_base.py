@@ -10,6 +10,13 @@ Summaries never change the table; they return a new, small table.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..chart import Chart
+
 from pathlib import Path
 
 import narwhals as nw
@@ -141,6 +148,8 @@ class BaseTable:
                         "fast=True needs the fast engine.\nInstall it with:  pip install simplydata[fast]"
                     ) from None
                 native = pl.from_pandas(native)
+            if native is data:  # the user's own pandas or Polars table: later changes to it must not reach this one
+                native = _independent_native(native)
             _frame = nw.from_native(native, eager_only=True)
         object.__setattr__(self, "_frame", _frame)
         object.__setattr__(self, "_original", _frame)
@@ -186,7 +195,7 @@ class BaseTable:
 
     # ------------------------------------------------------------------ history words
     @friendly
-    def undo(self):
+    def undo(self: _Same) -> _Same:
         """Take the last step back. table.undo()"""
         if not self._history:
             print("Nothing to undo: this table has no steps yet.")
@@ -197,7 +206,7 @@ class BaseTable:
         return self
 
     @friendly
-    def show_steps(self):
+    def show_steps(self: _Same) -> _Same:
         """List every step you did to this table, in order. table.show_steps()"""
         if not self._history:
             print("No steps yet.")
@@ -207,24 +216,47 @@ class BaseTable:
         return self
 
     @friendly
-    def start_again(self):
+    def start_again(self: _Same) -> _Same:
         """Go back to the table as it was at the start. table.start_again()"""
         return self._change("start again", self._original)
+
+    @friendly
+    def make_copy(self: _Same) -> _Same:
+        """Give back an independent copy of the table. backup = table.make_copy()
+
+        Steps on one table never change the other: after backup = table.make_copy(), table.keep_rows_where(...)
+        leaves backup as it was. The copy keeps the steps so far (backup.show_steps(), backup.undo()).
+        A plain backup = table gives the same table a second name, not a copy (pandas df.copy(), Polars
+        df.clone(), R copies on change).
+        """
+        return self.__copy__()
+
+    def __copy__(self):
+        """copy.copy(table) and copy.deepcopy(table) give the same independent copy as table.make_copy()."""
+        copied = type(self)(_frame=_independent(self._frame))
+        object.__setattr__(copied, "_original", self._original)
+        object.__setattr__(copied, "_history", list(self._history))
+        return copied
+
+    def __deepcopy__(self, memo):
+        return self.__copy__()
 
     # ------------------------------------------------------------------ finishing words
     @friendly
     def as_pandas(self):
         """Give back the table as a plain pandas table, for other Python tools. df = table.as_pandas()
 
-        Only needed when another library wants pandas: simplydata words never need it.
+        Only needed when another library wants pandas: simplydata words never need it. It is a copy: changing df
+        does not change the table, and later steps on the table do not change df (as as_polars() and
+        nums.as_numpy()).
         """
-        return self._frame.to_pandas()
+        return _independent_native(self._frame.to_pandas())
 
     @friendly
     def as_polars(self):
         """Give back the table as a plain Polars table, for other Python tools. df = table.as_polars()
 
-        Needs Polars (pip install simplydata[fast]). simplydata words never need it.
+        Needs Polars (pip install simplydata[fast]). simplydata words never need it. It is a copy, as as_pandas().
         """
         try:
             import polars  # noqa: F401
@@ -234,21 +266,21 @@ class BaseTable:
                 "Install it with:  pip install simplydata[fast]\n"
                 "Or use table.as_pandas() to get a pandas table instead."
             ) from None
-        return self._frame.to_polars()
+        return _independent_native(self._frame.to_polars())
 
     def _done(self):
         """The old done(): the table as it is stored (pandas, or Polars for Polars tables)."""
         return self._frame.to_native()
 
     @friendly
-    def start_chart(self):
+    def start_chart(self) -> Chart:
         """Start a chart from this table. chart = table.start_chart()"""
         from ..chart import chart
 
         return chart(self)
 
     @friendly
-    def save(self, file_name):
+    def save(self: _Same, file_name) -> _Same:
         """Save the table; the end of the file name decides the type. table.save("clean.xlsx")
 
         File types: .xlsx (Excel), .csv, .tsv, .parquet and .json.
@@ -409,6 +441,12 @@ class BaseTable:
         return (f'There is no column "{key}".' + (f' Did you mean table.get_column("{guess[0]}")?' if guess else "")
                 + f"\nColumns you have: {now}")
 
+    def _repeated_rows_note(self, word, params, args, kwargs) -> str:
+        """The note when an ID column repeats in a test that takes rows as independent (table/_independence.py)."""
+        from ._independence import repeated_rows_note
+
+        return repeated_rows_note(self._frame, word, params, args, kwargs)
+
     @classmethod
     def _word_names(cls) -> list[str]:
         return sorted(n for n in dir(cls) if not n.startswith("_") and callable(getattr(cls, n)))
@@ -437,3 +475,23 @@ class BaseTable:
         guesses = suggest(name, self._word_names())
         hint = f"table.{guesses[0]}(...)" if guesses else 'a step such as table.rename_column("old", to="new")'
         raise SimplydataError(f"Steps are written with brackets, not with =.\nInstead of table.{name} = ..., write {hint}")
+
+
+def _independent_native(native):
+    """A pandas or Polars table that shares nothing a later change could reach (bookkeeping, no computation).
+
+    pandas 3 copies on change (copy-on-write), so a shallow copy is independent and costs nothing; pandas 2
+    needs a deep copy. Polars clone() shares the column data, which Polars never changes in place."""
+    module = type(native).__module__.split(".")[0]
+    if module == "pandas":
+        import pandas as pd
+
+        return native.copy(deep=int(pd.__version__.split(".")[0]) < 3)
+    if module == "polars" and hasattr(native, "clone"):
+        return native.clone()
+    return native
+
+
+def _independent(frame):
+    """_independent_native() for a narwhals frame."""
+    return nw.from_native(_independent_native(frame.to_native()), eager_only=True)

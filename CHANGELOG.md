@@ -5,6 +5,41 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### New: easier for new users
+
+- A note when rows repeat one person: when a test or model word (compare_averages_of, compare_spreads_of,
+  find_correlation_between, explain, fit_line and the like) runs on a table where an ID column repeats, such as
+  "name" in the marks table, one line after the result says so and names the ways out (`matched_by=`,
+  `grouped_by=`, `compare_matched_columns`, one row per person). It counts different values only, never changes the
+  method and never refuses. An ID column is one named like an ID ("name", "subject", "patient_id", "Sample ID" ...)
+  with at least 4 different values, or a column of codes ("P01", "S12") with at least 10 values in 2 to 10 rows
+  each; columns the call uses, and calls with matched_by= or grouped_by=, get no note.
+- `table.make_copy()` gives an independent copy that keeps the steps so far (pandas `df.copy()`, Polars
+  `df.clone()`); `copy.copy(table)` and `copy.deepcopy(table)` do the same. `copy`, `clone`, `deepcopy` and
+  `duplicate` point to it.
+- `table.count_empty_cells_in("OD600")` and `table.count_empty_cells_in(["a", "b"])` count the empty cells of those
+  columns; with no column it counts every column as before, and `show="patterns"` takes the columns too.
+- Charts whose `colour=` can be a column (draw_bars, draw_dots, draw_boxes, draw_survival_curves and 16 more) take
+  `for_each_group_in=` for the same thing, as the table words do, with a note once; seaborn's `hue=` works too.
+- Option names from other tools work with a note once: `on=` and `by=` on `join_with` (its `using=`); `by=`,
+  `groupby=` and `group_by=` on every word with `for_each_group_in=`; `random_state=` on every word with
+  `with_seed=`; `subset=` on `remove_duplicate_rows` (its `columns=`).
+
+### Changed: copies, not shared tables (check your code)
+
+- `table.as_pandas()` and `table.as_polars()` give a copy: changing it no longer changes the simplydata table, and
+  later steps on the table no longer change it (as `nums.as_numpy()` already did). `sdata.table(df)` copies `df`, so
+  changing `df` afterwards leaves the table as it was. Under pandas 3 the copy costs nothing until one of them
+  changes (copy-on-write).
+
+### New: name completion in editors
+
+- simplydata ships a `py.typed` marker, and every step that gives back the same table, chart or numbers says so in
+  its type hints, so VS Code (Pylance) and Jupyter (Jedi) complete `t.keep...` after `t = sdata.table(...)`, and
+  chained steps such as `t.keep_rows_where(...).sort_by(...)`. `sdata.get_example()`, `start_chart()`,
+  `get_column()`, `turn_into_table()` and `sdata.distribution()` say what they give back. Type hints only: nothing
+  runs differently. A test checks the completion with Jedi.
+
 ### Changed: reshaping words renamed, and one new word (check your code)
 
 - `table.turn_rows_into_columns` is now `table.spread_into_columns(names_from=..., values_from=...)`, and
@@ -31,8 +66,8 @@ working for one release and prints a one-line note with its new name.
 
 - `table["marks"]` after a step that took the column away names that step and says `table.undo()`; every
   "no column" message lists the columns there are.
-- `table.count_empty_cells_in("OD600")` says the word takes no column, and how to look at or remove the rows where
-  that column is empty, instead of `does not know show="OD600"`.
+- `table.count_empty_cells_in(show="OD600")` says show= takes only "patterns" and how to count that column,
+  instead of `does not know show="OD600"` (a column in the first place is now counted, see above).
 - When R does not start, the message says whether R was not found, whether R_HOME points to a folder without R, or
   that R is installed but did not start from Python (with what to try), instead of rpy2's own error.
 - `compare_to_truth` without R: the Method line says the likelihood ratios were not computed, and their rows say so,

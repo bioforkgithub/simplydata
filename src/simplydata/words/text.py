@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from .._typing import _Same
+
 import numbers
 
 import matplotlib as mpl
@@ -310,29 +314,29 @@ def _check_text(step, text, example):
 
 class TextWords:
     @friendly
-    def write_title_on_top(self, text):
+    def write_title_on_top(self: _Same, text) -> _Same:
         """A title above the chart. chart.write_title_on_top("My class marks")"""
         return self._replace("title_top", "text", _title_top, scope="figure", text=str(text))
 
     @friendly
-    def label_x(self, text):
+    def label_x(self: _Same, text) -> _Same:
         """The name under the x-axis. chart.label_x("Student")"""
         return self._replace("label_x", "text", _label_x, scope="figure", text=str(text))
 
     @friendly
-    def label_y(self, text):
+    def label_y(self: _Same, text) -> _Same:
         """The name beside the y-axis. chart.label_y("Marks")"""
         return self._replace("label_y", "text", _label_y, scope="figure", text=str(text))
 
     @friendly
-    def write_caption_at_bottom(self, text):
+    def write_caption_at_bottom(self: _Same, text) -> _Same:
         """A small line of text under the whole chart. chart.write_caption_at_bottom("Data from 2026")"""
         text = _check_text("write_caption_at_bottom", text, 'chart.write_caption_at_bottom("Data from 2026")')
         # "finish": runs after label_x, so it knows whether there is a shared x label to go under
         return self._replace("caption_bottom", "finish", _caption_bottom, scope="figure", text=text)
 
     @friendly(renamed={"arrow": "with_arrow"})
-    def write_note(self, text, x=None, y=None, with_arrow=False):
+    def write_note(self: _Same, text, x=None, y=None, with_arrow=False) -> _Same:
         """A note on the chart at a place x, y. chart.write_note("Biggest", x=2024, y=49)
 
         with_arrow=True puts the note a little away, with an arrow pointing at x, y.
@@ -352,7 +356,7 @@ class TextWords:
         return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=with_arrow)
 
     @friendly(renamed={"decimals": "with_decimals"})
-    def write_numbers_on_bars(self, with_decimals=0):
+    def write_numbers_on_bars(self: _Same, with_decimals=0) -> _Same:
         """Write the value of each bar on it. chart.write_numbers_on_bars() · with_decimals=1 shows 12.5"""
         if isinstance(with_decimals, bool) or not isinstance(with_decimals, numbers.Integral) or not 0 <= with_decimals <= 6:
             raise SimplydataError(
@@ -361,7 +365,7 @@ class TextWords:
         return self._replace("numbers_on_bars", "extra", _numbers_on_bars, decimals=int(with_decimals))
 
     @friendly
-    def write_names_on_dots(self, column, colour=None):
+    def write_names_on_dots(self: _Same, column, colour=None) -> _Same:
         """Write a name next to each dot. chart.write_names_on_dots("name")
         (with chart.draw_dots(x="hours", y="marks") on sdata.get_example("marks"))
 
@@ -388,7 +392,7 @@ class TextWords:
         return self._replace("names_on_dots", "text", _names_on_dots, column=column, colour=colour)
 
     @friendly
-    def use_font_size(self, size):
+    def use_font_size(self: _Same, size) -> _Same:
         """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)"""
         if isinstance(size, bool) or not isinstance(size, numbers.Real) or size <= 0:
             raise SimplydataError(
@@ -400,7 +404,7 @@ class TextWords:
         return self._set(font_size=float(size))
 
     @friendly
-    def use_font(self, name):
+    def use_font(self: _Same, name) -> _Same:
         """The font for all the text on the chart. chart.use_font("DejaVu Serif")
 
         Any font installed on your computer, such as "Arial" or "Times New Roman", or a

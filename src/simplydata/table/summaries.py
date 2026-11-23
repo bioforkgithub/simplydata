@@ -34,6 +34,13 @@ Below p = 0.001 it says "fewer than 1 in 1000 studies".
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..numbers import Numbers
+
 import datetime as _dt
 import math
 
@@ -918,8 +925,8 @@ class SummaryWords:
         return table
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "seed": "with_seed"})
-    def find_interval_of(self, column=None, summary="average", for_each_group_in=None, interval=95, test_method="bootstrap",
-                         resamples=9999, with_seed=1):
+    def find_interval_of(self: _Same, column=None, summary="average", for_each_group_in=None, interval=95, test_method="bootstrap",
+                         resamples=9999, with_seed=1) -> _Same:
         """A confidence interval for any summary, from the bootstrap.
 
         table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
@@ -1419,7 +1426,7 @@ class SummaryWords:
         return result
 
     @friendly
-    def count_each(self, column=None, interval=None, columns=None, in_order=None):
+    def count_each(self: _Same, column=None, interval=None, columns=None, in_order=None) -> _Same:
         """Each different value in a column, how many times it appears, and its percent.
 
         Biggest count first. Empty cells count as a value of their own, so the percents
@@ -1923,7 +1930,7 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ one column on its own
     @friendly
-    def get_column(self, name=None):
+    def get_column(self, name=None) -> Numbers | list:
         """One column on its own: a column of numbers becomes sdata.numbers, any other a plain list.
 
         marks = table.get_column("marks")   (with sdata.get_example("marks"))

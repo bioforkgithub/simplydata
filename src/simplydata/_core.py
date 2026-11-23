@@ -13,6 +13,8 @@ Every public step:
 
 from __future__ import annotations
 
+from ._typing import _Same
+
 import io
 import math
 from contextlib import contextmanager
@@ -399,7 +401,7 @@ class BaseChart:
     def _save_animation(self, path, resolution=100):
         raise SimplydataError('To save a .gif, first make an animation with chart.animate(over="year").')
 
-    def show(self):
+    def show(self: _Same) -> _Same:
         """Show the chart in a window. chart.show()
 
         In Jupyter, VS Code and Spyder charts appear by themselves.

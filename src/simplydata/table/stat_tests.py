@@ -78,6 +78,8 @@ studies". From p = 0.05 a second sentence says that this does not show there is 
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import ast
 import difflib
 import math
@@ -1661,7 +1663,7 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ compare_spreads_of
     @friendly(renamed={"test": "test_method", "for_each": "for_each_group_in"})
-    def compare_spreads_of(self, column=None, for_each_group_in=None, test_method="levene"):
+    def compare_spreads_of(self: _Same, column=None, for_each_group_in=None, test_method="levene") -> _Same:
         """Do the groups really differ in how spread out their values are?
 
         table.compare_spreads_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
@@ -2627,7 +2629,7 @@ class StatTestWords:
         return [_plain(v) for v in kept[column].to_list()]
 
     @friendly
-    def compare_counts_to(self, column=None, expected=None):
+    def compare_counts_to(self: _Same, column=None, expected=None) -> _Same:
         """Does how often each value turns up really differ from the shares you expect?
 
         table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})   (with sdata.get_example("school"))
@@ -2758,8 +2760,8 @@ class StatTestWords:
         return labels, observed, [s / top for s in shares]
 
     @friendly(renamed={"method": "interval_by"})
-    def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
-                           alternative=None, interval_by="exact"):
+    def compare_percent_to(self: _Same, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
+                           alternative=None, interval_by="exact") -> _Same:
         """Is the percent of rows with one value really different from a percent you choose?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.get_example("school"))
@@ -3107,7 +3109,7 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ many p-values at once
     @friendly(renamed={"method": "test_method"})
-    def add_adjusted_p_value_column(self, name=None, from_column="p-value", test_method="holm"):
+    def add_adjusted_p_value_column(self: _Same, name=None, from_column="p-value", test_method="holm") -> _Same:
         """Adjust p-values for testing many things at once, in a new column.
 
         table = sdata.table(sdata.get_example("marks")).find_correlation_between("hours", "marks", "height", show="each pair")

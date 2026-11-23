@@ -27,6 +27,8 @@ columns agree) and the agreement expected by chance, read back from kappa and th
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import numpy as np
@@ -82,8 +84,8 @@ class AgreementWords:
     # ------------------------------------------------------------------ agreement_between
     @friendly(renamed={"method": "test_method", "weights": "near_misses", "kind": "checking_for"},
               others={"weight": "near_misses", "wt": "near_misses"})
-    def agreement_between(self, *columns, test_method=None, near_misses=None, in_order=None, interval=95,
-                          raters="a sample", checking_for="agreement", of="one rater"):
+    def agreement_between(self: _Same, *columns, test_method=None, near_misses=None, in_order=None, interval=95,
+                          raters="a sample", checking_for="agreement", of="one rater") -> _Same:
         """How well do two or more raters (or devices) agree on the same rows?
 
         table.agreement_between("nurse_rating", "doctor_rating")   (with sdata.get_example("clinic"))
@@ -332,7 +334,7 @@ class AgreementWords:
 
     # ------------------------------------------------------------------ limits_of_agreement
     @friendly
-    def limits_of_agreement(self, first=None, second=None, interval=95):
+    def limits_of_agreement(self: _Same, first=None, second=None, interval=95) -> _Same:
         """How far apart are two ways of measuring the same thing (Bland-Altman limits of agreement)?
 
         table.limits_of_agreement("device_a", "device_b")   (with sdata.get_example("clinic"))

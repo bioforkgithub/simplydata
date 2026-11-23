@@ -58,6 +58,8 @@ on; only for curves and surfaces, since extending is guesswork, a note says so).
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import narwhals as nw
@@ -709,8 +711,8 @@ class BetweenWords:
 
     # ------------------------------------------------------------ values_at
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def values_at(self, column=None, at=None, joined_by="straight lines", smoothness=0, for_each_group_in=None,
-                  outside="empty"):
+    def values_at(self: _Same, column=None, at=None, joined_by="straight lines", smoothness=0, for_each_group_in=None,
+                  outside="empty") -> _Same:
         """Estimate a column at places between the known points, by joining the dots.
 
         table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")   (with sdata.get_example("growth"))
@@ -793,7 +795,7 @@ class BetweenWords:
 
     # ------------------------------------------------------------ make_map_of
     @friendly
-    def make_map_of(self, column=None, across=None, steps=50, joined_by="straight lines", smoothness=0):
+    def make_map_of(self: _Same, column=None, across=None, steps=50, joined_by="straight lines", smoothness=0) -> _Same:
         """Estimate a column at evenly spaced places across one or more columns (a map), ready for a contour or heatmap.
 
         table.make_map_of("height", across=["east", "north"], steps=100)   (with sdata.get_example("island"))

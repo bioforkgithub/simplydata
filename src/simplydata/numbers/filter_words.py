@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 
 from .. import _filters, _peaks
@@ -118,9 +120,9 @@ class FilterNumberWords:
 
     @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between",
                        "equal_to": "is_equal_to"})
-    def keep_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
+    def keep_each_frequency_that(self: _Same, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
                                  test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
-                                 show_filter=False, sampling_rate=None, fs=None):
+                                 show_filter=False, sampling_rate=None, fs=None) -> _Same:
         """Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
 
         nums.keep_each_frequency_that(is_below=5, time_step=0.01)
@@ -141,9 +143,9 @@ class FilterNumberWords:
 
     @friendly(renamed={"method": "test_method", "below": "is_below", "above": "is_above", "between": "is_between",
                        "equal_to": "is_equal_to"})
-    def remove_each_frequency_that(self, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
+    def remove_each_frequency_that(self: _Same, is_below=None, is_above=None, is_between=None, is_equal_to=None, time_step=None,
                                    test_method="butterworth", steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1,
-                                   and_multiples=False, show_filter=False, sampling_rate=None, fs=None):
+                                   and_multiples=False, show_filter=False, sampling_rate=None, fs=None) -> _Same:
         """Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
 
         nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)

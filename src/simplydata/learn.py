@@ -144,7 +144,7 @@ GROUPS = [
     ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.gather_into_rows",
                              "table.spread_into_columns", "table.swap_rows_and_columns"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
-                         "table.start_chart", "table.as_pandas", "table.as_polars"]),
+                         "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
     ("Numbers: make and look", ["sdata.numbers", "sdata.make_random_numbers", "nums.show", "nums.show_first_numbers",
                                 "nums.show_last_numbers", "nums.get_number_at", "nums.count",
@@ -749,6 +749,8 @@ HELP_EXAMPLES = {
     "table.start_chart": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\nchart = table.start_chart()\n'
                                 'chart.draw_bars(x="name", y="marks")\nchart.rotate_labels_x()\n'
                                 'chart.save("maths_marks.png")'),
+    "table.make_copy": _tx("marks", 'backup = table.make_copy()\ntable.keep_rows_where("class", is_equal_to="A")\n'
+                                    "backup.count_rows()\ntable.count_rows()"),
     "table.as_pandas": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ndf = table.as_pandas()\nprint(type(df))'),
     "table.as_polars": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ndf = table.as_polars()\nprint(type(df))'),
     # models

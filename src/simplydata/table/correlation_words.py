@@ -9,6 +9,8 @@ The correlations themselves are Pearson's r from SciPy pearsonr; Python has no t
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 
 from .._errors import SimplydataError, friendly, renamed_note
@@ -24,7 +26,7 @@ def _r(x, y):
 
 class CorrelationWords:
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def compare_correlations(self, *columns, for_each_group_in=None, first=None, second=None):
+    def compare_correlations(self: _Same, *columns, for_each_group_in=None, first=None, second=None) -> _Same:
         """Is one correlation stronger than another?
 
         table.compare_correlations("hours", "marks", for_each_group_in="class")   (with sdata.get_example("marks"), two classes)
