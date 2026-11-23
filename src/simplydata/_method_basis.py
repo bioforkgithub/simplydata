@@ -3469,6 +3469,150 @@ BASIS["animate"] = _b(
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
 
+# ---- Phase U3, batch 5: chart words
+BASIS["draw_area"] = _b(
+    "Rows at the same x averaged; the space under each line filled down to 0 in its colour, see-through (alpha "
+    "0.35).",
+    "colour= for one area per group, stacked=True to pile them up, transparency=, thickness=.",
+    "Showing results: the average follows draw_lines(), and see-through areas let groups show through each other.",
+    (), "P5", "stacked=True needs colour= groups; y must hold numbers.", "starting value")
+BASIS["draw_pie"] = _b(
+    "One slice per label (the total of its values, or its number of rows), in the order the labels appear, from "
+    "12 o'clock going clockwise, each with its share in whole percents.",
+    "values= for totals instead of counts; order_legend() for another order; transparency=.",
+    "Showing results: a pie read like a clock starts at the top and goes clockwise; whole percents are as precise "
+    "as a slice can be read.", (), "P5", "Values below 0, or all 0, are refused.", "convention")
+BASIS["draw_polar"] = _b(
+    "Angles in degrees; a compass (0 at the top, clockwise) when the column is named like a direction or full_turn= "
+    "is given, otherwise from the right, anticlockwise; the legend outside the circle.",
+    "full_turn=360, 24, 12 or \"radians\"; degrees=False (the old way of saying radians).",
+    "Showing results: wind and current directions are read on a compass, and maths angles from the right; the "
+    "column's name tells which one is meant.", (), "P5", "angle= and distance= must hold numbers.", "convention")
+BASIS["draw_contour"] = _b(
+    "A full grid drawn as it is (scattered points joined onto a 100 x 100 grid by straight-line interpolation); about "
+    "10 filled bands in viridis with thin solid white lines between them.",
+    "filled=False for lines with their heights written on them; use_colour_scale() for the colours and the bands.",
+    "Showing results: viridis reads evenly and with colour blindness (as in use_colour_scale); straight-line "
+    "interpolation invents no hills between the points.", (), "P5",
+    "At least 2 different x and y values; scattered points need 3 not on one line.", "starting value")
+BASIS["draw_surface"] = _b(
+    "A full grid drawn as it is (scattered points joined onto a 100 x 100 grid by straight-line interpolation), "
+    "coloured with viridis from the lowest to the highest point.",
+    "use_colour_scale() for the colours; transparency=.",
+    "Showing results: straight-line interpolation invents no hills between the points.", (), "P5",
+    "At least 2 different x and y values.", "starting value")
+BASIS["draw_dots_3d"] = _b(
+    "One colour per group for words or a number column with 8 values or fewer; a colour scale for more.",
+    "use_colour_scale() for the scale; transparency=.",
+    "Showing results: more than about 8 colours cannot be told apart, so many values get a scale instead.", (),
+    "P5", "", "starting value")
+BASIS["draw_band"] = _b(
+    "One light band (alpha 0.25) per group in its colour, no edge line, named in the legend; empty cells leave a "
+    "gap.",
+    "colour= one colour, labelled= the legend name, transparency=.",
+    "Showing results: a light band keeps lines drawn on it readable, and a gap is more honest than a made-up "
+    "edge.", (), "P5", "The low edge must not be above the high edge; one row per x in each group.",
+    "starting value")
+BASIS["draw_map_of_empty_cells"] = _b(
+    "Every column, one line per row from the top; an empty cell (missing or only spaces) in vermilion on light "
+    "grey, with the number of empty cells under each column.",
+    "columns= for some columns only.",
+    "Showing results: the same rule for an empty cell as the table words; the Okabe-Ito vermilion stands out for "
+    "readers with colour blindness.", (), "P5", "", "convention")
+BASIS["sticks"] = _b(
+    "A stick 1.5 points wide from 0 to each value with a small dot on top, and a thin line at 0.",
+    "colour= for groups, thickness=.",
+    "Showing results: a stick from 0 shows each value at its own place without joining places that are apart.",
+    (), "P5", "", "starting value")
+BASIS["draw_curve"] = _b(
+    "The curve over the x range of what is drawn, at 200 points; over a histogram scaled to its bars.",
+    "between=, steps=, show=\"cumulative\", dashed=, colour=, labelled=, thickness=.",
+    "Showing results: 200 points draw a smooth curve; scaling to the bars puts the curve on the same scale as "
+    "the histogram, and a note says how.", (), "P5", "", "starting value")
+BASIS["draw_count_bars"] = _b(
+    "One bar per group counting its rows, in simplydata's exact colours.",
+    "colour= to split the bars, sideways=True, transparency=.",
+    "Showing results: exact colours keep the legend and the bars the same shade.", (), "P5", "", "convention")
+BASIS["draw_cumulative_share"] = _b(
+    "Each group's share of values at or below each x, from 0 to 1, with the y-axis named in words.",
+    "colour= for groups, thickness=, transparency=.",
+    "Showing results: the cumulative share shows every value, needs no bins and compares groups of any size.",
+    (), "P5", "x must hold numbers.", "convention")
+BASIS["draw_line_with_slope"] = _b(
+    "Through 0, 0, right across the chart: grey, dashed, 1.5 points wide, between bars and dots.",
+    "through=, intercept=, dashed=False, colour=, labelled=, thickness=.",
+    "Showing results: the 1:1 line of observed against predicted values goes through 0, 0; a grey dashed line "
+    "reads as a guide, not as data.", (), "P5", "Ordinary axes only; through= and intercept= not both.",
+    "convention")
+BASIS["shade_between_x"] = _b(
+    "A light grey band (alpha 0.2) from the bottom to the top of the chart, behind everything.",
+    "colour=; shade_between_y() for a band across.",
+    "Showing results: a light band behind the data marks a span without hiding anything.", (), "P5",
+    "The two ends must differ.", "starting value")
+BASIS["write_names_on_dots"] = _b(
+    "Each name right of its dot, else left, above, below or in a corner, wherever it covers no other name or dot; "
+    "a name with no free place is left out and counted.",
+    "colour=; a bigger chart (set_size()) makes room.",
+    "Showing results: names that cover each other cannot be read, so a crowded name is left out and a line says "
+    "how many.", (), "P5", "Only after draw_dots().", "starting value")
+BASIS["use_font"] = _b(
+    "The font for every word of the chart, used while it is drawn and saved.",
+    "Any installed font, or \"serif\", \"sans-serif\", \"monospace\".",
+    "Showing results: a setting used only while drawing keeps your other charts as they were.", (), "P5",
+    "A font that is not installed is refused, with close names.", "convention")
+BASIS["set_range_x"] = _b(
+    "Both ends as given; None keeps that end where matplotlib put it; a flipped axis stays flipped.",
+    "set_range_y() for the other axis.",
+    "Showing results: fixing one end (often 0) and letting the other choose itself is the common case.", (),
+    "P5", "The low end must be below the high end; not 0 or below on a log scale.", "convention")
+BASIS["put_ticks_x"] = _b(
+    "Ticks at the places given; a name is looked up among the names under the bars and keeps its name.",
+    "labels=, every=, how_many=, whole_numbers=.",
+    "Showing results: on bar charts the names are what people know, not the places 0, 1, 2 behind them.", (),
+    "P5", "", "convention")
+BASIS["rotate_labels_y"] = _b(
+    "45 degrees, each name turned about its end next to the axis.",
+    "Any angle from -360 to 360.",
+    "Showing results: turned about its end, a name stays beside its own bar.", (), "P5", "", "starting value")
+BASIS["write_ticks_x_as"] = _b(
+    "\"thousands\": a comma between thousands and no decimals unless with_decimals= asks.",
+    "\"percent\" (out_of=), \"scientific\", \"plain\", with_decimals=, or how a date should look.",
+    "Showing results: 12,500 is read faster than 12500.0.", (), "P5",
+    "A number format on a date axis, or on names, is refused.", "convention")
+BASIS["show_grid"] = _b(
+    "Grid lines in both directions (the paper look draws only the lines across).",
+    "hide_grid() for none.",
+    "Showing results: lines across help to read values off bars and lines; lines both ways help on dots.", (),
+    "P5", "", "convention")
+BASIS["put_legend_at_top"] = _b(
+    "One row (up to 6 entries) above the chart, outside it; the chart's title becomes the legend's heading.",
+    "put_legend_at_bottom(), put_legend_on_left(), put_legend_on_right(), hide_legend().",
+    "Showing results: outside the chart a legend covers no data, and the title as its heading keeps the two from "
+    "sitting on top of each other.", (), "P5", "", "convention")
+BASIS["put_legend_on_right"] = _b(
+    "Outside the chart on the right, entries of every panel gathered in one legend.",
+    "put_legend_at_top(), put_legend_at_bottom(), put_legend_on_left(), hide_legend().",
+    "Showing results: outside the chart a legend covers no data.", (), "P5", "", "convention")
+BASIS["label_legend"] = _b(
+    "The name above every legend of the chart (panels and second y-axis too).",
+    "label_legend(\"\") for no name.",
+    "Showing results: without it the legend is named after the colour= column.", (), "P5",
+    "A chart with no legend is refused.", "convention")
+BASIS["order_y"] = _b(
+    "The groups in the order named, the first at the top, by a stable sort of the rows; others after them.",
+    "biggest_first=True or False.",
+    "Showing results: read from the top, the first group is the one named first.", (), "P5", "", "convention")
+BASIS["order_legend"] = _b(
+    "The colour groups in the order named, by a stable sort of the rows; the first gets the first colour.",
+    "Groups left out come after the ones named.",
+    "Showing results: one order for the legend, the colours and the bars side by side.", (), "P5", "",
+    "convention")
+BASIS["add_zoom_box"] = _b(
+    "A box in the top right corner, 0.39 x 0.4 of the chart, showing the chart's own drawing again, with lines to "
+    "the part it shows.",
+    "where=\"top left\", \"bottom right\" or \"bottom left\".",
+    "Showing results: drawing the same steps again keeps the box exactly like the chart.", (), "P5",
+    "Flat charts only; the two ends of each span must differ.", "starting value")
 # ---- Phase U3, batch 4: number and grid words
 BASIS["nums.show"] = _b(
     "Every number, with commas between them, however many there are.",
