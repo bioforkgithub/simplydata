@@ -90,11 +90,13 @@ def test_the_qr_covariance_is_r_summary_lm_on_an_easy_problem():
 
 # ---------------------------------------------------------------- A4: NIST Wampler1 to Wampler5, Filip
 @pytest.mark.parametrize("name, estimates, errors", [
-    # lowest LRE of the estimates and of the standard errors, as before this change (Windows: Wampler1 8.99 and
-    # 8.73, Wampler3 8.98, Wampler4 8.93, Wampler5 8.04): a stated precision limit, reported in the reliability study
-    # as an explained difference; the bounds leave room for other computers' linear-algebra libraries
-    ("Wampler1", 8.5, 8.5), ("Wampler2", 11.5, 13.0), ("Wampler3", 8.5, 13.0), ("Wampler4", 8.5, 13.0),
-    ("Wampler5", 7.8, 13.0),
+    # lowest LRE of the estimates and of the standard errors: a stated precision limit, reported in the reliability
+    # study as an explained difference. The number of digits varies with the computer's linear-algebra library
+    # (BLAS/LAPACK): on Windows (local) Wampler1 8.99 and 8.73, Wampler3 8.98, Wampler4 8.93, Wampler5 8.04; on
+    # GitHub's runners (run 45088415254) as low as 8.40 for Wampler1 (macOS) and 7.08 for Wampler5 (Ubuntu and
+    # Windows, Python 3.12 and 3.13). Each bound is the lowest seen on any runner, less a margin of about 0.1
+    ("Wampler1", 8.3, 8.3), ("Wampler2", 11.5, 13.0), ("Wampler3", 8.3, 13.0), ("Wampler4", 8.3, 13.0),
+    ("Wampler5", 7.0, 13.0),
 ])
 def test_fit_curve_on_the_wampler_problems_keeps_its_digits(name, estimates, errors):
     data, certified = read_nist(name)

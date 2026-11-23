@@ -65,7 +65,7 @@ working for one release and prints a one-line note with its new name.
   (inv(R) inv(R)', R's chol2inv, done with NumPy and LAPACK), not statsmodels' inv(R'R): on NIST Longley they now agree with the certified values to 12.6 to
   14.2 digits (before: 7.97 to 9.42).
 - `fit_curve` (polynomials) is unchanged. On NIST Wampler1, 3, 4 and 5 it agrees with the certified values to about
-  8 to 9 digits (NIST asks 9); no existing least-squares routine tried (LAPACK gelsd, gelsy and gelss through SciPy,
+  7 to 9 digits, depending on the computer's linear-algebra library (NIST asks 9); no existing least-squares routine tried (LAPACK gelsd, gelsy and gelss through SciPy,
   NumPy's QR, NumPy's Polynomial.fit) does better on all of them without losing digits on Filip. The reliability study
   now lists these numbers as explained differences (a precision limit), with the reason, and adds Wampler1 to 5.
 - `compare_risks(show="attributable fractions")` no longer calls its intervals "Wald": they are the ones epiR gives

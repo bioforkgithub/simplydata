@@ -13,6 +13,7 @@ Run once from the repository root: python docs/make_practice_tables.py. It write
 The made-up job_search table has its own script, docs/make_job_search.py.
 """
 
+import math
 from pathlib import Path
 
 import numpy as np
@@ -68,15 +69,28 @@ def ability_tests(seed=20261124):
     (visual-speed) and 0.25 (verbal-speed); x9 also loads 0.3 on visual."""
     rng = np.random.default_rng(seed)
     n = 301
-    corr = np.array([[1, 0.45, 0.30], [0.45, 1, 0.25], [0.30, 0.25, 1]])
-    f = rng.multivariate_normal(np.zeros(3), corr, n)
-    load = np.zeros((9, 3))
-    load[0:3, 0] = [0.75, 0.6, 0.55]
-    load[3:6, 1] = [0.85, 0.8, 0.8]
-    load[6:9, 2] = [0.7, 0.75, 0.55]
-    load[8, 0] = 0.3
-    unique = np.sqrt(np.clip(1 - (load @ corr * load).sum(1), 0.1, None))
-    z = f @ load.T + rng.normal(0, 1, (n, 9)) * unique
+    # Everything below is element-by-element arithmetic, with no matrix routine (no multivariate_normal, Cholesky or
+    # matrix product): those go through the computer's linear-algebra library (BLAS/LAPACK), whose last digits differ
+    # between Windows, Linux and macOS, so the table would come out different on each. The correlated factors are
+    # independent normal draws mixed with the Cholesky factor of the factor correlations, worked out by hand:
+    # corr = [[1, 0.45, 0.30], [0.45, 1, 0.25], [0.30, 0.25, 1]].
+    l11 = math.sqrt(1 - 0.45 ** 2)
+    l21 = (0.25 - 0.45 * 0.30) / l11
+    l22 = math.sqrt(1 - 0.30 ** 2 - l21 ** 2)
+    g = rng.standard_normal((n, 3))
+    visual = g[:, 0]
+    verbal = 0.45 * g[:, 0] + l11 * g[:, 1]
+    speed = 0.30 * g[:, 0] + l21 * g[:, 1] + l22 * g[:, 2]
+    # (loading on visual, loading on verbal, loading on speed) of x1 ... x9; x9 also leans on visual
+    loads = [(0.75, 0, 0), (0.6, 0, 0), (0.55, 0, 0), (0, 0.85, 0), (0, 0.8, 0), (0, 0.8, 0),
+             (0, 0, 0.7), (0, 0, 0.75), (0.3, 0, 0.55)]
+    noise = rng.standard_normal((n, 9))
+    columns = []
+    for j, (a, b, c) in enumerate(loads):
+        shared = a * a + b * b + c * c + 2 * (a * b * 0.45 + a * c * 0.30 + b * c * 0.25)
+        unique = math.sqrt(max(1 - shared, 0.1))
+        columns.append(a * visual + b * verbal + c * speed + unique * noise[:, j])
+    z = np.column_stack(columns)
     means = np.array([4.9, 6.1, 2.2, 3.1, 4.3, 2.2, 4.2, 5.5, 5.4])
     sds = np.array([1.2, 1.2, 1.1, 1.2, 1.3, 1.1, 1.1, 1.0, 1.0])
     scores = (means + z * sds).round(4)
