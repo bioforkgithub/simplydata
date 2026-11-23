@@ -181,13 +181,14 @@ def read_certified_polynomial(file: str, data_dir) -> dict[str, float]:
 # them; on the mapped powers: NumPy Polynomial.fit). So they are reported as explained differences, not hidden.
 WAMPLER_LIMIT = ("the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which "
                  "adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on "
-                 "the curve NIST certifies 0, so the LRE measures that rounding itself")
-EXPLAINED_WAMPLER = {
-    "Wampler1": ("b0", "b1", "b2", "b0 standard error", "b1 standard error", "b2 standard error"),
-    "Wampler3": ("b0", "b1", "b2"),
-    "Wampler4": ("b0", "b1", "b2"),
-    "Wampler5": ("b0", "b1", "b2", "b3", "b4"),
-}
+                 "the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached "
+                 "varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and "
+                 "7.1 on Wampler5)")
+# Every estimate and standard error of these four is listed: how many digits they reach varies with the computer's
+# linear-algebra library (BLAS/LAPACK), from about 8.4 (Wampler1, macOS) and 7.1 (Wampler5, Ubuntu and Windows) on
+# GitHub's runners to about 9 on Windows here, so which numbers fall short depends on the machine.
+_TERMS = tuple(f"b{j}" for j in range(6)) + tuple(f"b{j} standard error" for j in range(6))
+EXPLAINED_WAMPLER = {name: _TERMS for name in ("Wampler1", "Wampler3", "Wampler4", "Wampler5")}
 
 
 def _cases(Case, data_dir):
