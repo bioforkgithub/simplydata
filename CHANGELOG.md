@@ -15,6 +15,18 @@ working for one release and prints a one-line note with its new name.
   then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, patient data, R). The long
   lists (packages, tasks, fields, lessons, examples by area) moved to
   [docs/what_simplydata_handles.md](docs/what_simplydata_handles.md); the tests check them there.
+- The README says why the names are long (you read them more than you type them, you can guess them, and the
+  editor completes them), shows three tested "same underneath" pairs side by side, and recommends VS Code or
+  Jupyter with a few setup steps; so do the manual's "Install and first steps" and day 1 of the 30 days.
+- The 30 days have a new order. Both tracks open a real practice table on day 1 or 2 and test a first difference
+  by day 4 (Python track) or day 6 (beginner track); charts are woven in on four days. Models are split over two
+  days (Python) or three (beginner), survival curves have a day of their own, and fitting and distributions have
+  one day each. Patterns across many columns (lesson 17) and planning a study (lesson 18, example 3) are two
+  optional extra days, 31 and 32, opened only with `sdata.show_day(31)` and `sdata.show_day(32)`.
+- Progress files of the old order are moved to the new one the first time they are read, with a one-time note: a
+  new day is ticked when its lessons were all done before, `sdata.show_today()` carries on with the first day not
+  done, and a finished course stays finished. New progress files say which order they follow (`"course": 2`), and
+  remember the days passed over with `show_today(follow_calendar=True)`.
 
 ### Changed: reshaping words renamed, and one new word (check your code)
 
