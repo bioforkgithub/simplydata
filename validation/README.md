@@ -37,7 +37,7 @@ with Python 3.11 to 3.13 for every change.
    that agree. A word must match at least 9 digits; for the nonlinear (curve) problems, at least 6, the
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
-   rows left, an exact line): 3 of the 428 cases, each labelled *made-up* in the report.
+   rows left, an exact line): 3 of the 429 cases, each labelled *made-up* in the report.
 
    Each check states its tolerance and why: about 1e-9 (relative) for a calculation with no iteration and
    no random numbers; the NIST digits above, or the same method run to convergence, for an iterative fit;
@@ -59,10 +59,10 @@ with Python 3.11 to 3.13 for every change.
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 428 cases on 94 datasets (82 with a published or certified answer, 343 compared with the
+The study now has 429 cases on 94 datasets (82 with a published or certified answer, 344 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
-manuals, design tables): 6 of the 343 are simulation and formula checks against R that use no data at all; the
-other 337 run on real data. A word passes when it agrees with the reference to the stated, justified tolerance. They cover 261 words, or 386 words and options;
+manuals, design tables): 6 of the 344 are simulation and formula checks against R that use no data at all; the
+other 338 run on real data. A word passes when it agrees with the reference to the stated, justified tolerance. They cover 261 words, or 387 words and options;
 the other words of simplydata's 398 are not checked on real data here (some have a same-underneath box,
 part 2, and all have their own tests). Words are added with each release; a word counts as done only when
 its checks pass.
