@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**2268 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**2533 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2084,15 +2084,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512527366209553 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736312884227 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.54277436825938 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192917616397 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.24287720949446 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215659201569 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.50220836729044 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549729383404 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246470083785 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528156962388 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.7487357860152 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774621307008 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192874328618 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877443488805 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215585321015 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208868260256 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549623533079 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.54324634974566 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
@@ -3924,6 +3924,591 @@ Note: The years run 1875 to 1972 without a gap, so the slope per year equals R's
 | degrees of freedom | R | 2 | 2 | relative 1e-10 | pass |
 | p-value | R | 0.00380504077551138 | 0.00380504077551136 | relative 1e-10 | pass |
 
+### `nums.show`
+
+**all 100 of Michelson's measurements shown** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers shown | pandas (every value) | 100 | 100 | relative 1e-12 | pass |
+| total shown | pandas (every value) | 29985.24 | 29985.24 | relative 1e-12 | pass |
+| numbers shown | R | 100 | 100 | relative 1e-12 | pass |
+| total shown | R | 29985.24 | 29985.24 | relative 1e-12 | pass |
+
+### `nums.show_first_numbers`
+
+**the first 5 months of AirPassengers shown** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers shown | pandas head | 5 | 5 | exact | pass |
+| total shown | pandas head | 612 | 612 | exact | pass |
+| total shown | R | 612 | 612 | exact | pass |
+
+### `nums.show_last_numbers`
+
+**the 12 months of 1960 in AirPassengers shown** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers shown | pandas tail | 12 | 12 | exact | pass |
+| total shown | pandas tail | 5714 | 5714 | exact | pass |
+| total shown | R | 5714 | 5714 | exact | pass |
+
+### `nums.get_number_at`
+
+**the first and the last month of AirPassengers, counting from 1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| month 1 | NumPy [ ] (from 0) | 112 | 112 | exact | pass |
+| month 144 | NumPy [ ] (from 0) | 432 | 432 | exact | pass |
+| last | NumPy [ ] (from 0) | 432 | 432 | exact | pass |
+| month 1 | R | 112 | 112 | exact | pass |
+| month 144 | R | 432 | 432 | exact | pass |
+
+### `nums.count`
+
+**NHANES body mass index: 25 places, empty ones included** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | NumPy size | 25 | 25 | exact | pass |
+| count | R | 25 | 25 | exact | pass |
+
+### `nums.count_empty_numbers`
+
+**the empty cells of NHANES body mass index** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty | NumPy isnan | 9 | 9 | exact | pass |
+| empty | R | 9 | 9 | exact | pass |
+
+### `nums.add`
+
+**1 added to NHANES body mass index: the empty cells stay empty** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy + | 441 | 441 | relative 1e-12 | pass |
+| empty | NumPy + | 9 | 9 | relative 1e-12 | pass |
+| total | R | 441 | 441 | relative 1e-12 | pass |
+| empty | R | 9 | 9 | relative 1e-12 | pass |
+
+### `nums.subtract`
+
+**Michelson's measurements less 299 (thousand km/s)** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy - | 85.24 | 85.24 | relative 1e-12 | pass |
+| first | NumPy - | 0.850000000000023 | 0.850000000000023 | relative 1e-12 | pass |
+| total | R | 85.24 | 85.24 | relative 1e-12 | pass |
+| first | R | 0.850000000000023 | 0.850000000000023 | relative 1e-12 | pass |
+
+### `nums.times`
+
+**mtcars weights from thousands of pounds to pounds** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total pounds | NumPy * | 102952 | 102952 | relative 1e-12 | pass |
+| heaviest | NumPy * | 5424 | 5424 | relative 1e-12 | pass |
+| total pounds | R | 102952 | 102952 | relative 1e-12 | pass |
+| heaviest | R | 5424 | 5424 | relative 1e-12 | pass |
+
+### `nums.divide_by`
+
+**mtcars horsepower per thousand pounds, car by car** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy / | 1450.70914531099 | 1450.70914531099 | relative 1e-12 | pass |
+| biggest | NumPy / | 93.8375350140056 | 93.8375350140056 | relative 1e-12 | pass |
+| empty | NumPy / | 0 | 0 | relative 1e-12 | pass |
+| total | R | 1450.70914531099 | 1450.70914531099 | relative 1e-12 | pass |
+| biggest | R | 93.8375350140056 | 93.8375350140056 | relative 1e-12 | pass |
+
+### `nums.raise_to_power`
+
+**iris sepal lengths squared** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy power | 5223.85 | 5223.85 | relative 1e-12 | pass |
+| total | R | 5223.85 | 5223.85 | relative 1e-12 | pass |
+
+### `nums.take_square_root`
+
+**square roots of mtcars engine sizes** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy sqrt | 468.214849084027 | 468.214849084027 | relative 1e-12 | pass |
+| first | NumPy sqrt | 12.6491106406735 | 12.6491106406735 | relative 1e-12 | pass |
+| total | R | 468.214849084027 | 468.214849084027 | relative 1e-12 | pass |
+| first | R | 12.6491106406735 | 12.6491106406735 | relative 1e-12 | pass |
+
+### `nums.take_absolute_value`
+
+**how far each of Michelson's measurements lies from their average** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total distance | NumPy abs | 6.1239999999998 | 6.1239999999998 | relative 1e-12 | pass |
+| biggest | NumPy abs | 0.232399999999984 | 0.232399999999984 | relative 1e-12 | pass |
+| total distance | R | 6.1239999999998 | 6.1239999999998 | relative 1e-12 | pass |
+| biggest | R | 0.232399999999984 | 0.232399999999984 | relative 1e-12 | pass |
+
+### `nums.round_to`
+
+**mtcars miles per gallon to whole numbers: 21.5 and 15.5 go to the even neighbour** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy round (halves to even) | 640 | 640 | exact | pass |
+| Toyota Corona (21.5) | NumPy round (halves to even) | 22 | 22 | exact | pass |
+| total | R | 640 | 640 | exact | pass |
+| Toyota Corona (21.5) | R | 22 | 22 | exact | pass |
+
+### `nums.take_log`
+
+**natural logs of the 144 AirPassengers months** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy log | 798.073338028589 | 798.073338028589 | relative 1e-12 | pass |
+| first | NumPy log | 4.71849887129509 | 4.71849887129509 | relative 1e-12 | pass |
+| total | R | 798.073338028589 | 798.07333802859 | relative 1e-12 | pass |
+| first | R | 4.71849887129509 | 4.71849887129509 | relative 1e-12 | pass |
+
+### `nums.take_exp`
+
+**e to the power of each iris petal width** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy exp | 649.475073422466 | 649.475073422466 | relative 1e-12 | pass |
+| total | R | 649.475073422466 | 649.475073422466 | relative 1e-12 | pass |
+
+### `nums.turn_into_running_total`
+
+**AirPassengers added up month by month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| after 12 months | pandas cumsum | 1520 | 1520 | exact | pass |
+| after 144 months | pandas cumsum | 40363 | 40363 | exact | pass |
+| after 12 months | R | 1520 | 1520 | exact | pass |
+| after 144 months | R | 40363 | 40363 | exact | pass |
+
+### `nums.remove_each_number_that`
+
+**NHANES body mass index below 25 removed: the empty cells stay** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| left | NumPy boolean indexing | 19 | 19 | relative 1e-12 | pass |
+| empty left | NumPy boolean indexing | 9 | 9 | relative 1e-12 | pass |
+| total | NumPy boolean indexing | 290.8 | 290.8 | relative 1e-12 | pass |
+| left | R | 19 | 19 | relative 1e-12 | pass |
+| empty left | R | 9 | 9 | relative 1e-12 | pass |
+| total | R | 290.8 | 290.8 | relative 1e-12 | pass |
+
+### `nums.keep_first_numbers`
+
+**the 12 months of 1949 in AirPassengers** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| kept | NumPy [:12] | 12 | 12 | exact | pass |
+| total | NumPy [:12] | 1520 | 1520 | exact | pass |
+| total | R | 1520 | 1520 | exact | pass |
+
+### `nums.keep_last_numbers`
+
+**the 12 months of 1960 in AirPassengers** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| kept | NumPy [-12:] | 12 | 12 | exact | pass |
+| total | NumPy [-12:] | 5714 | 5714 | exact | pass |
+| total | R | 5714 | 5714 | exact | pass |
+
+### `nums.keep_random_numbers`
+
+**10 of Michelson's measurements picked at random (seed 1)** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| kept | NumPy default_rng choice, kept in order | 10 | 10 | relative 1e-12 | pass |
+| total | NumPy default_rng choice, kept in order | 2998.46 | 2998.46 | relative 1e-12 | pass |
+| first kept | NumPy default_rng choice, kept in order | 300.07 | 300.07 | relative 1e-12 | pass |
+
+### `nums.remove_duplicate_numbers`
+
+**the different values among Michelson's measurements, in first-seen order** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different | pandas drop_duplicates | 30 | 30 | relative 1e-12 | pass |
+| total | pandas drop_duplicates | 8995.56 | 8995.56 | relative 1e-12 | pass |
+| third | pandas drop_duplicates | 299.9 | 299.9 | relative 1e-12 | pass |
+| different | R | 30 | 30 | relative 1e-12 | pass |
+| total | R | 8995.56 | 8995.56 | relative 1e-12 | pass |
+| third | R | 299.9 | 299.9 | relative 1e-12 | pass |
+
+### `nums.remove_empty_numbers`
+
+**NHANES cholesterol without its empty cells** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| left | NumPy isnan | 15 | 15 | relative 1e-12 | pass |
+| total | NumPy isnan | 2871 | 2871 | relative 1e-12 | pass |
+| left | R | 15 | 15 | relative 1e-12 | pass |
+| total | R | 2871 | 2871 | relative 1e-12 | pass |
+
+### `nums.keep_numbers_by_position`
+
+**months 13 to 24 (1950) of AirPassengers** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| kept | NumPy [12:24] | 12 | 12 | exact | pass |
+| total | NumPy [12:24] | 1676 | 1676 | exact | pass |
+| kept | R | 12 | 12 | exact | pass |
+| total | R | 1676 | 1676 | exact | pass |
+
+### `nums.remove_numbers_by_position`
+
+**AirPassengers without its first year** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| left | NumPy delete | 132 | 132 | exact | pass |
+| total | NumPy delete | 38843 | 38843 | exact | pass |
+| left | R | 132 | 132 | exact | pass |
+| total | R | 38843 | 38843 | exact | pass |
+
+### `nums.replace_each_number_that`
+
+**NHANES body mass index above 30 set to 30: the empty cells stay empty** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy where | 416.4 | 416.4 | relative 1e-12 | pass |
+| empty | NumPy where | 9 | 9 | relative 1e-12 | pass |
+| biggest | NumPy where | 30 | 30 | relative 1e-12 | pass |
+| total | R | 416.4 | 416.4 | relative 1e-12 | pass |
+| empty | R | 9 | 9 | relative 1e-12 | pass |
+| biggest | R | 30 | 30 | relative 1e-12 | pass |
+
+### `nums.fill_empty_numbers`
+
+**NHANES body mass index: gaps filled on the line between neighbours** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas interpolate (inside) | 612.85 | 612.85 | relative 1e-12 | pass |
+| empty left | pandas interpolate (inside) | 1 | 1 | relative 1e-12 | pass |
+| total | R | 612.85 | 612.85 | relative 1e-12 | pass |
+| empty left | R | 1 | 1 | relative 1e-12 | pass |
+
+### `nums.sort`
+
+**NHANES body mass index biggest first, the empty cells last** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | pandas sort_values (empty last) | 35.3 | 35.3 | exact | pass |
+| 16th | pandas sort_values (empty last) | 20.4 | 20.4 | exact | pass |
+| empty at the end | pandas sort_values (empty last) | 9 | 9 | exact | pass |
+| first | R | 35.3 | 35.3 | exact | pass |
+| 16th | R | 20.4 | 20.4 | exact | pass |
+| empty at the end | R | 9 | 9 | exact | pass |
+
+### `nums.reverse`
+
+**AirPassengers from the last month back** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | NumPy [::-1] | 432 | 432 | exact | pass |
+| last | NumPy [::-1] | 112 | 112 | exact | pass |
+| first | R | 432 | 432 | exact | pass |
+| last | R | 112 | 112 | exact | pass |
+
+### `nums.find_total`
+
+**the total of NHANES body mass index, empty cells skipped** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy nansum | 425 | 425 | relative 1e-12 | pass |
+| total | R | 425 | 425 | relative 1e-12 | pass |
+
+### `nums.find_smallest`
+
+**the smallest NHANES body mass index, empty cells skipped** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| smallest | NumPy nanmin | 20.4 | 20.4 | exact | pass |
+| smallest | R | 20.4 | 20.4 | exact | pass |
+
+### `nums.find_biggest`
+
+**the biggest NHANES body mass index, empty cells skipped** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | NumPy nanmax | 35.3 | 35.3 | exact | pass |
+| biggest | R | 35.3 | 35.3 | exact | pass |
+
+### `nums.find_standard_deviation`
+
+**the standard deviation of NHANES cholesterol, empty cells skipped** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| standard deviation | NumPy nanstd (ddof=1) | 45.2150417449769 | 45.2150417449769 | relative 1e-12 | pass |
+| standard deviation | R | 45.2150417449769 | 45.2150417449769 | relative 1e-12 | pass |
+
+### `nums.count_each`
+
+**how many mtcars cars have 4, 6 and 8 cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first number | pandas value_counts | 8 | 8 | exact | pass |
+| its count | pandas value_counts | 14 | 14 | exact | pass |
+| its percent | pandas value_counts | 43.8 | 43.8 | exact | pass |
+| count of 6 | pandas value_counts | 7 | 7 | exact | pass |
+| its count | R | 14 | 14 | exact | pass |
+| count of 6 | R | 7 | 7 | exact | pass |
+
+### `nums.make_number_grid`
+
+**AirPassengers as a grid of 12 years by 12 months** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy reshape (row after row) | 12 | 12 | exact | pass |
+| all Julys | NumPy reshape (row after row) | 4216 | 4216 | exact | pass |
+| 1955 | NumPy reshape (row after row) | 3408 | 3408 | exact | pass |
+| rows | R | 12 | 12 | exact | pass |
+| all Julys | R | 4216 | 4216 | exact | pass |
+| 1955 | R | 3408 | 3408 | exact | pass |
+
+### `grid.count_rows`
+
+**the 150 iris flowers as rows of a grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy shape | 150 | 150 | exact | pass |
+| rows | R | 150 | 150 | exact | pass |
+
+### `grid.count_columns`
+
+**the 4 iris measurements as columns of a grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | NumPy shape | 4 | 4 | exact | pass |
+| columns | R | 4 | 4 | exact | pass |
+
+### `grid.find_shape`
+
+**the shape of the iris measurements as a grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy shape | 150 | 150 | exact | pass |
+| columns | NumPy shape | 4 | 4 | exact | pass |
+| rows | R | 150 | 150 | exact | pass |
+| columns | R | 4 | 4 | exact | pass |
+
+### `grid.show_first_rows`
+
+**the first 3 iris flowers of the grid shown** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers shown | NumPy [:3] | 12 | 12 | relative 1e-12 | pass |
+| total shown | NumPy [:3] | 29.1 | 29.1 | relative 1e-12 | pass |
+| total shown | R | 29.1 | 29.1 | relative 1e-12 | pass |
+
+### `grid.show_last_rows`
+
+**the last 3 iris flowers of the grid shown** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers shown | NumPy [-3:] | 12 | 12 | relative 1e-12 | pass |
+| total shown | NumPy [-3:] | 49.8 | 49.8 | relative 1e-12 | pass |
+| total shown | R | 49.8 | 49.8 | relative 1e-12 | pass |
+
+### `grid.get_number_at`
+
+**the petal length of the last iris flower, counting from 1** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| row 150, column 3 | NumPy [ ] (from 0) | 5.1 | 5.1 | exact | pass |
+| row 1, column 1 | NumPy [ ] (from 0) | 5.1 | 5.1 | exact | pass |
+| row 150, column 3 | R | 5.1 | 5.1 | exact | pass |
+| row 1, column 1 | R | 5.1 | 5.1 | exact | pass |
+
+### `grid.get_row`
+
+**the four measurements of the first iris flower** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | NumPy [0] | 4 | 4 | relative 1e-12 | pass |
+| total | NumPy [0] | 10.2 | 10.2 | relative 1e-12 | pass |
+| numbers | R | 4 | 4 | relative 1e-12 | pass |
+| total | R | 10.2 | 10.2 | relative 1e-12 | pass |
+
+### `grid.get_column`
+
+**the 150 iris petal lengths, column 3 of the grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | NumPy [:, 2] | 150 | 150 | relative 1e-12 | pass |
+| total | NumPy [:, 2] | 563.7 | 563.7 | relative 1e-12 | pass |
+| numbers | R | 150 | 150 | relative 1e-12 | pass |
+| total | R | 563.7 | 563.7 | relative 1e-12 | pass |
+
+### `grid.get_all_numbers`
+
+**all 600 iris measurements as one list, row by row** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | NumPy ravel (row by row) | 600 | 600 | relative 1e-12 | pass |
+| total | NumPy ravel (row by row) | 2078.7 | 2078.7 | relative 1e-12 | pass |
+| fifth | NumPy ravel (row by row) | 4.9 | 4.9 | relative 1e-12 | pass |
+| numbers | R | 600 | 600 | relative 1e-12 | pass |
+| total | R | 2078.7 | 2078.7 | relative 1e-12 | pass |
+| fifth | R | 4.9 | 4.9 | relative 1e-12 | pass |
+
+### `grid.keep_rows_by_position`
+
+**rows 51 to 100 of the iris grid: the versicolor flowers** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy [50:100] | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | NumPy [50:100] | 296.8 | 296.8 | relative 1e-12 | pass |
+| rows | R | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | R | 296.8 | 296.8 | relative 1e-12 | pass |
+
+### `grid.keep_columns_by_position`
+
+**columns 3 to 4 of the iris grid: the petals** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | NumPy [:, 2:4] | 2 | 2 | relative 1e-12 | pass |
+| total | NumPy [:, 2:4] | 743.6 | 743.6 | relative 1e-12 | pass |
+| columns | R | 2 | 2 | relative 1e-12 | pass |
+| total | R | 743.6 | 743.6 | relative 1e-12 | pass |
+
+### `grid.remove_rows_by_position`
+
+**the iris grid without its first 50 rows (setosa)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy delete | 100 | 100 | relative 1e-12 | pass |
+| total petal length | NumPy delete | 490.6 | 490.6 | relative 1e-12 | pass |
+| rows | R | 100 | 100 | relative 1e-12 | pass |
+| total petal length | R | 490.6 | 490.6 | relative 1e-12 | pass |
+
+### `grid.remove_columns_by_position`
+
+**columns 1 and 3 (the lengths) removed from the iris grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | NumPy delete | 2 | 2 | relative 1e-12 | pass |
+| total of the widths | NumPy delete | 638.5 | 638.5 | relative 1e-12 | pass |
+| columns | R | 2 | 2 | relative 1e-12 | pass |
+| total of the widths | R | 638.5 | 638.5 | relative 1e-12 | pass |
+
+### `grid.replace_each_number_that`
+
+**iris measurements below 1 cm set to 0 where they are** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy where | 150 | 150 | relative 1e-12 | pass |
+| total | NumPy where | 2066.4 | 2066.4 | relative 1e-12 | pass |
+| petal width total | NumPy where | 167.6 | 167.6 | relative 1e-12 | pass |
+| rows | R | 150 | 150 | relative 1e-12 | pass |
+| total | R | 2066.4 | 2066.4 | relative 1e-12 | pass |
+| petal width total | R | 167.6 | 167.6 | relative 1e-12 | pass |
+
+### `grid.swap_rows_and_columns`
+
+**the iris grid turned round: 4 rows of 150 flowers** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy .T | 4 | 4 | exact | pass |
+| columns | NumPy .T | 150 | 150 | exact | pass |
+| row 3, column 150 | NumPy .T | 5.1 | 5.1 | exact | pass |
+| rows | R | 4 | 4 | exact | pass |
+| columns | R | 150 | 150 | exact | pass |
+| row 3, column 150 | R | 5.1 | 5.1 | exact | pass |
+
+### `nums.turn_into_table`
+
+**Michelson's measurements as a table of one column** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas DataFrame | 1 | 1 | relative 1e-12 | pass |
+| total | pandas DataFrame | 29985.24 | 29985.24 | relative 1e-12 | pass |
+
+### `nums.start_chart`
+
+**a histogram of Michelson's measurements, started from the numbers** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bars | seaborn histplot (10 bins) | 10 | 10 | exact | pass |
+| numbers counted | seaborn histplot (10 bins) | 100 | 100 | exact | pass |
+| tallest | seaborn histplot (10 bins) | 27 | 27 | exact | pass |
+| bars | R | 10 | 10 | exact | pass |
+| numbers counted | R | 100 | 100 | exact | pass |
+
+### `nums.save`
+
+**Michelson's measurements saved as CSV and read back** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas to_csv and read_csv | 100 | 100 | relative 1e-12 | pass |
+| total | pandas to_csv and read_csv | 29985.24 | 29985.24 | relative 1e-12 | pass |
+| columns | pandas to_csv and read_csv | 1 | 1 | relative 1e-12 | pass |
+
+### `nums.as_numpy`
+
+**Michelson's measurements handed on as a NumPy array** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | NumPy array | 100 | 100 | exact | pass |
+| total | NumPy array | 29985.24 | 29985.24 | exact | pass |
+| numbers | R | 100 | 100 | relative 1e-12 | pass |
+| total | R | 29985.24 | 29985.24 | relative 1e-12 | pass |
+
 ### `table.show_last_rows`
 
 **the last 3 of Fisher's 150 iris flowers, numbered 148 to 150** (real data; data: iris)
@@ -4787,6 +5372,64 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_percentile` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.keep_each_number_that` | NumPy | pandas | value | relative 0 | pass |
+| `nums.show` | NumPy | pandas | printed | relative 1e-09 | pass |
+| `nums.show_first_numbers` | NumPy | pandas | printed | relative 1e-09 | pass |
+| `nums.show_last_numbers` | NumPy | pandas | printed | relative 1e-09 | pass |
+| `nums.get_number_at` | NumPy | pandas | value | relative 0 | pass |
+| `nums.count` | NumPy | pandas | value | relative 0 | pass |
+| `nums.count_empty_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `nums.add` | NumPy | pandas | value | relative 0 | pass |
+| `nums.subtract` | NumPy | pandas | value | relative 0 | pass |
+| `nums.times` | NumPy | pandas | value | relative 0 | pass |
+| `nums.divide_by` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.raise_to_power` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_square_root` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_absolute_value` | NumPy | pandas | value | relative 0 | pass |
+| `nums.round_to` | NumPy | pandas | value | relative 0 | pass |
+| `nums.take_log` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_exp` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.turn_into_running_total` | NumPy | pandas | value | relative 0 | pass |
+| `nums.remove_each_number_that` | NumPy | pandas | value | relative 0 | pass |
+| `nums.keep_first_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `nums.keep_last_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `nums.keep_random_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `nums.remove_duplicate_numbers` | pandas | pandas | value | relative 0 | pass |
+| `nums.remove_empty_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `nums.keep_numbers_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `nums.remove_numbers_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `nums.replace_each_number_that` | NumPy | pandas | value | relative 0 | pass |
+| `nums.fill_empty_numbers` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.fill_empty_numbers` | pandas | pandas | value | relative 1e-12 | pass |
+| `nums.sort` | NumPy | pandas | value | relative 0 | pass |
+| `nums.reverse` | NumPy | pandas | value | relative 0 | pass |
+| `nums.find_total` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_smallest` | NumPy | pandas | value | relative 0 | pass |
+| `nums.find_biggest` | NumPy | pandas | value | relative 0 | pass |
+| `nums.find_standard_deviation` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.count_each` | pandas | pandas | table | relative 1e-09 | pass |
+| `nums.make_number_grid` | NumPy | pandas | value | relative 0 | pass |
+| `grid.count_rows` | NumPy | pandas | value | relative 0 | pass |
+| `grid.count_columns` | NumPy | pandas | value | relative 0 | pass |
+| `grid.find_shape` | NumPy | pandas | value | relative 0 | pass |
+| `grid.show_first_rows` | NumPy | pandas | printed | relative 1e-09 | pass |
+| `grid.show_last_rows` | NumPy | pandas | printed | relative 1e-09 | pass |
+| `grid.get_number_at` | NumPy | pandas | value | relative 0 | pass |
+| `grid.get_row` | NumPy | pandas | value | relative 0 | pass |
+| `grid.get_column` | NumPy | pandas | value | relative 0 | pass |
+| `grid.get_all_numbers` | NumPy | pandas | value | relative 0 | pass |
+| `grid.keep_rows_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `grid.keep_columns_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `grid.remove_rows_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `grid.remove_columns_by_position` | NumPy | pandas | value | relative 0 | pass |
+| `grid.replace_each_number_that` | NumPy | pandas | value | relative 0 | pass |
+| `grid.swap_rows_and_columns` | NumPy | pandas | value | relative 0 | pass |
+| `nums.undo` | - | - | none | relative 0 | pass |
+| `nums.show_steps` | - | - | none | relative 0 | pass |
+| `nums.start_again` | - | - | none | relative 0 | pass |
+| `nums.turn_into_table` | pandas | pandas | table | relative 1e-09 | pass |
+| `nums.start_chart` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `nums.save` | pandas | pandas | table | relative 1e-09 | pass |
+| `nums.as_numpy` | NumPy | pandas | value | relative 0 | pass |
 | `table.compare_averages_of` | SciPy | pandas | result | relative 1e-09 | pass |
 | `table.compare_averages_of` | SciPy | polars | result | relative 1e-09 | pass |
 | `table.fit_line` | SciPy | pandas | result | relative 1e-09 | pass |
@@ -5321,6 +5964,52 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).
 - `nums.keep_each_number_that` (1): is_above= means strictly above (>); is_at_least= is >=. An empty value is never above a number, so it goes too (only is_empty=True keeps empty values).
+- `nums.show` (1): every number is shown, however many there are (threshold=sys.maxsize); NumPy's own print shortens a list of more than 1000 numbers to its ends with "..." in the middle.
+- `nums.show` (2): the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas.
+- `nums.show_first_numbers` (1): the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas. threshold=sys.maxsize keeps a long list whole, as in show().
+- `nums.show_last_numbers` (1): the numbers are written with commas between them, like a Python list; NumPy's print leaves out the commas. threshold=sys.maxsize keeps a long list whole, as in show().
+- `nums.get_number_at` (1): positions count from 1, the way people count and the way charts number the x axis: 2 is the second number. NumPy's [ ] counts from 0, so the same number is values[1].
+- `nums.count` (1): empty values are counted too: count() is how many places there are. The filled ones alone are count() minus count_empty_numbers(), as np.count_nonzero(~np.isnan(values)).
+- `nums.divide_by` (1): dividing by 0 has no answer, so the number becomes empty (nan) and a note says how many; NumPy gives inf (or nan for 0 / 0) with a warning.
+- `nums.raise_to_power` (1): whole numbers to a minus power are worked out as decimals; NumPy's np.power on whole numbers stops with an error instead.
+- `nums.raise_to_power` (2): 0 to a minus power means dividing by 0, so it becomes empty (nan) with a note; NumPy gives inf. A negative number to a power with decimals, such as 0.5, becomes empty too.
+- `nums.round_to` (1): a number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as NumPy, pandas and R's round() do, so a run of halves does not push a total up. Excel and the way taught at school round halves away from 0.
+- `nums.take_log` (1): the log only exists for numbers above 0, so 0 and negative numbers become empty (nan) with a note; NumPy gives -inf for 0 and nan for a negative number, with a warning.
+- `nums.turn_into_running_total` (1): an empty value stays empty and is skipped in the total (1, empty, 3, 6), as pandas cumsum() does. NumPy's cumsum would make every total after it empty, and nancumsum would fill the empty place with the total so far.
+- `nums.remove_each_number_that` (1): is_below= means strictly below (<). An empty value is never below a number, so it stays; only is_empty=True removes empty values. values[values >= 10] would drop it.
+- `nums.keep_random_numbers` (1): NumPy's random generator (default_rng) with the seed you give, picking without repeats; the old np.random.seed() gives another pick.
+- `nums.keep_random_numbers` (2): the numbers kept stay in their order in the list; rng.choice alone gives them in the order they were drawn.
+- `nums.remove_duplicate_numbers` (1): each number is kept once, in its first place, and the order stays as it was; empty values count as one value, so the first empty one stays. NumPy's np.unique would sort the numbers instead.
+- `nums.keep_numbers_by_position` (1): positions count from 1 and both ends are kept: positions 2 to 4 are three numbers. NumPy counts from 0 and leaves out the end, so the same numbers are values[1:4].
+- `nums.remove_numbers_by_position` (1): positions count from 1 and both ends go: positions 2 and 3 are removed. NumPy counts from 0, so they are places 1 and 2.
+- `nums.replace_each_number_that` (1): is_above= means strictly above (>). An empty value matches no condition, so it stays empty; only is_empty=True picks the empty values.
+- `nums.fill_empty_numbers` (1): each gap is filled on the straight line between the values just before and just after it, spaced by position (linear interpolation).
+- `nums.fill_empty_numbers` (2): empty values at the start or the end have a neighbour on one side only, so they stay empty, with a note; np.interp alone would copy the first and last values outward.
+- `nums.sort` (1): empty values go last, smallest first or biggest first; np.sort(values)[::-1] would put them first.
+- `nums.find_total` (1): empty values are skipped (np.nansum), with a note saying how many; NumPy's np.sum would give nan.
+- `nums.find_smallest` (1): empty values are skipped (np.nanmin), with a note saying how many; NumPy's np.min would give nan.
+- `nums.find_biggest` (1): empty values are skipped (np.nanmax), with a note saying how many; NumPy's np.max would give nan.
+- `nums.find_standard_deviation` (1): the sample standard deviation, dividing by n - 1 (ddof=1), as pandas .std() and R sd(); NumPy's own default divides by n.
+- `nums.find_standard_deviation` (2): empty values are skipped (np.nanstd), with a note saying how many; np.std would give nan.
+- `nums.count_each` (1): empty values are counted as a value of their own (dropna=False), so the percents are out of all the numbers; pandas' value_counts() leaves them out by default.
+- `nums.count_each` (2): percents are rounded to 1 decimal place.
+- `nums.count_each` (3): the biggest count comes first; equal counts go smallest number first, with the empty values last, so the order is the same every time.
+- `nums.make_number_grid` (1): the numbers fill the grid row after row (NumPy's order "C"): 1 2 3, then 4 5 6.
+- `grid.show_first_rows` (1): the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the commas. threshold=sys.maxsize keeps a long grid whole, as in show().
+- `grid.show_last_rows` (1): the numbers are written with commas, like Python lists of rows; NumPy's print leaves out the commas. threshold=sys.maxsize keeps a long grid whole, as in show().
+- `grid.get_number_at` (1): rows and columns count from 1: row 2, column 3 is the bottom right number here. NumPy counts from 0, so it is g[1, 2].
+- `grid.get_row` (1): rows count from 1: get_row(2) is the second row from the top, NumPy g[1]. It comes back as new numbers (a copy), so changing them leaves the grid as it was.
+- `grid.get_column` (1): columns count from 1 at the left: get_column(2) is NumPy g[:, 1]. It comes back as new numbers (a copy), so changing them leaves the grid as it was.
+- `grid.get_all_numbers` (1): the numbers are read row by row (NumPy's order "C"): 3 5 2, then 8 6 4. Column by column would be g.ravel(order="F").
+- `grid.keep_rows_by_position` (1): rows count from 1 and both ends are kept: rows 2 to 3 are two rows. NumPy counts from 0 and leaves out the end, so the same rows are g[1:3].
+- `grid.keep_columns_by_position` (1): columns count from 1 at the left and both ends are kept: columns 2 to 4 are three columns, NumPy g[:, 1:4].
+- `grid.remove_rows_by_position` (1): rows count from 1: row 1 is the top row, NumPy's row 0.
+- `grid.remove_columns_by_position` (1): columns count from 1 at the left: from column 1 with step=2 removes columns 1, 3 and 5, NumPy's columns 0, 2 and 4.
+- `grid.replace_each_number_that` (1): the numbers are changed where they are, so the grid keeps its rows and columns (np.where); g[g < 4] would give a flat list instead. An empty value matches no condition, so it stays empty.
+- `nums.turn_into_table` (1): the column is called "value" unless you give name=, such as turn_into_table(name="marks").
+- `nums.start_chart` (1): the numbers become a table with one column called "value", so chart words name it: draw_histogram(x="value").
+- `nums.save` (1): the numbers are written as one column called "value", without row numbers (index=False), so the file reads back as it was.
+- `nums.as_numpy` (1): a copy of the numbers as they are now, so changing the array leaves the simplydata numbers as they were.
 - `table.compare_averages_of` (1): Welch's t-test, which does not assume both groups have the same spread; SciPy's own default (equal_var=True) is Student's t-test, which does.
 - `table.fit_line` (1): the 95 % interval of the slope uses the t distribution with n - 2 degrees of freedom, as R's confint(lm(...)).
 - `dist.find_chance_that_value` (1): the chance above a value is the survival function sf(), not 1 - cdf(): it stays accurate far out in the tail.
