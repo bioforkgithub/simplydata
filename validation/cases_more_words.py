@@ -1,6 +1,7 @@
 """The reliability study for the words and options added on 2026-11-21 (PR words-and-fixes): chart.get_numbers_drawn(),
 table.repeat_each_row_by(), the table that show_rows_that_pull_model() gives back, check_model_of(show="numbers"),
-sdata.get_example(from_r_package=) and find_correlation_between(show="result table").
+sdata.get_example(from_r_package=) and find_correlation_between(show="result table"); and those of 2026-11-23 (branch
+three-words): find_correlation_between(allowing_for=, show="result table") and trade_off_curve's best cut-off.
 
 cases.py loads this file at its end and calls add_to(), which adds the cases below to its CASES. The datasets are
 already in the study: Anscombe's quartet, stackloss, mtcars, Down syndrome by birth order and lung (R survival).
@@ -87,6 +88,46 @@ def _cases(Case):
                  t <- cor.test(mpg, wt)
                  list(r = unname(t$estimate), low = t$conf.int[1], high = t$conf.int[2], p = t$p.value)
              """, r_tolerance=1e-9),
+        # ---- 2026-11-23 (branch three-words): the partial correlation as a result table, trade_off_curve's cut-off
+        Case("table.find_correlation_between", 'allowing_for=, show="result table": mtcars mpg and wt, allowing for hp',
+             "mtcars", "real data", option='allowing_for=, show="result table"', ours_r=("ppcor",),
+             ours="""
+                 row = sdata.table(data).find_correlation_between("mpg", "wt", allowing_for="hp",
+                                                                  show="result table").get_row(1)
+                 {"partial r": row["r"], "t": row["statistic"], "p": row["p-value"], "rows": row["rows"]}
+             """,
+             r="""
+                 p <- ppcor::pcor.test(mpg, wt, hp)
+                 list(`partial r` = p$estimate, t = p$statistic, p = p$p.value, rows = p$n)
+             """, r_packages=("ppcor",), r_tolerance=1e-9,
+             parent="""
+                 import statsmodels.api as sm
+                 from scipy import stats
+                 # the partial correlation written out: the correlation of the two sets of residuals after hp
+                 e1 = sm.OLS(data["mpg"], sm.add_constant(data["hp"])).fit().resid
+                 e2 = sm.OLS(data["wt"], sm.add_constant(data["hp"])).fit().resid
+                 r = stats.pearsonr(e1, e2).statistic
+                 n = len(data)
+                 t = r * ((n - 3) / (1 - r ** 2)) ** 0.5
+                 {"partial r": r, "t": t, "p": 2 * stats.t.sf(abs(t), n - 3), "rows": n}
+             """, parent_label="residuals of statsmodels OLS, SciPy pearsonr (the definition)", parent_tolerance=1e-9,
+             note="simplydata gives back R ppcor's own numbers; the residual route is the definition, as a check."),
+        Case("trade_off_curve", "aSAH, s100b for a poor outcome: the best cut-off from chart.get_numbers_drawn()",
+             "aSAH (pROC)", "real data", option="get_numbers_drawn()", ours_r=("pROC",),
+             ours="""
+                 chart = sdata.chart(data).trade_off_curve(score="s100b", truth="outcome", positive="Poor")
+                 best = sdata.table(chart.get_numbers_drawn()).keep_rows_where("kind", is_equal_to="dot")
+                 {"best cut-off": best.get_cell_at(row=1, column="value"),
+                  "sensitivity there": best.get_cell_at(row=1, column="y")}
+             """,
+             r="""
+                 r <- pROC::roc(as.numeric(outcome == "Poor"), s100b, levels = c(0, 1), direction = "<", quiet = TRUE)
+                 b <- pROC::coords(r, "best", best.method = "youden", ret = c("threshold", "sensitivity"),
+                                   transpose = FALSE)
+                 list(`best cut-off` = b$threshold[1], `sensitivity there` = b$sensitivity[1])
+             """, r_packages=("pROC",), r_tolerance=1e-12,
+             note="The cut-off written next to the marked dot is R pROC's coords(\"best\", best.method = \"youden\") "
+                  "threshold, given back in the value column of get_numbers_drawn()."),
     ]
 
 

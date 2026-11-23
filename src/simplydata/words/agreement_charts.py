@@ -86,7 +86,9 @@ def _draw_trade_off(ctx, scores, truth, group, fixed, positive, positive_when, t
         label = f"{name}: AUC {_num(points['auc'])} (95 % CI {_num(points['low'])} to {_num(points['high'])})"
         ax.plot(x[order], y[order], color=c, label=label, alpha=opacity(transparency), linewidth=thickness,
                 drawstyle="default")
-        ax.plot([1 - points["best_sp"]], [points["best_se"]], marker="o", color=c, markersize=7, linestyle="none")
+        best, = ax.plot([1 - points["best_sp"]], [points["best_se"]], marker="o", color=c, markersize=7,
+                        linestyle="none")
+        best.simplydata_value = points["cut"]  # chart.get_numbers_drawn() gives R's cut-off in the value column
         ax.annotate(f"cut-off {_num(points['cut'])}", (1 - points["best_sp"], points["best_se"]), xytext=(8, -12),
                     textcoords="offset points", fontsize="small", color=c)
         curves.append({"name": name, "x": x[order], "y": y[order], **{k: points[k] for k in ("auc", "low", "high",
@@ -277,6 +279,11 @@ class AgreementChartWords:
         "procalcitonin"] draws one curve per score; colour="ward" one curve per group. Higher
         scores count as positive; positive_when="lower" turns it round. The numbers come from R
         pROC (simplydata[r]), the same as table.compare_to_truth.
+        chart.get_numbers_drawn() gives the best cut-off as a number: in the row of the marked dot
+        (kind "dot", series the curve's name) the value column holds the cut-off, y the sensitivity
+        there and x the false alarms (1 - specificity), all from R pROC::coords(roc, "best",
+        best.method = "youden"). table.compare_to_truth gives the same cut-off with its
+        sensitivity and specificity as a result table.
         """
         from .._r import need_r
 
