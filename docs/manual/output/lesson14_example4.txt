@@ -1,3 +1,8 @@
-Comparing how often each "result" turns up in each "class" (2 x 3 table, 54 rows): Cramer's V = 0.279 (95 % CI 0 to 0.521; 0 means no link, 1 a complete link).
-If "result" and "class" were truly unrelated, differences this big or bigger would turn up in about 12 of 100 studies like this one (p = 0.122). This does not show that they are unrelated.
-Test: chi-square test of independence (chi-square = 4.21, df = 2), the usual test for counts.
+Kept 18 of 54 rows.
+Comparing how often each "result" turns up in each "class" (2 x 3 table, 18 rows): Cramer's V = 0.426 (95 % CI 0 to 0.841; 0 means no link, 1 a complete link).
+If "result" and "class" were truly unrelated, differences this big or bigger would turn up in about 19 of 100 studies like this one (p = 0.195). This does not show that they are unrelated.
+Test: chi-square test of independence (chi-square = 3.27, df = 2), the usual test for counts.
+Note: 6 of the 6 expected counts are below 5, so the chi-square p-value may be off. test_method="fisher" (or p_value_by="shuffling") gives a p-value that does not need large counts.
+Comparing how often each "result" turns up in each "class" (2 x 3 table, 18 rows): Cramer's V = 0.426 (95 % CI 0 to 0.841; 0 means no link, 1 a complete link).
+If "result" and "class" were truly unrelated, differences this big or bigger would turn up in about 35 of 100 studies like this one (p = 0.351). This does not show that they are unrelated.
+Test: chi-square test of independence (chi-square = 3.27, without Yates' correction), its p-value from 9999 random tables with the same totals (SciPy, with_seed=1), as R chisq.test(simulate.p.value = TRUE).

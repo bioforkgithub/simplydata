@@ -56,9 +56,10 @@ packages underneath in the reliability study (`validation/`), and every default 
 ## How the defaults were reviewed
 
 The defaults of the later batches (S3a, S3b and S3c) were set in design briefs, and each brief was read by an
-independent reviewer before it was built; the defaults of the earlier releases follow the rules of `PLAN.md`
+automated review pass before it was built; the defaults of the earlier releases follow the rules of `PLAN.md`
 (state every choice; match R and SciPy) and the docstrings. Then, in November 2026, every entry of this document
-was read again by independent reviewers acting as hostile statistical referees. They checked each reason against
+was read again by automated review passes told to act as hostile statistical referees (AI review, not named human
+reviewers). They checked each reason against
 the literature, looked every reference up in Crossref to confirm that it exists and supports the claim it is
 attached to, and compared about 50 entries with the code. Their findings were applied: misattributed references
 were replaced, overstated reasons were toned down, and the kind of basis was corrected. Where the evidence favours

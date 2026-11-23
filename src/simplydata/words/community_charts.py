@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 import pandas as pd
 
@@ -112,7 +114,7 @@ def _draw_tree(ctx, tree, labels, colour):
 
 class CommunityChartWords:
     @friendly
-    def draw_richness_curves(self, columns=None, names=None, colour=None):
+    def draw_richness_curves(self: _Same, columns=None, names=None, colour=None) -> _Same:
         """Richness curves: how many kinds each row would show at each total count (rarefaction curves).
 
         chart.draw_richness_curves(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"], colour="site")   (with sdata.get_example("resistome"))
@@ -168,7 +170,7 @@ class CommunityChartWords:
                          thin=thin)
 
     @friendly
-    def draw_cluster_tree(self, columns=None, measure=None, linkage=None, same_scale=True, names=None, colour=None):
+    def draw_cluster_tree(self: _Same, columns=None, measure=None, linkage=None, same_scale=True, names=None, colour=None) -> _Same:
         """The cluster tree (a dendrogram): which rows join first, and at what distance.
 
         chart.draw_cluster_tree(columns=["blaTEM", "blaCTXM", "sul1", "sul2", "tetA", "tetM"], measure="bray-curtis", names="sample")

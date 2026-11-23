@@ -580,8 +580,13 @@ UNITS = {
             'Read "The null hypothesis and the p-value" and "Effect sizes" in the manual.'],
         recall=[
             ("Which word tests whether the average marks differ between the classes?",
-             'table.compare_averages_of("marks", for_each_group_in="class")'),
-            ("Which word says which pairs of groups differ?", 'table.compare_each_pair_of("marks", for_each_group_in="class")'),
+             'children.compare_averages_of("average of marks", for_each_group_in="class"), on one value per child: '
+             'children = table.find_average_of("marks", for_each_group_in=["class", "name"])'),
+            ("Each child is in the marks table three times. Why can a test not count the 54 rows as 54 children?",
+             "The three marks of one child are alike, so the rows are not independent: the test would be too "
+             "sure. Use one value per child, or compare the subjects within each child."),
+            ("Which word says which pairs of groups differ?",
+             'children.compare_each_pair_of("average of marks", for_each_group_in="class")'),
             ('A p-value says how often a difference this big would turn up if there were truly none. '
              'What says "how big is it?"',
              "The effect size: the difference in averages, Cohen's d or Hedges' g, omega-squared."),
@@ -654,7 +659,7 @@ UNITS = {
             import simplydata as sdata
             table = sdata.table(sdata.get_example("marks"))
             table.keep_columns("name", "subject", "marks")
-            table.turn_rows_into_columns(names_from="subject", values_from="marks")
+            table.spread_into_columns(names_from="subject", values_from="marks")
             table.compare_before_and_after("Maths", "Science")'''),
             "The same children twice, so the test must be paired. First one row per child, with a Maths and "
             "a Science column."),
@@ -1198,7 +1203,7 @@ UNITS = {
             "Then write the whole program of the task in an empty file, without looking anything up. Only "
             "when it is finished, check it with sdata.help."],
         task=['From memory, in an empty file: open the "marks" table, remove the rows with empty cells, give '
-              'the average marks for each class, test the difference, and save a two-panel figure (boxes, '
+              'the average marks for each class, test the difference on one average mark per child, and save a two-panel figure (boxes, '
               "and dots of hours against marks with a fitted line) as a PDF.",
               'From memory: school table, check the model of "marks" from "hours" and "breakfast" with its '
               'pictures, then ask whether "sleep" helps it.'],
@@ -1207,7 +1212,8 @@ UNITS = {
             table = sdata.table(sdata.get_example("marks"))
             table.remove_rows_with_empty_cells_in()
             table.find_average_of("marks", for_each_group_in="class")
-            table.compare_averages_of("marks", for_each_group_in="class")
+            children = table.find_average_of("marks", for_each_group_in=["class", "name"])
+            children.compare_averages_of("average of marks", for_each_group_in="class")
             a = table.start_chart()
             a.draw_boxes(x="class", y="marks")
             b = table.start_chart()
@@ -1232,12 +1238,13 @@ UNITS = {
             "word of the manual's dictionary says which one does the work (\"Underneath\").",
             "Run the simplydata version and the pandas version of the task. Compare them line by line.",
             "Look back at the calendar with sdata.show_day() and choose three days to do again next month."],
-        task=["In simplydata: keep classes A and B of the marks table, give the average marks of each class, "
-              "test the difference and draw it as bars.",
+        task=["In simplydata: keep the maths marks of classes A and B of the marks table (one row per child), give "
+              "the average marks of each class, test the difference and draw it as bars.",
               "Write the same analysis with pandas, SciPy and matplotlib, then compare the two line by line."],
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("marks"))
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.keep_rows_where("class", is_one_of=["A", "B"])
             table.find_average_of("marks", for_each_group_in="class")
             table.compare_averages_of("marks", for_each_group_in="class")
@@ -1252,7 +1259,7 @@ UNITS = {
             from scipy import stats
             sdata.get_example("marks").save("marks.csv")
             df = pd.read_csv("marks.csv")
-            df = df[df["class"].isin(["A", "B"])]
+            df = df[(df["subject"] == "Maths") & df["class"].isin(["A", "B"])]
             print(df.groupby("class")["marks"].mean())
             a = df.loc[df["class"] == "A", "marks"]
             b = df.loc[df["class"] == "B", "marks"]

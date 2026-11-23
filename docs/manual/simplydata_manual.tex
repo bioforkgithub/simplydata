@@ -274,7 +274,7 @@ can write it up in a report or a paper.
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
   \item[{\hyperref[part:lessons]{Part II: Lessons}}] Thirty-six short lessons that teach the whole
-    of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
+    to start with simplydata in a day (the 30-day guide goes further). Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
     its options, an example you can run and the library it uses underneath.
@@ -2115,7 +2115,7 @@ Or write the new column like a sum in maths. Here each subject first gets its ow
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "class", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.add_column("total", "Maths + Science + English")
 table.add_column("average", "total / 3")
 table.add_rank_column("place", from_column="total")
@@ -2220,7 +2220,7 @@ table.show()
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:11}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(11,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.replace-values-in]{\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}}, \hyperref[word:table.count-empty-cells-in]{\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.remove-rows-with-empty-cells-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.remove-extra-spaces-in]{\code{table.\allowbreak{}remove\_\allowbreak{}extra\_\allowbreak{}spaces\_\allowbreak{}in()}}, \hyperref[word:table.turn-into-numbers]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}, \hyperref[word:table.add-column]{\code{table.\allowbreak{}add\_\allowbreak{}column()}}, \hyperref[word:table.add-group-column]{\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}, \hyperref[word:table.add-rank-column]{\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}, \hyperref[word:table.turn-rows-into-columns]{\code{table.\allowbreak{}turn\_\allowbreak{}rows\_\allowbreak{}into\_\allowbreak{}columns()}}, \hyperref[word:table.add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \hyperref[word:draw-map-of-empty-cells]{\code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()}}, \hyperref[word:table.add-column-with-part-of-date]{\code{table.\allowbreak{}add\_\allowbreak{}column\_\allowbreak{}with\_\allowbreak{}part\_\allowbreak{}of\_\allowbreak{}date()}}, \hyperref[word:table.add-rolling-column]{\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}, \hyperref[word:table.split-column]{\code{table.\allowbreak{}split\_\allowbreak{}column()}}, \hyperref[word:table.add-column-with-part-of-text]{\code{table.\allowbreak{}add\_\allowbreak{}column\_\allowbreak{}with\_\allowbreak{}part\_\allowbreak{}of\_\allowbreak{}text()}}, \hyperref[word:table.replace-text-in]{\code{table.\allowbreak{}replace\_\allowbreak{}text\_\allowbreak{}in()}}, \hyperref[word:table.turn-into-dates]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}dates()}}, \hyperref[word:table.change-column]{\code{table.\allowbreak{}change\_\allowbreak{}column()}}, \hyperref[word:table.round-numbers-in]{\code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in()}}, \hyperref[word:table.add-change-column]{\code{table.\allowbreak{}add\_\allowbreak{}change\_\allowbreak{}column()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.replace-values-in]{\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}}, \hyperref[word:table.count-empty-cells-in]{\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.remove-rows-with-empty-cells-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \hyperref[word:table.remove-extra-spaces-in]{\code{table.\allowbreak{}remove\_\allowbreak{}extra\_\allowbreak{}spaces\_\allowbreak{}in()}}, \hyperref[word:table.turn-into-numbers]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}, \hyperref[word:table.add-column]{\code{table.\allowbreak{}add\_\allowbreak{}column()}}, \hyperref[word:table.add-group-column]{\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}, \hyperref[word:table.add-rank-column]{\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}, \hyperref[word:table.spread-into-columns]{\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}columns()}}, \hyperref[word:table.add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \hyperref[word:draw-map-of-empty-cells]{\code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()}}, \hyperref[word:table.add-column-with-part-of-date]{\code{table.\allowbreak{}add\_\allowbreak{}column\_\allowbreak{}with\_\allowbreak{}part\_\allowbreak{}of\_\allowbreak{}date()}}, \hyperref[word:table.add-rolling-column]{\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}, \hyperref[word:table.split-column]{\code{table.\allowbreak{}split\_\allowbreak{}column()}}, \hyperref[word:table.add-column-with-part-of-text]{\code{table.\allowbreak{}add\_\allowbreak{}column\_\allowbreak{}with\_\allowbreak{}part\_\allowbreak{}of\_\allowbreak{}text()}}, \hyperref[word:table.replace-text-in]{\code{table.\allowbreak{}replace\_\allowbreak{}text\_\allowbreak{}in()}}, \hyperref[word:table.turn-into-dates]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}dates()}}, \hyperref[word:table.change-column]{\code{table.\allowbreak{}change\_\allowbreak{}column()}}, \hyperref[word:table.round-numbers-in]{\code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in()}}, \hyperref[word:table.add-change-column]{\code{table.\allowbreak{}add\_\allowbreak{}change\_\allowbreak{}column()}}.\par}
 
 \chapter{Tables: summaries, and from a table to a chart}\label{lesson:12}
 \begin{learnbox}
@@ -2239,6 +2239,7 @@ table = sdata.table(sdata.get_example("marks"))
 table.find_average_of("marks")
 table.find_average_of("marks", for_each_group_in="class")
 table.find_biggest_of("marks", for_each_group_in="subject")
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.find_correlation_between("hours", "marks")
 \end{lstlisting}
 \whateachline
@@ -2248,7 +2249,8 @@ table.find_correlation_between("hours", "marks")
   \item[3] The average of all the marks: just one number.
   \item[4] One average for each class. \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} also gives back a new, small table.
   \item[5] The best mark in each subject.
-  \item[6] Do more hours go with more marks? The answer is a number r from -1 to 1 (Pearson's correlation), explained in words.
+  \item[6] Keep the maths marks: one row per child. Each child is in the table three times, and a correlation over all 54 rows would count each child three times.
+  \item[7] Do more hours go with more marks? The answer is a number r from -1 to 1 (Pearson's correlation), explained in words.
 \end{lineexplain}
 \printedoutput{output/lesson12_example1.txt}
 \section*{Example 2}
@@ -2336,7 +2338,7 @@ Turning columns into rows makes a wide table long: the shape most charts like.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table({"name": ["Asha", "Ben", "Chen"], "test_1": [61, 73, 81], "test_2": [70, 68, 90]})
-table.turn_columns_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")
+table.gather_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")
 table.show_first_rows(6)
 chart = table.start_chart()
 chart.draw_bars(x="name", y="mark", colour="test")
@@ -2384,6 +2386,7 @@ fruit.count_rows(for_each_group_in="shop", across="fruit")
 fruit.count_different_values_in("fruit", for_each_group_in="shop")
 marks = sdata.table(sdata.get_example("marks"))
 marks.find_average_of("marks", for_each_group_in="class", across="subject")
+marks.keep_rows_where("subject", is_equal_to="Maths")
 marks.find_correlation_between("hours", "marks", "height")
 \end{lstlisting}
 \whateachline
@@ -2394,7 +2397,8 @@ marks.find_correlation_between("hours", "marks", "height")
   \item[4] How many different fruits each shop sold.
   \item[5] A table of the marks.
   \item[6] The average mark of each class in each subject.
-  \item[7] Every pair of the three columns at once: a correlation table, with the strongest pairs in words.
+  \item[7] One row per child (a child's height is the same in all three of its rows).
+  \item[8] Every pair of the three columns at once: a correlation table, with the strongest pairs in words.
 \end{lineexplain}
 \printedoutput{output/lesson12_example7.txt}
 \section*{Example 8}
@@ -2440,7 +2444,7 @@ table.show_first_rows(3)
   \item A table of counts (one row per group, with a column \code{\textquotedbl{}count\textquotedbl{}})? \code{table.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}row\_\allowbreak{}by(\textquotedbl{}count\textquotedbl{})} makes it one row per thing counted, as most words need.
   \item More summaries: \code{find\_\allowbreak{}median\_\allowbreak{}of}, \code{find\_\allowbreak{}total\_\allowbreak{}of}, \code{find\_\allowbreak{}smallest\_\allowbreak{}of}, \code{find\_\allowbreak{}biggest\_\allowbreak{}of}, \code{find\_\allowbreak{}standard\_\allowbreak{}deviation\_\allowbreak{}of} and \code{count\_\allowbreak{}rows}. Each one can take \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}.
   \item A chart never changes its table, and a table step never changes a chart you already made. So one cleaned table can feed many charts.
-  \item \code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from(other)} puts the rows of another table under this one. \code{turn\_\allowbreak{}rows\_\allowbreak{}into\_\allowbreak{}columns} does the opposite of \code{turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows}.
+  \item \code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from(other)} puts the rows of another table under this one. \code{spread\_\allowbreak{}into\_\allowbreak{}columns} does the opposite of \code{gather\_\allowbreak{}into\_\allowbreak{}rows}.
   \item Lesson 13 teaches numbers, and lesson 14 the statistical tests: is a difference real, and how big is it?
   \item Every summary skips empty cells and says how many it skipped. \code{find\_\allowbreak{}summary\_\allowbreak{}of} can also show \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}standard error\textquotedbl{}}, \code{\textquotedbl{}confidence interval\textquotedbl{}}, \code{\textquotedbl{}range\textquotedbl{}} and \code{\textquotedbl{}interquartile range\textquotedbl{}}.
   \item More: \code{find\_\allowbreak{}percentile\_\allowbreak{}of(\textquotedbl{}price\textquotedbl{},\allowbreak{} 90,\allowbreak{} weights=\textquotedbl{}count\textquotedbl{})} and \code{find\_\allowbreak{}median\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} weights=\textquotedbl{}count\textquotedbl{})} count each row as often as its weight (\code{weight\_\allowbreak{}kind=\textquotedbl{}analytic\textquotedbl{}} for sampling weights); \code{find\_\allowbreak{}correlation\_\allowbreak{}between(\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}height\textquotedbl{},\allowbreak{} show=\textquotedbl{}covariance\textquotedbl{})} gives the covariances, the correlations with units.
@@ -2455,7 +2459,7 @@ table.show_first_rows(3)
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:12}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(12,\allowbreak{} solutions=True)}.
 \end{tryit}
-\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \hyperref[word:table.find-biggest-of]{\code{table.\allowbreak{}find\_\allowbreak{}biggest\_\allowbreak{}of()}}, \hyperref[word:table.find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \hyperref[word:table.find-total-of]{\code{table.\allowbreak{}find\_\allowbreak{}total\_\allowbreak{}of()}}, \hyperref[word:table.start-chart]{\code{table.\allowbreak{}start\_\allowbreak{}chart()}}, \hyperref[word:sdata.put-side-by-side]{\code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side()}}, \hyperref[word:table.join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \hyperref[word:table.turn-columns-into-rows]{\code{table.\allowbreak{}turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows()}}, \hyperref[word:table.add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \hyperref[word:table.find-summary-of]{\code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of()}}, \hyperref[word:table.find-percent-of-rows-where]{\code{table.\allowbreak{}find\_\allowbreak{}percent\_\allowbreak{}of\_\allowbreak{}rows\_\allowbreak{}where()}}, \hyperref[word:table.count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \hyperref[word:table.count-different-values-in]{\code{table.\allowbreak{}count\_\allowbreak{}different\_\allowbreak{}values\_\allowbreak{}in()}}, \hyperref[word:table.find-percentile-of]{\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()}}, \hyperref[word:table.find-most-common-of]{\code{table.\allowbreak{}find\_\allowbreak{}most\_\allowbreak{}common\_\allowbreak{}of()}}.\par}
+\par\noindent{\small\sffamily\textbf{Words in this lesson:} \hyperref[word:table.find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \hyperref[word:table.find-biggest-of]{\code{table.\allowbreak{}find\_\allowbreak{}biggest\_\allowbreak{}of()}}, \hyperref[word:table.find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \hyperref[word:table.find-total-of]{\code{table.\allowbreak{}find\_\allowbreak{}total\_\allowbreak{}of()}}, \hyperref[word:table.start-chart]{\code{table.\allowbreak{}start\_\allowbreak{}chart()}}, \hyperref[word:sdata.put-side-by-side]{\code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side()}}, \hyperref[word:table.join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \hyperref[word:table.gather-into-rows]{\code{table.\allowbreak{}gather\_\allowbreak{}into\_\allowbreak{}rows()}}, \hyperref[word:table.add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \hyperref[word:table.find-summary-of]{\code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of()}}, \hyperref[word:table.find-percent-of-rows-where]{\code{table.\allowbreak{}find\_\allowbreak{}percent\_\allowbreak{}of\_\allowbreak{}rows\_\allowbreak{}where()}}, \hyperref[word:table.count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \hyperref[word:table.count-different-values-in]{\code{table.\allowbreak{}count\_\allowbreak{}different\_\allowbreak{}values\_\allowbreak{}in()}}, \hyperref[word:table.find-percentile-of]{\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()}}, \hyperref[word:table.find-most-common-of]{\code{table.\allowbreak{}find\_\allowbreak{}most\_\allowbreak{}common\_\allowbreak{}of()}}.\par}
 
 \chapter{Numbers: lists and grids of numbers}\label{lesson:13}
 \begin{learnbox}
@@ -2625,17 +2629,19 @@ Groups almost never have exactly the same average. A test asks: is the differenc
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
-table.compare_averages_of("marks", for_each_group_in="class")
-table.compare_each_pair_of("marks", for_each_group_in="class")
-table.compare_averages_of("marks", for_each_group_in="subject", based_on="ranks")
+children = table.find_average_of("marks", for_each_group_in=["class", "name"])
+children.compare_averages_of("average of marks", for_each_group_in="class")
+children.compare_each_pair_of("average of marks", for_each_group_in="class")
+children.compare_averages_of("average of marks", for_each_group_in="class", based_on="ranks")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] Do the three classes really differ in their average mark? The answer comes in words. The p-value says how often differences this big or bigger would turn up in studies like this one if the classes were truly the same: here in about 3 of 100 (p = 0.028). It is not the chance that the classes are the same. With three or more groups this test is also called Welch's ANOVA; with two groups, a t-test.
-  \item[4] Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a false alarm more likely, so the p-values are adjusted (Holm's method).
-  \item[5] \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} puts the marks in order and compares the places instead (a Kruskal-Wallis test, or Mann-Whitney for two groups). It is safer when groups are small and the values are not bell-shaped.
+  \item[3] Each child appears three times, once for each subject, so the 54 rows are not 54 independent children: the three marks of one child are alike. A test that counts them as 54 children is too sure of itself. So first make one value per child: the average of the child's three marks, in a new table of 18 rows with the column \code{\textquotedbl{}average of marks\textquotedbl{}}.
+  \item[4] Do the three classes really differ in their average mark? The answer comes in words. The p-value says how often differences this big or bigger would turn up in studies like this one if the classes were truly the same: here in about 8 of 100 (p = 0.081), so these 18 children cannot tell. It is not the chance that the classes are the same. (The 54 rows counted as 54 children would have given p = 0.028: too sure.) With three or more groups this test is also called Welch's ANOVA; with two groups, a t-test.
+  \item[5] Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a false alarm more likely, so the p-values are adjusted (Holm's method). Here no pair is clearly different (A and C: adjusted p = 0.092).
+  \item[6] \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} puts the values in order and compares the places instead (a Kruskal-Wallis test, or Mann-Whitney for two groups). It is safer when groups are small and the values are not bell-shaped. Like the test above, it needs independent rows: one row per child.
 \end{lineexplain}
 \printedoutput{output/lesson14_example3.txt}
 \section*{Example 4}
@@ -2643,15 +2649,19 @@ Counts can be compared too: does how often something happens differ between grou
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
 table.compare_counts_of("result", for_each_group_in="class")
+table.compare_counts_of("result", for_each_group_in="class", p_value_by="shuffling")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] A new column that says if each mark is below 60 or not.
-  \item[4] Do the classes differ in how many marks are 60 or more? This counts the rows for each class and result and uses the chi-square test. Cramer's V says how strong the link is, from 0 (none) to 1.
+  \item[3] Keep the maths marks only: one row per child, so each child is counted once.
+  \item[4] A new column that says if each mark is below 60 or not.
+  \item[5] Do the classes differ in how many maths marks are 60 or more? This counts the children for each class and result and uses the chi-square test. Cramer's V says how strong the link is, from 0 (none) to 1. With only 18 children every expected count is below 5, and a note says the p-value may be off.
+  \item[6] So take the p-value by shuffling, as the note suggests: it does not need large counts. p = 0.35 (the formula said 0.195): the data cannot tell.
 \end{lineexplain}
 \printedoutput{output/lesson14_example4.txt}
 \section*{Example 5}
@@ -2659,6 +2669,7 @@ A fit finds the line or formula that follows the data best, and says how sure it
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.fit_line(x="hours", y="marks")
 growth = sdata.table(sdata.get_example("growth"))
 growth.keep_rows_where("country", is_equal_to="Applia")
@@ -2668,10 +2679,11 @@ growth.fit_formula("population = a * exp(b * (year - 2000))")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] How much do the marks go up for each extra hour of study? This is linear regression by least squares. R squared says how much of the differences in marks the line explains.
-  \item[4] A second table, with the growth data.
-  \item[5] Keep one country.
-  \item[6] Fit a formula you write yourself. Names that are columns (population, year) are data; the others (a and b) are found by simplydata. Here b is the growth rate each year. This is nonlinear least squares.
+  \item[3] Keep the maths marks: one row per child, so every row is a different child.
+  \item[4] How much do the maths marks go up for each extra hour of study? This is linear regression by least squares. R squared says how much of the differences in marks the line explains.
+  \item[5] A second table, with the growth data.
+  \item[6] Keep one country.
+  \item[7] Fit a formula you write yourself. Names that are columns (population, year) are data; the others (a and b) are found by simplydata. Here b is the growth rate each year. This is nonlinear least squares.
 \end{lineexplain}
 \printedoutput{output/lesson14_example5.txt}
 \section*{Example 6}
@@ -2679,6 +2691,7 @@ Before a test, look at the shape of the values and at values far from the rest. 
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_shape_to("marks", "normal", for_each_group_in="class")
 table.show_rows_with_outliers("marks", for_each_group_in="class")
 pairs = table.find_correlation_between("hours", "marks", "height", show="each pair")
@@ -2689,11 +2702,12 @@ pairs.show()
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] Do the marks of each class look bell-shaped (normal)? The Shapiro-Wilk test answers for each class. Tests on averages work best with bell-shaped values, or with many values.
-  \item[4] The rows whose mark is far from the rest of its class, by Tukey's rule (the one box plots use): here one mark of 33 in class B. The table does not change.
-  \item[5] Test three pairs of columns at once: a table with one row per pair and its p-value.
-  \item[6] With many tests, one of them looks real by chance more often. Holm's adjustment keeps the chance of even one false alarm at 5 \%.
-  \item[7] The p-values and the adjusted ones, side by side.
+  \item[3] Keep the maths marks: one row per child.
+  \item[4] Do the marks of each class look bell-shaped (normal)? The Shapiro-Wilk test answers for each class. Tests on averages work best with bell-shaped values, or with many values.
+  \item[5] The rows whose mark is far from the rest of its class, by Tukey's rule (the one box plots use): here one maths mark of 47 in class A. The table does not change.
+  \item[6] Test three pairs of columns at once: a table with one row per pair and its p-value.
+  \item[7] With many tests, one of them looks real by chance more often. Holm's adjustment keeps the chance of even one false alarm to at most 5 \%.
+  \item[8] The p-values and the adjusted ones, side by side.
 \end{lineexplain}
 \printedoutput{output/lesson14_example6.txt}
 \section*{Example 7}
@@ -2701,6 +2715,7 @@ Some questions are about spread, or about counts compared with what you expect.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_spreads_of("marks", for_each_group_in="class")
 table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")
 school = sdata.table(sdata.get_example("school"))
@@ -2711,11 +2726,12 @@ school.compare_percent_to("passed", value="yes", percent=50)
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Make a table of the marks.
-  \item[3] Are the marks of one class more spread out? The data cannot tell: differences in spread this big would turn up in about 91 of 100 studies even if the spreads were the same (p = 0.91).
-  \item[4] Tukey's test compares every pair at once: only A and C differ (p = 0.020).
-  \item[5] A table of pupils.
-  \item[6] Did 60 \% eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29).
-  \item[7] Did half the pupils pass? 43.3 \% did; if truly half passed, a difference this big would turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell.
+  \item[3] Keep the maths marks: one row per child.
+  \item[4] Are the maths marks of one class more spread out? The data cannot tell: differences in spread this big would turn up in about 61 of 100 studies even if the spreads were the same (p = 0.61).
+  \item[5] Tukey's test compares every pair at once: no pair is clearly different (A and C: p = 0.31).
+  \item[6] A table of pupils.
+  \item[7] Did 60 \% eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29).
+  \item[8] Did half the pupils pass? 43.3 \% did; if truly half passed, a difference this big would turn up in about 9 of 100 studies (p = 0.086), so the data cannot tell.
 \end{lineexplain}
 \printedoutput{output/lesson14_example7.txt}
 \section*{Example 8}
@@ -2724,16 +2740,25 @@ When the same people are measured three times, compare the measurements within e
 import simplydata as sdata
 clinic = sdata.table(sdata.get_example("clinic"))
 clinic.compare_matched_columns("pain_week_0", "pain_week_4", "pain_week_8")
+marks = sdata.table(sdata.get_example("marks"))
+marks.keep_columns("name", "subject", "marks")
+marks.spread_into_columns(names_from="subject", values_from="marks")
+marks.compare_matched_columns("Maths", "Science", "English")
 \end{lstlisting}
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] A table of patients.
   \item[3] Each patient scored the pain at week 0, 4 and 8, one column each. \code{compare\_\allowbreak{}matched\_\allowbreak{}columns} compares the three columns within each patient (the Friedman test, on ranks): the median pain falls from 6 to 5 to 4, far more than chance would give (p \textless{} 0.0001). For two columns, \code{compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after} does the same.
+  \item[4] The marks table is the same kind of data: each child has a mark in all three subjects.
+  \item[5] Keep only who, which subject and the mark.
+  \item[6] One row per child, one column per subject.
+  \item[7] Do the subjects differ? Each child is compared with itself (Friedman): the median mark is 64.5, 70 and 62, and differences this big would turn up in about 6 of 100 studies (p = 0.056), so the data cannot tell. A Kruskal-Wallis test of the subjects would treat the three marks of one child as marks of three different children.
 \end{lineexplain}
 \printedoutput{output/lesson14_example8.txt}
 \begin{goodtoknow}
 \begin{itemize}
+  \item Tests count each row as a separate, independent piece of evidence. In the marks table each child appears three times, so the rows are not independent: compare the classes on one value per child (\code{find\_\allowbreak{}average\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}class\textquotedbl{},\allowbreak{} \textquotedbl{}name\textquotedbl{}])}, or one subject), and compare the subjects within each child (\code{compare\_\allowbreak{}matched\_\allowbreak{}columns}, or \code{matched\_\allowbreak{}by=}). The same goes for pupils in the same school (lesson 16: \code{grouped\_\allowbreak{}by=}) and for repeated measurements of one patient, plant or site. simplydata cannot see this in the data: you have to say it. The school examples of this lesson treat the 180 pupils as independent to keep them short; lesson 16 shows how to allow for their 12 schools.
   \item The idea behind every test: imagine there is no real difference (this is called the null hypothesis). The p-value says how often a difference this big or bigger would turn up then, in studies like yours: p = 0.03 is \code{\textquotedbl{}about 3 of 100 studies\textquotedbl{}}. It is not the chance that there is no difference, and every test says it in that one sentence.
   \item A p-value does not say how big or important the difference is: the effect size does that (omega-squared, Cohen's d, Cramer's V ...). And a large p-value does not show that there is no difference. It only means these data cannot tell.
   \item A 95 \% confidence interval is the range the true value is very likely in. A narrow one means the data pin the value down well; a wide one means you need more data.
@@ -2747,10 +2772,10 @@ clinic.compare_matched_columns("pain_week_0", "pain_week_4", "pain_week_8")
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item Compare the average marks \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{}}. Could the differences be chance?
+  \item Compare the classes on the science marks only (\code{keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Science\textquotedbl{})}). Could the differences be chance?
   \item Is the average temperature different between the cities of \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}?
   \item Fit a straight line of \code{\textquotedbl{}forest\textquotedbl{}} against \code{\textquotedbl{}year\textquotedbl{}} in \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}growth\textquotedbl{})} for one country.
-  \item Remove the rows with outliers in \code{\textquotedbl{}marks\textquotedbl{}} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, then compare the average marks \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} again. Did the answer change?
+  \item Make the table of one average mark per child (children, as in part 3), remove the rows with outliers in \code{\textquotedbl{}average of marks\textquotedbl{}} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, then compare the classes again. Did the answer change?
 \end{enumerate}
 Worked solutions: page~\pageref{solutions:14}, or type \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(14,\allowbreak{} solutions=True)}.
 \end{tryit}
@@ -2773,7 +2798,8 @@ table = sdata.table(sdata.get_example("marks"))
 table.describe_columns()
 table.remove_rows_with_empty_cells_in()
 table.find_average_of("marks", for_each_group_in="class")
-table.compare_averages_of("marks", for_each_group_in="class")
+children = table.find_average_of("marks", for_each_group_in=["class", "name"])
+children.compare_averages_of("average of marks", for_each_group_in="class")
 a = table.start_chart()
 a.draw_boxes(x="class", y="marks")
 a.draw_all_dots(x="class", y="marks")
@@ -2798,23 +2824,24 @@ table.show_steps()
   \item[3] Look: what is in each column, and are any cells empty?
   \item[4] Clean: remove the rows with an empty cell. The practice table has none, so nothing is removed.
   \item[5] Sum up: the average mark of each class.
-  \item[6] Test: could the differences between the classes be chance?
-  \item[7] Chart A, from the cleaned table.
-  \item[8] The marks of each class as boxes.
-  \item[9] Every mark as a dot, on top of the boxes.
-  \item[10] Name its y-axis.
-  \item[11] Chart B, from the same table.
-  \item[12] Hours of study against marks, one colour per class.
-  \item[13] A straight line for each class, with its 95 \% confidence band.
-  \item[14] Name its x-axis.
-  \item[15] Both charts on one page, with A and B at the top left.
-  \item[16] A title for the whole page.
-  \item[17] A quiet look that suits a paper.
-  \item[18] The size a journal asks for: 17 cm wide (a full page width) and 8 cm high.
-  \item[19] Save the figure as a PDF: sharp at any size.
-  \item[20] And as a \code{.\allowbreak{}tif} picture with 600 dots per inch, as many journals ask.
-  \item[21] Save the cleaned table that the figure was drawn from.
-  \item[22] Every table step in plain words, in order: a good start for the methods part of your report.
+  \item[6] Each child is in the table three times, once for each subject, so the rows are not independent. For the test, one value per child: the average of the child's three marks.
+  \item[7] Test: could the differences between the classes be chance? With one value per child, they could (p = 0.081).
+  \item[8] Chart A, from the cleaned table.
+  \item[9] The marks of each class as boxes.
+  \item[10] Every mark as a dot, on top of the boxes.
+  \item[11] Name its y-axis.
+  \item[12] Chart B, from the same table.
+  \item[13] Hours of study against marks, one colour per class.
+  \item[14] A straight line for each class, with its 95 \% confidence band.
+  \item[15] Name its x-axis.
+  \item[16] Both charts on one page, with A and B at the top left.
+  \item[17] A title for the whole page.
+  \item[18] A quiet look that suits a paper.
+  \item[19] The size a journal asks for: 17 cm wide (a full page width) and 8 cm high.
+  \item[20] Save the figure as a PDF: sharp at any size.
+  \item[21] And as a \code{.\allowbreak{}tif} picture with 600 dots per inch, as many journals ask.
+  \item[22] Save the cleaned table that the figure was drawn from.
+  \item[23] Every table step in plain words, in order: a good start for the methods part of your report.
 \end{lineexplain}
 \printedoutput{output/lesson15_example1.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
@@ -2929,7 +2956,7 @@ table.explain("marks", using=["hours * breakfast"])
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] Pupils in 12 schools: study, sleep, breakfast and marks.
-  \item[3] Explain the marks from hours of study, hours of sleep and breakfast. Each extra hour of study goes with about 2.7 more marks, each extra hour of sleep with 2.3 more, and breakfast with 3.2 more, each with its 95 \% confidence interval and p-value. This is a linear model (multiple regression) by least squares.
+  \item[3] Explain the marks from hours of study, hours of sleep and breakfast. Each extra hour of study goes with about 2.7 more marks, each extra hour of sleep with 2.3 more, and breakfast with 3.2 more, each with its 95 \% confidence interval and p-value. This is a linear model (multiple regression) by least squares. It counts the 180 pupils as independent, but they come from 12 schools, and pupils of one school are alike: part 3 allows for that with \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}. Until then, read these p-values as a little too small.
   \item[4] hours * breakfast also asks: does the effect of study depend on breakfast? That is an interaction. Here the data cannot tell: about 31 of 100 studies would show this much if there were truly none (p = 0.31).
 \end{lineexplain}
 \printedoutput{output/lesson16_example1.txt}
@@ -3209,6 +3236,7 @@ Start with something you know: a straight line through the dots. \code{fit\_\all
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.fit_line(x="hours", y="marks")
 table.fit_curve(x="hours", y="marks", of_degree=2)
 chart = table.start_chart()
@@ -3221,13 +3249,14 @@ chart.save("lesson19_line_and_curve.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The marks table: hours of study and marks.
-  \item[3] The straight line: about 5.2 marks more for each hour of study, and R squared 0.69.
-  \item[4] A curve with one bend (hours and hours**2). R squared only goes from 0.69 to 0.70, so the bend adds little: the straight line is enough here.
-  \item[5] Start a chart of the same table.
-  \item[6] The dots.
-  \item[7] The same straight line, drawn.
-  \item[8] And the curve, to see how close they are.
-  \item[9] Save it.
+  \item[3] Keep the maths marks: one row per child, so each child counts once.
+  \item[4] The straight line: about 6.2 marks more for each hour of study, and R squared 0.78.
+  \item[5] A curve with one bend (hours and hours**2). R squared only goes from 0.78 to 0.80, so the bend adds little: the straight line is enough here.
+  \item[6] Start a chart of the same table.
+  \item[7] The dots.
+  \item[8] The same straight line, drawn.
+  \item[9] And the curve, to see how close they are.
+  \item[10] Save it.
 \end{lineexplain}
 \printedoutput{output/lesson19_example1.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
@@ -3344,7 +3373,7 @@ chart.save("lesson19_dose_response.png")
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item Fit a curve of degree 3 to \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. Does R squared go up much from the straight line?
+  \item Fit a curve of degree 3 to the maths \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. Does R squared go up much from the straight line?
   \item With the weather table, keep the city Sunnyvale and fit \code{\textquotedbl{}temperature = a + b * cos(2 * pi * (month\_\allowbreak{}number - c) / 12)\textquotedbl{}} with \code{start=}\{\code{\textquotedbl{}a\textquotedbl{}}: 15, \code{\textquotedbl{}b\textquotedbl{}}: 8, \code{\textquotedbl{}c\textquotedbl{}}: 7\}. In which month is it warmest (c)?
   \item Try to remember without looking back: which word finds where a formula is biggest, and which word finds where the two sides of an equation are equal? Use them on \code{\textquotedbl{}x * (10 - x)\textquotedbl{}} between 0 and 10, and on \code{\textquotedbl{}x**2 = 2\textquotedbl{}} between 0 and 2.
   \item Fill in the call for chemical B of the toxicity table: \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response(x=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} y=\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} doses\_\allowbreak{}for\_\allowbreak{}effect=[10,\allowbreak{} 50])}. Which dose gives 10 \% of the effect? (Needs R.)
@@ -3570,6 +3599,7 @@ table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "br
 \printedoutput{output/lesson21_example5.txt}
 \begin{goodtoknow}
 \begin{itemize}
+  \item The pupils of the school table come from 12 schools, and pupils of one school are alike, so the rows are not fully independent. These examples leave the schools out to stay short, so their p-values are a little too small; in a report, allow for the schools with \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}} (lesson 16).
   \item Check before you trust: look at \code{check\_\allowbreak{}model\_\allowbreak{}of}'s pictures before you read the p-values of \code{explain()}.
   \item \code{check\_\allowbreak{}model\_\allowbreak{}of(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} show=\textquotedbl{}numbers\textquotedbl{})} gives back the numbers it prints (variance inflation factors, the tests of equal spread) as a table; \code{show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model} gives back a table of the rows it found.
   \item For a yes/no or count model the first picture always shows bands of dots, one for each value; look at the smooth line, which should stay near 0.
@@ -4343,6 +4373,7 @@ table.explain("marks", using=["hours"], for_percentile=[10, 50, 90])
 \printedoutput{output/lesson27_example2.txt}
 \begin{goodtoknow}
 \begin{itemize}
+  \item The pupils of the school table come from 12 schools, and pupils of one school are alike, so the rows are not fully independent. These examples leave the schools out to stay short, so their p-values are a little too small; in a report, allow for the schools with \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}} (lesson 16).
   \item \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=True} changes the effects (rows far from the model count less); \code{robust\_\allowbreak{}errors=True} keeps the effects and changes only their standard errors. Choose by the problem: outliers, or a spread that is not the same everywhere.
   \item Huber's method resists outliers in the column you explain, not unusual values in the \code{using=} columns (far-out hours, for example). \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()} finds those.
   \item A row given less weight is not wrong: look at it before you decide anything. Say in your report that you used robust regression (Huber's M-estimation, as R MASS::\code{rlm()}).
@@ -4425,6 +4456,7 @@ table.find_model_averages_of("marks", for_each_group_in="class", using=["hours",
 \printedoutput{output/lesson28_example3.txt}
 \begin{goodtoknow}
 \begin{itemize}
+  \item The pupils of the school table come from 12 schools, and pupils of one school are alike, so the rows are not fully independent. These examples leave the schools out to stay short, so their p-values are a little too small; in a report, allow for the schools with \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}} (lesson 16).
   \item Picture first, then the test: the interaction picture shows what the interaction test is about.
   \item Compare the groups with the interaction test, not by which simple effects have small p-values: \code{\textquotedbl{}significant in one group but not the other\textquotedbl{}} is not a difference between the groups (Gelman \& Stern 2006).
   \item \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} names the groups that are compared; \code{within\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the groups inside which they are compared. Swap them and you ask another question.
@@ -10670,11 +10702,12 @@ Show the rows whose value in a column is an outlier, and say why (the table does
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.show-rows-with-outliers]{How simplydata chooses methods}, page \pageref{basis:table.show-rows-with-outliers}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{groupby()}, \code{transform()}}
+\wordfield{Underneath}{pandas \code{boolean indexing}, \code{reset\_\allowbreak{}index()}, \code{groupby()}, \code{transform()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.show_rows_with_outliers("marks", for_each_group_in="class")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
@@ -10682,6 +10715,7 @@ table.show_rows_with_outliers("marks", for_each_group_in="class")
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # show_rows_with_outliers("marks", for_each_group_in="class")
 marks = df.groupby("class", dropna=False)["marks"]
 q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
@@ -12581,8 +12615,8 @@ df["x"].drop_nulls().mode().sort()[0]           # (1)
 \wordentry{table.find\_interval\_of()}{word:table.find-interval-of}
 A confidence interval for any summary, from the bootstrap.
 
-\codeline{table.find\_interval\_of(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}median\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{summary=} is any one-number measure of \code{find\_\allowbreak{}summary\_\allowbreak{}of()} (\code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}trimmed average 20\textquotedbl{}}, \code{\textquotedbl{}percentile 90\textquotedbl{}}, \code{\textquotedbl{}coefficient of variation\textquotedbl{}}, ...) or a function of your own that gets the numbers (a NumPy array) and gives back one number. The bootstrap draws the rows again at random, with replacement, \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}, printed; the same seed gives the same interval) and works out the summary each time; SciPy stats.bootstrap, as R boot::\code{boot.\allowbreak{}ci()}. \code{test\_\allowbreak{}method=\textquotedbl{}bootstrap\textquotedbl{}} is the bias-corrected and accelerated (BCa) interval, the usual choice; \code{\textquotedbl{}percentile bootstrap\textquotedbl{}} and \code{\textquotedbl{}reverse percentile bootstrap\textquotedbl{}} (R's \code{\textquotedbl{}basic\textquotedbl{}}) are the other two. With fewer than 20 values a note says the interval is often too narrow. Gives back one row per group: the summary, the interval and the count.
+\codeline{table.find\_interval\_of(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}median\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. \code{summary=} is any one-number measure of \code{find\_\allowbreak{}summary\_\allowbreak{}of()} (\code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}trimmed average 20\textquotedbl{}}, \code{\textquotedbl{}percentile 90\textquotedbl{}}, \code{\textquotedbl{}coefficient of variation\textquotedbl{}}, ...) or a function of your own that gets the numbers (a NumPy array) and gives back one number. The bootstrap draws the rows again at random, with replacement, \code{resamples=9999} times (\code{with\_\allowbreak{}seed=1}, printed; the same seed gives the same interval) and works out the summary each time; SciPy stats.bootstrap, as R boot::\code{boot.\allowbreak{}ci()}. \code{test\_\allowbreak{}method=\textquotedbl{}bootstrap\textquotedbl{}} is the bias-corrected and accelerated (BCa) interval, the usual choice; \code{\textquotedbl{}percentile bootstrap\textquotedbl{}} and \code{\textquotedbl{}reverse percentile bootstrap\textquotedbl{}} (R's \code{\textquotedbl{}basic\textquotedbl{}}) are the other two. With fewer than 20 values a note says the interval is often too narrow. Gives back one row per group: the summary, the interval and the count.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12596,11 +12630,12 @@ A confidence interval for any summary, from the bootstrap.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-interval-of]{How simplydata chooses methods}, page \pageref{basis:table.find-interval-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy \code{dropna().\allowbreak{}to\_\allowbreak{}numpy()}, \code{bootstrap()}, \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{DataFrame()}, \code{mean()}}
+\wordfield{Underneath}{SciPy \code{boolean indexing}, \code{reset\_\allowbreak{}index()}, \code{dropna().\allowbreak{}to\_\allowbreak{}numpy()}, \code{bootstrap()}, \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{DataFrame()}, \code{mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.find_interval_of("marks", "median", for_each_group_in="class")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
@@ -12610,6 +12645,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # find_interval_of("marks", "average")
 x = df["marks"].dropna().to_numpy(dtype=float)
 ci = stats.bootstrap((x,), np.mean, n_resamples=9999, method="BCa",            # (1) (2)
@@ -12627,8 +12663,8 @@ pd.DataFrame({"average of marks": [x.mean()], "average of marks 95 % CI low": [c
 \wordentry{table.find\_correlation\_between()}{word:table.find-correlation-between}
 How strongly columns of numbers go up or down together, from -1 to 1.
 
-\codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{test\_\allowbreak{}method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy; Spearman's p-value for fewer than 1290 rows without tied values comes from R \code{cor.\allowbreak{}test()} (algorithm AS 89, R's default; SciPy has only the t approximation, used without R, with a note). With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
+\codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. \code{test\_\allowbreak{}method=\textquotedbl{}pearson\textquotedbl{}} (a straight-line link, the usual one), \code{\textquotedbl{}spearman\textquotedbl{}} (uses ranks, for any link that keeps going one way) or \code{\textquotedbl{}kendall\textquotedbl{}} (Kendall's tau-b, also ranks: the share of pairs of rows that agree in order minus the share that disagree; as R \code{cor.\allowbreak{}test(method = \textquotedbl{}kendall\textquotedbl{})}, SciPy kendalltau). Prints the strength in words and the p-value from SciPy; Spearman's p-value for fewer than 1290 rows without tied values comes from R \code{cor.\allowbreak{}test()} (algorithm AS 89, R's default; SciPy has only the t approximation, used without R, with a note). With two columns it gives back the number r; rows with an empty cell in either column are skipped. With three or more columns it gives back a correlation table (as pandas .corr()), and prints the strongest pairs:\\
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{})}\\
 Each pair uses the rows where both columns have a number. \code{show=\textquotedbl{}p-value\textquotedbl{}} gives the table of p-values instead, and \code{show=\textquotedbl{}each pair\textquotedbl{}} one row per pair (r, p-value, rows), ready for \code{add\_\allowbreak{}adjusted\_\allowbreak{}p\_\allowbreak{}value\_\allowbreak{}column()}: testing many pairs makes a chance finding more likely. With two columns, \code{show=\textquotedbl{}result table\textquotedbl{}} gives back a one-row table instead of r: r, its 95 \% interval, the p-value (from the formula or, with \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, from shuffling; the interval from \code{interval\_\allowbreak{}by=}), which directions were tested, the rows used and the strength in words; with three or more it is the same as \code{show=\textquotedbl{}each pair\textquotedbl{}}. \code{allowing\_\allowbreak{}for=\textquotedbl{}height\textquotedbl{}} (two columns and one to allow for) gives the partial correlation: the link left after taking out what both columns share with the third, from R ppcor::\code{pcor.\allowbreak{}test()} (Pearson, Spearman or Kendall). With \code{show=\textquotedbl{}result table\textquotedbl{}} it is a one-row table of \code{pcor.\allowbreak{}test()}'s numbers: r, its statistic (t, or z for Kendall), the p-value and the rows (no interval: ppcor gives none):\\
 \codeline{table.find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, allowing\_for=\textquotedbl{}height\textquotedbl{}, show=\textquotedbl{}result table\textquotedbl{})}\\
@@ -12661,6 +12697,7 @@ Each pair uses the rows where both columns have a number. \code{show=\textquoted
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.find_correlation_between("hours", "marks")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
@@ -12669,6 +12706,7 @@ table.find_correlation_between("hours", "marks")
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # find_correlation_between("hours", "marks", "height", show="covariance")
 cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
 cov.rename_axis("column").reset_index()
@@ -12727,6 +12765,7 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 from scipy import stats
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # find_correlation_between("hours", "marks", show="result table")
 res = stats.pearsonr(df["hours"], df["marks"])
 ci = res.confidence_interval(0.95)                 # (1)
@@ -12760,8 +12799,8 @@ list(r = p$estimate, statistic = p$statistic, p = p$p.value, rows = p$n)
 \wordentry{table.compare\_averages\_of()}{word:table.compare-averages-of}
 Are the averages of the groups really different?
 
-\codeline{table.compare\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test\_\allowbreak{}method=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
+\codeline{table.compare\_averages\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three or more: Welch's one-way ANOVA (the R \code{oneway.\allowbreak{}test()} default). Neither needs the groups to have the same spread. \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when groups are small and their values are not bell-shaped. \code{test\_\allowbreak{}method=} chooses another test: \code{\textquotedbl{}welch\textquotedbl{}}, \code{\textquotedbl{}student\textquotedbl{}}, \code{\textquotedbl{}welch anova\textquotedbl{}}, \code{\textquotedbl{}anova\textquotedbl{}}, \code{\textquotedbl{}mann-whitney\textquotedbl{}} or \code{\textquotedbl{}kruskal-wallis\textquotedbl{}}; and \code{\textquotedbl{}yuen\textquotedbl{}} (Yuen's test of 20 \% trimmed averages, R WRS2::yuen, SciPy \code{ttest\_\allowbreak{}ind(trim=0.\allowbreak{}2)}), \code{\textquotedbl{}brunner-munzel\textquotedbl{}} (R brunnermunzel.test, SciPy brunnermunzel), \code{\textquotedbl{}alexander-govern\textquotedbl{}} (3 or more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or \code{\textquotedbl{}median\textquotedbl{}} (Mood's median test, SciPy \code{median\_\allowbreak{}test}, as R chisq.test on the counts above and not above the overall median). Prints the answer in words (with the test used and why) and gives back a one-row table of results. The effect size says how big the difference is: Hedges' g (the difference in standard deviations) for 2 groups, omega-squared (the share of the differences explained by the groups) for 3 or more. Each group is checked for a bell shape (Shapiro-Wilk) and a note says if it does not look like one; with 30 or more values that matters little (the central limit theorem). To see which groups differ, use \code{compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}. \code{sides=1}, \code{higher=\textquotedbl{}B\textquotedbl{}} (or \code{lower=\textquotedbl{}A\textquotedbl{}}) tests in one direction only (2 groups): that B is higher, as decided before seeing the data (R \code{t.\allowbreak{}test(alternative = .\allowbreak{}.\allowbreak{}.\allowbreak{})}, wilcox.test(\\
 \codeline{alternative = ...)); the 95 \% interval is then one-sided too. R's and SciPy's}\\
 \code{alternative=} is accepted. \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}} (2 groups, averages): the p-value comes from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}) and counting how often the difference in averages is as big as the one in the data (SciPy \code{permutation\_\allowbreak{}test}, as R perm::\code{permTS()}). When there are no more arrangements than shuffles, every one is counted and the p-value is exact. \code{same\_\allowbreak{}within=5} (2 groups) asks whether the averages are the same within 5 (or within [-3, 5]): two one-sided tests (TOST, Welch; statsmodels \code{ttost\_\allowbreak{}ind}, as R TOSTER::\code{t\_\allowbreak{}TOST()}), with the 90 \% interval. The answer is one of three: the same within the margin, different, or the data cannot tell. \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}B\textquotedbl{}} is a non-inferiority test: is B lower than A by no more than 5? (one-sided; as R TOSTER::\code{t\_\allowbreak{}TOST(hypothesis = \textquotedbl{}MET\textquotedbl{})}). \code{not\_\allowbreak{}higher=\textquotedbl{}B\textquotedbl{}} asks whether B is higher by no more than 5, for outcomes where lower is better, such as pain. \code{matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{}} is for repeated measures: the same person (or plot, animal ...) in every group of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, for example \code{compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{},\allowbreak{} matched\_\allowbreak{}by=\textquotedbl{}name\textquotedbl{})}. It runs a repeated-measures ANOVA with the Greenhouse-Geisser correction, R afex::\code{aov\_\allowbreak{}ez()} (needs R). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}subject\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{}]} with one column that changes within a person and one that does not gives the mixed ANOVA. \code{grouped\_\allowbreak{}by=\textquotedbl{}tank\textquotedbl{}} is for several rows from each tank, each tank in one group (nested): a nested ANOVA that tests the groups against the differences between tanks, R \code{aov(length \textasciitilde{} diet + Error(tank))} (needs R). A list of columns, \code{compare\_\allowbreak{}averages\_\allowbreak{}of([\textquotedbl{}length\textquotedbl{},\allowbreak{} \textquotedbl{}width\textquotedbl{}],\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}species\textquotedbl{})}, compares them all at once: a MANOVA with Pillai's trace (statsmodels MANOVA, as R \code{summary(manova())}). \code{period=\textquotedbl{}visit\textquotedbl{}} with \code{matched\_\allowbreak{}by=\textquotedbl{}subject\textquotedbl{}} is the 2 x 2 crossover (bioequivalence): each subject had both formulations of \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, one in each of two periods. The EMA model on the log scale (statsmodels OLS of \code{log(column)} on sequence, subject, period and formulation, as R \code{lm()}) gives the ratio of the geometric means with its 90 \% interval and the within-subject CV; \code{same\_\allowbreak{}within=[0.\allowbreak{}8,\allowbreak{} 1.\allowbreak{}25]} says whether the interval lies inside the limits. \code{against=} names the reference formulation (default: the first in sorted order). Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) two groups are compared by the design-based t test, R survey::svyttest. \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} (two groups) gives the Bayes factor and a 95 \% credible interval of the difference instead of a p-value: R BayesFactor::\code{ttestBF()} with the JZS prior (Rouder et al. 2009), whose width \code{prior\_\allowbreak{}width=} sets: \code{\textquotedbl{}medium\textquotedbl{}} (0.707, the default), \code{\textquotedbl{}wide\textquotedbl{}} (1), \code{\textquotedbl{}ultrawide\textquotedbl{}} (1.414) or a number. The interval comes from 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor).
 
@@ -12795,8 +12834,10 @@ Two groups: Welch's t-test (the R \code{t.\allowbreak{}test()} default). Three o
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 result = table.compare_averages_of("marks", for_each_group_in="class")
 table.compare_averages_of("marks", for_each_group_in="class", based_on="ranks")
+table.undo()
 table.compare_averages_of("marks", for_each_group_in="subject", matched_by="name")
 result.save("marks_test.csv")
 \end{lstlisting}
@@ -12923,8 +12964,8 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 \wordentry{table.compare\_each\_pair\_of()}{word:table.compare-each-pair-of}
 Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
-\codeline{table.compare\_each\_pair\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm stays at 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}, or with ranks R \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})} as R 4.6 gives it: exact p-values below 50 values per group, also with tied values (those from R \code{wilcox.\allowbreak{}test()}; without R the normal approximation, and the printout says which). Gives back a table with one row per pair. \code{test\_\allowbreak{}method=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test\_\allowbreak{}method=\textquotedbl{}welch\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest()}, adjusted with R \code{p.\allowbreak{}adjust(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test\_\allowbreak{}method=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}). After Friedman's test, \code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}} gives Nemenyi's test (R PMCMRplus::\code{frdAllPairsNemenyiTest()}, which allows for all the pairs itself: no further adjustment) and \code{test\_\allowbreak{}method=\textquotedbl{}conover\textquotedbl{}} Conover's test (R PMCMRplus::\code{frdAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); both work on the ranks within each matched row. \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}} with a column of two values (\code{value=\textquotedbl{}yes\textquotedbl{}} names the one counted) compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (SciPy), or \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test), then Holm's correction; each pair also gets its difference in percentage points with Newcombe's 95 \% interval, as \code{compare\_\allowbreak{}risks} (statsmodels). The same as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.\\
+\codeline{table.compare\_each\_pair\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}). Testing many pairs makes a false alarm more likely, so the p-values are adjusted with Holm's method: the chance of at least one false alarm is at most 5 \%. This is the same as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}, or with ranks R \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})} as R 4.6 gives it: exact p-values below 50 values per group, also with tied values (those from R \code{wilcox.\allowbreak{}test()}; without R the normal approximation, and the printout says which). Gives back a table with one row per pair. \code{test\_\allowbreak{}method=\textquotedbl{}tukey\textquotedbl{}} gives Tukey's honest significant difference instead (R \code{TukeyHSD(aov(marks \textasciitilde{} class))}, the Tukey-Kramer form when the groups differ in size): the textbook follow-up to a one-way ANOVA, with 95 \% confidence intervals that hold for all pairs at once. It assumes the groups have the same spread; the default does not. \code{test\_\allowbreak{}method=\textquotedbl{}welch\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}mann-whitney\textquotedbl{}} name the other two choices. More follow-up tests, each run in R (simplydata[r]): \code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}} (like Tukey, but for groups with different spreads; R rstatix::\code{games\_\allowbreak{}howell\_\allowbreak{}test()}), \code{\textquotedbl{}scheffe\textquotedbl{}} (R DescTools::\code{ScheffeTest()}), \code{\textquotedbl{}lsd\textquotedbl{}} (Fisher's least significant difference, NOT adjusted for the number of pairs; R DescTools::\code{PostHocTest(method = \textquotedbl{}lsd\textquotedbl{})}), and for ranks \code{\textquotedbl{}dunn\textquotedbl{}} (R FSA::\code{dunnTest()}, adjusted with R \code{p.\allowbreak{}adjust(method = \textquotedbl{}holm\textquotedbl{})}) and \code{\textquotedbl{}conover\textquotedbl{}} (R PMCMRplus::\code{kwAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}). \code{against=\textquotedbl{}A\textquotedbl{}} compares every group with one control group only: Dunnett's test (SciPy stats.dunnett, as R multcomp::\code{glht(mcp(group = \textquotedbl{}Dunnett\textquotedbl{}))}), with intervals that hold for all the comparisons at once. SciPy works it out with random numbers, so \code{with\_\allowbreak{}seed=1} is used (printed); the last digit can differ from R's. \code{show=\textquotedbl{}letters\textquotedbl{}} gives each group letters instead (a compact letter display, R multcompView::\code{multcompLetters()}): groups that share a letter have an adjusted p-value of 0.05 or more between them. It works with every \code{test\_\allowbreak{}method=} above, and gives back one row per group. \code{matched\_\allowbreak{}by=\textquotedbl{}patient\textquotedbl{}}: the same rows (patients) were measured in every group, such as pain at week 0, 4 and 8 in long form. Each pair is then compared within the patients: paired t-tests, or with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} (after \code{compare\_\allowbreak{}matched\_\allowbreak{}columns}'s Friedman test) the Wilcoxon signed-rank test, with Holm's correction (SciPy, as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(paired = TRUE)} and \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test(paired = TRUE)}). After Friedman's test, \code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}} gives Nemenyi's test (R PMCMRplus::\code{frdAllPairsNemenyiTest()}, which allows for all the pairs itself: no further adjustment) and \code{test\_\allowbreak{}method=\textquotedbl{}conover\textquotedbl{}} Conover's test (R PMCMRplus::\code{frdAllPairsConoverTest( p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); both work on the ranks within each matched row. \code{based\_\allowbreak{}on=\textquotedbl{}percents\textquotedbl{}} with a column of two values (\code{value=\textquotedbl{}yes\textquotedbl{}} names the one counted) compares the percent of each pair of groups: the 2 x 2 chi-square test with Yates' correction that \code{compare\_\allowbreak{}counts\_\allowbreak{}of} uses (SciPy), or \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} (Fisher's exact test), then Holm's correction; each pair also gets its difference in percentage points with Newcombe's 95 \% interval, as \code{compare\_\allowbreak{}risks} (statsmodels). The same as R \code{pairwise.\allowbreak{}prop.\allowbreak{}test()}.\\
 \codeline{table.compare\_each\_pair\_of(\textquotedbl{}resistant\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}farm\textquotedbl{}, based\_on=\textquotedbl{}percents\textquotedbl{}, value=\textquotedbl{}yes\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
@@ -12946,6 +12987,7 @@ Each pair gets Welch's t-test (or Mann-Whitney U with \code{based\_\allowbreak{}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_each_pair_of("marks", for_each_group_in="class")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -13038,7 +13080,7 @@ For two measurements of the same thing, such as each child's mark before and aft
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_before_and_after("Maths", "Science")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -13066,8 +13108,8 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 \wordentry{table.compare\_average\_to()}{word:table.compare-average-to}
 Is the average of a column really different from a number you choose?
 
-\codeline{table.compare\_average\_to(\textquotedbl{}marks\textquotedbl{}, 60)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{test\_\allowbreak{}method=\textquotedbl{}z\textquotedbl{}} with \code{standard\_\allowbreak{}deviation=10}: the z-test, for when the spread of the values is known beforehand (not worked out from these values), run in R (BSDA::\code{z.\allowbreak{}test()}). \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is above the number) or \code{lower=\textquotedbl{}average\textquotedbl{}} (below it) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
+\codeline{table.compare\_average\_to(\textquotedbl{}marks\textquotedbl{}, 60)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}}. Empty cells are skipped. Effect size: Cohen's d, the difference in standard deviations. Gives back a one-row table of results. \code{test\_\allowbreak{}method=\textquotedbl{}z\textquotedbl{}} with \code{standard\_\allowbreak{}deviation=10}: the z-test, for when the spread of the values is known beforehand (not worked out from these values), run in R (BSDA::\code{z.\allowbreak{}test()}). \code{sides=1}, \code{higher=\textquotedbl{}average\textquotedbl{}} (the average is above the number) or \code{lower=\textquotedbl{}average\textquotedbl{}} (below it) tests in one direction only, as decided before seeing the data (R t.test(x, mu = 60,\\
 \codeline{alternative = \textquotedbl{}greater\textquotedbl{})).}\\
 \code{same\_\allowbreak{}within=5} asks whether the average is within 5 of the number: two one-sided tests (statsmodels DescrStatsW.ttost\_mean, as R TOSTER::\code{t\_\allowbreak{}TOST(x - 60,\allowbreak{} eqb = 5)}); \code{same\_\allowbreak{}within=5}, \code{not\_\allowbreak{}lower=\textquotedbl{}average\textquotedbl{}} is a non-inferiority test (the average no more than 5 below the number), and \code{not\_\allowbreak{}higher=\textquotedbl{}average\textquotedbl{}} its mirror (no more than 5 above it). \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} gives the Bayes factor and a 95 \% credible interval of the average minus the number instead of a p-value: R BayesFactor::\code{ttestBF()} with the JZS prior, \code{prior\_\allowbreak{}width=} \code{\textquotedbl{}medium\textquotedbl{}} (0.707, the default), \code{\textquotedbl{}wide\textquotedbl{}}, \code{\textquotedbl{}ultrawide\textquotedbl{}} or a number; 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor).
 
@@ -13095,6 +13137,7 @@ A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with \code
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_average_to("marks", 60)
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -13123,8 +13166,8 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 Does how often each value turns up really differ between groups?
 
 \codeline{table.add\_group\_column(\textquotedbl{}result\textquotedbl{}, from\_column=\textquotedbl{}marks\textquotedbl{}, cut\_at=[60], names=[\textquotedbl{}below 60\textquotedbl{}, \textquotedbl{}60 or more\textquotedbl{}])}\\
-\codeline{table.compare\_counts\_of(\textquotedbl{}result\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-(Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test\_\allowbreak{}method=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test\_\allowbreak{}method=\textquotedbl{}barnard\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]), with the two \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} groups as the two samples (these tests are not symmetric). \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{with\_\allowbreak{}seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{with\_\allowbreak{}seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test\_\allowbreak{}method=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardised residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the Rao-Scott F test, R survey::svychisq. \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} gives the Bayes factor and each group's shares with 95 \% credible intervals instead of a p-value: R BayesFactor::\code{contingencyTableBF(sampleType = \textquotedbl{}indepMulti\textquotedbl{},\allowbreak{} fixedMargin = \textquotedbl{}rows\textquotedbl{})}, each group's total fixed (the \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} groups are the rows), with the Gunel-Dickey prior (concentration 1); 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor).
+\codeline{table.compare\_counts\_of(\textquotedbl{}result\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. (Do the classes differ in how many children score 60 or more?) Counts the rows for each pair of values and uses the chi-square test of independence (as R \code{chisq.\allowbreak{}test()}: Yates' continuity correction for 2 x 2 tables only). If an expected count is below 5 a note says so; for a 2 x 2 table \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} then gives Fisher's exact test. \code{test\_\allowbreak{}method=\textquotedbl{}g\textquotedbl{}}: the G-test (likelihood ratio, SciPy \code{chi2\_\allowbreak{}contingency( lambda\_\allowbreak{}=\textquotedbl{}log-likelihood\textquotedbl{})}, as R DescTools::\code{GTest()}). For 2 x 2 tables also \code{test\_\allowbreak{}method=\textquotedbl{}barnard\textquotedbl{}} and \code{test\_\allowbreak{}method=\textquotedbl{}boschloo\textquotedbl{}}: unconditional exact tests, often stronger than Fisher's, run in R (Exact::\code{exact.\allowbreak{}test(method = \textquotedbl{}z-pooled\textquotedbl{} / \textquotedbl{}boschloo\textquotedbl{})}, simplydata[r]), with the two \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} groups as the two samples (these tests are not symmetric). \code{test\_\allowbreak{}method=\textquotedbl{}fisher\textquotedbl{}} on a bigger table gives its p-value from 100,000 random tables with the same totals (SciPy, \code{with\_\allowbreak{}seed=1}); \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}exact\textquotedbl{}} counts every table instead, in R (\code{fisher.\allowbreak{}test()}). \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}: the chi-square p-value from \code{shuffles=9999} random tables (SciPy, \code{with\_\allowbreak{}seed=1}, as R \code{chisq.\allowbreak{}test(simulate.\allowbreak{}p.\allowbreak{}value = TRUE)}). \code{test\_\allowbreak{}method=\textquotedbl{}trend\textquotedbl{}} with \code{in\_\allowbreak{}order=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}middle\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}]} (the \code{for\_\allowbreak{}each} groups in order) and a yes/no column: the Cochran-Armitage test for a trend in the percent across ordered groups (R \code{prop.\allowbreak{}trend.\allowbreak{}test()}). \code{show=\textquotedbl{}cells\textquotedbl{}} gives back one row per cell with its standardised residual (statsmodels, as R \code{chisq.\allowbreak{}test()}\$stdres): cells beyond 2 or -2 stand out. Empty cells are skipped. Effect size: Cramer's V, the strength of the link from 0 (none) to 1 (complete). Gives back a one-row table. Under a survey design (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}) it gives the Rao-Scott F test, R survey::svychisq. \code{test\_\allowbreak{}method=\textquotedbl{}bayesian\textquotedbl{}} gives the Bayes factor and each group's shares with 95 \% credible intervals instead of a p-value: R BayesFactor::\code{contingencyTableBF(sampleType = \textquotedbl{}indepMulti\textquotedbl{},\allowbreak{} fixedMargin = \textquotedbl{}rows\textquotedbl{})}, each group's total fixed (the \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} groups are the rows), with the Gunel-Dickey prior (concentration 1); 10,000 posterior draws (\code{with\_\allowbreak{}seed=1}). Needs R (BayesFactor).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13144,6 +13187,7 @@ Does how often each value turns up really differ between groups?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
 table.compare_counts_of("result", for_each_group_in="class")
 \end{lstlisting}
@@ -13194,8 +13238,8 @@ list(bf = BayesFactor::extractBF(b)$bf, low = q[[1]], mid = q[[2]], high = q[[3]
 \wordentry{table.compare\_shape\_to()}{word:table.compare-shape-to}
 Do the values look bell-shaped (normal), or are they too far from it?
 
-\codeline{table.compare\_shape\_to(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}normal\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Uses the Shapiro-Wilk test (as R \code{shapiro.\allowbreak{}test()}), for 3 to 5000 values in each group; empty cells are skipped. A small p-value says a shape this far from a bell shape would rarely turn up if the values were bell-shaped. A large p-value does not prove the values are normal: with few values the test can miss a different shape, and with many values (30 or more) it flags even tiny, harmless differences, while tests on averages are then usually fine anyway (the central limit theorem). Gives back a table with one row per group. \code{test\_\allowbreak{}method=} chooses another test of a bell shape: \code{\textquotedbl{}lilliefors\textquotedbl{}} (Kolmogorov-Smirnov with the average and standard deviation taken from the data, run in R: nortest::\code{lillie.\allowbreak{}test()}), \code{\textquotedbl{}dagostino\textquotedbl{}} (D'Agostino-Pearson, from skewness and kurtosis, SciPy normaltest, as R fBasics::\code{dagoTest()}) or \code{\textquotedbl{}jarque-bera\textquotedbl{}} (SciPy \code{jarque\_\allowbreak{}bera}, as R tseries::\code{jarque.\allowbreak{}bera.\allowbreak{}test()}).
+\codeline{table.compare\_shape\_to(\textquotedbl{}marks\textquotedbl{}, \textquotedbl{}normal\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. Uses the Shapiro-Wilk test (as R \code{shapiro.\allowbreak{}test()}), for 3 to 5000 values in each group; empty cells are skipped. A small p-value says a shape this far from a bell shape would rarely turn up if the values were bell-shaped. A large p-value does not prove the values are normal: with few values the test can miss a different shape, and with many values (30 or more) it flags even tiny, harmless differences, while tests on averages are then usually fine anyway (the central limit theorem). Gives back a table with one row per group. \code{test\_\allowbreak{}method=} chooses another test of a bell shape: \code{\textquotedbl{}lilliefors\textquotedbl{}} (Kolmogorov-Smirnov with the average and standard deviation taken from the data, run in R: nortest::\code{lillie.\allowbreak{}test()}), \code{\textquotedbl{}dagostino\textquotedbl{}} (D'Agostino-Pearson, from skewness and kurtosis, SciPy normaltest, as R fBasics::\code{dagoTest()}) or \code{\textquotedbl{}jarque-bera\textquotedbl{}} (SciPy \code{jarque\_\allowbreak{}bera}, as R tseries::\code{jarque.\allowbreak{}bera.\allowbreak{}test()}).
 
 A distribution with fixed numbers can be the shape too:\\
 \codeline{table.compare\_shape\_to(\textquotedbl{}marks\textquotedbl{}, sdata.distribution(\textquotedbl{}normal\textquotedbl{}, average=60, standard\_deviation=15))}\\
@@ -13222,6 +13266,7 @@ Directions (or times of day) on a circle: \code{table.\allowbreak{}compare\_\all
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_shape_to("marks", "normal", for_each_group_in="class")
 table.compare_shape_to("marks", "normal", test_method="jarque-bera")
 \end{lstlisting}
@@ -13249,7 +13294,7 @@ Adjust p-values for testing many things at once, in a new column.
 
 \codeline{table = sdata.table(sdata.get\_example(\textquotedbl{}marks\textquotedbl{})).find\_correlation\_between(\textquotedbl{}hours\textquotedbl{}, \textquotedbl{}marks\textquotedbl{}, \textquotedbl{}height\textquotedbl{}, show=\textquotedbl{}each pair\textquotedbl{})}\\
 \codeline{table.add\_adjusted\_p\_value\_column(\textquotedbl{}p\_adjusted\textquotedbl{}, test\_method=\textquotedbl{}benjamini-hochberg\textquotedbl{})}\\
-(table is now one row per pair of columns, with its p-value) The more tests you run, the more likely one of them looks real by chance; adjusted p-values allow for that. \code{test\_\allowbreak{}method=\textquotedbl{}holm\textquotedbl{}} (the default, as R \code{p.\allowbreak{}adjust()}): the chance of even one false alarm among all the tests stays at 5 \%. \code{\textquotedbl{}bonferroni\textquotedbl{}}: the same promise, simpler and stricter. \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}} (also \code{\textquotedbl{}bh\textquotedbl{}} or \code{\textquotedbl{}fdr\textquotedbl{}}): about 5 \% of the findings below 0.05 are expected to be false alarms (the false discovery rate); it finds more with many tests. \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}} (\code{\textquotedbl{}by\textquotedbl{}}): a false discovery rate that is safe however the tests depend on each other. \code{\textquotedbl{}hochberg\textquotedbl{}} and \code{\textquotedbl{}hommel\textquotedbl{}}: the same promise as Holm, a little stronger, when the tests do not depend on each other in an unusual way (statsmodels multipletests, as R \code{p.\allowbreak{}adjust()}). \code{test\_\allowbreak{}method=\textquotedbl{}storey\textquotedbl{}} (\code{\textquotedbl{}q-values\textquotedbl{}} accepted): Storey's q-values, the false discovery rate with the share of true nulls (pi0) estimated from the p-values instead of set to 1 as in Benjamini-Hochberg (R qvalue::\code{qvalue()}, from Bioconductor; Storey \& Tibshirani 2003); for hundreds or thousands of tests, such as genes. \code{test\_\allowbreak{}method=\textquotedbl{}local fdr\textquotedbl{}}: each test's own chance of being a false discovery (qvalue's \$lfdr), in a column called \code{\textquotedbl{}local false discovery rate\textquotedbl{}}; it is not an adjusted p-value. With fewer than 100 p-values pi0 is unstable, and a note says so. \code{from\_\allowbreak{}column=} is the column of p-values (\code{\textquotedbl{}p-value\textquotedbl{}} in simplydata result tables). Without a name the new column is called, for example, \code{\textquotedbl{}p-value (Holm)\textquotedbl{}}. Empty cells stay empty and are not counted, as R \code{p.\allowbreak{}adjust()}.
+(table is now one row per pair of columns, with its p-value) The more tests you run, the more likely one of them looks real by chance; adjusted p-values allow for that. \code{test\_\allowbreak{}method=\textquotedbl{}holm\textquotedbl{}} (the default, as R \code{p.\allowbreak{}adjust()}): the chance of even one false alarm among all the tests is at most 5 \%. \code{\textquotedbl{}bonferroni\textquotedbl{}}: the same promise, simpler and stricter. \code{\textquotedbl{}benjamini-hochberg\textquotedbl{}} (also \code{\textquotedbl{}bh\textquotedbl{}} or \code{\textquotedbl{}fdr\textquotedbl{}}): about 5 \% of the findings below 0.05 are expected to be false alarms (the false discovery rate); it finds more with many tests. \code{\textquotedbl{}benjamini-yekutieli\textquotedbl{}} (\code{\textquotedbl{}by\textquotedbl{}}): a false discovery rate that is safe however the tests depend on each other. \code{\textquotedbl{}hochberg\textquotedbl{}} and \code{\textquotedbl{}hommel\textquotedbl{}}: the same promise as Holm, a little stronger, when the tests do not depend on each other in an unusual way (statsmodels multipletests, as R \code{p.\allowbreak{}adjust()}). \code{test\_\allowbreak{}method=\textquotedbl{}storey\textquotedbl{}} (\code{\textquotedbl{}q-values\textquotedbl{}} accepted): Storey's q-values, the false discovery rate with the share of true nulls (pi0) estimated from the p-values instead of set to 1 as in Benjamini-Hochberg (R qvalue::\code{qvalue()}, from Bioconductor; Storey \& Tibshirani 2003); for hundreds or thousands of tests, such as genes. \code{test\_\allowbreak{}method=\textquotedbl{}local fdr\textquotedbl{}}: each test's own chance of being a false discovery (qvalue's \$lfdr), in a column called \code{\textquotedbl{}local false discovery rate\textquotedbl{}}; it is not an adjusted p-value. With fewer than 100 p-values pi0 is unstable, and a note says so. \code{from\_\allowbreak{}column=} is the column of p-values (\code{\textquotedbl{}p-value\textquotedbl{}} in simplydata result tables). Without a name the new column is called, for example, \code{\textquotedbl{}p-value (Holm)\textquotedbl{}}. Empty cells stay empty and are not counted, as R \code{p.\allowbreak{}adjust()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13264,6 +13309,7 @@ Adjust p-values for testing many things at once, in a new column.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table = table.find_correlation_between("hours", "marks", "height", show="each pair")
 table.add_adjusted_p_value_column("q", test_method="benjamini-hochberg")
 table.show()
@@ -13313,8 +13359,8 @@ df
 \wordentry{table.compare\_spreads\_of()}{word:table.compare-spreads-of}
 Do the groups really differ in how spread out their values are?
 
-\codeline{table.compare\_spreads\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{test\_\allowbreak{}method=\textquotedbl{}levene\textquotedbl{}} (the default): Levene's test centred on each group's median, also called the Brown-Forsythe test. It is the default of R car::\code{leveneTest()} and SciPy \code{levene(center=\textquotedbl{}median\textquotedbl{})}, and copes well with values that are not bell-shaped. \code{test\_\allowbreak{}method=\textquotedbl{}bartlett\textquotedbl{}}: Bartlett's test (R \code{bartlett.\allowbreak{}test()}), a little stronger when the values are bell-shaped but easily fooled when they are not. \code{test\_\allowbreak{}method=\textquotedbl{}fligner\textquotedbl{}}: the Fligner-Killeen test (R \code{fligner.\allowbreak{}test()}), based on ranks, the safest with outliers. For 2 groups also: \code{test\_\allowbreak{}method=\textquotedbl{}ansari\textquotedbl{}} (Ansari-Bradley, R \code{ansari.\allowbreak{}test()}, SciPy ansari), \code{test\_\allowbreak{}method=\textquotedbl{}mood\textquotedbl{}} (Mood's test of scale, R \code{mood.\allowbreak{}test()}, SciPy mood) and \code{test\_\allowbreak{}method=\textquotedbl{}f\textquotedbl{}} (the F test of the ratio of two variances, R \code{var.\allowbreak{}test()}, run in R through simplydata[r]; it assumes bell-shaped values). Empty cells are skipped. Prints the standard deviation of each group and the answer in words; gives back a one-row table of results. \code{compare\_\allowbreak{}averages\_\allowbreak{}of()} uses Welch's test by default, which does not need equal spreads.
+\codeline{table.compare\_spreads\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. \code{test\_\allowbreak{}method=\textquotedbl{}levene\textquotedbl{}} (the default): Levene's test centred on each group's median, also called the Brown-Forsythe test. It is the default of R car::\code{leveneTest()} and SciPy \code{levene(center=\textquotedbl{}median\textquotedbl{})}, and copes well with values that are not bell-shaped. \code{test\_\allowbreak{}method=\textquotedbl{}bartlett\textquotedbl{}}: Bartlett's test (R \code{bartlett.\allowbreak{}test()}), a little stronger when the values are bell-shaped but easily fooled when they are not. \code{test\_\allowbreak{}method=\textquotedbl{}fligner\textquotedbl{}}: the Fligner-Killeen test (R \code{fligner.\allowbreak{}test()}), based on ranks, the safest with outliers. For 2 groups also: \code{test\_\allowbreak{}method=\textquotedbl{}ansari\textquotedbl{}} (Ansari-Bradley, R \code{ansari.\allowbreak{}test()}, SciPy ansari), \code{test\_\allowbreak{}method=\textquotedbl{}mood\textquotedbl{}} (Mood's test of scale, R \code{mood.\allowbreak{}test()}, SciPy mood) and \code{test\_\allowbreak{}method=\textquotedbl{}f\textquotedbl{}} (the F test of the ratio of two variances, R \code{var.\allowbreak{}test()}, run in R through simplydata[r]; it assumes bell-shaped values). Empty cells are skipped. Prints the standard deviation of each group and the answer in words; gives back a one-row table of results. \code{compare\_\allowbreak{}averages\_\allowbreak{}of()} uses Welch's test by default, which does not need equal spreads.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13324,11 +13370,12 @@ Do the groups really differ in how spread out their values are?
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-spreads-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-spreads-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy \code{dropna()}, \code{groupby()}, \code{levene()}, \code{sum()}}
+\wordfield{Underneath}{SciPy \code{boolean indexing}, \code{reset\_\allowbreak{}index()}, \code{dropna()}, \code{groupby()}, \code{levene()}, \code{sum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_spreads_of("marks", for_each_group_in="class")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
@@ -13337,6 +13384,7 @@ table.compare_spreads_of("marks", for_each_group_in="class")
 from scipy import stats
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # compare_spreads_of("marks", for_each_group_in="class")
 groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
 res = stats.levene(*groups, center="median")                  # (1)
@@ -13438,7 +13486,7 @@ Each row is one person (or plant, or field) measured in every column. The kind o
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_matched_columns("Maths", "Science", "English")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{SciPy}}
@@ -13472,8 +13520,8 @@ res = stats.friedmanchisquare(wide["Maths"], wide["Science"], wide["English"])  
 \wordentry{table.compare\_shapes\_of()}{word:table.compare-shapes-of}
 Do the groups differ in the whole shape of their values, not only in the average?
 
-\codeline{table.compare\_shapes\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest gap between the groups' cumulative shares (the share of values at or below each value); SciPy \code{ks\_\allowbreak{}2samp}, exact as R \code{ks.\allowbreak{}test()}. With tied values R gives an exact p-value that SciPy does not, so that p-value comes from R (simplydata[r]). Three or more groups: the Anderson-Darling k-sample test (SciPy \code{anderson\_\allowbreak{}ksamp}, the midrank version for ties, as R kSamples::\code{ad.\allowbreak{}test()} version 2), with its p-value from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}, printed; the same seed gives the same p-value). Empty cells are skipped. Gives back a one-row table.
+\codeline{table.compare\_shapes\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest gap between the groups' cumulative shares (the share of values at or below each value); SciPy \code{ks\_\allowbreak{}2samp}, exact as R \code{ks.\allowbreak{}test()}. With tied values R gives an exact p-value that SciPy does not, so that p-value comes from R (simplydata[r]). Three or more groups: the Anderson-Darling k-sample test (SciPy \code{anderson\_\allowbreak{}ksamp}, the midrank version for ties, as R kSamples::\code{ad.\allowbreak{}test()} version 2), with its p-value from shuffling the group labels \code{shuffles=9999} times (\code{with\_\allowbreak{}seed=1}, printed; the same seed gives the same p-value). Empty cells are skipped. Gives back a one-row table.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13489,6 +13537,7 @@ Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest 
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.compare_shapes_of("marks", for_each_group_in="class")
 \end{lstlisting}
 \wordentry{table.check\_if\_random\_order()}{word:table.check-if-random-order}
@@ -13510,6 +13559,7 @@ The runs test: each value is above or below the median, and a run is an unbroken
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.check_if_random_order("marks")
 \end{lstlisting}
 \wordentry{table.compare\_correlations()}{word:table.compare-correlations}
@@ -13532,6 +13582,7 @@ The columns are given as in \code{find\_\allowbreak{}correlation\_\allowbreak{}b
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.keep_rows_where("class", is_one_of=["A", "B"])
 table.compare_correlations("hours", "marks", for_each_group_in="class")
 \end{lstlisting}
@@ -14142,8 +14193,8 @@ chart.save("difference_dots.png")
 \wordentry{table.fit\_line()}{word:table.fit-line}
 Fit the straight line y = slope * x + intercept that best follows the points.
 
-\codeline{table.fit\_line(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints how much y goes up for each 1 more of x, with its 95 \% confidence interval and p-value, and R squared: the share of the differences in y that the line explains. Rows with an empty cell in x or y are skipped. A link does not show that x causes y. Gives back a one-row table. The same line as \code{chart.\allowbreak{}fit\_\allowbreak{}line()}; its old name \code{fit\_\allowbreak{}straight\_\allowbreak{}line} still works. For a curve use \code{fit\_\allowbreak{}curve()}, for any formula \code{fit\_\allowbreak{}formula()}. \code{test\_\allowbreak{}method=} (experts) other lines, each answering its own question: \code{\textquotedbl{}theil-sen\textquotedbl{}} or \code{\textquotedbl{}siegel\textquotedbl{}} (outliers pull them little; SciPy theilslopes, siegelslopes); \code{\textquotedbl{}standardised major axis\textquotedbl{}} or \code{\textquotedbl{}major axis\textquotedbl{}} for two measures that both carry error (R smatr::\code{sma()}); \code{\textquotedbl{}deming\textquotedbl{}} (with \code{y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=}, the variance of the errors in y over that in x, normally 1) or \code{\textquotedbl{}passing-bablok\textquotedbl{}} to compare two measurement methods (R mcr::\code{mcreg()}). \code{with\_\allowbreak{}bends=1} lets the line bend (1 to 3 times) where the data say (R segmented::\code{segmented()}, with Davies' test of \code{\textquotedbl{}no bend at all\textquotedbl{}}). \code{changes\_\allowbreak{}at=37} lets the line jump and change its slope at a point you know (an interrupted time series).
+\codeline{table.fit\_line(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints how much y goes up for each 1 more of x, with its 95 \% confidence interval and p-value, and R squared: the share of the differences in y that the line explains. Rows with an empty cell in x or y are skipped. A link does not show that x causes y. Gives back a one-row table. The same line as \code{chart.\allowbreak{}fit\_\allowbreak{}line()}; its old name \code{fit\_\allowbreak{}straight\_\allowbreak{}line} still works. For a curve use \code{fit\_\allowbreak{}curve()}, for any formula \code{fit\_\allowbreak{}formula()}. \code{test\_\allowbreak{}method=} (experts) other lines, each answering its own question: \code{\textquotedbl{}theil-sen\textquotedbl{}} or \code{\textquotedbl{}siegel\textquotedbl{}} (outliers pull them little; SciPy theilslopes, siegelslopes); \code{\textquotedbl{}standardised major axis\textquotedbl{}} or \code{\textquotedbl{}major axis\textquotedbl{}} for two measures that both carry error (R smatr::\code{sma()}); \code{\textquotedbl{}deming\textquotedbl{}} (with \code{y\_\allowbreak{}error\_\allowbreak{}over\_\allowbreak{}x\_\allowbreak{}error=}, the variance of the errors in y over that in x, normally 1) or \code{\textquotedbl{}passing-bablok\textquotedbl{}} to compare two measurement methods (R mcr::\code{mcreg()}). \code{with\_\allowbreak{}bends=1} lets the line bend (1 to 3 times) where the data say (R segmented::\code{segmented()}, with Davies' test of \code{\textquotedbl{}no bend at all\textquotedbl{}}). \code{changes\_\allowbreak{}at=37} lets the line jump and change its slope at a point you know (an interrupted time series).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -14156,11 +14207,12 @@ Ordinary least squares (the same as R \code{lm(y \textasciitilde{} x)}). Prints 
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.fit-line]{How simplydata chooses methods}, page \pageref{basis:table.fit-line}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy \code{linregress()}, \code{t.\allowbreak{}ppf()}}
+\wordfield{Underneath}{SciPy \code{boolean indexing}, \code{reset\_\allowbreak{}index()}, \code{linregress()}, \code{t.\allowbreak{}ppf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.fit_line(x="hours", y="marks")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
@@ -14169,6 +14221,7 @@ table.fit_line(x="hours", y="marks")
 from scipy import stats
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # fit_line(x="hours", y="marks")
 fit = stats.linregress(df["hours"], df["marks"])
 t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
@@ -14189,6 +14242,7 @@ t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
 from scipy import stats
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # fit_line(x="hours", y="marks", test_method="theil-sen")
 fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                         method="separate")                        # (2)
@@ -14304,8 +14358,8 @@ fit = smf.ols("density ~ hour + after + since", df).fit()
 \wordentry{table.fit\_curve()}{word:table.fit-curve}
 Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
-\codeline{table.fit\_curve(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}, of\_degree=2)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-\code{of\_\allowbreak{}degree=2} is a curve with one bend, \code{of\_\allowbreak{}degree=3} can bend twice, and so on (up to 10), the same curve as \code{chart.\allowbreak{}fit\_\allowbreak{}curve(of\_\allowbreak{}degree=)}. Least squares on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}. Prints the curve and R squared; gives back one row per term (the intercept, x, x**2 ...) with its estimate, standard error, t, p-value and 95 \% confidence interval. \code{weights=\textquotedbl{}column\textquotedbl{}} counts some rows more (as R \code{lm(weights =)}); \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}column\textquotedbl{}} fits each group on its own. Rows with an empty cell are skipped. \code{of\_\allowbreak{}kind=\textquotedbl{}logistic growth\textquotedbl{}} fits a named curve instead of powers of x, by nonlinear least squares as R \code{nls()} with R's self-starting models (start values from R when it is there): \code{\textquotedbl{}logistic growth\textquotedbl{}} (SSlogis), \code{\textquotedbl{}4 parameter logistic\textquotedbl{}} (SSfpl), \code{\textquotedbl{}michaelis-menten\textquotedbl{}} (SSmicmen), \code{\textquotedbl{}rise to a limit\textquotedbl{}} (SSasympOrig), \code{\textquotedbl{}rise or fall to a limit\textquotedbl{}} (SSasymp), \code{\textquotedbl{}gompertz growth\textquotedbl{}} (SSgompertz), \code{\textquotedbl{}weibull growth\textquotedbl{}} (SSweibull) or \code{\textquotedbl{}two exponentials\textquotedbl{}} (SSbiexp). Prints each value with what it means and its 95 \% interval.
+\codeline{table.fit\_curve(x=\textquotedbl{}hours\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}, of\_degree=2)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}), one subject)}\\
+One subject (\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Maths\textquotedbl{})}) gives one row per child: each child is in the marks table three times, and a test needs rows that are independent. \code{of\_\allowbreak{}degree=2} is a curve with one bend, \code{of\_\allowbreak{}degree=3} can bend twice, and so on (up to 10), the same curve as \code{chart.\allowbreak{}fit\_\allowbreak{}curve(of\_\allowbreak{}degree=)}. Least squares on the powers of x, as R \code{lm(y \textasciitilde{} poly(x,\allowbreak{} 2,\allowbreak{} raw = TRUE))}. Prints the curve and R squared; gives back one row per term (the intercept, x, x**2 ...) with its estimate, standard error, t, p-value and 95 \% confidence interval. \code{weights=\textquotedbl{}column\textquotedbl{}} counts some rows more (as R \code{lm(weights =)}); \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}column\textquotedbl{}} fits each group on its own. Rows with an empty cell are skipped. \code{of\_\allowbreak{}kind=\textquotedbl{}logistic growth\textquotedbl{}} fits a named curve instead of powers of x, by nonlinear least squares as R \code{nls()} with R's self-starting models (start values from R when it is there): \code{\textquotedbl{}logistic growth\textquotedbl{}} (SSlogis), \code{\textquotedbl{}4 parameter logistic\textquotedbl{}} (SSfpl), \code{\textquotedbl{}michaelis-menten\textquotedbl{}} (SSmicmen), \code{\textquotedbl{}rise to a limit\textquotedbl{}} (SSasympOrig), \code{\textquotedbl{}rise or fall to a limit\textquotedbl{}} (SSasymp), \code{\textquotedbl{}gompertz growth\textquotedbl{}} (SSgompertz), \code{\textquotedbl{}weibull growth\textquotedbl{}} (SSweibull) or \code{\textquotedbl{}two exponentials\textquotedbl{}} (SSbiexp). Prints each value with what it means and its 95 \% interval.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -14323,6 +14377,7 @@ Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.fit_curve(x="hours", y="marks", of_degree=2)
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
@@ -15191,6 +15246,7 @@ fit = sm.GLM(y, X, family=sm.families.Binomial(link=log)).fit()   # (1)
 import statsmodels.api as sm
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # explain("marks", using=["hours"], giving_outliers_less_weight=True)
 X = sm.add_constant(df["hours"])
 huber = sm.robust.norms.HuberT()                          # (1)
@@ -15256,6 +15312,7 @@ import statsmodels.api as sm
 from scipy import stats
 import pandas as pd
 df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
 # explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
 X, y = sm.add_constant(df["hours"]).to_numpy(), df["marks"].to_numpy()
 def refit(rows):                                          # (1)
@@ -19924,11 +19981,11 @@ pl.concat([df, other.select(df.columns)], how="vertical_relaxed")       # (1)
 \undertext{simplydata stops with a message that names the columns found in only one of the two tables, or the columns that hold different kinds of values. The new rows go under, numbered on from the last. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
-\wordentry{table.turn\_columns\_into\_rows()}{word:table.turn-columns-into-rows}
+\wordentry{table.gather\_into\_rows()}{word:table.gather-into-rows}
 Turn some columns into rows: each value gets its own row, with its old column name beside it.
 
 This makes a \code{\textquotedbl{}long\textquotedbl{}} table, which most charts like. The new column \code{names\_\allowbreak{}to=} holds the old column names and \code{values\_\allowbreak{}to=} holds the values.\\
-\codeline{table.turn\_columns\_into\_rows([\textquotedbl{}temperature\textquotedbl{}, \textquotedbl{}rain\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
+\codeline{table.gather\_into\_rows([\textquotedbl{}temperature\textquotedbl{}, \textquotedbl{}rain\textquotedbl{}])   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -19937,14 +19994,14 @@ This makes a \code{\textquotedbl{}long\textquotedbl{}} table, which most charts 
 \code{values\_\allowbreak{}to=} & normally \code{\textquotedbl{}value\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Why this method}{\hyperref[basis:table.turn-columns-into-rows]{How simplydata chooses methods}, page \pageref{basis:table.turn-columns-into-rows}: the default, the evidence and the checks.}
+\wordfield{Why this method}{\hyperref[basis:table.gather-into-rows]{How simplydata chooses methods}, page \pageref{basis:table.gather-into-rows}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{melt()} \textperiodcentered{} Polars \code{unpivot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
 table.keep_columns("month", "city", "temperature", "rain")
-table.turn_columns_into_rows(["temperature", "rain"])
+table.gather_into_rows(["temperature", "rain"])
 table.show_first_rows()
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
@@ -19952,7 +20009,7 @@ table.show_first_rows()
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("weather.csv")
-# turn_columns_into_rows(["temperature", "rain"])
+# gather_into_rows(["temperature", "rain"])
 others = [c for c in df.columns if c not in ("temperature", "rain")]
 df.melt(id_vars=others, value_vars=["temperature", "rain"],
         var_name="column", value_name="value")                          # (1)
@@ -19961,7 +20018,7 @@ df.melt(id_vars=others, value_vars=["temperature", "rain"],
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.read_csv("weather.csv")
-# turn_columns_into_rows(["temperature", "rain"])
+# gather_into_rows(["temperature", "rain"])
 others = [c for c in df.columns if c not in ("temperature", "rain")]
 df.unpivot(on=["temperature", "rain"], index=others,
            variable_name="column", value_name="value")                  # (1)
@@ -19971,11 +20028,14 @@ df.unpivot(on=["temperature", "rain"], index=others,
 \undertext{All temperatures come first, then all rain, as in pandas and Polars. simplydata stops with a message when text and number columns are mixed. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
-\wordentry{table.turn\_rows\_into\_columns()}{word:table.turn-rows-into-columns}
+\wordentry{table.spread\_into\_columns()}{word:table.spread-into-columns}
 Turn rows into columns: each different value in \code{names\_\allowbreak{}from=} becomes a new column, filled from \code{values\_\allowbreak{}from=}.
 
-This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \code{turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows()}. All the other columns say which row is which, so rows only merge when those all agree.\\
-\codeline{table.turn\_rows\_into\_columns(names\_from=\textquotedbl{}city\textquotedbl{}, values\_from=\textquotedbl{}temperature\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
+This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \code{gather\_\allowbreak{}into\_\allowbreak{}rows()}. All the other columns say which row is which, so rows only merge when those all agree; when another column differs between rows that would merge (hours in the marks table), a note says so and how to keep only the columns you need. As pandas \code{df.\allowbreak{}pivot()} and Polars \code{df.\allowbreak{}pivot()}.\\
+\codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}city\textquotedbl{}, values\_from=\textquotedbl{}temperature\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}\\
+How it differs from \code{swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns}: swap flips the whole table; spread turns one column's values into new columns. For a table of name, subject and marks:\\
+\codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}subject\textquotedbl{}, values\_from=\textquotedbl{}marks\textquotedbl{})}\enspace one row per name, a column per subject\\
+\codeline{table.swap\_rows\_and\_columns()}\enspace a column per row, a row per column
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -19983,13 +20043,14 @@ This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \c
 \code{values\_\allowbreak{}from=} & \\
 \end{optiontable}
 
-\wordfield{Why this method}{\hyperref[basis:table.turn-rows-into-columns]{How simplydata chooses methods}, page \pageref{basis:table.turn-rows-into-columns}: the default, the evidence and the checks.}
+\wordfield{Why this method}{\hyperref[basis:table.spread-into-columns]{How simplydata chooses methods}, page \pageref{basis:table.spread-into-columns}: the default, the evidence and the checks.}
 \wordfield{Underneath}{pandas \code{pivot()}, \code{loc[]}, \code{unique()}, \code{reset\_\allowbreak{}index().\allowbreak{}rename\_\allowbreak{}axis()} \textperiodcentered{} Polars \code{pivot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
-table.turn_rows_into_columns(names_from="city", values_from="temperature")
+table.keep_columns("month", "city", "temperature")
+table.spread_into_columns(names_from="city", values_from="temperature")
 table.show_first_rows()
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
@@ -19997,7 +20058,7 @@ table.show_first_rows()
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("weather.csv")[["month", "city", "temperature"]]
-# turn_rows_into_columns(names_from="city", values_from="temperature")
+# spread_into_columns(names_from="city", values_from="temperature")
 wide = df.pivot(index="month", columns="city", values="temperature")
 wide = wide.loc[df["month"].unique(), df["city"].unique()]              # (1)
 wide.reset_index().rename_axis(columns=None)
@@ -20006,12 +20067,63 @@ wide.reset_index().rename_axis(columns=None)
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.read_csv("weather.csv").select("month", "city", "temperature")
-# turn_rows_into_columns(names_from="city", values_from="temperature")
+# spread_into_columns(names_from="city", values_from="temperature")
 df.pivot(on="city", index="month", values="temperature")                # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).}
-\undertext{All the other columns say which row is which. When two rows would fill the same cell simplydata stops and suggests \code{find\_\allowbreak{}average\_\allowbreak{}of()} first, instead of choosing one. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{All the other columns say which row is which. When two rows would fill the same cell simplydata stops and suggests \code{find\_\allowbreak{}average\_\allowbreak{}of()} first, instead of choosing one. When another column differs between rows that would merge, so that the new columns get empty cells, a note names that column. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.swap\_rows\_and\_columns()}{word:table.swap-rows-and-columns}
+Flip the whole table: each row becomes a column and each column a row (the transpose).
+
+\codeline{table.swap\_rows\_and\_columns()}\\
+The first column names the rows, so its values become the new column names, and the old column names go into a new first column called \code{\textquotedbl{}column\textquotedbl{}}. For example, a table of name  maths  science\\
+\codeline{Asha}\enspace 61 66\\
+\codeline{Ben}\enspace 73 98\\
+becomes column  Asha  Ben\\
+\codeline{maths}\enspace 61 73\\
+\codeline{science}\enspace 66 98\\
+If the first column holds numbers, or has a value that repeats or an empty cell, it cannot name the columns: then the new columns are numbered \code{\textquotedbl{}1\textquotedbl{}}, \code{\textquotedbl{}2\textquotedbl{}}, ... (as \code{grid.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}table()}) and the first column is flipped with the rest; a note says so. A new column that holds only numbers is a column of numbers (pandas \code{infer\_\allowbreak{}objects()}); one that mixes text and numbers holds text. As pandas \code{df.\allowbreak{}set\_\allowbreak{}index(first)}.T (a Polars table goes through pandas and back). The same word flips a grid of numbers: \code{grid.\allowbreak{}swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns()}. How it differs from \code{spread\_\allowbreak{}into\_\allowbreak{}columns}: swap flips the whole table; spread turns one column's values into new columns. For a table of name, subject and marks:\\
+\codeline{table.swap\_rows\_and\_columns()}\enspace a column per row, a row per column\\
+\codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}subject\textquotedbl{}, values\_from=\textquotedbl{}marks\textquotedbl{})}\enspace one row per name, a column per subject\\
+Undo with \code{table.\allowbreak{}undo()}.
+
+\wordfield{Options}{none: just write the empty brackets.}
+
+\wordfield{Why this method}{\hyperref[basis:table.swap-rows-and-columns]{How simplydata chooses methods}, page \pageref{basis:table.swap-rows-and-columns}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{boolean indexing}, \code{set\_\allowbreak{}index()}, \code{rename\_\allowbreak{}axis().\allowbreak{}reset\_\allowbreak{}index().\allowbreak{}rename\_\allowbreak{}axis()} \textperiodcentered{} Polars \code{col()}, \code{drop().\allowbreak{}transpose()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
+table.keep_columns("name", "hours", "marks")
+table.swap_rows_and_columns()
+print(table)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"][["name", "hours", "marks"]]
+# swap_rows_and_columns()
+flipped = df.set_index("name").T                                       # (1)
+flipped.rename_axis("column").reset_index().rename_axis(columns=None)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv").filter(pl.col("subject") == "Maths").select("name", "hours", "marks")
+# swap_rows_and_columns()
+df.drop("name").transpose(include_header=True, header_name="column",
+                          column_names=df["name"])                    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the first column (here \code{\textquotedbl{}name\textquotedbl{}}) names the new columns, because it holds text with no repeat and no empty cell, and the old column names go in a first column called \code{\textquotedbl{}column\textquotedbl{}}; pandas' plain .T and Polars' \code{transpose()} would number the columns instead.}
+\undertext{A first column of numbers, or one with a repeat or an empty cell, cannot name columns: then the new columns are numbered \code{\textquotedbl{}1\textquotedbl{}}, \code{\textquotedbl{}2\textquotedbl{}} ... and a note says why. A Polars table goes through pandas and back. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \unsection{Undo and finish}{group:Undo-and-finish}
@@ -23245,7 +23357,7 @@ table.show_first_rows()
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "class", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.add_column("total", "Maths + Science + English")
 table.add_column("best_two", "total - English")
 table.show_first_rows()
@@ -23337,14 +23449,15 @@ print(grid)
 \solutionanswer{Three rows of four zeros: a grid to fill in later.}
 \par\noindent{\small\sffamily\hyperref[lesson:13]{Back to lesson 13}}
 \unsection{Lesson 14: Statistical tests: real difference, or chance?}{solutions:14}
-\solutiontask{1}{Compare the average marks \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{}}. Could the differences be chance?}
+\solutiontask{1}{Compare the classes on the science marks only (\code{keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}subject\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}Science\textquotedbl{})}). Could the differences be chance?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
-table.compare_averages_of("marks", for_each_group_in="subject")
+table.keep_rows_where("subject", is_equal_to="Science")
+table.compare_averages_of("marks", for_each_group_in="class")
 \end{lstlisting}
 \printedoutput{output/solution14_task1.txt}
-\solutionanswer{Yes, they could: p = 0.26 is well above 0.05. That does not prove the subjects are the same; these data simply cannot tell.}
+\solutionanswer{Yes, they could: p = 0.20 is well above 0.05. That does not prove the classes are the same; these 18 children simply cannot tell. A note says class B does not look bell-shaped, so \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} is the safer test here.}
 \solutiontask{2}{Is the average temperature different between the cities of \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -23363,15 +23476,16 @@ table.fit_line(x="year", y="forest")
 \end{lstlisting}
 \printedoutput{output/solution14_task3.txt}
 \solutionanswer{In Applia the forest shrinks by about 0.57 percentage points a year (95 \% CI 0.48 to 0.67), and the line explains 94 \% of the differences.}
-\solutiontask{4}{Remove the rows with outliers in \code{\textquotedbl{}marks\textquotedbl{}} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, then compare the average marks \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} again. Did the answer change?}
+\solutiontask{4}{Make the table of one average mark per child (children, as in part 3), remove the rows with outliers in \code{\textquotedbl{}average of marks\textquotedbl{}} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}}, then compare the classes again. Did the answer change?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
-table.remove_rows_with_outliers("marks", for_each_group_in="class")
-table.compare_averages_of("marks", for_each_group_in="class")
+children = table.find_average_of("marks", for_each_group_in=["class", "name"])
+children.remove_rows_with_outliers("average of marks", for_each_group_in="class")
+children.compare_averages_of("average of marks", for_each_group_in="class")
 \end{lstlisting}
 \printedoutput{output/solution14_task4.txt}
-\solutionanswer{Only one mark (33 in class B) is removed. Class B goes up from 64.3 to 66.1, but p stays 0.028: the answer does not change. Say in a report that you checked, and how.}
+\solutionanswer{One child (Hana, 79.7 in class B) is removed. Class B goes down from 64.3 to 61.2, and p goes from 0.081 to 0.042: with 18 children, one child can change the answer. Report both, say which rule removed whom, and never remove a value only because it changes the result.}
 \par\noindent{\small\sffamily\hyperref[lesson:14]{Back to lesson 14}}
 \unsection{Lesson 15: A whole analysis: from a question to a figure}{solutions:15}
 \solutiontask{1}{Do a whole analysis of \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}: look at it, compare the average rain \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}city\textquotedbl{}}, draw the rain of each city as boxes, and save the chart and the table.}
@@ -23522,14 +23636,15 @@ sdata.find_chance_of_finding(for_test="compare_averages", effect_size=0.25, grou
 \solutionanswer{Only 54 \%: too small. \code{find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed} with \code{groups=3} tells you how many to aim for.}
 \par\noindent{\small\sffamily\hyperref[lesson:18]{Back to lesson 18}}
 \unsection{Lesson 19: Fitting curves, finding the best value and solving}{solutions:19}
-\solutiontask{1}{Fit a curve of degree 3 to \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. Does R squared go up much from the straight line?}
+\solutiontask{1}{Fit a curve of degree 3 to the maths \code{\textquotedbl{}marks\textquotedbl{}} against \code{\textquotedbl{}hours\textquotedbl{}}. Does R squared go up much from the straight line?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
+table.keep_rows_where("subject", is_equal_to="Maths")
 table.fit_curve(x="hours", y="marks", of_degree=3)
 \end{lstlisting}
 \printedoutput{output/solution19_task1.txt}
-\solutionanswer{R squared is 0.71, against 0.69 for the straight line: the extra bends add very little.}
+\solutionanswer{R squared is 0.80, against 0.78 for the straight line: the extra bends add very little.}
 \solutiontask{2}{With the weather table, keep the city Sunnyvale and fit \code{\textquotedbl{}temperature = a + b * cos(2 * pi * (month\_\allowbreak{}number - c) / 12)\textquotedbl{}} with \code{start=}\{\code{\textquotedbl{}a\textquotedbl{}}: 15, \code{\textquotedbl{}b\textquotedbl{}}: 8, \code{\textquotedbl{}c\textquotedbl{}}: 7\}. In which month is it warmest (c)?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -24167,14 +24282,14 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 466 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 248 follow the convention of the package named so that results match it, and 75 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 467 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 249 follow the convention of the package named so that results match it, and 75 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an automated review pass when they were designed, and in November 2026 every entry, with its references, was read again by automated review passes told to act as hostile statistical referees (AI review, not named human reviewers); their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
 \item \textbf{P2.} Where no guideline exists, follow published method comparisons (simulation studies), and prefer the method that stays valid under fewer assumptions (Welch's t-test over Student's). (Delacre et al. 2017; Veroniki et al. 2016)
 \item \textbf{P3.} When the evidence is balanced, match the field's standard software default (the package is named), so results agree with what reviewers expect. Matching the reference package sometimes takes precedence over a method comparison; each such entry says which method the studies prefer and the option that gives it.
-\item \textbf{P4.} Check the data: refuse or warn when the chosen method does not fit, and say what to use instead. (Zuur et al. 2010)
-\item \textbf{P5.} Be open: the printout names the method; every default can be changed with an option; the manual shows the code underneath; the reliability study checks the numbers; independent reviewers checked every default and its references (see 'How the defaults were reviewed').
+\item \textbf{P4.} Check the data where simplydata can: refuse or warn when the chosen method does not fit, and say what to use instead. Whether the rows are independent cannot be seen in the data: the learner says it (\code{matched\_\allowbreak{}by=}, \code{grouped\_\allowbreak{}by=}). (Zuur et al. 2010)
+\item \textbf{P5.} Be open: the printout names the method; every default can be changed with an option; the manual shows the code underneath; the reliability study checks the numbers; automated review passes checked every default and its references (see 'How the defaults were reviewed').
 \end{enumerate}
 \unsection{Start, show and save}{basis-group:Start-show-and-save}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.get-example}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}get\_\allowbreak{}example()}}\par\nopagebreak
@@ -25176,7 +25291,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}}\par\nopagebreak
 \wordfield{Default}{Each pair by Welch's t-test, the p-values adjusted with Holm's method (as R \code{pairwise.\allowbreak{}t.\allowbreak{}test(pool.\allowbreak{}sd = FALSE,\allowbreak{} p.\allowbreak{}adjust.\allowbreak{}method = \textquotedbl{}holm\textquotedbl{})}); with \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} Mann-Whitney U as R 4.6 \code{pairwise.\allowbreak{}wilcox.\allowbreak{}test()} (exact below 50 values per group, also with tied values).}
 \wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}tukey\textquotedbl{}} (Tukey-Kramer), \code{\textquotedbl{}games-howell\textquotedbl{}}, \code{\textquotedbl{}scheffe\textquotedbl{}}, \code{\textquotedbl{}lsd\textquotedbl{}}, \code{\textquotedbl{}dunn\textquotedbl{}}, \code{\textquotedbl{}conover\textquotedbl{}}; \code{based\_\allowbreak{}on=\textquotedbl{}ranks\textquotedbl{}} or \code{\textquotedbl{}percents\textquotedbl{}}; \code{against=} (Dunnett); \code{show=\textquotedbl{}letters\textquotedbl{}}.}
-\wordfield{Why (P1)}{Holm's method keeps the chance of any false alarm at 5 \% and is uniformly more powerful than Bonferroni (Holm 1979; Aickin \& Gensler 1996); multiplicity should be adjusted for and the method named (Bender \& Lange 2001; ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, which Games \& Howell's procedure does (\code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}}; Games \& Howell 1976). Tukey-Kramer (Kramer 1956) and Dunn's test (Dunn 1964) are options.}
+\wordfield{Why (P1)}{Holm's method keeps the chance of any false alarm to at most 5 \% and is uniformly more powerful than Bonferroni (Holm 1979; Aickin \& Gensler 1996); multiplicity should be adjusted for and the method named (Bender \& Lange 2001; ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, which Games \& Howell's procedure does (\code{test\_\allowbreak{}method=\textquotedbl{}games-howell\textquotedbl{}}; Games \& Howell 1976). Tukey-Kramer (Kramer 1956) and Dunn's test (Dunn 1964) are options.}
 \wordfield{Checks}{A pair where both groups have no spread is refused; Tukey prints a note when the largest spread is more than twice the smallest.}
 \wordfield{References}{Holm 1979; Aickin \& Gensler 1996; Bender \& Lange 2001; ICH E9 1998; Games \& Howell 1976; Kramer 1956; Dunn 1964}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
@@ -25204,7 +25319,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-each-pair-of-matched-by-eq-test-method-eq-conover}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()} \code{matched\_\allowbreak{}by=,\allowbreak{} test\_\allowbreak{}method=\textquotedbl{}conover\textquotedbl{}}}\par\nopagebreak
 \wordfield{Default}{Conover's test after Friedman's (R PMCMRplus::\code{frdAllPairsConoverTest()}), with Holm's adjustment.}
 \wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}}; the default Wilcoxon-Holm.}
-\wordfield{Why (P2)}{Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover \& Iman 1979); Holm keeps the chance of any false alarm at 5 \% (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same mean-rank caveat applies (Benavoli et al. 2016).}
+\wordfield{Why (P2)}{Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover \& Iman 1979); Holm keeps the chance of any false alarm to at most 5 \% (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same mean-rank caveat applies (Benavoli et al. 2016).}
 \wordfield{Checks}{As \code{test\_\allowbreak{}method=\textquotedbl{}nemenyi\textquotedbl{}}.}
 \wordfield{References}{Conover \& Iman 1979; Holm 1979; Benavoli et al. 2016}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-each-pair-of]{page \pageref{word:table.compare-each-pair-of}}}
@@ -26937,18 +27052,24 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P4)}{Data preparation: matching by name stops values landing in the wrong column when two files list them in another order. \textit{Basis: convention.}}
 \wordfield{Checks}{Columns found in only one table, or holding different kinds of values, are refused with their names.}
 \wordfield{In the dictionary}{\hyperref[word:table.add-rows-from]{page \pageref{word:table.add-rows-from}}}
-\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.turn-columns-into-rows}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}turn\_\allowbreak{}columns\_\allowbreak{}into\_\allowbreak{}rows()}}\par\nopagebreak
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.gather-into-rows}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}gather\_\allowbreak{}into\_\allowbreak{}rows()}}\par\nopagebreak
 \wordfield{Default}{The other columns stay beside each value; the new columns are called \code{\textquotedbl{}column\textquotedbl{}} and \code{\textquotedbl{}value\textquotedbl{}}.}
 \wordfield{Alternatives}{\code{names\_\allowbreak{}to=}, \code{values\_\allowbreak{}to=}.}
 \wordfield{Why (P5)}{Data preparation: a long table is what charts and models take; plain names say what each new column holds. \textit{Basis: convention.}}
 \wordfield{Checks}{Mixing text and number columns, or a name already in the table, is refused.}
-\wordfield{In the dictionary}{\hyperref[word:table.turn-columns-into-rows]{page \pageref{word:table.turn-columns-into-rows}}}
-\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.turn-rows-into-columns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}turn\_\allowbreak{}rows\_\allowbreak{}into\_\allowbreak{}columns()}}\par\nopagebreak
+\wordfield{In the dictionary}{\hyperref[word:table.gather-into-rows]{page \pageref{word:table.gather-into-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.spread-into-columns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}columns()}}\par\nopagebreak
 \wordfield{Default}{Rows and new columns stay in the order they first appear; all the other columns say which row is which.}
 \wordfield{Alternatives}{\code{names\_\allowbreak{}from=}, \code{values\_\allowbreak{}from=}.}
 \wordfield{Why (P4)}{Data preparation: keeping the table's own order (pandas would sort) and refusing to choose between two values for one cell keep the result honest. \textit{Basis: convention.}}
-\wordfield{Checks}{When two rows would fill one cell simplydata stops and suggests an average first.}
-\wordfield{In the dictionary}{\hyperref[word:table.turn-rows-into-columns]{page \pageref{word:table.turn-rows-into-columns}}}
+\wordfield{Checks}{When two rows would fill one cell simplydata stops and suggests an average first; when another column differs between rows that would merge, so that the new columns get empty cells, a note names that column.}
+\wordfield{In the dictionary}{\hyperref[word:table.spread-into-columns]{page \pageref{word:table.spread-into-columns}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.swap-rows-and-columns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns()}}\par\nopagebreak
+\wordfield{Default}{The first column names the new columns when it holds text with no repeat and no empty cell (pandas \code{set\_\allowbreak{}index(first)}.T); otherwise the new columns are numbered \code{\textquotedbl{}1\textquotedbl{}}, \code{\textquotedbl{}2\textquotedbl{}} ... and the old column names go in \code{\textquotedbl{}column\textquotedbl{}}.}
+\wordfield{Alternatives}{Keep or reorder the columns first (\code{keep\_\allowbreak{}columns}) to choose which column names the rows.}
+\wordfield{Why (P5)}{Data preparation: a table read with its measurements as rows becomes one row per thing measured; using the first text column as names keeps the row labels, as in pandas and R \code{t()} on a data frame with row names. \textit{Basis: convention.}}
+\wordfield{Checks}{A table with no rows or no columns is refused; a first column that cannot name columns gives a note.}
+\wordfield{In the dictionary}{\hyperref[word:table.swap-rows-and-columns]{page \pageref{word:table.swap-rows-and-columns}}}
 \unsection{Undo and finish}{basis-group:Undo-and-finish}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.save}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}save()}}\par\nopagebreak
 \wordfield{Default}{The file holds only the columns, without row labels.}
@@ -27881,6 +28002,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:forest-plot}{chart.forest\_plot()}
 \indexline{word:sdata.frequency-filter}{sdata.frequency\_filter()}
 \indexline{word:system.frequency-response}{system.frequency\_response()}
+\indexline{word:table.gather-into-rows}{table.gather\_into\_rows()}
 \indexline{word:grid.get-all-numbers}{grid.get\_all\_numbers()}
 \indexline{word:table.get-cell-at}{table.get\_cell\_at()}
 \indexline{word:grid.get-column}{grid.get\_column()}
@@ -28024,6 +28146,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:spectrum}{chart.spectrum()}
 \indexline{word:spectrum-over-time}{chart.spectrum\_over\_time()}
 \indexline{word:table.split-column}{table.split\_column()}
+\indexline{word:table.spread-into-columns}{table.spread\_into\_columns()}
 \indexline{word:sdata.start-30-days}{sdata.start\_30\_days()}
 \indexline{word:nums.start-again}{nums.start\_again()}
 \indexline{word:table.start-again}{table.start\_again()}
@@ -28034,6 +28157,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:sticks}{chart.sticks()}
 \indexline{word:nums.subtract}{nums.subtract()}
 \indexline{word:grid.swap-rows-and-columns}{grid.swap\_rows\_and\_columns()}
+\indexline{word:table.swap-rows-and-columns}{table.swap\_rows\_and\_columns()}
 \indexline{word:sdata.system}{sdata.system()}
 \indexline{word:sdata.table}{sdata.table()}
 \indexline{word:system.table}{system.table()}
@@ -28046,7 +28170,6 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.times}{nums.times()}
 \indexline{word:trade-off-curve}{chart.trade\_off\_curve()}
 \indexline{word:trend-and-season}{chart.trend\_and\_season()}
-\indexline{word:table.turn-columns-into-rows}{table.turn\_columns\_into\_rows()}
 \indexline{word:table.turn-into-dates}{table.turn\_into\_dates()}
 \indexline{word:table.turn-into-lowercase}{table.turn\_into\_lowercase()}
 \indexline{word:table.turn-into-numbers}{table.turn\_into\_numbers()}
@@ -28055,7 +28178,6 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.turn-into-table}{nums.turn\_into\_table()}
 \indexline{word:table.turn-into-text}{table.turn\_into\_text()}
 \indexline{word:table.turn-into-uppercase}{table.turn\_into\_uppercase()}
-\indexline{word:table.turn-rows-into-columns}{table.turn\_rows\_into\_columns()}
 \indexline{word:nums.undo}{nums.undo()}
 \indexline{word:table.undo}{table.undo()}
 \indexline{word:use-colour}{chart.use\_color()}

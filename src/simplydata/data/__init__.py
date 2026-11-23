@@ -12,6 +12,7 @@ of the repository).
 from __future__ import annotations
 
 from importlib.resources import files
+from typing import TYPE_CHECKING, overload
 
 import pandas as pd
 
@@ -456,7 +457,19 @@ def _list_examples() -> None:
           'chart = sdata.chart(table)')
 
 
-def get_example(name: str | None = None, from_r_package: str | None = None):
+if TYPE_CHECKING:
+    from ..table import Table
+
+
+@overload
+def get_example(name: str, from_r_package: str | None = None) -> Table: ...
+
+
+@overload
+def get_example(name: None = None, from_r_package: str | None = None) -> None: ...
+
+
+def get_example(name: str | None = None, from_r_package: str | None = None) -> Table | None:
     """A small table to practise with. sdata.get_example("marks")
 
     sdata.get_example() with no name lists every table and its columns.

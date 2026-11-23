@@ -6,6 +6,8 @@ fitdistrplus); see that module for every choice.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import narwhals as nw
@@ -104,7 +106,7 @@ class DistributionTableWords:
 
     # ------------------------------------------------------------------ compare_distributions_for
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def compare_distributions_for(self, column=None, distributions=DEFAULT_COMPARED, for_each_group_in=None):
+    def compare_distributions_for(self: _Same, column=None, distributions=DEFAULT_COMPARED, for_each_group_in=None) -> _Same:
         """Fit several distributions to a column and rank them by AIC (smaller is better).
 
         table.compare_distributions_for("sales")   (with sdata.get_example("shop"))

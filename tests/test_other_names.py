@@ -73,7 +73,7 @@ def test_distribution_pointers_name_the_distribution_words():
 
 @pytest.mark.parametrize("name, word", [
     ("groupby", "find_average_of"), ("merge", "join_with"), ("concat", "add_rows_from"),
-    ("pivot", "turn_rows_into_columns"), ("melt", "turn_columns_into_rows"), ("head", "show_first_rows"),
+    ("pivot", "spread_into_columns"), ("melt", "gather_into_rows"), ("head", "show_first_rows"),
     ("tail", "show_last_rows"), ("iloc", "keep_rows_by_position"), ("filter", "keep_rows_where"), ("dropna", "remove_rows_with_empty_cells_in"),
     ("fillna", "fill_empty_cells_in"), ("sort_values", "sort_by"), ("mean", "find_average_of"), ("plot", "start_chart"),
     ("curve_fit", "fit_formula"), ("polyfit", "fit_curve"), ("linregress", "fit_line"), ("interpolate", "values_at"),

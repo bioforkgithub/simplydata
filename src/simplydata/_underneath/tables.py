@@ -496,7 +496,42 @@ ENTRIES += [
             df.to_pandas()
         """},
         compare="table",
-        also="A table that is already pandas comes back as it is; a Polars table is turned into pandas.",
+        also="It is a copy: changing it never changes the table, and later steps on the table never change it "
+             "(a pandas table is copied with df.copy(), which costs nothing until one of them changes under pandas 3; "
+             "a Polars table is turned into pandas).",
+    ),
+    Entry(
+        word="table.make_copy",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            backup = table.make_copy()
+            table.keep_rows_where("class", is_equal_to="A")
+            backup
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # backup = make_copy()
+                backup = df.copy()                                    # (1)
+                df = df[df["class"] == "A"]
+                backup
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # backup = make_copy()
+                backup = df.clone()
+                df = df.filter(pl.col("class") == "A")
+                backup
+            """,
+        },
+        compare="table",
+        choices=("the copy keeps the steps so far, so backup.undo() and backup.show_steps() work on it; pandas "
+                 "df.copy() keeps only the data.",),
+        also="copy.copy(table) and copy.deepcopy(table) give the same independent copy. A plain backup = table gives "
+             "the same table a second name, so a step on one shows in both.",
     ),
     Entry(
         word="table.as_polars",
@@ -638,11 +673,13 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.show_rows_with_outliers("marks", for_each_group_in="class")
         """,
         code={"pandas": """
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # show_rows_with_outliers("marks", for_each_group_in="class")
             marks = df.groupby("class", dropna=False)["marks"]
             q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
@@ -1726,6 +1763,7 @@ ENTRIES += [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_interval_of("marks", "average")
         """,
         code={"SciPy": """
@@ -1733,6 +1771,7 @@ ENTRIES += [
             import pandas as pd
             from scipy import stats
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # find_interval_of("marks", "average")
             x = df["marks"].dropna().to_numpy(dtype=float)
             ci = stats.bootstrap((x,), np.mean, n_resamples=9999, method="BCa",            # (1) (2)
@@ -1786,17 +1825,17 @@ ENTRIES += [
              + SAID,
     ),
     Entry(
-        word="table.turn_columns_into_rows",
+        word="table.gather_into_rows",
         data="weather",
         ours="""
             table = sdata.get_example("weather")
-            table.turn_columns_into_rows(["temperature", "rain"])
+            table.gather_into_rows(["temperature", "rain"])
         """,
         code={
             "pandas": """
                 import pandas as pd
                 df = pd.read_csv("weather.csv")
-                # turn_columns_into_rows(["temperature", "rain"])
+                # gather_into_rows(["temperature", "rain"])
                 others = [c for c in df.columns if c not in ("temperature", "rain")]
                 df.melt(id_vars=others, value_vars=["temperature", "rain"],
                         var_name="column", value_name="value")                          # (1)
@@ -1804,7 +1843,7 @@ ENTRIES += [
             "Polars": """
                 import polars as pl
                 df = pl.read_csv("weather.csv")
-                # turn_columns_into_rows(["temperature", "rain"])
+                # gather_into_rows(["temperature", "rain"])
                 others = [c for c in df.columns if c not in ("temperature", "rain")]
                 df.unpivot(on=["temperature", "rain"], index=others,
                            variable_name="column", value_name="value")                  # (1)
@@ -1817,18 +1856,18 @@ ENTRIES += [
              "when text and number columns are mixed. " + SAID,
     ),
     Entry(
-        word="table.turn_rows_into_columns",
+        word="table.spread_into_columns",
         data="weather",
         ours="""
             table = sdata.get_example("weather")
             table.keep_columns("month", "city", "temperature")
-            table.turn_rows_into_columns(names_from="city", values_from="temperature")
+            table.spread_into_columns(names_from="city", values_from="temperature")
         """,
         code={
             "pandas": """
                 import pandas as pd
                 df = pd.read_csv("weather.csv")[["month", "city", "temperature"]]
-                # turn_rows_into_columns(names_from="city", values_from="temperature")
+                # spread_into_columns(names_from="city", values_from="temperature")
                 wide = df.pivot(index="month", columns="city", values="temperature")
                 wide = wide.loc[df["month"].unique(), df["city"].unique()]              # (1)
                 wide.reset_index().rename_axis(columns=None)
@@ -1836,7 +1875,7 @@ ENTRIES += [
             "Polars": """
                 import polars as pl
                 df = pl.read_csv("weather.csv").select("month", "city", "temperature")
-                # turn_rows_into_columns(names_from="city", values_from="temperature")
+                # spread_into_columns(names_from="city", values_from="temperature")
                 df.pivot(on="city", index="month", values="temperature")                # (1)
             """,
         },
@@ -1844,7 +1883,43 @@ ENTRIES += [
         choices=("rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both "
                  "engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).",),
         also="All the other columns say which row is which. When two rows would fill the same cell simplydata "
-             "stops and suggests find_average_of() first, instead of choosing one. " + SAID,
+             "stops and suggests find_average_of() first, instead of choosing one. When another column differs "
+             "between rows that would merge, so that the new columns get empty cells, a note names that column. "
+             + SAID,
+    ),
+    Entry(
+        word="table.swap_rows_and_columns",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
+            table.keep_columns("name", "hours", "marks")
+            table.swap_rows_and_columns()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                df = df[df["subject"] == "Maths"][["name", "hours", "marks"]]
+                # swap_rows_and_columns()
+                flipped = df.set_index("name").T                                       # (1)
+                flipped.rename_axis("column").reset_index().rename_axis(columns=None)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv").filter(pl.col("subject") == "Maths").select("name", "hours", "marks")
+                # swap_rows_and_columns()
+                df.drop("name").transpose(include_header=True, header_name="column",
+                                          column_names=df["name"])                    # (1)
+            """,
+        },
+        compare="table",
+        choices=("the first column (here \"name\") names the new columns, because it holds text with no repeat and "
+                 "no empty cell, and the old column names go in a first column called \"column\"; pandas' plain .T "
+                 "and Polars' transpose() would number the columns instead.",),
+        also="A first column of numbers, or one with a repeat or an empty cell, cannot name columns: then the new "
+             "columns are numbered \"1\", \"2\" ... and a note says why. A Polars table goes through pandas and back. "
+             + SAID,
     ),
     Entry(word="table.start_again", ours="""
               table = sdata.get_example("marks")

@@ -496,7 +496,7 @@ can write it up in a report or a paper.
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
   \item[{\hyperref[part:lessons]{Part II: Lessons}}] @LESSON_COUNT@ short lessons that teach the whole
-    of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
+    to start with simplydata in a day (the 30-day guide goes further). Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
     its options, an example you can run and the library it uses underneath.
@@ -1199,9 +1199,10 @@ def _method_basis() -> str:
            f"{counts['convention']} follow the convention of the package named so that results match it, and "
            f"{counts['starting value']} are simplydata's own starting values, each changed with the option named. "
            "Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of "
-           "the later batches were read by an independent reviewer when they were designed, and in November 2026 "
-           "every entry, with its references, was checked again by independent reviewers acting as hostile "
-           "statistical referees; their findings were applied. The same text is in "
+           "the later batches were read by an automated review pass when they were designed, and in November 2026 "
+           "every entry, with its references, was read again by automated review passes told to act as hostile "
+           "statistical referees (AI review, not named human reviewers); their findings were applied. The same "
+           "text is in "
            + code("docs/how_simplydata_chooses.md") + ".",
            r"\unsection{The five principles}{basis:principles}",
            r"\begin{enumerate}"]

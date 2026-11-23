@@ -11,6 +11,8 @@ How the hard tricks work underneath (users never see this):
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 import numbers
 
@@ -95,7 +97,7 @@ def _label_frame(fig, axes, over, value):
 class LayoutWords:
     # ------------------------------------------------------------ small multiples
     @friendly(renamed={"row": "down", "column": "across", "columns": "per_row"})
-    def draw_one_chart_for_each_group_in(self, by=None, down=None, across=None, per_row=None, same_x=True, same_y=True):
+    def draw_one_chart_for_each_group_in(self: _Same, by=None, down=None, across=None, per_row=None, same_x=True, same_y=True) -> _Same:
         """One small chart for each group. chart.draw_one_chart_for_each_group_in("class", per_row=3) (with sdata.get_example("marks"))
 
         per_row=3 puts 3 small charts in each row.
@@ -144,7 +146,7 @@ class LayoutWords:
 
     # ------------------------------------------------------------ zoom box
     @friendly
-    def add_zoom_box(self, x_between=None, y_between=None, where="top right", **old):
+    def add_zoom_box(self: _Same, x_between=None, y_between=None, where="top right", **old) -> _Same:
         """A small box showing part of the chart close up.
 
         chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60]) (with sdata.get_example("marks"))
@@ -189,7 +191,7 @@ class LayoutWords:
 
     # ------------------------------------------------------------ animation
     @friendly
-    def animate(self, over, seconds_per_frame=0.8, keep=False):
+    def animate(self: _Same, over, seconds_per_frame=0.8, keep=False) -> _Same:
         """A moving chart with one picture for each value of a column.
 
         chart.animate(over="year") (with sdata.get_example("growth")), then chart.save("growth.gif")
@@ -297,13 +299,13 @@ class Page(BaseChart):
     set_size = LookWords.set_size
 
     @friendly
-    def use_style(self, name):
+    def use_style(self: _Same, name) -> _Same:
         """One look for every chart on the page: "paper", "school", "presentation" or "dark"."""
         LookWords.use_style(self, name)
         return self._set(style_set=True)
 
     @friendly
-    def write_title_on_top(self, text):
+    def write_title_on_top(self: _Same, text) -> _Same:
         """A title above the whole page. page.write_title_on_top("Marks in both classes")"""
         return self._set(title=str(text))
 

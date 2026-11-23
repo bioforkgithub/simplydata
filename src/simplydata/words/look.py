@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 from matplotlib import colors as mcolors
 from matplotlib.patches import Rectangle
 
@@ -172,7 +174,7 @@ def _label_colour_bar(ctx, text):
 
 class LookWords:
     @friendly
-    def use_style(self, name):
+    def use_style(self: _Same, name) -> _Same:
         """The overall look. chart.use_style("school")
 
         "paper" (default), "school", "presentation" or "dark".
@@ -181,7 +183,7 @@ class LookWords:
         return self._set(style=name)
 
     @friendly
-    def set_size(self, width=8, height=6, unit="inches"):
+    def set_size(self: _Same, width=8, height=6, unit="inches") -> _Same:
         """The size of the chart. chart.set_size(width=17, height=12, unit="cm")
 
         unit= is "inches" (normal), "cm", "mm" or "pixels". A saved file is exactly this size.
@@ -202,14 +204,14 @@ class LookWords:
 
     # ------------------------------------------------------------ colours
     @friendly
-    def use_colour(self, name):
+    def use_colour(self: _Same, name) -> _Same:
         """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")"""
         return self._set(colour=check_colour(name, "use_colour"))
 
     use_color = use_colour  # American spelling, same word
 
     @friendly
-    def use_colours(self, *names):
+    def use_colours(self: _Same, *names) -> _Same:
         """Your own colours for the groups, in order. chart.use_colours("blue", "orange", "green")"""
         if len(names) == 1 and is_listlike(names[0]):
             names = tuple(names[0])
@@ -220,7 +222,7 @@ class LookWords:
     use_colors = use_colours  # American spelling, same word
 
     @friendly
-    def use_colour_scale(self, *names, middle=None, log=False, steps=None, between=None):
+    def use_colour_scale(self: _Same, *names, middle=None, log=False, steps=None, between=None) -> _Same:
         """The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.
         chart.use_colour_scale("magma") (with chart.draw_heatmap(x="month", y="city", value="rain") on sdata.get_example("weather"))
 
@@ -245,12 +247,12 @@ class LookWords:
 
     # ------------------------------------------------------------ grid
     @friendly
-    def show_grid(self):
+    def show_grid(self: _Same) -> _Same:
         """Grid lines across the chart in both directions. chart.show_grid()"""
         return self._set(grid=True)
 
     @friendly
-    def hide_grid(self):
+    def hide_grid(self: _Same) -> _Same:
         """No grid lines. chart.hide_grid()"""
         return self._set(grid=False)
 
@@ -259,40 +261,40 @@ class LookWords:
         return self._replace("legend", "finish", _legend, scope="figure", where=where)
 
     @friendly
-    def put_legend_at_top(self):
+    def put_legend_at_top(self: _Same) -> _Same:
         """The legend above the chart, in one row. chart.put_legend_at_top()"""
         return self._legend_step("top")
 
     put_legend_on_top = put_legend_at_top  # the other spelling, same word
 
     @friendly
-    def put_legend_at_bottom(self):
+    def put_legend_at_bottom(self: _Same) -> _Same:
         """The legend below the chart, in one row under the x-axis name. chart.put_legend_at_bottom()"""
         return self._legend_step("bottom")
 
     put_legend_on_bottom = put_legend_at_bottom  # the other spelling, same word
 
     @friendly
-    def put_legend_on_left(self):
+    def put_legend_on_left(self: _Same) -> _Same:
         """The legend to the left of the chart. chart.put_legend_on_left()"""
         return self._legend_step("left")
 
     put_legend_at_left = put_legend_on_left  # the other spelling, same word
 
     @friendly
-    def put_legend_on_right(self):
+    def put_legend_on_right(self: _Same) -> _Same:
         """The legend to the right of the chart, outside the plot. chart.put_legend_on_right()"""
         return self._legend_step("right")
 
     put_legend_at_right = put_legend_on_right  # the other spelling, same word
 
     @friendly
-    def hide_legend(self):
+    def hide_legend(self: _Same) -> _Same:
         """No legend. chart.hide_legend()"""
         return self._legend_step("hide")
 
     @friendly
-    def label_legend(self, text):
+    def label_legend(self: _Same, text) -> _Same:
         """The name above the legend. chart.label_legend("Class")
         (with chart.draw_dots(x="hours", y="marks", colour="class") on sdata.get_example("marks"))
 
@@ -317,7 +319,7 @@ class LookWords:
         return set_order(self, "colour", names, None)
 
     @friendly
-    def show_legend(self):
+    def show_legend(self: _Same) -> _Same:
         """The legend in its usual place, for example after hide_legend(). chart.show_legend()
 
         A legend only appears when colour= (or shape=) makes groups.
@@ -328,7 +330,7 @@ class LookWords:
 
     # ------------------------------------------------------------ colour bar
     @friendly
-    def label_colour_bar(self, text):
+    def label_colour_bar(self: _Same, text) -> _Same:
         """The name beside the colour bar of a heatmap or contour. chart.label_colour_bar("Height (m)")"""
         return self._replace("label_colour_bar", "text", _label_colour_bar, text=str(text))
 

@@ -598,7 +598,7 @@ def test_numbers_are_written_plainly():
     (lambda t: t.compare_averages_of("marks", for_each_group_in="marks"), "cannot be both"),
     (lambda t: t.compare_averages_of("marks", for_each_group_in="klass"), 'Did you mean "class"'),
     (lambda t: t.compare_averages_of("marks"), "for_each_group_in= as a column name"),
-    (lambda t: t.compare_averages_of("marks", by="class"), "has no option called by="),
+    (lambda t: t.compare_averages_of("marks", grouping="class"), "has no option called grouping="),
     (lambda t: t.compare_average_to("marks", "60"), "needs a number"),
     (lambda t: t.compare_before_and_after("marks", "marks"), "two different columns"),
     (lambda t: t.compare_counts_of("subject", for_each_group_in="class", test_method="g-test"), 'test_method="g-test"'),

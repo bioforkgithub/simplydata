@@ -793,7 +793,7 @@ def _scipy_generic(scipy_name, params):
 
 
 @friendly
-def distribution(name=None, *values, **parameters):
+def distribution(name=None, *values, **parameters) -> Distribution:
     """Make a distribution to ask chances, percentiles and random numbers of.
 
     dist = sdata.distribution("normal", average=50, standard_deviation=10)

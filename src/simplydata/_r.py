@@ -87,9 +87,7 @@ def _install_text(packages, what, python_note=None) -> str:
         lines.append('  - pip install "simplydata[r]"   (rpy2, the bridge from Python to R), then restart Python')
         lines.append("  - install R from https://cran.r-project.org")
     elif missing == "R":
-        lines.append("  - R did not start: " + _STATE.get("error", "unknown error").strip().splitlines()[0][:300])
-        lines.append("  - install R from https://cran.r-project.org if it is not installed; if it is, set the "
-                     "R_HOME environment variable to its folder and restart Python")
+        lines += _r_start_text()
     cran = [p for p in packages if p not in BIOCONDUCTOR]
     if cran:
         lines.append("  - in R: install.packages(c(" + ", ".join(f'"{p}"' for p in cran) + "))")
@@ -100,6 +98,29 @@ def _install_text(packages, what, python_note=None) -> str:
     if python_note:
         lines.append(f"({python_note})")
     return "\n".join(lines)
+
+
+def _r_start_text() -> list:
+    """Why R did not start, in plain words: R not found, or found but not started from Python. rpy2's own error
+    (such as "list index out of range") says nothing to a reader, so it is not shown."""
+    import shutil
+
+    home = os.environ.get("R_HOME")
+    if not home and not shutil.which("R") and not shutil.which("Rscript"):
+        return ["  - R was not found on this computer: install R from https://cran.r-project.org, then restart Python",
+                "  - if R is installed in a folder of your own, set the R_HOME environment variable to that folder "
+                "and restart Python"]
+    if home and not os.path.isdir(os.path.join(home, "bin")):
+        return [f"  - R_HOME is set to {home}, but that folder has no R in it (no bin folder)",
+                "  - set R_HOME to the folder R is installed in (the one that holds bin), or install R from "
+                "https://cran.r-project.org, then restart Python"]
+    where = f" (in {home})" if home else ""
+    lines = [f"  - R is installed{where} but did not start from Python"]
+    if sys.platform == "win32":
+        lines.append("  - on Windows, start Python from PowerShell or the Command Prompt (cmd): from Git Bash or "
+                     "another Unix-like shell rpy2 cannot ask R for its settings")
+    lines.append("  - check that R_HOME is the folder of the R you want (the one that holds bin), then restart Python")
+    return lines
 
 
 def _version_key(folder):
