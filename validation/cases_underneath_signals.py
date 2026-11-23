@@ -19,6 +19,7 @@ AIR = """
 CLOSED_FORM = "exact: worked out by hand from the formula"
 STEP_FORM = "exact: 0.2 (1 - exp(-t) (cos 2t + sin 2t / 2))"
 IMPULSE_FORM = "exact: exp(-t) sin(2t) / 2"
+FACTS = "from simplydata._underneath.check import chart_facts\n"
 
 
 def STEP(t: float) -> float:  # noqa: N802 - the closed form, named as the formula
@@ -33,6 +34,18 @@ def _join(*parts) -> str:
     import textwrap
 
     return "\n".join(textwrap.dedent(part).strip("\n") for part in parts)
+
+
+def _ours_drawn(build: str, read: str, facts: str = "") -> str:
+    """simplydata code that builds `chart`, reads what it drew into the table `drawn` with chart.get_numbers_drawn(),
+    then the code `read`. `facts` names what no simplydata word reads yet: those are read with chart_facts() into f."""
+    import textwrap
+
+    code = textwrap.dedent(build).strip("\n") + "\ndrawn = chart.get_numbers_drawn()\n"
+    if facts:
+        code = (FACTS + code + f"# no simplydata word reads {facts} yet\n"
+                "f = chart_facts(chart._render().axes[0])\n")
+    return code + textwrap.dedent(read).strip("\n")
 
 
 def cases(Case):
@@ -248,12 +261,12 @@ def cases(Case):
              """, r_tolerance=1e-9,
              note="192 months: frequency 16 / 192 is once a year."),
         Case("spectrum", "the drawn periodogram of the Lake Huron level is SciPy's", "Lake Huron", "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
-                 facts = chart_facts(sdata.chart(data).spectrum("level", sorted_by="year")._render().axes[0])
-                 x, y = facts["lines"][0]
-                 {"points": len(x), "first power drawn": y[0], "labels": len(facts["texts"][1])}
-             """,
+             ours=_ours_drawn("""
+                 chart = sdata.chart(data).spectrum("level", sorted_by="year")
+             """, """
+                 {"points": drawn.count_rows(), "first power drawn": drawn.get_cell_at(row=1, column="y"),
+                  "labels": len(f["texts"][1])}
+             """, facts="the labels written on the chart"),
              parent="""
                  from scipy import signal
                  f, p = signal.periodogram(data["level"].to_numpy(dtype=float), detrend="constant", window="boxcar",
@@ -262,12 +275,12 @@ def cases(Case):
              """, parent_label="SciPy signal.periodogram", parent_tolerance=1e-9),
         Case("spectrum_over_time", "the drivers killed or seriously injured: spectrum over time in pieces of 48 months",
              "Seatbelts", "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).spectrum_over_time("drivers", window=48)
-                 cells = chart_facts(chart._render().axes[0])["cells"][0]
-                 {"cells": cells[0], "first cell (decibels)": cells[1][1]}
-             """,
+             """, """
+                 # row 2: the cells go piece by piece along the lowest frequency first, as SciPy's p.ravel() does
+                 {"cells": drawn.count_rows(), "first cell (decibels)": drawn.get_cell_at(row=2, column="value")}
+             """),
              parent="""
                  import numpy as np
                  from scipy import signal
@@ -623,15 +636,17 @@ def cases(Case):
              published={"top s^2": (0.0, 0, CLOSED_FORM), "rows of A, B, C, D": (9, 0, "4 + 2 + 2 + 1 numbers")}),
         Case("system.chart", "the Bode chart of 1 / (s^2 + 2 s + 5): its first gain is SciPy's", "closed form (no data)",
              "closed form",
-             ours="""
+             ours=_ours_drawn("""
                  import math
-                 from simplydata._underneath.check import chart_facts
-                 facts = chart_facts(sdata.system("1 / (s**2 + 2*s + 5)").chart()._render().axes[0])
-                 x, y = facts["lines"][0]
-                 w = x[0]
+                 chart = sdata.system("1 / (s**2 + 2*s + 5)").chart()
+             """, """
+                 gain = drawn.keep_rows_where("panel", is_equal_to=1)   # panel 1 of a Bode chart is the gain, 2 the phase
+                 w = gain.get_cell_at(row=1, column="x")
+                 first = gain.get_cell_at(row=1, column="y")
                  exact = -10 * math.log10((5 - w ** 2) ** 2 + (2 * w) ** 2)   # 20 log10 |1 / (5 - w^2 + 2 i w)|
-                 {"frequencies": len(x), "first gain (decibels)": y[0], "first gain minus its closed form": y[0] - exact}
-             """,
+                 {"frequencies": gain.count_rows(), "first gain (decibels)": first,
+                  "first gain minus its closed form": first - exact}
+             """),
              published={"first gain minus its closed form": (0.0, 1e-9, "exact: 20 log10 |1 / (5 - w^2 + 2iw)| at "
                                                                         "the first frequency drawn")},
              parent="""
@@ -643,12 +658,12 @@ def cases(Case):
         # ---- the other chart words
         Case("autocorrelation_bars", "the drawn sticks for the Lake Huron level are statsmodels' acf", "Lake Huron",
              "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
-                 x, y = chart_facts(sdata.chart(data).autocorrelation_bars("level", sorted_by="year")
-                                    ._render().axes[0])["lines"][0]
-                 {"sticks": len(x), "1 year back": y[0]}
-             """,
+             ours=_ours_drawn("""
+                 chart = sdata.chart(data).autocorrelation_bars("level", sorted_by="year")
+             """, """
+                 sticks = drawn.keep_rows_where("kind", is_equal_to="dot")   # one dot on the top of each stick
+                 {"sticks": sticks.count_rows(), "1 year back": sticks.get_cell_at(row=1, column="y")}
+             """),
              parent="""
                  from statsmodels.tsa.stattools import acf
                  {"sticks": 19, "1 year back": acf(data["level"], nlags=19, adjusted=False, fft=False)[1]}
@@ -658,35 +673,42 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("cross_correlation_bars", "drivers killed or injured and front-seat passengers: the drawn shift 0",
              "Seatbelts", "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).cross_correlation_bars("drivers", "DriversKilled", sorted_by="month",
                                                                   rows_back=12)
-                 x, y = chart_facts(chart._render().axes[0])["lines"][0]
-                 {"sticks": len(x), "shift 0": y[12], "shift 1": y[13]}
-             """,
+             """, """
+                 sticks = drawn.keep_rows_where("kind", is_equal_to="dot")   # one dot on the top of each stick
+                 count = sticks.count_rows()
+                 shift_0 = sticks.keep_rows_where("x", is_equal_to=0).get_cell_at(row=1, column="y")
+                 sticks.undo()
+                 shift_1 = sticks.keep_rows_where("x", is_equal_to=1).get_cell_at(row=1, column="y")
+                 {"sticks": count, "shift 0": shift_0, "shift 1": shift_1}
+             """),
              r="""
                  r <- stats::ccf(drivers, DriversKilled, lag.max = 12, plot = FALSE)
                  list(sticks = 25, `shift 0` = r$acf[13], `shift 1` = r$acf[12])
              """, r_tolerance=1e-12,
              note="A stick at shift s pairs the first column at month t with the second at month t + s: R's lag -s."),
         Case("lag_dots", "the Lake Huron level against the year before", "Lake Huron", "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
-                 dots = chart_facts(sdata.chart(data).lag_dots("level", sorted_by="year")._render().axes[0])["dots"]
-                 {"dots": len(dots), "first dot x": dots[0][0], "first dot y": dots[0][1]}
-             """,
+             ours=_ours_drawn("""
+                 chart = sdata.chart(data).lag_dots("level", sorted_by="year")
+             """, """
+                 dots = drawn.keep_rows_where("kind", is_equal_to="dot")
+                 {"dots": dots.count_rows(), "first dot x": dots.get_cell_at(row=1, column="x"),
+                  "first dot y": dots.get_cell_at(row=1, column="y")}
+             """),
              parent="""
                  {"dots": len(data) - 1, "first dot x": data["level"].iloc[0], "first dot y": data["level"].iloc[1]}
              """, parent_label="pandas shift(1)", parent_tolerance=0.0),
         Case("peak_dots", "the drivers killed or seriously injured: a dot on each peak at least 6 months apart",
              "Seatbelts", "real data",
-             ours="""
-                 from simplydata._underneath.check import chart_facts
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="month", y="drivers").peak_dots(apart=6)
-                 dots = chart_facts(chart._render().axes[0])["dots"]
-                 {"dots": len(dots), "first dot (month)": dots[0][0], "highest": max(d[1] for d in dots)}
-             """,
+             """, """
+                 dots = drawn.keep_rows_where("kind", is_equal_to="dot")
+                 {"dots": dots.count_rows(), "first dot (month)": dots.get_cell_at(row=1, column="x"),
+                  "highest": dots.get_column("y").find_biggest()}
+             """),
              parent="""
                  from scipy import signal
                  y = data["drivers"].to_numpy(dtype=float)
@@ -695,26 +717,30 @@ def cases(Case):
              """, parent_label="SciPy find_peaks(distance=6)", parent_tolerance=0.0),
         Case("forecast", "the drawn forecast of the air passengers is R's", "AirPassengers", "real data",
              ours_r=("forecast",),
-             ours=_join(AIR, """
-                 from simplydata._underneath.check import chart_facts
+             ours=_join(AIR, _ours_drawn("""
                  chart = t.start_chart().draw_lines(x="month", y="passengers").forecast(steps_ahead=12,
                                                                                        repeats_every="year")
-                 x, y = chart_facts(chart._render().axes[0])["lines"][1]
-                 {"months drawn": len(y), "January 1961": y[0], "December 1961": y[-1]}
-             """),
+             """, """
+                 # layer 2: the forecast line (layer 1 is the passengers, layer 3 the band); neither line has a name
+                 ahead = drawn.keep_rows_where("layer", is_equal_to=2)
+                 {"months drawn": ahead.count_rows(), "January 1961": ahead.get_cell_at(row=1, column="y"),
+                  "December 1961": ahead.get_cell_at(row="last", column="y")}
+             """)),
              r="""
                  f <- forecast::forecast(stats::HoltWinters(stats::ts(passengers, frequency = 12)), h = 12, level = 95)
                  list(`months drawn` = 12, `January 1961` = f$mean[1], `December 1961` = f$mean[12])
              """, r_packages=("forecast",), r_tolerance=1e-9),
             Case("trend_and_season", "the air passengers in four panels: the drawn trend is R stl()'s trend",
              "AirPassengers", "real data",
-             ours=_join(AIR, """
-                 from simplydata._underneath.check import chart_facts
-                 ax = t.start_chart().trend_and_season(x="month", y="passengers", repeats_every="year")._render().axes[0]
-                 panels = chart_facts(ax)["every_panel"]
-                 trend = panels[2][6][0][1][1]  # the trend panel's line: (x, y), each as (count, values)
-                 {"panels": len(panels) - 1, "trend, January 1949": trend[0], "trend, December 1960": trend[-1]}
-             """),
+             ours=_join(AIR, _ours_drawn("""
+                 chart = t.start_chart().trend_and_season(x="month", y="passengers", repeats_every="year")
+             """, """
+                 panels = drawn.get_column("panel").find_biggest()
+                 # panel 2: the panels are drawn top to bottom as the column, its trend, its season and the rest
+                 trend = drawn.keep_rows_where("panel", is_equal_to=2)
+                 {"panels": panels, "trend, January 1949": trend.get_cell_at(row=1, column="y"),
+                  "trend, December 1960": trend.get_cell_at(row="last", column="y")}
+             """)),
              parent="""
                  from statsmodels.tsa.seasonal import STL
                  f = STL(data["passengers"].to_numpy(dtype=float), period=12, seasonal=7, trend=23, low_pass=13,
@@ -725,7 +751,5 @@ def cases(Case):
              r="""
                  s <- stats::stl(stats::ts(passengers, frequency = 12), s.window = 7)$time.series
                  list(`trend, January 1949` = s[1, "trend"], `trend, December 1960` = s[144, "trend"])
-             """, r_tolerance=1e-9,
-             note="Waiting for a word: the drawn numbers are read with chart_facts() until chart.get_numbers_drawn() "
-                  "exists."),
+             """, r_tolerance=1e-9),
 ]
