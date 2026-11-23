@@ -406,9 +406,17 @@ def _cells(ax) -> list:
 
 
 def _panels(ax) -> list:
-    """Every set of axes in the whole figure that is shown (second y-axes too, colour bars left out)."""
+    """Every set of axes in the whole figure that is shown (second y-axes too, colour bars left out), each followed by
+    the axes drawn inside it (inset axes, as trend_and_season's four panels)."""
     root = _root(ax)
-    return [] if root is None else [a for a in root.axes if a.get_label() != "<colorbar>" and a.get_visible()]
+    if root is None:
+        return []
+    found = []
+    for a in root.axes:
+        if a.get_label() != "<colorbar>" and a.get_visible():
+            found.append(a)
+            found += [c for c in getattr(a, "child_axes", []) if c.get_visible() and c not in found]
+    return found
 
 
 def _text_place(t) -> tuple:

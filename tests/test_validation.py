@@ -25,6 +25,10 @@ report = _load("make_report")
 study = report.study
 
 
+# words that make something from a formula and take no data: their cases may be closed forms (kind "closed form")
+NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata.make_wave", "sdata.make_window_shape")
+
+
 def test_every_dataset_has_a_source_a_licence_and_its_file():
     for name, d in study.DATASETS.items():
         assert d.source.strip() and d.licence.strip() and d.what.strip(), name
@@ -42,9 +46,11 @@ def test_every_case_uses_a_known_dataset_and_a_current_word():
     for case in study.CASES:
         assert case.dataset in study.DATASETS, case.title
         assert case.word in learn._all_keys() and learn._lookup(case.word) == case.word, case.word
-        assert case.kind in ("published", "real data", "made-up"), case.kind
-        if case.kind == "published":
-            assert case.published, f"{case.title}: a published case names its published answer"
+        assert case.kind in ("published", "real data", "made-up", "closed form"), case.kind
+        if case.kind in ("published", "closed form"):
+            assert case.published, f"{case.title}: a {case.kind} case names its published or worked answer"
+        if case.kind == "closed form":
+            assert case.dataset == "closed form (no data)" and case.word.startswith(NO_DATA_BY_NATURE), case.title
         if case.kind == "made-up":
             assert case.dataset == "made-up", case.title
         assert case.published or case.parent or case.r, case.title
@@ -53,7 +59,11 @@ def test_every_case_uses_a_known_dataset_and_a_current_word():
 def test_every_underneath_entry_has_a_case_on_real_data():
     from simplydata._underneath import UNDERNEATH
 
-    real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES if c.kind != "made-up"}
+    # a closed-form case (no data) counts only for a word that has no data by nature: a system, a wave or a window
+    # shape is made from a formula, so the answer worked out from that formula is its check; every other word
+    # needs a case on real data
+    real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES
+            if c.kind not in ("made-up", "closed form") or c.word.startswith(NO_DATA_BY_NATURE)}
     # a word with nothing underneath (help, undo ...) computes nothing, so there is nothing to check on real data
     computed = {key for key, entry in UNDERNEATH.items() if entry.compare != "none"}
     assert computed <= real, computed - real

@@ -10,6 +10,9 @@ The datasets, their licences and how to cite them are in DATASETS (and in valida
 kind = "published"  real data with a published or certified answer
        "real data"  real data from a published source, compared with the parent package and R
        "made-up"    made-up data for an edge case no real dataset tests (labelled as such in the report)
+       "closed form" no data: a word that makes something from a formula (a system, a wave, a window shape) is
+                    checked against the answer worked out by hand from that formula (dataset "closed form (no
+                    data)"; labelled as such in the report, apart from the checks on data)
 """
 
 from __future__ import annotations
@@ -151,6 +154,11 @@ DATASETS = {d.name: d for d in [
             "https://www.jstatsoft.org/v027/i08"),
     Dataset("made-up", "", "small made-up tables for edge cases (empty cells, no rows left, an exact line)",
             "simplydata's validation/cases.py.", "Same as simplydata (see LICENSE).", ""),
+    Dataset("closed form (no data)", "",
+            "no data: systems, waves and window shapes made from a formula, checked against the answer worked out "
+            "by hand from the same formula",
+            "The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py.",
+            "No data, so no licence; the worked answers are the same as simplydata's (see LICENSE).", ""),
 ]}
 
 
