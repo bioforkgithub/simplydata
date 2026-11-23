@@ -15,7 +15,8 @@ pip install simplydata
 ```
 
 You need Python 3.11 or newer. conda is coming soon, once the conda-forge review is done. Extras and the
-methods that need R: [Install in detail](#install-in-detail).
+methods that need R: [Install in detail](#install-in-detail). Type the code in an editor that completes names
+for you: we recommend VS Code or Jupyter ([where to type the code](#where-to-type-the-code)).
 
 ## Quick start
 
@@ -24,7 +25,7 @@ Open a practice table, look at it, keep the rows you need, compare two groups, d
 ```python
 import simplydata as sdata
 
-table = sdata.table(sdata.get_example("marks"))  # a practice table; yours: sdata.table("my_file.xlsx")
+table = sdata.get_example("marks")              # a practice table; yours: sdata.table("my_file.xlsx")
 table.show_first_rows()                                        # look at it
 table.keep_rows_where("subject", is_equal_to="Maths")          # one row for each child
 table.keep_rows_where("class", is_one_of=["A", "B"])           # the two classes to compare
@@ -57,6 +58,73 @@ At the end of the script it also lists the packages that did the work (pandas, S
 seaborn ...), with the references their authors ask you to cite. Each child has three rows in this table, one per
 subject, so the example keeps one subject: a test of two groups needs one row for each child.
 
+**Names that say what they do.** `keep_rows_where`, `compare_averages_of`, `find_correlation_between`: you read
+code more often than you write it, you can guess a name from what you want to do, and your editor completes it
+after three or four letters. Here is the same work in simplydata and in the package underneath, taken from the
+manual's "same underneath" boxes, which the tests run and compare. Both give the same numbers; one you can read at
+first sight.
+
+<table>
+<tr><th>simplydata</th><th>the same in pandas or SciPy</th></tr>
+<tr><td>
+
+```python
+table = sdata.get_example("marks")
+table.keep_rows_where("marks", is_above=50)
+```
+
+</td><td>
+
+```python
+import pandas as pd
+df = pd.read_csv("marks.csv")
+df[df["marks"] > 50]
+```
+
+</td></tr>
+<tr><td>
+
+```python
+table = sdata.get_example("trial")
+table.compare_averages_of("days", for_each_group_in="treatment")
+```
+
+</td><td>
+
+```python
+from scipy import stats
+import pandas as pd
+df = pd.read_csv("trial.csv")
+a, b = [rows["days"] for _, rows in df.groupby("treatment", sort=False)]
+res = stats.ttest_ind(a, b, equal_var=False)
+{"statistic": res.statistic, "degrees of freedom": res.df,
+ "p-value": res.pvalue, "difference": a.mean() - b.mean()}
+```
+
+</td></tr>
+<tr><td>
+
+```python
+table = sdata.get_example("weather")
+table.keep_columns("month", "city", "temperature")
+table.spread_into_columns(names_from="city", values_from="temperature")
+```
+
+</td><td>
+
+```python
+import pandas as pd
+df = pd.read_csv("weather.csv")[["month", "city", "temperature"]]
+wide = df.pivot(index="month", columns="city", values="temperature")
+wide = wide.loc[df["month"].unique(), df["city"].unique()]
+wide.reset_index().rename_axis(columns=None)
+```
+
+</td></tr>
+</table>
+
+simplydata also prints each answer as a sentence and names the method it used.
+
 ## Where to go next
 
 - **Learn it step by step:** [the 30-day guide (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_30_days.pdf), or in Python `sdata.start_30_days(track="beginner")`. Short lessons: `sdata.show_lesson(1)`.
@@ -77,6 +145,13 @@ pandas, Polars, NumPy, SciPy, statsmodels or an R package, the printout names th
 that have it the manual shows the same job written in that package, in a grey "same underneath" box that the tests
 run and check. You start with one small set of words built from a few verbs, instead of thousands of function names
 in a dozen packages and two languages, and you can read the code underneath whenever you want to move on.
+
+**Why are the names so long?**
+On purpose. You read a line of code many more times than you type it, and `table.keep_rows_where("marks",
+is_above=50)` reads as what it does. A name that says what it does can be guessed: if you want to keep rows,
+the word starts with `keep_rows`. And you rarely type a whole name: in VS Code or Jupyter, type `table.keep`,
+press Tab (or wait a moment in VS Code), and the editor lists `keep_rows_where`, `keep_columns` and the other
+`keep_` words to choose from. See [where to type the code](#where-to-type-the-code).
 
 **Why not ChatGPT, jamovi or JASP?**
 They are good tools that do a different job. simplydata gives:
@@ -171,10 +246,12 @@ sdata.show_today()                     # every day: the day to do next
 
 Each day starts with a 5-minute warm-up of questions on earlier days (answered from memory, which
 fixes words better than reading them again), then the lesson to work through, and ends with a task
-to do without looking back. Review days mix the whole course, the last week is a project of your
-own, and day 29 is a final test from memory. The 30 days teach the everyday work (tables, charts,
-summaries, tests, models, fitted curves and everyday time series); the manual is the complete
-reference, and a day points to it for the rest (forecasts, spectra and filters, systems, risks and
+to do without looking back. You open a real practice table on day 1 or 2 and test a first difference
+within the first week, with charts woven in between. Review days mix the whole course, the last week is a
+project of your own, and day 29 is a final test from memory. The 30 days teach the everyday work (tables,
+charts, summaries, tests, models, fitted curves and everyday time series); two extra days, patterns across
+many columns and planning a study, are optional (`sdata.show_day(31)` and `sdata.show_day(32)`). The manual is
+the complete reference, and a day points to it for the rest (forecasts, spectra and filters, systems, risks and
 diagnostic tests). Missed a day? `sdata.show_today()` carries on where you
 stopped. `sdata.show_answers()` gives the answers, `sdata.show_day()` the whole calendar, and `sdata.go_to_next_day()`
 goes on now. Your progress is kept only on your computer, in `~/.simplydata/progress.json`.
@@ -200,6 +277,31 @@ The manual is made from the code by `python docs/make_manual.py` (it needs a LaT
 with the page numbers of the manual it has just compiled.
 
 ## Install in detail
+
+### Where to type the code
+
+Use an editor that completes names for you, so the long, clear names cost you three or four letters each. We
+recommend one of these two:
+
+**VS Code**
+
+1. Install VS Code from https://code.visualstudio.com.
+2. In its Extensions view, add the "Python" and "Jupyter" extensions.
+3. Open a folder, make a file such as `analysis.py` (or a notebook, `analysis.ipynb`), and choose the Python
+   where simplydata is installed (bottom right, or "Select Kernel" in a notebook).
+4. Type `table.keep`: the list of words appears as you type. Ctrl+Space brings it up at any time.
+
+**Jupyter (JupyterLab or Notebook)**
+
+1. In the same Python as simplydata: `pip install jupyterlab`.
+2. Start it with `jupyter lab`; it opens in your web browser and runs on your own computer.
+3. Make a new notebook (Python 3) and type your code in a cell; Shift+Enter runs it.
+4. Once the cell that makes `table` has run, type `table.keep` and press Tab to see the words that start
+   that way.
+
+Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so it is not recommended.
+
+### pip
 
 **pip** (needs Python 3.11 or newer):
 

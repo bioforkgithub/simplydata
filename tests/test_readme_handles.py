@@ -196,3 +196,23 @@ def test_words_compared_in_the_reliability_study_match_the_report():
     assert f"compares {compared} of the\n{len(words)} words with the package underneath and with R ({checks} checks)" in README
     assert f"The other {len(words) - compared} words are not compared in the reliability study yet." in README
     assert f"most words ({compared} of the {len(words)} so far)" in README
+
+
+def test_the_readme_comparison_shows_the_tested_same_underneath_code():
+    """The README's table of simplydata next to pandas or SciPy shows code from the manual's "same underneath"
+    boxes, which the tests run and compare: each simplydata line comes from the entry's simplydata side and each
+    package line from its library side (only the comment lines and the (1) marks are left out)."""
+    from simplydata._underneath import UNDERNEATH
+
+    table = README[README.index("<table>"):README.index("</table>")]
+    blocks = [b.split("\n", 1)[1] for b in table.split("```python")[1:]]
+    blocks = [b.split("```", 1)[0] for b in blocks]
+    assert len(blocks) == 6
+    entries = [e for e in UNDERNEATH.values() if not e.option]
+    for ours, theirs in zip(blocks[::2], blocks[1::2]):
+        word = re.search(r"\.(\w+)\(", ours.strip().splitlines()[-1]).group(1)
+        entry = next(e for e in entries if e.word == f"table.{word}" and
+                     all(line.strip() in e.ours for line in ours.strip().splitlines()))
+        library = "\n".join(entry.code.values())
+        for line in theirs.strip().splitlines():
+            assert line.strip() in library, (word, line)

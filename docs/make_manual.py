@@ -507,12 +507,25 @@ will get.
 
 \section*{Install}
 \begin{lstlisting}[style=plain]
-pip install simplydata            # coming soon
+pip install simplydata
 pip install simplydata[fast]      # adds Polars, the fast engine for big data
 \end{lstlisting}
 
 \section*{Where to type the code}
-Any place that runs Python works. In \textbf{Jupyter}, \textbf{VS Code} or \textbf{Spyder}, a chart
+Use a place that completes names for you, so each long, clear name costs you three or four letters. We
+recommend one of two:
+\begin{itemize}
+  \item \textbf{VS Code}: install it from code.visualstudio.com; in its Extensions view add the ``Python''
+    and ``Jupyter'' extensions; open a folder, make a file such as \code{analysis.py} or a notebook
+    \code{analysis.ipynb}, and choose the Python where simplydata is installed. Names are listed as you
+    type; Ctrl+Space brings the list up at any time.
+  \item \textbf{Jupyter} (JupyterLab or Notebook): \code{pip install jupyterlab} in the same Python as
+    simplydata, then \code{jupyter lab}, which opens in your web browser and runs on your own computer.
+    Make a new notebook and type in a cell; Shift+Enter runs it. Type \code{table.keep} and press Tab to
+    see every word that starts that way.
+\end{itemize}
+Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so it is not recommended.
+In \textbf{Jupyter} and \textbf{VS Code} notebooks, a chart
 appears by itself when you write \code{chart} on the last line of a cell. In a script,
 \code{chart.show()} opens it in a window, and \code{chart.save("name.png")} always saves it as a file.
 
