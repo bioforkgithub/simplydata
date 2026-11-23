@@ -556,19 +556,33 @@ def _cases(Case):
 
 
 # ---------------------------------------------------------------- U-batch 2: chart words read back as data
-# simplydata has no word that reads back what a chart drew, so the simplydata side reads its own chart with the same
-# chart_facts() the tests use (bars, dots, lines, labels, texts, sizes ...), as the sdata.chart case above does. The
-# library side draws the same chart with seaborn or matplotlib and reads it the same way; R gives the numbers the
-# chart should show (averages, medians, sums), where it is plain base R.
+# The simplydata side reads the numbers its chart drew (bar heights, dots, line points, band ends, cells) with the
+# simplydata word chart.get_numbers_drawn() and table words, as the sdata.chart case above does. What no simplydata
+# word reads yet (titles, labels, texts, font sizes, colours, legend places, axis ranges, figure sizes) is read with
+# the same chart_facts() the tests use, and the code says so. The library side draws the same chart with seaborn or
+# matplotlib and reads it with chart_facts(); R gives the numbers the chart should show (averages, medians, sums),
+# where it is plain base R.
 CHART_FACTS_OF = "from simplydata._underneath.check import chart_facts\n"
 LIBRARY_CHART = ("import matplotlib.pyplot as plt\nimport seaborn as sns\n"
                  "from simplydata._underneath.check import chart_facts\n")
 
 
-def _ours_chart(build: str, then: str, axes: str = "chart._render().axes[0]") -> str:
-    """simplydata code that builds a chart (ending in `chart`), reads its facts into f, then the code `then`."""
-    return (CHART_FACTS_OF + textwrap.dedent(build).strip("\n") + f"\nf = chart_facts({axes})\n"
-            + textwrap.dedent(then).strip("\n"))
+def _ours_drawn(build: str, then: str, facts: str = "") -> str:
+    """simplydata code that builds a chart (ending in `chart`), reads what it drew into the table `drawn` with
+    chart.get_numbers_drawn(), then the code `then`. `facts` names what no simplydata word reads yet: those are read
+    with chart_facts() into f."""
+    code = textwrap.dedent(build).strip("\n") + "\ndrawn = chart.get_numbers_drawn()\n"
+    if facts:
+        code = (CHART_FACTS_OF + code + f"# no simplydata word reads {facts} yet\n"
+                "f = chart_facts(chart._render().axes[0])\n")
+    return code + textwrap.dedent(then).strip("\n")
+
+
+def _ours_chart(build: str, then: str, facts: str, axes: str = "chart._render().axes[0]") -> str:
+    """simplydata code that builds a chart (ending in `chart`), reads its facts into f, then the code `then`: for a
+    case that checks only what no simplydata word reads yet (named in `facts`)."""
+    return (CHART_FACTS_OF + textwrap.dedent(build).strip("\n") + f"\n# no simplydata word reads {facts} yet\n"
+            f"f = chart_facts({axes})\n" + textwrap.dedent(then).strip("\n"))
 
 
 def _library_chart(build: str, then: str, axes: str = "ax") -> str:
@@ -587,14 +601,15 @@ def _cases_batch_2(Case):
     lines_wool = 'sns.lineplot(data, x="tension", y="breaks", hue="wool", errorbar=None, ax=ax)'
     return [
         Case("save", "mtcars: average fuel use for 4, 6 and 8 cylinders, saved as a picture", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  import os
                  import tempfile
                  chart = sdata.chart(data).draw_bars(x="cyl", y="mpg")
                  chart.save(os.path.join(tempfile.gettempdir(), "mtcars_save.png"))
              """, """
-                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1], "4 cylinders": f["bars"][0][3]}
-             """),
+                 {"width (inches)": f["size"][0], "height (inches)": f["size"][1],
+                  "4 cylinders": drawn.get_cell_at(row=1, column="y")}
+             """, facts="the size of the figure"),
              parent=_library_chart(f"""
                  import os
                  import tempfile
@@ -609,12 +624,13 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12),
         Case("write_title_on_top", "Fisher's iris: the average sepal length of each species, with a title", "iris",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="Species", y="Sepal.Length")
                  chart.write_title_on_top("Sepal length of three irises")
              """, """
-                 {"title as written": float(f["labels"][2] == "Sepal length of three irises"), "setosa": f["bars"][0][3]}
-             """),
+                 {"title as written": float(f["labels"][2] == "Sepal length of three irises"),
+                  "setosa": drawn.get_cell_at(row=1, column="y")}
+             """, facts="the title"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.barplot(data, x="Species", y="Sepal.Length", errorbar=None, ax=ax)
@@ -626,12 +642,12 @@ def _cases_batch_2(Case):
                  list(setosa = mean(Sepal.Length[Species == "setosa"]))
              """, r_tolerance=1e-12),
         *[Case(word, f"mtcars: fuel use against weight, the {axis} axis named", "mtcars", "real data",
-               ours=_ours_chart(f"""
+               ours=_ours_drawn(f"""
                    chart = sdata.chart(data).draw_dots(x="wt", y="mpg")
                    chart.{word}("{text}")
                """, f"""
-                   {{"label as written": float(f["labels"][{place}] == "{text}"), "dots": len(f["dots"])}}
-               """),
+                   {{"label as written": float(f["labels"][{place}] == "{text}"), "dots": drawn.count_rows()}}
+               """, facts=f"the {axis} axis label"),
                parent=_library_chart(f"""
                    fig, ax = plt.subplots()
                    sns.scatterplot(data, x="wt", y="mpg", ax=ax)
@@ -647,7 +663,7 @@ def _cases_batch_2(Case):
              """, """
                  {"angle of the first name": f["tick_angles"][0][0][0], "names": len(f["ticks"][0]),
                   "names lined up by their right end": sum(a[1] == "right" for a in f["tick_angles"][0])}
-             """),
+             """, facts="the tick labels and their angles"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.barplot(data, x="model", y="mpg", errorbar=None, ax=ax)
@@ -661,12 +677,13 @@ def _cases_batch_2(Case):
                   "names lined up by their right end": sum(a[1] == "right" for a in f["tick_angles"][0])}
              """), parent_label="matplotlib set_rotation", parent_tolerance=0.0),
         Case("write_caption_at_bottom", "Fisher's iris: bars with the source written under them", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="Species", y="Petal.Length")
                  chart.write_caption_at_bottom("Data: Fisher (1936)")
              """, """
-                 {"caption written": float("Data: Fisher (1936)" in f["texts"][1]), "virginica": f["bars"][2][3]}
-             """),
+                 {"caption written": float("Data: Fisher (1936)" in f["texts"][1]),
+                  "virginica": drawn.get_cell_at(row=3, column="y")}
+             """, facts="the texts written on a chart"),
              parent=_library_chart("""
                  fig, ax = plt.subplots(layout="constrained")
                  sns.barplot(data, x="Species", y="Petal.Length", errorbar=None, ax=ax)
@@ -684,7 +701,7 @@ def _cases_batch_2(Case):
                  chart.write_title_on_top("Sepal width").use_font_size(16)
              """, """
                  {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
-             """),
+             """, facts="font sizes"),
              published={"title": (14 * 16 / 12, 1e-9, "exact"), "x label": (13 * 16 / 12, 1e-9, "exact"),
                         "tick labels": (11 * 16 / 12, 1e-9, "exact")},
              parent=_library_chart("""
@@ -703,7 +720,7 @@ def _cases_batch_2(Case):
         Case("use_colour", "Fisher's iris: every bar dark green", "iris", "real data",
              ours=_ours_chart("""
                  chart = sdata.chart(data).draw_bars(x="Species", y="Petal.Width").use_colour("darkgreen")
-             """, _rgb('f["colours"][0][0]')),
+             """, _rgb('f["colours"][0][0]'), facts="colours"),
              published={"red": (0, 0, "exact"), "green": (100, 0, "exact"), "blue": (0, 0, "exact")},
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -719,7 +736,7 @@ def _cases_batch_2(Case):
              """, """
                  {"navy bars": f["colours"][0].count("#000080ff"), "orange bars": f["colours"][0].count("#ffa500ff"),
                   "first bar navy": float(f["colours"][0][0] == "#000080ff")}
-             """),
+             """, facts="colours"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.barplot(data, x="tension", y="breaks", hue="wool", palette=["navy", "orange"], errorbar=None,
@@ -735,7 +752,7 @@ def _cases_batch_2(Case):
                    {"legends on the figure": sum(p[0] == "figure" for p in f["legend_place"]),
                     "legends on the chart": sum(p[0] == "chart" for p in f["legend_place"]),
                     "place": f["legend_place"][0][1], "entries": len(f["legend_place"][0][4]) - 1}
-               """),
+               """, facts="the place of the legend"),
                parent=_library_chart(f"""
                    fig, ax = plt.subplots(layout="constrained")
                    {lines_wool}
@@ -750,11 +767,11 @@ def _cases_batch_2(Case):
           for word, (where, loc, columns) in {"put_legend_at_bottom": ["below", "outside lower center", ", ncols=2"],
                                               "put_legend_on_left": ["on the left", "outside center left", ""]}.items()],
         Case("order_x", "warpbreaks: the tensions in the order high, medium, low", "warpbreaks", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="tension", y="breaks").order_x("H", "M", "L")
              """, """
-                 {"first bar (H)": f["bars"][0][3], "last bar (L)": f["bars"][2][3],
-                  "first name": float(f["ticks"][0][0] == "H")}
+                 {"first bar (H)": drawn.get_cell_at(row=1, column="y"), "last bar (L)": drawn.get_cell_at(row=3, column="y"),
+                  "first name": float(drawn.get_cell_at(row=1, column="x") == "H")}
              """),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -771,7 +788,7 @@ def _cases_batch_2(Case):
                  chart = sdata.chart(data).draw_bars(x="Species", y="Sepal.Length").use_style("presentation")
              """, """
                  {"title": f["font_sizes"][0], "x label": f["font_sizes"][1], "tick labels": f["font_sizes"][3]}
-             """),
+             """, facts="font sizes"),
              published={"title": (20, 0, "exact"), "x label": (18, 0, "exact"), "tick labels": (15, 0, "exact")},
              parent=_library_chart("""
                  look = {"font.size": 16, "axes.titlesize": 20, "axes.labelsize": 18, "xtick.labelsize": 15,
@@ -785,11 +802,11 @@ def _cases_batch_2(Case):
              note="The sizes of simplydata's presentation style: 20 for titles, 18 for axis labels, 15 for tick "
                   "labels."),
         Case("hide_legend", "warpbreaks: lines of the two wools, without a legend", "warpbreaks", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool").hide_legend()
              """, """
-                 {"legends": len(f["legend_place"]), "lines with points": sum(len(x) > 0 for x, _ in f["lines"])}
-             """),
+                 {"legends": len(f["legend_place"]), "lines with points": drawn.count_different_values_in("layer")}
+             """, facts="legends"),
              parent=_library_chart(f"""
                  fig, ax = plt.subplots()
                  {lines_wool}
@@ -799,10 +816,11 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib Legend.remove", parent_tolerance=0.0),
         Case("draw_lines", "warpbreaks: the average breaks at each tension, one line for each wool", "warpbreaks",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="tension", y="breaks", colour="wool")
              """, """
-                 {"wool A at L": f["lines"][0][1][0], "wool A at H": f["lines"][0][1][2], "wool B at M": f["lines"][1][1][1]}
+                 {"wool A at L": drawn.get_cell_at(row=1, column="y"), "wool A at H": drawn.get_cell_at(row=3, column="y"),
+                  "wool B at M": drawn.get_cell_at(row=5, column="y")}
              """),
              parent=_library_chart(f"""
                  fig, ax = plt.subplots()
@@ -815,10 +833,16 @@ def _cases_batch_2(Case):
                  list(`wool A at L` = m["A", "L"], `wool A at H` = m["A", "H"], `wool B at M` = m["B", "M"])
              """, r_tolerance=1e-12),
         Case("draw_boxes", "Fisher's iris: the sepal lengths of each species as boxes", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_boxes(x="Species", y="Sepal.Length")
              """, """
-                 {"boxes": len(f["shapes"]), "setosa median": f["lines"][4][1][0], "virginica median": f["lines"][16][1][0]}
+                 boxes = drawn.keep_rows_where("kind", is_equal_to="shape").count_different_values_in("layer")
+                 drawn.undo()
+                 # each box is 5 lines: two whiskers, two caps and the median, so layers 5 and 15 are the medians
+                 setosa = drawn.keep_rows_where("layer", is_equal_to=5).get_cell_at(row=1, column="y")
+                 drawn.undo()
+                 virginica = drawn.keep_rows_where("layer", is_equal_to=15).get_cell_at(row=1, column="y")
+                 {"boxes": boxes, "setosa median": setosa, "virginica median": virginica}
              """),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -833,13 +857,15 @@ def _cases_batch_2(Case):
              note="Each box is drawn as two whiskers, two caps, the median line and the far values, in that order, so "
                   "the 5th line is the first median."),
         Case("draw_all_dots", "Fisher's iris: all 150 petal lengths as dots over boxes", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_boxes(x="Species", y="Petal.Length")
                  chart.draw_all_dots(x="Species", y="Petal.Length")
              """, """
-                 {"dots": len(f["dots"]), "total of the values": sum(y for _, y in f["dots"]),
+                 # layers 18 to 20 are the dots of the three species (the boxes' far values, layers 6 and 12, are dots too)
+                 dots = drawn.keep_rows_where("layer", is_between=[18, 20]).get_column("y")
+                 {"dots": dots.count(), "total of the values": dots.find_total(),
                   "dark grey dots": f["colours"][1].count("#333333ff")}
-             """),
+             """, facts="colours"),
              parent=_library_chart("""
                  from matplotlib.figure import Figure
                  fig = Figure(figsize=(8, 6), layout="constrained")
@@ -854,11 +880,16 @@ def _cases_batch_2(Case):
                  list(dots = length(Petal.Length), `total of the values` = sum(Petal.Length))
              """, r_tolerance=1e-12),
         Case("draw_violins", "Fisher's iris: each violin stops at the longest sepal of its species", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_violins(x="Species", y="Sepal.Length")
              """, """
-                 {f"top of the {name} violin": max(v[1][:, 1]) for name, v in zip(["setosa", "versicolor", "virginica"],
-                                                                                 f["shapes"])}
+                 # each violin is a band (layers 10, 11 and 12, after the 9 lines of the boxes inside), from low to high
+                 tops = {}
+                 for name, layer in zip(["setosa", "versicolor", "virginica"], [10, 11, 12]):
+                     tops[f"top of the {name} violin"] = drawn.keep_rows_where("layer", is_equal_to=layer).get_column(
+                         "high").find_biggest()
+                     drawn.undo()
+                 tops
              """),
              published={"top of the setosa violin": (5.8, 1e-12, "exact"),
                         "top of the versicolor violin": (7.0, 1e-12, "exact"),
@@ -877,10 +908,11 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12,
              note="The longest sepals in Fisher's table are 5.8, 7.0 and 7.9 cm."),
         Case("show=", "mtcars: the median fuel use for 4, 6 and 8 cylinders", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="cyl", y="mpg", show="median")
              """, """
-                 {"4 cylinders": f["bars"][0][3], "6 cylinders": f["bars"][1][3], "8 cylinders": f["bars"][2][3]}
+                 {"4 cylinders": drawn.get_cell_at(row=1, column="y"), "6 cylinders": drawn.get_cell_at(row=2, column="y"),
+                  "8 cylinders": drawn.get_cell_at(row=3, column="y")}
              """),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -893,10 +925,12 @@ def _cases_batch_2(Case):
                  list(`4 cylinders` = m[["4"]], `6 cylinders` = m[["6"]], `8 cylinders` = m[["8"]])
              """, r_tolerance=1e-12),
         Case("error=", "mtcars: average fuel use with standard deviation bars", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="cyl", y="mpg", error="standard deviation")
              """, """
-                 {"top of the 4-cylinder bar": max(f["lines"][0][1]), "bottom of it": min(f["lines"][0][1])}
+                 # layer 1 is the bars; layer 2 the error bar of the 4-cylinder bar, with its caps
+                 error = drawn.keep_rows_where("layer", is_equal_to=2).get_column("y")
+                 {"top of the 4-cylinder bar": error.find_biggest(), "bottom of it": error.find_smallest()}
              """),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -915,7 +949,7 @@ def _cases_batch_2(Case):
              """, """
                  shown = [float(t.replace(",", "")) for t in f["texts"][1]]
                  {"numbers written": len(shown), "biggest": max(shown), "smallest": min(shown)}
-             """),
+             """, facts="the numbers written on the bars"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.barplot(data, x="tension", y="breaks", estimator="sum", errorbar=None, ax=ax)
@@ -929,10 +963,12 @@ def _cases_batch_2(Case):
                  list(`numbers written` = length(s), biggest = max(s), smallest = min(s))
              """, r_tolerance=0.0),
         Case("fit_line", "mtcars: the straight line of fuel use on weight", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg").fit_line()
              """, """
-                 {"line at the lightest car": f["lines"][0][1][0], "line at the heaviest car": f["lines"][0][1][-1]}
+                 line = drawn.keep_rows_where("kind", is_equal_to="line")
+                 {"line at the lightest car": line.get_cell_at(row=1, column="y"),
+                  "line at the heaviest car": line.get_cell_at(row=line.count_rows(), column="y")}
              """),
              parent=_library_chart("""
                  from scipy import stats
@@ -950,11 +986,15 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-10),
         Case("draw_qq_dots", "Michelson's 100 measurements of the speed of light against the normal curve",
              "NIST Michelso", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_qq_dots("y")
              """, """
-                 (x0, x1), (y0, y1) = f["lines"][0]
-                 {"dots": len(f["dots"]), "slope of the line": (y1 - y0) / (x1 - x0), "smallest value": f["dots"][0][1]}
+                 # layer 1 is the straight line (two points), layer 2 the dots from the smallest value up
+                 x0, y0 = drawn.get_cell_at(row=1, column="x"), drawn.get_cell_at(row=1, column="y")
+                 x1, y1 = drawn.get_cell_at(row=2, column="x"), drawn.get_cell_at(row=2, column="y")
+                 dots = drawn.keep_rows_where("layer", is_equal_to=2)
+                 {"dots": dots.count_rows(), "slope of the line": (y1 - y0) / (x1 - x0),
+                  "smallest value": dots.get_cell_at(row=1, column="y")}
              """),
              parent=_library_chart("""
                  from scipy import stats
@@ -973,7 +1013,7 @@ def _cases_batch_2(Case):
                  chart = sdata.chart(data).draw_bars(x="cyl", y="mpg").set_range_y(0, 40)
              """, """
                  {"bottom of the y axis": f["limits"][1][0], "top of the y axis": f["limits"][1][1]}
-             """),
+             """, facts="the range of an axis"),
              published={"bottom of the y axis": (0, 0, "exact"), "top of the y axis": (40, 0, "exact")},
              parent=_library_chart(f"""
                  fig, ax = plt.subplots()
@@ -984,12 +1024,12 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib set_ylim", parent_tolerance=0.0),
         Case("draw_line_at_y", "mtcars: a line at the average fuel use, 20.09 miles per gallon", "mtcars",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg")
                  chart.draw_line_at_y(20.090625, labelled="average")
              """, """
-                 {"line at": f["lines"][0][1][0], "label written": float("average" in f["texts"][1])}
-             """),
+                 {"line at": drawn.get_cell_at(row=1, column="y"), "label written": float("average" in f["texts"][1])}
+             """, facts="the texts written on a chart"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.scatterplot(data, x="wt", y="mpg", ax=ax)
@@ -1003,12 +1043,13 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12),
         Case("shade_between_y", "mtcars: the middle half of the fuel use shaded (the quartiles 15.425 and 22.8)",
              "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg").shade_between_y(15.425, 22.8)
              """, """
-                 {"bottom of the band": f["bars"][0][1], "height of the band": f["bars"][0][3],
+                 low, high = drawn.get_cell_at(row=1, column="low"), drawn.get_cell_at(row=1, column="high")
+                 {"bottom of the band": low, "height of the band": high - low,
                   "width (share of the chart)": f["bars"][0][2]}
-             """),
+             """, facts="the width of a band as a share of the chart"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.scatterplot(data, x="wt", y="mpg", ax=ax)
@@ -1027,7 +1068,7 @@ def _cases_batch_2(Case):
              """, """
                  {"log scale": float(f["scales"][1] == "log"), "bottom of the y axis": f["limits"][1][0],
                   "top of the y axis": f["limits"][1][1]}
-             """),
+             """, facts="the scale and range of an axis"),
              parent=_library_chart(f"""
                  fig, ax = plt.subplots()
                  ax.set_yscale("log")
@@ -1037,11 +1078,11 @@ def _cases_batch_2(Case):
                   "top of the y axis": f["limits"][1][1]}
              """), parent_label="matplotlib set_yscale(\"log\")", parent_tolerance=1e-12),
         Case("draw_line_at_x", "mtcars: a line at a weight of 3,500 lb", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg").draw_line_at_x(3.5, labelled="3,500 lb")
              """, """
-                 {"line at": f["lines"][0][0][0], "label written": float("3,500 lb" in f["texts"][1])}
-             """),
+                 {"line at": drawn.get_cell_at(row=1, column="x"), "label written": float("3,500 lb" in f["texts"][1])}
+             """, facts="the texts written on a chart"),
              published={"line at": (3.5, 0, "exact")},
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -1053,13 +1094,13 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib axvline", parent_tolerance=0.0),
         Case("write_ticks_y_as", "birthwt: the share of low birth weights for each race, written as percents",
              "birthwt", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="race", y="low").write_ticks_y_as("percent", out_of=1)
              """, """
                  shown = [t for t in f["ticks"][1] if t]
                  {"labels with %": sum(t.endswith("%") for t in shown), "labels": len(shown),
-                  "race 1": f["bars"][0][3]}
-             """),
+                  "race 1": drawn.get_cell_at(row=1, column="y")}
+             """, facts="tick labels"),
              parent=_library_chart("""
                  from matplotlib import ticker
                  fig, ax = plt.subplots()
@@ -1078,7 +1119,7 @@ def _cases_batch_2(Case):
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg").set_size(width=12, height=9, unit="cm")
              """, """
                  {"width (inches)": f["size"][0], "height (inches)": f["size"][1]}
-             """),
+             """, facts="the size of the figure"),
              published={"width (inches)": (12 / 2.54, 1e-12, "exact"), "height (inches)": (9 / 2.54, 1e-12, "exact")},
              parent=_library_chart("""
                  fig, ax = plt.subplots(figsize=(12 / 2.54, 9 / 2.54))
@@ -1088,11 +1129,11 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib figsize", parent_tolerance=1e-12,
              note="An inch is 2.54 cm."),
         Case("write_note", "mtcars: the lightest car named on the chart", "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="wt", y="mpg").write_note("Lotus Europa", x=1.513, y=30.4)
              """, """
-                 {"note written": float("Lotus Europa" in f["texts"][1]), "dots": len(f["dots"])}
-             """),
+                 {"note written": float("Lotus Europa" in f["texts"][1]), "dots": drawn.count_rows()}
+             """, facts="the texts written on a chart"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.scatterplot(data, x="wt", y="mpg", ax=ax)
@@ -1102,13 +1143,12 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib annotate", parent_tolerance=0.0),
         Case("draw_heatmap", "warpbreaks: the average breaks for each wool and tension as coloured cells",
              "warpbreaks", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_heatmap(x="tension", y="wool", value="breaks", with_numbers=True)
              """, """
-                 cells = f["cells"][0][1]
-                 {"cells": len(cells), "wool A, tension L": cells[0], "wool B, tension H": cells[5],
-                  "numbers written": len(f["texts"][1])}
-             """),
+                 {"cells": drawn.count_rows(), "wool A, tension L": drawn.get_cell_at(row=1, column="value"),
+                  "wool B, tension H": drawn.get_cell_at(row=6, column="value"), "numbers written": len(f["texts"][1])}
+             """, facts="the numbers written in the cells"),
              parent=_library_chart("""
                  wide = data.pivot_table(index="wool", columns="tension", values="breaks", aggfunc="mean", sort=False)
                  fig, ax = plt.subplots()
@@ -1124,13 +1164,16 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12),
         Case("draw_one_chart_for_each_group_in", "Fisher's iris: one small chart of petal against sepal length for "
              "each species", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="Sepal.Length", y="Petal.Length")
                  chart.draw_one_chart_for_each_group_in("Species")
              """, """
-                 {"panels": f["panels"], "dots in the first": f["every_panel"][0][4][0],
-                  "dots in the last": f["every_panel"][2][4][0], "width (inches)": f["size"][0]}
-             """),
+                 panels = drawn.get_column("panel").find_biggest()
+                 first = drawn.keep_rows_where("panel", is_equal_to=1).count_rows()
+                 drawn.undo()
+                 last = drawn.keep_rows_where("panel", is_equal_to=3).count_rows()
+                 {"panels": panels, "dots in the first": first, "dots in the last": last, "width (inches)": f["size"][0]}
+             """, facts="the size of the figure"),
              published={"panels": (3, 0, "exact"), "dots in the first": (50, 0, "exact"),
                         "dots in the last": (50, 0, "exact")},
              parent=_library_chart("""
@@ -1144,14 +1187,14 @@ def _cases_batch_2(Case):
              """, axes="axes[0]"), parent_label="matplotlib subplots(sharex, sharey)", parent_tolerance=0.0),
         Case("sdata.put_side_by_side", "mtcars: bars and boxes of fuel use side by side, on the same y range",
              "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  a = sdata.chart(data).draw_bars(x="cyl", y="mpg")
                  b = sdata.chart(data).draw_boxes(x="cyl", y="mpg")
                  chart = sdata.put_side_by_side(a, b, same_y=True)
              """, """
-                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "top of the y axis": f["limits"][1][1],
-                  "4 cylinders": f["every_panel"][0][5][1][0][3]}
-             """),
+                 {"panels": drawn.get_column("panel").find_biggest(), "width (inches)": f["size"][0],
+                  "top of the y axis": f["limits"][1][1], "4 cylinders": drawn.get_cell_at(row=1, column="y")}
+             """, facts="the size of the figure and the range of an axis"),
              parent=_library_chart(f"""
                  fig = plt.figure(figsize=(12, 4.5), layout="constrained")
                  ax, ax2 = (cell.add_subplot() for cell in fig.subfigures(1, 2))
@@ -1168,14 +1211,17 @@ def _cases_batch_2(Case):
                  list(`4 cylinders` = mean(mpg[cyl == 4]))
              """, r_tolerance=1e-12),
         Case("sdata.put_one_above_other", "Fisher's iris: dots above a histogram", "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  a = sdata.chart(data).draw_dots(x="Sepal.Length", y="Petal.Length")
                  b = sdata.chart(data).draw_histogram(x="Sepal.Length")
                  chart = sdata.put_one_above_other(a, b)
              """, """
-                 {"panels": len(f["every_panel"]), "height (inches)": f["size"][1], "dots": f["every_panel"][0][4][0],
-                  "bars": f["every_panel"][1][5][0]}
-             """),
+                 panels = drawn.get_column("panel").find_biggest()
+                 dots = drawn.keep_rows_where("panel", is_equal_to=1).count_rows()
+                 drawn.undo()
+                 bars = drawn.keep_rows_where("panel", is_equal_to=2).count_rows()
+                 {"panels": panels, "height (inches)": f["size"][1], "dots": dots, "bars": bars}
+             """, facts="the size of the figure"),
              parent=_library_chart("""
                  fig = plt.figure(figsize=(6, 9), layout="constrained")
                  ax, ax2 = (cell.add_subplot() for cell in fig.subfigures(2, 1))
@@ -1187,14 +1233,16 @@ def _cases_batch_2(Case):
              """), parent_label="matplotlib subfigures", parent_tolerance=0.0),
         Case("sdata.put_in_rows_and_columns", "Fisher's iris: histograms of the four measurements, two in a row",
              "iris", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]
                  charts = [sdata.chart(data).draw_histogram(x=name) for name in names]
                  chart = sdata.put_in_rows_and_columns(*charts, per_row=2)
              """, """
-                 {"panels": len(f["every_panel"]), "width (inches)": f["size"][0], "height (inches)": f["size"][1],
-                  "flowers in the last histogram": sum(b[3] for b in f["every_panel"][3][5][1])}
-             """),
+                 panels = drawn.get_column("panel").find_biggest()
+                 last = drawn.keep_rows_where("panel", is_equal_to=4).get_column("y").find_total()
+                 {"panels": panels, "width (inches)": f["size"][0], "height (inches)": f["size"][1],
+                  "flowers in the last histogram": last}
+             """, facts="the size of the figure"),
              published={"panels": (4, 0, "exact"), "flowers in the last histogram": (150, 0, "exact")},
              parent=_library_chart("""
                  names = ["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]
@@ -1208,12 +1256,15 @@ def _cases_batch_2(Case):
              """, axes="axes[0]"), parent_label="matplotlib subfigures", parent_tolerance=0.0),
         Case("sdata.draw_all_pairs", "Fisher's iris: every measurement against every other, by species", "iris",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.draw_all_pairs(data, colour="Species")
              """, """
-                 {"panels and diagonal axes": f["panels"], "dots in the second panel": f["every_panel"][1][4][0],
-                  "panels with dots": sum(p[4][0] > 0 for p in f["every_panel"])}
-             """),
+                 second = drawn.keep_rows_where("panel", is_equal_to=2).count_rows()
+                 drawn.undo()
+                 with_dots = drawn.keep_rows_where("kind", is_equal_to="dot").count_different_values_in("panel")
+                 {"panels and diagonal axes": f["panels"], "dots in the second panel": second,
+                  "panels with dots": with_dots}
+             """, facts="how many axes a figure has (empty ones and second y-axes included)"),
              published={"panels and diagonal axes": (20, 0, "exact"), "dots in the second panel": (150, 0, "exact"),
                         "panels with dots": (12, 0, "exact")},
              parent=_library_chart("""
@@ -1233,11 +1284,13 @@ def _cases_batch_2(Case):
              note="4 columns make 16 panels; each of the 4 on the diagonal also has a second y-axis for its curves."),
         Case("add_second_y", "mtcars: fuel use as a line and horsepower as bars on a second y-axis", "mtcars",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="cyl", y="mpg").add_second_y("hp", drawn_as="bars")
              """, """
-                 bars = f["every_panel"][1][5][1]
-                 {"4 cylinders": bars[0][3], "6 cylinders": bars[1][3], "8 cylinders": bars[2][3]}
+                 # the second y-axis is panel 2
+                 bars = drawn.keep_rows_where("panel", is_equal_to=2)
+                 {"4 cylinders": bars.get_cell_at(row=1, column="y"), "6 cylinders": bars.get_cell_at(row=2, column="y"),
+                  "8 cylinders": bars.get_cell_at(row=3, column="y")}
              """),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
@@ -1254,12 +1307,12 @@ def _cases_batch_2(Case):
              """, r_tolerance=1e-12),
         Case("animate", "mtcars: average fuel use by cylinders, one picture for each number of gears (the last: 5)",
              "mtcars", "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_bars(x="cyl", y="mpg").animate(over="gear")
              """, """
-                 {"4 cylinders": f["bars"][0][3], "8 cylinders": f["bars"][2][3],
+                 {"4 cylinders": drawn.get_cell_at(row=1, column="y"), "8 cylinders": drawn.get_cell_at(row=3, column="y"),
                   "named by its gear": float(f["labels"][2] == "gear: 5")}
-             """),
+             """, facts="the title"),
              parent=_library_chart("""
                  fig, ax = plt.subplots()
                  sns.barplot(data[data["gear"] == 5], x="cyl", y="mpg", errorbar=None, ax=ax)
@@ -1275,12 +1328,13 @@ def _cases_batch_2(Case):
              note="Shown as a still picture, an animated chart is its last frame."),
         Case("fit_formula", "Puromycin (treated): the Michaelis-Menten curve through the dots", "Puromycin (treated)",
              "real data",
-             ours=_ours_chart("""
+             ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_dots(x="conc", y="rate")
                  chart.fit_formula("rate = Vm * conc / (K + conc)", start={"Vm": 200, "K": 0.1})
              """, """
-                 xs, ys = f["lines"][0]
-                 {"curve at the highest concentration": ys[-1], "curve at the lowest": ys[0]}
+                 curve = drawn.keep_rows_where("kind", is_equal_to="line")
+                 {"curve at the highest concentration": curve.get_cell_at(row=curve.count_rows(), column="y"),
+                  "curve at the lowest": curve.get_cell_at(row=1, column="y")}
              """),
              parent=_library_chart("""
                  from scipy import optimize
