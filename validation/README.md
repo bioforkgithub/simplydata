@@ -79,7 +79,7 @@ simplydata has 400 words (and 2 options listed as words, `show=` and `error=`). 
   lesson, the list of packages used or the steps taken, or put a table back as it was: they compute no number, so there
   is no published answer or parent package to compare them with. Their box is run to show that it runs, and the report
   marks it "none".
-- **38 are compared in the separate test study** (the notebooks of `simplydata_tests`, 26,718 comparisons, each
+- **38 are compared only in the separate test study** (the notebooks of `simplydata_tests`, 26,718 comparisons, each
   difference explained), not here:
   - notebook 12 (factor analysis) and 21 (agreement and diagnostic tests): `table.reliability_of`;
   - notebook 19 (averages, spreads and shapes): `sdata.compare_averages`, `table.compare_shapes_of`,
@@ -99,8 +99,10 @@ simplydata has 400 words (and 2 options listed as words, `show=` and `error=`). 
     `nums.forecast`, `table.add_trend_and_season`, `table.check_steady_over_time`, `table.find_change_points_in`,
     `table.compare_forecasts_for`.
 
-No word is left without a comparison. The 46 words that had none before 2026-11-23 (cycles, peaks, filters, the
-Fourier transform, the time-series charts, joining the dots, solving and optimising, waves and linear systems) are in
+No word is left without a comparison. The other 46 words had no case here before 2026-11-23: cycles, peaks, filters,
+the Fourier transform, the time-series charts, joining the dots, solving and optimising, waves and linear systems. 5 of
+them, the chart words `autocorrelation_bars`, `cross_correlation_bars`, `lag_dots`, `trend_and_season` and `forecast`,
+were already compared in notebook 29 of the test study; the other 41 were compared nowhere. All 46 now have a case in
 `cases_signals.py`: on the yearly sunspot numbers, the El Nino sea temperatures and US inflation and unemployment (all
 public domain, read from the installed statsmodels), on published worked examples (Newton's cubic, Rosenbrock's valley,
 the Wyndor Glass linear program of Hillier & Lieberman), and, for the system words, which take a formula and no data,
