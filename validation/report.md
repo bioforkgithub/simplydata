@@ -2056,15 +2056,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512527698748379 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736320299187 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774739407856 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192815000396 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877502611101 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215849612033 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208483925654 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549204945232 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246657204936 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.51252779247827 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735966551489 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774010290016 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192921513755 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877451094192 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.30521585888881 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208463631657 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549703518849 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246756391043 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
