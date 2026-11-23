@@ -100,11 +100,13 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_correlation_between("hours", "marks", "height", show="covariance")
         """,
         code={"pandas": """
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # find_correlation_between("hours", "marks", "height", show="covariance")
             cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
             cov.rename_axis("column").reset_index()

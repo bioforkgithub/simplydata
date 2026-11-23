@@ -40,12 +40,14 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.fit_line(x="hours", y="marks")
         """,
         code={"SciPy": """
             from scipy import stats
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # fit_line(x="hours", y="marks")
             fit = stats.linregress(df["hours"], df["marks"])
             t = stats.t.ppf(0.975, len(df) - 2)                 # (1)
@@ -107,12 +109,14 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.compare_spreads_of("marks", for_each_group_in="class")
         """,
         code={"SciPy": """
             from scipy import stats
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # compare_spreads_of("marks", for_each_group_in="class")
             groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
             res = stats.levene(*groups, center="median")                  # (1)

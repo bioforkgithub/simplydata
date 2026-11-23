@@ -23,6 +23,7 @@ FLASK_A = """
 MARKS = """
     import pandas as pd
     marks_table = pd.read_csv("marks.csv")
+    marks_table = marks_table[marks_table["subject"] == "Maths"].reset_index(drop=True)
     hours = marks_table["hours"].to_numpy(dtype=float)
     marks = marks_table["marks"].to_numpy(dtype=float)
 """
@@ -141,12 +142,14 @@ OPTION_ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.fit_line(x="hours", y="marks", test_method="theil-sen")
         """,
         code={"SciPy": """
             from scipy import stats
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # fit_line(x="hours", y="marks", test_method="theil-sen")
             fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                                     method="separate")                        # (2)
@@ -166,6 +169,7 @@ OPTION_ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.fit_line(x="hours", y="marks", test_method="standardised major axis")
         """,
         code={
@@ -193,6 +197,7 @@ OPTION_ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=4)
         """,
         code={
@@ -222,6 +227,7 @@ OPTION_ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.fit_line(x="hours", y="marks", test_method="passing-bablok")
         """,
         code={
@@ -343,6 +349,7 @@ OPTION_ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.explain("marks", using=["hours"], for_percentile=90)
         """,
         code={
