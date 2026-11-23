@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**2533 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**2535 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2084,15 +2084,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528156962388 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.7487357860152 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774621307008 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192874328618 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877443488805 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215585321015 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208868260256 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549623533079 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.54324634974566 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528069151841 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735750711919 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774342936349 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192904524146 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877382043124 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215816219106 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208534906681 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549533840142 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246559503298 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
@@ -5183,6 +5183,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.save` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.save` | pandas | polars | table | relative 1e-09 | pass |
 | `table.save` | Polars | polars | table | relative 1e-09 | pass |
+| `table.save in_sheet=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.save in_sheet=` | pandas | polars | table | relative 1e-09 | pass |
 | `table.as_pandas` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.as_pandas` | Polars | polars | table | relative 1e-09 | pass |
 | `table.as_polars` | pandas | pandas | table | relative 1e-09 | pass |
@@ -5906,6 +5908,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.join_with` (1): a column found in both tables (other than using=) keeps its name in this table and gets "_other" in the other table's copy.
 - `table.add_z_score_column` (1): the standard deviation of a sample (n - 1, ddof=1), as R scale(); SciPy's zscore uses n unless told ddof=1.
 - `table.save` (1): no row labels are written (index=False): the file holds only your columns.
+- `table.save in_sheet=` (1): mode="a" adds the sheet to the Excel file that is there and keeps its other sheets; if_sheet_exists="replace" replaces a sheet of the same name (simplydata prints that it did). A file that does not exist yet is made with pandas ExcelWriter and that one sheet.
 - `table.add_missing_dates` (1): the table comes back sorted by the groups, then the dates; the group's name is copied into the new rows, and rows with an empty group cell are a group of their own (dropna=False).
 - `table.add_missing_dates` (2): each group's own run, from its first to its last date: no rows are added before or after (between= adds them).
 - `table.add_rolling_column` (1): the window follows sorted_by=, but the rows keep their place in the table (assign lines the values up by row).

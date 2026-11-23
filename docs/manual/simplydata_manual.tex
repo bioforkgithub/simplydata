@@ -1879,6 +1879,8 @@ both.show(rows=3)
   \item Looking never changes the table. Only steps that say what they change (\code{keep\_\allowbreak{}rows\_\allowbreak{}where}, \code{sort\_\allowbreak{}by} ...) do, and lesson 10 shows them.
   \item In Jupyter, VS Code or Spyder, write table on the last line of a cell to see it as a nice table.
   \item \code{sdata.\allowbreak{}table} reads the same files as \code{sdata.\allowbreak{}chart}: \code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}. For one sheet of an Excel file: \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}2026\textquotedbl{})}.
+  \item Every sheet at once: everything = \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}all\textquotedbl{})} gives one table with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from. Then \code{everything.\allowbreak{}count\_\allowbreak{}rows(for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})} counts the rows of each sheet, \code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})} gives a summary per sheet, and \code{everything.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(\textquotedbl{}sheet\textquotedbl{},\allowbreak{} is\_\allowbreak{}equal\_\allowbreak{}to=\textquotedbl{}2026\textquotedbl{})} keeps the rows of one sheet (\code{everything.\allowbreak{}undo()} brings the others back). \code{sheet=\textquotedbl{}all\textquotedbl{}} works only when the sheets have the same columns; sheets with different data are read by name, one at a time, and simplydata prints a line to copy for each.
+  \item To write such a file, save each table as a sheet: \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})}, then \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})} keeps the first sheet and adds the second. \code{sheet=} reads a sheet; \code{in\_\allowbreak{}sheet=} saves one.
   \item The row numbers on the left start at 1, the way people count: the last row of a table of 54 rows is row 54. Lesson 10 uses these numbers to choose rows by their place.
   \item A folder works too: \code{sdata.\allowbreak{}table(\textquotedbl{}data/\textquotedbl{})} reads every table file in it. A web address works like a file name: \code{sdata.\allowbreak{}table(\textquotedbl{}https://example.\allowbreak{}org/data.\allowbreak{}csv\textquotedbl{})}.
   \item Files written in another way: \code{separator=\textquotedbl{};\textquotedbl{}}, \code{decimal\_\allowbreak{}mark=\textquotedbl{},\allowbreak{}\textquotedbl{}} (3,5 is three and a half), \code{thousands\_\allowbreak{}mark=\textquotedbl{}.\allowbreak{}\textquotedbl{}}, \code{empty\_\allowbreak{}values=[\textquotedbl{}NA\textquotedbl{},\allowbreak{} \textquotedbl{}-\textquotedbl{}]}, \code{skip\_\allowbreak{}rows=2} and \code{encoding=\textquotedbl{}latin-1\textquotedbl{}}.
@@ -1955,7 +1957,7 @@ table.save("lesson10_summer.xlsx")
   \item[5] Remove two columns we do not need.
   \item[6] Give the column \code{\textquotedbl{}temperature\textquotedbl{}} the shorter name \code{\textquotedbl{}temp\textquotedbl{}}.
   \item[7] Look at what is left: 6 rows and 5 columns.
-  \item[8] Save the table as an Excel file. A name ending in \code{.\allowbreak{}csv} saves a CSV file.
+  \item[8] Save the table as an Excel file. A name ending in \code{.\allowbreak{}csv} saves a CSV file. \code{in\_\allowbreak{}sheet=\textquotedbl{}summer\textquotedbl{}} would save it as one sheet and keep the file's other sheets.
 \end{lineexplain}
 \printedoutput{output/lesson10_example2.txt}
 \section*{Example 3}
@@ -8576,6 +8578,13 @@ Start a table.
 \codeline{sdata.table(\textquotedbl{}data/*.csv\textquotedbl{})}\enspace several files stacked, with a \code{\textquotedbl{}file\textquotedbl{}} column (or a folder: \code{\textquotedbl{}data/\textquotedbl{}})\\
 \codeline{sdata.table(\textquotedbl{}https://example.org/data.csv\textquotedbl{}) a file on the web}\\
 \codeline{fast=True}\enspace use the fast engine (Polars), for big data
+
+\code{sheet=\textquotedbl{}all\textquotedbl{}} reads every sheet of an Excel file into one table, with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from. simplydata words then work sheet by sheet:\\
+\codeline{everything = sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}all\textquotedbl{})}\\
+\codeline{everything.count\_rows(for\_each\_group\_in=\textquotedbl{}sheet\textquotedbl{})}\enspace how many rows came from each sheet\\
+\code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})}  a summary per sheet\\
+\codeline{everything.keep\_rows\_where(\textquotedbl{}sheet\textquotedbl{}, is\_equal\_to=\textquotedbl{}2026\textquotedbl{})}\enspace just one sheet's rows\\
+(\code{keep\_\allowbreak{}rows\_\allowbreak{}where} changes everything; \code{everything.\allowbreak{}undo()} brings the other sheets back.) \code{sheet=\textquotedbl{}all\textquotedbl{}} stacks the sheets only when they have the same columns. Sheets that hold different data are read by name, each on its own: simplydata says which columns differ and prints a line to copy for each sheet, such as  patients = \code{sdata.\allowbreak{}table(\textquotedbl{}study.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}patients\textquotedbl{})}. To write such a workbook, save each table with \code{in\_\allowbreak{}sheet=} (\code{in\_\allowbreak{}sheet=} saves, \code{sheet=} reads): \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})} \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})}
 
 \code{separator=} is the safe way to read a CSV or text file: give it when you know it, especially for a file with one column. Without it simplydata guesses (only a comma, semicolon, tab or bar, never a letter or a digit) and prints its guess:\\
 \codeline{sdata.table(\textquotedbl{}species.csv\textquotedbl{}, separator=\textquotedbl{},\textquotedbl{})}
@@ -19042,11 +19051,23 @@ print(table)
 \wordentry{table.save()}{word:table.save}
 Save the table; the end of the file name decides the type. \code{table.\allowbreak{}save(\textquotedbl{}clean.\allowbreak{}xlsx\textquotedbl{})}
 
-File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}.
+File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json}. Without \code{in\_\allowbreak{}sheet=}, saving to an Excel file that already exists replaces the whole file, every sheet in it.
+
+\code{in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{}} saves the table as one sheet of an Excel file and keeps the sheets already in it, so several tables go into one workbook: \code{marks\_\allowbreak{}2025.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2025\textquotedbl{})} \code{marks\_\allowbreak{}2026.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} in\_\allowbreak{}sheet=\textquotedbl{}2026\textquotedbl{})} If the file does not exist yet, it is made with that sheet. If it already has a sheet of that name, that sheet is replaced (simplydata says so) and the other sheets are kept. Only \code{.\allowbreak{}xlsx} files have sheets. Sheet names follow Excel's rules: at most 31 characters, none of : \textbackslash{} / ? * [ ], no apostrophe at the start or end, not \code{\textquotedbl{}History\textquotedbl{}} (Excel keeps it), and Excel counts \code{\textquotedbl{}Cleaned\textquotedbl{}} and \code{\textquotedbl{}cleaned\textquotedbl{}} as the same name.
+
+Mind the two names: \code{sheet=} reads a sheet, \code{in\_\allowbreak{}sheet=} saves one. To read the workbook back:\\
+\codeline{sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}2026\textquotedbl{})}\enspace one sheet\\
+\codeline{everything = sdata.table(\textquotedbl{}results.xlsx\textquotedbl{}, sheet=\textquotedbl{}all\textquotedbl{})}\enspace every sheet, stacked\\
+\code{sheet=\textquotedbl{}all\textquotedbl{}} makes one table with a \code{\textquotedbl{}sheet\textquotedbl{}} column naming the sheet each row came from, so simplydata words work sheet by sheet:\\
+\codeline{everything.count\_rows(for\_each\_group\_in=\textquotedbl{}sheet\textquotedbl{})}\enspace how many rows came from each sheet\\
+\code{everything.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}sheet\textquotedbl{})}  a summary per sheet\\
+\codeline{everything.keep\_rows\_where(\textquotedbl{}sheet\textquotedbl{}, is\_equal\_to=\textquotedbl{}2026\textquotedbl{})}\enspace just one sheet's rows\\
+(\code{keep\_\allowbreak{}rows\_\allowbreak{}where} changes everything; \code{everything.\allowbreak{}undo()} brings the other sheets back.) \code{sheet=\textquotedbl{}all\textquotedbl{}} stacks the sheets only when they have the same columns. Sheets that hold different data are read by name, each on its own: simplydata says which columns differ and prints a line to copy for each sheet, such as  patients = \code{sdata.\allowbreak{}table(\textquotedbl{}study.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}patients\textquotedbl{})}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{file\_\allowbreak{}name} & needed\\
+\code{in\_\allowbreak{}sheet=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.save]{How simplydata chooses methods}, page \pageref{basis:table.save}: the default, the evidence and the checks.}
@@ -19088,6 +19109,29 @@ saved
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) no row labels are written (\code{index=False}): the file holds only your columns.}
 \undertext{The end of the file name chooses the type: \code{.\allowbreak{}xlsx} (pandas \code{to\_\allowbreak{}excel}), \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} too. The test saves both files in a folder that is deleted afterwards and reads them back.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{in\_\allowbreak{}sheet=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import pandas as pd
+df = pd.read_csv("marks.csv")
+with tempfile.TemporaryDirectory() as folder:
+    results = os.path.join(folder, "results.xlsx")
+    df.to_excel(results, sheet_name="2025", index=False)
+    # save as results.xlsx with in_sheet="2026", to a file that exists
+    with pd.ExcelWriter(results, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:  # (1)
+        df.to_excel(writer, sheet_name="2026", index=False)
+    sheets = pd.read_excel(results, sheet_name=None)
+both = pd.concat([s.assign(sheet=n)[["sheet", *df.columns]] for n, s in sheets.items()], ignore_index=True)
+both
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{mode=\textquotedbl{}a\textquotedbl{}} adds the sheet to the Excel file that is there and keeps its other sheets; \code{if\_\allowbreak{}sheet\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{}} replaces a sheet of the same name (simplydata prints that it did). A file that does not exist yet is made with pandas ExcelWriter and that one sheet.}
+\undertext{simplydata checks the sheet name first with Excel's rules as openpyxl states them (at most 31 characters, none of : \textbackslash{} / ? * [ ]) and refuses a name Excel would count as the same in other capitals, so a refused name leaves the file as it was. Polars tables go through pandas too. The test reads the workbook back with \code{sheet=\textquotedbl{}all\textquotedbl{}} (pandas \code{read\_\allowbreak{}excel(sheet\_\allowbreak{}name=None)}).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.start\_chart()}{word:table.start-chart}
@@ -23145,7 +23189,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 439 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 232 follow the convention of the package named so that results match it, and 64 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 440 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 233 follow the convention of the package named so that results match it, and 64 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -25782,6 +25826,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Default}{The file holds only the columns, without row labels.}
 \wordfield{Alternatives}{The end of the file name chooses the type (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}).}
 \wordfield{Why (P5)}{Data handling: row labels are pandas' own and not part of the data. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.save-in-sheet-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}save()} \code{in\_\allowbreak{}sheet=}}\par\nopagebreak
+\wordfield{Default}{The sheet is added to the Excel file and the other sheets are kept; a sheet of the same name is replaced; a file that does not exist is made with that one sheet.}
+\wordfield{Alternatives}{Without \code{in\_\allowbreak{}sheet=}, the whole file is replaced by one sheet.}
+\wordfield{Why (P5)}{Data handling: pandas' own append mode (ExcelWriter \code{mode=\textquotedbl{}a\textquotedbl{}}, \code{if\_\allowbreak{}sheet\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{}}); replacing the named sheet, not the file, keeps the other sheets, and simplydata says when it replaced one. \textit{Basis: convention.}}
+\wordfield{Checks}{Sheet names are checked with Excel's rules before the file is opened (at most 31 characters, none of : \textbackslash{} / ? * [ ], no apostrophe at the start or end, not History, not the same name in other capitals), so a refused name leaves the file as it was.}
 \wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
 \unsection{Numbers: make and look}{basis-group:Numbers-make-and-look}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}numbers()}}\par\nopagebreak

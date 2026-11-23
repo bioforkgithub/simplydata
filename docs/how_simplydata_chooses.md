@@ -5,7 +5,7 @@ averages, Holm's method when you adjust many p-values, REML and Hartung-Knapp in
 studies. This document answers the question a reviewer asks first: *how does simplydata know which method is
 right, and what logic does it use?*
 
-The answer is five principles, applied in order, and one entry for each of the 439 choices simplydata
+The answer is five principles, applied in order, and one entry for each of the 440 choices simplydata
 makes. Each entry gives the default, the alternatives (and the option that asks for them), why simplydata
 chose it, the published evidence, and what simplydata checks in your data before it uses the method.
 
@@ -26,8 +26,8 @@ chose it, the published evidence, and what simplydata checks in your data before
   checks in your data, and when it refuses or warns and says what to use instead.
 - **References**: short citations; the full list with links is at the end.
 
-The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 439 defaults, 143 rest on
-published guidelines or method comparisons, 232 follow the convention of the package named so that
+The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 440 defaults, 143 rest on
+published guidelines or method comparisons, 233 follow the convention of the package named so that
 results match it, and 64 are simplydata's own starting values, marked as such, each changed with the
 option named.
 
@@ -637,6 +637,7 @@ a word that chooses a method has no entry, or when this file is out of date.
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
 | `table.save()` | The file holds only the columns, without row labels. | The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json). | **P5.** Data handling: row labels are pandas' own and not part of the data. *Basis: convention.* |  |
+| `table.save()` `in_sheet=` | The sheet is added to the Excel file and the other sheets are kept; a sheet of the same name is replaced; a file that does not exist is made with that one sheet. | Without in_sheet=, the whole file is replaced by one sheet. | **P5.** Data handling: pandas' own append mode (ExcelWriter mode="a", if_sheet_exists="replace"); replacing the named sheet, not the file, keeps the other sheets, and simplydata says when it replaced one. *Basis: convention.* **Checks:** Sheet names are checked with Excel's rules before the file is opened (at most 31 characters, none of : \ / ? * [ ], no apostrophe at the start or end, not History, not the same name in other capitals), so a refused name leaves the file as it was. |  |
 
 ## Numbers: make and look
 
