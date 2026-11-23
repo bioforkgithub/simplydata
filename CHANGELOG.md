@@ -5,6 +5,17 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: a front door for new users
+
+- New motto: "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain
+  words, with its results checked against the field's standard tools." It replaces the old one in the README,
+  pyproject, CITATION.cff, CONTRIBUTING.md, the package docstring and the title pages of the manual, dictionary
+  and 30-day guide.
+- The README now opens with who it is for, install, a quick start with its real output and where to go next,
+  then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, patient data, R). The long
+  lists (packages, tasks, fields, lessons, examples by area) moved to
+  [docs/what_simplydata_handles.md](docs/what_simplydata_handles.md); the tests check them there.
+
 ### Changed: reshaping words renamed, and one new word (check your code)
 
 - `table.turn_rows_into_columns` is now `table.spread_into_columns(names_from=..., values_from=...)`, and
