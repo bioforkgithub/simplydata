@@ -2577,8 +2577,8 @@ BASIS["table.add_correspondence_axes show=\"numbers\""] = _b(
     "shares and the total of the adjusted inertia (ca::mjca inertia.e and inertia.t).",
     "leave out show= to add the columns CA1, CA2 to the table.",
     "Every number is the package's own, so it can be compared with a published table such as Oksanen's vegan "
-    "tutorial (eigenvalues 0.5249 and 0.3568 of 2.083 on varespec). The ca package gives the adjusted MCA "
-    "eigenvalues only rounded to 6 decimals, so they are left out rather than worked out again (ter Braak 1985 for "
+    "tutorial (eigenvalues 0.5249 and 0.3568 of 2.083 on varespec). The MCA eigenvalues are not shown: R ca "
+    "gives them only rounded (to 6 decimals), and simplydata does not work them out again (ter Braak 1985 for "
     "the eigenvalues of correspondence analysis).", ("terbraak1985",), "P3",
     "The same checks as add_correspondence_axes.", "convention")
 

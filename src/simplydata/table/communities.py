@@ -705,8 +705,8 @@ class CommunityWords:
         table, its coordinates, the eigenvalue of each axis ("CA1 eigenvalue"), its share of the inertia
         ("CA1 share of the inertia") and the total inertia, as R gives them (vegan: summary(eigenvals()) and
         tot.chi). For text columns (MCA) the table holds the shares and the total of the adjusted inertia
-        (ca::mjca inertia.e and inertia.t); ca gives the adjusted eigenvalues only rounded to 6 decimals, so they
-        are left out.
+        (ca::mjca inertia.e and inertia.t). The MCA eigenvalues are not shown: R ca gives them only rounded (to
+        6 decimals, in summary() and print()), and no field of the mjca result holds them unrounded.
         """
         step = "add_correspondence_axes"
         if show is not None:
