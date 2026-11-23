@@ -126,7 +126,7 @@ def _lomb_scargle(y, times):
 
 
 def strongest_cycles(freq, values, top=TOP):
-    """The positions (in freq) of the strongest cycles: the local peaks above frequency 0 (SciPy find_peaks, the
+    """The positions (in freq) of the strongest cycles: the local peaks above frequency 0 (SciPy signal.find_peaks, the
     ends counting as peaks), strongest first, at most top of them. The sentence of find_spectrum_of names them
     and chart.spectrum labels them, so both always show the same cycles."""
     from scipy.signal import find_peaks

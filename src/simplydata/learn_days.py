@@ -1247,9 +1247,11 @@ UNITS = {
             "The simplydata version: one word per step, and each answer printed in a sentence."),
             (_code('''
             import matplotlib.pyplot as plt
+            import pandas as pd
             import simplydata as sdata
             from scipy import stats
-            df = sdata.get_example("marks")
+            sdata.get_example("marks").save("marks.csv")
+            df = pd.read_csv("marks.csv")
             df = df[df["class"].isin(["A", "B"])]
             print(df.groupby("class")["marks"].mean())
             a = df.loc[df["class"] == "A", "marks"]
@@ -1259,7 +1261,8 @@ UNITS = {
             means = df.groupby("class")["marks"].mean()
             ax.bar(means.index, means.values)
             fig.savefig("pandas_bars.png")'''),
-             "The same in pandas, SciPy and matplotlib: equal_var=False makes it Welch's t-test, as in "
+             "The same in pandas, SciPy and matplotlib: save() writes the practice table to a file, which pandas "
+             "reads with its own read_csv(); equal_var=False makes it Welch's t-test, as in "
              "simplydata.")],
     ),
     "look_back": dict(

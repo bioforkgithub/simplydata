@@ -468,7 +468,7 @@ def test_practice_tables_after_real_studies_are_made_up_by_their_script(name):
     spec = importlib.util.spec_from_file_location("make_practice_tables", script)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    shipped = sdata.get_example(name)
+    shipped = example_frame(name)  # the shipped file, read by pandas
     made = module.TABLES[name]()
     assert list(made.columns) == list(shipped.columns) and len(made) == len(shipped)
     pd.testing.assert_frame_equal(made.astype(str).replace("nan", ""), shipped.astype(str).replace("nan", ""),
