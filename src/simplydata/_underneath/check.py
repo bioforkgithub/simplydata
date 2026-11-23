@@ -61,20 +61,37 @@ def run_python(source: str, namespace: dict | None = None):
 
 
 @contextlib.contextmanager
+def practice_files():
+    """While the library code runs, the folder of the practice tables is the working folder, so the code reads a
+    practice table from its file as anyone would: pd.read_csv("marks.csv"). (sdata.get_example("marks") gives a
+    simplydata table, which the library code does not use: it reads the same file with the library itself.)"""
+    import os
+    from importlib.resources import as_file, files
+
+    with as_file(files("simplydata.data")) as folder:
+        before = os.getcwd()
+        os.chdir(folder)
+        try:
+            yield
+        finally:
+            os.chdir(before)
+
+
+@contextlib.contextmanager
 def _practice_tables_as(engine: str):
-    """While ours runs, sdata.get_example gives Polars tables (engine="polars") instead of pandas."""
+    """While ours runs, sdata.get_example gives tables held by Polars (engine="polars") instead of pandas."""
     import simplydata
 
     if engine == "pandas":
         yield
         return
-    import polars as pl
-
     original = simplydata.get_example
 
-    def as_polars(name=None):
-        found = original(name)
-        return None if found is None else pl.from_pandas(found)
+    def as_polars(name=None, **options):
+        found = original(name, **options)
+        if options:  # from_r_package= gives a pandas-held simplydata table, as a user gets it
+            return found
+        return None if found is None else simplydata.table(found, fast=True)
 
     simplydata.get_example = as_polars
     try:
@@ -187,16 +204,12 @@ def chart_facts(ax) -> dict:
     tick_places       where the ticks are, along the x axis and along the y axis (in the axis's own numbers: names
                       under bars sit at 0, 1, 2 ...)
     """
-    from matplotlib.patches import Rectangle
+    from .._numbers_drawn import dots_of, rectangles_of  # the readers of chart.get_numbers_drawn()
 
-    rects = [p for p in ax.patches if isinstance(p, Rectangle)]
     bars = sorted(((float(r.get_x()), float(r.get_y()), float(r.get_width()), float(r.get_height()), r.get_facecolor())
-                   for r in rects), key=lambda b: b[:4])
+                   for r in rectangles_of(ax)), key=lambda b: b[:4])
     dots, sizes, dot_colours = [], [], []
-    for coll in ax.collections:
-        offsets = np.asarray(coll.get_offsets(), dtype=float)
-        if offsets.ndim != 2 or len(offsets) == 0 or coll.__class__.__name__ != "PathCollection":
-            continue
+    for coll, offsets in dots_of(ax):
         dots.extend(map(tuple, offsets))
         s = np.asarray(coll.get_sizes(), dtype=float)
         if len(s) == len(offsets):
@@ -461,6 +474,8 @@ def _same(a, b, tol: float) -> bool:
             return False
         if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
             a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+            if a.shape != b.shape:  # a grid and a list, or (n, 1) and (n,), are not the same result
+                return False
             return bool(np.allclose(a, b, rtol=tol, atol=1e-12, equal_nan=True))
         return all(_same(x, y, tol) for x, y in zip(a, b))
     if a is None or b is None:
@@ -579,7 +594,8 @@ def compare(entry: Entry, ours, theirs) -> list[str]:
 # ---------------------------------------------------------------- one entry
 def _r_values(entry: Entry) -> dict:
     """The values the R block uses, made by r_inputs from the practice table."""
-    _, _, ns = run_python(entry.r_inputs)
+    with practice_files():
+        _, _, ns = run_python(entry.r_inputs)
     return {k: v for k, v in ns.items() if not k.startswith("__") and k != "sdata" and isinstance(v, np.ndarray)}
 
 
@@ -602,7 +618,8 @@ def _run_with_r(entry: Entry):
                 namespace[k] = arr if arr.size != 1 else float(arr.reshape(-1)[0])
             seen_r = True
         elif seen_r:
-            value, _, namespace = run_python(source, namespace)
+            with practice_files():
+                value, _, namespace = run_python(source, namespace)
     return value, namespace
 
 
@@ -657,7 +674,8 @@ def check_entry(entry: Entry) -> list[Outcome]:
                 continue
             for library, _, source in entry.blocks():
                 ours, printed = run_ours(entry, engine)
-                theirs, their_print, _ = run_python(source)
+                with practice_files():
+                    theirs, their_print, _ = run_python(source)
                 if entry.compare == "printed":
                     differences = compare_printed(printed, their_print)
                 else:

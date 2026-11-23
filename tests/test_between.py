@@ -17,6 +17,7 @@ from simplydata import SimplydataError
 from simplydata.table.between import (SmoothingSpline, _curve_through, curve_between_neighbours, join_many_directions,
                                       join_one_direction, smoothing_spline)
 from simplydata.table.table import Table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 TOL = 1e-8  # interpolation: R and SciPy follow the same formulas
@@ -30,7 +31,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return Table(pl.from_pandas(data))
+        return Table(data, fast=True)
     return Table(data)
 
 
@@ -38,7 +39,7 @@ def frame(result):
     return result._frame.to_pandas() if hasattr(result._frame, "to_pandas") else result._frame
 
 
-# Applia in sdata.get_example("growth"): R  x <- seq(2000, 2024, by = 2); y <- c(12.0, ..., 24.1)
+# Applia in example_frame("growth"): R  x <- seq(2000, 2024, by = 2); y <- c(12.0, ..., 24.1)
 YEARS = np.arange(2000, 2025, 2.0)
 APPLIA = np.array([12.0, 12.6, 13.4, 14.4, 15.1, 16.2, 17.0, 18.1, 19.6, 20.4, 21.9, 23.2, 24.1])
 AT = [2001, 2003, 2011, 2023.5, 2004, 2005]
@@ -160,7 +161,7 @@ def test_smoothing_spline_with_ties_matches_r(needs_r):
     # m <- read.csv(".../marks.csv"); 54 rows, 40 different hours (ties are averaged, and R's GCV
     # counts their spread): smooth.spline(m$hours, m$marks, all.knots = TRUE)
     # lambda 0.0808156517, df 2.7685814228; predict(f, c(2, 5, 8.5))$y
-    marks = sdata.get_example("marks").dropna(subset=["hours", "marks"])
+    marks = example_frame("marks").dropna(subset=["hours", "marks"])
     spline = smoothing_spline(marks["hours"], marks["marks"])
     assert spline.lam == pytest.approx(0.0808156517, rel=1e-6)  # differs by ~1e-8 between systems
     assert spline.df == pytest.approx(2.7685814228, rel=1e-6)
@@ -201,7 +202,7 @@ def test_thin_plate_spline_matches_r_by_hand():
 
 # ====================================================================== values_at
 def test_values_at_one_direction_for_each(engine, capsys):
-    table = make(sdata.get_example("growth"), engine)
+    table = make(example_frame("growth"), engine)
     result = table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")
     out = capsys.readouterr().out
     assert ('Estimated "population" at 3 values of "year" for each of the 4 groups in "country", joined by '
@@ -217,7 +218,7 @@ def test_values_at_one_direction_for_each(engine, capsys):
 
 @pytest.mark.parametrize("how", ["smooth curve", "curve without overshoot", "steps", "nearest", "akima"])
 def test_values_at_each_way(engine, how, capsys):
-    table = make(sdata.get_example("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
+    table = make(example_frame("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
     result = frame(table.values_at("population", at={"year": AT}, joined_by=how))
     assert np.allclose(result["population"], R_ONE_DIRECTION[how], atol=1e-9)
     assert how.split()[0] in capsys.readouterr().out
@@ -251,7 +252,7 @@ def test_values_at_outside(capsys):
 
 
 def test_values_at_smoothing(engine, capsys):
-    table = make(sdata.get_example("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
+    table = make(example_frame("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
     capsys.readouterr()
     got = frame(table.values_at("population", at={"year": [2001, 2003, 2011]}, smoothness="auto"))
     assert np.allclose(got["population"], [12.2633508089467, 13.0542882126724, 16.6317113148074], atol=1e-3)
@@ -276,7 +277,7 @@ def test_values_at_ties_and_empty_cells(capsys):
 
 
 def test_values_at_two_directions(engine, capsys):
-    table = make(sdata.get_example("island"), engine)
+    table = make(example_frame("island"), engine)
     got = frame(table.values_at("height", at={"east": [1.5, 2.5, 7.2], "north": [3, 4.5, 11.9]}))
     # by hand in R on the 15 x 15 grid: H[e0, n0] (1 - de)(1 - dn) + ... (bilinear)
     assert np.allclose(got["height"], [0.5, 14.25, 37.72], atol=1e-9)
@@ -329,7 +330,7 @@ def test_values_at_friendly_errors():
 
 # ====================================================================== map_of
 def test_map_of(engine, capsys):
-    table = make(sdata.get_example("island"), engine)
+    table = make(example_frame("island"), engine)
     got = frame(table.make_map_of("height", across=["east", "north"], steps=5))
     assert len(got) == 25 and list(got.columns) == ["east", "north", "height"]
     assert got["east"].tolist()[:5] == [0.0] * 5

@@ -15,6 +15,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 NOTE_END = "The old name will stop working in a later version."
 A = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 15.6]
@@ -32,7 +33,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -46,7 +47,7 @@ def notes(out):
 
 # ---------------------------------------------------------------------------- check_random_order
 def test_check_random_order_old_name(engine, capsys):
-    t = make(sdata.get_example("marks"), engine)
+    t = make(example_frame("marks"), engine)
     new = row(t.check_if_random_order("marks"))
     capsys.readouterr()
     old = row(t.compare_to_random_order("marks"))
@@ -57,7 +58,7 @@ def test_check_random_order_old_name(engine, capsys):
 
 # ---------------------------------------------------------------------------- interval_by= on percents
 def test_percent_interval_by_and_old_method(engine, capsys):
-    school = make(sdata.get_example("school"), engine)
+    school = make(example_frame("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by="wilson"))
     # R: DescTools::BinomCI(78, 180, method = "wilson"): 0.363081784442 to 0.506370948614
     assert got["percent 95 % CI low"] == pytest.approx(36.3081784442, rel=1e-9)
@@ -67,7 +68,7 @@ def test_percent_interval_by_and_old_method(engine, capsys):
     assert notes(capsys.readouterr().out) == [f'Note: "method=" is now called "interval_by=". {NOTE_END}']
     with pytest.raises(SimplydataError, match="only once"):
         school.compare_percent_to("passed", value="yes", percent=50, method="wilson", interval_by="wilson")
-    marks = make(sdata.get_example("marks"), engine)
+    marks = make(example_frame("marks"), engine)
     marks.find_percent_of_rows_where("marks", is_above=60, method="wilson")
     # R: DescTools::BinomCI(33, 54, method = "wilson"): 0.477882985382 to 0.729580661709
     assert "95 % CI 47.8 % to 73.0 %, Wilson score interval" in capsys.readouterr().out
@@ -161,7 +162,7 @@ def test_not_lower_errors(groups):
 
 # ---------------------------------------------------------------------------- reverse percentile bootstrap
 def test_reverse_percentile_bootstrap(engine, capsys):
-    t = make(sdata.get_example("marks"), engine)
+    t = make(example_frame("marks"), engine)
     new = t.find_interval_of("marks", "median", test_method="reverse percentile bootstrap")._frame.to_pandas()
     out = capsys.readouterr().out
     assert "bootstrap interval (reverse percentile)" in out and 'boot.ci(type = "basic")' in out

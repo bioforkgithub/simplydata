@@ -9,6 +9,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 def rows_of_tests(result):
@@ -77,7 +78,7 @@ def test_test_type_spellings_and_checks(school):
 
 def test_separation_prints_infinite_instead_of_crashing(capsys):
     # a group column that splits yes and no completely: the odds ratio runs off to infinity
-    data = sdata.get_example("school").assign(passed=lambda d: d.breakfast.map({"yes": "yes", "no": "no"}))
+    data = example_frame("school").assign(passed=lambda d: d.breakfast.map({"yes": "yes", "no": "no"}))
     make_table(data).explain("passed", using=["hours", "breakfast"], outcome="yes or no")
     out = capsys.readouterr().out
     assert "complete separation" in out

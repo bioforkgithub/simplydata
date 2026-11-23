@@ -41,7 +41,7 @@ jobs:
           "tseries", "urca", "lomb", "trend", "forecast", "changepoint",
           "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
           "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
-          "outliers", "EnvStats",
+          "outliers", "EnvStats", "icr",
           "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
           "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
           "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
@@ -51,7 +51,8 @@ jobs:
           "GPArotation", "lavaan",
           "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
           "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
-          "agricolae", "blockrand", "survey", "BayesFactor");
+          "agricolae", "blockrand", "survey", "BayesFactor",
+          "AER", "alr4", "HH", "mediation");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       # S3d-3: Bayesian models (explain(bayesian=True)) run on rstanarm, a large package (about 400 MB with Stan and
       # its other packages). Ready-made builds come from CRAN (Windows, macOS) and Posit's public package manager

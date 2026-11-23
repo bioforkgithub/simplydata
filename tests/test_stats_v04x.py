@@ -20,6 +20,7 @@ from scipy import special, stats
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -32,18 +33,18 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
 def school():
-    return sdata.get_example("school")
+    return example_frame("school")
 
 
 def row(result):
@@ -281,7 +282,7 @@ def test_percent_to_matches_r(school, engine, capsys):
 
 
 def test_percent_to_trial_and_other_kinds(engine, capsys):
-    trial = sdata.get_example("trial")
+    trial = example_frame("trial")
     t = make(trial, engine)
     got = row(t.compare_percent_to("died", "yes", 40))
     # R: binom.test(59, 120, p = 0.4); pwr::ES.h(59 / 120, 0.4)

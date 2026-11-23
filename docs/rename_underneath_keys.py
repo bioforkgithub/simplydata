@@ -2,7 +2,7 @@
 
 The old-to-new table is the one simplydata itself uses for old names: each object's _OLD_WORDS (words)
 and the renamed= of @friendly (options), the same table tests/test_old_names.py checks. The library
-code is never touched: it holds no simplydata names except sdata.get_example().
+code is never touched: it holds no simplydata names (it reads the practice tables from their files).
 
     python docs/rename_underneath_keys.py           # show what would change
     python docs/rename_underneath_keys.py --write   # change the files in src/simplydata/_underneath/

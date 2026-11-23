@@ -16,6 +16,7 @@ from scipy import stats
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.words.axes import date_format
+from conftest import example_frame
 
 pl = pytest.importorskip("polars")
 ENGINES = ["pandas", "polars"]
@@ -34,22 +35,22 @@ def draw(chart):
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
 def weather():
-    return sdata.get_example("weather")
+    return example_frame("weather")
 
 
 @pytest.fixture
 def island():
-    return sdata.get_example("island")
+    return example_frame("island")
 
 
 @pytest.fixture
 def shop():
-    return sdata.get_example("shop")
+    return example_frame("shop")
 
 
 def rain_heatmap(weather):

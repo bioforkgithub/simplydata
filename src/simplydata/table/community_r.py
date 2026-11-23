@@ -279,26 +279,27 @@ def discriminant(x, groups):
 
 # ---------------------------------------------------------------- correspondence analysis
 def correspondence(x, k):
-    """CA: vegan::cca(x) without constraints; the share of the inertia of each axis (summary(eigenvals())) and
-    the row scores with scaling = "sites"."""
+    """CA: vegan::cca(x) without constraints; the eigenvalue and the share of the inertia of each axis
+    (summary(eigenvals())), the total inertia (m$tot.chi) and the row scores with scaling = "sites"."""
     code = (f"m <- vegan::cca(x); e <- summary(vegan::eigenvals(m)); "
-            f"list(share = e[2, ], eig = e[1, ], scores = unname(as.matrix(vegan::scores(m, display = \"sites\", "
+            f"list(share = e[2, ], eig = e[1, ], total = m$tot.chi, "
+            f"scores = unname(as.matrix(vegan::scores(m, display = \"sites\", "
             f"scaling = \"sites\", choices = seq_len({int(k)})))))")
     found = _call(code, "Correspondence analysis (R vegan::cca())", source="vegan::cca", x=x)
     scores = np.asarray(found["scores"], dtype=float)
     if scores.ndim == 1:
         scores = scores.reshape(len(x), -1, order="F")
     return {"share": np.asarray(found["share"], dtype=float), "eig": np.asarray(found["eig"], dtype=float),
-            "scores": scores}
+            "total": float(np.asarray(found["total"], dtype=float).reshape(-1)[0]), "scores": scores}
 
 
 def multiple_correspondence(columns, values, k):
-    """MCA: ca::mjca(lambda = "adjusted"): the adjusted inertia of each axis (Greenacre) and the rows' principal
-    coordinates."""
+    """MCA: ca::mjca(lambda = "adjusted"): the share of the adjusted inertia of each axis (Greenacre, m$inertia.e),
+    the total adjusted inertia (m$inertia.t) and the rows' principal coordinates."""
     parts = ", ".join(f"v{i}" for i in range(1, len(values) + 1))
     code = (f"df <- data.frame({parts}, stringsAsFactors = TRUE); names(df) <- simplydata_names; "
             "m <- ca::mjca(df, lambda = \"adjusted\"); "
-            f"list(share = m$inertia.e, scores = unname(as.matrix(m$rowpcoord[, seq_len({int(k)}), drop = FALSE])))")
+            f"list(share = m$inertia.e, total = m$inertia.t, scores = unname(as.matrix(m$rowpcoord[, seq_len({int(k)}), drop = FALSE])))")
     from .._r import r_call
 
     _need(("ca",), "Multiple correspondence analysis (R ca::mjca())")
@@ -308,4 +309,5 @@ def multiple_correspondence(columns, values, k):
     scores = np.asarray(found["scores"], dtype=float)
     if scores.ndim == 1:
         scores = scores.reshape(len(values[0]), -1, order="F")
-    return {"share": np.asarray(found["share"], dtype=float), "scores": scores}
+    return {"share": np.asarray(found["share"], dtype=float),
+            "total": float(np.asarray(found["total"], dtype=float).reshape(-1)[0]), "scores": scores}

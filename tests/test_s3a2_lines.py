@@ -12,6 +12,7 @@ import pytest
 
 import simplydata as sdata
 from simplydata._errors import SimplydataError
+from conftest import example_frame
 
 
 def r(code, packages=(), **values):
@@ -38,13 +39,14 @@ BLISS = pd.DataFrame({"dose": 10 ** np.array([1.6907, 1.7242, 1.7552, 1.7842, 1.
 def test_dose_response_matches_r_drc(ryegrass, capsys):
     out = sdata.table(ryegrass).fit_dose_response(x="conc", y="rootl", doses_for_effect=[10, 50, 90]).as_pandas()
     printed = capsys.readouterr().out
-    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "e <- drc::ED(m, c(10, 50, 90), interval = 'delta', display = FALSE); "
             "list(coef = unname(coef(m)), se = unname(sqrt(diag(vcov(m)))), ed = unname(e[, 1]), low = unname(e[, 3]),"
             " high = unname(e[, 4]))", ("drc",))
     params = out[out["term"].str.match(r"^[bcde] \(")]
     assert params["estimate"].to_numpy() == pytest.approx(ref["coef"], rel=1e-6)
-    ci = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ci = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), control = drc::drmc(relTol = 1e-15)); "
            "k <- confint(m); list(low = unname(k[, 1]), high = unname(k[, 2]))", ("drc",))
     assert params["95 % CI low"].to_numpy() == pytest.approx(np.asarray(ci["low"], dtype=float), rel=1e-9)
     assert params["95 % CI high"].to_numpy() == pytest.approx(np.asarray(ci["high"], dtype=float), rel=1e-9)
@@ -80,7 +82,8 @@ def test_dose_response_groups_give_drc_edcomp(needs_r, capsys):
     d = pd.DataFrame(r("list(dose = drc::S.alba$Dose, dm = drc::S.alba$DryMatter, "
                        "herbicide = as.character(drc::S.alba$Herbicide))", ("drc",)))
     out = sdata.table(d).fit_dose_response(x="dose", y="dm", for_each_group_in="herbicide").as_pandas()
-    ref = r("m <- drc::drm(DryMatter ~ Dose, Herbicide, data = drc::S.alba, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(DryMatter ~ Dose, Herbicide, data = drc::S.alba, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "e <- drc::EDcomp(m, c(50, 50), interval = 'delta', display = FALSE); "
             "t <- drc::EDcomp(m, c(50, 50), display = FALSE); "
             "list(ratio = e[1, 1], low = e[1, 2], high = e[1, 3], se = t[1, 2], p = t[1, 4])", ("drc",))
@@ -100,7 +103,8 @@ def test_dose_response_that_rises_with_dose_says_so(needs_r, capsys):
     out = sdata.table(df).fit_dose_response(x="dose", y="growth", doses_for_effect=[10, 50]).as_pandas()
     printed = capsys.readouterr().out
     assert "the response rises with dose" in printed and "falls with dose" not in printed
-    ref = r("m <- drc::drm(growth ~ dose, fct = drc::LL.4()); e <- drc::ED(m, c(10, 50), interval = 'delta', "
+    ref = r("m <- drc::drm(growth ~ dose, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); e <- drc::ED(m, c(10, 50), interval = 'delta', "
             "display = FALSE); list(b = coef(m)[1], ed = unname(e[, 1]))", ("drc",), dose=dose,
             growth=df["growth"].to_numpy())
     assert one(ref["b"]) < 0
@@ -133,7 +137,8 @@ def test_chart_dose_response_draws_the_r_curve(ryegrass):
     chart = sdata.chart(ryegrass).draw_dots(x="conc", y="rootl").fit_dose_response()
     facts = chart_facts(chart._render().axes[0])
     xs, ys = facts["lines"][0]
-    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4()); "
+    ref = r("m <- drc::drm(rootl ~ conc, data = drc::ryegrass, fct = drc::LL.4(), "
+            "control = drc::drmc(relTol = 1e-15)); "
             "list(y = unname(predict(m, newdata = data.frame(conc = at))))", ("drc",), at=xs)
     assert ys == pytest.approx(np.asarray(ref["y"], dtype=float), rel=1e-6)
     assert facts["legend"][-1].startswith("ED50 3.06 (95 % CI 2.67 to 3.45)")
@@ -143,7 +148,7 @@ def test_chart_dose_response_draws_the_r_curve(ryegrass):
 def test_theil_sen_and_siegel_are_scipy():
     from scipy import stats
 
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     t = sdata.table(df).fit_line(x="hours", y="marks", test_method="theil-sen").as_pandas().iloc[0]
     ref = stats.theilslopes(df["marks"], df["hours"], alpha=0.95, method="separate")
     assert (t["slope"], t["intercept"], t["slope 95 % CI low"], t["slope 95 % CI high"]) == pytest.approx(
@@ -335,7 +340,7 @@ def test_logistic_is_another_spelling_of_logistic_growth(capsys):
 def test_best_power_of_one_column_is_scipy_boxcox(capsys):
     from scipy import stats
 
-    df = sdata.get_example("trial")
+    df = example_frame("trial")
     out = sdata.table(df).find_best_power_of("days").as_pandas().iloc[0]
     _, lmb, (lo, hi) = stats.boxcox(df["days"].dropna().to_numpy(dtype=float), alpha=0.05)
     assert (out["power"], out["95 % CI low"], out["95 % CI high"]) == pytest.approx((lmb, lo, hi), rel=1e-9)
@@ -345,7 +350,7 @@ def test_best_power_of_one_column_is_scipy_boxcox(capsys):
 
 
 def test_best_power_one_column_is_the_car_likelihood(needs_r):
-    df = sdata.get_example("trial")
+    df = example_frame("trial")
     out = sdata.table(df).find_best_power_of("days").as_pandas().iloc[0]
     ref = r("list(p = unname(car::powerTransform(y ~ 1)$lambda))", ("car",), y=df["days"].to_numpy(dtype=float))
     assert out["power"] == pytest.approx(one(ref["p"]), abs=1e-4)
@@ -400,7 +405,7 @@ def test_percentile_refusals():
 
 # ---------------------------------------------------------------------------- loess
 def test_loess_column_and_band_are_r(needs_r, capsys):
-    df = sdata.get_example("culture")
+    df = example_frame("culture")
     a = df[df["flask"] == "A"].reset_index(drop=True)
     out = sdata.table(a).add_smoothed_column("smooth", from_column="density", sorted_by="hour", test_method="loess",
                                              interval=95).as_pandas()
@@ -415,7 +420,7 @@ def test_loess_column_and_band_are_r(needs_r, capsys):
 def test_loess_is_no_longer_another_spelling_of_lowess(needs_r):
     from simplydata._underneath.check import chart_facts
 
-    df = sdata.get_example("culture")
+    df = example_frame("culture")
     a = df[df["flask"] == "A"]
     lo = chart_facts(sdata.chart(a).draw_dots(x="hour", y="density").draw_smooth_line(test_method="loess",
                                                                                       with_confidence_band=True)
@@ -446,7 +451,7 @@ def test_attached_packages_hide_nothing_the_r_words_need(needs_r, capsys):
     r("invisible(TRUE)", ("drc", "quantreg", "mcr", "segmented"))
     where = r("list(e = environmentName(environment(get('getInitial'))))")["e"]
     assert str(np.atleast_1d(where)[0]) == "drc"  # getInitial is drc's now: the words must not rely on it
-    culture = sdata.get_example("culture")
+    culture = example_frame("culture")
     a = culture[culture["flask"] == "A"]
     fit = sdata.table(a).fit_curve(x="hour", y="density", of_kind="logistic growth").as_pandas()
     ref = r("f <- stats::nls(y ~ stats::SSlogis(x, Asym, xmid, scal)); list(b = unname(stats::coef(f)))",

@@ -7,7 +7,8 @@ from . import Entry
 
 SENTENCE = "simplydata also writes the result as sentences, with the p-value in words, and names the method."
 SCHOOL = """
-    df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast", "sleep"])
+    import pandas as pd
+    df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "breakfast", "sleep"])
     marks = df["marks"].to_numpy(dtype=float)
     hours = df["hours"].to_numpy(dtype=float)
     sleep = df["sleep"].to_numpy(dtype=float)
@@ -29,9 +30,9 @@ ENTRIES = [
         word="table.find_columns_that_predict",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_columns_that_predict("marks", using=["hours", "sleep"])
-            result.as_pandas().query("term == 'hours'")
+            result.keep_rows_where("term", is_equal_to="hours")
         """,
         code={
             "R": """
@@ -65,9 +66,9 @@ ENTRIES = [
         word="table.find_group_levels_of",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_group_levels_of("marks", using=["hours"], grouped_by="school")
-            result.as_pandas().query("term == 'School A'")
+            result.keep_rows_where("term", is_equal_to="School A")
         """,
         code={
             "R": """
@@ -109,7 +110,8 @@ ENTRIES = [
         code={"seaborn": """
             import seaborn as sns
             from scipy import stats
-            df = sdata.get_example("school")
+            import pandas as pd
+            df = pd.read_csv("school.csv")
             # draw_interaction_lines(x="class", y="marks", colour="breakfast")
             def t95(v):                                                       # (1)
                 return stats.t.interval(0.95, len(v) - 1, loc=v.mean(), scale=stats.sem(v))
@@ -133,9 +135,9 @@ OPTION_ENTRIES = [
         option="spread_changes_with=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.explain("marks", using=["hours"], spread_changes_with="school")
-            result.as_pandas().query("term == 'hours'")
+            result.keep_rows_where("term", is_equal_to="hours")
         """,
         code={
             "R": """
@@ -153,7 +155,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error", "p-value"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("REML, nlme's default, for the effects.",
                  "a group column gives each group its own spread (varIdent); a number column would give a spread "
                  "that grows as a power of it (varPower)."),
@@ -171,7 +173,7 @@ OPTION_ENTRIES = [
             level = [10 + 0.1 * t + (1.5 if t % 7 < 3 else -1.0) + (0.5 if t % 3 else -0.4) for t in years]
             table = sdata.table({"year": years, "level": level})
             result = table.explain("level", using=["year"], neighbours_alike_in_order_of="year")
-            result.as_pandas().query("term == 'year'")
+            result.keep_rows_where("term", is_equal_to="year")
         """,
         code={
             "R": """
@@ -193,7 +195,7 @@ OPTION_ENTRIES = [
         r_packages=("nlme",),
         compare="result",
         fields=("effect", "standard error"),
-        tolerance=1e-5,
+        tolerance=1e-9,
         choices=("evenly spaced values give the AR(1) correlation (corAR1), each step one step apart; uneven gaps "
                  "give corCAR1, which allows for the size of each gap.",),
         python_note="statsmodels GLSAR iterates instead of maximising the likelihood, so the model comes from R nlme.",
@@ -205,15 +207,16 @@ OPTION_ENTRIES = [
         option="using=[[...], [...]]",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
-            result.as_pandas().query("term == 'marks ~ hours'")
+            result.keep_rows_where("term", is_equal_to="marks ~ hours")
         """,
         code={"statsmodels": """
             import numpy as np
             import statsmodels.formula.api as smf
             from statsmodels.tools import eval_measures
-            df = sdata.get_example("school").dropna(subset=["marks", "hours", "breakfast"])
+            import pandas as pd
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours", "breakfast"])
             # compare_models("marks", using=[["hours"], ["hours", "breakfast"]])
             fits = [smf.ols(f, df).fit() for f in ("marks ~ hours", "marks ~ hours + breakfast")]
             k = [len(f.params) + 1 for f in fits]                                 # (1)
@@ -237,9 +240,9 @@ OPTION_ENTRIES = [
         option="check_on_left_out_rows=True",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_models("marks", using=["hours"], check_on_left_out_rows=True)
-            result.as_pandas()
+            result
         """,
         code={
             "R": """
@@ -270,10 +273,10 @@ OPTION_ENTRIES = [
         option='comparing="each with the first"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["hours", "class"],
                                                   comparing="each with the first")
-            result.as_pandas().query("term == 'green minus blue'")
+            result.keep_rows_where("term", is_equal_to="green minus blue")
         """,
         code={
             "R": """
@@ -304,10 +307,10 @@ OPTION_ENTRIES = [
         option="within_each_group_in=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", for_each_group_in="class", using=["class * breakfast"],
                                                   within_each_group_in="breakfast")
-            result.as_pandas().query("term == 'interaction class : breakfast'")
+            result.keep_rows_where("term", is_equal_to="interaction class : breakfast")
         """,
         code={
             "R": """
@@ -338,9 +341,9 @@ OPTION_ENTRIES = [
         option="over_range_of=",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.find_model_averages_of("marks", over_range_of="hours", using=["hours", "breakfast"])
-            result.as_pandas()
+            result
         """,
         code={
             "R": """
@@ -407,13 +410,14 @@ OPTION_ENTRIES = [
         option="for_each_group_in= with a list of columns",
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             result = table.compare_averages_of(["marks", "hours"], for_each_group_in="class")
-            result.as_pandas()
+            result
         """,
         code={"statsmodels": """
             from statsmodels.multivariate.manova import MANOVA
-            df = sdata.get_example("school").dropna(subset=["marks", "hours"])
+            import pandas as pd
+            df = pd.read_csv("school.csv").dropna(subset=["marks", "hours"])
             # compare_averages_of(["marks", "hours"], for_each_group_in="class")
             test = MANOVA.from_formula("marks + hours ~ C(Q('class'))", data=df).mv_test()
             row = test.results["C(Q('class'))"]["stat"].loc["Pillai's trace"]   # (1)

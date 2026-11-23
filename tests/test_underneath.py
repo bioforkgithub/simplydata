@@ -21,6 +21,7 @@ from simplydata import learn
 from simplydata._underneath import CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line
 from simplydata._underneath.check import (chart_facts, check_entry, compare_charts, compare_legend_numbers, run_ours,
                                           run_python)
+from conftest import example_frame
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRIES = list(UNDERNEATH.values())
@@ -147,10 +148,8 @@ def test_leaving_out_a_simplydata_choice_makes_the_comparison_fail(word, setting
     entry = UNDERNEATH[word]
     library = next(iter(entry.code))
     changed = {library: entry.code[library].replace(setting, "")}
-    if word == "nums.find_median":
-        entry = Entry(**{**entry.__dict__, "ours": "sdata.numbers([12, None, 9, 20, 14]).find_median()"})
-        changed = {library: entry.code[library].replace("[12, 15, 9, 20, 14]", "[12, np.nan, 9, 20, 14]")
-                   .replace("nanmedian", "median")}
+    if word == "nums.find_median":  # its example has an empty value, so np.median gives nan
+        changed = {library: entry.code[library].replace("nanmedian", "median")}
     outcomes = check_entry(Entry(**{**entry.__dict__, "code": changed}))
     assert outcomes and not any(o.passed for o in outcomes), f"{word}: the comparison should fail without {setting}"
 
@@ -272,10 +271,20 @@ def test_chart_facts_read_grids_fonts_round_and_3d_charts_segments_insets_colour
 def test_chart_facts_of_a_simplydata_chart():
     chart = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
     facts = chart_facts(chart._render().axes[0])
-    df = sdata.get_example("marks")
+    df = example_frame("marks")
     heights = [b[3] for b in sorted(facts["bars"])]
     assert heights == pytest.approx(df.groupby("class", sort=False)["marks"].mean().tolist())
     plt.close("all")
+
+
+def test_numbers_of_another_shape_are_not_the_same():
+    import numpy as np
+
+    from simplydata._underneath.check import compare_values
+
+    assert compare_values(np.array([1.0, 2.0]), np.array([1.0, 2.0]), 1e-9) == []
+    assert compare_values(np.array([[1.0], [2.0]]), np.array([1.0, 2.0]), 1e-9)  # (2, 1) is not (2,)
+    assert compare_values(np.array([[1.0, 2.0], [3.0, 4.0]]), np.array([1.0, 2.0]), 1e-9)  # no broadcast error
 
 
 def test_run_python_gives_the_last_line():
@@ -295,7 +304,7 @@ def test_table_words_run_on_polars_too():
 def test_underneath_line_is_read_from_the_code():
     assert underneath_line(UNDERNEATH["draw_bars"]) == "seaborn barplot()"
     assert underneath_line(UNDERNEATH["table.find_average_of"]) == (
-        "pandas groupby().mean().reset_index() · Polars group_by().agg(), col().mean()")
+        "pandas groupby().mean().reset_index() · Polars group_by().agg().sort(), col().mean()")
     assert underneath_line(UNDERNEATH["table.keep_rows_where"]) == "pandas boolean indexing · Polars filter(), col()"
     assert underneath_line(UNDERNEATH["trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
 
@@ -359,6 +368,10 @@ def test_manual_shows_each_entry_in_a_grey_box_after_its_example():
         part = tex[start:end if end > 0 else len(tex)]
         mine = [e for e in ENTRIES if e.word == key]
         if not mine:
+            assert "underneathbox" not in part, key
+            continue
+        if all(e.compare == "none" for e in mine):  # nothing underneath: one line after the example, no box
+            assert part.index("Example you can run") < part.index("Nothing underneath:"), key
             assert "underneathbox" not in part, key
             continue
         assert part.index("Example you can run") < part.index(r"\begin{underneathbox}"), key

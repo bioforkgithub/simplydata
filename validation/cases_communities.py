@@ -409,23 +409,28 @@ def _cases(Case):
              "crabs (MASS)", "real data",
              ours=_printed('table = sdata.table(data).add_axes_that_separate_groups(columns=["FL", "RW", "CL", "CW", '
                            '"BD"], for_each_group_in="kind")') + """
-                 shares = [float(v) for v in re.findall(r"LD\\d ([\\d.]+) %", text)]
-                 {"LD1 % of trace": shares[0], "LD2 % of trace": shares[1],
-                  "leave-one-out % correct": float(re.search(r"([\\d.]+) % classified correctly", text).group(1)),
-                  "LD1 row 1 size": abs(table.as_pandas()["LD1"][0])}
+                 from simplydata.table.community_r import discriminant
+                 shown = [float(v) for v in re.findall(r"LD\\d ([\\d.]+) %", text)]
+                 found = discriminant(data[["FL", "RW", "CL", "CW", "BD"]].to_numpy(dtype=float), data["kind"].to_numpy())
+                 assert all(abs(a - 100 * v) <= 0.05 + 1e-9 for a, v in zip(shown, found["trace"]))  # the printout
+                 {"LD1 share of trace": found["trace"][0], "LD2 share of trace": found["trace"][1],
+                  "LD3 share of trace": found["trace"][2],
+                  "leave-one-out % correct": 100 * float(np.mean(found["loo"] == data["kind"].to_numpy())),
+                  "LD1 row 1 size": abs(table.get_cell_at(row=1, column="LD1"))}
              """,
              r="""
                  d <- MASS::crabs; g <- paste(d$sp, d$sex); x <- as.matrix(d[, c("FL", "RW", "CL", "CW", "BD")])
                  f <- MASS::lda(x, g); cv <- MASS::lda(x, g, CV = TRUE)
-                 list(`LD1 % of trace` = round(100 * f$svd[1]^2 / sum(f$svd^2), 1),
-                      `LD2 % of trace` = round(100 * f$svd[2]^2 / sum(f$svd^2), 1),
-                      `leave-one-out % correct` = round(100 * mean(cv$class == g), 1),
+                 share <- round(f$svd^2 / sum(f$svd^2), 4)  # as MASS:::print.lda prints them
+                 list(`LD1 share of trace` = share[1], `LD2 share of trace` = share[2], `LD3 share of trace` = share[3],
+                      `leave-one-out % correct` = 100 * mean(cv$class == g),
                       `LD1 row 1 size` = abs(predict(f)$x[1, 1]))
-             """, r_packages=("MASS",), r_tolerance=4e-3,
-             note="The shares are read from the printout (one decimal; within one unit of the last printed digit, as "
-                  "simplydata reads MASS's own four-decimal print); R's side computes MASS's proportion of trace "
-                  "(svd squared over their sum, as print.lda does) rounded the same way. The design check found "
-                  "0.686, 0.300 and 0.014, and 95 % correct."),
+             """, r_packages=("MASS",), r_tolerance=1e-9,
+             note="simplydata takes the shares of the trace from MASS's own print (4 decimals, as print.lda rounds "
+                  "them), so R's side rounds svd^2 / sum(svd^2) the same way and they must agree exactly; the "
+                  "leave-one-out share and the scores are compared unrounded. (Before, the check read the "
+                  "one-decimal printout and allowed 0.4 %.) The design check found 0.686, 0.300 and 0.014, and 95 % "
+                  "correct."),
         Case("table.add_correspondence_axes", "varespec: correspondence analysis (CA)",
              "varespec and varechem (vegan)", "published",
              ours=vare + _printed("table = sdata.table(data).add_correspondence_axes(columns=species)") + """
@@ -439,6 +444,22 @@ def _cases(Case):
                  list(`CA1 %` = round(100 * e2[2, 1], 1), `CA2 %` = round(100 * e2[2, 2], 1), `CA1 row 1 size` = abs(s[1, 1]))
              """, r_packages=("vegan",), r_tolerance=1e-9,
              note="The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares."),
+        Case("table.add_correspondence_axes", 'show="numbers": varespec, the eigenvalues and the total inertia',
+             "varespec and varechem (vegan)", "published", option='show="numbers"',
+             ours=vare + """
+                 numbers = sdata.table(data).add_correspondence_axes(columns=species, show="numbers")
+                 {"CA1 eigenvalue": numbers.get_cell_at(row=1, column="CA1 eigenvalue"),
+                  "CA2 eigenvalue": numbers.get_cell_at(row=1, column="CA2 eigenvalue"),
+                  "total inertia": numbers.get_cell_at(row=1, column="total inertia")}
+             """,
+             published={"CA1 eigenvalue": (0.5249, 0.00005, oksanen), "CA2 eigenvalue": (0.3568, 0.00005, oksanen),
+                        "total inertia": (2.083, 0.0005, oksanen)},
+             r=LOAD["vare"] + """
+                 m <- vegan::cca(x); e2 <- summary(vegan::eigenvals(m))
+                 list(`CA1 eigenvalue` = e2[1, 1], `CA2 eigenvalue` = e2[1, 2], `total inertia` = m$tot.chi)
+             """, r_packages=("vegan",), r_tolerance=1e-10,
+             note="The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given "
+                  "back as numbers; the tutorial prints them to 4 and 3 decimals."),
         Case("table.add_correspondence_axes", "wg93: multiple correspondence analysis (MCA) of questions A to D",
              "wg93 (ca)", "published",
              ours=_printed('table = sdata.table(data).add_correspondence_axes(columns=["A", "B", "C", "D"])') + """

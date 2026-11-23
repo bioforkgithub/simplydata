@@ -636,7 +636,8 @@ class PlaceWords:
         low, high = float(found["par_low"][1]), float(found["par_high"][1])
         self._say_shape(shape, low, high, f"Scale {_say(scale)} (of the amounts above {threshold:g}).", "GP")
         self._convergence_note(found)
-        print(f'Method: R extRemes::fevd(x, threshold = {threshold:g}, type = "GP", time.units = "{units}"); '
+        print(f'Method: R extRemes::fevd(x, threshold = {threshold:g}, type = "GP", time.units = "{units}", '
+              'optim.args = list(method = "BFGS", control = list(reltol = 1e-12, maxit = 10000))); '
               'extRemes::return.level(); extRemes::ci.fevd(type = "return.level", method = "proflik") for each '
               f"interval; extRemes::extremalindex(x, {threshold:g}) for the runs.")
         self._extremes_choices()
