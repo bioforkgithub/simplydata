@@ -585,4 +585,56 @@ def cases(Case):
              r="""
                  list(`average drug 2` = mean(extra[group == "drug 2"]), `patient 1 drug 1` = extra[group == "drug 1"][1])
              """, r_tolerance=1e-12),
+        # ---- 2026-11-23 (PR new-user-code): flipping a table, a copy, the empty cells of the columns named
+        Case("table.swap_rows_and_columns", "mtcars miles per gallon and horsepower, one column for each of the 32 cars",
+             "mtcars", "real data",
+             ours="""
+                 t = sdata.table(data).keep_columns("model", "mpg", "hp").swap_rows_and_columns()
+                 {"columns": len(t.get_column_names()), "rows": t.count_rows(),
+                  "Mazda RX4 mpg": t.get_cell_at(row=1, column="Mazda RX4"),
+                  "Volvo 142E hp": t.get_cell_at(row=2, column="Volvo 142E")}
+             """,
+             parent="""
+                 flipped = data.set_index("model")[["mpg", "hp"]].T
+                 {"columns": flipped.shape[1] + 1, "rows": len(flipped),
+                  "Mazda RX4 mpg": flipped.loc["mpg", "Mazda RX4"], "Volvo 142E hp": flipped.loc["hp", "Volvo 142E"]}
+             """, parent_label="pandas set_index().T", parent_tolerance=0.0,
+             r="""
+                 m <- t(cbind(mpg, hp)); colnames(m) <- model
+                 list(rows = nrow(m), `Mazda RX4 mpg` = m["mpg", "Mazda RX4"], `Volvo 142E hp` = m["hp", "Volvo 142E"])
+             """, r_tolerance=0.0),
+        Case("table.make_copy", "Fisher's iris: a copy keeps all 150 flowers after the table keeps the 50 setosa",
+             "iris", "real data",
+             ours="""
+                 t = sdata.table(data)
+                 backup = t.make_copy()
+                 t.keep_rows_where("Species", is_equal_to="setosa")
+                 {"table rows": t.count_rows(), "copy rows": backup.count_rows(),
+                  "copy sepal length total": backup.get_column("Sepal.Length").find_total()}
+             """,
+             parent="""
+                 backup = data.copy()
+                 kept = data[data["Species"] == "setosa"]
+                 {"table rows": len(kept), "copy rows": len(backup), "copy sepal length total": backup["Sepal.Length"].sum()}
+             """, parent_label="pandas copy()", parent_tolerance=1e-12,
+             r="""
+                 list(`table rows` = sum(Species == "setosa"), `copy rows` = length(Species),
+                      `copy sepal length total` = sum(Sepal.Length))
+             """, r_tolerance=1e-12),
+        Case("table.count_empty_cells_in", "NHANES: the empty cells of bmi, hyp and chl (9, 8 and 10)",
+             "nhanes (mice)", "published",
+             ours=_printed('sdata.table(data).count_empty_cells_in(columns=["bmi", "hyp", "chl"])', """
+                 counts = {line.split()[0]: float(line.split()[1]) for line in lines[1:-1]}
+                 {"bmi": counts["bmi"], "hyp": counts["hyp"], "chl": counts["chl"], "columns shown": float(len(counts))}
+             """),
+             published={"bmi": (9.0, 0.0, "van Buuren & Groothuis-Oudshoorn (2011)"),
+                        "hyp": (8.0, 0.0, "van Buuren & Groothuis-Oudshoorn (2011)"),
+                        "chl": (10.0, 0.0, "van Buuren & Groothuis-Oudshoorn (2011)")},
+             parent="""
+                 n = data[["bmi", "hyp", "chl"]].isna().sum()
+                 {"bmi": float(n["bmi"]), "hyp": float(n["hyp"]), "chl": float(n["chl"]), "columns shown": 3.0}
+             """, parent_label="pandas isna().sum()", parent_tolerance=0.0,
+             r="""
+                 list(bmi = sum(is.na(bmi)), hyp = sum(is.na(hyp)), chl = sum(is.na(chl)))
+             """, r_tolerance=0.0, option="columns="),
     ]

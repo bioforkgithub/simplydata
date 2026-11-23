@@ -278,7 +278,7 @@ ENTRIES = [
         data="shop",
         ours="""
             table = sdata.get_example("shop")
-            table.count_empty_cells_in(["sales", "customers"])
+            table.count_empty_cells_in(columns=["sales", "customers"])
         """,
         code={"pandas": """
             import pandas as pd
