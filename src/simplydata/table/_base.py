@@ -126,6 +126,8 @@ class BaseTable:
         "compare_distributions": "compare_distributions_for", "make_numbers": "turn_into_numbers",
         "make_text": "turn_into_text", "make_dates": "turn_into_dates", "make_lowercase": "turn_into_lowercase",
         "make_uppercase": "turn_into_uppercase", "round_to": "round_numbers_in", "steps": "show_steps",
+        # 2026-11-23 (Manish: "spread and gather would be nice")
+        "turn_rows_into_columns": "spread_into_columns", "turn_columns_into_rows": "gather_into_rows",
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False, _frame=None, _reading=None):
@@ -362,8 +364,7 @@ class BaseTable:
         if isinstance(key, str) and key in columns:
             lines.append(f'For the column "{key}" on its own write table.get_column("{key}").')
         elif isinstance(key, str):
-            guess = suggest(key, columns, n=1)
-            lines.append(f'There is no column "{key}".' + (f' Did you mean table.get_column("{guess[0]}")?' if guess else ""))
+            lines.append(self._gone_column_help(key))
         elif isinstance(key, (list, tuple)) and key and all(isinstance(k, str) for k in key):
             lines.append("To keep these columns write table.keep_columns("
                          + ", ".join(f'"{k}"' for k in key) + ").")
@@ -389,6 +390,24 @@ class BaseTable:
             "Python's [ ] counts from 0, so simplydata does not use it. For a pandas table, use table.as_pandas()."
         )
         return "\n".join(lines)
+
+    def _gone_column_help(self, key: str) -> str:
+        """table["marks"] for a column the table does not have now: which step took it away (each step changes the
+        table itself), how to get it back, and the columns there are now."""
+        columns = self._columns
+        now = ", ".join(map(str, columns))
+        later = list(columns)
+        for what, before in reversed(self._history):
+            if key in before.columns and key not in later:
+                return (f'The table has no column "{key}" now: the step "{what}" changed the table and "{key}" is '
+                        "not in it any more (each step changes the table itself).\n"
+                        "table.undo() takes the last step back, and table.show_steps() lists the steps. "
+                        f'Then the column on its own is table.get_column("{key}").\n'
+                        f"Columns you have now: {now}")
+            later = list(before.columns)
+        guess = suggest(key, columns, n=1)
+        return (f'There is no column "{key}".' + (f' Did you mean table.get_column("{guess[0]}")?' if guess else "")
+                + f"\nColumns you have: {now}")
 
     @classmethod
     def _word_names(cls) -> list[str]:

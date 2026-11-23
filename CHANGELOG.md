@@ -5,6 +5,43 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: reshaping words renamed, and one new word (check your code)
+
+- `table.turn_rows_into_columns` is now `table.spread_into_columns(names_from=..., values_from=...)`, and
+  `table.turn_columns_into_rows` is now `table.gather_into_rows(columns, names_to=..., values_to=...)`. The options
+  are unchanged; the old names keep working for one release and print a one-line note with the new name.
+- `spread_into_columns` adds a note when the new columns get empty cells because another column differs between
+  rows that would otherwise merge (hours in the marks table), naming that column and saying how to keep only the
+  columns you need.
+- New: `table.swap_rows_and_columns()` flips the whole table (pandas `set_index(first).T`; a Polars table goes
+  through pandas and back). The first column names the new columns when it holds text with no repeat and no empty
+  cell; otherwise they are numbered "1", "2" ... and a note says why. `transpose`, `T` and `t` point to it.
+
+### Fixed: lessons that treated repeated rows as independent
+
+- The marks table has each child three times (one row per subject). Lesson 14 compared the classes on all 54 rows
+  and the subjects with Kruskal-Wallis, as if the rows were 54 children. The classes are now compared on one average
+  per child (`find_average_of(..., for_each_group_in=["class", "name"])`) or on one subject, and the subjects within
+  each child (`compare_matched_columns`, the Friedman test). The lesson says why in a plain sentence. Lessons 12,
+  15 and 19, the 30-day guide and the examples and docstrings of the test words do the same.
+- The school examples (pupils in 12 schools) that fit ordinary models now say that the p-values are a little too
+  small without `grouped_by="school"`.
+
+### Fixed: clearer messages
+
+- `table["marks"]` after a step that took the column away names that step and says `table.undo()`; every
+  "no column" message lists the columns there are.
+- `table.count_empty_cells_in("OD600")` says the word takes no column, and how to look at or remove the rows where
+  that column is empty, instead of `does not know show="OD600"`.
+- When R does not start, the message says whether R was not found, whether R_HOME points to a folder without R, or
+  that R is installed but did not start from Python (with what to try), instead of rpy2's own error.
+- `compare_to_truth` without R: the Method line says the likelihood ratios were not computed, and their rows say so,
+  instead of naming R epiR as if it had run.
+- `remove_duplicate_rows()` that removes nothing says so, and names the columns in which rows that are otherwise the
+  same differ.
+- Holm's, Bonferroni's, Tukey's and Dunnett's adjustments keep the chance of any false alarm "at most 5 %" (it said
+  "stays at 5 %").
+
 ### New: three numbers given back instead of only printed
 
 - `table.add_correspondence_axes(..., show="numbers")` also gives each axis's eigenvalue (`CA1 eigenvalue`) and the

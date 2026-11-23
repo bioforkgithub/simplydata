@@ -6,14 +6,14 @@
 
 *simplydata is a package that is easy for a beginner, honest with a reviewer, and [safe for patient data](#privacy-your-data-stays-on-your-computer), all at once.*
 
-**Simple words for data science in Python.** One small vocabulary you can learn in a day,
-built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
+**Simple words for data science in Python.** One small vocabulary: you can start in a day, and the 30-day guide
+takes you further. It is built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
 pandas and Polars), and on R through rpy2 for the methods only R has, so you don't have to learn
 them first.
 
 ## What simplydata handles
 
-**400 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+**401 words (commands) in 48 groups, with 371 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 12 more used only to check its answers), checked by 2751 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
@@ -25,9 +25,9 @@ Approximate, counted on 2026-11-21.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 771 names: 400 commands and 371 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 exported by the R packages simplydata ran that day, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 772 names: 401 commands and 371 options, about 93 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 12 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 2673 lines and 2319 function calls in the 410 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1089 lines and 1110 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 2678 lines and 2324 function calls in the 411 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1093 lines and 1114 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](#how-simplydata-chooses-methods) |
 
 ### Packages underneath
@@ -36,7 +36,7 @@ Python packages:
 
 | Package | What simplydata does with it | Needs |
 |---|---|---|
-| pandas | the tables behind `sdata.table`: reading files, choosing rows and columns, cleaning, grouping, joining and reshaping (`keep_rows_where`, `fill_empty_cells_in`, `join_with`, `turn_columns_into_rows`); `table.as_pandas()` hands the table back | built in |
+| pandas | the tables behind `sdata.table`: reading files, choosing rows and columns, cleaning, grouping, joining and reshaping (`keep_rows_where`, `fill_empty_cells_in`, `join_with`, `gather_into_rows`); `table.as_pandas()` hands the table back | built in |
 | Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()` | [fast] |
 | pyarrow | Parquet files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | [fast] |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
@@ -113,7 +113,7 @@ R users, not packages simplydata needs.
 | Cleaning | turn text into numbers or dates, fix spaces and case, replace values, round, remove duplicates, show or remove outliers | `turn_into_numbers`, `turn_into_dates`, `remove_extra_spaces_in`, `replace_values_in`, `remove_duplicate_rows`, `show_rows_with_outliers` |
 | Empty cells (missing data) | count them, find which are empty together (patterns), map them, remove rows, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model, a Cox model or a correlation | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |
 | New columns, dates and text | groups from numbers, ranks, z-scores, parts of dates and text, rolling values, previous values and changes | `add_group_column`, `add_rank_column`, `add_z_score_column`, `add_column_with_part_of_date`, `split_column`, `add_rolling_column`, `add_change_column` |
-| Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `turn_columns_into_rows`, `turn_rows_into_columns`, `undo`, `show_steps` |
+| Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `gather_into_rows`, `spread_into_columns`, `undo`, `show_steps` |
 | Summaries | counts, averages, medians, totals, percentiles, standard deviations (weighted too), intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) and covariances; answers on a scale (Likert items) | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
 | Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, diverging bars of answers on a scale, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
 | Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett, pairs of percents), before and after, repeated measures (Friedman with Nemenyi or Conover after it, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority, many tests at once (Holm, Benjamini-Hochberg, Storey's q-values); Bayes factors and credible intervals (`test_method="bayesian"`) | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to`, `add_adjusted_p_value_column` |
@@ -152,8 +152,12 @@ R users, not packages simplydata needs.
 | Social science and psychology | questionnaire reliability (`reliability_of`); hidden factors behind questionnaire items, explored and checked (`find_hidden_factors_behind`, `check_hidden_factors`); agreement between raters (`agreement_between`); ordered answers (`explain(outcome="ordered groups")`); subjects crossed with items (`explain(crossed_with=)`); repeated measures (`compare_averages_of(matched_by=)`, `compare_matched_columns`); adjusted group averages (`find_model_averages_of`); power for a planned study (`find_chance_of_finding`) |
 | Education | pupils in classes in schools (`explain(grouped_by=["school", "class"])`); comparing classes (`compare_averages_of`, `compare_each_pair_of`); the course itself: lessons, the 30-day course and plain words for teaching charts, tables and statistics (`sdata.show_lesson`, `sdata.start_30_days`) |
 
-Every number comes from the package named above, and is checked against it and against R in the public
-[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md); the
+Every number comes from the package named above. How much of that is checked, counted on 2026-11-23: the public
+[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 316 of the
+401 words with the package underneath and with R (2751 checks), and the separate test repository
+[simplydata_tests](https://github.com/bioforkgithub/simplydata_tests#what-the-comparisons-found) makes 26,718
+comparisons on published reference data in 32 notebooks: 26,265 agree, 422 differ for a reason it explains, 29 are
+simplydata errors being fixed and 2 were skipped. The other 85 words are not compared in the reliability study yet. The
 [manual](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf) has every word, with its
 "same underneath" code for the words that have it.
 
@@ -192,8 +196,8 @@ The design follows what the research on learning and on programming languages sa
   pandas, Polars, NumPy, SciPy, statsmodels or R code it runs underneath, so you can move on to those libraries
   whenever you want.
 - **Trust comes from checking.** simplydata does not compute statistics itself: every number comes from the
-  established package, and a public reliability study compares each word with that package, with R and with
-  published certified values.
+  established package, and a public reliability study compares most words (316 of the 401 so far) with that
+  package, with R and with published certified values.
 
 ### References
 
@@ -216,9 +220,12 @@ The design follows what the research on learning and on programming languages sa
 - Sweller, J., & Cooper, G. A. (1985). The use of worked examples as a substitute for problem solving in learning algebra. *Cognition and Instruction*, 2(1), 59-89. https://doi.org/10.1207/s1532690xci0201_3
 - Watson, C., & Li, F. W. B. (2014). Failure rates in introductory programming revisited. *ITiCSE '14*, 39-44. https://doi.org/10.1145/2591708.2591749
 
-> Status: early development (charts, tables, numbers, statistical tests, fitting and distributions ready). The word list may still change: an old word keeps working for one release and prints a one-line note with its new name.
+> Status: early development (alpha). Charts, tables, numbers, statistical tests, fitting and distributions work, and
+> their numbers are compared with the packages underneath and with R as described below, but not every word is
+> compared yet and the word list may still change (an old word keeps working for one release and prints a one-line
+> note with its new name). Read each printout, and check an important result before you publish it.
 
-Install (recommended): `conda install -c conda-forge simplydata` (or `mamba` / `micromamba` in place of `conda`); also `pip install simplydata`. See [Install](#install).
+Install: `pip install simplydata`. conda: coming soon, once the conda-forge review is done. See [Install](#install).
 
 ```python
 import simplydata as sdata
@@ -241,9 +248,24 @@ one cleaned table can feed many charts, and charts go side by side with
 
 ## Install
 
-**Recommended: conda, mamba or micromamba** (from conda-forge). They install Python, simplydata and, when you want
-them, R and its packages in one environment, which is the easiest way on Windows, macOS and Linux alike. All three
-read the same conda-forge packages; use whichever you have.
+**pip** (needs Python 3.11 or newer):
+
+```
+pip install simplydata
+pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
+pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
+pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
+pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
+```
+
+With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
+`install.packages(...)` with the R packages listed under "Packages underneath" above. On Windows with
+Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in PowerShell:
+`$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line.
+
+**conda, mamba or micromamba: coming soon**, once the conda-forge review is done (submitted 2026-11-20, still in
+review). They will install Python, simplydata and, when you want them, R and its packages in one environment; all
+three read the same conda-forge packages. Once the package is there:
 
 ```
 conda create -n simplydata -c conda-forge simplydata        # a new environment called "simplydata"
@@ -262,27 +284,10 @@ conda install -c conda-forge control                  # rise time, settling time
 conda install -c conda-forge rpy2 r-base              # R and the bridge to it, for the methods only R has
 ```
 
-> The conda-forge package is in review (submitted 2026-11-20). Until `conda install -c conda-forge simplydata`
-> finds it, create the environment with conda and install simplydata into it with pip:
-> `conda create -n simplydata -c conda-forge python=3.12 rpy2 r-base` then `conda activate simplydata` and
-> `pip install simplydata`.
-
-**Also possible: pip** (needs Python 3.11 or newer):
-
-```
-pip install simplydata
-pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
-pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
-pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
-pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
-```
-
-With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
-`install.packages(...)` with the R packages listed under "Packages underneath" above. On Windows with
-Python 3.13, rpy2 has no ready-made wheel; set `RPY2_CFFI_MODE=ABI` first (in PowerShell:
-`$env:RPY2_CFFI_MODE = "ABI"`, in cmd: `set RPY2_CFFI_MODE=ABI`), then run the pip line. With conda, mamba or
-micromamba this step is not needed: rpy2 and R come ready-built from conda-forge, and the R packages too
-(for example `conda install -c conda-forge r-vegan r-metafor r-lme4`).
+Until then, conda users can make the environment with conda and install simplydata into it with pip:
+`conda create -n simplydata -c conda-forge python=3.12 rpy2 r-base`, then `conda activate simplydata` and
+`pip install simplydata`. With conda the rpy2 step above is not needed: rpy2 and R come ready-built from
+conda-forge, and the R packages too (for example `conda install -c conda-forge r-vegan r-metafor r-lme4`).
 
 ## Privacy: your data stays on your computer
 
@@ -308,7 +313,7 @@ data" at the top of this page means the promises below, and automatic tests chec
 The packages underneath keep their own caches, such as matplotlib's list of fonts; these hold no data. To report a
 security or privacy problem, see [SECURITY.md](https://github.com/bioforkgithub/simplydata/blob/main/SECURITY.md).
 
-## Learn it in a day
+## Start in a day, then go further with the 30-day guide
 
 simplydata teaches itself. Open Python and type:
 
@@ -523,12 +528,20 @@ shows the same job written in the package underneath, in a grey box that a test 
   rather than Student's, for example).
 - Where the evidence is balanced, simplydata matches the field's standard software, and says so; where studies
   prefer another method, the table names it.
-- simplydata checks the data, and refuses or warns when a method does not fit it.
+- simplydata checks some things in the data and says so in a note; it never switches method by itself. Tests
+  check whether each group looks bell-shaped (Shapiro-Wilk) and whether expected counts are below 5, and say how
+  many rows with empty cells were left out; models check for residuals that are not bell-shaped, strongly linked
+  columns (variance inflation factor above 5), too few rows per effect, complete separation, overdispersion, and an
+  odds ratio when yes is common. It refuses what cannot be computed, such as a column with one value only or a
+  group with too few rows.
+- simplydata does not check whether the rows are independent. If the same person, plot or school appears in
+  several rows, say so: `matched_by=`, `grouped_by=`, `compare_matched_columns`, or one row per person.
 - Every printout names the method used, and every default can be changed with an option.
-- The defaults of each batch were checked by an independent review when they were designed, and every entry of
-  the table below, with its references, was checked again by independent hostile reviewers in November 2026.
+- The defaults of each batch were read by an automated review pass when they were designed, and in November 2026
+  every entry of the table below, with its references, was read again by automated review passes told to act as
+  hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 466 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 467 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

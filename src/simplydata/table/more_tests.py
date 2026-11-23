@@ -253,7 +253,9 @@ class MoreTestWords:
     def compare_shapes_of(self, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1):
         """Do the groups differ in the whole shape of their values, not only in the average?
 
-        table.compare_shapes_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_shapes_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         Two groups: the two-sample Kolmogorov-Smirnov test, which looks for the biggest gap
         between the groups' cumulative shares (the share of values at or below each value);
         SciPy ks_2samp, exact as R ks.test(). With tied values R gives an exact p-value that

@@ -154,3 +154,18 @@ def test_reduction_table_matches_the_code():
     words = sum(1 for _, keys in learn.GROUPS for key in keys if learn._kind(key) != "option")
     options = {opt for _, func in learn._words_with_options() if func is not None for opt in _options_of(func)}
     assert f"{words + len(options)} names: {words} commands and {len(options)} options" in table
+
+
+def test_words_compared_in_the_reliability_study_match_the_report():
+    """The README says how many words the reliability study compares; count them in validation/report.md (the words
+    named in its part 1 headings and its part 2 table), so the claim stays true when either changes."""
+    words = [key for _, keys in learn.GROUPS for key in keys if learn._kind(key) != "option"]
+    report = (ROOT / "validation" / "report.md").read_text(encoding="utf-8")
+    part1 = report[report.index("## 1."):report.index("## 2.")]
+    part2 = report[report.index("## 2."):report.index("## Choices")]
+    named = set(re.findall(r"^### `([^ `(]+)", part1, flags=re.M)) | set(re.findall(r"^\| `([^ `(]+)`", part2, flags=re.M))
+    compared = sum(1 for word in words if word in named)
+    checks = re.search(r"\*\*(\d+) checks passed", report).group(1)
+    assert f"compares {compared} of the\n{len(words)} words with the package underneath and with R ({checks} checks)" in README
+    assert f"The other {len(words) - compared} words are not compared in the reliability study yet." in README
+    assert f"most words ({compared} of the {len(words)} so far)" in README

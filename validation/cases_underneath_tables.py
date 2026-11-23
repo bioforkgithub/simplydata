@@ -556,9 +556,9 @@ def cases(Case):
                  both <- rbind(data.frame(w = Petal.Width), data.frame(w = Petal.Width))
                  list(rows = nrow(both), `total petal width` = sum(both$w))
              """, r_tolerance=1e-12),
-        Case("table.turn_columns_into_rows", "iris sepal length and width turned into rows", "iris", "real data",
+        Case("table.gather_into_rows", "iris sepal length and width turned into rows", "iris", "real data",
              ours="""
-                 t = sdata.table(data).turn_columns_into_rows(["Sepal.Length", "Sepal.Width"])
+                 t = sdata.table(data).gather_into_rows(["Sepal.Length", "Sepal.Width"])
                  value = t.get_column("value")
                  {"rows": value.count(), "total": value.find_total(), "columns": len(t.get_column_names())}
              """,
@@ -570,10 +570,10 @@ def cases(Case):
              r="""
                  list(rows = 2 * length(Sepal.Length), total = sum(Sepal.Length) + sum(Sepal.Width))
              """, r_tolerance=1e-12),
-        Case("table.turn_rows_into_columns", "Student's sleep data: one row for each patient, a column for each drug",
+        Case("table.spread_into_columns", "Student's sleep data: one row for each patient, a column for each drug",
              "Student's sleep data", "published",
              ours="""
-                 t = sdata.table(data).turn_rows_into_columns(names_from="group", values_from="extra")
+                 t = sdata.table(data).spread_into_columns(names_from="group", values_from="extra")
                  {"patients": t.count_rows(), "average drug 2": t.get_column("drug 2").find_total() / t.count_rows(),
                   "patient 1 drug 1": t.get_cell_at(row=1, column="drug 1")}
              """,

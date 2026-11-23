@@ -191,7 +191,8 @@ def accuracy_engine(tp, fn, fp, tn, level, prevalence=None, test_words="the test
             ("diagnostic odds ratio", "the odds of a positive result in those who have it over those who do not"))):
         rows.append({"measure": name, "estimate": float(est[i]), f"estimate {ci} low": float(low[i]),
                      f"estimate {ci} high": float(high[i]), "what it means": meaning,
-                     "method": "R epiR::epi.tests(method = \"exact\")"})
+                     "method": ("not computed: R epiR is not ready here" if lr_note
+                                else "R epiR::epi.tests(method = \"exact\")")})
     if not lr_note:
         lines.append(_likelihood_sentence(est, low, high, ci))
     if prevalence is None:
@@ -206,9 +207,10 @@ def accuracy_engine(tp, fn, fp, tn, level, prevalence=None, test_words="the test
                   "method": "Bayes' rule on the sensitivity and specificity (display arithmetic, no interval)"}]
     for line in lines:
         print(line)
-    print(f"Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), likelihood ratios from R "
-          f"epiR::epi.tests(method = \"exact\"); {test_words} against {truth_words}. The counts of {PER} are the shares "
-          "written as numbers of people.")
+    likelihood = ("the likelihood ratios were not computed (they need R epiR)" if lr_note
+                  else "likelihood ratios from R epiR::epi.tests(method = \"exact\")")
+    print(f"Method: exact Clopper-Pearson intervals (statsmodels proportion_confint), {likelihood}; {test_words} against "
+          f"{truth_words}. The counts of {PER} are the shares written as numbers of people.")
     if lr_note:
         print(lr_note)
     return rows

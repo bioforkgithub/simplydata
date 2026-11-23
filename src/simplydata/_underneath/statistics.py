@@ -388,7 +388,7 @@ ENTRIES += [
         ours="""
             table = sdata.get_example("marks")
             table.keep_columns("name", "subject", "marks")
-            table.turn_rows_into_columns(names_from="subject", values_from="marks")
+            table.spread_into_columns(names_from="subject", values_from="marks")
             table.compare_matched_columns("Maths", "Science", "English")
         """,
         code={

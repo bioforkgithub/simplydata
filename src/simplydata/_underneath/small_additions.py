@@ -16,7 +16,7 @@ PAIN = """
 """
 PAIN_OURS = """
     table = sdata.get_example("clinic")
-    table.turn_columns_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
+    table.gather_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
 """
 PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
 MANY = """

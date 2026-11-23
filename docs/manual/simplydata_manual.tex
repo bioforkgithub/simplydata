@@ -2115,7 +2115,7 @@ Or write the new column like a sum in maths. Here each subject first gets its ow
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "class", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.add_column("total", "Maths + Science + English")
 table.add_column("average", "total / 3")
 table.add_rank_column("place", from_column="total")
@@ -2336,7 +2336,7 @@ Turning columns into rows makes a wide table long: the shape most charts like.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table({"name": ["Asha", "Ben", "Chen"], "test_1": [61, 73, 81], "test_2": [70, 68, 90]})
-table.turn_columns_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")
+table.gather_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")
 table.show_first_rows(6)
 chart = table.start_chart()
 chart.draw_bars(x="name", y="mark", colour="test")
@@ -13038,7 +13038,7 @@ For two measurements of the same thing, such as each child's mark before and aft
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_before_and_after("Maths", "Science")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
@@ -13438,7 +13438,7 @@ Each row is one person (or plant, or field) measured in every column. The kind o
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_matched_columns("Maths", "Science", "English")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{SciPy}}
@@ -19944,7 +19944,7 @@ This makes a \code{\textquotedbl{}long\textquotedbl{}} table, which most charts 
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
 table.keep_columns("month", "city", "temperature", "rain")
-table.turn_columns_into_rows(["temperature", "rain"])
+table.gather_into_rows(["temperature", "rain"])
 table.show_first_rows()
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
@@ -19952,7 +19952,7 @@ table.show_first_rows()
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("weather.csv")
-# turn_columns_into_rows(["temperature", "rain"])
+# gather_into_rows(["temperature", "rain"])
 others = [c for c in df.columns if c not in ("temperature", "rain")]
 df.melt(id_vars=others, value_vars=["temperature", "rain"],
         var_name="column", value_name="value")                          # (1)
@@ -19961,7 +19961,7 @@ df.melt(id_vars=others, value_vars=["temperature", "rain"],
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.read_csv("weather.csv")
-# turn_columns_into_rows(["temperature", "rain"])
+# gather_into_rows(["temperature", "rain"])
 others = [c for c in df.columns if c not in ("temperature", "rain")]
 df.unpivot(on=["temperature", "rain"], index=others,
            variable_name="column", value_name="value")                  # (1)
@@ -19989,7 +19989,7 @@ This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \c
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("weather"))
-table.turn_rows_into_columns(names_from="city", values_from="temperature")
+table.spread_into_columns(names_from="city", values_from="temperature")
 table.show_first_rows()
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
@@ -19997,7 +19997,7 @@ table.show_first_rows()
 \begin{lstlisting}[style=under]
 import pandas as pd
 df = pd.read_csv("weather.csv")[["month", "city", "temperature"]]
-# turn_rows_into_columns(names_from="city", values_from="temperature")
+# spread_into_columns(names_from="city", values_from="temperature")
 wide = df.pivot(index="month", columns="city", values="temperature")
 wide = wide.loc[df["month"].unique(), df["city"].unique()]              # (1)
 wide.reset_index().rename_axis(columns=None)
@@ -20006,7 +20006,7 @@ wide.reset_index().rename_axis(columns=None)
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.read_csv("weather.csv").select("month", "city", "temperature")
-# turn_rows_into_columns(names_from="city", values_from="temperature")
+# spread_into_columns(names_from="city", values_from="temperature")
 df.pivot(on="city", index="month", values="temperature")                # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -23245,7 +23245,7 @@ table.show_first_rows()
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "class", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.add_column("total", "Maths + Science + English")
 table.add_column("best_two", "total - English")
 table.show_first_rows()

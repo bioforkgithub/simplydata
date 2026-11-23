@@ -5441,7 +5441,7 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | rows | R | 300 | 300 | relative 1e-12 | pass |
 | total petal width | R | 359.8 | 359.8 | relative 1e-12 | pass |
 
-### `table.turn_columns_into_rows`
+### `table.gather_into_rows`
 
 **iris sepal length and width turned into rows** (real data; data: iris)
 
@@ -5453,7 +5453,7 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | rows | R | 300 | 300 | relative 1e-12 | pass |
 | total | R | 1335.1 | 1335.1 | relative 1e-12 | pass |
 
-### `table.turn_rows_into_columns`
+### `table.spread_into_columns`
 
 **Student's sleep data: one row for each patient, a column for each drug** (published; data: Student's sleep data)
 
@@ -5885,14 +5885,14 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.add_rows_from` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.add_rows_from` | pandas | polars | table | relative 1e-09 | pass |
 | `table.add_rows_from` | Polars | polars | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | pandas | polars | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | Polars | polars | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | pandas | pandas | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | Polars | pandas | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | pandas | polars | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | Polars | polars | table | relative 1e-09 | pass |
 | `table.start_again` | - | - | none | relative 0 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
@@ -6542,8 +6542,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_interval_of` (2): 9999 resamples (resamples= changes it).
 - `table.find_interval_of` (3): NumPy's random generator with seed 1 (with_seed=), printed, so the same call gives the same interval.
 - `table.add_rows_from` (1): columns are matched by their names, so the other table's columns may come in any order; pandas' concat matches them by name itself, Polars' needs them put in the same order first (select(df.columns)).
-- `table.turn_columns_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
-- `table.turn_rows_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
+- `table.gather_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
+- `table.spread_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).

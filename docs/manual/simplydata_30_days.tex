@@ -2296,7 +2296,7 @@ table.compare_counts_of("passed", for_each_group_in="breakfast")
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_before_and_after("Maths", "Science")
 \end{lstlisting}
 \begin{answerbox}The same children twice, so the test must be paired. First one row per child, with a Maths and a Science column.\end{answerbox}
@@ -3103,7 +3103,7 @@ table.compare_counts_of("passed", for_each_group_in="breakfast")
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.keep_columns("name", "subject", "marks")
-table.turn_rows_into_columns(names_from="subject", values_from="marks")
+table.spread_into_columns(names_from="subject", values_from="marks")
 table.compare_before_and_after("Maths", "Science")
 \end{lstlisting}
 \begin{answerbox}The same children twice, so the test must be paired. First one row per child, with a Maths and a Science column.\end{answerbox}

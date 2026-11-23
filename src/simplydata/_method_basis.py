@@ -33,9 +33,11 @@ PRINCIPLES = {
           "so results agree with what reviewers expect. Matching the reference package sometimes takes precedence "
           "over a method comparison; each such entry says which method the studies prefer and the option that "
           "gives it.",
-    "P4": "Check the data: refuse or warn when the chosen method does not fit, and say what to use instead.",
+    "P4": "Check the data where simplydata can: refuse or warn when the chosen method does not fit, and say what to "
+          "use instead. Whether the rows are independent cannot be seen in the data: the learner says it "
+          "(matched_by=, grouped_by=).",
     "P5": "Be open: the printout names the method; every default can be changed with an option; the manual "
-          "shows the code underneath; the reliability study checks the numbers; independent reviewers checked "
+          "shows the code underneath; the reliability study checks the numbers; automated review passes checked "
           "every default and its references (see 'How the defaults were reviewed').",
 }
 
@@ -930,7 +932,7 @@ BASIS["table.compare_each_pair_of"] = _b(
     "below 50 values per group, also with tied values).",
     "test_method=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
     "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
-    "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
+    "Holm's method keeps the chance of any false alarm to at most 5 % and is uniformly more powerful than Bonferroni (Holm "
     "1979; Aickin & Gensler 1996); multiplicity should be adjusted for and the method named (Bender & Lange 2001; "
     "ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, "
     "which Games & Howell's procedure does (test_method=\"games-howell\"; Games & Howell 1976). Tukey-Kramer (Kramer "
@@ -2843,7 +2845,7 @@ BASIS['table.compare_each_pair_of matched_by=, test_method="conover"'] = _b(
     "Conover's test after Friedman's (R PMCMRplus::frdAllPairsConoverTest()), with Holm's adjustment.",
     "test_method=\"nemenyi\"; the default Wilcoxon-Holm.",
     "Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover & Iman 1979); Holm keeps the "
-    "chance of any false alarm at 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
+    "chance of any false alarm to at most 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
     "single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same "
     "mean-rank caveat applies (Benavoli et al. 2016).",
     ("conover1979", "holm1979", "benavoli2016"), "P2", "As test_method=\"nemenyi\".")
@@ -3928,18 +3930,29 @@ BASIS["table.add_rows_from"] = _b(
     "another order.", (), "P4",
     "Columns found in only one table, or holding different kinds of values, are refused with their names.",
     "convention")
-BASIS["table.turn_columns_into_rows"] = _b(
+BASIS["table.gather_into_rows"] = _b(
     "The other columns stay beside each value; the new columns are called \"column\" and \"value\".",
     "names_to=, values_to=.",
     "Data preparation: a long table is what charts and models take; plain names say what each new column "
     "holds.", (), "P5", "Mixing text and number columns, or a name already in the table, is refused.",
     "convention")
-BASIS["table.turn_rows_into_columns"] = _b(
+BASIS["table.spread_into_columns"] = _b(
     "Rows and new columns stay in the order they first appear; all the other columns say which row is which.",
     "names_from=, values_from=.",
     "Data preparation: keeping the table's own order (pandas would sort) and refusing to choose between two "
     "values for one cell keep the result honest.", (), "P4",
-    "When two rows would fill one cell simplydata stops and suggests an average first.", "convention")
+    "When two rows would fill one cell simplydata stops and suggests an average first; when another column differs "
+    "between rows that would merge, so that the new columns get empty cells, a note names that column.", "convention")
+# ---- 2026-11-23 (PR user-study-fixes): the whole table flipped
+BASIS["table.swap_rows_and_columns"] = _b(
+    "The first column names the new columns when it holds text with no repeat and no empty cell (pandas "
+    "set_index(first).T); otherwise the new columns are numbered \"1\", \"2\" ... and the old column names go in "
+    "\"column\".",
+    "Keep or reorder the columns first (keep_columns) to choose which column names the rows.",
+    "Data preparation: a table read with its measurements as rows becomes one row per thing measured; using the "
+    "first text column as names keeps the row labels, as in pandas and R t() on a data frame with row names.",
+    (), "P5", "A table with no rows or no columns is refused; a first column that cannot name columns gives a note.",
+    "convention")
 # ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
 BASIS["table.check_model_of show=\"numbers\""] = _b(
     "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "

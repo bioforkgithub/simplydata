@@ -418,32 +418,32 @@ def test_add_rows_from_errors(table):
 
 
 # ---------------------------------------------------------------------------- reshaping
-def test_turn_columns_into_rows_matches_pandas(table, marks):
-    table.turn_columns_into_rows(["marks", "height"])
+def test_gather_into_rows_matches_pandas(table, marks):
+    table.gather_into_rows(["marks", "height"])
     expected = marks.melt(id_vars=["name", "class", "test"], value_vars=["marks", "height"],
                           var_name="column", value_name="value")
     pd.testing.assert_frame_equal(plain(table), expected, check_dtype=False)
     table.undo()
     assert table.get_column_names() == list(marks.columns)
-    table.turn_columns_into_rows("marks", names_to="what", values_to="amount")
+    table.gather_into_rows("marks", names_to="what", values_to="amount")
     assert table.get_column_names() == ["name", "class", "test", "height", "what", "amount"]
 
 
-def test_turn_columns_into_rows_errors(table):
+def test_gather_into_rows_errors(table):
     with pytest.raises(SimplydataError, match="needs the columns"):
-        table.turn_columns_into_rows()
+        table.gather_into_rows()
     with pytest.raises(SimplydataError, match='already has a column "name"'):
-        table.turn_columns_into_rows(["marks"], names_to="name")
+        table.gather_into_rows(["marks"], names_to="name")
     with pytest.raises(SimplydataError, match="all hold numbers or all hold text"):
-        table.turn_columns_into_rows(["marks", "name"])
+        table.gather_into_rows(["marks", "name"])
     with pytest.raises(SimplydataError, match="not found"):
-        table.turn_columns_into_rows(["marks", "weight"])
+        table.gather_into_rows(["marks", "weight"])
 
 
-def test_turn_rows_into_columns_matches_pandas(engine, marks):
+def test_spread_into_columns_matches_pandas(engine, marks):
     small = marks[["name", "class", "test", "marks"]]
     t = build(small, engine)
-    t.turn_rows_into_columns(names_from="test", values_from="marks")
+    t.spread_into_columns(names_from="test", values_from="marks")
     expected = small.pivot(index=["name", "class"], columns="test", values="marks").reset_index()
     expected.columns = [str(c) for c in expected.columns]
     got = plain(t)
@@ -460,19 +460,19 @@ def test_turn_rows_into_columns_matches_pandas(engine, marks):
 def test_round_trip_long_and_wide(engine):
     weather = example_frame("weather")[["month", "city", "temperature", "rain"]]
     t = build(weather, engine)
-    t.turn_columns_into_rows(["temperature", "rain"])
-    t.turn_rows_into_columns(names_from="column", values_from="value")
+    t.gather_into_rows(["temperature", "rain"])
+    t.spread_into_columns(names_from="column", values_from="value")
     pd.testing.assert_frame_equal(plain(t), weather, check_dtype=False)
 
 
-def test_turn_rows_into_columns_errors(table):
+def test_spread_into_columns_errors(table):
     t = build({"name": ["a", "a", "b"], "test": [1, 1, 1], "m": [1, 2, 3]}, "pandas")
     with pytest.raises(SimplydataError, match='find_average_of\\("m", for_each_group_in=\\["name", "test"\\]\\)'):
-        t.turn_rows_into_columns(names_from="test", values_from="m")
+        t.spread_into_columns(names_from="test", values_from="m")
     with pytest.raises(SimplydataError, match="needs names_from= and values_from="):
-        table.turn_rows_into_columns(names_from="test")
+        table.spread_into_columns(names_from="test")
     with pytest.raises(SimplydataError, match="not found"):
-        table.turn_rows_into_columns(names_from="tests", values_from="marks")
+        table.spread_into_columns(names_from="tests", values_from="marks")
 
 
 # ---------------------------------------------------------------------------- docstrings
@@ -489,9 +489,9 @@ def test_docstring_examples_run():
         marks.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")
         marks.add_rows_from(marks)
         weather = build(example_frame("weather"), engine)
-        weather.turn_columns_into_rows(["temperature", "rain"])
+        weather.gather_into_rows(["temperature", "rain"])
         weather.undo()
-        weather.turn_rows_into_columns(names_from="city", values_from="temperature")
+        weather.spread_into_columns(names_from="city", values_from="temperature")
 
 
 @pytest.mark.parametrize("engine", ["pandas", "polars"])

@@ -922,7 +922,9 @@ class SummaryWords:
                          resamples=9999, with_seed=1):
         """A confidence interval for any summary, from the bootstrap.
 
-        table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         summary= is any one-number measure of find_summary_of() ("average", "median", "standard
         deviation", "trimmed average 20", "percentile 90", "coefficient of variation", ...) or a
         function of your own that gets the numbers (a NumPy array) and gives back one number.
@@ -1959,7 +1961,9 @@ class SummaryWords:
                                  empty_cells="leave out", prior_width="medium"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
-        table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
+        table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         test_method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R

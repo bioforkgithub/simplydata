@@ -23,7 +23,7 @@ import re
 import narwhals as nw
 import numpy as np
 
-from .._errors import SimplydataError, choice_error, friendly
+from .._errors import SimplydataError, choice_error, friendly, suggest
 from ._base import numbered, numbered_at
 from ._base import show as _show_native
 from .conditions import (
@@ -527,10 +527,21 @@ class RowWords:
         mice::md.pattern(): table.count_empty_cells_in(show="patterns")
         """
         if show is not None:
+            if isinstance(show, str) and show in self._columns:  # count_empty_cells_in("OD600"): a column, not show=
+                raise SimplydataError(
+                    "count_empty_cells_in() counts the empty cells of every column at once, so it takes no column "
+                    f'name; "{show}" is in its list. Write table.count_empty_cells_in() with nothing in the brackets.\n'
+                    f'To look at the rows where "{show}" is empty: table.keep_rows_where("{show}", is_empty=True), then '
+                    f'table.undo() brings the other rows back. To remove them: table.remove_rows_with_empty_cells_in("{show}").')
             if not isinstance(show, str) or show.strip().lower() not in ("patterns", "pattern"):
-                from .._errors import choice_error
-
-                raise choice_error("count_empty_cells_in", "show", show, ["patterns"])
+                guess = suggest(show, self._columns, n=1) if isinstance(show, str) else []
+                raise SimplydataError(
+                    "count_empty_cells_in() counts the empty cells of every column at once and takes no column name.\n"
+                    "Write table.count_empty_cells_in() for a count in each column, or "
+                    'table.count_empty_cells_in(show="patterns") for the patterns of empty cells (show= takes only '
+                    f'"patterns", not {show!r}).'
+                    + (f'\nDid you mean the column "{guess[0]}"? The count for it is in table.count_empty_cells_in().'
+                       if guess else ""))
             return self._empty_patterns()
         counts = {name: self._count(self._empty(name)) for name in self._columns}
         width = max((len(str(n)) for n in counts), default=0)
@@ -970,7 +981,31 @@ class RowWords:
         before = len(self._frame)
         new = self._frame.unique(subset=subset, keep="first", maintain_order=True)
         print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")
+        if subset is None and len(new) == before:
+            self._near_duplicates_note()
         return self._change(what, new)
+
+    def _near_duplicates_note(self):
+        """remove_duplicate_rows() removed nothing: say so, and name the columns in which rows that are otherwise the
+        same differ (each column left out once, with the same unique() call; only counts, on tables of a modest size)."""
+        columns = self._columns
+        rows = len(self._frame)
+        differing = []
+        if 2 <= len(columns) <= 50 and rows * len(columns) <= 2_000_000:
+            for column in columns:
+                others = [c for c in columns if c != column]
+                n = rows - len(self._frame.unique(subset=others, keep="first", maintain_order=True))
+                if n:
+                    differing.append((column, n))
+        if not differing:
+            print("No row repeats an earlier row exactly, so nothing was removed.")
+            return
+        listed = ", ".join(f'"{c}" ({_rows(n)})' for c, n in differing)
+        column = differing[0][0]
+        keep = ", ".join(f'"{c}"' for c in columns if c != column)
+        print(f"Note: no row repeats an earlier row exactly, but some rows repeat an earlier row in every column except "
+              f"one: {listed}. If those are duplicates for you, name the columns that must match, for example "
+              f"table.remove_duplicate_rows(columns=[{keep}]).")
 
     @friendly
     def repeat_each_row_by(self, column=None):
