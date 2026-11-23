@@ -11,6 +11,13 @@ library each word uses) and docs/manual/ideas.tex (the data science ideas).
     python docs/make_manual.py --no-run   # write the .tex and compile, without running the examples again
     python docs/make_manual.py --no-run --underneath-figures   # the same, but draw the pictures of the
                                           # "same underneath" boxes first (R words need R)
+    python docs/make_manual.py --only-run 2/4         # run only part 2 of 4 of the examples (no .tex, no PDF)
+    python docs/make_manual.py --only-run underneath  # draw only the "same underneath" pictures (no .tex, no PDF)
+
+The --only-run parts let several machines run the examples at the same time (the GitHub workflow
+.github/workflows/rebuild-docs.yml): part K of N runs every N-th example from the K-th, each in its own
+folder exactly as the whole run does; the parts' figures/ and output/ put together are what the whole run
+writes, and the PDFs are then compiled once with --no-run.
 
 Each word with a tested entry in simplydata._underneath gets a grey box "The same underneath" after its
 example: the same job in the package underneath, made from that entry, with one picture for chart words.
@@ -1410,8 +1417,9 @@ def _clean_output(text: str) -> str:
     return "\n".join(lines) + "\n" if lines else ""
 
 
-def run_examples() -> None:
-    """Run every lesson example and solution; keep their pictures and printed output."""
+def run_examples(part: tuple[int, int] | None = None, underneath: bool = True) -> None:
+    """Run every lesson example and solution; keep their pictures and printed output. part=(K, N): only every
+    N-th example from the K-th (K = 1 .. N); underneath=False: without the "same underneath" pictures."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -1426,7 +1434,8 @@ def run_examples() -> None:
     if work.exists():
         shutil.rmtree(work)
     start = Path.cwd()
-    for prefix, source in jobs():
+    selected = jobs() if part is None else jobs()[part[0] - 1::part[1]]
+    for prefix, source in selected:
         folder = work / prefix
         folder.mkdir(parents=True)
         os.chdir(folder)
@@ -1447,7 +1456,8 @@ def run_examples() -> None:
             else:
                 shutil.copyfile(folder / f"{stem}.pdf", MANUAL / target)
         print(f"  ran {prefix}")
-    run_underneath_figures()
+    if underneath:
+        run_underneath_figures()
 
 
 def run_underneath_figures() -> None:
@@ -1496,7 +1506,30 @@ def compile_pdf() -> Path:
     return build
 
 
+def _only_run(argv: list[str]) -> bool:
+    """--only-run K/N or --only-run underneath: run one part of the examples into figures/ and output/ (emptied
+    first, so they hold only that part), without writing the .tex or compiling."""
+    if "--only-run" not in argv:
+        return False
+    value = argv[argv.index("--only-run") + 1] if argv.index("--only-run") + 1 < len(argv) else ""
+    if value == "underneath":
+        for folder in (FIGURES, OUTPUT):
+            folder.mkdir(parents=True, exist_ok=True)
+            for old in folder.iterdir():
+                old.unlink()
+        run_underneath_figures()
+        return True
+    k, _, n = value.partition("/")
+    if not (k.isdigit() and n.isdigit() and 1 <= int(k) <= int(n)):
+        raise SystemExit("--only-run takes K/N (1 <= K <= N) or underneath")
+    print(f"Running part {k} of {n} of the lesson examples and solutions ...")
+    run_examples(part=(int(k), int(n)), underneath=False)
+    return True
+
+
 def main(argv: list[str]) -> None:
+    if _only_run(argv):
+        return
     MANUAL.mkdir(exist_ok=True)
     TEX.write_text(make(), encoding="utf-8")
     print(f"Wrote {TEX}")

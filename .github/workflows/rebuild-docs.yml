@@ -1,0 +1,233 @@
+# Rebuild every generated file of simplydata on GitHub instead of on a laptop:
+#   docs/how_simplydata_chooses.md   (docs/make_method_basis.py)
+#   docs/manual/: the manual, the dictionary and the 30-day guide, .tex and .pdf, with figures/ and output/
+#                                     (docs/make_manual.py, which calls make_dictionary.py and make_30_days.py)
+#   validation/report.md              (validation/make_report.py, with R)
+# The result is ONE artifact, "rebuild": rebuild.patch (git diff --binary against the commit that was built),
+# with base.txt, changed.txt, checks.txt and summary.md. The workflow never pushes (a commit pushed with
+# GITHUB_TOKEN starts no CI, and main's ruleset needs CI on the head commit): run
+# F:/claude_work/scratch/simplydata/remote_rebuild.sh <branch>, or download the artifact, git apply it, commit and
+# push yourself.
+#
+# Parallel: the lesson examples run in 4 parts and the "same underneath" pictures in a fifth job, next to the
+# reliability report; one job then compiles the manual once (3 pdflatex runs, as make_manual.py always does), so
+# the page numbers, contents, cross-references and the dictionary's and the guide's pages into the manual are those
+# of one whole book. Compiling chapters separately would give wrong page numbers, so LaTeX is not split.
+name: rebuild docs
+run-name: rebuild docs for ${{ inputs.ref || github.head_ref }} ${{ inputs.request }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: the branch (or commit) to rebuild
+        required: true
+        default: main
+      request:
+        description: a label that names this run (remote_rebuild.sh sets one to find its run)
+        required: false
+        default: ""
+      whole:
+        description: run every example in one job (the whole-book way), to compare with the parts
+        type: boolean
+        default: false
+  # Only PRs that change the rebuild itself; other branches ask for it with workflow_dispatch
+  pull_request:
+    paths:
+      - .github/workflows/rebuild-docs.yml
+      - .github/actions/setup-simplydata/**
+      - docs/make_manual.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-docs-${{ inputs.ref || github.head_ref }}-${{ inputs.request }}
+  cancel-in-progress: true
+
+env:
+  MPLBACKEND: Agg
+
+jobs:
+  # The exact commit, so that every job builds the same one even if the branch moves during the run
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || inputs.ref }}
+      - id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  examples:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        part: ${{ fromJSON(inputs.whole && '["1/1", "underneath"]' || '["1/4", "2/4", "3/4", "4/4", "underneath"]') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: ./.github/actions/setup-simplydata
+        with:
+          r: "true"
+          extras: test,r,systems,fast,files
+      - name: Run part ${{ matrix.part }} of the examples
+        run: python docs/make_manual.py --only-run "${{ matrix.part }}"
+        env:
+          SIMPLYDATA_REQUIRE_R: "1"
+      - id: name
+        run: echo "name=examples-$(echo '${{ matrix.part }}' | tr '/' '-')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.name }}
+          path: |
+            docs/manual/figures/
+            docs/manual/output/
+          if-no-files-found: ignore
+          retention-days: 3
+
+  report:
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: ./.github/actions/setup-simplydata
+        with:
+          r: "true"
+          extras: test,r,systems,fast,files
+      - name: Reliability report
+        run: python validation/make_report.py
+        env:
+          SIMPLYDATA_REQUIRE_R: "1"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: report
+          path: validation/report.md
+          retention-days: 3
+
+  manual:
+    needs: [plan, examples]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: ./.github/actions/setup-simplydata
+      - uses: r-lib/actions/setup-tinytex@v2
+      # The packages of docs/manual/preamble.tex and of the dictionary's and the guide's preambles
+      - name: Install the LaTeX packages
+        run: >-
+          tlmgr install xcharter newtx fira inconsolata fontaxes mweights xkeyval etoolbox kastrup microtype geometry
+          xcolor colortbl caption booktabs tools enumitem needspace titlesec fancyhdr listings pgf tcolorbox environ
+          trimspaces pdfcol tikzfill listingsutf8 hyperref bookmark tocloft refcount zref iftex xpatch upquote
+          multirow l3packages l3kernel fp
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: examples-*
+          path: ${{ runner.temp }}/parts
+      - name: Put the examples' figures and output together
+        run: |
+          rm -f docs/manual/figures/* docs/manual/output/*
+          for part in "$RUNNER_TEMP"/parts/examples-*; do
+            if [ -d "$part/figures" ]; then cp "$part"/figures/* docs/manual/figures/; fi
+            if [ -d "$part/output" ]; then cp "$part"/output/* docs/manual/output/; fi
+          done
+          echo "$(ls docs/manual/figures | wc -l) figures, $(ls docs/manual/output | wc -l) output files"
+      - name: How simplydata chooses methods
+        run: python docs/make_method_basis.py
+      # The list above should be complete; this only catches a package a new preamble line needs
+      - name: Write the .tex and find any LaTeX package still missing
+        run: |
+          python docs/make_manual.py --tex
+          build="$RUNNER_TEMP/draft"; mkdir -p "$build"
+          for doc in simplydata_manual simplydataDictionary simplydata_30_days; do
+            for i in $(seq 1 25); do
+              if (cd docs/manual && pdflatex -draftmode -interaction=nonstopmode -halt-on-error \
+                    -output-directory="$build" "$doc.tex" > /dev/null); then break; fi
+              missing=$(grep -oP "File \`\K[^']+(?=' not found)" "$build/$doc.log" | head -1 || true)
+              if [ -z "$missing" ]; then tail -40 "$build/$doc.log"; exit 1; fi
+              pkg=$(tlmgr search --global --file "/$missing" | grep -oP '^\S+(?=:$)' | head -1)
+              echo "::warning::$missing was missing: installing the LaTeX package $pkg (add it to the list)"
+              tlmgr install "$pkg"
+            done
+          done
+      - name: Compile the manual, the dictionary and the 30-day guide
+        run: python docs/make_manual.py --no-run
+        env:
+          SIMPLYDATA_LATEX_DIR: ${{ runner.temp }}/latex
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manual
+          path: |
+            docs/how_simplydata_chooses.md
+            docs/manual/*.tex
+            docs/manual/*.pdf
+            docs/manual/figures/
+            docs/manual/output/
+          retention-days: 3
+
+  # One artifact with the patch, and the tests that compare the rebuilt files with the code
+  rebuild:
+    needs: [plan, report, manual]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: ./.github/actions/setup-simplydata
+      - uses: actions/download-artifact@v4
+        with:
+          name: manual
+          path: ${{ runner.temp }}/manual
+      - uses: actions/download-artifact@v4
+        with:
+          name: report
+          path: validation
+      - name: Make the patch
+        run: |
+          rm -f docs/manual/figures/* docs/manual/output/*
+          cp -r "$RUNNER_TEMP"/manual/. docs/
+          git add -A
+          mkdir -p "$RUNNER_TEMP/out"
+          git diff --cached --binary HEAD > "$RUNNER_TEMP/out/rebuild.patch"
+          git diff --cached --name-status HEAD > "$RUNNER_TEMP/out/changed.txt"
+          echo "${{ needs.plan.outputs.sha }} ${{ inputs.ref || github.head_ref }}" > "$RUNNER_TEMP/out/base.txt"
+          git diff --cached --stat HEAD | tail -1
+      - name: Check the rebuilt files with the tests that compare them
+        id: check
+        continue-on-error: true
+        run: >-
+          python -m pytest -q -p no:cacheprovider tests/test_learn.py tests/test_learn_days.py
+          tests/test_method_basis.py tests/test_readme_handles.py tests/test_validation.py
+          -k "up_to_date or come_from_this_manual or every_figure or counts_match or reduction_table
+          or committed_report or readme_gives_the_count" 2>&1 | tee "$RUNNER_TEMP/out/checks.txt";
+          exit ${PIPESTATUS[0]}
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Rebuild of ${{ inputs.ref || github.head_ref }} at ${{ needs.plan.outputs.sha }}"
+            echo; echo '```'
+            grep -o '\*\*[0-9][0-9]* checks passed.*skipped\*\*' validation/report.md | head -1 || true
+            python validation/count_reduction.py
+            echo '```'
+            echo; echo "Changed files: $(wc -l < "$RUNNER_TEMP/out/changed.txt")"
+            echo; echo '```'; head -150 "$RUNNER_TEMP/out/changed.txt"; echo '```'
+            echo; echo "Checks of the rebuilt files: ${{ steps.check.outcome }}"
+            echo; echo '```'; tail -15 "$RUNNER_TEMP/out/checks.txt"; echo '```'
+          } | tee "$RUNNER_TEMP/out/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebuild
+          path: ${{ runner.temp }}/out/
+          retention-days: 7
+      - name: Fail when a check of the rebuilt files failed
+        if: steps.check.outcome == 'failure'
+        run: exit 1
