@@ -2,14 +2,15 @@
 entry for each new option that changes what a word calls (keyed by word and option): attributable fractions on
 compare_risks, direct standardisation on rate_of, observed / expected on compare_rates, mediation on explain, the 2 x 2
 crossover on compare_averages_of, and multiple imputation on find_correlation_between and explain_survival.
-Practice tables: "job_training", "job_search", "drug_levels" (real), "deaths_by_age", "clinic", "school", "trial"
+Practice tables: "job_training", "job_search", "drug_levels" (made up after real studies), "deaths_by_age", "clinic", "school", "trial"
 (made up).
 """
 
 from . import Entry
 
 LALONDE = """
-    df = sdata.get_example("job_training")
+    import pandas as pd
+    df = pd.read_csv("job_training.csv")
     t = df["treat"].to_numpy(dtype=float)
     y = df["re78"].to_numpy(dtype=float)
     age, educ, married, nodegree = (df[c].to_numpy(dtype=float) for c in ("age", "educ", "married", "nodegree"))
@@ -22,7 +23,8 @@ FRAME_R = ("d <- data.frame(t = t, y = y, age = age, educ = educ, race = race, m
            "f <- t ~ age + educ + race + married + nodegree + re74 + re75")
 DEATHS = """
     import numpy as np
-    df = sdata.get_example("deaths_by_age")
+    import pandas as pd
+    df = pd.read_csv("deaths_by_age.csv")
     obs = df.pivot(index="county", columns="age_band", values="deaths")
     tar = df.pivot(index="county", columns="age_band", values="person_years")
     o, t = obs.to_numpy(dtype=float), tar.to_numpy(dtype=float)
@@ -35,7 +37,7 @@ FILL_IN = """
     from statsmodels.imputation.mice import MICEData
     import simplydata._r as r
     r.need_r(("mice",), "mice")                                     # R first, as simplydata does
-    df = sdata.get_example("school")
+    df = pd.read_csv("school.csv")
     imputer = MICEData(pd.DataFrame({"v0": df["sleep"], "v1": df["marks"].astype(float)}), k_pmm=5, rng=1)
     imputer.update_all(10)                                          # 10 cycles before the first table
     tables = []
@@ -53,7 +55,7 @@ ENTRIES = [
         word="table.compare_balanced_groups_of",
         data="job_training",
         ours=f"""
-            table = sdata.table(sdata.get_example("job_training"))
+            table = sdata.get_example("job_training")
             table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for={COLUMNS})
         """,
         code={
@@ -91,7 +93,7 @@ ENTRIES = [
         word="table.compare_balanced_groups_of", option='test_method="matching"',
         data="job_training",
         ours=f"""
-            table = sdata.table(sdata.get_example("job_training"))
+            table = sdata.get_example("job_training")
             table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for={COLUMNS},
                                              test_method="matching", effect_for=1)
         """,
@@ -127,7 +129,7 @@ ENTRIES = [
         word="table.compare_risks", option='show="attributable fractions"',
         data="clinic",
         ours="""
-            table = sdata.table(sdata.get_example("clinic"))
+            table = sdata.get_example("clinic")
             table.compare_risks("infected", for_each_group_in="ward", against="ward A", show="attributable fractions")
         """,
         code={
@@ -144,15 +146,18 @@ ENTRIES = [
         },
         r_inputs="""
             import numpy as np
-            df = sdata.get_example("clinic")
+            import pandas as pd
+            df = pd.read_csv("clinic.csv")
             b, a = df[df["ward"] == "ward B"], df[df["ward"] == "ward A"]
             e1, e0 = (b["infected"] == "yes").sum(), (a["infected"] == "yes").sum()
             n = np.array([e1, len(b) - e1, e0, len(a) - e0], dtype=float)   # exposed first, events first
         """,
         r_packages=("epiR",), compare="result", fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high"),
         tolerance=1e-9,
-        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with Wald intervals from the risk "
-                 "ratio; crude, not adjusted for other columns.",),
+        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with the intervals epiR gives for "
+                 "one table (among the exposed, from the score interval of the risk ratio; in the population, from the "
+                 "exact intervals of the two risks; epiR's names end in .wald all the same); crude, not adjusted for "
+                 "other columns.",),
         python_note=EPIR_NOTE,
         also="simplydata also gives the population attributable fraction, the preventable fraction among the exposed "
              "when the exposure goes with fewer events, and says that the fractions are causal only if the exposure "
@@ -163,7 +168,7 @@ ENTRIES = [
         word="table.rate_of", option="standard_population=",
         data="deaths_by_age",
         ours="""
-            table = sdata.table(sdata.get_example("deaths_by_age"))
+            table = sdata.get_example("deaths_by_age")
             table.rate_of("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                           standard_population="whole table")
         """,
@@ -194,7 +199,7 @@ ENTRIES = [
         word="table.compare_rates", option="standard_rates=",
         data="deaths_by_age",
         ours=f"""
-            table = sdata.table(sdata.get_example("deaths_by_age"))
+            table = sdata.get_example("deaths_by_age")
             table.compare_rates("deaths", time="person_years", for_each_group_in="county", allowing_for="age_band",
                                 standard_rates={NATIONAL})
         """,
@@ -231,13 +236,14 @@ ENTRIES = [
         word="table.explain", option="through=",
         data="job_search",
         ours="""
-            table = sdata.table(sdata.get_example("job_search"))
+            table = sdata.get_example("job_search")
             table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
             from statsmodels.stats.mediation import Mediation
-            df = sdata.get_example("job_search")
+            import pandas as pd
+            df = pd.read_csv("job_search.csv")
             # explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", "age"])
             mediator = smf.ols("job_seek ~ treat + econ_hard + sex + age", data=df)            # (1)
             outcome = smf.ols("depress2 ~ treat + job_seek + econ_hard + sex + age", data=df)
@@ -260,14 +266,15 @@ ENTRIES = [
         word="table.compare_averages_of", option="period=",
         data="drug_levels",
         ours="""
-            table = sdata.table(sdata.get_example("drug_levels"))
+            table = sdata.get_example("drug_levels")
             table.compare_averages_of("auc", for_each_group_in="formulation", matched_by="subject", period="period",
                                       same_within=[0.8, 1.25])
         """,
         code={"statsmodels": """
             import numpy as np
             import statsmodels.formula.api as smf
-            df = sdata.get_example("drug_levels")
+            import pandas as pd
+            df = pd.read_csv("drug_levels.csv")
             first = df[df["period"] == 1].set_index("subject")["formulation"]
             df["sequence"] = df["subject"].map(first)                                          # (1)
             # compare_averages_of("auc", ..., matched_by="subject", period="period", same_within=[0.8, 1.25])
@@ -290,7 +297,7 @@ ENTRIES = [
         word="table.find_correlation_between", option='empty_cells="multiple imputation"',
         data="school",
         ours="""
-            table = sdata.table(sdata.get_example("school"))
+            table = sdata.get_example("school")
             table.find_correlation_between("sleep", "marks", empty_cells="multiple imputation")
         """,
         code={

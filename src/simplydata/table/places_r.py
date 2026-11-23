@@ -189,10 +189,16 @@ def block_maxima(x, once_in):
     return _extremes_result(found)
 
 
+GP_CONTROL = "list(method = \"BFGS\", control = list(reltol = 1e-12, maxit = 10000))"  # BFGS: fevd's own choice for GP
+
+
 def over_threshold(x, threshold, time_units, once_in):
     """extRemes::fevd(x, threshold = u, type = "GP", time.units = ...): the generalised Pareto fit to the values
     above the threshold, its return levels per year, and the extremal index (extRemes::extremalindex)."""
-    fit = f'extRemes::fevd(x, threshold = {float(threshold)!r}, type = "GP", time.units = "{time_units}")'
+    # a tighter stopping rule than optim's default (reltol 1.5e-8), which left the 100-year level of Coles's daily
+    # rain 1e-6 to 9e-6 short of the optimum (simplydata_tests FINDINGS A7); the same fit, run until converged
+    fit = (f'extRemes::fevd(x, threshold = {float(threshold)!r}, type = "GP", time.units = "{time_units}", '
+           f"optim.args = {GP_CONTROL})")
     extra = (", extremal_index = e[[1]], clusters = e[[2]], above = sum(x > "
              f"{float(threshold)!r})")
     code = (f"e <- extRemes::extremalindex(x, {float(threshold)!r}); " + _extremes_code(fit, _periods_r(once_in), extra))

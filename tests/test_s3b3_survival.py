@@ -16,9 +16,11 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
 from simplydata.table.survival import kaplan_meier
+from conftest import example_frame
 
 ENGINES = ["pandas", "polars"]
 
@@ -31,7 +33,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -41,7 +43,7 @@ def frame(result):
 
 @pytest.fixture
 def trial():
-    return sdata.get_example("trial")
+    return example_frame("trial")
 
 
 def with_entry(trial):
@@ -199,7 +201,7 @@ def test_stanford_heart_transplant_matches_coxph(needs_r):
     # coxph(Surv(start, stop, event) ~ age + surgery + transplant, data = heart) (Crowley & Hu 1977)
     from pathlib import Path
 
-    heart = pd.read_csv(Path(__file__).resolve().parents[1] / "validation" / "data" / "heart.csv")
+    heart = r_table("heart.csv")
     out = frame(sdata.table(heart).explain_survival(time="stop", event="event", using=["age", "surgery", "transplant"],
                                                     followed_from="start"))
     assert out["coefficient"].tolist() == pytest.approx([0.0305363149142, -0.7733276453, 0.0160956052965], rel=1e-6)

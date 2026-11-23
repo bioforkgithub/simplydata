@@ -1,9 +1,9 @@
 """S3a-1: explain() grows. Each new option against the package underneath (statsmodels, SciPy, patsy) and,
 where R is installed, against R itself (the R numbers are worked out by R in the test, from the same rows).
 
-Real data from validation/data (galton_peas, crowder_seeds, infert, birthwt, stackloss, mtcars, penicillin,
-nmes1988; sources and licences in validation/README.md); the practice tables for the printouts; made-up rows
-only for edge cases, labelled as such.
+Real data: crowder_seeds from validation/data, and galton_peas, infert, birthwt, stackloss, mtcars, penicillin and
+nmes1988 read from the R packages that ship them (validation/r_data.py; sources and licences in validation/README.md
+and DATA_LICENSES.md); the practice tables for the printouts; made-up rows only for edge cases, labelled as such.
 """
 
 from pathlib import Path
@@ -13,13 +13,18 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
+from conftest import example_frame
 
 DATA = Path(__file__).resolve().parents[1] / "validation" / "data"
 
 
 def read(name):
-    return pd.read_csv(DATA / f"{name}.csv")
+    """A stored table, or one read from its R package (the copies of GPL and LGPL R data are no longer stored)."""
+    if (DATA / f"{name}.csv").exists():
+        return pd.read_csv(DATA / f"{name}.csv")
+    return r_table(name)
 
 
 def rows(result, key="term"):
@@ -28,7 +33,7 @@ def rows(result, key="term"):
 
 
 def school():
-    s = sdata.get_example("school")
+    s = example_frame("school")
     s["w"] = (np.arange(len(s)) % 4 + 1).astype(float)
     return s
 
@@ -279,7 +284,7 @@ def test_huber_refusals():
 
 # ---------------------------------------------------------------- with_knots= (L04)
 def test_knots_give_the_curves_of_r_ns(needs_r, capsys):
-    s = sdata.get_example("school")
+    s = example_frame("school")
     got = rows(sdata.table(s).explain("marks", using=["hours", "breakfast"], curve_for="hours", with_knots=3))
     out = capsys.readouterr().out
     found = r("d <- data.frame(m = m, h = h, b = b); f <- lm(m ~ splines::ns(h, df = 4) + b, data = d); "
@@ -298,7 +303,7 @@ def test_knots_are_patsy_natural_splines_without_r():
     import statsmodels.api as sm
     from patsy import dmatrix
 
-    s = sdata.get_example("school")
+    s = example_frame("school")
     got = rows(sdata.table(s).explain("marks", using=["hours"], curve_for="hours", with_knots=2))
     x = s.hours.to_numpy(float)
     knots = np.quantile(x, [1 / 3, 2 / 3])  # R ns() places the knots at the quantiles of all the values
@@ -329,7 +334,7 @@ def test_standardised_effects_match_effectsize(needs_r, capsys):
 def test_standardised_effects_of_a_glm_refit_on_z_scores():
     import statsmodels.api as sm
 
-    s = sdata.get_example("school").dropna(subset=["sleep"])
+    s = example_frame("school").dropna(subset=["sleep"])
     got = rows(sdata.table(s).explain("passed", using=["hours", "sleep"], outcome="yes or no",
                                       show="standardized effects"))
     def z(v):
@@ -428,7 +433,7 @@ def test_nagelkerke_and_tjur_from_statsmodels(capsys):
 
 # ---------------------------------------------------------------- crossed_with= (M05)
 def test_crossed_groups_match_lme4(needs_r, capsys):
-    s = sdata.get_example("school")
+    s = example_frame("school")
     got = rows(sdata.table(s).explain("marks", using=["hours"], grouped_by="school", crossed_with="class"))
     out = capsys.readouterr().out
     satt = rows(sdata.table(s).explain("marks", using=["hours"], grouped_by="school", crossed_with="class",
@@ -448,7 +453,7 @@ def test_crossed_groups_match_lme4(needs_r, capsys):
 
 
 def test_crossed_groups_for_yes_or_no_match_glmer(needs_r, capsys):
-    s = sdata.get_example("school")
+    s = example_frame("school")
     got = rows(sdata.table(s).explain("passed", using=["hours"], outcome="yes or no", grouped_by="school",
                                       crossed_with="class"))
     out = capsys.readouterr().out
@@ -631,7 +636,7 @@ def test_nagelkerke_and_tjur_to_1e_10_of_r_performance(needs_r):
 
 
 def test_knots_with_zero_weight_rows_are_placed_as_r_ns(needs_r):
-    s = sdata.get_example("school")
+    s = example_frame("school")
     w = np.where(np.arange(len(s)) % 7 == 0, 0.0, 1.0 + np.arange(len(s)) % 3)
     got = rows(sdata.table(s.assign(w=w)).explain("marks", using=["hours", "breakfast"], curve_for="hours",
                                                   with_knots=3, weights="w"))

@@ -635,10 +635,14 @@ def _rate_equivalence(group, against, counts, same_within, up, claim=None):
              "method": "non-inferiority, exact conditional (statsmodels test_poisson_2indep)"}]
 
 
-def pick_against(step, groups, against, example):
-    """The reference group: against=, or the first group in sorted order (as R takes the first level)."""
+def pick_against(step, groups, against, example, order="sorted"):
+    """The reference group: against=, or the first group. order="sorted": the groups of a column, sorted, as R
+    takes the first level of a factor; order="given": counts given as lists (sdata.compare_rates), in the order
+    given, as R poisson.test(), prop.test() and epitools take the counts in the order they are given."""
     if against is None:
-        print(f'Note: compared against "{groups[0]}" (the first in sorted order, as R); choose another with against=.')
+        how = ("the first in sorted order, as R" if order == "sorted" else
+               "the first given, as R takes counts in the order they are given")
+        print(f'Note: compared against "{groups[0]}" ({how}); choose another with against=.')
         return groups[0]
     for g in groups:
         if g == against or str(g) == str(against):

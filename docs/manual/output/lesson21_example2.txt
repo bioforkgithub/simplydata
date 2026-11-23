@@ -12,3 +12,4 @@ Found 12 of 180 rows with a Cook's distance above 4 / 180 = 0.0222:
   ... and 2 more rows above 0.0222.
 Leverage: how unusual a row's values in using= are (the average is 0.0167). Studentised residual: how far the row lies from the model, in standard errors (beyond 2 or 3 is unusual).
 Method: statsmodels OLSInfluence, as R cooks.distance(), hatvalues() and rstudent(). The row numbers count from 1 in the whole table; remove a row only for a reason (a mistake in the data), and say so.
+Gives back a table of the 12 rows found, the biggest first.

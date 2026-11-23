@@ -3,6 +3,7 @@
 import pytest
 
 import simplydata as sdata
+from conftest import example_frame
 
 
 def test_second_y_with_legend_bottom_keeps_both_series(marks):
@@ -44,7 +45,7 @@ def test_page_of_different_charts(marks, tmp_path):
 
 
 def test_grid_with_letters_labels_each_chart(tmp_path):
-    marks, weather = sdata.get_example("marks"), sdata.get_example("weather")
+    marks, weather = example_frame("marks"), example_frame("weather")
     a = sdata.chart(marks).draw_bars(x="class", y="marks")
     b = sdata.chart(weather).draw_lines(x="month", y="rain")
     c = sdata.chart(marks).draw_histogram(x="marks")
@@ -58,7 +59,7 @@ def test_grid_with_letters_labels_each_chart(tmp_path):
 
 
 def test_one_above_other_with_letters(tmp_path):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     a = sdata.chart(marks).draw_boxes(x="class", y="marks")
     b = sdata.chart(marks).draw_dots(x="hours", y="marks")
     fig = sdata.put_one_above_other(a, b, with_letters=True)._render()
@@ -79,7 +80,7 @@ def _overlaps(a, b):
 
 @pytest.mark.parametrize("title", [None, "Marks per class"])
 def test_letter_does_not_cover_the_panel_titles_of_a_split_chart(title):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     split = sdata.chart(marks).draw_bars(x="name", y="marks").draw_one_chart_for_each_group_in("class")
     if title:
         split.write_title_on_top(title)
@@ -102,7 +103,7 @@ def test_letter_does_not_cover_the_panel_titles_of_a_split_chart(title):
 
 
 def test_page_cannot_be_saved_as_gif(tmp_path):
-    marks = sdata.get_example("marks")
+    marks = example_frame("marks")
     a = sdata.chart(marks).draw_bars(x="class", y="marks")
     with pytest.raises(sdata.SimplydataError, match="cannot be saved as .gif"):
         sdata.put_side_by_side(a, a).save(tmp_path / "page.gif")

@@ -6,15 +6,18 @@ Each comes from the package that defines it; simplydata only puts the pairs in o
   same numbers as PMCMRplus::gamesHowellTest(), with simultaneous 95 % intervals.
 * "scheffe" and "lsd" (averages): R DescTools::ScheffeTest() and PostHocTest(method = "lsd");
   Fisher's LSD does not adjust for the number of pairs, and the sentence says so.
-* "dunn" (ranks, after Kruskal-Wallis): R FSA::dunnTest(method = "holm"), the same numbers as
-  dunn.test(altp = TRUE) and PMCMRplus::kwAllPairsDunnTest().
+* "dunn" (ranks, after Kruskal-Wallis): R FSA::dunnTest() for z and the unadjusted p-values, adjusted with R
+  p.adjust(method = "holm"): the same numbers as PMCMRplus::kwAllPairsDunnTest(p.adjust.method = "holm").
+  (FSA's own method = "holm" leaves out Holm's running maximum.)
 * "conover" (ranks): R PMCMRplus::kwAllPairsConoverTest(p.adjust.method = "holm").
 * against="A" (every group against one control group): Dunnett's test, SciPy stats.dunnett (as R
   multcomp::glht(mcp(group = "Dunnett"))); SciPy and multcomp both integrate the multivariate t
   distribution with random numbers, so simplydata seeds SciPy's (with_seed=1, printed) and the last digit
   can differ from R's.
 
-All pairs come in the order of R's combn(): (1, 2), (1, 3), ..., (2, 3), ... as in R's output.
+All pairs come in the order of R's combn(): (1, 2), (1, 3), ..., (2, 3), ... Where the R function lists its
+pairs in another order (FSA::dunnTest, the lower triangle of PMCMRplus's matrix), each result is matched to
+its pair by the pair's names, never by position.
 """
 
 from __future__ import annotations
@@ -33,7 +36,7 @@ R_PAIR_TESTS = {
                 "averages), so the chance of any false alarm stays at 5 %"),
     "lsd": ("Fisher's least significant difference", "averages", 'DescTools::PostHocTest(method = "lsd")',
             "the p-values are NOT adjusted for the number of pairs, so with many pairs a false alarm is more likely"),
-    "dunn": ("Dunn's test", "ranks", 'FSA::dunnTest(method = "holm")',
+    "dunn": ("Dunn's test", "ranks", 'FSA::dunnTest() with p.adjust(method = "holm")',
              "the p-values are adjusted with Holm's method, so the chance of any false alarm stays at 5 %"),
     "conover": ("Conover's test", "ranks", 'PMCMRplus::kwAllPairsConoverTest(p.adjust.method = "holm")',
                 "the p-values are adjusted with Holm's method, so the chance of any false alarm stays at 5 %"),
@@ -46,8 +49,13 @@ _R_CODE = {
                 'list(d = -r[, "diff"], low = -r[, "upr.ci"], high = -r[, "lwr.ci"], p = r[, "pval"])', ("DescTools",)),
     "lsd": ('r <- DescTools::PostHocTest(stats::aov(y ~ factor(g, levels = lv)), method = "lsd")[[1]]; '
             'list(d = -r[, "diff"], low = -r[, "upr.ci"], high = -r[, "lwr.ci"], p = r[, "pval"])', ("DescTools",)),
-    "dunn": ('r <- FSA::dunnTest(y ~ factor(g, levels = lv), method = "holm")$res; '
-             "list(z = r$Z, p_raw = r$P.unadj, p = r$P.adj)", ("FSA",)),
+    # FSA lists the comparisons in its own order ("1 - 2", "1 - 3", "2 - 3", "1 - 4", ...), not combn()'s, so
+    # the groups go in as their numbers 1, 2, ... and each row is matched back to its pair by its name.
+    # Holm's adjustment comes from R's own p.adjust(): FSA 0.10.1's "holm" leaves out the running maximum of
+    # Holm's steps (InsectSprays, B - F: 0.926028 where p.adjust and PMCMRplus::kwAllPairsDunnTest give 1)
+    "dunn": ('r <- FSA::dunnTest(y ~ factor(match(g, lv), levels = seq_along(lv)), method = "none")$res; '
+             'list(pair = as.character(r$Comparison), z = r$Z, p_raw = r$P.unadj, '
+             'p = stats::p.adjust(r$P.unadj, method = "holm"))', ("FSA",)),
     "conover": ('r <- PMCMRplus::kwAllPairsConoverTest(y, factor(g, levels = lv), p.adjust.method = "holm"); '
                 "list(p = r$p.value[lower.tri(r$p.value, diag = TRUE)], "
                 "stat = r$statistic[lower.tri(r$statistic, diag = TRUE)])", ("PMCMRplus",)),
@@ -73,6 +81,14 @@ def r_pairs(test, groups):
         order = [(j, i) for i in range(len(names) - 1) for j in range(i + 1, len(names))]
         lookup = dict(zip(order, np.asarray(found["p"], dtype=float)))
         stat = dict(zip(order, np.asarray(found["stat"], dtype=float)))
+    if test == "dunn":
+        dunn = {}
+        for name, z, p_raw, p in zip(np.asarray(found["pair"]), *(np.asarray(found[k], dtype=float)
+                                                                   for k in ("z", "p_raw", "p"))):
+            first, second = (int(part) - 1 for part in str(name).split(" - "))
+            # z is the first group's mean rank minus the second's: turned round when FSA names the pair the other way
+            dunn[(first, second)] = (z, p_raw, p)
+            dunn[(second, first)] = (-z, p_raw, p)
     rows = []
     for k, (i, j) in enumerate(pairs):
         (n1, a), (n2, b) = groups[i], groups[j]
@@ -83,9 +99,9 @@ def r_pairs(test, groups):
                         "difference 95 % CI high": float(np.asarray(found["high"])[k]),
                         "p-value (adjusted)" if test != "lsd" else "p-value": float(np.asarray(found["p"])[k])})
         elif test == "dunn":
+            z, p_raw, p = dunn[(i, j)]
             row.update({"difference in medians": float(np.median(a) - np.median(b)), "statistic name": "z",
-                        "statistic": float(np.asarray(found["z"])[k]), "p-value": float(np.asarray(found["p_raw"])[k]),
-                        "p-value (adjusted)": float(np.asarray(found["p"])[k])})
+                        "statistic": float(z), "p-value": float(p_raw), "p-value (adjusted)": float(p)})
         else:
             row.update({"difference in medians": float(np.median(a) - np.median(b)), "statistic name": "q",
                         "statistic": stat[(j, i)], "p-value (adjusted)": lookup[(j, i)]})

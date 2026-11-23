@@ -7,19 +7,22 @@ from . import Entry
 
 SENTENCE = "simplydata also writes the result as sentences, with the p-value in words, and names the method."
 CHEMICAL_A = """
-    tox = sdata.get_example("toxicity")
+    import pandas as pd
+    tox = pd.read_csv("toxicity.csv")
     a = tox[tox["chemical"] == "A"]
     concentration = a["concentration"].to_numpy(dtype=float)
     root_length = a["root_length"].to_numpy(dtype=float)
 """
 FLASK_A = """
-    culture = sdata.get_example("culture")
+    import pandas as pd
+    culture = pd.read_csv("culture.csv")
     a = culture[culture["flask"] == "A"]
     hour = a["hour"].to_numpy(dtype=float)
     density = a["density"].to_numpy(dtype=float)
 """
 MARKS = """
-    marks_table = sdata.get_example("marks")
+    import pandas as pd
+    marks_table = pd.read_csv("marks.csv")
     hours = marks_table["hours"].to_numpy(dtype=float)
     marks = marks_table["marks"].to_numpy(dtype=float)
 """
@@ -29,15 +32,17 @@ ENTRIES = [
         word="table.fit_dose_response",
         data="toxicity",
         ours="""
-            table = sdata.table(sdata.get_example("toxicity"))
+            table = sdata.get_example("toxicity")
             table.keep_rows_where("chemical", is_equal_to="A")
-            table.fit_dose_response(x="concentration", y="root_length").as_pandas().query("term == 'ED50'")
+            table.fit_dose_response(x="concentration", y="root_length").keep_rows_where("term", is_equal_to="ED50")
         """,
         code={
             "R": """
                 # fit_dose_response(x="concentration", y="root_length")
                 # concentration and root_length: chemical A of sdata.get_example("toxicity")
-                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())   # (1)
+                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),  # (1)
+                              control = drc::drmc(relTol = 1e-15,
+                                                  maxIt = 10000))             # (3)
                 e <- drc::ED(m, 50, interval = "delta", display = FALSE)       # (2)
                 list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
             """,
@@ -53,7 +58,9 @@ ENTRIES = [
         choices=("the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); "
                  "of_kind= chooses another.",
                  "the ED50 with its delta-method interval: drc's ED() gives no interval unless asked "
-                 "(interval = \"none\" is its default)."),
+                 "(interval = \"none\" is its default).",
+                 "a tighter stopping rule than drc's default (relTol 1e-7), so that the fit has converged; the method "
+                 "is the same."),
         python_note="Python has no dose-response package with drc's ED intervals: SciPy curve_fit fits the curve "
                     "but gives no ED50 interval, so the numbers come from R.",
         also="simplydata also prints the upper and lower limits, a test of no dose effect (drc::noEffect) and a "
@@ -64,13 +71,16 @@ ENTRIES = [
         data="toxicity",
         ours="""
             tox = sdata.get_example("toxicity")
-            chart = sdata.chart(tox[tox["chemical"] == "A"])
+            tox.keep_rows_where("chemical", is_equal_to="A")
+            chart = sdata.chart(tox)
             chart.draw_dots(x="concentration", y="root_length").fit_dose_response()
         """,
         code={
             "R": """
                 # fit_dose_response()
-                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())    # (1)
+                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),
+                              control = drc::drmc(relTol = 1e-15,
+                                                  maxIt = 10000))      # (1)
                 low_dose <- min(concentration[concentration > 0])
                 at <- c(0, exp(seq(log(low_dose), log(max(concentration)), length.out = 300)))  # (2)
                 e <- drc::ED(m, 50, interval = "delta", display = FALSE)
@@ -90,7 +100,8 @@ ENTRIES = [
         legend_pattern=r"ED50 (\S+) \(95 % CI (\S+) to (\S+)\)",
         legend_numbers=("ed50", "low", "high"),
         tolerance=1e-6,
-        choices=("the 4 parameter log-logistic curve (drc's LL.4), as table.fit_dose_response.",
+        choices=("the 4 parameter log-logistic curve (drc's LL.4), with the same tighter stopping rule, as "
+                 "table.fit_dose_response.",
                  "the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on "
                  "a log dose axis too; the ED50 and its delta-method interval go in the legend."),
         python_note="Python has no dose-response package with drc's ED intervals, so the curve comes from R.",
@@ -100,12 +111,13 @@ ENTRIES = [
         word="table.find_best_power_of",
         data="trial",
         ours="""
-            table = sdata.table(sdata.get_example("trial"))
+            table = sdata.get_example("trial")
             table.find_best_power_of("days")
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("trial")
+            import pandas as pd
+            df = pd.read_csv("trial.csv")
             # find_best_power_of("days")
             _, power, (low, high) = stats.boxcox(df["days"].dropna(), alpha=0.05)   # (1)
             {"power": power, "95 % CI low": low, "95 % CI high": high}
@@ -128,12 +140,13 @@ OPTION_ENTRIES = [
         option='test_method="theil-sen"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="theil-sen")
         """,
         code={"SciPy": """
             from scipy import stats
-            df = sdata.get_example("marks")
+            import pandas as pd
+            df = pd.read_csv("marks.csv")
             # fit_line(x="hours", y="marks", test_method="theil-sen")
             fit = stats.theilslopes(df["marks"], df["hours"], alpha=0.95,      # (1)
                                     method="separate")                        # (2)
@@ -152,7 +165,7 @@ OPTION_ENTRIES = [
         option='test_method="standardised major axis"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="standardised major axis")
         """,
         code={
@@ -179,7 +192,7 @@ OPTION_ENTRIES = [
         option='test_method="deming", y_error_over_x_error=',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="deming", y_error_over_x_error=4)
         """,
         code={
@@ -208,7 +221,7 @@ OPTION_ENTRIES = [
         option='test_method="passing-bablok"',
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.fit_line(x="hours", y="marks", test_method="passing-bablok")
         """,
         code={
@@ -236,7 +249,7 @@ OPTION_ENTRIES = [
         option="with_bends=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_line(x="hour", y="density", with_bends=1)
         """,
@@ -272,13 +285,14 @@ OPTION_ENTRIES = [
         option="changes_at=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_line(x="hour", y="density", changes_at=10)
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # fit_line(x="hour", y="density", changes_at=10)
             df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
             df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -297,24 +311,27 @@ OPTION_ENTRIES = [
         option='of_kind="logistic growth"',
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.fit_curve(x="hour", y="density", of_kind="logistic growth")
         """,
         code={"SciPy": """
             import numpy as np
             from scipy import optimize
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # fit_curve(x="hour", y="density", of_kind="logistic growth")
             def logistic(x, Asym, xmid, scal):                  # R's SSlogis
                 return Asym / (1 + np.exp((xmid - x) / scal))
             found, cov = optimize.curve_fit(logistic, df["hour"], df["density"],
-                                            p0=[1, 10, 2], method="lm")    # (1)
+                                            p0=[1, 10, 2], method="lm",    # (1)
+                                            xtol=1e-12, ftol=1e-12, maxfev=20000)
             {"estimate": found[0], "standard error": np.sqrt(cov[0, 0])}
         """},
         compare="result",
         fields=("estimate", "standard error"),
-        tolerance=1e-5,
+        # other start values (R getInitial() in the word): two converged searches agree to 1e-7
+        tolerance=1e-6,
         choices=("start values: simplydata takes them from R's self-starting model (stats::getInitial()), or "
                  "searches the whole range without R; the least-squares answer is the same.",),
         also="simplydata also writes the formula, says what each value means and gives its 95 % interval. "
@@ -325,7 +342,7 @@ OPTION_ENTRIES = [
         option="for_percentile=",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.explain("marks", using=["hours"], for_percentile=90)
         """,
         code={
@@ -356,14 +373,15 @@ OPTION_ENTRIES = [
         option="changes_at=",
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
-            table.explain("density", using=["hour"], changes_at={"hour": 10}).as_pandas().query(
-                "term == 'after hour 10'")
+            table.explain("density", using=["hour"], changes_at={"hour": 10}).keep_rows_where(
+                "term", is_equal_to="after hour 10")
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf
-            df = sdata.get_example("culture").query("flask == 'A'")
+            import pandas as pd
+            df = pd.read_csv("culture.csv").query("flask == 'A'")
             # explain("density", using=["hour"], changes_at={"hour": 10})
             df = df.assign(after=(df["hour"] >= 10) * 1.0)               # (1)
             df = df.assign(since=df["after"] * (df["hour"] - 10))
@@ -381,7 +399,7 @@ OPTION_ENTRIES = [
         option='test_method="loess", interval=',
         data="culture",
         ours="""
-            table = sdata.table(sdata.get_example("culture"))
+            table = sdata.get_example("culture")
             table.keep_rows_where("flask", is_equal_to="A")
             table.add_smoothed_column("smooth", from_column="density", sorted_by="hour", test_method="loess",
                                       interval=95)
@@ -414,7 +432,8 @@ OPTION_ENTRIES = [
         data="culture",
         ours="""
             culture = sdata.get_example("culture")
-            chart = sdata.chart(culture[culture["flask"] == "A"]).draw_dots(x="hour", y="density")
+            culture.keep_rows_where("flask", is_equal_to="A")
+            chart = sdata.chart(culture).draw_dots(x="hour", y="density")
             chart.draw_smooth_line(test_method="loess", with_confidence_band=True)
         """,
         code={

@@ -89,6 +89,30 @@ def _example(code: str, name: str = "marks") -> str:
 
 
 
+COUNTS_EXAMPLE = '{"answer": ["yes", "no"], "count": [12, 5]}'  # the table of repeat_each_row_by's examples
+
+
+def _rows_word(n) -> str:
+    return f"{n} row" if n == 1 else f"{n} rows"
+
+
+POLARS_HALVES_TO_EVEN = (1, 29)  # Polars rounds a float exactly halfway to the even neighbour from 1.29 (RoundMode)
+
+
+def _need_polars_rounding_halves_to_even():
+    """round_numbers_in on a Polars table: Polars before 1.29 rounded halves away from zero (2.5 to 3), so the
+    same step would give other numbers than on a pandas table (2.5 to 2). pyproject asks for polars>=1.29; this
+    stops an older Polars that is already installed from giving those other numbers without a word."""
+    import polars as pl
+
+    found = tuple(int(part) for part in pl.__version__.split(".")[:2] if part.isdigit())
+    if found < POLARS_HALVES_TO_EVEN:
+        raise SimplydataError(
+            f"round_numbers_in() on a Polars table needs Polars 1.29 or newer, which rounds a number exactly halfway to "
+            f"the even neighbour (2.5 to 2), as pandas, NumPy and R do. This computer has Polars {pl.__version__}, "
+            "which rounds it away from zero (2.5 to 3).\nUpdate it with:  pip install -U \"polars>=1.29\"")
+
+
 def _nice(value) -> str:
     """A number or date written for people: 61, 61.5, 2026-03-15."""
     if value is None:
@@ -96,9 +120,10 @@ def _nice(value) -> str:
     if isinstance(value, float):
         if value != value:  # NaN
             return ""
-        if value.is_integer() and abs(value) < 1e15:
-            return str(int(value))
-        return str(round(value, 2))
+        shown = round(value, 2)  # rounded first, so 62.001 is written 62, not 62.0
+        if shown.is_integer() and abs(shown) < 1e15:
+            return str(int(shown))
+        return str(shown)
     if isinstance(value, (_dt.date, _dt.datetime)) or hasattr(value, "to_pydatetime"):
         return _say(value)
     return str(value)
@@ -947,6 +972,55 @@ class RowWords:
         print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")
         return self._change(what, new)
 
+    @friendly
+    def repeat_each_row_by(self, column=None):
+        """Repeat each row as many times as the count in a column: one row per thing counted.
+
+        table.repeat_each_row_by("count")   (with sdata.table({"answer": ["yes", "no"], "count": [12, 5]}))
+        A table of counts (one row per group, with how many there are) becomes one row per person
+        or thing, as many words need. The count column is left out afterwards, since each row now
+        stands for one; a row with a count of 0 is left out. The counts must be whole numbers of
+        0 or more, with no empty cells. As pandas df.loc[df.index.repeat(df["count"])] and Polars
+        df.select(pl.exclude("count").gather(pl.int_range(pl.len()).repeat_by("count").explode().drop_nulls())).
+        Undo with table.undo().
+        """
+        example = 'table.repeat_each_row_by("count")'
+        if not isinstance(column, str):
+            raise SimplydataError("repeat_each_row_by() needs the name of the column that holds the counts, in quotes."
+                                  + f"\nFor example:  {example}   (with sdata.table({COUNTS_EXAMPLE}))")
+        self._need_columns(column)
+        series = self._frame[column]
+        if series.dtype == nw.Boolean:
+            raise SimplydataError(f'"{column}" holds True and False, not counts. repeat_each_row_by() needs a column '
+                                  "of whole numbers (0 or more), one count per row.")
+        if not series.dtype.is_numeric():
+            raise SimplydataError(f'"{column}" holds text, not counts. repeat_each_row_by() needs a column of whole '
+                                  "numbers (0 or more), one count per row.")
+        if series.null_count():
+            empty = series.null_count()
+            raise SimplydataError(f'"{column}" has {_rows_word(empty).replace("row", "empty cell")}, so simplydata '
+                                  "cannot tell how often to repeat those rows. Fill them first (fill_empty_cells_in) or remove them "
+                                  f'(remove_rows_with_empty_cells_in("{column}")).')
+        counts = series.to_numpy().astype(float)
+        if not np.isfinite(counts).all() or (counts != np.round(counts)).any():
+            bad = next(v for v in counts if not np.isfinite(v) or v != round(v))
+            raise SimplydataError(f'"{column}" holds {_nice(bad)}, not a whole number. A row can only be repeated a '
+                                  "whole number of times; check the counts (were they rounded, or are they shares?).")
+        if (counts < 0).any():
+            raise SimplydataError(f'"{column}" holds {_nice(float(counts.min()))}, below 0. A row cannot be repeated '
+                                  "fewer than 0 times; check the counts.")
+        before, total = len(self._frame), int(counts.sum())
+        # NumPy repeat of the row positions, then the rows taken by position (narwhals, pandas or Polars)
+        positions = np.repeat(np.arange(before), counts.astype(np.int64))
+        new = self._frame[positions.tolist()].drop(column)
+        zero = int(np.sum(counts == 0))
+        print(f'Repeated {before:,} row{"s" if before != 1 else ""} into {total:,} row{"s" if total != 1 else ""} by '
+              f'"{column}".')
+        print(f'The column "{column}" is left out: each row now stands for one.'
+              + (f" {zero} row{'s' if zero != 1 else ''} with a count of 0 {'are' if zero != 1 else 'is'} left out."
+                 if zero else ""))
+        return self._change(f'repeat each row by "{column}"', new)
+
     # ================================================================== empty cells
     @friendly
     def remove_rows_with_empty_cells_in(self, column=None):
@@ -1368,7 +1442,8 @@ class RowWords:
         (with sdata.get_example("marks"))
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
         like R and NumPy; this stops a run of halves from always pushing totals up.
-        round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2).
+        round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2)
+        (pandas round(-1); Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
         """
         example = 'table.round_numbers_in("hours", 0)'
         if with_decimals is _NOT_GIVEN and isinstance(column, numbers.Integral) and not isinstance(column, bool):
@@ -1396,25 +1471,35 @@ class RowWords:
                         f'.round_numbers_in() rounds numbers, but "{name}" is a {self._kind_of(name)} column.\n'
                         f"Columns with numbers: {', '.join(number_columns) or 'none'}" + _example(example)
                     )
+        if self._frame.implementation.is_polars():
+            _need_polars_rounding_halves_to_even()
+        polars = self._frame.implementation.is_polars()
+        if with_decimals < 0 and polars:
+            # Polars rounds to decimal places only (round() refuses a negative number of places), so tens and
+            # hundreds come from NumPy's round, the one pandas uses for round(-1): the same numbers on both engines
+            import numpy as np
+            import polars as pl
+
+            native = self._frame.to_native().with_columns(
+                [pl.col(name).map_batches(lambda s: pl.Series(s.name, np.round(s.to_numpy(), with_decimals)))
+                 for name in names])
+            new = nw.from_native(native, eager_only=True)
         changes = []
         for name in names:
             dtype = self._frame.schema[name]
             col = nw.col(name)
             if dtype.is_integer() and with_decimals >= 0:
                 continue  # whole numbers stay as they are
-            if with_decimals >= 0:
-                changes.append(col.round(with_decimals).alias(name))
-            else:
-                size = 10 ** -with_decimals
-                rounded = (col.cast(nw.Float64) / size).round(0) * size
-                changes.append((rounded.cast(dtype) if dtype.is_integer() else rounded).alias(name))
+            if with_decimals >= 0 or not polars:
+                changes.append(col.round(with_decimals).alias(name))  # pandas round(-1) for tens, its own
         if with_decimals >= 0:
             to = f"{with_decimals} decimal place" + ("" if with_decimals == 1 else "s")
         else:
             to = f"the nearest {10 ** -with_decimals}"
         where = ", ".join(names)
         print(f"Rounded {where} to {to}.")
-        new = self._frame.with_columns(*changes) if changes else self._frame
+        if not (with_decimals < 0 and polars):
+            new = self._frame.with_columns(*changes) if changes else self._frame
         return self._change(f"round {where} to {to}", new)
 
     @friendly

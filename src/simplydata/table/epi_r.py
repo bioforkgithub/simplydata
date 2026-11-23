@@ -2,8 +2,12 @@
 simplydata counts the rows, puts the counts in and words the answer; every number comes from epiR.
 
 * compare_risks(show="attributable fractions"): R epiR::epi.2by2(method = "cohort.count") gives the attributable
-  fraction among the exposed ($massoc.detail$AFRisk.strata.wald) and in the whole population (PAFRisk.strata.wald),
-  Wald intervals from the risk ratio (Rothman, Greenland & Lash 2008). For an exposure that goes with fewer events
+  fraction among the exposed ($massoc.detail$AFRisk.strata.wald) and in the whole population (PAFRisk.strata.wald).
+  The ".wald" in epiR's names does not describe the intervals: with one 2 x 2 table epiR fills them from its crude
+  intervals, so the fraction among the exposed has (RR - 1) / RR at the ends of the score interval of the risk ratio,
+  and the population fraction the more extreme of the two fractions made from the ends of the exact (Clopper-Pearson)
+  intervals of the risk in the whole population and among the unexposed. The printout names these, not "Wald"
+  (data-and-fixes, finding A5). For an exposure that goes with fewer events
   (risk ratio below 1), the preventable fraction among the exposed (1 - risk ratio) is epiR's attributable fraction
   with the two groups' roles swapped: the same call with the rows of the 2 x 2 table in the other order.
   epiR before 2.0 named these AFest and PAFest; the code reads the names and stops with a sentence when they change.

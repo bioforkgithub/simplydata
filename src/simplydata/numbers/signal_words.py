@@ -25,8 +25,8 @@ class SignalNumberWords:
         coarser) or "lomb-scargle" (for readings at uneven time_points=; R lomb::lsp() itself, needs
         simplydata[r] and R). show="power", "decibels" (10 x log10 of the power) or "amplitude" (the
         size of the cycle in the numbers' own units). between=[low, high] keeps that frequency range in
-        the table. Gives back a table: frequency, repeats every (1 / frequency), the power and the share
-        of the variance (%) at each frequency. Prints the 3 strongest cycles.
+        the table. Gives back a table: frequency, repeats every (1 / frequency) and the power at each
+        frequency. Prints the 3 strongest cycles.
         """
         step_name = "find_spectrum"
         name = _signals.read_method(test_method, step_name)

@@ -11,6 +11,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 ZEROS = pd.DataFrame({
     "depth": [3.1, 1.8, 3.4, 2.8, 0.4, 3.9, 3.0, 3.1, 0.5, 1.8, 1.5, 3.7, 2.6, 3.3, 1.8, 0.9, 2.2, 0.3, 3.3, 2.5,
@@ -33,7 +34,7 @@ def check(got, expected, rel=1e-6):
 
 
 def graded_school():
-    s = sdata.get_example("school")
+    s = example_frame("school")
     s["grade"] = np.where(s.marks < 40, "low", np.where(s.marks < 55, "middle", "high"))
     s.loc[s.marks.isna(), "grade"] = None
     return s
@@ -86,7 +87,7 @@ def test_groups_match_multinom(capsys):
 
 # ---------------------------------------------------------------- shares
 def test_shares_match_betareg(capsys, needs_r):
-    growth = sdata.get_example("growth").assign(share=lambda d: d.forest / 100)
+    growth = example_frame("growth").assign(share=lambda d: d.forest / 100)
     got = rows(make_table(growth).explain("share", using=["year", "country"], outcome="shares"))
     out = capsys.readouterr().out
     # R: g$share <- g$forest / 100; b <- betareg::betareg(share ~ year + country, data = g); summary(b)

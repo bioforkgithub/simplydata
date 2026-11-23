@@ -13,6 +13,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 X = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 15.6]
 W = [1, 2, 3, 1, 2, 4, 1, 2, 3, 1]
@@ -28,7 +29,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -79,7 +80,7 @@ def test_weights_errors(weighted, engine):
 
 # ---------------------------------------------------------------------------- kernel density
 def test_kernel_density_matches_r(engine, capsys):
-    marks = make(sdata.get_example("marks"), engine)
+    marks = make(example_frame("marks"), engine)
     k = marks.fit_distribution_to("marks", "kernel density")
     out = capsys.readouterr().out
     assert "bandwidth 6.09041" in out and "R: density(x, bw = 6.09041)" in out
@@ -115,7 +116,7 @@ def test_kernel_density_bandwidth_when_the_iqr_is_smaller(capsys):
 
 
 def test_kernel_density_errors(engine):
-    marks = make(sdata.get_example("marks"), engine)
+    marks = make(example_frame("marks"), engine)
     with pytest.raises(SimplydataError, match="one group at a time"):
         marks.fit_distribution_to("marks", "kernel density", for_each_group_in="class")
     with pytest.raises(SimplydataError, match="a kernel density has none"):

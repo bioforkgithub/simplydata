@@ -50,7 +50,7 @@ def test_old_done_still_gives_the_stored_table(gappy, capsys):
     assert isinstance(plain, pd.DataFrame)
     assert notes(capsys.readouterr().out) == [note('"done"', '"as_pandas"')]
     pl = pytest.importorskip("polars")
-    assert isinstance(sdata.table(pl.from_pandas(gappy)).done(), pl.DataFrame)  # as before
+    assert isinstance(sdata.table(gappy, fast=True).done(), pl.DataFrame)  # as before
 
 
 def test_as_pandas_and_as_polars(gappy):
@@ -58,7 +58,7 @@ def test_as_pandas_and_as_polars(gappy):
     assert isinstance(t.as_pandas(), pd.DataFrame)
     pl = pytest.importorskip("polars")
     assert isinstance(t.as_polars(), pl.DataFrame)
-    fast = sdata.table(pl.from_pandas(gappy))
+    fast = sdata.table(gappy, fast=True)
     assert isinstance(fast.as_pandas(), pd.DataFrame) and isinstance(fast.as_polars(), pl.DataFrame)
 
 

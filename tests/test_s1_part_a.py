@@ -2,7 +2,7 @@
 Bowker and the sign test in compare_before_after, more tests in compare_shape_to, percent
 intervals (method=), and tests from summary numbers (sdata.compare_averages / compare_counts).
 
-Reference values: R 4.6.2. m <- read.csv(".../marks.csv") (sdata.get_example("marks"));
+Reference values: R 4.6.2. m <- read.csv(".../marks.csv") (example_frame("marks"));
 w <- reshape(m[, c("name", "subject", "marks")], idvar = "name", timevar = "subject",
 direction = "wide"); mm <- as.matrix(w[, -1]) (columns Maths, Science, English);
 a, b, cc = the marks of classes A, B and C.
@@ -15,6 +15,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 REL = 1e-9
 
@@ -27,7 +28,7 @@ def engine(request):
 def make(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -37,7 +38,7 @@ def row(result):
 
 @pytest.fixture
 def marks():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
@@ -306,7 +307,7 @@ def test_shape_test_errors(marks, engine):
     ("agresti-coull", 0.363068525819, 0.506384207238),
 ])
 def test_percent_to_intervals(engine, method, low, high):
-    school = make(sdata.get_example("school"), engine)
+    school = make(example_frame("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by=method))
     assert got["percent 95 % CI low"] == pytest.approx(low * 100, rel=1e-9)
     assert got["percent 95 % CI high"] == pytest.approx(high * 100, rel=1e-9)
@@ -315,7 +316,7 @@ def test_percent_to_intervals(engine, method, low, high):
 
 
 def test_percent_to_one_sided_wilson(engine):
-    school = make(sdata.get_example("school"), engine)
+    school = make(example_frame("school"), engine)
     got = row(school.compare_percent_to("passed", value="yes", percent=50, interval_by="wilson", sides=1,
                                         higher="percent"))
     # R: DescTools::BinomCI(78, 180, method = "wilson", sides = "left")

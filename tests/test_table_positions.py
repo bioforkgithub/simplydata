@@ -13,12 +13,13 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata.table import table as make_table
+from conftest import example_frame
 
 
 def _engine_table(data, engine):
     if engine == "polars":
         pl = pytest.importorskip("polars")
-        return make_table(pl.from_pandas(data))
+        return make_table(data, fast=True)
     return make_table(data)
 
 
@@ -29,7 +30,7 @@ def engine(request):
 
 @pytest.fixture
 def marks_df():
-    return sdata.get_example("marks")
+    return example_frame("marks")
 
 
 @pytest.fixture
@@ -39,7 +40,7 @@ def marks(engine, marks_df):
 
 @pytest.fixture
 def weather_df():
-    return sdata.get_example("weather")
+    return example_frame("weather")
 
 
 @pytest.fixture

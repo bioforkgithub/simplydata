@@ -94,23 +94,32 @@ def anova_numbers(model, test_type):
 
 def _sequential_numbers(model):
     """Type 1 ("in order"), as R anova(lm()): each term after the ones before it in the model's own term order
-    (using= order, main effects before interactions, as R's formula). statsmodels anova_lm() on nested OLS fits
-    that add the terms one at a time, each fit using the columns of the model matrix (R model.matrix()) that the
-    terms so far own, as R's sequential sums of squares do; patsy's own order (group terms first) is not used."""
-    import statsmodels.api as sm
+    (using= order, main effects before interactions, as R's formula). statsmodels anova_lm(typ=1) on one OLS fit
+    whose formula has one block of model-matrix columns (R model.matrix()) per term, in that order, so the sums
+    of squares are R's sequential ones; patsy's own order (group terms first) is not used. Every F and p-value is
+    taken on the full model's residual mean square and degrees of freedom, as R does (anova_lm on a list of
+    nested fits would take each p-value on the residual df of the smaller fit)."""
+    import statsmodels.formula.api as smf
     from statsmodels.stats.anova import anova_lm
 
     X, y, owner = np.asarray(model["X"], dtype=float), np.asarray(model["y"], dtype=float), np.asarray(model["owner"])
+    blocks = {"y": y}
+    for k in range(-1, len(model["terms"])):
+        if (owner == k).any():
+            blocks[f"T{k + 1}"] = X[:, owner == k]
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        fits = [sm.OLS(y, X[:, owner < k]).fit() for k in range(len(model["terms"]) + 1)]
-        table = anova_lm(*fits)
+        fit = smf.ols("y ~ 0 + " + " + ".join(b for b in blocks if b != "y"), data=blocks).fit()
+        table = anova_lm(fit, typ=1)
     rows = []
-    for term, (_, r) in zip(model["terms"], list(table.iterrows())[1:]):
-        rows.append(dict(term=_label(term), ss=float(r["ss_diff"]), df=float(r["df_diff"]), stat=float(r["F"]),
-                         p=float(r["Pr(>F)"])))
-    last = fits[-1]
-    rows.append(dict(term="residual", ss=float(last.ssr), df=float(last.df_resid), stat=math.nan, p=math.nan))
+    for index, term in enumerate(model["terms"]):
+        if f"T{index + 1}" not in table.index:  # a term with no columns of its own: nothing to test
+            rows.append(dict(term=_label(term), ss=0.0, df=0.0, stat=math.nan, p=math.nan))
+            continue
+        r = table.loc[f"T{index + 1}"]
+        rows.append(dict(term=_label(term), ss=float(r["sum_sq"]), df=float(r["df"]), stat=float(r["F"]),
+                         p=float(r["PR(>F)"])))
+    rows.append(dict(term="residual", ss=float(fit.ssr), df=float(fit.df_resid), stat=math.nan, p=math.nan))
     return rows
 
 

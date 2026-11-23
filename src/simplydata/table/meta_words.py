@@ -713,7 +713,8 @@ class MetaWords:
             fit = "metafor::rma.peto()"
         else:
             mods = (", mods = ~ " + " + ".join(info["mods_names"])) if info["mods_names"] else ""
-            fit = f'metafor::rma(yi, vi{mods}, method = "{method}", test = "{info["test"]}")'
+            ctl = ", control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000)" if method in ("REML", "PM") else ""
+            fit = f'metafor::rma(yi, vi{mods}, method = "{method}", test = "{info["test"]}"{ctl})'
         extra = ""
         if info["for_each"] is not None:
             extra = ("; each subgroup its own rma(), and the test of their difference rma(estimates, sei, mods = ~ group, "

@@ -1307,17 +1307,24 @@ class Distribution:
     def find_middle_range(self, percent=95):
         """The range that holds the middle percent of the distribution, as Numbers [low, high].
 
-        dist.find_middle_range(95)   (R qnorm(c(0.025, 0.975), mean = 50, sd = 10))
+        dist.find_middle_range(95)   (R c(qnorm(0.025, mean = 50, sd = 10), qnorm(0.025, mean = 50, sd = 10,
+        lower.tail = FALSE)))
+        The top end is the value with (100 - percent) / 2 % above it (SciPy isf), so it keeps its digits near 100 %.
         """
         example = "dist.find_middle_range(95)"
         if not _is_number(percent) or not 0 < percent < 100:
             raise SimplydataError(f"find_middle_range() needs a percent above 0 and below 100.\nFor example:  {example}")
-        tail = (1 - percent / 100) / 2
+        # each end has (100 - percent) / 2 % outside it. The top end is asked of SciPy as the value with that tail
+        # above it (isf, R lower.tail = FALSE), never as 1 - tail below it: near 100 % that 1 - tail would lose
+        # digits (99.99999999 % gave 6.4669510747 instead of 6.4669511821)
+        tail = (100 - percent) / 200
         low = self._quantile(np.asarray([tail]), upper=False)[0]
-        high = self._quantile(np.asarray([1 - tail]), upper=False)[0]
-        code = self._r("q", _r_vector([tail, 1 - tail]))
+        high = self._quantile(np.asarray([tail]), upper=True)[0]
+        low_code, high_code = self._r("q", _r(tail)), self._r("q", _r(tail), upper=True)
+        code = f"c({low_code}, {high_code})" if low_code and high_code else None
         extra = ", holding at least that share" if self.is_discrete else ""
-        print(f"The middle {_say(percent)} % of the distribution lies between {_answer(low)} and {_answer(high)}"
+        given = str(int(percent)) if float(percent).is_integer() else repr(float(percent))  # as given: 99.99999999
+        print(f"The middle {given} % of the distribution lies between {_answer(low)} and {_answer(high)}"
               f"{extra} ({self._with_r(code)}).")
         from .numbers.numbers import Numbers
 
