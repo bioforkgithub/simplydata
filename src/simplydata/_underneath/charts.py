@@ -1298,9 +1298,10 @@ ENTRIES += [
             chart.show()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
             # show()
@@ -1321,8 +1322,9 @@ ENTRIES += [
             chart.draw_area(x="month_number", y="temperature")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
             # draw_area(x="month_number", y="temperature")
             mean = df.groupby("month_number")["temperature"].mean()     # (1)
@@ -1347,8 +1349,9 @@ ENTRIES += [
             chart.draw_pie(labels="fruit", values="count")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("fruit")
+            df = pd.read_csv("fruit.csv")
             fig, ax = plt.subplots()
             # draw_pie(labels="fruit", values="count")
             sizes = df.groupby("fruit", sort=False)["count"].sum()       # (1)
@@ -1374,9 +1377,10 @@ ENTRIES += [
             chart.draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
             # draw_polar(angle="wind_direction", distance="wind_speed", colour="city")
             ax.set_theta_zero_location("N")
@@ -1405,9 +1409,10 @@ ENTRIES += [
             chart.draw_contour(x="east", y="north", z="height")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
-            df = sdata.get_example("island")
+            df = pd.read_csv("island.csv")
             fig, ax = plt.subplots()
             # draw_contour(x="east", y="north", z="height")
             wide = df.groupby(["north", "east"])["height"].mean().unstack()   # (1)
@@ -1439,9 +1444,9 @@ ENTRIES += [
             chart.draw_surface(x="east", y="north", z="height")
         """,
         code={"matplotlib": """
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt, pandas as pd
             import numpy as np
-            df = sdata.get_example("island")
+            df = pd.read_csv("island.csv")
             fig = plt.figure()
             ax = fig.add_subplot(projection="3d")
             # draw_surface(x="east", y="north", z="height")
@@ -1470,8 +1475,9 @@ ENTRIES += [
             chart.draw_dots_3d(x="hours", y="height", z="marks", colour="class")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig = plt.figure()
             ax = fig.add_subplot(projection="3d")
             # draw_dots_3d(x="hours", y="height", z="marks", colour="class")
@@ -1494,15 +1500,16 @@ ENTRIES += [
         word="draw_band",
         data="weather",
         ours="""
-            table = sdata.table(sdata.get_example("weather"))
+            table = sdata.get_example("weather")
             table.add_column("lowest", "temperature - 4")
             table.add_column("highest", "temperature + 4")
             chart = table.start_chart()
             chart.draw_band(x="month", between=["lowest", "highest"], colour="city")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             df["lowest"], df["highest"] = df["temperature"] - 4, df["temperature"] + 4
             fig, ax = plt.subplots()
             # draw_band(x="month", between=["lowest", "highest"], colour="city")
@@ -1560,8 +1567,9 @@ ENTRIES += [
             chart.sticks(x="month_number", y="rain", colour="city")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
             # sticks(x="month_number", y="rain", colour="city")
             colours = ["#0072B2", "#E69F00", "#009E73"]
@@ -1587,9 +1595,10 @@ ENTRIES += [
             chart.draw_error_bars()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="class", y="marks", ax=ax)
             # draw_error_bars(): the standard deviation
@@ -1616,10 +1625,11 @@ ENTRIES += [
             chart.fit_curve()
         """,
         code={"NumPy": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="month_number", y="temperature", ax=ax)
             # fit_curve()
@@ -1651,11 +1661,12 @@ ENTRIES += [
             chart.fit_distribution("normal")
         """,
         code={"SciPy": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
             import seaborn as sns
             from scipy import stats
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.histplot(df, x="marks", bins=10, ax=ax)
             # fit_distribution("normal")
@@ -1684,11 +1695,12 @@ ENTRIES += [
             chart.draw_curve(sdata.distribution("normal", average=60, standard_deviation=15))
         """,
         code={"SciPy": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
             import seaborn as sns
             from scipy import stats
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.histplot(df, x="marks", bins=10, ax=ax)
             # draw_curve(the normal distribution with average 60 and standard deviation 15)
@@ -1714,9 +1726,10 @@ ENTRIES += [
             chart.draw_density(x="marks", colour="class")
         """,
         code={"seaborn": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_density(x="marks", colour="class")
             sns.kdeplot(df, x="marks", hue="class", common_norm=False,       # (1)
@@ -1736,9 +1749,10 @@ ENTRIES += [
             chart.draw_count_bars(x="fruit", colour="shop")
         """,
         code={"seaborn": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("fruit")
+            df = pd.read_csv("fruit.csv")
             fig, ax = plt.subplots()
             # draw_count_bars(x="fruit", colour="shop")
             sns.countplot(df, x="fruit", hue="shop", palette=["#0072B2", "#E69F00"],
@@ -1758,10 +1772,11 @@ ENTRIES += [
             chart.draw_side_histograms()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # draw_side_histograms()
@@ -1787,9 +1802,10 @@ ENTRIES += [
             chart.draw_cumulative_share(x="marks", colour="class")
         """,
         code={"seaborn": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_cumulative_share(x="marks", colour="class")
             sns.ecdfplot(df, x="marks", hue="class",
@@ -1811,9 +1827,10 @@ ENTRIES += [
             chart.draw_line_with_slope(10, labelled="10 marks an hour")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # draw_line_with_slope(10, labelled="10 marks an hour")
@@ -1838,9 +1855,10 @@ ENTRIES += [
             chart.shade_between_x(6, 8)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
             sns.lineplot(df, x="month_number", y="temperature", hue="city", errorbar=None,
                          palette=["#0072B2", "#E69F00", "#009E73"], ax=ax)
@@ -1858,7 +1876,7 @@ ENTRIES += [
         word="write_names_on_dots",
         data="marks",
         ours="""
-            table = sdata.table(sdata.get_example("marks"))
+            table = sdata.get_example("marks")
             table.keep_rows_where("subject", is_equal_to="Maths")
             table.keep_rows_where("class", is_equal_to="A")
             chart = table.start_chart()
@@ -1866,9 +1884,10 @@ ENTRIES += [
             chart.write_names_on_dots("name")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             df = df[(df["subject"] == "Maths") & (df["class"] == "A")]
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
@@ -1899,9 +1918,10 @@ ENTRIES += [
             chart.use_font("DejaVu Serif")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # use_font("DejaVu Serif")
             with plt.rc_context({"font.family": "DejaVu Serif"}):            # (1)
                 fig, ax = plt.subplots()
@@ -1923,9 +1943,10 @@ ENTRIES += [
             chart.set_range_x(0, None)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # set_range_x(0, None)
@@ -1945,9 +1966,10 @@ ENTRIES += [
             chart.use_log_scale_x()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("growth")
+            df = pd.read_csv("growth.csv")
             fig, ax = plt.subplots()
             # use_log_scale_x()
             ax.set_xscale("log")
@@ -1968,9 +1990,10 @@ ENTRIES += [
             chart.put_ticks_x("A", "C")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
             # put_ticks_x("A", "C")
@@ -1992,9 +2015,10 @@ ENTRIES += [
             chart.put_ticks_y(0, 25, 50, 75)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.barplot(df, x="class", y="marks", errorbar=None, ax=ax)
             # put_ticks_y(0, 25, 50, 75)
@@ -2019,9 +2043,10 @@ ENTRIES += [
             chart.rotate_labels_y(30)
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("fruit")
+            df = pd.read_csv("fruit.csv")
             fig, ax = plt.subplots()
             sns.barplot(df, x="count", y="fruit", orient="h", errorbar=None, ax=ax)
             # rotate_labels_y: 30 degrees
@@ -2046,10 +2071,11 @@ ENTRIES += [
             chart.write_ticks_x_as("thousands")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
             from matplotlib import ticker
-            df = sdata.get_example("shop")
+            df = pd.read_csv("shop.csv", parse_dates=["date"])
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="sales", y="customers", ax=ax)
             # write_ticks_x_as("thousands")
@@ -2071,9 +2097,10 @@ ENTRIES += [
             chart.flip_x()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # flip_x()
@@ -2093,9 +2120,10 @@ ENTRIES += [
             chart.flip_y()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # flip_y()
@@ -2115,9 +2143,10 @@ ENTRIES += [
             chart.use_colour_scale("magma")
         """,
         code={"seaborn": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             wide = df.pivot_table(index="city", columns="month", values="rain", aggfunc="mean", sort=False)
             fig, ax = plt.subplots()
             # use_colour_scale("magma")
@@ -2144,9 +2173,10 @@ ENTRIES += [
             chart.show_grid()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # show_grid()
@@ -2167,9 +2197,10 @@ ENTRIES += [
             chart.hide_grid()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             ax.grid(True, axis="y")                                          # simplydata's paper look
@@ -2191,10 +2222,11 @@ ENTRIES += [
             chart.put_legend_at_top()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
             from matplotlib.patches import Rectangle
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots(layout="constrained")
             sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
             # put_legend_at_top(), on a chart with the title "Temperature"
@@ -2220,9 +2252,10 @@ ENTRIES += [
             chart.put_legend_on_right()
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots(layout="constrained")
             sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
             # put_legend_on_right()
@@ -2247,9 +2280,10 @@ ENTRIES += [
             chart.show_legend()
         """,
         code={"seaborn": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("weather")
+            df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
             # hide_legend(), then show_legend(): the legend seaborn draws, in its usual place
             sns.lineplot(df, x="month", y="temperature", hue="city", errorbar=None, ax=ax)
@@ -2268,9 +2302,10 @@ ENTRIES += [
             chart.label_legend("Class")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", hue="class", ax=ax)
             # label_legend("Class")
@@ -2291,9 +2326,10 @@ ENTRIES += [
             chart.label_colour_bar("Height (m)")
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import numpy as np
-            df = sdata.get_example("island")
+            df = pd.read_csv("island.csv")
             wide = df.groupby(["north", "east"])["height"].mean().unstack()
             gx, gy = np.meshgrid(wide.columns, wide.index)
             fig, ax = plt.subplots()
@@ -2316,9 +2352,10 @@ ENTRIES += [
             chart.order_y("C", "B", "A")
         """,
         code={"pandas": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # order_y("C", "B", "A")
             place = {"C": 0, "B": 1, "A": 2}
             df = df.sort_values("class", key=lambda s: s.map(place),
@@ -2342,9 +2379,10 @@ ENTRIES += [
             chart.order_legend("Science", "Maths", "English")
         """,
         code={"pandas": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             # order_legend("Science", "Maths", "English")
             place = {"Science": 0, "Maths": 1, "English": 2}
             df = df.sort_values("subject", key=lambda s: s.map(place), kind="stable")  # (1)
@@ -2368,9 +2406,10 @@ ENTRIES += [
             chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60])
         """,
         code={"matplotlib": """
+            import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
-            df = sdata.get_example("marks")
+            df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             sns.scatterplot(df, x="hours", y="marks", ax=ax)
             # add_zoom_box(x_between=[2, 4], y_between=[40, 60])
