@@ -700,10 +700,9 @@ def cases(Case):
         Case("nums.start_chart", "a histogram of Michelson's measurements, started from the numbers",
              "NIST Michelso", "real data",
              ours="""
-                 from simplydata._underneath.check import chart_facts
                  chart = sdata.numbers(data["y"].tolist()).start_chart()
-                 bars = chart_facts(chart.draw_histogram(x="value")._render().axes[0])["bars"]
-                 {"bars": len(bars), "numbers counted": sum(b[3] for b in bars), "tallest": max(b[3] for b in bars)}
+                 heights = chart.draw_histogram(x="value").get_numbers_drawn().get_column("y")
+                 {"bars": heights.count(), "numbers counted": heights.find_total(), "tallest": heights.find_biggest()}
              """,
              parent="""
                  import matplotlib.pyplot as plt

@@ -5,7 +5,7 @@ averages, Holm's method when you adjust many p-values, REML and Hartung-Knapp in
 studies. This document answers the question a reviewer asks first: *how does simplydata know which method is
 right, and what logic does it use?*
 
-The answer is five principles, applied in order, and one entry for each of the 401 choices simplydata
+The answer is five principles, applied in order, and one entry for each of the 439 choices simplydata
 makes. Each entry gives the default, the alternatives (and the option that asks for them), why simplydata
 chose it, the published evidence, and what simplydata checks in your data before it uses the method.
 
@@ -26,9 +26,9 @@ chose it, the published evidence, and what simplydata checks in your data before
   checks in your data, and when it refuses or warns and says what to use instead.
 - **References**: short citations; the full list with links is at the end.
 
-The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 401 defaults, 143 rest on
-published guidelines or method comparisons, 204 follow the convention of the package named so that
-results match it, and 54 are simplydata's own starting values, marked as such, each changed with the
+The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 439 defaults, 143 rest on
+published guidelines or method comparisons, 232 follow the convention of the package named so that
+results match it, and 64 are simplydata's own starting values, marked as such, each changed with the
 option named.
 
 Every reference was checked before it was cited: each DOI was looked up in Crossref
@@ -644,12 +644,35 @@ a word that chooses a method has no entry, or when this file is out of date.
 |---|---|---|---|---|
 | `sdata.numbers()` | With to=, the end is included; the count of steps allows a little room for rounding. | step=, how_many= (evenly spaced, as np.linspace). | **P5.** Making numbers: "1 to 10" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end out and can overshoot with a decimal step. *Basis: convention.* |  |
 | `sdata.make_random_numbers()` | NumPy's random generator (default_rng) with the seed given; whole numbers include both ends. | with_seed= for the same numbers every time. | **P3.** NumPy recommends its Generator over the old global seed; "between 1 and 6" includes 6, like a dice. *Basis: convention.* |  |
+| `nums.show()` | Every number, with commas between them, however many there are. | show_first_numbers() and show_last_numbers() for the ends only. | **P5.** Showing results, not a method: a word called show hides nothing, and commas make the list read like the one you typed. NumPy's print shortens long arrays to their ends. *Basis: starting value.* |  |
+| `nums.show_first_numbers()` | The first 5 numbers, with commas, none hidden. | how_many= any whole number. | **P5.** Showing results: the same look as show(). *Basis: starting value.* **Checks:** how_many= must be a whole number. |  |
+| `nums.show_last_numbers()` | The last 5 numbers, with commas, none hidden. | how_many= any whole number. | **P5.** Showing results: the same look as show(); 0 shows none. *Basis: starting value.* **Checks:** how_many= must be a whole number. |  |
+| `nums.get_number_at()` | Positions count from 1; "last" is the last number. | None: Python's [ ] is not used on simplydata numbers. | **P5.** People count from 1, and so do charts' x axes and R; counting from 0 is a frequent beginner's error. *Basis: convention.* **Checks:** A position outside 1 to the count stops with a message that gives the count. |  |
+| `nums.count()` | How many places there are, empty values included. | count() minus count_empty_numbers() for the filled ones. | **P3.** The same as len() in Python and length() in R; the empty values are counted on their own. *Basis: convention.* |  |
+
+## Numbers: maths in words
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.divide_by()` | Dividing by 0 gives an empty value (nan) and a note saying how many, not inf. | None; fill the empty values afterwards if a number is wanted there. | **P4.** There is no answer to dividing by 0. An empty value is skipped by the summary words, while inf would make a total or an average inf. *Basis: starting value.* **Checks:** The note counts the numbers that became empty. |  |
+| `nums.raise_to_power()` | Whole numbers to a minus power are worked out as decimals; 0 to a minus power and a negative number to a power with decimals become empty, with a note. | None. | **P4.** Neither has an answer among ordinary numbers; NumPy stops with an error for whole numbers to a minus power and gives inf for 0 to a minus power. *Basis: starting value.* **Checks:** The note says how many numbers became empty and why. |  |
+| `nums.round_to()` | A number exactly halfway goes to the even neighbour (0.5 to 0, 2.5 to 2). | None; with_decimals= sets the places (negative rounds to tens, hundreds). | **P3.** The same as NumPy, pandas and R round(): halves do not all go up, so a total of rounded numbers is not pushed up. Excel rounds halves away from 0. *Basis: convention.* **Checks:** with_decimals= must be a whole number. |  |
+| `nums.take_log()` | The natural log; 0 and negative numbers become empty, with a note. | base=10, base=2 or any number above 0 but not 1. | **P4.** The log only exists above 0; an empty value is skipped by later summaries, while -inf would spoil them. *Basis: convention.* **Checks:** The note says how many numbers became empty. |  |
+| `nums.turn_into_running_total()` | An empty value stays empty and is skipped in the total. | fill_empty_numbers() first to count it as a number. | **P3.** The same as pandas cumsum(): one empty value does not empty every total after it, and its place stays visible. *Basis: convention.* |  |
 
 ## Numbers: choose, sort and fill
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
 | `nums.keep_each_number_that()` | is_above= is strictly above; empty values match only is_empty=True. | is_at_least=, is_between= (both ends included) and the other conditions. | **P5.** The same conditions as table.keep_rows_where, so one rule holds everywhere. *Basis: convention.* |  |
+| `nums.remove_each_number_that()` | is_below= is strictly below; an empty value matches no condition, so it stays. | is_at_most= for <=; is_empty=True removes the empty values. | **P5.** The same rule as table.remove_rows_where: a condition on a number says nothing about a missing number. *Basis: convention.* **Checks:** One condition at a time. |  |
+| `nums.keep_random_numbers()` | NumPy's default_rng with the seed given, picking without repeats; the numbers kept stay in their order. | with_seed= any whole number; leave it out for a new pick each time. | **P3.** default_rng is the generator NumPy recommends; keeping the order keeps a series a series. *Basis: convention.* **Checks:** Asking for more numbers than there are keeps them all, with a note. |  |
+| `nums.remove_duplicate_numbers()` | Each number once, in its first place; empty values count as one value. | sort() afterwards for the numbers in order. | **P3.** The same as pandas duplicated(keep="first"): the order of the list is kept, where np.unique sorts. *Basis: convention.* |  |
+| `nums.keep_numbers_by_position()` | Positions count from 1 and both ends are kept. | to=, step= or a list of positions. | **P5.** People count from 1 and say "2 to 4" for three numbers, as R's 2:4 does. *Basis: convention.* **Checks:** Positions outside the list stop with a message; to= past the end is cut, with a note. |  |
+| `nums.remove_numbers_by_position()` | Positions count from 1 and both ends go. | to=, step=, a list of positions or "last". | **P5.** The same positions as keep_numbers_by_position. *Basis: convention.* **Checks:** Removing every number is refused. |  |
+| `nums.replace_each_number_that()` | is_above= is strictly above; an empty value matches no condition, so it stays empty. | is_empty=True to replace the empty values; with_value=None makes numbers empty. | **P5.** The same rule as the other condition words: a condition on a number says nothing about a missing number. *Basis: convention.* **Checks:** One condition, or one old value, at a time. |  |
+| `nums.fill_empty_numbers()` | with_the="line between neighbours" fills each gap on the straight line between its neighbours, spaced by position; empty values at the start or end stay empty, with a note. | with_value=, or with_the="average", "median", "value above" or "value below". | **P3.** The same as pandas interpolate(limit_area="inside"): a value outside the filled ones would be a guess beyond the data. *Basis: convention.* **Checks:** Exactly one of with_value= and with_the=. |  |
+| `nums.sort()` | Smallest first; empty values last, also with biggest_first=True. | biggest_first=True. | **P3.** The same as pandas sort_values(na_position="last") and R sort(na.last = TRUE): the numbers come first either way. *Basis: convention.* |  |
 
 ## Numbers: summaries
 
@@ -657,14 +680,39 @@ a word that chooses a method has no entry, or when this file is out of date.
 |---|---|---|---|---|
 | `nums.find_average()` | The mean, empty values skipped. | remove_empty_numbers() first, to see how many there were. | **P3.** As R mean(na.rm = TRUE) and pandas: the sentence says how many numbers were used. *Basis: convention.* |  |
 | `nums.find_median()` | The middle value, empty values skipped (np.nanmedian); NumPy's np.median would give nan. | remove_empty_numbers() first if you want them gone for later steps too. | **P3.** Skipping empty values and saying so is what pandas and R's median(na.rm = TRUE) do. *Basis: convention.* |  |
+| `nums.find_total()` | Empty values skipped (np.nansum), with a note saying how many. | remove_empty_numbers() first if you want them gone for later steps too. | **P3.** pandas and R's sum(na.rm = TRUE) skip empty values too; simplydata also says how many. *Basis: convention.* |  |
+| `nums.find_smallest()` | Empty values skipped (np.nanmin), with a note saying how many. | remove_empty_numbers() first if you want them gone for later steps too. | **P3.** pandas and R's min(na.rm = TRUE) skip empty values too; simplydata also says how many. *Basis: convention.* |  |
+| `nums.find_biggest()` | Empty values skipped (np.nanmax), with a note saying how many. | remove_empty_numbers() first if you want them gone for later steps too. | **P3.** pandas and R's max(na.rm = TRUE) skip empty values too; simplydata also says how many. *Basis: convention.* |  |
 | `nums.find_standard_deviation()` | The sample standard deviation, dividing by n - 1, empty values skipped. | There is no other kind here. | **P1.** As table.find_standard_deviation_of: the n - 1 form of the GUM, R and pandas (NumPy's own default divides by n). **Checks:** Fewer than 2 values give an empty answer, with a note. | [JCGM 100:2008 (GUM)](https://www.bipm.org/documents/20126/2071204/JCGM_100_2008_E.pdf) |
 | `nums.find_percentile()` | Linear interpolation (R quantile(type = 7)), empty values skipped. | table.find_percentile_of(test_method=) for the other types. | **P3.** As table.find_percentile_of (Hyndman & Fan 1996). *Basis: convention.* | [Hyndman & Fan 1996](https://doi.org/10.1080/00031305.1996.10473566) |
+| `nums.count_each()` | Empty values counted as a value of their own; percents out of all numbers, rounded to 1 decimal; biggest count first, equal counts smallest number first, empty last. | remove_empty_numbers() first to leave the empty values out. | **P5.** Showing results: every number is accounted for, so the percents add up to 100 before rounding, and the order is the same every time. *Basis: starting value.* |  |
 
 ## Grids of numbers
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
 | `sdata.number_grid()` | A list is cut into rows, row after row. | rows= or columns=; a list of rows for a grid as it is. | **P3.** As NumPy's reshape (order "C"), which reads a list the way text is read; R's matrix() fills by column unless byrow = TRUE. *Basis: convention.* |  |
+| `nums.make_number_grid()` | Filled row after row (NumPy's order "C"). | rows= or columns= (or both). | **P3.** Rows are read the way text is read; it is NumPy's own order. R's matrix() fills column by column unless byrow = TRUE. *Basis: convention.* **Checks:** The numbers must fill the grid exactly. |  |
+| `grid.show_first_rows()` | The first 5 rows, with commas, none hidden. | rows= any whole number. | **P5.** Showing results: the same look as show(). *Basis: starting value.* **Checks:** rows= must be a whole number. |  |
+| `grid.show_last_rows()` | The last 5 rows, with commas, none hidden. | rows= any whole number. | **P5.** Showing results: the same look as show(). *Basis: starting value.* **Checks:** rows= must be a whole number. |  |
+| `grid.get_number_at()` | Rows and columns count from 1; "last" is the last one. | None: Python's [ ] is not used on grids. | **P5.** As nums.get_number_at: people count from 1, and so does R. *Basis: convention.* **Checks:** A row or column outside the grid stops with a message. |  |
+| `grid.get_row()` | Rows count from 1; the row comes back as new numbers (a copy). | "last" for the bottom row. | **P5.** As nums.get_number_at; a copy means a later step on the row never changes the grid. *Basis: convention.* **Checks:** A row outside the grid stops with a message. |  |
+| `grid.get_column()` | Columns count from 1 at the left; the column comes back as new numbers (a copy). | "last" for the right-hand column. | **P5.** As grid.get_row. *Basis: convention.* **Checks:** A column outside the grid stops with a message. |  |
+| `grid.get_all_numbers()` | Row by row (NumPy's order "C"). | swap_rows_and_columns() first for column by column. | **P3.** The same order as make_number_grid fills, so the two undo each other. *Basis: convention.* |  |
+| `grid.keep_rows_by_position()` | Rows count from 1 and both ends are kept; the result stays a grid. | to=, step= or a list of rows. | **P5.** As nums.keep_numbers_by_position. *Basis: convention.* **Checks:** Value conditions are refused: rows are chosen by place. |  |
+| `grid.keep_columns_by_position()` | Columns count from 1 at the left and both ends are kept. | to=, step= or a list of columns. | **P5.** As nums.keep_numbers_by_position. *Basis: convention.* **Checks:** Value conditions are refused: columns are chosen by place. |  |
+| `grid.remove_rows_by_position()` | Rows count from 1. | to=, step= or a list of rows. | **P5.** As grid.keep_rows_by_position. *Basis: convention.* **Checks:** Removing every row is refused. |  |
+| `grid.remove_columns_by_position()` | Columns count from 1 at the left. | to=, step= or a list of columns. | **P5.** As grid.keep_columns_by_position. *Basis: convention.* **Checks:** Removing every column is refused. |  |
+| `grid.replace_each_number_that()` | Numbers are changed where they are, so the grid keeps its rows and columns; an empty value matches no condition. | is_empty=True for the empty values; with_value=None makes numbers empty. | **P5.** A grid cannot lose single numbers (its rows would differ in length), so the numbers are replaced, never dropped. *Basis: convention.* **Checks:** One condition at a time; keep_each_number_that is refused on a grid, with what to use. |  |
+
+## Numbers: undo and finish
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.turn_into_table()` | One column called "value". | name= any column name. | **P5.** A plain name that says what the column holds when nothing else is known. *Basis: starting value.* **Checks:** name= must be text. |  |
+| `nums.start_chart()` | The numbers become a table with one column called "value" (a grid: columns "1", "2" ... and rows numbered from 1). | turn_into_table(name=) first, then sdata.chart(), for another column name. | **P5.** The chart words name columns, so the numbers need a column name; the same as turn_into_table(). *Basis: starting value.* |  |
+| `nums.save()` | One column called "value", without row numbers. | turn_into_table(name=), then the table's own save word, for another name; .wav with time_step= and bits=. | **P5.** A file without pandas' row labels reads back as it was with pandas read_csv or R read.csv; simplydata's own reader needs separator="," for a file of one column (a current limitation). *Basis: convention.* **Checks:** time_step= and bits= only go with a .wav file. |  |
+| `nums.as_numpy()` | A copy of the numbers as they are now. | None. | **P5.** A copy means changing the array never changes the simplydata numbers or their steps. *Basis: convention.* |  |
 
 ## References
 
