@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
 
-**2533 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**2751 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2084,15 +2084,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528156962388 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.7487357860152 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774621307008 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192874328618 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877443488805 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215585321015 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208868260256 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549623533079 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.54324634974566 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173443 | 0.512528119648074 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735965229153 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729761 | 0.542774175087915 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920192 | 0.279192868139681 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676015 | 0.242877134812998 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.30521585555841 | 0.305215969175691 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916071 | 0.502208468235662 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794599 | 0.468549619219853 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483436 | 0.543246565615491 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173443 | 0.512528062226372 | relative 1e-05 | pass |
 | own part of x2 | R | 0.7487351603869 | 0.748735775103766 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729761 | 0.542774360019842 | relative 1e-05 | pass |
@@ -3924,6 +3924,490 @@ Note: The years run 1875 to 1972 without a gap, so the slope per year equals R's
 | degrees of freedom | R | 2 | 2 | relative 1e-10 | pass |
 | p-value | R | 0.00380504077551138 | 0.00380504077551136 | relative 1e-10 | pass |
 
+### `show`
+
+**mtcars: average fuel use for 4, 6 and 8 cylinders, shown** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders | matplotlib plt.show | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 8 cylinders | matplotlib plt.show | 15.1 | 15.1 | relative 1e-12 | pass |
+| 4 cylinders | R | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 8 cylinders | R | 15.1 | 15.1 | relative 1e-12 | pass |
+
+### `draw_area`
+
+**Seatbelts: UK drivers killed in each month of the year, averaged over 1969-84** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| January | matplotlib fill_between | 120.8125 | 120.8125 | relative 1e-12 | pass |
+| December | matplotlib fill_between | 158.25 | 158.25 | relative 1e-12 | pass |
+| months | matplotlib fill_between | 12 | 12 | relative 1e-12 | pass |
+| January | R | 120.8125 | 120.8125 | relative 1e-12 | pass |
+| December | R | 158.25 | 158.25 | relative 1e-12 | pass |
+| months | R | 12 | 12 | relative 1e-12 | pass |
+
+### `draw_pie`
+
+**mtcars: the share of cars with 4, 6 and 8 cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slices | matplotlib pie | 3 | 3 | exact | pass |
+| largest share (%) | matplotlib pie | 44 | 44 | exact | pass |
+| slices | R | 3 | 3 | exact | pass |
+| largest share (%) | R | 44 | 44 | exact | pass |
+
+### `draw_polar`
+
+**Seatbelts: drivers killed by month, round the year like a clock** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | matplotlib polar axes | 192 | 192 | relative 1e-12 | pass |
+| angle of the first dot | matplotlib polar axes | 0.523598775598299 | 0.523598775598299 | relative 1e-12 | pass |
+| zero at | matplotlib polar axes | 1.5707963267949 | 1.5707963267949 | relative 1e-12 | pass |
+| direction | matplotlib polar axes | -1 | -1 | relative 1e-12 | pass |
+| dots | R | 192 | 192 | relative 1e-12 | pass |
+| angle of the first dot | R | 0.523598775598299 | 0.523598775598299 | relative 1e-12 | pass |
+| zero at | R | 1.5707963267949 | 1.5707963267949 | relative 1e-12 | pass |
+| direction | R | -1 | -1 | relative 1e-12 | pass |
+
+### `draw_contour`
+
+**mtcars: fuel use over weight and horsepower, a scattered map joined up** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bands | SciPy griddata + matplotlib contourf | 21 | 21 | relative 1e-12 | pass |
+| scale low | SciPy griddata + matplotlib contourf | 10 | 10 | relative 1e-12 | pass |
+| scale high | SciPy griddata + matplotlib contourf | 35 | 35 | relative 1e-12 | pass |
+
+Note: The bands and the lines between them both count among the shapes.
+
+### `draw_surface`
+
+**mtcars: fuel use over weight and horsepower as a 3D surface** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pieces | SciPy griddata + matplotlib plot_surface | 1362 | 1362 | relative 1e-12 | pass |
+| highest piece | SciPy griddata + matplotlib plot_surface | 33.1369568013048 | 33.1369568013048 | relative 1e-12 | pass |
+| lowest piece | SciPy griddata + matplotlib plot_surface | 10.4623295241982 | 10.4623295241982 | relative 1e-12 | pass |
+
+### `draw_dots_3d`
+
+**Fisher's iris: sepal length, sepal width and petal length in 3D** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | matplotlib 3D scatter | 150 | 150 | relative 1e-12 | pass |
+| groups | matplotlib 3D scatter | 3 | 3 | relative 1e-12 | pass |
+| z of the first dot | matplotlib 3D scatter | 1.4 | 1.4 | relative 1e-12 | pass |
+| dots | R | 150 | 150 | relative 1e-12 | pass |
+| groups | R | 3 | 3 | relative 1e-12 | pass |
+| z of the first dot | R | 1.4 | 1.4 | relative 1e-12 | pass |
+
+### `draw_band`
+
+**Lake Huron: the level each year, with a band 1 foot either side** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| lowest edge | matplotlib fill_between | 574.96 | 574.96 | relative 1e-12 | pass |
+| highest edge | matplotlib fill_between | 582.86 | 582.86 | relative 1e-12 | pass |
+| lowest edge | R | 574.96 | 574.96 | relative 1e-12 | pass |
+| highest edge | R | 582.86 | 582.86 | relative 1e-12 | pass |
+
+### `draw_map_of_empty_cells`
+
+**NHANES (mice): where the 27 empty cells of 25 people are** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty cells | pandas isna + matplotlib imshow | 27 | 27 | exact | pass |
+| rows | pandas isna + matplotlib imshow | 25 | 25 | exact | pass |
+| bmi empty | pandas isna + matplotlib imshow | 9 | 9 | exact | pass |
+| empty cells | R | 27 | 27 | exact | pass |
+| rows | R | 25 | 25 | exact | pass |
+| bmi empty | R | 9 | 9 | exact | pass |
+
+### `sticks`
+
+**Lake Huron: the level of each year as a stick** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sticks | matplotlib vlines | 98 | 98 | relative 1e-12 | pass |
+| last height | matplotlib vlines | 579.96 | 579.96 | relative 1e-12 | pass |
+| width | matplotlib vlines | 1.5 | 1.5 | relative 1e-12 | pass |
+| sticks | R | 98 | 98 | relative 1e-12 | pass |
+| last height | R | 579.96 | 579.96 | relative 1e-12 | pass |
+
+### `draw_error_bars`
+
+**Fisher's iris: sepal length of each species with its standard deviation** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa standard deviation | pandas std + matplotlib errorbar | 0.352489687213452 | 0.352489687213452 | relative 1e-12 | pass |
+| virginica standard deviation | pandas std + matplotlib errorbar | 0.635879593274432 | 0.635879593274432 | relative 1e-12 | pass |
+| setosa standard deviation | R | 0.352489687213452 | 0.352489687213451 | relative 1e-12 | pass |
+| virginica standard deviation | R | 0.635879593274432 | 0.635879593274432 | relative 1e-12 | pass |
+
+### `fit_curve`
+
+**mtcars: a curve with one bend through fuel use against weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at the lightest car | NumPy Polynomial.fit | 32.3671767556685 | 32.3671767556684 | relative 1e-09 | pass |
+| at the heaviest car | NumPy Polynomial.fit | 11.8089767010943 | 11.8089767010943 | relative 1e-09 | pass |
+| at the lightest car | R | 32.3671767556685 | 32.3671767556684 | relative 1e-09 | pass |
+| at the heaviest car | R | 11.8089767010943 | 11.8089767010943 | relative 1e-09 | pass |
+
+### `fit_distribution`
+
+**Michelson's 100 speeds of light: a normal curve fitted over the histogram** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| curve at the smallest value | SciPy norm.fit (maximum likelihood) | 0.289033106728029 | 0.289033106728029 | relative 1e-09 | pass |
+| curve at the largest value | SciPy norm.fit (maximum likelihood) | 0.495394920832253 | 0.495394920832253 | relative 1e-09 | pass |
+| curve at the smallest value | R | 0.289033106728029 | 0.28903310672792 | relative 1e-09 | pass |
+| curve at the largest value | R | 0.495394920832253 | 0.495394920832065 | relative 1e-09 | pass |
+
+Note: Maximum likelihood: the standard deviation divides by n (as R MASS::fitdistr()).
+
+### `draw_curve`
+
+**Fisher's iris: a normal curve (average 5.8, standard deviation 0.8) over the sepal lengths** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| curve at the smallest value | SciPy norm.pdf | 4.64307361830172 | 4.64307361830172 | relative 1e-09 | pass |
+| curve at the largest value | SciPy norm.pdf | 0.858882257786118 | 0.858882257786118 | relative 1e-09 | pass |
+| curve at the smallest value | R | 4.64307361830172 | 4.6430736183017 | relative 1e-09 | pass |
+| curve at the largest value | R | 0.858882257786118 | 0.85888225778612 | relative 1e-09 | pass |
+
+### `draw_density`
+
+**Fisher's iris: a density curve of petal length for each species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| curves | seaborn kdeplot(common_norm=False) | 3 | 3 | relative 1e-12 | pass |
+| peak of setosa | seaborn kdeplot(common_norm=False) | 2.38267851730682 | 2.38267851730682 | relative 1e-12 | pass |
+| peak of virginica | seaborn kdeplot(common_norm=False) | 0.63822195173954 | 0.63822195173954 | relative 1e-12 | pass |
+
+Note: Each curve has area 1 on its own; R's density() uses another bandwidth rule, so R is not asked.
+
+### `draw_count_bars`
+
+**mtcars: how many cars have 3, 4 and 5 gears** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 3 gears | seaborn countplot | 15 | 15 | exact | pass |
+| 4 gears | seaborn countplot | 12 | 12 | exact | pass |
+| 5 gears | seaborn countplot | 5 | 5 | exact | pass |
+| 3 gears | R | 15 | 15 | exact | pass |
+| 4 gears | R | 12 | 12 | exact | pass |
+| 5 gears | R | 5 | 5 | exact | pass |
+
+### `draw_side_histograms`
+
+**Fisher's iris: sepal length against width, with a histogram on each side** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| small charts | matplotlib inset_axes + hist | 2 | 2 | relative 1e-12 | pass |
+| corners of the top histogram | matplotlib inset_axes + hist | 37 | 37 | relative 1e-12 | pass |
+| height of the top histogram | matplotlib inset_axes + hist | 28 | 28 | relative 1e-12 | pass |
+
+### `draw_cumulative_share`
+
+**warpbreaks: the share of looms with 30 breaks or fewer, for each wool** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| wool A at 30 or fewer | seaborn ecdfplot | 0.666666666666667 | 0.666666666666667 | relative 1e-12 | pass |
+| wool B at 30 or fewer | seaborn ecdfplot | 0.777777777777778 | 0.777777777777778 | relative 1e-12 | pass |
+| wool A at 30 or fewer | R | 0.666666666666667 | 0.666666666666667 | relative 1e-12 | pass |
+| wool B at 30 or fewer | R | 0.777777777777778 | 0.777777777777778 | relative 1e-12 | pass |
+
+### `draw_line_with_slope`
+
+**mtcars: a line falling 5 miles per gallon for each 1000 lb, through (3, 20)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | matplotlib axline | -5 | -5 | exact | pass |
+| through x | matplotlib axline | 3 | 3 | exact | pass |
+| through y | matplotlib axline | 20 | 20 | exact | pass |
+| dots | matplotlib axline | 32 | 32 | exact | pass |
+
+### `shade_between_x`
+
+**Lake Huron: the 1930s shaded behind the yearly levels** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| band starts | matplotlib axvspan | 1930 | 1930 | exact | pass |
+| band width | matplotlib axvspan | 10 | 10 | exact | pass |
+| years drawn | matplotlib axvspan | 98 | 98 | exact | pass |
+| years drawn | R | 98 | 98 | exact | pass |
+
+### `write_names_on_dots`
+
+**mtcars: the names of the seven 6-cylinder cars next to their dots** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names at their own dot | pandas: the 6-cylinder cars | 7 | 7 | exact | pass |
+| names written | pandas: the 6-cylinder cars | 7 | 7 | exact | pass |
+| names written | R | 7 | 7 | exact | pass |
+
+Note: Where each name goes is simplydata's own search; the case checks every car is named at its dot.
+
+### `use_font`
+
+**Fisher's iris: bars with every word in DejaVu Serif** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| words in DejaVu Serif | matplotlib rc_context(font.family) | 3 | 3 | relative 1e-12 | pass |
+| setosa | matplotlib rc_context(font.family) | 5.006 | 5.006 | relative 1e-12 | pass |
+| setosa | R | 5.006 | 5.006 | relative 1e-12 | pass |
+
+### `set_range_x`
+
+**mtcars: fuel use against weight, the x-axis from 0** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x from | matplotlib set_xlim | 0 | 0 | relative 1e-12 | pass |
+| x to | matplotlib set_xlim | 5.61955 | 5.61955 | relative 1e-12 | pass |
+| x from | R | 0 | 0 | relative 1e-12 | pass |
+| x to | R | 5.61955 | 5.61955 | relative 1e-12 | pass |
+
+Note: The top end stays where matplotlib put it: 5 % of the range past the heaviest car.
+
+### `use_log_scale_x`
+
+**mtcars: fuel use against horsepower on a log scale** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| log x | matplotlib set_xscale | 1 | 1 | relative 1e-12 | pass |
+| x from | matplotlib set_xscale | 47.3752233507531 | 47.3752233507531 | relative 1e-12 | pass |
+| x to | matplotlib set_xscale | 367.702751943293 | 367.702751943293 | relative 1e-12 | pass |
+| log x | R | 1 | 1 | relative 1e-12 | pass |
+| x from | R | 47.3752233507531 | 47.375223350753 | relative 1e-12 | pass |
+| x to | R | 367.702751943293 | 367.702751943292 | relative 1e-12 | pass |
+
+Note: On a log scale matplotlib adds 5 % of the range of log10(x) at each end.
+
+### `put_ticks_x`
+
+**Fisher's iris: ticks under setosa and virginica only** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first tick | matplotlib set_xticks | 0 | 0 | exact | pass |
+| second tick | matplotlib set_xticks | 2 | 2 | exact | pass |
+| ticks | matplotlib set_xticks | 2 | 2 | exact | pass |
+| first name setosa | matplotlib set_xticks | 1 | 1 | exact | pass |
+
+### `put_ticks_y`
+
+**mtcars: fuel use bars with ticks at 0, 10, 20 and 30** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ticks | matplotlib set_yticks | 4 | 4 | relative 1e-12 | pass |
+| top tick | matplotlib set_yticks | 30 | 30 | relative 1e-12 | pass |
+| 4 cylinders | matplotlib set_yticks | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 4 cylinders | R | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+
+### `rotate_labels_y`
+
+**mtcars: the 32 car names beside sideways bars, turned 30 degrees** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| angle | matplotlib set_rotation | 30 | 30 | exact | pass |
+| names | matplotlib set_rotation | 32 | 32 | exact | pass |
+| names turned about their end | matplotlib set_rotation | 32 | 32 | exact | pass |
+| names | R | 32 | 32 | exact | pass |
+
+### `write_ticks_x_as`
+
+**birthwt: birth weights (grams) written with a comma for thousands** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names with a comma | matplotlib StrMethodFormatter | 6 | 6 | exact | pass |
+| names with decimals | matplotlib StrMethodFormatter | 0 | 0 | exact | pass |
+| names | matplotlib StrMethodFormatter | 7 | 7 | exact | pass |
+
+### `flip_x`
+
+**stackloss: stack loss against air flow, the x-axis turned round** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| left or bottom end | matplotlib invert_xaxis | 81.5 | 81.5 | relative 1e-12 | pass |
+| right or top end | matplotlib invert_xaxis | 48.5 | 48.5 | relative 1e-12 | pass |
+
+### `flip_y`
+
+**stackloss: stack loss against air flow, the y-axis turned round** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| left or bottom end | matplotlib invert_yaxis | 43.75 | 43.75 | relative 1e-12 | pass |
+| right or top end | matplotlib invert_yaxis | 5.25 | 5.25 | relative 1e-12 | pass |
+
+### `use_colour_scale`
+
+**warpbreaks: average breaks for each wool and tension in magma colours** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| magma | seaborn heatmap(cmap=) | 1 | 1 | relative 1e-12 | pass |
+| scale low | seaborn heatmap(cmap=) | 18.7777777777778 | 18.7777777777778 | relative 1e-12 | pass |
+| scale high | seaborn heatmap(cmap=) | 44.5555555555556 | 44.5555555555556 | relative 1e-12 | pass |
+| wool A, tension L | seaborn heatmap(cmap=) | 44.5555555555556 | 44.5555555555556 | relative 1e-12 | pass |
+| magma | R | 1 | 1 | relative 1e-12 | pass |
+| scale low | R | 18.7777777777778 | 18.7777777777778 | relative 1e-12 | pass |
+| scale high | R | 44.5555555555556 | 44.5555555555556 | relative 1e-12 | pass |
+| wool A, tension L | R | 44.5555555555556 | 44.5555555555556 | relative 1e-12 | pass |
+
+### `show_grid`
+
+**Fisher's iris: sepal length against width, grid lines both ways** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| lines along x | matplotlib grid(True, axis="both") | 1 | 1 | exact | pass |
+| lines along y | matplotlib grid(True, axis="both") | 1 | 1 | exact | pass |
+| dots | matplotlib grid(True, axis="both") | 150 | 150 | exact | pass |
+| dots | R | 150 | 150 | exact | pass |
+
+### `hide_grid`
+
+**Fisher's iris: sepal length against width, no grid lines** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| lines along x | matplotlib grid(False) | 0 | 0 | exact | pass |
+| lines along y | matplotlib grid(False) | 0 | 0 | exact | pass |
+| dots | matplotlib grid(False) | 150 | 150 | exact | pass |
+| dots | R | 150 | 150 | exact | pass |
+
+### `put_legend_at_top`
+
+**warpbreaks: lines of the two wools, the legend above** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| legends on the figure | matplotlib fig.legend | 1 | 1 | exact | pass |
+| place | matplotlib fig.legend | 9 | 9 | exact | pass |
+| columns | matplotlib fig.legend | 2 | 2 | exact | pass |
+| entries | matplotlib fig.legend | 2 | 2 | exact | pass |
+
+### `put_legend_on_right`
+
+**warpbreaks: lines of the two wools, the legend on the right** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| legends on the figure | matplotlib fig.legend | 1 | 1 | exact | pass |
+| place | matplotlib fig.legend | 7 | 7 | exact | pass |
+| columns | matplotlib fig.legend | 1 | 1 | exact | pass |
+| entries | matplotlib fig.legend | 2 | 2 | exact | pass |
+
+### `show_legend`
+
+**warpbreaks: lines of the two wools, the legend hidden and shown again** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| legends | seaborn lineplot legend | 1 | 1 | exact | pass |
+| entries | seaborn lineplot legend | 2 | 2 | exact | pass |
+| entries | R | 2 | 2 | exact | pass |
+
+### `label_legend`
+
+**Fisher's iris: the legend of the species named "Iris species"** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| named as asked | matplotlib Legend.set_title | 1 | 1 | exact | pass |
+| entries | matplotlib Legend.set_title | 3 | 3 | exact | pass |
+| entries | R | 3 | 3 | exact | pass |
+
+### `label_colour_bar`
+
+**mtcars: the colour bar of a fuel-use map named "Miles per gallon"** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| named as asked | matplotlib Colorbar.set_label | 1 | 1 | relative 1e-12 | pass |
+| scale low | matplotlib Colorbar.set_label | 10 | 10 | relative 1e-12 | pass |
+
+### `order_y`
+
+**Fisher's iris: sideways bars, virginica at the top** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top name virginica | seaborn barplot(order=) | 1 | 1 | relative 1e-12 | pass |
+| bar at the top | seaborn barplot(order=) | 2.974 | 2.974 | relative 1e-12 | pass |
+| top name virginica | R | 1 | 1 | relative 1e-12 | pass |
+| bar at the top | R | 2.974 | 2.974 | relative 1e-12 | pass |
+
+### `order_legend`
+
+**warpbreaks: bars of the two wools, wool B first** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first entry B | seaborn barplot(hue_order=) | 1 | 1 | relative 1e-12 | pass |
+| first bar (wool B, tension L) | seaborn barplot(hue_order=) | 28.2222222222222 | 28.2222222222222 | relative 1e-12 | pass |
+| first entry B | R | 1 | 1 | relative 1e-12 | pass |
+| first bar (wool B, tension L) | R | 28.2222222222222 | 28.2222222222222 | relative 1e-12 | pass |
+
+### `add_zoom_box`
+
+**mtcars: fuel use against weight, with the cars of 2.5 to 3.5 (1000 lb) close up** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| box from x | matplotlib inset_axes | 2.5 | 2.5 | relative 1e-12 | pass |
+| box to x | matplotlib inset_axes | 3.5 | 3.5 | relative 1e-12 | pass |
+| dots in view | matplotlib inset_axes | 13 | 13 | relative 1e-12 | pass |
+| box width (share of the chart) | matplotlib inset_axes | 0.39 | 0.39 | relative 1e-12 | pass |
+| dots in view | R | 13 | 13 | exact | pass |
+
+### `forest_plot`
+
+**warpbreaks: Tukey's differences between the three tensions, as a forest plot** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| smallest difference | statsmodels pairwise_tukeyhsd | 4.72222222222222 | 4.72222222222222 | relative 1e-09 | pass |
+| largest difference | statsmodels pairwise_tukeyhsd | 14.7222222222222 | 14.7222222222222 | relative 1e-09 | pass |
+| line of no effect at | statsmodels pairwise_tukeyhsd | 0 | 0 | relative 1e-09 | pass |
+| rows | statsmodels pairwise_tukeyhsd | 3 | 3 | relative 1e-09 | pass |
+| smallest difference | R | 4.72222222222222 | 4.72222222222222 | relative 1e-09 | pass |
+| largest difference | R | 14.7222222222222 | 14.7222222222222 | relative 1e-09 | pass |
+| rows | R | 3 | 3 | relative 1e-09 | pass |
+
+Note: The dots of the forest plot are the differences between the averages of each pair of tensions.
+
 ### `nums.show`
 
 **all 100 of Michelson's measurements shown** (real data; data: NIST Michelso)
@@ -5123,6 +5607,48 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `add_second_y` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `animate` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `fit_formula` | SciPy | pandas | chart | relative 1e-07 | pass |
+| `show` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_area` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_pie` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_polar` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_contour` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_surface` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_dots_3d` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_band` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_map_of_empty_cells` | pandas | pandas | chart | relative 1e-09 | pass |
+| `sticks` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_error_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `fit_curve` | NumPy | pandas | chart | relative 1e-08 | pass |
+| `fit_distribution` | SciPy | pandas | chart | relative 1e-09 | pass |
+| `draw_curve` | SciPy | pandas | chart | relative 1e-09 | pass |
+| `draw_density` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `draw_count_bars` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `draw_side_histograms` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `draw_cumulative_share` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `draw_line_with_slope` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `shade_between_x` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `write_names_on_dots` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `use_font` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `set_range_x` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `use_log_scale_x` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `put_ticks_x` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `put_ticks_y` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `rotate_labels_y` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `write_ticks_x_as` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `flip_x` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `flip_y` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `use_colour_scale` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `show_grid` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `hide_grid` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `put_legend_at_top` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `put_legend_on_right` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `show_legend` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `label_legend` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `label_colour_bar` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `order_y` | pandas | pandas | chart | relative 1e-09 | pass |
+| `order_legend` | pandas | pandas | chart | relative 1e-09 | pass |
+| `add_zoom_box` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `forest_plot` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `table.keep_rows_where` | pandas | pandas | table | relative 1e-09 | pass |
 | `table.keep_rows_where` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.keep_rows_where` | pandas | polars | table | relative 1e-09 | pass |
@@ -5888,6 +6414,64 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `animate` (3): one picture for each value, smallest first (month names in calendar order); keep=True keeps the values before it in each picture.
 - `fit_formula` (1): every value to find starts at 1 unless start= says otherwise.
 - `fit_formula` (2): Levenberg-Marquardt, as R nls(), with tight stopping rules; between= limits switch to SciPy's trust region method.
+- `draw_area` (1): several rows at the same x are averaged, as in draw_lines(): here the 3 cities of each month.
+- `draw_area` (2): the space under the line is filled down to 0 in the same colour, see-through (alpha 0.35), so areas of several groups show through each other.
+- `draw_pie` (1): one slice per label, the total of its values, in the order the labels first appear (without values= each slice counts the rows).
+- `draw_pie` (2): each slice is named and shows its share in whole percents.
+- `draw_pie` (3): the first slice starts at 12 o'clock and the slices go round clockwise, like a clock; matplotlib's own default starts at 3 o'clock and goes anticlockwise.
+- `draw_polar` (1): a compass: 0 at the top (north) and round clockwise, because the column is named like a direction (wind_direction, bearing, heading) or full_turn= is given; other angles start on the right and go anticlockwise, the way maths measures them.
+- `draw_polar` (2): the angles are in degrees and are turned into radians for matplotlib (full_turn=24 reads hours, full_turn=12 months).
+- `draw_polar` (3): the legend sits outside the circle, on its right.
+- `draw_contour` (1): every east goes with every north here (a full grid), so the heights are drawn as they are; scattered points are first joined onto a 100 x 100 grid with straight lines in between (SciPy griddata, method="linear").
+- `draw_contour` (2): about 10 bands, in the viridis colours (safe for colour-blind readers); use_colour_scale() chooses others.
+- `draw_contour` (3): a line along the edge of every band, so neighbouring bands stay apart.
+- `draw_surface` (1): a full grid (every east with every north) is drawn as it is; scattered points are first joined onto a 100 x 100 grid (SciPy griddata, straight lines in between).
+- `draw_dots_3d` (1): words (or a number column with 8 values or fewer) give each group its own colour, in the order the groups appear; a number column with more values gets a colour scale and a colour bar instead.
+- `draw_band` (1): one band per group, in its group's colour and in the order the groups appear, each named in the legend.
+- `draw_band` (2): light bands (alpha 0.25, transparency=0.75) with no edge line, so lines drawn on top stay clear.
+- `draw_map_of_empty_cells` (1): a cell is empty when it is missing or holds only spaces, as in the table words.
+- `draw_map_of_empty_cells` (2): one strip per column and one line per row, the first row at the top; empty cells in vermilion on light grey (Okabe-Ito, safe for colour-blind readers).
+- `draw_map_of_empty_cells` (3): under each column, how many of its cells are empty.
+- `sticks` (1): each value is a thin stick (1.5 points) from 0, with a small dot on top; thickness= sets the width.
+- `sticks` (2): a thin line marks 0, behind the sticks, so values below 0 hang down from it.
+- `draw_error_bars` (1): the standard deviation with n - 1 (pandas std), empty cells skipped; "standard error" divides it by the square root of n, "confidence interval" is the t interval of the mean.
+- `draw_error_bars` (2): on dots a short wide dash marks each average, and the bars end in caps.
+- `fit_curve` (1): a curve with one bend (degree 2) unless of_degree= says otherwise, fitted by least squares on the powers of x mapped onto -1 to 1, which keeps big x values accurate: simplydata runs statsmodels WLS on them (the engine of table.fit_curve); NumPy's Polynomial.fit, shown here, gives the same curve.
+- `fit_curve` (2): the curve is drawn only over the range of x in the data, never past it.
+- `fit_distribution` (1): the values are found by maximum likelihood, as R MASS::fitdistr(): for the normal distribution simplydata works them out directly (the average, and the standard deviation dividing by n, not n - 1), which equals stats.norm.fit. They are printed once.
+- `fit_distribution` (2): the curve runs over the x range of the histogram, at 200 points.
+- `fit_distribution` (3): over a histogram of counts the curve is scaled to the bars: density x number of values x bar width (x 100 x bar width for percents; a density histogram needs no scaling).
+- `draw_curve` (1): the curve runs over the x range of what is drawn (between= sets it), at 200 points (steps=).
+- `draw_curve` (2): over a histogram of counts the density is scaled to the bars (x number of values x bar width), and a note says so.
+- `draw_density` (1): each group's curve has an area of 1 on its own (common_norm=False), so a small group is not squashed flat; seaborn's own default shares one area between all the groups.
+- `draw_count_bars` (1): the exact colours (saturation=1), not seaborn's slightly duller ones.
+- `draw_side_histograms` (1): two thin histograms just outside the chart, along the top (x) and the right (y), sharing the chart's axes so each bar lines up with its dots.
+- `draw_side_histograms` (2): the bins follow NumPy's "auto" rule (at most 50); with colour groups each group is an outline, so they stay readable where they overlap.
+- `draw_cumulative_share` (1): the y-axis is named in words, "share at or below", not seaborn's "Proportion".
+- `draw_line_with_slope` (1): through 0, 0 unless through= or intercept= says otherwise, right across the chart: a grey dashed line, 1.5 points wide, above bars and below dots (zorder 2.5).
+- `draw_line_with_slope` (2): labelled= names the line in the legend, after any groups already there.
+- `shade_between_x` (1): a light grey band (alpha 0.2) from the bottom of the chart to the top, between the two x values.
+- `write_names_on_dots` (1): each name goes just right of its dot (2 points past the dot's edge: 5.5 points from its middle in the paper look); where it would cover another name or dot, or leave the chart, it tries left, above, below and then the corners. Here Chen (at the right edge) and Dina (next to Ben's name) go left. A name with no free place is left out, and a line says how many.
+- `write_names_on_dots` (2): each name sits on a soft background in the chart's own colour, so it stays readable over lines.
+- `use_font` (1): the font is matplotlib's font.family for every word of the chart, used while it is drawn and saved, so your other charts keep theirs.
+- `set_range_x` (1): None keeps that end where matplotlib put it; a flipped axis stays flipped.
+- `put_ticks_x` (1): a name is looked up among the names under the bars, which seaborn puts at 0, 1, 2 ..., and keeps its name; numbers are used as they are.
+- `rotate_labels_y` (1): each name turns about its right end (rotation mode "anchor"), the end next to the axis, so it stays beside its own bar; matplotlib's own default turns it about its middle.
+- `write_ticks_x_as` (1): a comma between the thousands and no decimals unless with_decimals= asks (1,000, not 1000.0).
+- `use_colour_scale` (1): the colours run from the smallest value to the biggest; between=[low, high] fixes the ends (values beyond get the end colours), log=True spreads them on a log scale and steps= cuts the scale into bands (LogNorm, BoundaryNorm). A two-sided scale such as "blue to red" with middle=0 goes equally far on both sides.
+- `show_grid` (1): lines in both directions; simplydata's normal paper look draws only the lines across the chart, from the y-axis.
+- `put_legend_at_top` (1): the chart's title becomes the legend's heading, so the two never sit on top of each other, and the group name moves to the front of the row.
+- `put_legend_at_top` (2): one row of entries (up to 6 in a row) above the chart, outside it, so it covers no data.
+- `put_legend_on_right` (1): outside the chart on the right, so it covers no data; on a figure with several panels one legend holds the entries of them all.
+- `label_legend` (1): the legend of every panel (and of a second y-axis) gets the name, and a legend moved outside by put_legend_... keeps it; label_legend("") leaves the name out.
+- `order_y` (1): the rows are put in that order with a stable sort, and seaborn draws the groups in the order they appear, the first at the top; groups left out come after the ones named.
+- `order_legend` (1): the rows are put in that order with a stable sort, so the legend, the colours and the bars side by side all follow it; groups left out come after the ones named.
+- `order_legend` (2): the first group named gets the first colour.
+- `add_zoom_box` (1): the box sits in the top right corner (where= chooses another), 0.39 of the chart wide and 0.4 high.
+- `add_zoom_box` (2): the chart's own drawing steps run again inside the box, so it shows exactly what the chart shows, without its legend and axis labels.
+- `forest_plot` (1): the first row at the top, as in a table.
+- `forest_plot` (2): a ratio (the column, or every row's name, says "ratio") gets a log scale and a dashed line at 1, no effect; other results a plain scale with the line at 0. log_scale= and line_at= choose.
+- `forest_plot` (3): the x label names the interval's level and the line.
 - `table.keep_rows_where` (1): is_above= means strictly above (>); use is_at_least= for >=. Rows with an empty cell in "marks" are left out, as in pandas and Polars.
 - `table.find_average_of` (1): one row for each group, the groups sorted (English, Maths, Science), with rows whose group cell is empty as a group of their own, last; empty cells in "marks" are skipped, as pandas and Polars do (NumPy's mean would give nan).
 - `table.show_first_rows` (1): the rows are numbered from 1, the way people count; pandas numbers them from 0. Only what is shown changes: as_pandas() still gives the table with pandas' own row labels.
