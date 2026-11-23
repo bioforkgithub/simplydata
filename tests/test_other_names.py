@@ -77,7 +77,7 @@ def test_distribution_pointers_name_the_distribution_words():
     ("tail", "show_last_rows"), ("iloc", "keep_rows_by_position"), ("filter", "keep_rows_where"), ("dropna", "remove_rows_with_empty_cells_in"),
     ("fillna", "fill_empty_cells_in"), ("sort_values", "sort_by"), ("mean", "find_average_of"), ("plot", "start_chart"),
     ("curve_fit", "fit_formula"), ("polyfit", "fit_curve"), ("linregress", "fit_line"), ("interpolate", "values_at"),
-    ("griddata", "make_map_of"), ("fitdistr", "fit_distribution_to"), ("to_csv", "save"), ("value_counts", "count_each"),
+    ("griddata", "make_map_of"), ("fitdistr", "fit_distribution_to"), ("to_csv", "save"), ("addWorksheet", "save"), ("ExcelWriter", "save"), ("value_counts", "count_each"),
     ("slice", "keep_rows_by_position"), ("take", "keep_rows_by_position"), ("gather_every", "keep_rows_by_position"),
     ("drop_index", "remove_rows_by_position"), ("at", "get_cell_at"), ("iat", "get_cell_at"), ("item", "get_cell_at"),
     ("select_dtypes", "keep_columns"), ("reverse", "reverse_rows"), ("flip", "reverse_rows"),

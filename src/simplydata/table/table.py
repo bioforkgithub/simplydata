@@ -58,6 +58,20 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     sdata.table("https://example.org/data.csv") a file on the web
     fast=True                              use the fast engine (Polars), for big data
 
+    sheet="all" reads every sheet of an Excel file into one table, with a "sheet" column naming the
+    sheet each row came from. simplydata words then work sheet by sheet:
+    everything = sdata.table("results.xlsx", sheet="all")
+    everything.count_rows(for_each_group_in="sheet")                how many rows came from each sheet
+    everything.find_average_of("marks", for_each_group_in="sheet")  a summary per sheet
+    everything.keep_rows_where("sheet", is_equal_to="2026")         just one sheet's rows
+    (keep_rows_where changes everything; everything.undo() brings the other sheets back.)
+    sheet="all" stacks the sheets only when they have the same columns. Sheets that hold different
+    data are read by name, each on its own: simplydata says which columns differ and prints a line
+    to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
+    To write such a workbook, save each table with in_sheet= (in_sheet= saves, sheet= reads):
+    marks_2025.save("results.xlsx", in_sheet="2025")
+    marks_2026.save("results.xlsx", in_sheet="2026")
+
     separator= is the safe way to read a CSV or text file: give it when you know it, especially for
     a file with one column. Without it simplydata guesses (only a comma, semicolon, tab or bar, never
     a letter or a digit) and prints its guess:

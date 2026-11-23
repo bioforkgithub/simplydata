@@ -2554,6 +2554,15 @@ LESSONS = [
             "nice table.",
             "sdata.table reads the same files as sdata.chart: .xlsx, .csv, .tsv, .parquet and .json. "
             'For one sheet of an Excel file: sdata.table("results.xlsx", sheet="2026").',
+            'Every sheet at once: everything = sdata.table("results.xlsx", sheet="all") gives one table with a '
+            '"sheet" column naming the sheet each row came from. Then everything.count_rows(for_each_group_in="sheet") '
+            'counts the rows of each sheet, everything.find_average_of("marks", for_each_group_in="sheet") gives a '
+            'summary per sheet, and everything.keep_rows_where("sheet", is_equal_to="2026") keeps the rows of one sheet (everything.undo() brings the others back). '
+            'sheet="all" works only when the sheets have the same columns; sheets with different data are read by '
+            'name, one at a time, and simplydata prints a line to copy for each.',
+            'To write such a file, save each table as a sheet: marks_2025.save("results.xlsx", in_sheet="2025"), then '
+            'marks_2026.save("results.xlsx", in_sheet="2026") keeps the first sheet and adds the second. sheet= reads '
+            'a sheet; in_sheet= saves one.',
             "The row numbers on the left start at 1, the way people count: the last row of a table of 54 "
             "rows is row 54. Lesson 10 uses these numbers to choose rows by their place.",
             'A folder works too: sdata.table("data/") reads every table file in it. A web address '
@@ -2629,7 +2638,9 @@ LESSONS = [
                                                                   'the shorter name "temp".'),
                 ("print(table)", "Look at what is left: 6 rows and 5 columns."),
                 ('table.save("lesson10_summer.xlsx")', "Save the table as an Excel file. A name "
-                                                       "ending in .csv saves a CSV file."),
+                                                       "ending in .csv saves a CSV file. in_sheet=\"summer\" "
+                                                       "would save it as one sheet and keep the file's other "
+                                                       "sheets."),
             ]),
             ("A condition can also be written out, with and, or, not and brackets. And keep_biggest_rows "
              "keeps the top rows of each group.", [
