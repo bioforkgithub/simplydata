@@ -1,7 +1,7 @@
 """Planning an experiment and survey answers (phase S3d-1): the design words (R blockrand and agricolae), stratified
 random rows (pandas), patterns of empty cells (pandas), answers on a scale (pandas and matplotlib) and the survey
-words (R survey). Practice tables: "marks", "shop", "course_feedback" (made up) and "sampled_schools" (the R survey
-package's apistrat, real).
+words (R survey). Practice tables: "marks", "shop", "course_feedback" (made up) and "sampled_schools" (made up after the R survey
+package's apistrat).
 """
 
 from . import Entry

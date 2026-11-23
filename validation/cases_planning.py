@@ -58,7 +58,7 @@ def _datasets(Dataset):
 
 def _cases(Case):
     needed, chance = "sdata.find_how_many_needed", "sdata.find_chance_of_finding"
-    first = "\n                 r = {call}.as_pandas().iloc[0]"
+    first = "\n                 r = {call}.get_row(1)"  # the result's first row, as a dict of column: value
     return [
         # ---- the two words themselves (formulas as before S3b-2)
         Case(needed, "two averages, a medium difference (d = 0.5), 80 % power", CHECKS, "real data",
@@ -218,14 +218,15 @@ def _cases(Case):
              published={"clusters per group": (13, 0, "Stata [PSS-2] power twomeans, cluster, example 1"),
                         "values in whole clusters": (260, 0, "Stata [PSS-2] power twomeans, cluster, example 1")},
              r="""
-                 e <- epiR::epi.sscompc(treat = 1.1, control = 0, sigma = 3.67, n = NA, power = 0.8, r = 1,
-                                        design = 1 + (20 - 1) * 0.025, sided.test = 2, nfractional = TRUE,
-                                        conf.level = 0.95)
-                 list(`values per group (before rounding)` = e$n.treat)
-             """, r_packages=("epiR",), r_tolerance=0.01,
-             note="epiR multiplies by the same design effect but starts from the normal (z) formula, which needs a "
-                  "little less than the t-test (257.7 against 259.2 values per group); the check allows 1 %. This "
-                  "design effect is simplydata's own arithmetic, pending the owner's approval."),
+                 n <- stats::power.t.test(delta = 1.1, sd = 3.67, power = 0.8, sig.level = 0.05)$n
+                 list(`values per group (before rounding)` = n * (1 + (20 - 1) * 0.025))
+             """, r_tolerance=1e-9,
+             note="The same design (R power.t.test for independent values, times the design effect 1 + (m - 1) ICC "
+                  "of Donner & Klar 2000) worked out in R, so the two must agree to 1e-9; the published Stata answer "
+                  "is the independent check. (R epiR::epi.sscompc(design =) multiplies by the same design effect but "
+                  "starts from the normal (z) formula: 257.7 against 259.2 values per group, a different method, so "
+                  "it is no longer used as the reference.) This design effect is simplydata's own arithmetic, "
+                  "pending the owner's approval."),
         Case(needed, "in_clusters_of=: the design effect of clusters of 30 with ICC 0.05", BLAND, "published",
              ours=first.format(call="sdata.find_how_many_needed(effect_size=0.5, in_clusters_of=30, "
                                     "alike_within_clusters=0.05)") + """
@@ -251,26 +252,41 @@ def _cases(Case):
              r="""
                  set.seed(1)
                  p <- replicate(10000, stats::wilcox.test(stats::rnorm(64), stats::rnorm(64, 0.5))$p.value)
-                 list(power = mean(p < 0.05))
-             """, r_tolerance=0.03,
-             note="R draws its own random numbers, so the check allows the Monte Carlo error of both (about 0.8 "
-                  "percentage points each); SciPy with the same seed gives the same number."),
+                 m <- mean(p < 0.05)
+                 list(power = m, `power MCSE` = sqrt(2 * m * (1 - m) / 10000))
+             """, r_tolerance="4 mcse",
+             note="R draws its own random numbers, so the difference may be 4 Monte Carlo standard errors of the "
+                  "difference of two simulated shares of 10000 studies each (sqrt(2 p (1 - p) / 10000), about 0.6 "
+                  "percentage points); SciPy with the same seed gives the same number exactly."),
         # ---- U16: other distributions and your own function
         Case(chance, "drawing_from=: Welch's t-test on two lognormal groups of 20, by simulation", CHECKS,
              "real data",
              ours="""
                  a = sdata.distribution("lognormal", log_average=0, log_standard_deviation=1)
                  b = sdata.distribution("lognormal", log_average=0.5, log_standard_deviation=1)
-                 r = sdata.find_chance_of_finding(drawing_from=[a, b], values_per_group=20).as_pandas().iloc[0]
+                 r = sdata.find_chance_of_finding(drawing_from=[a, b], values_per_group=20).get_row(1)
                  {"power": r["power"]}
              """,
+             parent="""
+                 from scipy import stats
+                 rng = np.random.default_rng(1)
+                 a, b = stats.lognorm(s=1, scale=np.exp(0)), stats.lognorm(s=1, scale=np.exp(0.5))
+                 def test(x, y, axis=-1):
+                     return stats.ttest_ind(x, y, equal_var=False, axis=axis).pvalue
+                 r = stats.power(test, (lambda size: a.rvs(size=size, random_state=rng),
+                                        lambda size: b.rvs(size=size, random_state=rng)), (20, 20),
+                                 significance=0.05, n_resamples=10000, batch=1000)
+                 {"power": float(r.power)}
+             """, parent_label="SciPy stats.power (the same seed)", parent_tolerance=1e-12,
              r="""
                  set.seed(1)
                  p <- replicate(10000, stats::t.test(stats::rlnorm(20, 0, 1), stats::rlnorm(20, 0.5, 1))$p.value)
-                 list(power = mean(p < 0.05))
-             """, r_tolerance=0.06,
-             note="R draws its own random numbers; at a power near 23 % the Monte Carlo error of each is about 0.8 "
-                  "percentage points, so the check allows 6 % of the power."),
+                 m <- mean(p < 0.05)
+                 list(power = m, `power MCSE` = sqrt(2 * m * (1 - m) / 10000))
+             """, r_tolerance="4 mcse",
+             note="SciPy with the same seed gives the same number exactly. R draws its own random numbers, so the "
+                  "difference may be 4 Monte Carlo standard errors of the difference of two simulated shares of "
+                  "10000 studies each (at a power near 23 %, about 0.6 percentage points)."),
         Case(chance, "by_running=: logistic regression simulated with statsmodels, against R pwrss", CHECKS,
              "real data",
              ours="""
@@ -280,17 +296,27 @@ def _cases(Case):
                      x = rng.standard_normal(150)
                      y = rng.random(150) < 1 / (1 + np.exp(-np.log(1.5) * x))
                      return sm.Logit(y.astype(float), sm.add_constant(x)).fit(disp=0).pvalues[1]
-                 r = sdata.find_chance_of_finding(by_running=one_study, tries=2000).as_pandas().iloc[0]
-                 {"power": r["power"]}
+                 r = sdata.find_chance_of_finding(by_running=one_study, tries=2000).get_row(1)
+                 {"power": r["power"], "power MCSE": np.sqrt(r["power"] * (1 - r["power"]) / 2000)}
              """,
+             parent="""
+                 import statsmodels.api as sm
+                 def one_study(seed):
+                     rng = np.random.default_rng(seed)
+                     x = rng.standard_normal(150)
+                     y = rng.random(150) < 1 / (1 + np.exp(-np.log(1.5) * x))
+                     return sm.Logit(y.astype(float), sm.add_constant(x)).fit(disp=0).pvalues[1]
+                 {"power": float(np.mean([one_study(seed) < 0.05 for seed in range(1, 2001)]))}
+             """, parent_label="the same 2000 studies (seeds 1 to 2000), counted directly", parent_tolerance=0,
              r="""
                  r <- pwrss::power.z.logistic(base.prob = 0.5, odds.ratio = 1.5, n = 150, alpha = 0.05,
                                               distribution = "normal", method = "demidenko(vc)", verbose = 0)
                  list(power = r$power)
-             """, r_packages=("pwrss",), r_tolerance=0.06,
-             note="2000 simulated studies (Wald test of statsmodels Logit) against the formula of R pwrss: the "
-                  "Monte Carlo error is about 1 percentage point, and the formula is an approximation, so the check "
-                  "allows 6 % of the power."),
+             """, r_packages=("pwrss",), r_tolerance="4 mcse",
+             note="The same 2000 studies (seeds 1 to 2000) counted directly give the same share exactly. Against the "
+                  "formula of R pwrss (Demidenko's, an approximation with no Monte Carlo error) the difference may "
+                  "be 4 Monte Carlo standard errors of simplydata's share of 2000 studies (sqrt(p (1 - p) / 2000), "
+                  "about 1.1 percentage points)."),
     ]
 
 

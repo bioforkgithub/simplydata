@@ -54,7 +54,9 @@ def test_every_underneath_entry_has_a_case_on_real_data():
     from simplydata._underneath import UNDERNEATH
 
     real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES if c.kind != "made-up"}
-    assert set(UNDERNEATH) <= real, set(UNDERNEATH) - real
+    # a word with nothing underneath (help, undo ...) computes nothing, so there is nothing to check on real data
+    computed = {key for key, entry in UNDERNEATH.items() if entry.compare != "none"}
+    assert computed <= real, computed - real
 
 
 def test_nist_files_are_read_with_their_certified_values():
@@ -74,7 +76,7 @@ def test_case_gives_the_published_and_the_parent_answer(case):
     assert rows
     failed = [r for r in rows if not r["passed"] and not r["skipped"]]
     assert not failed, [(r["name"], r["reference"], r["ours"], r["theirs"], r["tolerance"], r["note"]) for r in failed]
-    skipped = [r for r in rows if r["skipped"]]
+    skipped = [r for r in rows if r["skipped"] and not r.get("local")]  # a data file that is not shipped: not R
     if skipped and os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
         pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but {skipped[0]['skipped']}")
 
@@ -135,3 +137,101 @@ def test_check_writes_no_tracked_report_and_require_r_counts_skips(tmp_path, mon
     assert report.main(["--check", "--require-r"]) == 1 and calls["require_r"] is True
     monkeypatch.setenv("SIMPLYDATA_REQUIRE_R", "1")
     assert report.main(["--check", "--out", str(tmp_path / "x.md")]) == 1
+
+
+def test_a_monte_carlo_tolerance_uses_four_standard_errors():
+    """r_tolerance="4 mcse": the difference may be 4 Monte Carlo standard errors, read from "<name> MCSE"."""
+    case = study.Case("nums.find_median", "a Monte Carlo check", "made-up", "made-up",
+                      ours="""
+                          {"share": 0.50}
+                      """,
+                      parent="""
+                          {"share": 0.52, "share MCSE": 0.004}
+                      """, parent_label="another generator", parent_tolerance=report.MCSE)
+    rows = report.check_case(case)
+    assert len(rows) == 1 and not rows[0]["passed"] and "4 Monte Carlo SE" in rows[0]["tolerance"]
+    near = study.Case("nums.find_median", "a Monte Carlo check", "made-up", "made-up",
+                      ours="""
+                          {"share": 0.50, "share MCSE": 0.006}
+                      """,
+                      parent="""
+                          {"share": 0.52}
+                      """, parent_label="an exact limit", parent_tolerance=report.MCSE)
+    assert [r["passed"] for r in report.check_case(near)] == [True]
+    missing = study.Case("nums.find_median", "a Monte Carlo check", "made-up", "made-up",
+                         ours="""
+                             {"share": 0.50}
+                         """,
+                         parent="""
+                             {"share": 0.50}
+                         """, parent_label="no standard error", parent_tolerance=report.MCSE)
+    assert [r["passed"] for r in report.check_case(missing)] == [False]
+
+
+def test_tables_from_gpl_and_lgpl_r_packages_are_not_stored():
+    """DATA_LICENSES.md: copies of data from GPL or LGPL R packages are read from the installed package instead."""
+    r_data = study._r_data()
+    for key in r_data.TABLES:
+        assert not (VALIDATION / "data" / f"{key}.csv").exists(), key
+    assert not (VALIDATION / "data" / "bioequivalence_reference.csv").exists()
+    assert not (VALIDATION / "data" / "jobs_ii.csv").exists()
+    for name, key in study.R_TABLES.items():
+        d = study.DATASETS[name]
+        assert d.file == "" and "read from the installed R package" in d.licence, name
+        assert name in study.R_DATA, name
+    assert set(study.R_TABLES.values()) == set(r_data.TABLES) - set(r_data.PRACTICE), "every table is read by a dataset"
+    for d in study.DATASETS.values():
+        assert d.file.removesuffix(".csv") not in r_data.TABLES, d.name
+
+
+def test_tables_read_from_r_have_their_columns_and_rows(needs_r):
+    sizes = {"sleep": (20, 3), "mtcars": (32, 12), "verbagg": (7584, 8), "nmes1988": (4406, 7), "lung": (228, 5),
+             "mgus2": (1384, 5), "apistrat": (200, 10), "lalonde": (614, 9), "galton_peas": (7, 3)}
+    r_data = study._r_data()
+    for key, shape in sizes.items():
+        if not r_data.ready(key):
+            if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
+                pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but the R package for {key} is missing")
+            continue
+        table = r_data.read(key)
+        assert table.shape == shape, key
+    mtcars = r_data.read("mtcars")
+    assert list(mtcars.columns[:3]) == ["model", "mpg", "cyl"] and mtcars["cyl"].dtype.kind == "i"
+    assert mtcars.loc[0, "model"] == "Mazda RX4" and mtcars.loc[0, "mpg"] == 21.0
+
+
+def test_readme_counts_of_the_study_are_true():
+    """validation/README.md says how many cases, datasets and words the study has: counted, not written by hand."""
+    import re
+
+    from simplydata import learn
+    from simplydata._underneath import UNDERNEATH
+
+    text = " ".join((VALIDATION / "README.md").read_text(encoding="utf-8").split())
+    kinds = {k: sum(1 for c in study.CASES if c.kind == k) for k in ("published", "real data", "made-up")}
+    datasets = {c.dataset for c in study.CASES} - {"made-up"}
+    found = re.search(r"The study now has (\d+) cases on (\d+) datasets \((\d+) with a published or certified answer, "
+                      r"(\d+) compared with the parent package and R, (\d+) made-up edge cases\)", text)
+    assert found, "the sentence with the study's counts is missing from validation/README.md"
+    assert tuple(map(int, found.groups())) == (len(study.CASES), len(datasets), kinds["published"],
+                                               kinds["real data"], kinds["made-up"])
+    no_data = sum(1 for c in study.CASES if c.dataset == "checks against R (no published example)")
+    assert f"{no_data} of the {kinds['real data']} are simulation and formula checks against R that use no data at "            f"all; the other {kinds['real data'] - no_data} run on real data" in text
+    words = {c.word for c in study.CASES}
+    options = {(c.word, c.option) for c in study.CASES}
+    assert f"They cover {len(words)} words, or {len(options)} words and options" in text
+    assert f"{kinds['made-up']} of the {len(study.CASES)} cases, each labelled" in text
+    all_words = [k for _, keys in learn.GROUPS for k in keys if learn._kind(k) != "option"]
+    with_entry = {k.split(" ")[0] for k in UNDERNEATH}
+    assert f"For {len(with_entry)} of simplydata's {len(all_words)} words ({len(UNDERNEATH)} entries" in text
+    tables = [getattr(e, "data", None) for e in UNDERNEATH.values()]
+    from simplydata.data import EXAMPLES
+
+    made_up = sum(1 for t in tables if t and (t == "made-up" or "MADE-UP" in EXAMPLES.get(t, ("REAL",))[0]
+                                              or "made-up" in EXAMPLES.get(t, ("REAL",))[0].lower()))
+    real = sum(1 for t in tables if t in EXAMPLES) - sum(1 for t in tables if t in EXAMPLES and (
+        "MADE-UP" in EXAMPLES[t][0] or "made-up" in EXAMPLES[t][0].lower()))
+    none = sum(1 for t in tables if not t)
+    assert real == 0, "every practice table is made up (DATA_LICENSES.md)"
+    assert f"{made_up} of the {len(UNDERNEATH)} run on made-up practice tables (all practice tables are made up; " \
+           f"{none} need no table)" in text

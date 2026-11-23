@@ -1,11 +1,12 @@
 """Small tables to practise with: sdata.get_example("marks").
 
-Every number in these tables is invented (they are not real people, places or countries), except in "bcg" and
-"passive_smoking" (the published results of real studies, for combining studies), "ability_tests" (the
-published test scores of Holzinger & Swineford 1939, for hidden factors), "sea_levels" (the yearly highest
-sea levels at Port Pirie, published by Coles 2001), "sampled_schools" (a published survey sample of California
-schools, from the R survey package), and "job_training", "job_search" and "drug_levels" (real studies, for cause
-and effect and bioequivalence), each with its source in its description.
+Every number in these tables is invented: they are not real people, places, studies or countries. Seven of them
+copy the columns of a real study so that the lessons can ask a real question ("bcg" and "passive_smoking" for
+combining studies, "ability_tests" for hidden factors, "sea_levels" for extremes, "sampled_schools" for surveys,
+"job_training", "job_search" and "drug_levels" for cause and effect and bioequivalence), but their values were drawn
+with a fixed seed by docs/make_practice_tables.py and docs/make_job_search.py, with effects built in that the lessons
+recover. simplydata was tested on the real data of those studies, which it does not ship (DATA_LICENSES.md at the top
+of the repository).
 """
 
 from __future__ import annotations
@@ -241,10 +242,12 @@ EXAMPLES = {
     ),
     # S3b-1 (combining studies): real, published study results (the only tables that are not made up)
     "bcg": (
-        "REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, "
-        "JAMA 271:698-702: the counts published in the paper, facts; the same numbers as R metadat's dat.bcg).",
+        "MADE-UP DATA: 13 made-up trials of a vaccine against tuberculosis, one row per trial, with the columns "
+        "of the BCG trials of Colditz et al. (1994). Built in: the vaccine lowers the risk more far from the "
+        "equator (log risk ratio 0.6 - 0.035 x latitude, plus a between-trial spread). simplydata was tested on "
+        "the real BCG trials (R metadat's dat.bcg); see DATA_LICENSES.md.",
         {
-            "trial": "the first author and the year of the trial",
+            "trial": "the trial's name and year",
             "year": "the year the trial was published",
             "tb_vaccinated": "vaccinated people who got tuberculosis",
             "vaccinated": "people vaccinated",
@@ -279,20 +282,20 @@ EXAMPLES = {
         },
     ),
     "sea_levels": (
-        "REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, "
-        "An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly "
-        "maxima, facts; the same numbers as R ismev's portpirie).",
+        "MADE-UP DATA: the highest sea level of each year at a made-up coastal town, 1923 to 1987, like the Port "
+        "Pirie series of Coles (2001). Built in: a GEV curve with location 3.87 m, scale 0.20 m and shape -0.05. "
+        "simplydata was tested on the real Port Pirie data (R ismev's portpirie); see DATA_LICENSES.md.",
         {
             "year": "the year, 1923 to 1987",
             "sea_level": "the highest sea level reached that year, in metres",
         },
     ),
     "passive_smoking": (
-        "REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study "
-        "(Hackshaw, Law & Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; "
-        "the same numbers as R metadat's dat.hackshaw1998).",
+        "MADE-UP DATA: 37 made-up studies of lung cancer in non-smoking women whose husbands smoked, one row per "
+        "study, with the columns of Hackshaw, Law & Wald (1997). Built in: an odds ratio of about 1.25. "
+        "simplydata was tested on the real studies (R metadat's dat.hackshaw1998); see DATA_LICENSES.md.",
         {
-            "study": "the first author and the year of the study",
+            "study": "the study's number and year",
             "year": "the year the study was published",
             "country": "where the study was done",
             "design": "cohort or case-control",
@@ -304,16 +307,16 @@ EXAMPLES = {
     ),
     # S3c-2 (hidden factors): real, published test scores
     "ability_tests": (
-        "REAL DATA: nine mental ability tests taken by 301 pupils of two schools near Chicago in 1937 (Holzinger & "
-        "Swineford 1939, Supplementary Educational Monographs 48: the scores as R lavaan ships them, "
-        "HolzingerSwineford1939). The classic table for hidden factors: x1 to x3 are visual, x4 to x6 verbal, "
-        "x7 to x9 speeded tests.",
+        "MADE-UP DATA: nine ability test scores of 301 made-up pupils of two schools, with the columns of "
+        "Holzinger & Swineford (1939). Built in: three hidden factors, x1 to x3 visual, x4 to x6 verbal and x7 to "
+        "x9 speed, which are correlated, and x9 also leans on the visual factor. simplydata was tested on the "
+        "real scores (R lavaan's HolzingerSwineford1939); see DATA_LICENSES.md.",
         {
             "id": "the pupil's number",
-            "sex": "1 or 2 (the source does not say which is which)",
+            "sex": "1 or 2",
             "ageyr": "age, the years",
             "agemo": "age, the months on top of the years",
-            "school": "Pasteur or Grant-White",
+            "school": "Hillside or Riverside",
             "grade": "7 or 8 (one empty cell)",
             "x1": "visual perception",
             "x2": "cubes",
@@ -339,12 +342,13 @@ EXAMPLES = {
     ),
     # S3d-1 (planning and surveys): a real stratified survey sample, and made-up answers on a scale
     "sampled_schools": (
-        "REAL DATA: 200 California schools sampled at random within school type (100 elementary, 50 middle, "
-        "50 high), with their weights, for survey-weighted answers (table.use_survey_design). The Academic "
-        "Performance Index of 2000 (California Department of Education), as the R survey package ships it "
-        "(apistrat; Lumley 2010, Complex Surveys).",
+        "MADE-UP DATA: 200 made-up schools sampled at random within school type (100 elementary of 4400, 50 "
+        "middle of 1000, 50 high of 750), with their weights, for survey-weighted answers "
+        "(table.use_survey_design), with the columns of the California sample of R survey (apistrat). Built in: "
+        "the 2000 score falls by 3 points for each percent of pupils with free meals. simplydata was tested on "
+        "the real sample; see DATA_LICENSES.md.",
         {
-            "school": "the school's name (shortened)",
+            "school": "the school's name",
             "district": "the school district",
             "school_type": "elementary, middle or high: the strata of the sample",
             "score_2000": "the school's Academic Performance Index in 2000 (200 to 1000)",
@@ -354,8 +358,8 @@ EXAMPLES = {
             "pupils": "pupils enrolled",
             "met_target": "yes or no: did the school meet its growth target?",
             "award": "yes or no: did the school get an award?",
-            "weight": "the sampling weight: how many schools of California each sampled school stands for",
-            "schools_of_type": "how many schools of this type California has (the population size of the stratum)",
+            "weight": "the sampling weight: how many schools of its type each sampled school stands for",
+            "schools_of_type": "how many schools of this type there are (the population size of the stratum)",
         },
     ),
     "course_feedback": (
@@ -374,11 +378,11 @@ EXAMPLES = {
     ),
     # S3d-2 (epidemiology and cause and effect): two real studies, a real crossover, and made-up death counts
     "job_training": (
-        "REAL DATA: 614 men in the National Supported Work job-training study (185 trained) and in a comparison "
-        "group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia & Wahba (1999) and the "
-        "R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a "
-        "plain comparison mixes the training with who took it. The randomised experiment found an effect of "
-        "about $1,794 on 1978 earnings.",
+        "MADE-UP DATA: 614 made-up men, 185 who took a job training and 429 from a comparison survey, with the "
+        "columns of the study of LaLonde (1986). The trained men differ from the others before the training "
+        "(younger, less schooling, more often black and unmarried, lower earnings), so a plain comparison mixes "
+        "the training with who took it. Built in: the training adds 1800 dollars to the 1978 earnings. simplydata "
+        "was tested on the real data (R MatchIt's lalonde); see DATA_LICENSES.md.",
         {
             "treat": "1 = took part in the job training, 0 = from the comparison survey",
             "age": "age in years",
@@ -392,9 +396,12 @@ EXAMPLES = {
         },
     ),
     "job_search": (
-        "REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price & "
-        "Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the "
-        "workshop lower depression through the workers' confidence in searching for a job?",
+        "MADE-UP DATA: 899 made-up unemployed workers in a randomised job-search workshop, with the columns of the "
+        "JOBS II study (Vinokur, Price & Schul 1995) as the R package mediation ships it (jobs), but every value "
+        "drawn with a fixed seed (docs/make_job_search.py). For mediation: did the workshop lower depression through "
+        "the workers' confidence in searching for a job? Built in: the workshop raises confidence by 0.30 points, "
+        "each point of confidence lowers depression by 0.30, and the workshop lowers it by 0.04 directly, so the "
+        "indirect effect is about -0.09. The real JOBS II records are in the R package mediation (data(jobs)).",
         {
             "treat": "1 = was offered the workshop, 0 = a booklet only (randomised)",
             "econ_hard": "economic hardship before the study (1 to 5)",
@@ -410,10 +417,11 @@ EXAMPLES = {
         },
     ),
     "drug_levels": (
-        "REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference "
-        "formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured "
-        "(Sauter et al. 1992; reference dataset A of Schütz, Labes & Fuglsang 2014, whose published ratio is 95.09 % "
-        "with 90 % CI 90.76 to 99.62 %).",
+        "MADE-UP DATA: a made-up 2 x 2 crossover bioequivalence study of 18 subjects: each had a test and a "
+        "reference formulation, one in each of two periods, and the area under the blood-level curve was "
+        "measured. Built in: the test gives 96 % of the reference's AUC, with a within-subject CV of 12 %. "
+        "simplydata was tested on the reference datasets of Schütz, Labes & Fuglsang (2014), which it does not "
+        "ship; see DATA_LICENSES.md.",
         {
             "subject": "the subject, 1 to 18",
             "period": "1 or 2",
@@ -452,13 +460,12 @@ def get_example(name: str | None = None, from_r_package: str | None = None):
     """A small table to practise with. sdata.get_example("marks")
 
     sdata.get_example() with no name lists every table and its columns.
-    The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic,
-    island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (real published sea levels), and,
-    for combining studies, bcg and passive_smoking (real published studies), for hidden factors,
-    ability_tests (real published test scores), for q-values, many_tests (made up), for planning and
-    surveys, sampled_schools (a real survey sample) and course_feedback (made-up answers on a scale), and, for
-    cause and effect, job_training and job_search (real studies), drug_levels (a real crossover) and
-    deaths_by_age (made up).
+    The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow,
+    trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (yearly highest sea
+    levels), and, for combining studies, bcg and passive_smoking, for hidden factors, ability_tests, for q-values,
+    many_tests, for planning and surveys, sampled_schools and course_feedback (answers on a scale), and, for cause
+    and effect, job_training, job_search, drug_levels and deaths_by_age. Seven of them copy the columns of a real
+    study; simplydata was tested on the real data (DATA_LICENSES.md).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     It gives back a simplydata table, ready for every table word: sdata.get_example("marks").count_rows().
     (Up to simplydata 0.2.x it gave back a pandas table; sdata.table(sdata.get_example("marks")) still works.)

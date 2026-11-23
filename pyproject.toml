@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools."
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "DATA_LICENSES.md"]
 requires-python = ">=3.11"
 authors = [{ name = "bioforkgithub" }]
 keywords = ["data science", "statistics", "plotting", "visualisation", "data cleaning", "education", "pandas", "polars", "numpy", "matplotlib", "seaborn"]
@@ -82,6 +82,8 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # MB with Stan); in R install it as a ready-made build: install.packages("rstanarm", type = "binary") on Windows and
 # macOS, or from Posit's public package manager on Linux. Without it only the bayesian=True model words stop, with
 # the install line.
+# data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
+# instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
 test = ["pytest>=7", "polars>=1.29", "pyarrow>=14", "statsmodels>=0.14"]
 
 [project.urls]
@@ -94,7 +96,8 @@ Manual = "https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simp
 path = "src/simplydata/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/simplydata", "tests", "validation", "README.md", "LICENSE", "CHANGELOG.md", "CITATION.cff", "pyproject.toml"]
+include = ["src/simplydata", "tests", "validation", "docs/make_job_search.py", "docs/make_practice_tables.py", "README.md", "LICENSE", "DATA_LICENSES.md", "CHANGELOG.md",
+           "CITATION.cff", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/simplydata"]

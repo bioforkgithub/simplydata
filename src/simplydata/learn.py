@@ -5186,14 +5186,15 @@ LESSONS = [
             "more: subgroups, and the funnel plot for small-study effects",
         ],
         parts=[
-            ("Picture first. 13 trials tested the BCG vaccine against tuberculosis (real data, Colditz et al. 1994). "
+            ("Picture first. 13 made-up trials test a vaccine against tuberculosis (modelled on the BCG trials of "
+             "Colditz et al. 1994). "
              "combine_studies puts their results together, and forest_plot draws each trial and the combined effect.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("bcg"))', "One row per trial: the vaccinated and unvaccinated "
                                                                  "people, and how many of each got tuberculosis."),
                 ("result = " + COMBINE_CALL,
                  "events= and out_of= each name two columns: the first group (vaccinated), then the group it is "
-                 "compared with. Read the first lines: the combined risk ratio is 0.49 (95 % CI 0.33 to 0.73): on "
+                 "compared with. Read the first lines: the combined risk ratio is 0.47 (95 % CI 0.36 to 0.62): on "
                  "average the vaccine about halves the risk."),
                 ("chart = result.start_chart()", "A chart of the result table."),
                 ('chart.forest_plot(x="estimate", y="study", size="weight %")',
@@ -5206,9 +5207,9 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("bcg"))', "The same trials."),
                 (COMBINE_CALL,
-                 "The prediction interval, 0.14 to 1.76, is where the true risk ratio of a new setting like these "
+                 "The prediction interval, 0.19 to 1.19, is where the true risk ratio of a new setting like these "
                  "would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average "
-                 "by a factor of about 1.75 up or down. I-squared, 92 %, is the share of the spread that is beyond "
+                 "by a factor of about 1.50 up or down. I-squared, 89 %, is the share of the spread that is beyond "
                  "chance, not how big it is. Say in words why the prediction interval is wider than the confidence "
                  "interval."),
             ]),
@@ -5220,7 +5221,7 @@ LESSONS = [
                 ('result = table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                  'out_of=["vaccinated", "unvaccinated"], for_each_group_in="allocation")',
                  'One change: for_each_group_in="allocation" (how people were put into the groups). The test of the '
-                 "difference comes first (p = 0.39): the data cannot tell the three kinds of trial apart."),
+                 "difference comes first (p = 0.52): the data cannot tell the three kinds of trial apart."),
                 ("chart = result.start_chart()", "A chart of the result."),
                 ('chart.draw_funnel_plot(x="estimate", y="standard error")',
                  "Each dot is a trial, small trials at the bottom. Dots missing from one lower corner would suggest "
@@ -5239,8 +5240,8 @@ LESSONS = [
             "standard_deviations= and counts=, events= with time=, correlations=.",
         ],
         task=[
-            "37 studies of passive smoking and lung cancer give an odds ratio with its 95 % interval (real data, "
-            'Hackshaw et al. 1997). Fill in the blank: table = sdata.table(sdata.get_example("passive_smoking")), '
+            "37 studies of passive smoking and lung cancer give an odds ratio with its 95 % interval (made up, "
+            'modelled on Hackshaw et al. 1997). Fill in the blank: table = sdata.table(sdata.get_example("passive_smoking")), '
             'then table.combine_studies(names="study", estimates=____). What is the combined odds ratio?',
             'In the BCG trials, change only show=: combine odds ratios (show="odds ratios") instead of risk ratios. '
             "Is the answer close?",
@@ -5254,7 +5255,7 @@ LESSONS = [
                 table = sdata.table(sdata.get_example("passive_smoking"))
                 table.combine_studies(names="study", estimates="odds ratio")"""),
              'estimates="odds ratio": simplydata finds the columns "odds ratio 95 % CI low" and "... high" next to it '
-             "and combines the odds ratios on the log scale: about 1.24 (95 % CI 1.13 to 1.38)."),
+             "and combines the odds ratios on the log scale: about 1.33 (95 % CI 1.23 to 1.43)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("bcg"))
@@ -5273,7 +5274,7 @@ LESSONS = [
                 table = sdata.table(sdata.get_example("passive_smoking"))
                 table.combine_studies(names="study", estimates="odds ratio")"""),
              "The prediction interval: in a new setting like these studies, the true odds ratio would lie between "
-             "about 0.90 and 1.71."),
+             "about 1.22 and 1.45."),
         ],
         words=["table.combine_studies", "forest_plot", "draw_funnel_plot"],
     ),
@@ -5522,16 +5523,16 @@ LESSONS = [
                  "With only each station's 6 nearest neighbours Moran's I is 0.445: the weights change the answer, "
                  "so say which you used."),
             ]),
-            ("Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, "
-             "Coles 2001). How high is the sea once in 100 years?", [
+            ("Storms. The highest sea level of each year at a coastal town, 1923 to 1987 (made up, modelled on Port "
+             "Pirie in Coles 2001). How high is the sea once in 100 years?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("sea_levels"))', "One row per year: its highest sea level in m."),
                 ("chart = table.start_chart()", "Picture first."),
                 ('chart.draw_dots(x="year", y="sea_level")', "Each year's highest level: no year stands far apart."),
                 ('chart.save("lesson33_sea_levels.png")', "Save the picture."),
                 ('table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")',
-                 "A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its "
-                 "95 % interval runs from 4.49 to 5.26, longer above than below. sorted_by=\"year\" lets the word "
+                 "A level of 4.53 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its "
+                 "95 % interval runs from 4.41 to 4.84, longer above than below. sorted_by=\"year\" lets the word "
                  "check that each row is one year."),
             ]),
         ],
@@ -5550,7 +5551,7 @@ LESSONS = [
         ],
         task=[
             "Fill in the blank: table.find_average_direction_of(\"current_direction\", full_turn=____) for degrees.",
-            "Change only once_in=: find the 50-year sea level at Port Pirie.",
+            "Change only once_in=: find the 50-year sea level.",
             "Say in words what a 100-year level means. Is it certain to happen in the next 100 years?",
             "Try to remember without looking back: which word tells whether nearby places have alike values?",
         ],
@@ -5564,7 +5565,7 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("sea_levels"))
                 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")"""),
-             "About 4.58 m once in 50 years (95 % CI 4.42 to 4.98)."),
+             "About 4.45 m once in 50 years (95 % CI 4.34 to 4.69)."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("sea_levels"))
@@ -5614,7 +5615,8 @@ LESSONS = [
             ("A survey: 200 schools were sampled within each school type. To try a smaller sample by hand, pick the "
              "same number from every type: a stratified random sample.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ('table = sdata.table(sdata.get_example("sampled_schools"))', "200 real California schools."),
+                ('table = sdata.table(sdata.get_example("sampled_schools"))',
+                 "200 made-up schools (modelled on a California survey sample)."),
                 ('table.keep_random_rows(5, for_each_group_in="school_type", with_seed=1)',
                  "5 schools of each type, 15 in all, picked at random within each type."),
                 ('table.count_rows(for_each_group_in="school_type")', "5 elementary, 5 high and 5 middle schools."),
@@ -5680,16 +5682,17 @@ LESSONS = [
              "training lower earnings? First the plain comparison.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("job_training"))',
-                 "Real data (LaLonde 1986): treat = 1 for the trained men, their age, schooling, race, marriage, "
+                 "Made-up data, modelled on LaLonde (1986): treat = 1 for the trained men, their age, schooling, "
+                 "race, marriage, "
                  "degree and earnings in 1974, 1975 and 1978."),
                 ('table.compare_averages_of("re78", for_each_group_in="treat")',
-                 "The trained men earned 635 dollars less. But they differ before the training too: younger, more "
+                 "The trained men earned 2733 dollars less. But they differ before the training too: younger, more "
                  "often black and unmarried, and with much lower earnings in 1974."),
                 ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", '
                  '"race", "married", "nodegree", "re74", "re75"])',
-                 "Read the balance table first: before weighting, race (black) differs by 1.67 standard deviations; "
-                 "after, by 0.13. Some columns are still above 0.1, and a note says so. The effect for everyone: "
-                 "225 dollars more (95 % CI -1493 to 1942)."),
+                 "Read the balance table first: before weighting, race (black) differs by 0.74 standard deviations; "
+                 "after, by 0.11. Some columns are still above 0.1, and a note says so. The effect for everyone: "
+                 "1347 dollars more (95 % CI -937 to 3631)."),
             ]),
             ("The same question, with matching: each trained man gets the man from the survey with the nearest "
              "propensity score. Matching gives the effect among the trained men, so effect_for= names them.", [
@@ -5698,21 +5701,22 @@ LESSONS = [
                 ('table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", '
                  '"race", "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1, '
                  "match_within=0.2)",
-                 "Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 "
-                 "trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 "
-                 "dollars more (95 % CI -50.4 to 3592). The randomised experiment found 1794."),
+                 "Pairs further apart than 0.2 standard deviations of the logit of the score are left out (51 "
+                 "trained men had no match). Race is now balanced; the effect among the matched trained men: 1010 "
+                 "dollars more (95 % CI 10.7 to 2008). The table was made with an effect of 1800 dollars."),
             ]),
-            ("Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by "
-             "raising the workers' confidence in searching for a job?", [
+            ("Mediation. In a made-up version of the JOBS II study a job-search workshop was randomised. Did it "
+             "lower depression by raising the workers' confidence in searching for a job?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("job_search"))',
-                 "Real data (Vinokur et al. 1995): treat = 1 for the workshop, job_seek = confidence in searching, "
-                 "depress2 = depression six months later."),
+                 "Made-up data with the columns of the JOBS II study (Vinokur et al. 1995): treat = 1 for the "
+                 "workshop, job_seek = confidence in searching, depress2 = depression six months later."),
                 ('table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ_hard", "sex", '
                  '"age"])',
-                 "The indirect effect (through job_seek) is -0.016 and the total effect -0.055, both with intervals "
-                 "that include 0. The printout says what these rest on: nothing unmeasured that affects both "
-                 "job_seek and depression."),
+                 "The indirect effect (through job_seek) is -0.094 (95 % interval -0.131 to -0.060) and the total "
+                 "effect -0.116: the table was made with an indirect effect of about -0.09, and the analysis finds "
+                 "it. The printout says what these rest on: nothing unmeasured that affects both job_seek and "
+                 "depression."),
             ]),
         ],
         notes=[
@@ -5743,14 +5747,14 @@ LESSONS = [
                 table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
                                                  "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1)"""),
              "effect_for=1: the group of the trained men (treat = 1). Without match_within= every trained man is "
-             "matched; race stays unbalanced (1.03), and a note says so."),
+             "matched; race stays unbalanced (0.52), and a note says so."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("job_training"))
                 table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for=["age", "educ", "race",
                                                  "married", "nodegree", "re74", "re75"], effect_for=1)"""),
-             "1214 dollars more among the trained men (95 % CI -350 to 2778): the same question as matching, a "
-             "little smaller, and now race is balanced."),
+             "1321 dollars more among the trained men (95 % CI 555 to 2088): the same question as matching, a "
+             "little larger, and now race is balanced."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("job_training"))

@@ -53,6 +53,9 @@ ENTRIES = [
         tolerance=1e-9,
         choices=("precision weights, as R lm(weights =): statsmodels WLS; for the other outcomes GLM(var_weights=). "
                  "Not freq_weights, which would change the degrees of freedom.",),
+        python_note="simplydata's standard errors of a least-squares fit are R's method, summary.lm()'s chol2inv() of "
+                    "the QR factor, done with NumPy's QR and LAPACK's dpotri (approved by Manish 2026-11-22); "
+                    "statsmodels' WLS above gives the same numbers here, to 1e-9.",
         also="Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of "
              "freedom); negative weights are refused. " + SENTENCE,
     ),
@@ -380,7 +383,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("zero-inflated negative binomial regression with a logistic zero part and the same columns in "
                  "both parts, pscl::zeroinfl(dist = \"negbin\")'s defaults.",),
         python_note="statsmodels ZeroInflatedNegativeBinomialP gives the same estimates but other standard errors.",
@@ -408,7 +411,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("a hurdle model: a logistic part for zero or not (pscl's binomial zero part, the textbook form) "
                  "and a Poisson part cut off at 1 for the counts above 0.",),
         python_note="statsmodels HurdleCountModel has no logistic zero part (its default zero part is Poisson).",
@@ -437,7 +440,7 @@ ENTRIES = [
         },
         r_inputs=MEADOW,
         r_packages=("pscl",),
-        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-5,
+        compare="result", row="grazed (yes)", fields=("log ratio", "standard error"), tolerance=1e-9,
         choices=("the zero part gets its own columns, pscl's y ~ x | z; without zero_part_using= both parts use "
                  "the columns of using=.",),
         python_note="statsmodels ZeroInflatedPoisson takes exog_infl= for the zero part too, with other standard "

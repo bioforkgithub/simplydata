@@ -16,6 +16,7 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata import SimplydataError
 from conftest import example_frame
 
@@ -32,7 +33,7 @@ def _r(code, packages=(), **values):
 
 
 def _schools():
-    t = sdata.table(sdata.get_example("sampled_schools"))
+    t = sdata.table(r_table("sampled_schools"))
     t.use_survey_design(**DESIGN)
     return t
 
@@ -87,7 +88,7 @@ def test_percent_without_groups_and_the_refusals():
 
 # ---------------------------------------------------------------- X06: patterns of empty cells (no R)
 def test_patterns_match_isna_value_counts():
-    df = pd.read_csv(DATA / "nhanes.csv")
+    df = r_table("nhanes.csv")
     found = sdata.table(df).count_empty_cells_in(show="patterns").as_pandas()
     assert found["rows with this pattern"].tolist() == [13, 3, 1, 1, 7]
     assert found["empty cells"].tolist() == [0, 1, 1, 2, 3]
@@ -255,7 +256,7 @@ API_R = ('d <- survey::svydesign(ids = ~1, strata = ~stype, weights = ~pw, fpc =
 
 
 def _api():
-    df = pd.read_csv(DATA / "apistrat.csv")
+    df = r_table("apistrat.csv")
     return dict(stype=df["stype"].to_numpy(dtype=object), pw=df["pw"].to_numpy(dtype=float),
                 fpc=df["fpc"].to_numpy(dtype=float), api00=df["api00"].to_numpy(dtype=float),
                 enroll=df["enroll"].to_numpy(dtype=float), sch=(df["sch.wide"] == "Yes").to_numpy(dtype=float),
@@ -315,7 +316,7 @@ def test_survey_counts_models_and_tests_match_r(needs_r):
 
 
 def test_a_cluster_design_matches_lumleys_numbers(needs_r):
-    df = pd.read_csv(DATA / "apiclus1.csv")
+    df = r_table("apiclus1.csv")
     t = sdata.table(df)
     t.use_survey_design(weights="pw", clusters="dnum", population_sizes="fpc")
     mean = t.find_average_of("api00").as_pandas().iloc[0]
@@ -346,7 +347,7 @@ def test_other_statistics_words_refuse_under_a_survey_design(needs_r, capsys):
 
 
 def test_survey_design_refuses_empty_design_cells_and_bad_weights(needs_r):
-    df = example_frame("sampled_schools")
+    df = r_table("sampled_schools")
     bad = df.copy()
     bad.loc[3, "weight"] = np.nan
     with pytest.raises(SimplydataError, match="empty cell"):
@@ -393,7 +394,7 @@ def test_sorting_or_reversing_a_survey_table_keeps_each_weight_with_its_row(need
 
 
 def test_survey_model_with_a_column_named_like_an_internal_name(needs_r):
-    df = example_frame("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
+    df = r_table("sampled_schools").rename(columns={"free_meals": "y", "english_learners": "g"})
     t = sdata.table(df)
     t.use_survey_design(**DESIGN)
     fit = t.explain("score_2000", using=["g", "y"]).as_pandas().set_index("term")

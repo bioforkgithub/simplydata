@@ -51,6 +51,13 @@ def _drop_quiet(note: str) -> str:
     return "" if any(q in note for q in _QUIET_NOTES) else note
 
 
+# drc's default stopping rule (relTol = 1e-7) stops 1e-6 to 1.4e-5 short of the optimum on the ryegrass data
+# (simplydata_tests FINDINGS A7); the same fit, run until it has converged. Only the stopping rule changes. At 1e-15
+# optim (BFGS) stops on its own: 1e-16 and 1e-20 give the same numbers, 3e-8 (b) to 7e-7 (c) from SciPy curve_fit
+# run to 1e-15, where the residual sum of squares agrees to 1e-12.
+DRC_CONTROL = "drc::drmc(relTol = 1e-15, maxIt = 10000)"  # maxIt: room for the tighter rule on other data
+
+
 def dose_response(dose, response, kind, percents, trials=None, groups=None):
     """R drc::drm(response ~ dose, fct = LL.4() ...) and drc::ED(m, percents, interval = "delta").
 
@@ -72,7 +79,7 @@ def dose_response(dose, response, kind, percents, trials=None, groups=None):
         curve = ", curveid = g"
     code = ("d <- data.frame(x = x, y = y" + (", n = n" if trials is not None else "")
             + (", g = factor(g, levels = unique(g))" if groups is not None else "") + "); "
-            f"m <- drc::drm({left} ~ x{curve}, data = d, fct = drc::{fct}(){extra}); "
+            f"m <- drc::drm({left} ~ x{curve}, data = d, fct = drc::{fct}(){extra}, control = {DRC_CONTROL}); "
             "s <- summary(m)$coefficients; "
             "e <- drc::ED(m, p, interval = 'delta', display = FALSE); "
             "ne <- drc::noEffect(m); ci <- stats::confint(m); "
@@ -105,7 +112,7 @@ def dose_response_curve(dose, response, kind, at, trials=None):
         values["n"] = np.asarray(trials, dtype=float)
         left, extra = "y / n", ", weights = n, type = 'binomial'"
     code = ("d <- data.frame(x = x, y = y" + (", n = n" if trials is not None else "") + "); "
-            f"m <- drc::drm({left} ~ x, data = d, fct = drc::{fct}(){extra}); "
+            f"m <- drc::drm({left} ~ x, data = d, fct = drc::{fct}(){extra}, control = {DRC_CONTROL}); "
             "e <- drc::ED(m, 50, interval = 'delta', display = FALSE); "
             "list(fitted = unname(stats::predict(m, newdata = data.frame(x = at))), ed50 = unname(e[1, 1]), "
             "ed50_low = unname(e[1, 3]), ed50_high = unname(e[1, 4]))")

@@ -764,9 +764,9 @@ BASIS["table.add_z_score_column"] = _b(
 
 # ---- Summaries
 BASIS["table.find_average_of"] = _b(
-    "Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. interval= "
-    "gives the t interval, as R t.test().",
-    "sorted_by= to sort; interval= for the interval; weights= for a weighted average.",
+    "One row for each group, the groups sorted (an empty group cell is a group of its own, last); empty cells are "
+    "skipped, as pandas and Polars do. interval= gives the t interval, as R t.test().",
+    "interval= for the interval; weights= for a weighted average; every= for dates by week, month or year.",
     "Skipping empty cells and saying how many were skipped is what pandas, Polars and R's mean(na.rm = TRUE) do; "
     "NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R t.test().",
     ("student1908",), "P3", "A note gives how many empty cells were skipped; one value gives no interval.",
@@ -1383,7 +1383,10 @@ BASIS["dist.find_chance_that_value"] = _b(
 BASIS["table.explain"] = _b(
     "A linear model by least squares (as R lm()), with t-based 95 % intervals, R squared and the F test. Group "
     "columns are compared with their first level in sorted order. The outcome family is never switched by "
-    "itself.",
+    "itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's "
+    "summary.lm() takes them, with chol2inv() (R's own method, done here with NumPy's QR and LAPACK's dpotri, the "
+    "routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on "
+    "nearly collinear columns (NIST Longley).",
     "outcome= (yes or no, counts, positive numbers, ordered groups, shares ...), grouped_by=, effects=, "
     "robust_errors=, table_of_tests=, interval_by=, p_value_by= and the other options below.",
     "simplydata follows R's lm() so that every number matches what reviewers can check. It never chooses a model "
@@ -2875,7 +2878,9 @@ BASIS['table.compare_balanced_groups_of test_method="matching"'] = _b(
     "weighting); rows left without a match are counted and named in a note.", "convention")
 BASIS['table.compare_risks show="attributable fractions"'] = _b(
     "The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = "
-    "\"cohort.count\"), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the "
+    "\"cohort.count\"), with the intervals epiR gives for one table (among the exposed, from the score interval of "
+    "the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with "
+    "fewer events, the "
     "preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).",
     "compare_risks() without show= (the risk difference, the risk and odds ratios, the number needed to treat).",
     "These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the "
@@ -3174,6 +3179,122 @@ BASIS["table.check_model_of test_method=\"bayesian\""] = _b(
     "The same convergence warnings as explain(test_method=\"bayesian\").")
 
 
+
+# ---- Phase U1: the starting, table and number words that got an underneath entry (data handling, not methods)
+BASIS["table.show_first_rows"] = _b(
+    "Rows numbered from 1, the way people count; only the display changes.",
+    "as_pandas() gives the table with pandas' own row labels (from 0).",
+    "Showing data, not a statistical method: numbering from 1 matches the row numbers the other position words "
+    "use (keep_rows_by_position, remove_rows_by_position).", (), "P5", "", "convention")
+BASIS["table.describe_columns"] = _b(
+    "Number columns get smallest, biggest and average; text columns the number of different values; empty cells "
+    "(also blank text) are counted and left out; numbers are shown rounded to 2 decimals.",
+    "find_summary_of() for more measures and full precision.",
+    "A first look at the data, not a statistical method; the rounding is only for reading.", (), "P5", "",
+    "starting value")
+BASIS["table.sort_by"] = _b(
+    "A stable sort (rows that tie keep their order), empty cells last in both directions.",
+    "biggest_first=True; several columns for ties.",
+    "Data preparation, not a statistical method: a stable sort makes the result the same every time, and empty "
+    "cells last keeps them out of the way, as R order() does by default.", (), "P3", "", "convention")
+BASIS["table.keep_rows_by_position"] = _b(
+    "Positions counted from 1, both ends kept.",
+    "step= for every n-th row, a list for chosen rows, to=\"last\".",
+    "Data preparation: counting from 1 with both ends kept is how people (and R) say \"rows 10 to 20\".", (),
+    "P5", "", "convention")
+BASIS["table.fill_empty_cells_in"] = _b(
+    "Fill with the value asked for: the average or median of the filled cells, the value above or below, or a "
+    "line or curve between neighbours.",
+    "with_value=, with_the=, sorted_by=, for_each_group_in=.",
+    "simplydata never fills on its own: the user chooses how, and the sentence says how many cells were filled. "
+    "Filling with one value makes the spread look smaller; multiple imputation (empty_cells=\"multiple "
+    "imputation\" on the analysis words) keeps that uncertainty.", (), "P5", "", "convention")
+BASIS["table.turn_into_numbers"] = _b(
+    "A comma between groups of three digits is a thousands mark, any other single comma a decimal comma; cells "
+    "that are not numbers become empty and are reported.",
+    "sdata.table(..., decimal_mark=\",\", thousands_mark=\".\") when reading a file.",
+    "Data preparation: the rule reads both English and European writing of numbers, and every cell that could not "
+    "be read is reported, so nothing is lost silently.", (), "P4", "Cells that do not read as numbers are counted "
+    "and up to 3 are shown.", "starting value")
+BASIS["table.add_group_column"] = _b(
+    "A value exactly on a cut goes into the higher group (a mark of 60 with cut_at=[40, 60, 80] is in the third "
+    "group).",
+    "rules= for groups by conditions.",
+    "Data preparation: \"60 and above\" is how grade bands are usually written; pandas cut() and R cut() put the "
+    "value in the lower group unless told right=FALSE.", (), "P5", "", "starting value")
+BASIS["table.join_with"] = _b(
+    "keep=\"matching rows\" (an inner join); a column in both tables gets \"_other\" in the other table's copy.",
+    "keep=\"all rows from this table\" or \"all rows from both\".",
+    "Data preparation: the sentence says how many rows found a match and warns when a key is repeated in the "
+    "other table, so rows are not doubled unnoticed.", (), "P4",
+    "Keys of different kinds (text and numbers) are refused; repeated keys in the other table get a note.",
+    "convention")
+BASIS["table.save"] = _b(
+    "The file holds only the columns, without row labels.",
+    "The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json).",
+    "Data handling: row labels are pandas' own and not part of the data.", (), "P5", "", "convention")
+BASIS["table.add_missing_dates"] = _b(
+    "Each group gets its own run of dates from its first to its last date; the table comes back sorted by the "
+    "groups and the dates; rows with an empty group cell are a group of their own.",
+    "between= to add dates before and after; every= the step.",
+    "Data preparation: the new rows have empty cells, never made-up values, and the sentence says how many were "
+    "added.", (), "P5", "Repeated dates and dates off the step are refused.", "convention")
+BASIS["table.add_rolling_column"] = _b(
+    "A window of this row and the rows just before it, in the order of sorted_by=, within each group; a window "
+    "that is not full, or has an empty cell, gives an empty cell.",
+    "window=, show=, centre=True, window=\"7 days\".",
+    "As pandas rolling() and R zoo::rollapply(align = \"right\"): a trailing window uses only what is known at "
+    "each row.", (), "P3", "", "convention")
+BASIS["nums.find_average"] = _b(
+    "The mean, empty values skipped.",
+    "remove_empty_numbers() first, to see how many there were.",
+    "As R mean(na.rm = TRUE) and pandas: the sentence says how many numbers were used.", (), "P3", "",
+    "convention")
+BASIS["nums.keep_each_number_that"] = _b(
+    "is_above= is strictly above; empty values match only is_empty=True.",
+    "is_at_least=, is_between= (both ends included) and the other conditions.",
+    "The same conditions as table.keep_rows_where, so one rule holds everywhere.", (), "P5", "", "convention")
+BASIS["dist.find_percentile"] = _b(
+    "The value with that percent below it; for counts, the smallest count with at least that share at or below "
+    "it.",
+    "find_cut_off() and find_middle_range() for the other questions.",
+    "As R's q functions (qnorm, qbinom ...): the answer is written with the same call in R.", (), "P3", "",
+    "convention")
+BASIS["sdata.table"] = _b(
+    "The separator of a text file is guessed from the file.",
+    "separator=, decimal_mark=, thousands_mark=, empty_values=, skip_rows=, encoding=.",
+    "Reading data: files from other countries use ; or tabs; every guess can be set by hand.", (), "P5", "",
+    "starting value")
+BASIS["sdata.get_example"] = _b(
+    "Date columns are read as dates.",
+    "sdata.get_example() lists the tables.",
+    "Practice data: dates read as dates let the date words work at once.", (), "P5", "", "convention")
+BASIS["sdata.numbers"] = _b(
+    "With to=, the end is included; the count of steps allows a little room for rounding.",
+    "step=, how_many= (evenly spaced, as np.linspace).",
+    "Making numbers: \"1 to 10\" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end "
+    "out and can overshoot with a decimal step.", (), "P5", "", "convention")
+BASIS["sdata.number_grid"] = _b(
+    "A list is cut into rows, row after row.",
+    "rows= or columns=; a list of rows for a grid as it is.",
+    "As NumPy's reshape (order \"C\"), which reads a list the way text is read; R's matrix() fills by column "
+    "unless byrow = TRUE.", (), "P3", "", "convention")
+BASIS["sdata.distribution"] = _b(
+    "Parameters with plain names (average=, standard_deviation=, tries=, chance=), turned into SciPy's.",
+    "R's names (mean=, sd=, size=, prob=) work too; any SciPy distribution by its SciPy name.",
+    "The parameters are R's, so the answers match R's d/p/q/r functions, which each sentence names.", (), "P3", "",
+    "convention")
+BASIS["sdata.make_random_numbers"] = _b(
+    "NumPy's random generator (default_rng) with the seed given; whole numbers include both ends.",
+    "with_seed= for the same numbers every time.",
+    "NumPy recommends its Generator over the old global seed; \"between 1 and 6\" includes 6, like a dice.", (),
+    "P3", "", "convention")
+BASIS["sdata.make_run_of_dates"] = _b(
+    "Month, quarter and year steps are counted from the first date, staying on its day or on the month's last "
+    "day when the month is shorter.",
+    "every=, to= or how_many=.",
+    "As pandas DateOffset and Polars \"1mo\" counted from the start; R's seq(by = \"month\") runs over into the "
+    "next month instead.", (), "P5", "", "convention")
 # ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
 BASIS["table.check_model_of show=\"numbers\""] = _b(
     "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "

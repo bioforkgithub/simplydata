@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 
 import simplydata as sdata
+from conftest import r_table
 from simplydata._errors import SimplydataError
 from conftest import example_frame
 
@@ -18,7 +19,7 @@ CALL = dict(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], out_of=[
 
 @pytest.fixture
 def bcg():
-    return sdata.table(sdata.get_example("bcg"))
+    return sdata.table(r_table("bcg"))
 
 
 def _row(result, kind):
@@ -93,7 +94,7 @@ def test_meta_regression(bcg, needs_r, capsys):
 
 
 def test_estimates_with_their_intervals(needs_r, capsys):
-    table = sdata.table(sdata.get_example("passive_smoking"))
+    table = sdata.table(r_table("passive_smoking"))
     row = _row(table.combine_studies(names="study", estimates="odds ratio", test_method="DL", interval_by="normal"),
                "combined")
     # Hackshaw, Law & Wald (1997): excess risk 24 % (95 % CI 13 % to 36 %)
@@ -182,13 +183,13 @@ def test_meta_regression_with_two_columns(bcg, needs_r):
 def test_polars_tables_work_too(needs_r):
     import polars as pl
 
-    frame = sdata.table(sdata.get_example("bcg"), fast=True)
+    frame = pl.from_pandas(r_table("bcg"))
     row = _row(sdata.table(frame).combine_studies(**CALL), "combined")
     assert row["estimate"] == pytest.approx(np.exp(-0.7145323), rel=1e-6)
 
 
 def test_two_studies_have_no_prediction_interval(needs_r, capsys):
-    frame = example_frame("bcg").head(2)
+    frame = r_table("bcg").head(2)
     sdata.table(frame).combine_studies(**CALL)
     out = capsys.readouterr().out
     assert "no prediction interval (it needs 3)" in out and "honest, not an error" in out
@@ -225,7 +226,7 @@ def test_wrong_calls_are_explained(bcg, options, words):
 
 def test_show_does_not_go_with_estimates():
     with pytest.raises(SimplydataError, match="Leave out show="):
-        sdata.table(sdata.get_example("passive_smoking")).combine_studies(names="study", estimates="odds ratio",
+        sdata.table(r_table("passive_smoking")).combine_studies(names="study", estimates="odds ratio",
                                                                           show="odds ratios")
 
 
@@ -237,7 +238,7 @@ def test_more_events_than_people_is_refused():
 
 def test_one_study_is_refused():
     with pytest.raises(SimplydataError, match="at least 2 studies"):
-        sdata.table(example_frame("bcg").head(1)).combine_studies(**CALL)
+        sdata.table(r_table("bcg").head(1)).combine_studies(**CALL)
 
 
 def test_spellings_of_methods_and_shows():
@@ -289,7 +290,7 @@ def test_funnel_plot(bcg, needs_r, capsys):
 
 def test_funnel_plot_needs_a_combined_result():
     with pytest.raises(SimplydataError, match="draws the result of table.combine_studies"):
-        sdata.chart(sdata.get_example("bcg")).draw_funnel_plot(x="latitude", y="year")
+        sdata.chart(r_table("bcg")).draw_funnel_plot(x="latitude", y="year")
 
 
 def test_other_names_point_to_the_new_words():
@@ -297,9 +298,9 @@ def test_other_names_point_to_the_new_words():
     from simplydata.table import Table
 
     with pytest.raises(MissingWordError, match="combine_studies"):
-        Table(sdata.get_example("bcg")).hksj
+        Table(r_table("bcg")).hksj
     with pytest.raises(MissingWordError, match="draw_funnel_plot"):
-        sdata.chart(sdata.get_example("bcg")).funnel_plot
+        sdata.chart(r_table("bcg")).funnel_plot
 
 
 def test_group_heading_is_join_and_reshape():

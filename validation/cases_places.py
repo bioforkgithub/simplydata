@@ -71,8 +71,8 @@ def _datasets(Dataset):
                 "https://doi.org/10.32614/RJ-2018-009"),
         Dataset("Port Pirie (ismev)", "", "the highest sea level of each year at Port Pirie, South Australia, "
                 "1923-1987 (metres)",
-                f"{COLES}, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); the same numbers are "
-                "simplydata's practice table sea_levels.",
+                f"{COLES}, Springer, section 3.4.1. Shipped with the R package ismev (portpirie); simplydata's "
+                "practice table sea_levels is made up after it.",
                 "GPL (>= 2) (ismev); read from the installed package, so it needs R.",
                 "https://doi.org/10.1007/978-1-4471-3675-0"),
         Dataset("Coles rain (ismev)", "", "17,531 daily rainfall totals at one site in south-west England, 1914-1962 (mm)",
@@ -242,17 +242,49 @@ def _cases(Case):
         Case("table.find_return_levels_of", "Port Pirie: the profile-likelihood interval of the 100-year level",
              "Port Pirie (ismev)", "real data",
              ours="""
-                 r = sdata.table(data).find_return_levels_of("sea_level", once_in=[100], sorted_by="year").as_pandas()
-                 {"100-year profile 95 % CI low": r["95 % CI low"][0], "100-year profile 95 % CI high": r["95 % CI high"][0]}
+                 r = sdata.table(data).find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
+                 {"100-year profile 95 % CI low": r.get_cell_at(row=1, column="95 % CI low"),
+                  "100-year profile 95 % CI high": r.get_cell_at(row=1, column="95 % CI high")}
              """,
              r="""
                  f <- extRemes::fevd(sea_level, type = "GEV", method = "MLE")
+                 rl <- as.numeric(extRemes::return.level(f, return.period = 100, do.ci = TRUE)); w <- rl[3] - rl[1]
                  p <- extRemes::ci.fevd(f, type = "return.level", return.period = 100, method = "proflik",
-                                        xrange = c(4.2, 6.5), nint = 1000)
+                                        xrange = c(rl[1], rl[3] + 2 * w), nint = 200)
                  list(`100-year profile 95 % CI low` = p[1], `100-year profile 95 % CI high` = p[3])
-             """, r_packages=("extRemes",), r_tolerance=2e-3,
-             note="extRemes finds the profile interval on a grid of levels, so its ends move in the third decimal with "
-                  "the grid; the check is against a fine grid (1000 points over 4.2 to 6.5), to 0.2 %."),
+             """, r_packages=("extRemes",), r_tolerance=1e-9,
+             note="The same grid simplydata asks extRemes for (200 levels from the lower normal end to two widths "
+                  "above the upper one), so the ends agree to 1e-9. How close a 200-point grid comes to the exact "
+                  "profile ends is the next case."),
+        Case("table.find_return_levels_of",
+             "Port Pirie: the profile-likelihood interval of the 100-year level, against the exact profile",
+             "Port Pirie (ismev)", "real data",
+             ours="""
+                 r = sdata.table(data).find_return_levels_of("sea_level", once_in=[100], sorted_by="year")
+                 {"100-year profile 95 % CI low": r.get_cell_at(row=1, column="95 % CI low"),
+                  "100-year profile 95 % CI high": r.get_cell_at(row=1, column="95 % CI high")}
+             """,
+             r="""
+                 f <- extRemes::fevd(sea_level, type = "GEV", method = "MLE",
+                                     optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
+                 par <- f$results$par; best <- f$results$value; p <- 1 / 100
+                 nll <- function(z, s, xi) { mu <- z + s / xi * (1 - (-log(1 - p))^(-xi))
+                   t <- 1 + xi * (sea_level - mu) / s; if (s <= 0 || any(t <= 0)) return(1e10)
+                   sum(log(s) + (1 + 1 / xi) * log(t) + t^(-1 / xi)) }
+                 prof <- function(z) stats::optim(par[2:3], function(q) nll(z, q[1], q[2]),
+                                                  control = list(reltol = 1e-14, maxit = 1e5))$value
+                 g <- function(z) 2 * (prof(z) - best) - stats::qchisq(0.95, 1)
+                 zhat <- par[1] - par[2] / par[3] * (1 - (-log(1 - p))^(-par[3]))
+                 list(`100-year profile 95 % CI low` = stats::uniroot(g, c(zhat - 1, zhat), tol = 1e-12)$root,
+                      `100-year profile 95 % CI high` = stats::uniroot(g, c(zhat, zhat + 3), tol = 1e-12)$root)
+             """, r_packages=("extRemes",), r_tolerance=2.5e-3,
+             note="The exact ends: the profile log-likelihood of the 100-year level (the GEV written with the level "
+                  "as a parameter, Coles 2001, section 3.3.3) maximised over the other two at each level, and the "
+                  "level where it falls by half the chi-square 95 % point found by root finding (uniroot, to "
+                  "1e-12). extRemes reads the ends off its grid, so simplydata's ends may lie one grid step (0.0093 "
+                  "here, 1/200 of the range searched; 0.2 % of the level) from the exact ones: the tolerance is "
+                  "that step, a stated limit of the grid, not of the fit. A finer grid takes minutes for the "
+                  "threshold fits."),
         Case("table.fit_distribution_to", 'distribution="gev": Port Pirie, the GEV parameters', "Port Pirie (ismev)",
              "published",
              ours="""
@@ -262,16 +294,23 @@ def _cases(Case):
              published={"location": (3.87, 0.005, f"{COLES}, 3.4.1"), "scale": (0.198, 0.0005, f"{COLES}, 3.4.1"),
                         "shape": (-0.050, 0.0005, f"{COLES}, 3.4.1")},
              parent="""
-                 from scipy import stats
-                 c, loc, scale = stats.genextreme.fit(data["sea_level"].to_numpy(dtype=float))
+                 from scipy import optimize, stats
+                 def tight(func, x0, args=(), disp=0):
+                     return optimize.fmin(func, x0, args=args, xtol=1e-14, ftol=1e-14, maxiter=100000, maxfun=100000,
+                                          disp=0)
+                 c, loc, scale = stats.genextreme.fit(data["sea_level"].to_numpy(dtype=float), optimizer=tight)
                  {"location": loc, "scale": scale, "shape": -c}
-             """, parent_label="SciPy genextreme.fit (shape c = -xi)", parent_tolerance=5e-3,
+             """, parent_label="SciPy genextreme.fit run to 1e-14 (shape c = -xi)", parent_tolerance=1e-6,
              r="""
-                 p <- extRemes::fevd(sea_level, type = "GEV", method = "MLE")$results$par
+                 p <- extRemes::fevd(sea_level, type = "GEV", method = "MLE",
+                                     optim.args = list(method = "BFGS",
+                                                       control = list(reltol = 1e-14, maxit = 100000)))$results$par
                  list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
-             """, r_packages=("extRemes",), r_tolerance=1e-4,
-             note="SciPy's own fit stops a little short of the maximum, so simplydata polishes it; R extRemes is the "
-                  "check to 1e-4."),
+             """, r_packages=("extRemes",), r_tolerance=1e-6,
+             note="SciPy's own fit stops a little short of the maximum (by up to 8e-5 here), so simplydata polishes "
+                  "it. Both references are run to 1e-14 (SciPy's fit with a tighter Nelder-Mead, R extRemes with "
+                  "optim's reltol 1e-14) and agree with simplydata to 1e-6; the shape, near 0, is the least "
+                  "precise (2e-7 relative). Before, the default fits were the references, at 5e-3 and 1e-4."),
         # ---------------------------------------------------------------- AB08: above a threshold
         Case("table.find_return_levels_of", "values_above=: Coles's daily rain above 30 mm, the 100-year level",
              "Coles rain (ismev)", "published",
@@ -284,12 +323,15 @@ def _cases(Case):
              """,
              published={"100-year level": (106.3, 0.05, f"{COLES}, 4.4.1")},
              r="""
-                 f <- extRemes::fevd(rain, threshold = 30, type = "GP", time.units = "days")
+                 f <- extRemes::fevd(rain, threshold = 30, type = "GP", time.units = "days",
+                                     optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 100000)))
                  rl <- as.numeric(extRemes::return.level(f, return.period = 100, do.ci = TRUE))
                  list(`100-year level` = rl[2], `100-year normal 95 % CI low` = rl[1],
                       `100-year normal 95 % CI high` = rl[3])
              """, r_packages=("extRemes",), r_tolerance=1e-9,
-             note="Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in its printout (7.44, 0.184)."),
+             note="Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in its printout (7.44, 0.184). "
+                  "The R reference is fevd run to reltol 1e-14; with optim's default stopping rule the 100-year level "
+                  "stopped 1e-6 to 9e-6 short, so simplydata asks for reltol 1e-12."),
         Case("table.fit_distribution_to", 'distribution="generalised pareto": Coles rain, the amounts above 30 mm',
              "Coles rain (ismev)", "published",
              ours="""

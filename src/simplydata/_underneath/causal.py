@@ -2,7 +2,7 @@
 entry for each new option that changes what a word calls (keyed by word and option): attributable fractions on
 compare_risks, direct standardisation on rate_of, observed / expected on compare_rates, mediation on explain, the 2 x 2
 crossover on compare_averages_of, and multiple imputation on find_correlation_between and explain_survival.
-Practice tables: "job_training", "job_search", "drug_levels" (real), "deaths_by_age", "clinic", "school", "trial"
+Practice tables: "job_training", "job_search", "drug_levels" (made up after real studies), "deaths_by_age", "clinic", "school", "trial"
 (made up).
 """
 
@@ -154,8 +154,10 @@ ENTRIES = [
         """,
         r_packages=("epiR",), compare="result", fields=("estimate", "estimate 95 % CI low", "estimate 95 % CI high"),
         tolerance=1e-9,
-        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with Wald intervals from the risk "
-                 "ratio; crude, not adjusted for other columns.",),
+        choices=("the risk-based fractions of a cohort (method = \"cohort.count\"), with the intervals epiR gives for "
+                 "one table (among the exposed, from the score interval of the risk ratio; in the population, from the "
+                 "exact intervals of the two risks; epiR's names end in .wald all the same); crude, not adjusted for "
+                 "other columns.",),
         python_note=EPIR_NOTE,
         also="simplydata also gives the population attributable fraction, the preventable fraction among the exposed "
              "when the exposure goes with fewer events, and says that the fractions are causal only if the exposure "

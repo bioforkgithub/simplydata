@@ -339,7 +339,8 @@ UNDERNEATH = {
     "nums.find_autocorrelation": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, pacf, Box.test",
     "nums.fit_distribution": "SciPy (scipy.stats and optimize, as table.fit_distribution_to)",
     # models
-    "table.explain": "statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
+    "table.explain": "statsmodels (OLS by QR, with the standard errors as R summary.lm() takes them: chol2inv of the "
+                     "QR factor, R's method done with NumPy and LAPACK dpotri; GLM for yes/no and counts, as R glm; MixedLM for grouped_by=; GEE for "
                      "effects=\"for the whole population\", as R geepack::geeglm; MICEData to fill in empty cells; "
                      "eval_measures aic and bic and McFadden's pseudo R squared, as R AIC, BIC and "
                      "performance::r2_mcfadden); R mgcv::gam for curve_for= (needs R); "
@@ -1029,7 +1030,8 @@ def underneath_figure(key: str) -> str:
     return "figures/underneath_" + re.sub(r"[^A-Za-z0-9]+", "_", key).strip("_") + ".pdf"
 
 
-_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table"}
+_HOW = {"value": "the number", "table": "the table", "result": "the numbers of the result table",
+        "printed": "what both print (each line the code prints appears in what simplydata prints)"}
 # what each chart fact is, in words, for the "Checked:" line
 _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colour", "dots": "the dots",
                "dot_size_shares": "the dot sizes", "dot_colour_groups": "which dots share a colour",

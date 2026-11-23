@@ -34,13 +34,15 @@ ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("toxicity"))
             table.keep_rows_where("chemical", is_equal_to="A")
-            table.fit_dose_response(x="concentration", y="root_length").as_pandas().query("term == 'ED50'")
+            table.fit_dose_response(x="concentration", y="root_length").keep_rows_where("term", is_equal_to="ED50")
         """,
         code={
             "R": """
                 # fit_dose_response(x="concentration", y="root_length")
                 # concentration and root_length: chemical A of sdata.get_example("toxicity")
-                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())   # (1)
+                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),  # (1)
+                              control = drc::drmc(relTol = 1e-15,
+                                                  maxIt = 10000))             # (3)
                 e <- drc::ED(m, 50, interval = "delta", display = FALSE)       # (2)
                 list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
             """,
@@ -56,7 +58,9 @@ ENTRIES = [
         choices=("the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); "
                  "of_kind= chooses another.",
                  "the ED50 with its delta-method interval: drc's ED() gives no interval unless asked "
-                 "(interval = \"none\" is its default)."),
+                 "(interval = \"none\" is its default).",
+                 "a tighter stopping rule than drc's default (relTol 1e-7), so that the fit has converged; the method "
+                 "is the same."),
         python_note="Python has no dose-response package with drc's ED intervals: SciPy curve_fit fits the curve "
                     "but gives no ED50 interval, so the numbers come from R.",
         also="simplydata also prints the upper and lower limits, a test of no dose effect (drc::noEffect) and a "
@@ -74,7 +78,9 @@ ENTRIES = [
         code={
             "R": """
                 # fit_dose_response()
-                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())    # (1)
+                m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),
+                              control = drc::drmc(relTol = 1e-15,
+                                                  maxIt = 10000))      # (1)
                 low_dose <- min(concentration[concentration > 0])
                 at <- c(0, exp(seq(log(low_dose), log(max(concentration)), length.out = 300)))  # (2)
                 e <- drc::ED(m, 50, interval = "delta", display = FALSE)
@@ -94,7 +100,8 @@ ENTRIES = [
         legend_pattern=r"ED50 (\S+) \(95 % CI (\S+) to (\S+)\)",
         legend_numbers=("ed50", "low", "high"),
         tolerance=1e-6,
-        choices=("the 4 parameter log-logistic curve (drc's LL.4), as table.fit_dose_response.",
+        choices=("the 4 parameter log-logistic curve (drc's LL.4), with the same tighter stopping rule, as "
+                 "table.fit_dose_response.",
                  "the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on "
                  "a log dose axis too; the ED50 and its delta-method interval go in the legend."),
         python_note="Python has no dose-response package with drc's ED intervals, so the curve comes from R.",
@@ -317,12 +324,14 @@ OPTION_ENTRIES = [
             def logistic(x, Asym, xmid, scal):                  # R's SSlogis
                 return Asym / (1 + np.exp((xmid - x) / scal))
             found, cov = optimize.curve_fit(logistic, df["hour"], df["density"],
-                                            p0=[1, 10, 2], method="lm")    # (1)
+                                            p0=[1, 10, 2], method="lm",    # (1)
+                                            xtol=1e-12, ftol=1e-12, maxfev=20000)
             {"estimate": found[0], "standard error": np.sqrt(cov[0, 0])}
         """},
         compare="result",
         fields=("estimate", "standard error"),
-        tolerance=1e-5,
+        # other start values (R getInitial() in the word): two converged searches agree to 1e-7
+        tolerance=1e-6,
         choices=("start values: simplydata takes them from R's self-starting model (stats::getInitial()), or "
                  "searches the whole range without R; the least-squares answer is the same.",),
         also="simplydata also writes the formula, says what each value means and gives its 95 % interval. "
@@ -366,8 +375,8 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("culture"))
             table.keep_rows_where("flask", is_equal_to="A")
-            table.explain("density", using=["hour"], changes_at={"hour": 10}).as_pandas().query(
-                "term == 'after hour 10'")
+            table.explain("density", using=["hour"], changes_at={"hour": 10}).keep_rows_where(
+                "term", is_equal_to="after hour 10")
         """,
         code={"statsmodels": """
             import statsmodels.formula.api as smf

@@ -629,11 +629,11 @@ vanA & reads that matched vancomycin resistance gene vanA\\
 mcr1 & reads that matched colistin resistance gene mcr-1\\
 \bottomrule\end{tabularx}\end{center}
 \section*{bcg}
-REAL DATA: 13 trials of the BCG vaccine against tuberculosis, one row per trial (Colditz et al. 1994, JAMA 271:698-702: the counts published in the paper, facts; the same numbers as R metadat's dat.bcg). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}
+MADE-UP DATA: 13 made-up trials of a vaccine against tuberculosis, one row per trial, with the columns of the BCG trials of Colditz et al. (1994). Built in: the vaccine lowers the risk more far from the equator (log risk ratio 0.6 - 0.035 x latitude, plus a between-trial spread). simplydata was tested on the real BCG trials (R metadat's dat.bcg); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}bcg\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-trial & the first author and the year of the trial\\
+trial & the trial's name and year\\
 year & the year the trial was published\\
 tb\_vaccinated & vaccinated people who got tuberculosis\\
 vaccinated & people vaccinated\\
@@ -665,7 +665,7 @@ date & every day from 2015-01-01 to 2024-12-31 (real dates)\\
 rain & rain that day in mm (0 on dry days)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{sea\_levels}
-REAL DATA: the highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (Coles, S. 2001, An Introduction to Statistical Modeling of Extreme Values, Springer, section 3.4.1: the published yearly maxima, facts; the same numbers as R ismev's portpirie). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
+MADE-UP DATA: the highest sea level of each year at a made-up coastal town, 1923 to 1987, like the Port Pirie series of Coles (2001). Built in: a GEV curve with location 3.87 m, scale 0.20 m and shape -0.05. simplydata was tested on the real Port Pirie data (R ismev's portpirie); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sea\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -673,11 +673,11 @@ year & the year, 1923 to 1987\\
 sea\_level & the highest sea level reached that year, in metres\\
 \bottomrule\end{tabularx}\end{center}
 \section*{passive\_smoking}
-REAL DATA: 37 studies of lung cancer in non-smoking women whose husbands smoked, one row per study (Hackshaw, Law \& Wald 1997, BMJ 315:980-988: the odds ratios and intervals published in the paper, facts; the same numbers as R metadat's dat.hackshaw1998). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
+MADE-UP DATA: 37 made-up studies of lung cancer in non-smoking women whose husbands smoked, one row per study, with the columns of Hackshaw, Law \& Wald (1997). Built in: an odds ratio of about 1.25. simplydata was tested on the real studies (R metadat's dat.hackshaw1998); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-study & the first author and the year of the study\\
+study & the study's number and year\\
 year & the year the study was published\\
 country & where the study was done\\
 design & cohort or case-control\\
@@ -687,15 +687,15 @@ odds ratio 95 \% CI low & the lower end of its 95 \% confidence interval\\
 odds ratio 95 \% CI high & the upper end of its 95 \% confidence interval\\
 \bottomrule\end{tabularx}\end{center}
 \section*{ability\_tests}
-REAL DATA: nine mental ability tests taken by 301 pupils of two schools near Chicago in 1937 (Holzinger \& Swineford 1939, Supplementary Educational Monographs 48: the scores as R lavaan ships them, HolzingerSwineford1939). The classic table for hidden factors: x1 to x3 are visual, x4 to x6 verbal, x7 to x9 speeded tests. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}
+MADE-UP DATA: nine ability test scores of 301 made-up pupils of two schools, with the columns of Holzinger \& Swineford (1939). Built in: three hidden factors, x1 to x3 visual, x4 to x6 verbal and x7 to x9 speed, which are correlated, and x9 also leans on the visual factor. simplydata was tested on the real scores (R lavaan's HolzingerSwineford1939); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}ability\_\allowbreak{}tests\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
 id & the pupil's number\\
-sex & 1 or 2 (the source does not say which is which)\\
+sex & 1 or 2\\
 ageyr & age, the years\\
 agemo & age, the months on top of the years\\
-school & Pasteur or Grant-White\\
+school & Hillside or Riverside\\
 grade & 7 or 8 (one empty cell)\\
 x1 & visual perception\\
 x2 & cubes\\
@@ -717,11 +717,11 @@ difference & the difference between the two groups (on a log scale; 0 = no diffe
 p-value & the p-value of the test of that gene\\
 \bottomrule\end{tabularx}\end{center}
 \section*{sampled\_schools}
-REAL DATA: 200 California schools sampled at random within school type (100 elementary, 50 middle, 50 high), with their weights, for survey-weighted answers (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}). The Academic Performance Index of 2000 (California Department of Education), as the R survey package ships it (apistrat; Lumley 2010, Complex Surveys). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sampled\_\allowbreak{}schools\textquotedbl{})}
+MADE-UP DATA: 200 made-up schools sampled at random within school type (100 elementary of 4400, 50 middle of 1000, 50 high of 750), with their weights, for survey-weighted answers (\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design}), with the columns of the California sample of R survey (apistrat). Built in: the 2000 score falls by 3 points for each percent of pupils with free meals. simplydata was tested on the real sample; see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}sampled\_\allowbreak{}schools\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
-school & the school's name (shortened)\\
+school & the school's name\\
 district & the school district\\
 school\_type & elementary, middle or high: the strata of the sample\\
 score\_2000 & the school's Academic Performance Index in 2000 (200 to 1000)\\
@@ -731,8 +731,8 @@ english\_learners & percent of pupils still learning English\\
 pupils & pupils enrolled\\
 met\_target & yes or no: did the school meet its growth target?\\
 award & yes or no: did the school get an award?\\
-weight & the sampling weight: how many schools of California each sampled school stands for\\
-schools\_of\_type & how many schools of this type California has (the population size of the stratum)\\
+weight & the sampling weight: how many schools of its type each sampled school stands for\\
+schools\_of\_type & how many schools of this type there are (the population size of the stratum)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{course\_feedback}
 MADE-UP DATA: 120 made-up students rate a course on five statements, from strongly disagree to strongly agree (answers on a scale, Likert items). A few answers are empty. Invented for practice; not from any real study. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}course\_\allowbreak{}feedback\textquotedbl{})}
@@ -748,7 +748,7 @@ workload & \code{\textquotedbl{}The workload was fair\textquotedbl{}} (same five
 would\_recommend & \code{\textquotedbl{}I would recommend the course\textquotedbl{}} (same five answers)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{job\_training}
-REAL DATA: 614 men in the National Supported Work job-training study (185 trained) and in a comparison group drawn from a population survey (429 not trained): LaLonde (1986), as Dehejia \& Wahba (1999) and the R package MatchIt ship it (lalonde). The trained men differ from the others before the training, so a plain comparison mixes the training with who took it. The randomised experiment found an effect of about \$1,794 on 1978 earnings. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}
+MADE-UP DATA: 614 made-up men, 185 who took a job training and 429 from a comparison survey, with the columns of the study of LaLonde (1986). The trained men differ from the others before the training (younger, less schooling, more often black and unmarried, lower earnings), so a plain comparison mixes the training with who took it. Built in: the training adds 1800 dollars to the 1978 earnings. simplydata was tested on the real data (R MatchIt's lalonde); see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}training\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -763,7 +763,7 @@ re75 & earnings in 1975 (US dollars)\\
 re78 & earnings in 1978, after the training (US dollars)\\
 \bottomrule\end{tabularx}\end{center}
 \section*{job\_search}
-REAL DATA: 899 unemployed workers in the JOBS II study, a randomised job-search workshop (Vinokur, Price \& Schul 1995), as Tingley et al. (2014) and the R package mediation ship it (jobs). For mediation: did the workshop lower depression through the workers' confidence in searching for a job? \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}search\textquotedbl{})}
+MADE-UP DATA: 899 made-up unemployed workers in a randomised job-search workshop, with the columns of the JOBS II study (Vinokur, Price \& Schul 1995) as the R package mediation ships it (jobs), but every value drawn with a fixed seed (docs/\code{make\_\allowbreak{}job\_\allowbreak{}search}.py). For mediation: did the workshop lower depression through the workers' confidence in searching for a job? Built in: the workshop raises confidence by 0.30 points, each point of confidence lowers depression by 0.30, and the workshop lowers it by 0.04 directly, so the indirect effect is about -0.09. The real JOBS II records are in the R package mediation (\code{data(jobs)}). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}job\_\allowbreak{}search\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -780,7 +780,7 @@ depress2 & depression six months after the workshop (1 to 5)\\
 work1 & psyemp (employed) or psyump (unemployed) six months after\\
 \bottomrule\end{tabularx}\end{center}
 \section*{drug\_levels}
-REAL DATA: a 2 x 2 crossover bioequivalence study with 18 subjects: each had a test and a reference formulation of a drug, one in each of two periods, and the area under the blood-level curve was measured (Sauter et al. 1992; reference dataset A of Sch\"utz, Labes \& Fuglsang 2014, whose published ratio is 95.09 \% with 90 \% CI 90.76 to 99.62 \%). \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}
+MADE-UP DATA: a made-up 2 x 2 crossover bioequivalence study of 18 subjects: each had a test and a reference formulation, one in each of two periods, and the area under the blood-level curve was measured. Built in: the test gives 96 \% of the reference's AUC, with a within-subject CV of 12 \%. simplydata was tested on the reference datasets of Sch\"utz, Labes \& Fuglsang (2014), which it does not ship; see \code{DATA\_\allowbreak{}LICENSES}.md. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}drug\_\allowbreak{}levels\textquotedbl{})}
 \begin{center}\small
 \begin{tabularx}{\textwidth}{@{}>{\ttfamily}l>{\raggedright\arraybackslash}X@{}}
 \toprule \textrm{\textbf{Column}} & \textbf{What it holds}\\ \midrule
@@ -4529,7 +4529,7 @@ Worked solutions: page~\pageref{solutions:29}, or type \code{sdata.\allowbreak{}
 \end{learnbox}
 \begin{needsr}Every example of this lesson combines studies with R metafor: \code{combine\_\allowbreak{}studies()} run R's own code, the same code R users run. Install it once: pip install \code{\textquotedbl{}simplydata[r]\textquotedbl{}}, then R from https://cran.r-project.org, then in R: \code{install.\allowbreak{}packages(c(\textquotedbl{}metafor\textquotedbl{}))}. Without R these words print a message that says what to install.\end{needsr}
 \section*{Example 1}
-Picture first. 13 trials tested the BCG vaccine against tuberculosis (real data, Colditz et al. 1994). \code{combine\_\allowbreak{}studies} puts their results together, and \code{forest\_\allowbreak{}plot} draws each trial and the combined effect.
+Picture first. 13 made-up trials test a vaccine against tuberculosis (modelled on the BCG trials of Colditz et al. 1994). \code{combine\_\allowbreak{}studies} puts their results together, and \code{forest\_\allowbreak{}plot} draws each trial and the combined effect.
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("bcg"))
@@ -4542,7 +4542,7 @@ chart.save("lesson30_forest.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] One row per trial: the vaccinated and unvaccinated people, and how many of each got tuberculosis.
-  \item[3] \code{events=} and \code{out\_\allowbreak{}of=} each name two columns: the first group (vaccinated), then the group it is compared with. Read the first lines: the combined risk ratio is 0.49 (95 \% CI 0.33 to 0.73): on average the vaccine about halves the risk.
+  \item[3] \code{events=} and \code{out\_\allowbreak{}of=} each name two columns: the first group (vaccinated), then the group it is compared with. Read the first lines: the combined risk ratio is 0.47 (95 \% CI 0.36 to 0.62): on average the vaccine about halves the risk.
   \item[4] A chart of the result table.
   \item[5] One square per trial, as big as its weight, with its 95 \% interval; the diamond is the combined effect. The line at 1 is no effect.
   \item[6] Save the picture.
@@ -4563,7 +4563,7 @@ table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"]
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same trials.
-  \item[3] The prediction interval, 0.14 to 1.76, is where the true risk ratio of a new setting like these would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average by a factor of about 1.75 up or down. I-squared, 92 \%, is the share of the spread that is beyond chance, not how big it is. Say in words why the prediction interval is wider than the confidence interval.
+  \item[3] The prediction interval, 0.19 to 1.19, is where the true risk ratio of a new setting like these would lie: from a big benefit to none at all. Tau says the true risk ratios differ from the average by a factor of about 1.50 up or down. I-squared, 89 \%, is the share of the spread that is beyond chance, not how big it is. Say in words why the prediction interval is wider than the confidence interval.
 \end{lineexplain}
 \printedoutput{output/lesson30_example2.txt}
 \section*{Example 3}
@@ -4580,7 +4580,7 @@ chart.save("lesson30_funnel.png")
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same trials.
-  \item[3] One change: \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}allocation\textquotedbl{}} (how people were put into the groups). The test of the difference comes first (p = 0.39): the data cannot tell the three kinds of trial apart.
+  \item[3] One change: \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}allocation\textquotedbl{}} (how people were put into the groups). The test of the difference comes first (p = 0.52): the data cannot tell the three kinds of trial apart.
   \item[4] A chart of the result.
   \item[5] Each dot is a trial, small trials at the bottom. Dots missing from one lower corner would suggest small-study effects, which are not proof of publication bias.
   \item[6] Save the picture.
@@ -4601,7 +4601,7 @@ chart.save("lesson30_funnel.png")
 \end{goodtoknow}
 \begin{tryit}
 \begin{enumerate}
-  \item 37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?
+  \item 37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (made up, modelled on Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?
   \item In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?
   \item Say in words why the prediction interval of the BCG trials is wider than the confidence interval.
   \item Try to remember without looking back: which number tells you where the true effect of a new setting could lie? Find it in the printout of the passive smoking studies.
@@ -4831,7 +4831,7 @@ table.find_autocorrelation_of("zinc", x="east", y="north", nearest=6)
 \end{lineexplain}
 \printedoutput{output/lesson33_example2.txt}
 \section*{Example 3}
-Storms. The highest sea level of each year at Port Pirie, South Australia, 1923 to 1987 (real data, Coles 2001). How high is the sea once in 100 years?
+Storms. The highest sea level of each year at a coastal town, 1923 to 1987 (made up, modelled on Port Pirie in Coles 2001). How high is the sea once in 100 years?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("sea_levels"))
@@ -4847,7 +4847,7 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
   \item[3] Picture first.
   \item[4] Each year's highest level: no year stands far apart.
   \item[5] Save the picture.
-  \item[6] A level of 4.69 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its 95 \% interval runs from 4.49 to 5.26, longer above than below. \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} lets the word check that each row is one year.
+  \item[6] A level of 4.53 m is reached on average once in 100 years (a 1-in-100 chance in any one year); its 95 \% interval runs from 4.41 to 4.84, longer above than below. \code{sorted\_\allowbreak{}by=\textquotedbl{}year\textquotedbl{}} lets the word check that each row is one year.
 \end{lineexplain}
 \printedoutput{output/lesson33_example3.txt}
 \begin{center}\begin{minipage}{\linewidth}\centering
@@ -4865,7 +4865,7 @@ table.find_return_levels_of("sea_level", once_in=[10, 100], sorted_by="year")
 \begin{tryit}
 \begin{enumerate}
   \item Fill in the blank: \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of(\textquotedbl{}current\_\allowbreak{}direction\textquotedbl{},\allowbreak{} full\_\allowbreak{}turn=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} for degrees.
-  \item Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.
+  \item Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level.
   \item Say in words what a 100-year level means. Is it certain to happen in the next 100 years?
   \item Try to remember without looking back: which word tells whether nearby places have alike values?
 \end{enumerate}
@@ -4921,7 +4921,7 @@ table.count_rows(for_each_group_in="school_type")
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] 200 real California schools.
+  \item[2] 200 made-up schools (modelled on a California survey sample).
   \item[3] 5 schools of each type, 15 in all, picked at random within each type.
   \item[4] 5 elementary, 5 high and 5 middle schools.
 \end{lineexplain}
@@ -4965,9 +4965,9 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] Real data (LaLonde 1986): treat = 1 for the trained men, their age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978.
-  \item[3] The trained men earned 635 dollars less. But they differ before the training too: younger, more often black and unmarried, and with much lower earnings in 1974.
-  \item[4] Read the balance table first: before weighting, race (black) differs by 1.67 standard deviations; after, by 0.13. Some columns are still above 0.1, and a note says so. The effect for everyone: 225 dollars more (95 \% CI -1493 to 1942).
+  \item[2] Made-up data, modelled on LaLonde (1986): treat = 1 for the trained men, their age, schooling, race, marriage, degree and earnings in 1974, 1975 and 1978.
+  \item[3] The trained men earned 2733 dollars less. But they differ before the training too: younger, more often black and unmarried, and with much lower earnings in 1974.
+  \item[4] Read the balance table first: before weighting, race (black) differs by 0.74 standard deviations; after, by 0.11. Some columns are still above 0.1, and a note says so. The effect for everyone: 1347 dollars more (95 \% CI -937 to 3631).
 \end{lineexplain}
 \printedoutput{output/lesson35_example1.txt}
 \section*{Example 2}
@@ -4981,11 +4981,11 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
 \begin{lineexplain}
   \item[1] Load simplydata.
   \item[2] The same men.
-  \item[3] Pairs further apart than 0.2 standard deviations of the logit of the score are left out (68 trained men had no match). Race is now balanced; the effect among the matched trained men: 1771 dollars more (95 \% CI -50.4 to 3592). The randomised experiment found 1794.
+  \item[3] Pairs further apart than 0.2 standard deviations of the logit of the score are left out (51 trained men had no match). Race is now balanced; the effect among the matched trained men: 1010 dollars more (95 \% CI 10.7 to 2008). The table was made with an effect of 1800 dollars.
 \end{lineexplain}
 \printedoutput{output/lesson35_example2.txt}
 \section*{Example 3}
-Mediation. In the JOBS II study a job-search workshop was randomised. Did it lower depression by raising the workers' confidence in searching for a job?
+Mediation. In a made-up version of the JOBS II study a job-search workshop was randomised. Did it lower depression by raising the workers' confidence in searching for a job?
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("job_search"))
@@ -4994,8 +4994,8 @@ table.explain("depress2", using="treat", through="job_seek", allowing_for=["econ
 \whateachline
 \begin{lineexplain}
   \item[1] Load simplydata.
-  \item[2] Real data (Vinokur et al. 1995): treat = 1 for the workshop, \code{job\_\allowbreak{}seek} = confidence in searching, depress2 = depression six months later.
-  \item[3] The indirect effect (through \code{job\_\allowbreak{}seek}) is -0.016 and the total effect -0.055, both with intervals that include 0. The printout says what these rest on: nothing unmeasured that affects both \code{job\_\allowbreak{}seek} and depression.
+  \item[2] Made-up data with the columns of the JOBS II study (Vinokur et al. 1995): treat = 1 for the workshop, \code{job\_\allowbreak{}seek} = confidence in searching, depress2 = depression six months later.
+  \item[3] The indirect effect (through \code{job\_\allowbreak{}seek}) is -0.094 (95 \% interval -0.131 to -0.060) and the total effect -0.116: the table was made with an indirect effect of about -0.09, and the analysis finds it. The printout says what these rest on: nothing unmeasured that affects both \code{job\_\allowbreak{}seek} and depression.
 \end{lineexplain}
 \printedoutput{output/lesson35_example3.txt}
 \begin{goodtoknow}
@@ -5126,7 +5126,7 @@ Start a chart. \code{sdata.\allowbreak{}chart(sdata.\allowbreak{}get\_\allowbrea
 \code{fast=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas reads the file (Polars for big files); the chart is drawn with matplotlib and seaborn}
+\wordfield{Underneath}{seaborn \code{scatterplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5135,11 +5135,28 @@ chart = sdata.chart(marks)
 chart.draw_dots(x="hours", y="marks")
 chart.save("my_chart.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_sdata_chart.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+# chart(df): the figure and its axes
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+\end{lstlisting}
+\undertext{\code{sdata.\allowbreak{}chart()} keeps the table (or reads a file with pandas) and makes the figure when the first chart word draws on it. simplydata's paper look (fonts, colours, no top and right lines) is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the axis labels and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{sdata.get\_example()}{word:sdata.get-example}
 A small table to practise with. \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}
 
 \codeline{sdata.get\_example() with no name lists every table and its columns.}\\
-The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (real published sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking} (real published studies), for hidden factors, \code{ability\_\allowbreak{}tests} (real published test scores), for q-values, \code{many\_\allowbreak{}tests} (made up), for planning and surveys, \code{sampled\_\allowbreak{}schools} (a real survey sample) and \code{course\_\allowbreak{}feedback} (made-up answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training} and \code{job\_\allowbreak{}search} (real studies), \code{drug\_\allowbreak{}levels} (a real crossover) and \code{deaths\_\allowbreak{}by\_\allowbreak{}age} (made up). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
+The tables, all made up, are: marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, \code{sea\_\allowbreak{}levels} (yearly highest sea levels), and, for combining studies, bcg and \code{passive\_\allowbreak{}smoking}, for hidden factors, \code{ability\_\allowbreak{}tests}, for q-values, \code{many\_\allowbreak{}tests}, for planning and surveys, \code{sampled\_\allowbreak{}schools} and \code{course\_\allowbreak{}feedback} (answers on a scale), and, for cause and effect, \code{job\_\allowbreak{}training}, \code{job\_\allowbreak{}search}, \code{drug\_\allowbreak{}levels} and \code{deaths\_\allowbreak{}by\_\allowbreak{}age}. Seven of them copy the columns of a real study; simplydata was tested on the real data (\code{DATA\_\allowbreak{}LICENSES}.md). \code{\textquotedbl{}shop\textquotedbl{}} has empty cells and a column of dates to practise with; \code{\textquotedbl{}school\textquotedbl{}} has empty cells too. \code{from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{}} loads a dataset that comes with an installed R package instead, as a simplydata table: \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}lung\textquotedbl{},\allowbreak{} from\_\allowbreak{}r\_\allowbreak{}package=\textquotedbl{}survival\textquotedbl{})}. R itself loads it (utils::data); groups (factors) become text, R's NA empty cells, and row names that carry information become a first column, \code{\textquotedbl{}row name\textquotedbl{}}. Needs simplydata[r] and the R package already installed: nothing is downloaded or installed.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -5147,8 +5164,8 @@ The tables are: marks, weather, fruit, growth, sensor, visitors, river, shop, sc
 \code{from\_\allowbreak{}r\_\allowbreak{}package=} & \\
 \end{optiontable}
 
-\wordfield{Why this method}{\hyperref[basis:sdata.get-example-from-r-package-eq]{How simplydata chooses methods}, page \pageref{basis:sdata.get-example-from-r-package-eq}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas (\code{read\_\allowbreak{}csv} of a small file inside simplydata)}
+\wordfield{Why this method}{\hyperref[basis:sdata.get-example]{How simplydata chooses methods}, page \pageref{basis:sdata.get-example}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{read\_\allowbreak{}csv()}, \code{files()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5156,6 +5173,19 @@ sdata.get_example()
 marks = sdata.get_example("marks")
 print(marks)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from importlib.resources import files
+import pandas as pd
+# get_example("shop")
+pd.read_csv(files("simplydata.data") / "shop.csv", parse_dates=["date"])   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a column of dates is read as dates (\code{parse\_\allowbreak{}dates=}), so date words work on it at once.}
+\undertext{\code{sdata.\allowbreak{}get\_\allowbreak{}example()} with no name lists every practice table and its columns.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{R}\libbadge{Python}}
 \undertext{\textbf{With \code{from\_\allowbreak{}r\_\allowbreak{}package=}}: the same job with this option.}
 \underlib{R (simplydata runs this in R for you, through rpy2)}
@@ -5897,7 +5927,7 @@ The same curve as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:fit-dose-response]{How simplydata chooses methods}, page \pageref{basis:fit-dose-response}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()} \textperiodcentered{} matplotlib \code{plot()}}
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::drmc()}, \code{drc::ED()} \textperiodcentered{} matplotlib \code{plot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -5915,7 +5945,9 @@ chart.save("fit_dose_response.png")
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_dose_response()
-m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())    # (1)
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),
+              control = drc::drmc(relTol = 1e-15,
+                                  maxIt = 10000))      # (1)
 low_dose <- min(concentration[concentration > 0])
 at <- c(0, exp(seq(log(low_dose), log(max(concentration)), length.out = 300)))  # (2)
 e <- drc::ED(m, 50, interval = "delta", display = FALSE)
@@ -5929,7 +5961,7 @@ fig, ax = plt.subplots()
 ax.plot(at, fitted)          # the fitted curve
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the 4 parameter log-logistic curve (drc's LL.4), as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}.}
+\undertext{(1) the 4 parameter log-logistic curve (drc's LL.4), with the same tighter stopping rule, as \code{table.\allowbreak{}fit\_\allowbreak{}dose\_\allowbreak{}response}.}
 \undertext{(2) the curve is drawn over 300 doses spaced evenly on a log scale (and dose 0), so it stays smooth on a log dose axis too; the ED50 and its delta-method interval go in the legend.}
 \undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals, so the curve comes from R.}
 \undertext{simplydata also fits one curve per colour group and labels each with its ED50.}
@@ -6140,7 +6172,7 @@ The cluster tree (a dendrogram): which rows join first, and at what distance.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-cluster-tree]{How simplydata chooses methods}, page \pageref{basis:draw-cluster-tree}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy \code{iloc.\allowbreak{}to\_\allowbreak{}numpy()}, \code{linkage()}, \code{pdist()}, \code{dendrogram()}, \code{zip()}, \code{plot()}, \code{set\_\allowbreak{}xticks()}, \code{range()}}
+\wordfield{Underneath}{SciPy \code{iloc.\allowbreak{}to\_\allowbreak{}numpy()}, \code{iloc[]}, \code{linkage()}, \code{pdist()}, \code{dendrogram()}, \code{zip()}, \code{plot()}, \code{set\_\allowbreak{}xticks()}, \code{range()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7565,13 +7597,28 @@ Reading options, for files whose values are written differently:\\
 \code{table\_\allowbreak{}number=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas or Polars read the file; narwhals lets every table word run on both}
+\wordfield{Why this method}{\hyperref[basis:sdata.table]{How simplydata chooses methods}, page \pageref{basis:sdata.table}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{str()}, \code{files()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from importlib.resources import files
+import pandas as pd
+path = str(files("simplydata.data") / "marks.csv")   # the practice file inside simplydata
+# table(path)
+pd.read_csv(path, sep=None, engine="python")         # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the separator is guessed from the file (\code{sep=None}), so a file with ; or tabs between the values is read too; \code{separator=} sets it yourself.}
+\undertext{simplydata reads the file with pandas (\code{fast=True}: with Polars), finds the type from the end of the name (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}, Word, SPSS, Stata) and keeps it ready for table words. A pandas or Polars table you already have is used as it is.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{table.show\_first\_rows()}{word:table.show-first-rows}
 Show the first rows, numbered from 1. \code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
 
@@ -7580,13 +7627,28 @@ Show the first rows, numbered from 1. \code{table.\allowbreak{}show\_\allowbreak
 \code{rows=} & normally \code{5}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.show-first-rows]{How simplydata chooses methods}, page \pageref{basis:table.show-first-rows}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{head()}, \code{range()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_first_rows(10)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# show_first_rows(rows=3)
+first = df.head(3)
+first.index = range(1, 4)        # (1)
+print(first)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows are numbered from 1, the way people count; pandas numbers them from 0. Only what is shown changes: \code{as\_\allowbreak{}pandas()} still gives the table with pandas' own row labels.}
+\undertext{A Polars table has no row labels, so simplydata shows it through pandas with the same numbers. In Jupyter or VS Code the rows are shown as a table instead of text.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.show\_last\_rows()}{word:table.show-last-rows}
 Show the last rows, with their row numbers in the whole table. \code{table.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}rows(5)}
 
@@ -7643,13 +7705,36 @@ Describe every column: its kind, empty cells, smallest, biggest and average.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.describe-columns]{How simplydata chooses methods}, page \pageref{basis:table.describe-columns}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{select\_\allowbreak{}dtypes()}, \code{str()}, \code{round()}, \code{isna().\allowbreak{}sum()}, \code{nice()}, \code{min()}, \code{max()}, \code{mean()}, \code{nunique()}, \code{zip()}, \code{DataFrame().\allowbreak{}to\_\allowbreak{}string()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.describe_columns()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("marks")
+# describe_columns()
+print(f"The table has {len(df)} rows and {df.shape[1]} columns.\n")
+numbers = [c in df.select_dtypes("number") for c in df.columns]
+nice = lambda v: str(int(v)) if float(v).is_integer() else str(round(v, 2))   # (1)
+rows = [{"column": c, "kind": "number" if n else "text", "empty cells": df[c].isna().sum(),
+         "smallest": nice(df[c].min()) if n else "", "biggest": nice(df[c].max()) if n else "",
+         "average": nice(df[c].mean()) if n else "",
+         "different values": "" if n else str(df[c].nunique())}           # (2)
+        for c, n in zip(df.columns, numbers)]
+print(pd.DataFrame(rows).to_string(index=False))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) numbers are written for people: whole numbers without .0, others rounded to 2 decimals.}
+\undertext{(2) text columns get the number of different values (empty cells left out), number columns the smallest, biggest and average (empty cells left out, as pandas does).}
+\undertext{Date columns get their first and last date, and true/false columns their number of different values; this table has neither. Text that is blank or only spaces counts as an empty cell (\code{isna()} would not count it). pandas' own \code{df.\allowbreak{}describe()} gives the numbers in another layout.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.get\_column()}{word:table.get-column}
 One column on its own: a column of numbers becomes \code{sdata.\allowbreak{}numbers}, any other a plain list.
 
@@ -7729,7 +7814,7 @@ Keep only these columns: by name (in the order you list them), a run of names, o
 \code{matches\_\allowbreak{}pattern=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{Polars \code{select()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7742,6 +7827,23 @@ table.start_again()
 table.keep_columns(of_kind="number")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_columns("name", "marks")
+df[["name", "marks"]]
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# keep_columns("name", "marks")
+df.select("name", "marks")
+\end{lstlisting}
+\undertext{The columns come in the order you list them. \code{to=}, \code{of\_\allowbreak{}kind=}, \code{starts\_\allowbreak{}with=} and the others choose columns by a run, a kind or their names. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_columns()}{word:table.remove-columns}
 Remove these columns: by name, a run of names, or by kind.
 
@@ -7822,7 +7924,7 @@ Give a column a new name.
 \code{to=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{rename()} \textperiodcentered{} Polars \code{rename()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7830,6 +7932,23 @@ table = sdata.table(sdata.get_example("marks"))
 table.rename_column("marks", to="score")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# rename_column("marks", to="score")
+df.rename(columns={"marks": "score"})
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# rename_column("marks", to="score")
+df.rename({"marks": "score"})
+\end{lstlisting}
+\undertext{simplydata stops with a message when the new name is already a column (pandas would give two columns with one name). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Choose rows}{group:Choose-rows}
 \wordentry{table.keep\_rows\_where()}{word:table.keep-rows-where}
 Keep only the rows that match a condition.
@@ -7970,7 +8089,8 @@ Both ends are included, so rows 10 to 20 are 11 rows. \code{to=\textquotedbl{}la
 \code{step=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.keep-rows-by-position]{How simplydata chooses methods}, page \pageref{basis:table.keep-rows-by-position}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{iloc[]} \textperiodcentered{} Polars \code{slice()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -7980,6 +8100,25 @@ table.keep_rows_by_position(10, to=20)
 table.keep_rows_by_position(1, step=2)
 table.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# keep_rows_by_position(10, to=20)
+df.iloc[9:20]                    # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# keep_rows_by_position(10, to=20)
+df.slice(9, 11)                  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows are counted from 1 and both ends are kept, so rows 10 to 20 are 11 rows: Python's 9:20 (it counts from 0 and leaves out the end); in Polars, 11 rows from row 9.}
+\undertext{\code{step=} keeps every n-th row and a list keeps those rows in that order. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_by\_position()}{word:table.remove-rows-by-position}
 Remove rows by their position, counting from 1: a run, every n-th row, or a list.
 
@@ -8098,7 +8237,7 @@ A table of counts (one row per group, with how many there are) becomes one row p
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas \code{DataFrame()}, \code{loc.\allowbreak{}drop().\allowbreak{}reset\_\allowbreak{}index()}, \code{index.\allowbreak{}repeat()} \textperiodcentered{} Polars \code{DataFrame()}, \code{int\_\allowbreak{}range().\allowbreak{}repeat\_\allowbreak{}by().\allowbreak{}explode().\allowbreak{}drop\_\allowbreak{}nulls()}, \code{select()}, \code{exclude().\allowbreak{}gather()}}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{loc.\allowbreak{}drop().\allowbreak{}reset\_\allowbreak{}index()}, \code{loc[]}, \code{index.\allowbreak{}repeat()} \textperiodcentered{} Polars \code{DataFrame()}, \code{int\_\allowbreak{}range().\allowbreak{}repeat\_\allowbreak{}by().\allowbreak{}explode().\allowbreak{}drop\_\allowbreak{}nulls()}, \code{select()}, \code{exclude().\allowbreak{}gather()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8181,13 +8320,32 @@ Show the rows whose value in a column is an outlier, and say why (the table does
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.show-rows-with-outliers]{How simplydata chooses methods}, page \pageref{basis:table.show-rows-with-outliers}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (quartiles, average and standard deviation per group); R outliers::grubbs.test, dixon.test and EnvStats::rosnerTest for the test rules (simplydata[r])}
+\wordfield{Underneath}{pandas \code{groupby()}, \code{transform()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.show_rows_with_outliers("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# show_rows_with_outliers("marks", for_each_group_in="class")
+marks = df.groupby("class", dropna=False)["marks"]
+q1, q3 = marks.transform("quantile", 0.25), marks.transform("quantile", 0.75)   # (1)
+far = 1.5 * (q3 - q1)
+found = df[(df["marks"] < q1 - far) | (df["marks"] > q3 + far)]                  # (2)
+found.index = found.index + 1                                                   # (3)
+print(found)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the quartiles of each class by pandas' (and R's type 7) linear method; rows with an empty class are a group of their own (\code{dropna=False}).}
+\undertext{(2) Tukey's rule, the one box plots use: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR.}
+\undertext{(3) each row is shown with its place in the whole table, counted from 1, so \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()} can follow.}
+\undertext{simplydata also prints the limits of each group and how many rows it found; the table does not change. \code{test\_\allowbreak{}method=} takes \code{\textquotedbl{}3 IQR\textquotedbl{}}, \code{\textquotedbl{}3 standard deviations\textquotedbl{}} or a test run in R (Grubbs, Dixon, Rosner).}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.remove\_rows\_with\_outliers()}{word:table.remove-rows-with-outliers}
 Remove the rows whose value in a column is an outlier, and say how many and why.
 
@@ -8282,7 +8440,8 @@ Fill the empty cells of a column with a value, or with the average, median, valu
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals; NumPy (interp) for the line between neighbours; SciPy (CubicSpline, PchipInterpolator) for the curves}
+\wordfield{Why this method}{\hyperref[basis:table.fill-empty-cells-in]{How simplydata chooses methods}, page \pageref{basis:table.fill-empty-cells-in}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{assign()}, \code{fillna()}, \code{median()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{fill\_\allowbreak{}null()}, \code{median()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8291,6 +8450,27 @@ table.fill_empty_cells_in("customers", with_the="median")
 table.fill_empty_cells_in("sales", with_the="line between neighbours", sorted_by="date", for_each_group_in="shop")
 table.count_empty_cells_in()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("shop")
+# fill_empty_cells_in("customers", with_the="median")
+customers = df["customers"]
+df.assign(customers=customers.fillna(customers.median()))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("shop"))
+# fill_empty_cells_in("customers", with_the="median")
+customers = pl.col("customers")
+df.with_columns(customers.fill_null(customers.median()))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the median of the filled cells of the whole column (the empty cells left out).}
+\undertext{\code{with\_\allowbreak{}the=\textquotedbl{}value above\textquotedbl{}} and \code{\textquotedbl{}value below\textquotedbl{}} copy a neighbour (ffill, bfill), and \code{\textquotedbl{}line between neighbours\textquotedbl{}} draws a straight line across each gap. simplydata also says how many cells it filled.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_is\_empty\_column()}{word:table.add-is-empty-column}
 Add a true/false column: True where a cell of \code{from\_\allowbreak{}column} is empty.
 
@@ -8325,7 +8505,8 @@ Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.turn-into-numbers]{How simplydata chooses methods}, page \pageref{basis:table.turn-into-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{str.\allowbreak{}replace()}, \code{str.\allowbreak{}fullmatch()}, \code{where()}, \code{assign()}, \code{where().\allowbreak{}astype()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8333,6 +8514,27 @@ table = sdata.table(sdata.get_example("marks"))
 table.turn_into_numbers("marks")
 table.describe_columns()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.DataFrame({"price": ["12.5", "1,200", "12,5", " 3 ", "n/a", None]})
+# turn_into_numbers("price")
+text = df["price"].str.replace(r"\s", "", regex=True)
+thousands = text.str.fullmatch(r"[+-]?\d{1,3}(,\d{3})+(\.\d+)?", na=False)   # (1)
+comma = text.str.fullmatch(r"[+-]?\d*,\d+", na=False) & ~thousands          # (2)
+text = text.where(~thousands, text.str.replace(",", ""))
+text = text.where(~comma, text.str.replace(",", "."))
+number = text.str.fullmatch(r"[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?", na=False)
+df.assign(price=text.where(number).astype(float))                          # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a comma between groups of three digits is a thousands mark: 1,200 is twelve hundred.}
+\undertext{(2) any other single comma is a decimal comma: 12,5 is twelve and a half.}
+\undertext{(3) a cell that is not a number after that becomes empty, as \code{pd.\allowbreak{}to\_\allowbreak{}numeric(errors=\textquotedbl{}coerce\textquotedbl{})}; simplydata says how many and shows up to 3 of them. Blank text is simply empty.}
+\undertext{Spaces inside a number are left out first (1 200). A true/false column becomes 1 and 0, and a column that is already numbers is left as it is.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.turn\_into\_text()}{word:table.turn-into-text}
 Turn a column into text.
 
@@ -8418,7 +8620,7 @@ Remove spaces at the start and end of the text, and double spaces inside it.
 \code{column=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{assign()}, \code{str.\allowbreak{}replace().\allowbreak{}str.\allowbreak{}strip()} \textperiodcentered{} Polars \code{DataFrame()}, \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}str.\allowbreak{}replace\_\allowbreak{}all().\allowbreak{}str.\allowbreak{}strip\_\allowbreak{}chars()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8426,6 +8628,24 @@ table = sdata.table(sdata.get_example("marks"))
 table.remove_extra_spaces_in("name")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.DataFrame({"name": ["  Asha ", "Ben   Lee", "Cara"]})
+# remove_extra_spaces_in("name")
+df.assign(name=df["name"].str.replace(r"\s+", " ", regex=True).str.strip())
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.DataFrame({"name": ["  Asha ", "Ben   Lee", "Cara"]})
+# remove_extra_spaces_in("name")
+df.with_columns(pl.col("name").str.replace_all(r"\s+", " ").str.strip_chars())
+\end{lstlisting}
+\undertext{Any run of spaces, tabs or line breaks inside the text becomes one space. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.replace\_values\_in()}{word:table.replace-values-in}
 Replace a value (or a list of values) in a column; \code{with\_\allowbreak{}value=None} makes those cells empty.
 
@@ -8454,7 +8674,7 @@ With \{old: new\}, every cell is looked up once in the original column, so \{\co
 \code{is\_\allowbreak{}before=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{assign()}, \code{mask()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{when().\allowbreak{}then().\allowbreak{}otherwise().\allowbreak{}alias()}, \code{lit()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8464,6 +8684,24 @@ table.count_each("subject")
 table.replace_values_in("marks", is_above=90, with_value=90)
 table.find_biggest_of("marks")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# replace_values_in("subject", "Maths", with_value="Math")
+df.assign(subject=df["subject"].mask(df["subject"] == "Maths", "Math"))
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# replace_values_in("subject", "Maths", with_value="Math")
+subject = pl.col("subject")
+df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subject).alias("subject"))
+\end{lstlisting}
+\undertext{A dictionary \{old: new\} replaces several values at once, each cell looked up in the original column (so \{\code{\textquotedbl{}A\textquotedbl{}}: \code{\textquotedbl{}B\textquotedbl{}}, \code{\textquotedbl{}B\textquotedbl{}}: \code{\textquotedbl{}A\textquotedbl{}}\} swaps them); \code{is\_\allowbreak{}above=} and the other conditions replace every value that meets one. Empty cells never match. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.round\_numbers\_in()}{word:table.round-numbers-in}
 Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
@@ -8533,7 +8771,8 @@ Numbers go smallest first and text goes A to Z. \code{biggest\_\allowbreak{}firs
 \code{biggest\_\allowbreak{}first=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.sort-by]{How simplydata chooses methods}, page \pageref{basis:table.sort-by}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()} \textperiodcentered{} Polars \code{sort()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8541,6 +8780,28 @@ table = sdata.table(sdata.get_example("marks"))
 table.sort_by("marks", biggest_first=True)
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("shop")
+# sort_by("sales", biggest_first=True)
+df.sort_values("sales", ascending=False, kind="stable",    # (1)
+               na_position="last")                         # (2)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("shop"))
+# sort_by("sales", biggest_first=True)
+df.sort("sales", descending=True, maintain_order=True,     # (1)
+        nulls_last=True)                                   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) rows that tie keep the order they had (a stable sort); pandas' own default sort (quicksort) does not promise that.}
+\undertext{(2) empty cells go last, also when the biggest come first (Polars' own default puts them first).}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_column()}{word:table.add-column}
 Add a new column, worked out from other columns in plain words or with a formula.
 
@@ -8581,7 +8842,7 @@ gives each mark as a percent of its class total (with \code{sdata.\allowbreak{}g
 \code{value=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Underneath}{pandas \code{assign()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{alias()}, \code{col()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8590,6 +8851,23 @@ table.add_column("study_and_marks", by_adding=["hours", "marks"])
 table.add_column("marks_per_hour", "marks / hours")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# add_column("marks_per_hour", "marks / hours")
+df.assign(marks_per_hour=df["marks"] / df["hours"])
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_column("marks_per_hour", "marks / hours")
+df.with_columns((pl.col("marks") / pl.col("hours")).alias("marks_per_hour"))
+\end{lstlisting}
+\undertext{Dividing by zero gives an empty cell in simplydata (pandas gives inf); no hour is 0 here. The formula is read by simplydata itself, never run as Python code. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_group\_column()}{word:table.add-group-column}
 Add a column that puts each row into a group, like turning marks into grades.
 
@@ -8609,7 +8887,8 @@ With rules: each rule is a condition and the group name for rows that meet it. T
 \code{otherwise=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.add-group-column]{How simplydata chooses methods}, page \pageref{basis:table.add-group-column}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{cut()}, \code{assign()} \textperiodcentered{} Polars \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}cut().\allowbreak{}alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8617,6 +8896,30 @@ table = sdata.table(sdata.get_example("marks"))
 table.add_group_column("grade", from_column="marks", cut_at=[40, 60, 80], names=["D", "C", "B", "A"])
 table.count_each("grade")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = sdata.get_example("marks")
+# add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+grade = pd.cut(df["marks"], [-np.inf, 41, 61, 81, np.inf],
+               labels=["D", "C", "B", "A"], right=False)       # (1)
+df.assign(grade=grade)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_group_column("grade", from_column="marks", cut_at=[41, 61, 81], names=[...])
+df.with_columns(pl.col("marks").cut([41, 61, 81], labels=["D", "C", "B", "A"],
+                                    left_closed=True).alias("grade"))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a value exactly on a cut goes into the higher group: a mark of 61 is a B (\code{right=False}, \code{left\_\allowbreak{}closed=True}); pandas and Polars put it in the lower group by default.}
+\undertext{simplydata makes a text column; pandas and Polars make a category column with the same values. Empty cells stay empty. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_rank\_column()}{word:table.add-rank-column}
 Add a column with each row's place, where 1 is the best.
 
@@ -8654,7 +8957,7 @@ A z-score of 2 is two standard deviations above the average, -1 one below. It pu
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-z-score-column]{How simplydata chooses methods}, page \pageref{basis:table.add-z-score-column}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.zscore with \code{ddof=1}, as R \code{scale()})}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}transform()}, \code{assign()} \textperiodcentered{} Polars \code{col()}, \code{with\_\allowbreak{}columns()}, \code{over().\allowbreak{}alias()}, \code{mean()}, \code{std()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8662,6 +8965,28 @@ table = sdata.table(sdata.get_example("marks"))
 table.add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
+z = df.groupby("subject")["marks"].transform(stats.zscore, ddof=1, nan_policy="omit")   # (1)
+df.assign(marks_z=z)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# add_z_score_column("marks_z", from_column="marks", for_each_group_in="subject")
+m = pl.col("marks")
+df.with_columns(((m - m.mean()) / m.std()).over("subject").alias("marks_z"))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the standard deviation of a sample (n - 1, \code{ddof=1}), as R \code{scale()}; SciPy's zscore uses n unless told \code{ddof=1}.}
+\undertext{Empty cells stay empty, and a group with fewer than 2 numbers gets empty cells. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Dates and text}{group:Dates-and-text}
 \wordentry{table.add\_column\_with\_part\_of\_date()}{word:table.add-column-with-part-of-date}
 Add a column with one part of each date, such as its year, month or weekday.
@@ -8784,7 +9109,8 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 \code{center=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals (\code{rolling\_\allowbreak{}mean}, \code{rolling\_\allowbreak{}sum}, \code{rolling\_\allowbreak{}std} with \code{over(order\_\allowbreak{}by=)}); pandas or Polars rolling for median, smallest and biggest}
+\wordfield{Why this method}{\hyperref[basis:table.add-rolling-column]{How simplydata chooses methods}, page \pageref{basis:table.add-rolling-column}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{sort\_\allowbreak{}values()}, \code{groupby().\allowbreak{}transform()}, \code{rolling().\allowbreak{}sum()}, \code{assign()} \textperiodcentered{} Polars \code{col().\allowbreak{}rolling\_\allowbreak{}sum().\allowbreak{}over()}, \code{with\_\allowbreak{}columns()}, \code{alias()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8792,6 +9118,29 @@ table = sdata.table(sdata.get_example("weather"))
 table.add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", for_each_group_in="city", sorted_by="month_number")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("weather")
+# add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
+ordered = df.sort_values("month_number", kind="stable")                    # (1)
+total = ordered.groupby("city")["rain"].transform(lambda s: s.rolling(3).sum())  # (2)
+df.assign(rain_3_months=total)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("weather"))
+# add_rolling_column("rain_3_months", from_column="rain", window=3, show="total", ...)
+total = pl.col("rain").rolling_sum(3).over("city", order_by="month_number")   # (1) (2)
+df.with_columns(total.alias("rain_3_months"))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the window follows \code{sorted\_\allowbreak{}by=}, but the rows keep their place in the table (assign lines the values up by row).}
+\undertext{(2) the window is this row and the 2 rows before it, within each city; the first 2 rows of each city stay empty until the window is full.}
+\undertext{\code{centre=True} centres the window, \code{window=\textquotedbl{}7 days\textquotedbl{}} makes it a span of time, and \code{show=} takes the median, standard deviation, a percentile and more. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_previous\_value\_column()}{word:table.add-previous-value-column}
 Add a column with the value from the row before (or \code{rows\_\allowbreak{}back=} rows before).
 
@@ -8956,7 +9305,7 @@ The average (mean) of a column; empty cells are skipped.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-average-of]{How simplydata chooses methods}, page \pageref{basis:table.find-average-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}mean().\allowbreak{}reset\_\allowbreak{}index()} \textperiodcentered{} Polars \code{group\_\allowbreak{}by().\allowbreak{}agg()}, \code{col().\allowbreak{}mean()}}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}mean().\allowbreak{}reset\_\allowbreak{}index()} \textperiodcentered{} Polars \code{group\_\allowbreak{}by().\allowbreak{}agg().\allowbreak{}sort()}, \code{col().\allowbreak{}mean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -8969,18 +9318,18 @@ print(by_class)
 \underlib{pandas}
 \begin{lstlisting}[style=under]
 df = sdata.get_example("marks")
-# find_average_of("marks", for_each_group_in="class")
-df.groupby("class", sort=False)["marks"].mean().reset_index()   # (1)
+# find_average_of("marks", for_each_group_in="subject")
+df.groupby("subject", dropna=False)["marks"].mean().reset_index()   # (1)
 \end{lstlisting}
 \underlib{Polars}
 \begin{lstlisting}[style=under]
 import polars as pl
 df = pl.from_pandas(sdata.get_example("marks"))
-# find_average_of("marks", for_each_group_in="class")
-df.group_by("class", maintain_order=True).agg(pl.col("marks").mean())   # (1)
+# find_average_of("marks", for_each_group_in="subject")
+df.group_by("subject").agg(pl.col("marks").mean()).sort("subject", nulls_last=True)   # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) groups stay in the order they first appear (\code{sort=False}, \code{maintain\_\allowbreak{}order=True}); empty cells are skipped, as pandas and Polars do (NumPy's mean would give nan).}
+\undertext{(1) one row for each group, the groups sorted (English, Maths, Science), with rows whose group cell is empty as a group of their own, last; empty cells in \code{\textquotedbl{}marks\textquotedbl{}} are skipped, as pandas and Polars do (NumPy's mean would give nan).}
 \undertext{simplydata also names the column \code{\textquotedbl{}average of marks\textquotedbl{}} and writes the averages in a sentence.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -9193,13 +9542,37 @@ Several measures of one or more columns at once, in one tidy table.
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-summary-of]{How simplydata chooses methods}, page \pageref{basis:table.find-summary-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{narwhals (group summaries); SciPy (stats: gmean, variation, \code{median\_\allowbreak{}abs\_\allowbreak{}deviation}, \code{trim\_\allowbreak{}mean}, mode, skew, kurtosis, hmean, mstats.winsorize, and the t distribution for the confidence interval)}
+\wordfield{Underneath}{pandas \code{groupby().\allowbreak{}agg()}, \code{reset\_\allowbreak{}index().\allowbreak{}assign()} \textperiodcentered{} Polars \code{col()}, \code{group\_\allowbreak{}by().\allowbreak{}agg().\allowbreak{}sort()}, \code{mean().\allowbreak{}alias()}, \code{std().\allowbreak{}alias()}, \code{count().\allowbreak{}alias()}, \code{select()}, \code{lit().\allowbreak{}alias()}, \code{all()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+df = sdata.get_example("marks")
+# find_summary_of("marks", for_each_group_in="class", show=[...])
+out = df.groupby("class", dropna=False)["marks"].agg(["mean", "std", "count"])   # (1) (2)
+out.reset_index().assign(column="marks")[["column", "class", "mean", "std", "count"]]
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# find_summary_of("marks", for_each_group_in="class", show=[...])
+m = pl.col("marks")
+out = df.group_by("class").agg(m.mean().alias("mean"), m.std().alias("std"),   # (2)
+                               m.count().alias("count")).sort("class")         # (1)
+out.select(pl.lit("marks").alias("column"), pl.all())
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one row for each group, the groups sorted (A, B, C); rows with an empty group cell form a group of their own, shown last (\code{dropna=False}).}
+\undertext{(2) the standard deviation of a sample (n - 1), as pandas, Polars and R \code{sd()}; NumPy's own default is n.}
+\undertext{simplydata also writes the summary in a sentence; the result is a new table you can save or chart.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_percent\_of\_rows\_where()}{word:table.find-percent-of-rows-where}
 What percent of the rows meet a condition, or each group's share.
 
@@ -10075,13 +10448,30 @@ Do the groups really differ in how spread out their values are?
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-spreads-of]{How simplydata chooses methods}, page \pageref{basis:table.compare-spreads-of}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.levene with \code{center=\textquotedbl{}median\textquotedbl{}}, stats.bartlett, stats.fligner)}
+\wordfield{Underneath}{SciPy \code{dropna()}, \code{groupby()}, \code{levene()}, \code{sum()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("marks"))
 table.compare_spreads_of("marks", for_each_group_in="class")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+df = sdata.get_example("marks")
+# compare_spreads_of("marks", for_each_group_in="class")
+groups = [rows["marks"].dropna() for _, rows in df.groupby("class")]
+res = stats.levene(*groups, center="median")                  # (1)
+{"statistic": res.statistic, "p-value": res.pvalue,
+ "degrees of freedom 1": len(groups) - 1,
+ "degrees of freedom 2": sum(len(g) for g in groups) - len(groups)}
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Levene's test centred on each group's median (the Brown-Forsythe test), the default of SciPy and of R car::\code{leveneTest()}; it copes well with values that are not bell-shaped.}
+\undertext{\code{test\_\allowbreak{}method=} takes \code{\textquotedbl{}bartlett\textquotedbl{}}, \code{\textquotedbl{}fligner\textquotedbl{}} and, for two groups, \code{\textquotedbl{}ansari\textquotedbl{}}, \code{\textquotedbl{}mood\textquotedbl{}} and \code{\textquotedbl{}f\textquotedbl{}} (R \code{var.\allowbreak{}test()}). simplydata also gives each group's standard deviation. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_counts\_to()}{word:table.compare-counts-to}
 Does how often each value turns up really differ from the shares you expect?
 
@@ -10121,13 +10511,35 @@ The exact binomial test (as R \code{binom.\allowbreak{}test(x,\allowbreak{} n,\a
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.compare-percent-to]{How simplydata chooses methods}, page \pageref{basis:table.compare-percent-to}: the default, the evidence and the checks.}
-\wordfield{Underneath}{SciPy (stats.binomtest, the Clopper-Pearson exact interval)}
+\wordfield{Underneath}{SciPy \code{dropna()}, \code{sum()}, \code{binomtest()}, \code{proportion\_\allowbreak{}ci()}, \code{proportion\_\allowbreak{}effectsize()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
 table.compare_percent_to("passed", value="yes", percent=50)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+from statsmodels.stats.proportion import proportion_effectsize
+df = sdata.get_example("school")
+# compare_percent_to("passed", value="yes", percent=50)
+passed = df["passed"].dropna()
+hits, n = int((passed == "yes").sum()), len(passed)
+res = stats.binomtest(hits, n, 0.5)                               # (1)
+ci = res.proportion_ci(confidence_level=0.95, method="exact")     # (2)
+{"statistic": hits, "p-value": res.pvalue, "percent 95 % CI low": ci.low * 100,
+ "percent 95 % CI high": ci.high * 100,
+ "effect size": proportion_effectsize(hits / n, 0.5)}             # (3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the exact binomial test, as R \code{binom.\allowbreak{}test()}; empty cells are left out first.}
+\undertext{(2) the exact (Clopper-Pearson) 95 \% interval of the percent; \code{interval\_\allowbreak{}by=} takes \code{\textquotedbl{}wilson\textquotedbl{}} or \code{\textquotedbl{}agresti-coull\textquotedbl{}}.}
+\undertext{(3) the effect size is Cohen's h, the difference between the two shares on the arcsine scale.}
+\undertext{\code{percent=} is above 0 and below 100 (SciPy takes shares from 0 to 1). \code{sides=1} with \code{higher=\textquotedbl{}percent\textquotedbl{}} or \code{lower=\textquotedbl{}percent\textquotedbl{}} tests one direction. simplydata also writes the result as a sentence and names the test.}
+\undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.compare\_matched\_columns()}{word:table.compare-matched-columns}
 Do three or more measurements of the same rows differ, such as pain at week 0, 4 and 8?
 
@@ -10308,7 +10720,7 @@ list(af = af$est, low = af$lower, high = af$upper)
 {"estimate": af, "estimate 95 % CI low": low, "estimate 95 % CI high": high}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the risk-based fractions of a cohort (method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; crude, not adjusted for other columns.}
+\undertext{(1) the risk-based fractions of a cohort (method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with the intervals epiR gives for one table (among the exposed, from the score interval of the risk ratio; in the population, from the exact intervals of the two risks; epiR's names end in .wald all the same); crude, not adjusted for other columns.}
 \undertext{\textit{In Python only:} No Python package gives attributable fractions, Fay-Feuer intervals or indirect standardisation as R epiR does, so the numbers come from R.}
 \undertext{simplydata also gives the population attributable fraction, the preventable fraction among the exposed when the exposure goes with fewer events, and says that the fractions are causal only if the exposure causes the events.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -10991,7 +11403,8 @@ df = sdata.get_example("culture").query("flask == 'A'")
 def logistic(x, Asym, xmid, scal):                  # R's SSlogis
     return Asym / (1 + np.exp((xmid - x) / scal))
 found, cov = optimize.curve_fit(logistic, df["hour"], df["density"],
-                                p0=[1, 10, 2], method="lm")    # (1)
+                                p0=[1, 10, 2], method="lm",    # (1)
+                                xtol=1e-12, ftol=1e-12, maxfev=20000)
 {"estimate": found[0], "standard error": np.sqrt(cov[0, 0])}
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
@@ -11044,7 +11457,7 @@ Fits a 4 parameter log-logistic curve (R drc::\code{drm(fct = LL.\allowbreak{}4(
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.fit-dose-response]{How simplydata chooses methods}, page \pageref{basis:table.fit-dose-response}: the default, the evidence and the checks.}
-\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::ED()}}
+\wordfield{Underneath}{R \code{drc::drm()}, \code{drc::LL.\allowbreak{}4()}, \code{drc::drmc()}, \code{drc::ED()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11057,7 +11470,9 @@ table.fit_dose_response(x="concentration", y="dead", outcome="yes or no", out_of
 \begin{lstlisting}[style=underr]
 # fit_dose_response(x="concentration", y="root_length")
 # concentration and root_length: chemical A of sdata.get_example("toxicity")
-m <- drc::drm(root_length ~ concentration, fct = drc::LL.4())   # (1)
+m <- drc::drm(root_length ~ concentration, fct = drc::LL.4(),  # (1)
+              control = drc::drmc(relTol = 1e-15,
+                                  maxIt = 10000))             # (3)
 e <- drc::ED(m, 50, interval = "delta", display = FALSE)       # (2)
 list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
 \end{lstlisting}
@@ -11068,6 +11483,7 @@ list(estimate = e[1, 1], se = e[1, 2], low = e[1, 3], high = e[1, 4])
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the 4 parameter log-logistic curve, the usual one in ecotoxicology (drc's LL.4); \code{of\_\allowbreak{}kind=} chooses another.}
 \undertext{(2) the ED50 with its delta-method interval: drc's \code{ED()} gives no interval unless asked (interval = \code{\textquotedbl{}none\textquotedbl{}} is its default).}
+\undertext{(3) a tighter stopping rule than drc's default (relTol 1e-7), so that the fit has converged; the method is the same.}
 \undertext{\textit{In Python only:} Python has no dose-response package with drc's ED intervals: SciPy \code{curve\_\allowbreak{}fit} fits the curve but gives no ED50 interval, so the numbers come from R.}
 \undertext{simplydata also prints the upper and lower limits, a test of no dose effect (drc::noEffect) and a note when an ED lies outside the doses tested. simplydata also writes the result as sentences, with the p-value in words, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -11258,7 +11674,8 @@ then \code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allo
 \code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats frozen distributions)}
+\wordfield{Why this method}{\hyperref[basis:sdata.distribution]{How simplydata chooses methods}, page \pageref{basis:sdata.distribution}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{binom()}, \code{cdf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11268,6 +11685,19 @@ dist.find_chance_that_value(is_above=80)
 coins = sdata.distribution("binomial", tries=10, chance=0.5)
 coins.find_chance_that_value(is_at_most=3)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+# distribution("binomial", tries=10, chance=0.5)
+coins = stats.binom(n=10, p=0.5)        # (1)
+coins.cdf(3)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the parameters have plain names (\code{tries=}, \code{chance=}), turned into SciPy's (n, p); R's names (\code{size=}, \code{prob=}) work too.}
+\undertext{Any other SciPy distribution works by its SciPy name and parameters. simplydata also writes each answer in a sentence with the same call in R (\code{pbinom(3,\allowbreak{} size = 10,\allowbreak{} prob = 0.\allowbreak{}5)}).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{table.fit\_distribution\_to()}{word:table.fit-distribution-to}
 Fit a distribution to a column by maximum likelihood; gives back the fitted distribution.
 
@@ -11297,7 +11727,8 @@ fit.turn_into_table()
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_distribution_to("sea_level", distribution="gev")
-f <- extRemes::fevd(x, type = "GEV", method = "MLE")   # (1)
+f <- extRemes::fevd(x, type = "GEV", method = "MLE",   # (1)
+                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
 p <- f$results$par
 list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
 \end{lstlisting}
@@ -11316,7 +11747,8 @@ list(location = p[["location"]], scale = p[["scale"]], shape = p[["shape"]])
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # fit_distribution_to("excess", distribution="generalised pareto") on the rain above 20
-f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE")   # (1)
+f <- extRemes::fevd(x, threshold = 20, type = "GP", method = "MLE",   # (1)
+                    optim.args = list(method = "BFGS", control = list(reltol = 1e-14, maxit = 1e5)))
 p <- f$results$par
 list(scale = p[["scale"]], shape = p[["shape"]])
 \end{lstlisting}
@@ -11441,7 +11873,8 @@ For counts: the smallest count with at least that percent at or below it (R qbin
 \code{percent=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{SciPy (scipy.stats frozen distributions: cdf, sf, ppf, isf, pdf, pmf, stats, rvs)}
+\wordfield{Why this method}{\hyperref[basis:dist.find-percentile]{How simplydata chooses methods}, page \pageref{basis:dist.find-percentile}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{norm()}, \code{isf()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11449,6 +11882,19 @@ dist = sdata.distribution("normal", average=50, standard_deviation=10)
 dist.find_percentile(95)
 dist.find_percentile([5, 50, 95])
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+from scipy import stats
+dist = stats.norm(loc=50, scale=10)
+# find_percentile(percent=95)
+dist.isf(1 - 0.95)              # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the percent is turned into a share (95 \% is 0.95). Above the middle simplydata asks for the value with 5 \% above it (isf), which stays accurate far out in the upper tail; below the middle it uses \code{ppf()}. For counts it is the smallest count with at least that share at or below it, as R \code{qbinom()}.}
+\undertext{simplydata also says the value in a sentence, with the same call in R (\code{qnorm(0.\allowbreak{}95,\allowbreak{} mean = 50,\allowbreak{} sd = 10)}). A list of percents gives one value for each.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{dist.find\_cut\_off()}{word:dist.find-cut-off}
 The value with this chance above it (or below it): critical values.
 
@@ -11662,7 +12108,7 @@ the data, from \code{prior\_\allowbreak{}summary()}), each effect as the posteri
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.explain]{How simplydata chooses methods}, page \pageref{basis:table.explain}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (OLS; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes; statsmodels stats.mediation.Mediation for \code{through=} (as R mediation::mediate)}
+\wordfield{Underneath}{statsmodels (OLS by QR, with the standard errors as R \code{summary.\allowbreak{}lm()} takes them: chol2inv of the QR factor, R's method done with NumPy and LAPACK dpotri; GLM for yes/no and counts, as R glm; MixedLM for \code{grouped\_\allowbreak{}by=}; GEE for \code{effects=\textquotedbl{}for the whole population\textquotedbl{}}, as R geepack::geeglm; MICEData to fill in empty cells; \code{eval\_\allowbreak{}measures} aic and bic and McFadden's pseudo R squared, as R AIC, BIC and performance::\code{r2\_\allowbreak{}mcfadden}); R mgcv::gam for \code{curve\_\allowbreak{}for=} (needs R); R itself (needs R) for lme4::glmer, lme4::lmer with \code{own\_\allowbreak{}slope\_\allowbreak{}for=}, lmerTest for \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}satterthwaite\textquotedbl{}}, geepack for \code{within\_\allowbreak{}groups=\textquotedbl{}in time order\textquotedbl{}} and GEE with \code{out\_\allowbreak{}of=}, car::Anova and effectsize for \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, sandwich::vcovHC for \code{robust\_\allowbreak{}errors=True} with yes/no and counts, and mice::pool for multiple imputation; R performance::\code{r2\_\allowbreak{}nakagawa} for the R squared of every \code{grouped\_\allowbreak{}by=} model; statsmodels WLS and \code{GLM(var\_\allowbreak{}weights=)} for \code{weights=}, RLM for \code{giving\_\allowbreak{}outliers\_\allowbreak{}less\_\allowbreak{}weight=}, ConditionalLogit for \code{matched\_\allowbreak{}by=}, \code{GLM(cov\_\allowbreak{}type=\textquotedbl{}HC0\textquotedbl{})} for risk ratios; patsy cr for \code{with\_\allowbreak{}knots=}; SciPy bootstrap for \code{interval\_\allowbreak{}by=\textquotedbl{}bootstrap\textquotedbl{}}; R stats::confint for \code{interval\_\allowbreak{}by=\textquotedbl{}profile\textquotedbl{}}, lme4 for \code{crossed\_\allowbreak{}with=}, pscl::zeroinfl and pscl::hurdle for the zero outcomes; statsmodels stats.mediation.Mediation for \code{through=} (as R mediation::mediate)}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -11693,6 +12139,7 @@ fit = sm.WLS(df["price"], X, weights=df["count"]).fit()     # (1)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) precision weights, as R \code{lm(weights =)}: statsmodels WLS; for the other outcomes \code{GLM(var\_\allowbreak{}weights=)}. Not \code{freq\_\allowbreak{}weights}, which would change the degrees of freedom.}
+\undertext{\textit{In Python only:} simplydata's standard errors of a least-squares fit are R's method, \code{summary.\allowbreak{}lm()}'s \code{chol2inv()} of the QR factor, done with NumPy's QR and LAPACK's dpotri (approved by Manish 2026-11-22); statsmodels' WLS above gives the same numbers here, to 1e-9.}
 \undertext{Rows with weight 0 are left out first, as R does (statsmodels would count them in the degrees of freedom); negative weights are refused. simplydata also writes each effect as a sentence with its interval and p-value, and names the method.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -12168,7 +12615,7 @@ A formula with one = sign is fitted as \code{table.\allowbreak{}fit\_\allowbreak
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-predicted-column]{How simplydata chooses methods}, page \pageref{basis:table.add-predicted-column}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (the same model as \code{table.\allowbreak{}explain}; \code{get\_\allowbreak{}prediction} for \code{interval=} and \code{for\_\allowbreak{}new\_\allowbreak{}rows=})}
+\wordfield{Underneath}{statsmodels \code{ols().\allowbreak{}fit()}, \code{assign()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12176,6 +12623,21 @@ table = sdata.table(sdata.get_example("school"))
 table.add_predicted_column("marks", using=["hours", "breakfast"], interval=95)
 table.show_first_rows(5)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import statsmodels.formula.api as smf
+df = sdata.get_example("school")
+# add_predicted_column("marks", using=["hours", "sleep"])
+fit = smf.ols("marks ~ hours + sleep", data=df).fit()            # (1)
+df.assign(**{"predicted marks": fit.fittedvalues})               # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the same model as \code{explain()}: least squares for numbers (R \code{fitted(lm(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}); \code{outcome=} chooses the others (logistic for yes or no; Poisson, quasi-Poisson or negative binomial for counts; Gamma for positive numbers).}
+\undertext{(2) rows with an empty cell in a column the model uses are left out of the fit and stay empty (assign lines the fitted values up by row).}
+\undertext{\code{interval=95} adds the ends of the 95 \% confidence interval (\code{for\_\allowbreak{}new\_\allowbreak{}rows=True}: the prediction interval), from statsmodels \code{get\_\allowbreak{}prediction()}. simplydata also says which model it fitted on how many rows.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_model\_averages\_of()}{word:table.find-model-averages-of}
 The average the model gives for each group, once the other columns are allowed for.
 
@@ -12562,7 +13024,7 @@ Principal component analysis turns many related columns into new columns PC1, PC
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-principal-components]{How simplydata chooses methods}, page \pageref{basis:table.add-principal-components}: the default, the evidence and the checks.}
-\wordfield{Underneath}{statsmodels (multivariate.pca.PCA, by singular value decomposition)}
+\wordfield{Underneath}{statsmodels \code{select\_\allowbreak{}dtypes().\allowbreak{}dropna()}, \code{mean()}, \code{std()}, \code{PCA()}, \code{sign()}, \code{abs().\allowbreak{}argmax()}, \code{join()}, \code{DataFrame()}, \code{to\_\allowbreak{}numpy()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -12572,6 +13034,28 @@ chart = table.start_chart()
 chart.draw_dots(x="PC1", y="PC2", colour="grazed")
 chart.save("meadow_pca.png")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{statsmodels}}
+\underlib{statsmodels}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+from statsmodels.multivariate.pca import PCA
+df = sdata.get_example("meadow")
+# add_principal_components(how_many=2)
+x = df.select_dtypes("number").dropna()                          # (1)
+z = (x - x.mean()) / x.std()                                     # (2)
+pca = PCA(z, ncomp=2, standardize=False, demean=False, normalize=False, method="svd")
+w = np.asarray(pca.loadings)
+w = w * np.sign(w[np.abs(w).argmax(axis=0), [0, 1]])             # (3)
+df.join(pd.DataFrame(z.to_numpy() @ w, index=x.index, columns=["PC1", "PC2"]))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) only rows with a number in every column are used; the other rows get empty PC cells.}
+\undertext{(2) every number column is put on the same scale first (mean 0, standard deviation with n - 1), as R \code{prcomp(scale.\allowbreak{} = TRUE)}; \code{same\_\allowbreak{}scale=False} only centres them (mean 0), as \code{prcomp(scale.\allowbreak{} = FALSE)}.}
+\undertext{(3) the sign of a component is arbitrary and differs between computers, so each one is turned so its biggest weight is positive: the same scores on every computer.}
+\undertext{simplydata also prints how much of the spread each component holds and the columns it weighs most on.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.find\_principal\_components\_of()}{word:table.find-principal-components-of}
 A table of the principal components: how much spread each explains and the weight of each column.
 
@@ -13649,8 +14133,10 @@ list(level = rl[2], low = p[1], high = p[3])
 \underlib{R (simplydata runs this in R for you, through rpy2)}
 \begin{lstlisting}[style=underr]
 # find_return_levels_of("rain", once_in=[10], values_above=20, sorted_by="date")
-f <- extRemes::fevd(x, threshold = 20, type = "GP",
-                    time.units = "days")                                   # (1)
+f <- extRemes::fevd(x, threshold = 20, type = "GP", time.units = "days",  # (1)
+                    optim.args = list(method = "BFGS",
+                                      control = list(reltol = 1e-12,
+                                                     maxit = 10000)))   # (3)
 rl <- extRemes::return.level(f, return.period = 10, do.ci = TRUE)
 w <- rl[3] - rl[1]
 p <- extRemes::ci.fevd(f, type = "return.level", return.period = 10,
@@ -13665,6 +14151,7 @@ list(level = rl[2], low = p[1], high = p[3])
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) the readings per year from the dates: daily readings are time.units = \code{\textquotedbl{}days\textquotedbl{}} (365.25 a year).}
 \undertext{(2) profile-likelihood intervals (Coles 2001, section 3.3.3): the normal approximation of \code{return.\allowbreak{}level()} is too narrow and too symmetric for long return periods; the search range starts at the normal interval (R extRemes needs one).}
+\undertext{(3) a tighter stopping rule for optim (reltol 1e-12) than its default, so that the fit has converged; the method is the same.}
 \undertext{\textit{In Python only:} SciPy fits the GEV (genextreme, with c = -xi) and the generalised Pareto curve, but gives no return levels and no profile-likelihood intervals, so the numbers come from R extRemes.}
 \undertext{simplydata also gives the extremal index (extRemes::extremalindex) and, below 0.7, says the values above come in runs; it does not decluster without asking.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -14357,7 +14844,8 @@ table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"]
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                      n2i = n2, drop00 = TRUE)                    # (1)
 f <- metafor::rma(yi, vi, data = e, method = "REML",          # (2)
-                  test = "adhoc")                              # (3)
+                  test = "adhoc",                              # (3)
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))   # (5)
 p <- predict(f, transf = exp)                                  # (4)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
      tau2 = f$tau2, I2 = f$I2, pi_low = p$pi.lb, pi_high = p$pi.ub)
@@ -14371,6 +14859,7 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
 \undertext{(2) random effects with REML, metafor's default and the best of the usual estimators of the between-study spread (Veroniki et al. 2016).}
 \undertext{(3) Hartung-Knapp intervals and p-values with the ad hoc rule: never narrower than the normal (z) interval; \code{interval\_\allowbreak{}by=\textquotedbl{}normal\textquotedbl{}} gives the classic interval.}
 \undertext{(4) the result shown back as a ratio, with the prediction interval (t with k - 1 degrees of freedom under Hartung-Knapp).}
+\undertext{(5) a tighter stopping rule than metafor's default (1e-5) for the iterative between-study spread (REML, Paule-Mandel), so that it has converged; the method is the same.}
 \undertext{\textit{In Python only:} statsmodels has fixed and random effects (DerSimonian-Laird, Paule-Mandel) but no REML, no prediction interval, no Egger or trim-and-fill, no meta-regression and no Peto, so the numbers come from R metafor.}
 \undertext{simplydata also says the combined effect, the prediction interval, tau (as a factor for ratios) and I-squared in words, gives each p-value as a count of sets of studies, and adds the notes on small-study effects from 10 studies.}
 \undertext{\textit{Checked:} a test runs both and compares the numbers of the result table (on a pandas and on a Polars table).}
@@ -14382,7 +14871,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval,
 # combine_studies(names="study", estimates="odds ratio")
 e <- metafor::conv.wald(out = est, ci.lb = lo, ci.ub = hi,
                         level = 95, transf = log)                 # (1)
-f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc")
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 p <- predict(f, transf = exp)                                      # (2)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \end{lstlisting}
@@ -14463,7 +14953,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \begin{lstlisting}[style=underr]
 # combine_studies(..., interval_by="normal")
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
-f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z")    # (1)
+f <- metafor::rma(yi, vi, data = e, method = "REML", test = "z",    # (1)
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 p <- predict(f, transf = exp)
 list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 \end{lstlisting}
@@ -14485,7 +14976,8 @@ list(b = p$pred, low = p$ci.lb, high = p$ci.ub, p = f$pval)
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
 g <- c("alternate", "random", "systematic")
 f <- lapply(g, function(x) metafor::rma(yi, vi, data = e,
-            subset = allocation == x, test = "z"))                # (1)
+            subset = allocation == x, test = "z",                 # (1)
+            control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000)))
 b <- sapply(f, function(m) m$b[1]); s <- sapply(f, function(m) m$se)
 q <- metafor::rma(b, sei = s, mods = ~ factor(g), method = "EE")  # (2)
 list(Q = q$QM, p = q$QMp)
@@ -14508,7 +15000,8 @@ list(Q = q$QM, p = q$QMp)
 # combine_studies(..., using=["latitude"])
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2, n2i = n2)
 f <- metafor::rma(yi, vi, mods = ~ latitude, data = e,            # (1)
-                  method = "REML", test = "adhoc")
+                  method = "REML", test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 list(b = f$b[2], low = f$ci.lb[2], high = f$ci.ub[2], p = f$pval[2])
 \end{lstlisting}
 \underlib{Python (with what R gives back)}
@@ -14585,7 +15078,8 @@ chart.save("draw_funnel_plot.png")
 # draw_funnel_plot(x="estimate", y="standard error"), after combine_studies
 e <- metafor::escalc(measure = "RR", ai = e1, n1i = n1, ci = e2,
                      n2i = n2, drop00 = TRUE)
-f <- metafor::rma(yi, vi, data = e, test = "adhoc")
+f <- metafor::rma(yi, vi, data = e, test = "adhoc",
+                  control = list(tol = 1e-10, threshold = 1e-10, maxiter = 1000))
 list(rr = exp(e$yi), se = sqrt(e$vi), centre = exp(f$b[1]))
 \end{lstlisting}
 \underlib{matplotlib (with what R gives back)}
@@ -14627,12 +15121,27 @@ Give \code{to=} (the last date, included when a step lands on it) or \code{how\_
 \code{fast=} & normally \code{False}\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (Timestamp, DateOffset)}
+\wordfield{Why this method}{\hyperref[basis:sdata.make-run-of-dates]{How simplydata chooses methods}, page \pageref{basis:sdata.make-run-of-dates}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{Timestamp()}, \code{DateOffset()}, \code{range()}, \code{DataFrame()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+first = pd.Timestamp("2026-01-30")
+# make_run_of_dates("2026-01-30", how_many=4, every="month")
+dates = [first + pd.DateOffset(months=k) for k in range(4)]      # (1)
+pd.DataFrame({"date": dates})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each month is counted from the first date, so the dates stay on the 30th, or on the month's last day when it is shorter (30 January, 28 February, 30 March, 30 April). pandas' \code{date\_\allowbreak{}range(freq=DateOffset(months=1))} steps from the date before instead and stays on the 28th; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} runs over into March.}
+\undertext{simplydata also says how many dates it made. \code{to=} gives the last date instead of \code{how\_\allowbreak{}many=}, and \code{fast=True} gives a Polars table.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
 \wordentry{table.add\_missing\_dates()}{word:table.add-missing-dates}
 Add a row for every date that is missing from a regular run of dates (other cells empty).
 
@@ -14650,7 +15159,7 @@ The table comes back sorted by the groups and the dates. As pandas reindex / Pol
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-missing-dates-every-eq]{How simplydata chooses methods}, page \pageref{basis:table.add-missing-dates-every-eq}: the default, the evidence and the checks.}
-\wordfield{Underneath}{pandas (dates by DateOffset; concat), as reindex / Polars upsample}
+\wordfield{Underneath}{pandas \code{groupby()}, \code{date\_\allowbreak{}range()}, \code{min()}, \code{max()}, \code{set\_\allowbreak{}index().\allowbreak{}reindex().\allowbreak{}rename\_\allowbreak{}axis().\allowbreak{}reset\_\allowbreak{}index()}, \code{append()}, \code{assign()}, \code{concat()} \textperiodcentered{} Polars \code{sort().\allowbreak{}upsample()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -14658,6 +15167,33 @@ table = sdata.table(sdata.get_example("river"))
 table.add_missing_dates("date", every="day", for_each_group_in="station")
 table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("river")
+# add_missing_dates("date", every="day", for_each_group_in="station")
+parts = []
+for station, rows in df.groupby("station", sort=True, dropna=False):      # (1)
+    days = pd.date_range(rows["date"].min(), rows["date"].max(), freq="D")  # (2)
+    full = rows.set_index("date").reindex(days).rename_axis("date").reset_index()
+    parts.append(full.assign(station=station))
+pd.concat(parts, ignore_index=True)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("river"))
+# add_missing_dates("date", every="day", for_each_group_in="station")
+df.sort("station", "date").upsample("date", every="1d", group_by="station",   # (1) (2)
+                                    maintain_order=True)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the table comes back sorted by the groups, then the dates; the group's name is copied into the new rows, and rows with an empty group cell are a group of their own (\code{dropna=False}).}
+\undertext{(2) each group's own run, from its first to its last date: no rows are added before or after (\code{between=} adds them).}
+\undertext{Without \code{every=} simplydata uses the most common step between the dates and says so. It stops with a message when a date is repeated or does not fall on the steps. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Smoothing and trend}{group:Smoothing-and-trend}
 \wordentry{table.add\_smoothed\_column()}{word:table.add-smoothed-column}
 Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
@@ -16199,7 +16735,8 @@ other can be a simplydata table, a pandas or Polars table, or a file name. A col
 \code{keep=} & normally \code{\textquotedbl{}matching rows\textquotedbl{}}\\
 \end{optiontable}
 
-\wordfield{Underneath}{narwhals, which runs the step in pandas or Polars (whichever holds the table)}
+\wordfield{Why this method}{\hyperref[basis:table.join-with]{How simplydata chooses methods}, page \pageref{basis:table.join-with}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{DataFrame()}, \code{merge()} \textperiodcentered{} Polars \code{DataFrame()}, \code{join()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16208,6 +16745,28 @@ ages = {"name": ["Asha", "Ben"], "age": [12, 13]}
 table.join_with(ages, using="name", keep="all rows from this table")
 table.show_first_rows()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = sdata.get_example("marks")
+ages = pd.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
+# join_with(ages, using="name", keep="all rows from this table")
+df.merge(ages, on="name", how="left", suffixes=("", "_other"))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+ages = pl.DataFrame({"name": ["Asha", "Ben"], "age": [12, 13]})
+# join_with(ages, using="name", keep="all rows from this table")
+df.join(ages, on="name", how="left", suffix="_other")   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a column found in both tables (other than \code{using=}) keeps its name in this table and gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} in the other table's copy.}
+\undertext{\code{keep=\textquotedbl{}matching rows\textquotedbl{}} (the default) is an inner join and \code{\textquotedbl{}all rows from both\textquotedbl{}} a full join. On a Polars table the order of the rows is Polars' own (the join is given no \code{maintain\_\allowbreak{}order=}). simplydata also says how many rows found a match, and warns when a name appears twice in the other table (rows would be repeated).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_rows\_from()}{word:table.add-rows-from}
 Put the rows of another table under this one; columns are matched by their names.
 
@@ -16274,7 +16833,7 @@ Take the last step back. \code{table.\allowbreak{}undo()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the table}
+\wordfield{Underneath}{simplydata's own: it keeps the table as it was before each step and puts back the last one. In pandas or Polars you keep a copy yourself before a step (before = \code{df.\allowbreak{}copy()}) and go back to it.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16283,12 +16842,13 @@ table.keep_rows_where("marks", is_above=50)
 table.undo()
 print(table)
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it keeps the table as it was before each step and puts back the last one. In pandas or Polars you keep a copy yourself before a step (before = \code{df.\allowbreak{}copy()}) and go back to it.}
 \wordentry{table.show\_steps()}{word:table.show-steps}
 List every step you did to this table, in order. \code{table.\allowbreak{}show\_\allowbreak{}steps()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{simplydata itself: it keeps every version of the table}
+\wordfield{Underneath}{simplydata's own: it writes down each step as you do it and lists them. pandas and Polars keep no list of steps; your script is the record.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16297,6 +16857,7 @@ table.keep_rows_where("marks", is_above=50)
 table.sort_by("marks")
 table.show_steps()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it writes down each step as you do it and lists them. pandas and Polars keep no list of steps; your script is the record.}
 \wordentry{table.start\_again()}{word:table.start-again}
 Go back to the table as it was at the start. \code{table.\allowbreak{}start\_\allowbreak{}again()}
 
@@ -16322,7 +16883,8 @@ File types: \code{.\allowbreak{}xlsx} (Excel), \code{.\allowbreak{}csv}, \code{.
 \code{file\_\allowbreak{}name} & needed\\
 \end{optiontable}
 
-\wordfield{Underneath}{pandas (\code{to\_\allowbreak{}excel}, \code{to\_\allowbreak{}csv} ...) or Polars, whichever holds the table}
+\wordfield{Why this method}{\hyperref[basis:table.save]{How simplydata chooses methods}, page \pageref{basis:table.save}: the default, the evidence and the checks.}
+\wordfield{Underneath}{pandas \code{TemporaryDirectory()}, \code{to\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()} \textperiodcentered{} Polars \code{TemporaryDirectory()}, \code{write\_\allowbreak{}csv()}, \code{path.\allowbreak{}join()}, \code{read\_\allowbreak{}csv()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16331,12 +16893,43 @@ table.keep_rows_where("marks", is_above=50)
 table.save("good_marks.xlsx")
 table.save("good_marks.csv")
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import pandas as pd
+df = sdata.get_example("marks")
+with tempfile.TemporaryDirectory() as folder:
+    # save as marks.csv
+    df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
+    saved = pd.read_csv(os.path.join(folder, "marks.csv"))
+saved
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import os
+import tempfile
+import pandas as pd
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+with tempfile.TemporaryDirectory() as folder:
+    # save as marks.csv
+    df.write_csv(os.path.join(folder, "marks.csv"))
+    saved = pd.read_csv(os.path.join(folder, "marks.csv"))
+saved
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) no row labels are written (\code{index=False}): the file holds only your columns.}
+\undertext{The end of the file name chooses the type: \code{.\allowbreak{}xlsx} (pandas \code{to\_\allowbreak{}excel}), \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} too. The test saves both files in a folder that is deleted afterwards and reads them back.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.start\_chart()}{word:table.start-chart}
 Start a chart from this table. chart = \code{table.\allowbreak{}start\_\allowbreak{}chart()}
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{matplotlib and seaborn (the chart is drawn from a pandas copy of the table)}
+\wordfield{Underneath}{seaborn \code{boolean indexing}, \code{barplot()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16347,6 +16940,24 @@ chart.draw_bars(x="name", y="marks")
 chart.rotate_labels_x()
 chart.save("maths_marks.png")
 \end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_table_start_chart.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same bars, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = sdata.get_example("marks")
+maths = df[df["subject"] == "Maths"]
+# start_chart(): the figure and its axes, from the table as it is now
+fig, ax = plt.subplots()
+sns.barplot(maths, x="name", y="marks", errorbar=None, ax=ax)
+\end{lstlisting}
+\undertext{The chart uses the table after all the steps so far (here only the Maths rows). simplydata's paper look is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the bars, the axis labels and the tick labels (the chart's data, not its pixels) (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.as\_pandas()}{word:table.as-pandas}
 Give back the table as a plain pandas table, for other Python tools. df = \code{table.\allowbreak{}as\_\allowbreak{}pandas()}
 
@@ -16354,7 +16965,7 @@ Only needed when another library wants pandas: simplydata words never need it.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{pandas}
+\wordfield{Underneath}{Polars \code{to\_\allowbreak{}pandas()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16363,6 +16974,17 @@ table.keep_rows_where("marks", is_above=50)
 df = table.as_pandas()
 print(type(df))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{Polars}}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.from_pandas(sdata.get_example("marks"))
+# as_pandas()
+df.to_pandas()
+\end{lstlisting}
+\undertext{A table that is already pandas comes back as it is; a Polars table is turned into pandas.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.as\_polars()}{word:table.as-polars}
 Give back the table as a plain Polars table, for other Python tools. df = \code{table.\allowbreak{}as\_\allowbreak{}polars()}
 
@@ -16370,7 +16992,7 @@ Needs Polars (pip install simplydata[fast]). simplydata words never need it.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{Polars}
+\wordfield{Underneath}{pandas \code{from\_\allowbreak{}pandas()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16379,6 +17001,17 @@ table.keep_rows_where("marks", is_above=50)
 df = table.as_polars()
 print(type(df))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = sdata.get_example("marks")
+# as_polars()
+pl.from_pandas(df)
+\end{lstlisting}
+\undertext{A table that is already Polars comes back as it is; a pandas table is turned into Polars.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unchapter{Number words}{family:numbers}
 Steps on numbers, \code{nums = sdata.numbers([12, 15, 9, 20, 14])}, on grids of numbers, \code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])}, and on systems, \code{system = sdata.system("1 / (s**2 + 2*s + 5)")}.
 \unsection{Numbers: make and look}{group:Numbers-make-and-look}
@@ -16402,7 +17035,8 @@ None or NaN in a list is an empty (missing) value.
 \code{channel=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:sdata.numbers]{How simplydata chooses methods}, page \pageref{basis:sdata.numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{floor()}, \code{arange()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16411,6 +17045,19 @@ print(nums)
 print(sdata.numbers(1, to=10))
 print(sdata.numbers(0, to=1, how_many=5))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# numbers(0, to=100, step=25)
+n = int(np.floor((100 - 0) / 25 + 1e-9)) + 1     # (1)
+0 + 25 * np.arange(n)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. \code{np.\allowbreak{}arange(0,\allowbreak{} 125,\allowbreak{} 25)} gives the same here, but with a decimal step np.arange can overshoot the end: \code{np.\allowbreak{}arange(1,\allowbreak{} 1.\allowbreak{}4,\allowbreak{} 0.\allowbreak{}1)} has 1.4 in it.}
+\undertext{\code{sdata.\allowbreak{}numbers([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])} is \code{np.\allowbreak{}array([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])}, and \code{how\_\allowbreak{}many=} is \code{np.\allowbreak{}linspace(0,\allowbreak{} 1,\allowbreak{} 5)}. None in a list becomes an empty value (nan).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{sdata.make\_random\_numbers()}{word:sdata.make-random-numbers}
 Make random numbers; give \code{with\_\allowbreak{}seed=} to get the same numbers every time.
 
@@ -16433,7 +17080,8 @@ numbers that bunch around the average in a bell shape (a normal distribution); a
 \code{columns=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (random.default\_rng)}
+\wordfield{Why this method}{\hyperref[basis:sdata.make-random-numbers]{How simplydata chooses methods}, page \pageref{basis:sdata.make-random-numbers}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{integers()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16442,6 +17090,20 @@ dice.show()
 heights = sdata.make_random_numbers(how_many=100, average=150, standard_deviation=8, with_seed=1)
 heights.find_average()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
+rng = np.random.default_rng(1)                 # (1)
+rng.integers(1, 6, 10, endpoint=True)          # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) NumPy's random generator (\code{default\_\allowbreak{}rng}) with the seed you give, the way NumPy recommends; the old \code{np.\allowbreak{}random.\allowbreak{}seed()} gives other numbers.}
+\undertext{(2) both ends are included, like rolling a dice (\code{endpoint=True}); NumPy's own default leaves out 6.}
+\undertext{\code{average=} with \code{standard\_\allowbreak{}deviation=} is \code{rng.\allowbreak{}normal()}, and \code{between=} without \code{whole\_\allowbreak{}numbers=} is \code{rng.\allowbreak{}uniform()}. Without \code{with\_\allowbreak{}seed=} the numbers change every time.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.show()}{word:nums.show}
 Show every number. \code{nums.\allowbreak{}show()}
 
@@ -16731,7 +17393,8 @@ Conditions (the same as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allow
 \code{is\_\allowbreak{}empty=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy}
+\wordfield{Why this method}{\hyperref[basis:nums.keep-each-number-that]{How simplydata chooses methods}, page \pageref{basis:nums.keep-each-number-that}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{boolean indexing}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -16739,6 +17402,19 @@ nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.keep_each_number_that(is_above=10)
 nums.show()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, np.nan, 9, 20, 14])
+# keep_each_number_that(is_above=12)
+values[values > 12]                  # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{is\_\allowbreak{}above=} means strictly above (\textgreater{}); \code{is\_\allowbreak{}at\_\allowbreak{}least=} is \textgreater{}=. An empty value is never above a number, so it goes too (only \code{is\_\allowbreak{}empty=True} keeps empty values).}
+\undertext{simplydata also says how many numbers it kept, and keeps the numbers before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.remove\_each\_number\_that()}{word:nums.remove-each-number-that}
 Remove the numbers that match one condition (the opposite of \code{keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that}).
 
@@ -16975,13 +17651,27 @@ The average (mean) of the numbers; empty values are skipped.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{NumPy (functions that skip empty values, such as nanmean)}
+\wordfield{Why this method}{\hyperref[basis:nums.find-average]{How simplydata chooses methods}, page \pageref{basis:nums.find-average}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{nanmean()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_average()
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, np.nan, 9, 20, 14])
+# find_average()
+np.nanmean(values)                   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty values are skipped (np.nanmean); NumPy's np.mean would give nan.}
+\undertext{simplydata also says the average in a sentence, with how many numbers it used.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.find\_median()}{word:nums.find-median}
 The middle number once the numbers are sorted; empty values are skipped.
 
@@ -17081,13 +17771,26 @@ Uses NumPy's usual \code{\textquotedbl{}linear\textquotedbl{}} method, the same 
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:nums.find-percentile]{How simplydata chooses methods}, page \pageref{basis:nums.find-percentile}: the default, the evidence and the checks.}
-\wordfield{Underneath}{NumPy (nanpercentile, the usual \code{\textquotedbl{}linear\textquotedbl{}} method, as pandas and R)}
+\wordfield{Underneath}{NumPy \code{nanpercentile()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 nums = sdata.numbers([12, 15, 9, 20, 14])
 nums.find_percentile(90)
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+values = np.array([12, 15, 9, 20, 14])
+# find_percentile(percent=90)
+np.nanpercentile(values, 90)         # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) NumPy's usual \code{\textquotedbl{}linear\textquotedbl{}} method, the same as pandas' quantile and R's \code{quantile(type = 7)}; empty values are skipped (nanpercentile).}
+\undertext{simplydata also says the percentile in a sentence. \code{find\_\allowbreak{}percentile(50)} is the median.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.count\_each()}{word:nums.count-each}
 Each different number, how many times it appears, and its percent, as a table.
 
@@ -17119,7 +17822,8 @@ Make a grid of numbers in rows and columns.
 \code{filled\_\allowbreak{}with=} & normally \code{0}\\
 \end{optiontable}
 
-\wordfield{Underneath}{NumPy (a two-dimensional array)}
+\wordfield{Why this method}{\hyperref[basis:sdata.number-grid]{How simplydata chooses methods}, page \pageref{basis:sdata.number-grid}: the default, the evidence and the checks.}
+\wordfield{Underneath}{NumPy \code{array().\allowbreak{}reshape()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17127,6 +17831,18 @@ grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
 print(grid)
 print(sdata.number_grid(rows=2, columns=3, filled_with=0))
 \end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+# number_grid([1, 2, 3, 4, 5, 6], columns=3)
+np.array([1, 2, 3, 4, 5, 6]).reshape(-1, 3)    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the list is cut into rows, row after row (NumPy's order \code{\textquotedbl{}C\textquotedbl{}}): 1 2 3, then 4 5 6.}
+\undertext{\code{sdata.\allowbreak{}number\_\allowbreak{}grid([[1,\allowbreak{} 2,\allowbreak{} 3],\allowbreak{} [4,\allowbreak{} 5,\allowbreak{} 6]])} is \code{np.\allowbreak{}array([[1,\allowbreak{} 2,\allowbreak{} 3],\allowbreak{} [4,\allowbreak{} 5,\allowbreak{} 6]])}, and \code{rows=} with \code{columns=} and \code{filled\_\allowbreak{}with=} is \code{np.\allowbreak{}full()}. simplydata stops with a message when the numbers cannot fill the grid exactly.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.make\_number\_grid()}{word:nums.make-number-grid}
 Make a NEW grid from these numbers, filled row by row. grid = \code{nums.\allowbreak{}make\_\allowbreak{}number\_\allowbreak{}grid(columns=3)}
 
@@ -17901,12 +18617,13 @@ For more about one word, type \code{sdata.\allowbreak{}help(\textquotedbl{}draw\
 
 \wordfield{Options}{none: just write the empty brackets.}
 
-\wordfield{Underneath}{plain Python: simplydata reads its own word list and docstrings}
+\wordfield{Underneath}{simplydata's own: it prints its own word list, group by group, with a short example of each.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 sdata.show_all_words()
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it prints its own word list, group by group, with a short example of each.}
 \wordentry{sdata.help()}{word:sdata.help}
 Explain one word: what it does, its options and an example you can run. \code{sdata.\allowbreak{}help(\textquotedbl{}draw\_\allowbreak{}bars\textquotedbl{})}
 
@@ -17917,7 +18634,7 @@ Explain one word: what it does, its options and an example you can run. \code{sd
 \code{word=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{plain Python: simplydata reads its own word list and docstrings}
+\wordfield{Underneath}{simplydata's own: it reads its own word list and the words' docstrings, in plain Python. Python's \code{help()} shows a function's docstring too.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -17926,6 +18643,7 @@ sdata.help("show=")
 sdata.help("keep_rows_where")
 sdata.help("find_average")
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: it reads its own word list and the words' docstrings, in plain Python. Python's \code{help()} shows a function's docstring too.}
 \wordentry{sdata.show\_lesson()}{word:sdata.show-lesson}
 A lesson: an example to run, what each line does, and a task. \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(1)}
 
@@ -18016,7 +18734,7 @@ the one you started, else \code{\textquotedbl{}python\textquotedbl{}}: \code{sda
 \code{track=} & \\
 \end{optiontable}
 
-\wordfield{Underneath}{plain Python: the days are in simplydata/\code{learn\_\allowbreak{}days}.py, and the progress is a small JSON file on your computer (json, pathlib)}
+\wordfield{Underneath}{simplydata's own: the 30 days are written in simplydata (\code{learn\_\allowbreak{}days}.py) and printed in plain Python; nothing is computed.}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -18024,6 +18742,7 @@ sdata.show_day()
 sdata.show_day(5)
 sdata.show_day(1, track="beginner")
 \end{lstlisting}
+\undertext{\textit{Nothing underneath:} simplydata's own: the 30 days are written in simplydata (\code{learn\_\allowbreak{}days}.py) and printed in plain Python; nothing is computed.}
 \wordentry{sdata.show\_answers()}{word:sdata.show-answers}
 The answers to a day's warm-up questions, and a worked answer to its task. \code{sdata.\allowbreak{}show\_\allowbreak{}answers(5)}
 
@@ -19226,14 +19945,14 @@ table.compare_survival(time="time", event="event", value="first_esbl", competing
 \solutionanswer{\code{competing\_\allowbreak{}with=}. Gray's test: chi-square 8.10, p = 0.004; differences this big would turn up in about 4 of 1000 studies if the wards truly had the same chance of ESBL.}
 \par\noindent{\small\sffamily\hyperref[lesson:29]{Back to lesson 29}}
 \unsection{Lesson 30: Combining studies (meta-analysis)}{solutions:30}
-\solutiontask{1}{37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (real data, Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?}
+\solutiontask{1}{37 studies of passive smoking and lung cancer give an odds ratio with its 95 \% interval (made up, modelled on Hackshaw et al. 1997). Fill in the blank: table = \code{sdata.\allowbreak{}table(sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}passive\_\allowbreak{}smoking\textquotedbl{}))}, then \code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}study\textquotedbl{},\allowbreak{} estimates=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})}. What is the combined odds ratio?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("passive_smoking"))
 table.combine_studies(names="study", estimates="odds ratio")
 \end{lstlisting}
 \printedoutput{output/solution30_task1.txt}
-\solutionanswer{\code{estimates=\textquotedbl{}odds ratio\textquotedbl{}}: simplydata finds the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it and combines the odds ratios on the log scale: about 1.24 (95 \% CI 1.13 to 1.38).}
+\solutionanswer{\code{estimates=\textquotedbl{}odds ratio\textquotedbl{}}: simplydata finds the columns \code{\textquotedbl{}odds ratio 95 \% CI low\textquotedbl{}} and \code{\textquotedbl{}.\allowbreak{}.\allowbreak{}.\allowbreak{} high\textquotedbl{}} next to it and combines the odds ratios on the log scale: about 1.33 (95 \% CI 1.23 to 1.43).}
 \solutiontask{2}{In the BCG trials, change only \code{show=}: combine odds ratios (\code{show=\textquotedbl{}odds ratios\textquotedbl{}}) instead of risk ratios. Is the answer close?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19259,7 +19978,7 @@ table = sdata.table(sdata.get_example("passive_smoking"))
 table.combine_studies(names="study", estimates="odds ratio")
 \end{lstlisting}
 \printedoutput{output/solution30_task4.txt}
-\solutionanswer{The prediction interval: in a new setting like these studies, the true odds ratio would lie between about 0.90 and 1.71.}
+\solutionanswer{The prediction interval: in a new setting like these studies, the true odds ratio would lie between about 1.22 and 1.45.}
 \par\noindent{\small\sffamily\hyperref[lesson:30]{Back to lesson 30}}
 \unsection{Lesson 31: Diversity of a community}{solutions:31}
 \solutiontask{1}{Fill in the blank: \code{table.\allowbreak{}add\_\allowbreak{}diversity\_\allowbreak{}columns(columns=genes,\allowbreak{} show=\_\allowbreak{}\_\allowbreak{}\_\allowbreak{}\_\allowbreak{})} to add Chao1. How close is it to the richness seen?}
@@ -19352,14 +20071,14 @@ table.find_average_direction_of("current_direction", full_turn=360)
 \end{lstlisting}
 \printedoutput{output/solution33_task1.txt}
 \solutionanswer{\code{full\_\allowbreak{}turn=360}: a full turn is 360 degrees.}
-\solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level at Port Pirie.}
+\solutiontask{2}{Change only \code{once\_\allowbreak{}in=}: find the 50-year sea level.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("sea_levels"))
 table.find_return_levels_of("sea_level", once_in=[50], sorted_by="year")
 \end{lstlisting}
 \printedoutput{output/solution33_task2.txt}
-\solutionanswer{About 4.58 m once in 50 years (95 \% CI 4.42 to 4.98).}
+\solutionanswer{About 4.45 m once in 50 years (95 \% CI 4.34 to 4.69).}
 \solutiontask{3}{Say in words what a 100-year level means. Is it certain to happen in the next 100 years?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19419,7 +20138,7 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
                                  "married", "nodegree", "re74", "re75"], test_method="matching", effect_for=1)
 \end{lstlisting}
 \printedoutput{output/solution35_task1.txt}
-\solutionanswer{\code{effect\_\allowbreak{}for=1}: the group of the trained men (treat = 1). Without \code{match\_\allowbreak{}within=} every trained man is matched; race stays unbalanced (1.03), and a note says so.}
+\solutionanswer{\code{effect\_\allowbreak{}for=1}: the group of the trained men (treat = 1). Without \code{match\_\allowbreak{}within=} every trained man is matched; race stays unbalanced (0.52), and a note says so.}
 \solutiontask{2}{Change only one option of part 1: give the effect among the trained men with weighting (\code{effect\_\allowbreak{}for=1}). How does it compare with matching?}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19428,7 +20147,7 @@ table.compare_balanced_groups_of("re78", for_each_group_in="treat", allowing_for
                                  "married", "nodegree", "re74", "re75"], effect_for=1)
 \end{lstlisting}
 \printedoutput{output/solution35_task2.txt}
-\solutionanswer{1214 dollars more among the trained men (95 \% CI -350 to 2778): the same question as matching, a little smaller, and now race is balanced.}
+\solutionanswer{1321 dollars more among the trained men (95 \% CI 555 to 2088): the same question as matching, a little larger, and now race is balanced.}
 \solutiontask{3}{Say in words why the plain comparison of part 1 gave the wrong sign.}
 \begin{lstlisting}[style=py]
 import simplydata as sdata
@@ -19484,7 +20203,7 @@ table.check_model_of("marks", using=["hours"], test_method="bayesian", show="pri
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 321 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 142 follow the convention of the package named so that results match it, and 36 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 342 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 143 defaults rest on published guidelines or method comparisons, 159 follow the convention of the package named so that results match it, and 40 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an independent reviewer when they were designed, and in November 2026 every entry, with its references, was checked again by independent reviewers acting as hostile statistical referees; their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -19494,6 +20213,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \item \textbf{P5.} Be open: the printout names the method; every default can be changed with an option; the manual shows the code underneath; the reliability study checks the numbers; independent reviewers checked every default and its references (see 'How the defaults were reviewed').
 \end{enumerate}
 \unsection{Start, show and save}{basis-group:Start-show-and-save}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.get-example}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}get\_\allowbreak{}example()}}\par\nopagebreak
+\wordfield{Default}{Date columns are read as dates.}
+\wordfield{Alternatives}{\code{sdata.\allowbreak{}get\_\allowbreak{}example()} lists the tables.}
+\wordfield{Why (P5)}{Practice data: dates read as dates let the date words work at once. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.get-example]{page \pageref{word:sdata.get-example}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.get-example-from-r-package-eq}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}get\_\allowbreak{}example()} \code{from\_\allowbreak{}r\_\allowbreak{}package=}}\par\nopagebreak
 \wordfield{Default}{R itself loads the dataset of an installed R package (utils::data, from the data file that holds it); groups (factors) become text, R's NA empty cells, and row names that carry information a first column \code{\textquotedbl{}row name\textquotedbl{}}.}
 \wordfield{Alternatives}{Leave out \code{from\_\allowbreak{}r\_\allowbreak{}package=} for simplydata's own practice tables.}
@@ -19693,12 +20417,33 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{\code{log=True} with values at or below 0 is refused; \code{middle=} with \code{log=} or \code{steps=} is refused; an unknown name is refused with a list of colour-blind-safe scales; a rainbow scale (jet, rainbow, hsv ...) gets a note (once).}
 \wordfield{References}{Liu \& Heer 2018; Nu\~nez et al. 2018; Crameri et al. 2020; Harrower \& Brewer 2003}
 \wordfield{In the dictionary}{\hyperref[word:use-colour-scale]{page \pageref{word:use-colour-scale}}}
+\unsection{Tables: start and look}{basis-group:Tables-start-and-look}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.table}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}table()}}\par\nopagebreak
+\wordfield{Default}{The separator of a text file is guessed from the file.}
+\wordfield{Alternatives}{\code{separator=}, \code{decimal\_\allowbreak{}mark=}, \code{thousands\_\allowbreak{}mark=}, \code{empty\_\allowbreak{}values=}, \code{skip\_\allowbreak{}rows=}, \code{encoding=}.}
+\wordfield{Why (P5)}{Reading data: files from other countries use ; or tabs; every guess can be set by hand. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.table]{page \pageref{word:sdata.table}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.show-first-rows}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows()}}\par\nopagebreak
+\wordfield{Default}{Rows numbered from 1, the way people count; only the display changes.}
+\wordfield{Alternatives}{\code{as\_\allowbreak{}pandas()} gives the table with pandas' own row labels (from 0).}
+\wordfield{Why (P5)}{Showing data, not a statistical method: numbering from 1 matches the row numbers the other position words use (\code{keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position}, \code{remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position}). \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.show-first-rows]{page \pageref{word:table.show-first-rows}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.describe-columns}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}\par\nopagebreak
+\wordfield{Default}{Number columns get smallest, biggest and average; text columns the number of different values; empty cells (also blank text) are counted and left out; numbers are shown rounded to 2 decimals.}
+\wordfield{Alternatives}{\code{find\_\allowbreak{}summary\_\allowbreak{}of()} for more measures and full precision.}
+\wordfield{Why (P5)}{A first look at the data, not a statistical method; the rounding is only for reading. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:table.describe-columns]{page \pageref{word:table.describe-columns}}}
 \unsection{Choose rows}{basis-group:Choose-rows}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-rows-where}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where()}}\par\nopagebreak
 \wordfield{Default}{\code{is\_\allowbreak{}above=} means strictly above (\textgreater{}); rows with an empty cell in the column are left out, as pandas and Polars do.}
 \wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=} for \textgreater{}=; the other conditions (\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}between=} ...).}
 \wordfield{Why (P3)}{The words say exactly which comparison is made; leaving out empty cells is what pandas, Polars and R's \code{subset()} do. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:table.keep-rows-where]{page \pageref{word:table.keep-rows-where}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-rows-by-position}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}\par\nopagebreak
+\wordfield{Default}{Positions counted from 1, both ends kept.}
+\wordfield{Alternatives}{\code{step=} for every n-th row, a list for chosen rows, \code{to=\textquotedbl{}last\textquotedbl{}}.}
+\wordfield{Why (P5)}{Data preparation: counting from 1 with both ends kept is how people (and R) say \code{\textquotedbl{}rows 10 to 20\textquotedbl{}}. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.keep-rows-by-position]{page \pageref{word:table.keep-rows-by-position}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.keep-random-rows-for-each-group-in-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}keep\_\allowbreak{}random\_\allowbreak{}rows()} \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}\par\nopagebreak
 \wordfield{Default}{The same number of random rows from each group (pandas \code{groupby()}.sample(\code{random\_\allowbreak{}state=})), rows kept in table order; a group with that many rows or fewer is kept whole, with a note.}
 \wordfield{Alternatives}{\code{percent=} for the same share of each group; without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} the rows come from the whole table.}
@@ -19735,7 +20480,29 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{An empty cell is a missing value, NaN or text of only spaces, as everywhere in simplydata.}
 \wordfield{References}{van Buuren \& Groothuis-Oudshoorn 2011}
 \wordfield{In the dictionary}{\hyperref[word:table.count-empty-cells-in]{page \pageref{word:table.count-empty-cells-in}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fill-empty-cells-in}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}\par\nopagebreak
+\wordfield{Default}{Fill with the value asked for: the average or median of the filled cells, the value above or below, or a line or curve between neighbours.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}value=}, \code{with\_\allowbreak{}the=}, \code{sorted\_\allowbreak{}by=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}.}
+\wordfield{Why (P5)}{simplydata never fills on its own: the user chooses how, and the sentence says how many cells were filled. Filling with one value makes the spread look smaller; multiple imputation (\code{empty\_\allowbreak{}cells=\textquotedbl{}multiple imputation\textquotedbl{}} on the analysis words) keeps that uncertainty. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.fill-empty-cells-in]{page \pageref{word:table.fill-empty-cells-in}}}
+\unsection{Fix columns}{basis-group:Fix-columns}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.turn-into-numbers}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{A comma between groups of three digits is a thousands mark, any other single comma a decimal comma; cells that are not numbers become empty and are reported.}
+\wordfield{Alternatives}{\code{sdata.\allowbreak{}table(.\allowbreak{}.\allowbreak{}.\allowbreak{},\allowbreak{} decimal\_\allowbreak{}mark=\textquotedbl{},\allowbreak{}\textquotedbl{},\allowbreak{} thousands\_\allowbreak{}mark=\textquotedbl{}.\allowbreak{}\textquotedbl{})} when reading a file.}
+\wordfield{Why (P4)}{Data preparation: the rule reads both English and European writing of numbers, and every cell that could not be read is reported, so nothing is lost silently. \textit{Basis: starting value.}}
+\wordfield{Checks}{Cells that do not read as numbers are counted and up to 3 are shown.}
+\wordfield{In the dictionary}{\hyperref[word:table.turn-into-numbers]{page \pageref{word:table.turn-into-numbers}}}
 \unsection{Sort and new columns}{basis-group:Sort-and-new-columns}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.sort-by}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}sort\_\allowbreak{}by()}}\par\nopagebreak
+\wordfield{Default}{A stable sort (rows that tie keep their order), empty cells last in both directions.}
+\wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=True}; several columns for ties.}
+\wordfield{Why (P3)}{Data preparation, not a statistical method: a stable sort makes the result the same every time, and empty cells last keeps them out of the way, as R \code{order()} does by default. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.sort-by]{page \pageref{word:table.sort-by}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-group-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column()}}\par\nopagebreak
+\wordfield{Default}{A value exactly on a cut goes into the higher group (a mark of 60 with \code{cut\_\allowbreak{}at=[40,\allowbreak{} 60,\allowbreak{} 80]} is in the third group).}
+\wordfield{Alternatives}{\code{rules=} for groups by conditions.}
+\wordfield{Why (P5)}{Data preparation: \code{\textquotedbl{}60 and above\textquotedbl{}} is how grade bands are usually written; pandas \code{cut()} and R \code{cut()} put the value in the lower group unless told \code{right=FALSE}. \textit{Basis: starting value.}}
+\wordfield{In the dictionary}{\hyperref[word:table.add-group-column]{page \pageref{word:table.add-group-column}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-rank-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}rank\_\allowbreak{}column()}}\par\nopagebreak
 \wordfield{Default}{Rank 1 for the biggest value; ties share the lowest rank (1, 2, 2, 4), as in sports.}
 \wordfield{Alternatives}{\code{biggest\_\allowbreak{}first=False}.}
@@ -19748,6 +20515,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{A group with fewer than 2 values gets empty z-scores.}
 \wordfield{References}{JCGM 100:2008 (GUM)}
 \wordfield{In the dictionary}{\hyperref[word:table.add-z-score-column]{page \pageref{word:table.add-z-score-column}}}
+\unsection{Row after row}{basis-group:Row-after-row}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-rolling-column}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}\par\nopagebreak
+\wordfield{Default}{A window of this row and the rows just before it, in the order of \code{sorted\_\allowbreak{}by=}, within each group; a window that is not full, or has an empty cell, gives an empty cell.}
+\wordfield{Alternatives}{\code{window=}, \code{show=}, \code{centre=True}, \code{window=\textquotedbl{}7 days\textquotedbl{}}.}
+\wordfield{Why (P3)}{As pandas \code{rolling()} and R zoo::\code{rollapply(align = \textquotedbl{}right\textquotedbl{})}: a trailing window uses only what is known at each row. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.add-rolling-column]{page \pageref{word:table.add-rolling-column}}}
 \unsection{Summaries}{basis-group:Summaries}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.count-rows-after-use-survey-design}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}count\_\allowbreak{}rows()} \code{after use\_\allowbreak{}survey\_\allowbreak{}design()}}\par\nopagebreak
 \wordfield{Default}{The estimated number in the population: R survey::\code{svytotal()} of a column of ones (the sum of the weights); with \code{in\_\allowbreak{}percent=True} each group's share, \code{svymean(\textasciitilde{}factor(group))}.}
@@ -19771,8 +20544,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Jamieson 2004; Norman 2010}
 \wordfield{In the dictionary}{\hyperref[word:table.count-each]{page \pageref{word:table.count-each}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-average-of}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}\par\nopagebreak
-\wordfield{Default}{Groups stay in the order they first appear; empty cells are skipped, as pandas and Polars do. \code{interval=} gives the t interval, as R \code{t.\allowbreak{}test()}.}
-\wordfield{Alternatives}{\code{sorted\_\allowbreak{}by=} to sort; \code{interval=} for the interval; \code{weights=} for a weighted average.}
+\wordfield{Default}{One row for each group, the groups sorted (an empty group cell is a group of its own, last); empty cells are skipped, as pandas and Polars do. \code{interval=} gives the t interval, as R \code{t.\allowbreak{}test()}.}
+\wordfield{Alternatives}{\code{interval=} for the interval; \code{weights=} for a weighted average; \code{every=} for dates by week, month or year.}
 \wordfield{Why (P3)}{Skipping empty cells and saying how many were skipped is what pandas, Polars and R's \code{mean(na.\allowbreak{}rm = TRUE)} do; NumPy would give nan. The t interval of the average is Student's (Student 1908), the interval of R \code{t.\allowbreak{}test()}. \textit{Basis: convention.}}
 \wordfield{Checks}{A note gives how many empty cells were skipped; one value gives no interval.}
 \wordfield{References}{Student 1908}
@@ -20192,7 +20965,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Schuirmann 1987; Lakens 2017; Newcombe 1998}
 \wordfield{In the dictionary}{\hyperref[word:table.compare-risks]{page \pageref{word:table.compare-risks}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.compare-risks-show-eq-attributable-fractions}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}compare\_\allowbreak{}risks()} \code{show=\textquotedbl{}attributable fractions\textquotedbl{}}}\par\nopagebreak
-\wordfield{Default}{The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with Wald intervals from the risk ratio; for an exposure that goes with fewer events, the preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).}
+\wordfield{Default}{The attributable fraction among the exposed and in the whole population from R epiR::epi.2by2(method = \code{\textquotedbl{}cohort.\allowbreak{}count\textquotedbl{}}), with the intervals epiR gives for one table (among the exposed, from the score interval of the risk ratio; in the population, from the exact intervals of the two risks); for an exposure that goes with fewer events, the preventable fraction among the exposed (epiR's fraction with the roles of the groups swapped).}
 \wordfield{Alternatives}{\code{compare\_\allowbreak{}risks()} without \code{show=} (the risk difference, the risk and odds ratios, the number needed to treat).}
 \wordfield{Why (P5)}{These are the standard definitions (Rockhill et al. 1998). The fractions here are crude: adjusting the population fraction for confounders needs a model, and a fraction from a crude risk ratio is biased when confounding is present (Rockhill et al. 1998), so the printout says \code{\textquotedbl{}crude\textquotedbl{}}. \textit{Basis: convention.}}
 \wordfield{Checks}{Two groups only; the printout says that the risks must come from a cohort or cross-sectional study and that the fractions are causal only if the exposure causes the events.}
@@ -20429,6 +21202,11 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{At most 1 000 000 places.}
 \wordfield{In the dictionary}{\hyperref[word:table.make-map-of]{page \pageref{word:table.make-map-of}}}
 \unsection{Distributions}{basis-group:Distributions}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.distribution}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}distribution()}}\par\nopagebreak
+\wordfield{Default}{Parameters with plain names (\code{average=}, \code{standard\_\allowbreak{}deviation=}, \code{tries=}, \code{chance=}), turned into SciPy's.}
+\wordfield{Alternatives}{R's names (\code{mean=}, \code{sd=}, \code{size=}, \code{prob=}) work too; any SciPy distribution by its SciPy name.}
+\wordfield{Why (P3)}{The parameters are R's, so the answers match R's d/p/q/r functions, which each sentence names. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.distribution]{page \pageref{word:sdata.distribution}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.fit-distribution-to}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to()}}\par\nopagebreak
 \wordfield{Default}{The normal distribution, fitted by maximum likelihood (as R MASS::\code{fitdistr()} or fitdistrplus).}
 \wordfield{Alternatives}{\code{distribution=} any name; \code{fixed=} to hold values; \code{\textquotedbl{}kernel density\textquotedbl{}}.}
@@ -20467,9 +21245,14 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Alternatives}{\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}between=}.}
 \wordfield{Why (P3)}{1 - \code{cdf()} loses all its digits far out in the tail; \code{sf()} keeps them. This is numerical care, not a statistical choice. \textit{Basis: convention.}}
 \wordfield{In the dictionary}{\hyperref[word:dist.find-chance-that-value]{page \pageref{word:dist.find-chance-that-value}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:dist.find-percentile}\noindent{\sffamily\bfseries\color{brand}\code{dist.\allowbreak{}find\_\allowbreak{}percentile()}}\par\nopagebreak
+\wordfield{Default}{The value with that percent below it; for counts, the smallest count with at least that share at or below it.}
+\wordfield{Alternatives}{\code{find\_\allowbreak{}cut\_\allowbreak{}off()} and \code{find\_\allowbreak{}middle\_\allowbreak{}range()} for the other questions.}
+\wordfield{Why (P3)}{As R's q functions (qnorm, qbinom ...): the answer is written with the same call in R. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:dist.find-percentile]{page \pageref{word:dist.find-percentile}}}
 \unsection{Models}{basis-group:Models}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.explain}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}explain()}}\par\nopagebreak
-\wordfield{Default}{A linear model by least squares (as R \code{lm()}), with t-based 95 \% intervals, R squared and the F test. Group columns are compared with their first level in sorted order. The outcome family is never switched by itself.}
+\wordfield{Default}{A linear model by least squares (as R \code{lm()}), with t-based 95 \% intervals, R squared and the F test. Group columns are compared with their first level in sorted order. The outcome family is never switched by itself. The estimates come from statsmodels' QR fit; their standard errors come from the QR factor as R's \code{summary.\allowbreak{}lm()} takes them, with \code{chol2inv()} (R's own method, done here with NumPy's QR and LAPACK's dpotri, the routine chol2inv calls; approved by Manish 2026-11-22), because statsmodels' inv(R'R) loses digits on nearly collinear columns (NIST Longley).}
 \wordfield{Alternatives}{\code{outcome=} (yes or no, counts, positive numbers, ordered groups, shares ...), \code{grouped\_\allowbreak{}by=}, \code{effects=}, \code{robust\_\allowbreak{}errors=}, \code{table\_\allowbreak{}of\_\allowbreak{}tests=}, \code{interval\_\allowbreak{}by=}, \code{p\_\allowbreak{}value\_\allowbreak{}by=} and the other options below.}
 \wordfield{Why (P4)}{simplydata follows R's \code{lm()} so that every number matches what reviewers can check. It never chooses a model family from the data, because that choice belongs to the question asked; instead the printout checks the model and points to a better family. \textit{Basis: convention.}}
 \wordfield{Checks}{Notes: residuals not bell-shaped; fewer than 10 rows per effect (a starting value: Austin \& Steyerberg 2015 found about 2 per column enough for linear models); a variance inflation factor above 5 (a rule of thumb whose limits O'Brien 2007 discusses); a 0/1 outcome suggests \code{outcome=\textquotedbl{}yes or no\textquotedbl{}}. Refused: no more rows than values to estimate, columns that say the same thing, a group column with one level.}
@@ -21344,11 +22127,22 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{References}{Sterne \& Egger 2001; Sterne et al. 2011}
 \wordfield{In the dictionary}{\hyperref[word:draw-funnel-plot]{page \pageref{word:draw-funnel-plot}}}
 \unsection{Dates and time windows}{basis-group:Dates-and-time-windows}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-run-of-dates}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates()}}\par\nopagebreak
+\wordfield{Default}{Month, quarter and year steps are counted from the first date, staying on its day or on the month's last day when the month is shorter.}
+\wordfield{Alternatives}{\code{every=}, \code{to=} or \code{how\_\allowbreak{}many=}.}
+\wordfield{Why (P5)}{As pandas DateOffset and Polars \code{\textquotedbl{}1mo\textquotedbl{}} counted from the start; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} runs over into the next month instead. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-run-of-dates]{page \pageref{word:sdata.make-run-of-dates}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-missing-dates-every-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()} \code{every=}}\par\nopagebreak
 \wordfield{Default}{Without \code{every=}, the most common step between the dates (snapped to months, quarters or years when close), printed.}
 \wordfield{Alternatives}{\code{every=} the step.}
 \wordfield{Why (P5)}{Data preparation, not a statistical method: the step found is always printed so it can be checked. \textit{Basis: convention.}}
 \wordfield{Checks}{Dates with no nameable step are refused.}
+\wordfield{In the dictionary}{\hyperref[word:table.add-missing-dates]{page \pageref{word:table.add-missing-dates}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-missing-dates}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}}\par\nopagebreak
+\wordfield{Default}{Each group gets its own run of dates from its first to its last date; the table comes back sorted by the groups and the dates; rows with an empty group cell are a group of their own.}
+\wordfield{Alternatives}{\code{between=} to add dates before and after; \code{every=} the step.}
+\wordfield{Why (P5)}{Data preparation: the new rows have empty cells, never made-up values, and the sentence says how many were added. \textit{Basis: convention.}}
+\wordfield{Checks}{Repeated dates and dates off the step are refused.}
 \wordfield{In the dictionary}{\hyperref[word:table.add-missing-dates]{page \pageref{word:table.add-missing-dates}}}
 \unsection{Smoothing and trend}{basis-group:Smoothing-and-trend}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.add-smoothed-column-test-method-eq-loess-interval-eq}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()} \code{test\_\allowbreak{}method=\textquotedbl{}loess\textquotedbl{},\allowbreak{} interval=}}\par\nopagebreak
@@ -21696,7 +22490,42 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Empty design cells and weights of 0 or less are refused; the printout says how the population sizes were read; a survey word refuses after rows were removed.}
 \wordfield{References}{Lumley 2010; Korn \& Graubard 1999; Lumley 2004}
 \wordfield{In the dictionary}{\hyperref[word:table.use-survey-design]{page \pageref{word:table.use-survey-design}}}
+\unsection{Join and reshape}{basis-group:Join-and-reshape}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.join-with}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}join\_\allowbreak{}with()}}\par\nopagebreak
+\wordfield{Default}{\code{keep=\textquotedbl{}matching rows\textquotedbl{}} (an inner join); a column in both tables gets \code{\textquotedbl{}\_\allowbreak{}other\textquotedbl{}} in the other table's copy.}
+\wordfield{Alternatives}{\code{keep=\textquotedbl{}all rows from this table\textquotedbl{}} or \code{\textquotedbl{}all rows from both\textquotedbl{}}.}
+\wordfield{Why (P4)}{Data preparation: the sentence says how many rows found a match and warns when a key is repeated in the other table, so rows are not doubled unnoticed. \textit{Basis: convention.}}
+\wordfield{Checks}{Keys of different kinds (text and numbers) are refused; repeated keys in the other table get a note.}
+\wordfield{In the dictionary}{\hyperref[word:table.join-with]{page \pageref{word:table.join-with}}}
+\unsection{Undo and finish}{basis-group:Undo-and-finish}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.save}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}save()}}\par\nopagebreak
+\wordfield{Default}{The file holds only the columns, without row labels.}
+\wordfield{Alternatives}{The end of the file name chooses the type (\code{.\allowbreak{}xlsx}, \code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet}, \code{.\allowbreak{}json}).}
+\wordfield{Why (P5)}{Data handling: row labels are pandas' own and not part of the data. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:table.save]{page \pageref{word:table.save}}}
+\unsection{Numbers: make and look}{basis-group:Numbers-make-and-look}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{With \code{to=}, the end is included; the count of steps allows a little room for rounding.}
+\wordfield{Alternatives}{\code{step=}, \code{how\_\allowbreak{}many=} (evenly spaced, as np.linspace).}
+\wordfield{Why (P5)}{Making numbers: \code{\textquotedbl{}1 to 10\textquotedbl{}} includes 10 in everyday speech and in R's \code{seq()}; NumPy's arange leaves the end out and can overshoot with a decimal step. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.numbers]{page \pageref{word:sdata.numbers}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.make-random-numbers}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers()}}\par\nopagebreak
+\wordfield{Default}{NumPy's random generator (\code{default\_\allowbreak{}rng}) with the seed given; whole numbers include both ends.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}seed=} for the same numbers every time.}
+\wordfield{Why (P3)}{NumPy recommends its Generator over the old global seed; \code{\textquotedbl{}between 1 and 6\textquotedbl{}} includes 6, like a dice. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.make-random-numbers]{page \pageref{word:sdata.make-random-numbers}}}
+\unsection{Numbers: choose, sort and fill}{basis-group:Numbers-choose-sort-and-fill}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.keep-each-number-that}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that()}}\par\nopagebreak
+\wordfield{Default}{\code{is\_\allowbreak{}above=} is strictly above; empty values match only \code{is\_\allowbreak{}empty=True}.}
+\wordfield{Alternatives}{\code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}between=} (both ends included) and the other conditions.}
+\wordfield{Why (P5)}{The same conditions as \code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where}, so one rule holds everywhere. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.keep-each-number-that]{page \pageref{word:nums.keep-each-number-that}}}
 \unsection{Numbers: summaries}{basis-group:Numbers-summaries}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-average}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}average()}}\par\nopagebreak
+\wordfield{Default}{The mean, empty values skipped.}
+\wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first, to see how many there were.}
+\wordfield{Why (P3)}{As R \code{mean(na.\allowbreak{}rm = TRUE)} and pandas: the sentence says how many numbers were used. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:nums.find-average]{page \pageref{word:nums.find-average}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.find-median}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}find\_\allowbreak{}median()}}\par\nopagebreak
 \wordfield{Default}{The middle value, empty values skipped (np.nanmedian); NumPy's np.median would give nan.}
 \wordfield{Alternatives}{\code{remove\_\allowbreak{}empty\_\allowbreak{}numbers()} first if you want them gone for later steps too.}
@@ -21715,6 +22544,12 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P3)}{As \code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of} (Hyndman \& Fan 1996). \textit{Basis: convention.}}
 \wordfield{References}{Hyndman \& Fan 1996}
 \wordfield{In the dictionary}{\hyperref[word:nums.find-percentile]{page \pageref{word:nums.find-percentile}}}
+\unsection{Grids of numbers}{basis-group:Grids-of-numbers}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.number-grid}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}number\_\allowbreak{}grid()}}\par\nopagebreak
+\wordfield{Default}{A list is cut into rows, row after row.}
+\wordfield{Alternatives}{\code{rows=} or \code{columns=}; a list of rows for a grid as it is.}
+\wordfield{Why (P3)}{As NumPy's reshape (order \code{\textquotedbl{}C\textquotedbl{}}), which reads a list the way text is read; R's \code{matrix()} fills by column unless byrow = TRUE. \textit{Basis: convention.}}
+\wordfield{In the dictionary}{\hyperref[word:sdata.number-grid]{page \pageref{word:sdata.number-grid}}}
 \unsection{References}{basis:references}
 \begingroup\small\raggedright
 \par\noindent\hangindent=1.5em Agresti A, Coull BA (1998). Approximate is Better than `{}`Exact'{}' for Interval Estimation of Binomial Proportions. The American Statistician 52:119-126. \href{https://doi.org/10.1080/00031305.1998.10480550}{doi:10.1080/00031305.1998.10480550}

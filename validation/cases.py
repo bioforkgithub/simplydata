@@ -23,6 +23,7 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"
+MONTE_CARLO = "4 mcse"  # a tolerance of 4 Monte Carlo standard errors (validation/make_report.py MCSE)
 
 
 # ---------------------------------------------------------------- the datasets
@@ -180,9 +181,10 @@ def load(name: str) -> pd.DataFrame:
     d = DATASETS[name]
     if d.file.endswith(".dat"):
         data, _ = read_nist(d.file)
-        return pd.DataFrame(data, columns=["y", "x"][: data.shape[1]])
-    if d.file.endswith(".csv"):
-        table = pd.read_csv(DATA / d.file)
+        names = ["y", "x"] if data.shape[1] <= 2 else ["y"] + [f"x{i}" for i in range(1, data.shape[1])]
+        return pd.DataFrame(data, columns=names[: data.shape[1]])
+    if d.file.endswith(".csv") or name in R_TABLES:
+        table = _r_data().read(R_TABLES[name]) if name in R_TABLES else pd.read_csv(DATA / d.file)
         if name == "Student's sleep data":
             table["group"] = "drug " + table["group"].astype(str)
         return table
@@ -193,6 +195,24 @@ def load(name: str) -> pd.DataFrame:
                        packages=("pROC",), what="the aSAH data of pROC")
         return pd.DataFrame({"outcome": list(found["outcome"]), "s100b": np.asarray(found["s100b"], dtype=float)})
     raise KeyError(name)
+
+
+# datasets copied from GPL or LGPL R packages: read from the installed package (validation/r_data.py), not stored;
+# filled in at the end of this file: dataset name -> table key
+R_TABLES: dict[str, str] = {}
+
+
+def _r_data():
+    import importlib.util
+    import sys
+
+    name = "simplydata_validation_r_data"
+    if name not in sys.modules:
+        spec = importlib.util.spec_from_file_location(name, HERE / "r_data.py")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return sys.modules[name]
 
 
 def certified(name: str) -> dict[str, float]:
@@ -227,6 +247,13 @@ class Case:
     note: str = ""
     option: str = ""              # the option the case checks ("weights="); empty for the word itself
     ours_r: tuple | None = None   # R packages simplydata's own side runs (None: it needs no R); skipped without them
+    explained: dict = field(default_factory=dict)  # published name -> why it may fall short (a precision limit)
+    local_data: str = ""          # the environment variable naming a data file that is not shipped; skipped without
+
+    def __post_init__(self):
+        for tolerance in (self.parent_tolerance, self.r_tolerance):  # a number (relative) or MONTE_CARLO only
+            if isinstance(tolerance, str) and tolerance != MONTE_CARLO:
+                raise ValueError(f"{self.title}: a tolerance is a number or {MONTE_CARLO!r}, not {tolerance!r}")
 
 
 def _cert(dataset: str, name: str, digits: str) -> tuple:
@@ -693,14 +720,21 @@ CASES += [
              {"95 % CI low": res.confidence_interval.low[1], "95 % CI high": res.confidence_interval.high[1]}
          """, parent_label="SciPy stats.bootstrap (BCa)",
          r="""
-             set.seed(1)
-             b <- boot::boot(data.frame(y = stack_loss, x = air_flow), function(d, i) coef(lm(y ~ x, data = d[i, ]))[2],
-                             R = 9999)
-             ci <- boot::boot.ci(b, type = "bca")$bca
-             list(`95 % CI low` = ci[4], `95 % CI high` = ci[5])
-         """, r_packages=("boot",), r_tolerance=0.05,
-         note="R draws other random rows than SciPy, so R is a check of the same method within Monte Carlo error "
-              "(5 %); SciPy with the same seed gives the same interval exactly."),
+             d <- data.frame(y = stack_loss, x = air_flow)
+             slope <- function(d, i) .lm.fit(cbind(1, d$x[i]), d$y[i])$coefficients[2]
+             ends <- sapply(1:10, function(seed) {
+               set.seed(seed)
+               boot::boot.ci(boot::boot(d, slope, R = 9999), type = "bca")$bca[4:5]
+             })
+             k <- ncol(ends); spread <- apply(ends, 1, stats::sd) * sqrt(1 + 1 / k)
+             list(`95 % CI low` = mean(ends[1, ]), `95 % CI high` = mean(ends[2, ]),
+                  `95 % CI low MCSE` = spread[1], `95 % CI high MCSE` = spread[2])
+         """, r_packages=("boot",), r_tolerance="4 mcse",
+         note="R draws other random rows than SciPy, so R checks the same method within its Monte Carlo error: R "
+              "boot runs 10 times (seeds 1 to 10, 9999 resamples each); the reference is their average, and the "
+              "difference may be 4 Monte Carlo standard errors, from the spread of R's 10 runs (simplydata's one "
+              "run of 9999 resamples is taken to vary as much as one of R's). SciPy with the same seed gives the "
+              "same interval exactly."),
     Case("table.explain", "profile-likelihood intervals of a logistic regression of low birth weight", "birthwt",
          "real data", option='interval_by="profile"', ours_r=(),
          ours="""
@@ -741,17 +775,25 @@ CASES += [
          "birthwt", "real data",
          ours="""
              import contextlib, io, re
+             from simplydata.table.models import _glm
+             from simplydata.table.models_extra import other_pseudo
              printed = io.StringIO()
              with contextlib.redirect_stdout(printed):
                  sdata.table(data).explain("low", using=["smoke", "age", "lwt"], outcome="yes or no")
              found = re.search(r"Nagelkerke ([0-9.]+), Tjur ([0-9.]+)", printed.getvalue())
-             {"Nagelkerke": float(found.group(1)), "Tjur": float(found.group(2))}
+             X = np.column_stack([np.ones(len(data)), data["smoke"], data["age"], data["lwt"]])
+             y = data["low"].to_numpy(dtype=float)
+             nagelkerke, tjur = other_pseudo(_glm(X, y, "binomial"), y)
+             assert (float(found.group(1)), float(found.group(2))) == (round(nagelkerke, 3), round(tjur, 3))
+             {"Nagelkerke": nagelkerke, "Tjur": tjur}
          """,
          r="""
              m <- glm(low ~ smoke + age + lwt, family = binomial)
              list(Nagelkerke = performance::r2_nagelkerke(m)[[1]], Tjur = performance::r2_tjur(m)[[1]])
-         """, r_packages=("performance",), r_tolerance=0.01,
-         note="The two measures are printed with 3 decimals, so the check allows that rounding (1 % here)."),
+         """, r_packages=("performance",), r_tolerance=1e-9,
+         note="The printout gives the two measures with 3 decimals; the check takes them at full precision from "
+              "the same statsmodels fit and the same function explain() prints them with (and checks that the "
+              "printout is their rounding), so it is not limited by the printed rounding."),
     Case("table.explain", "people and items crossed: verbal aggression (yes or no) from anger and gender",
          "VerbAgg", "real data", option="crossed_with=", ours_r=("lme4",),
          ours="""
@@ -1012,6 +1054,17 @@ def _add_bayesian():
 _add_bayesian()
 
 
+# ---------------------------------------------------------------- U1 to U3: the words that got their underneath box later
+# (validation/cases_underneath.py)
+def _add_underneath():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("simplydata_validation_underneath", HERE / "cases_underneath.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.add_to(globals())
+
+
 # ---------------------------------------------------------------- 2026-11-21: words and fixes (validation/cases_more_words.py)
 def _add_more_words():
     import importlib.util
@@ -1022,4 +1075,29 @@ def _add_more_words():
     module.add_to(globals())
 
 
+_add_underneath()
 _add_more_words()
+
+
+# ---------------------------------------------------------------- tables read from R packages (DATA_LICENSES.md)
+def _read_from_r():
+    """Every dataset whose table comes from a GPL or LGPL R package is read from that package (validation/r_data.py)
+    instead of a stored copy: its file becomes "", its licence says so, and the report skips its cases without R."""
+    import dataclasses
+
+    tables = _r_data().TABLES
+    for name, d in list(DATASETS.items()):
+        key = d.file.removesuffix(".csv")
+        if not d.file.endswith(".csv") or key not in tables:
+            continue
+        kept = [part for part in re.split(r"(?<=[.;])\s+", d.licence) if "stored" not in part.lower()]
+        licence = " ".join(kept).rstrip(";").rstrip()
+        licence = (licence if licence.endswith(".") else licence + ".") + (
+            " Not stored here: read from the installed R package, so it needs R.")
+        DATASETS[name] = dataclasses.replace(d, file="", licence=licence)
+        R_TABLES[name] = key
+        R_DATA[name] = tuple(tables[key][0])
+
+
+R_DATA = globals().setdefault("R_DATA", {})
+_read_from_r()

@@ -66,7 +66,7 @@ ENTRIES = [
         ours=ADMISSIONS_TABLE + """
             result = table.find_risk_over_time(time="time", event="event", value="first_esbl",
                                                competing_with="discharged", for_each_group_in="ward", at_time_points=[30])
-            result.as_pandas().query("ward == 'surgery' and event == 'first_esbl'")
+            result.keep_rows_where("ward", is_equal_to="surgery").keep_rows_where("event", is_equal_to="first_esbl")
         """,
         code={
             "R": """
@@ -134,7 +134,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    at_time_points=[365, 730])
-            result.as_pandas().query("treatment == 'new medicine' and time == 365")
+            result.keep_rows_where("treatment", is_equal_to="new medicine").keep_rows_where("time", is_equal_to=365)
         """,
         code={"statsmodels": """
             import numpy as np
@@ -162,7 +162,8 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    test_method="life table", at_time_points=[0, 365, 730])
-            result.as_pandas().query("treatment == 'new medicine' and `interval start` == 365")
+            result.keep_rows_where("treatment", is_equal_to="new medicine").keep_rows_where("interval start",
+                                                                                is_equal_to=365)
         """,
         code={
             "R": """
@@ -195,7 +196,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    allowing_for=["age"], at_time_points=[365])
-            result.as_pandas().query("treatment == 'usual care'")
+            result.keep_rows_where("treatment", is_equal_to="usual care")
         """,
         code={
             "R": """
@@ -229,7 +230,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             table.add_column("joined", "days / 4 + 0.1")
             result = table.find_survival_over_time(time="days", event="died", followed_from="joined")
-            result.as_pandas().iloc[[20]]
+            result.keep_rows_by_position([21])
         """,
         code={"statsmodels": """
             from statsmodels.duration.survfunc import SurvfuncRight
@@ -253,7 +254,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             result = table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment",
                                                    average_time_up_to=700)
-            result.as_pandas().query("treatment == 'usual care'")
+            result.keep_rows_where("treatment", is_equal_to="usual care")
         """,
         code={
             "R": """
@@ -394,7 +395,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("trial"))
             result = table.explain_survival(time="days", event="died", using=["age"], allowing_for="treatment")
-            result.as_pandas()
+            result
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
@@ -421,7 +422,7 @@ OPTION_ENTRIES = [
             table = sdata.table(sdata.get_example("trial"))
             table.add_column("joined", "days / 4 + 0.1")
             result = table.explain_survival(time="days", event="died", using=["age"], followed_from="joined")
-            result.as_pandas()
+            result
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
@@ -448,7 +449,7 @@ OPTION_ENTRIES = [
         ours=ADMISSIONS_TABLE + """
             result = table.explain_survival(time="time", event="event", value="first_esbl",
                                             competing_with="discharged", using=["age"])
-            result.as_pandas()
+            result
         """,
         code={"statsmodels": """
             from statsmodels.duration.hazard_regression import PHReg
@@ -475,7 +476,7 @@ OPTION_ENTRIES = [
         ours=ADMISSIONS_TABLE + """
             result = table.explain_survival(time="time", event="event", value="first_esbl",
                                             competing_with="discharged", using=["age"], test_method="fine-gray")
-            result.as_pandas()
+            result
         """,
         code={
             "R": """
@@ -509,7 +510,7 @@ OPTION_ENTRIES = [
         ours="""
             table = sdata.table(sdata.get_example("trial"))
             result = table.explain_survival(time="days", event="died", using=["age"], distribution="weibull")
-            result.as_pandas()
+            result
         """,
         code={
             "R": """

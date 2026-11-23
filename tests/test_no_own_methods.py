@@ -28,6 +28,7 @@ BUILDING_BLOCKS = {
     ("optimize", "ridder"), ("optimize", "bisect"), ("optimize", "fsolve"), ("optimize", "least_squares"),
     ("special", "digamma"), ("special", "gammaln"), ("special", "polygamma"),
     ("np", "cumprod"), ("np", "polyfit"),
+    ("lapack", "dpotri"),
 }
 
 ALLOWED = {
@@ -43,6 +44,10 @@ ALLOWED = {
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",
+    "table/models.py::_qr_unscaled_covariance": "R summary.lm()'s chol2inv(qr.R): NumPy's QR factor of the "
+                                                "(whitened) columns and LAPACK dpotri (the routine chol2inv calls) "
+                                                "for inv(R) inv(R)'; statsmodels' own inv(R'R) lost 4 to 5 digits on "
+                                                "NIST Longley (data-and-fixes, A1). Approved by Manish 2026-11-22",
     "table/models.py::ModelWords._fit_model": "matrix_rank: checks the columns before fitting",
     "table/models.py::ModelWords._more_model": "matrix_rank: the same column check before fitting",
     "table/models.py::ModelWords._explain_matched": "matrix_rank: the same column check before conditional logistic "
@@ -118,6 +123,10 @@ ALLOWED_ARITHMETIC = {
                                 "independent number (statsmodels or R) times it, rounded up, whole clusters of m, "
                                 "m / design effect (what one cluster counts as) and a given number / design effect "
                                 "(the independent values it counts as)",
+    # data-and-fixes, A1. Approved by Manish 2026-11-22
+    "table/models.py::_qr_unscaled_covariance": "the unscaled covariance of a least-squares fit as R summary.lm() "
+                                                "computes it, chol2inv(qr.R(qr(X))): R's own method, done with "
+                                                "NumPy's QR and LAPACK dpotri (the routine chol2inv calls)",
     # review fixes (2026-11-21)
     "_trend_season.py::lag1_after_sen_line": "the readings minus SciPy theilslopes' line (the residuals), the input "
                                              "of statsmodels acf and acorr_ljungbox for find_trend_of's check of "
