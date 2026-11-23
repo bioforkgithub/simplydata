@@ -482,6 +482,48 @@ ENTRIES += [
         also="The end of the file name chooses the type: .xlsx (pandas to_excel), .tsv, .parquet and .json too. "
              "The test saves both files in a folder that is deleted afterwards and reads them back.",
     ),
+    # 2026-11-23 (branch save-in-sheet)
+    Entry(
+        word="table.save",
+        option="in_sheet=",
+        data="marks",
+        ours="""
+            import os
+            import tempfile
+            table = sdata.get_example("marks")
+            with tempfile.TemporaryDirectory() as folder:
+                results = os.path.join(folder, "results.xlsx")
+                table.save(results, in_sheet="2025")
+                table.save(results, in_sheet="2026")
+                both = sdata.table(results, sheet="all")
+            both
+        """,
+        code={
+            "pandas": """
+                import os
+                import tempfile
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                with tempfile.TemporaryDirectory() as folder:
+                    results = os.path.join(folder, "results.xlsx")
+                    df.to_excel(results, sheet_name="2025", index=False)
+                    # save as results.xlsx with in_sheet="2026", to a file that exists
+                    with pd.ExcelWriter(results, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:  # (1)
+                        df.to_excel(writer, sheet_name="2026", index=False)
+                    sheets = pd.read_excel(results, sheet_name=None)
+                both = pd.concat([s.assign(sheet=n)[["sheet", *df.columns]] for n, s in sheets.items()], ignore_index=True)
+                both
+            """,
+        },
+        compare="table",
+        choices=('mode="a" adds the sheet to the Excel file that is there and keeps its other sheets; '
+                 'if_sheet_exists="replace" replaces a sheet of the same name (simplydata prints that it did). A '
+                 "file that does not exist yet is made with pandas ExcelWriter and that one sheet.",),
+        also="simplydata checks the sheet name first with Excel's rules as openpyxl states them (at most 31 characters, "
+             "none of : \\ / ? * [ ]) and refuses a name Excel would count as the same in other capitals, so a "
+             "refused name leaves the file as it was. Polars tables go through pandas too. The test reads the "
+             'workbook back with sheet="all" (pandas read_excel(sheet_name=None)).',
+    ),
     Entry(
         word="table.as_pandas",
         data="marks",

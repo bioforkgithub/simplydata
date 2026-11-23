@@ -136,6 +136,8 @@ _TABLE = [
     ('table.remove_extra_spaces_in("name")', "strip trimws str_trim"),
     ('table.round_numbers_in("price", 1)', "round"),
     ('table.save("results.csv")', "to_csv to_excel write_csv write_xlsx to_parquet write_parquet"),
+    ('table.save("results.xlsx", in_sheet="cleaned"), which keeps the other sheets of the file',
+     "ExcelWriter addWorksheet writeData saveWorkbook create_sheet add_sheet write_excel"),
     ("table.start_chart()", "plot ggplot"),
     ('table.add_column("marks_per_hour", "marks / hours")', "assign mutate with_columns transform"),
     ('table.replace_values_in("class", "A", with_value="Alpha")', "replace recode"),

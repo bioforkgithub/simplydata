@@ -100,6 +100,18 @@ working for one release and prints a one-line note with its new name.
 - Holm's, Bonferroni's, Tukey's and Dunnett's adjustments keep the chance of any false alarm "at most 5 %" (it said
   "stays at 5 %").
 
+### New: several tables in one Excel file
+
+- `table.save("results.xlsx", in_sheet="cleaned")` saves the table as one sheet and keeps the other sheets of the
+  file (pandas `ExcelWriter(mode="a", if_sheet_exists="replace")` with openpyxl). A sheet of the same name is
+  replaced, and simplydata says so; a file that does not exist is made. Sheet names follow Excel's rules (at most 31
+  characters, none of `: \ / ? * [ ]`, no apostrophe at the start or end, not `History`, and the same name in other
+  capitals counts as the same sheet). Only .xlsx files have sheets. `sheet=` reads a sheet, `in_sheet=` saves one; `sheet_name=` (pandas) and `sheetName=` (R openxlsx)
+  point to `in_sheet=`. Without `in_sheet=`, saving replaces the whole file, as before.
+- `sdata.table("results.xlsx", sheet="all")`: when the sheets do not have the same columns, the message still lists
+  the differing columns and now gives a line to copy for each sheet, such as
+  `patients = sdata.table("study.xlsx", sheet="patients")`.
+
 ### New: three numbers given back instead of only printed
 
 - `table.add_correspondence_axes(..., show="numbers")` also gives each axis's eigenvalue (`CA1 eigenvalue`) and the

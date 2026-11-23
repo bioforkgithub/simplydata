@@ -279,11 +279,35 @@ class BaseTable:
 
         return chart(self)
 
-    @friendly
-    def save(self: _Same, file_name) -> _Same:
+    @friendly(others={"sheet_name": "in_sheet", "sheetName": "in_sheet"})
+    def save(self: _Same, file_name, in_sheet=None) -> _Same:
         """Save the table; the end of the file name decides the type. table.save("clean.xlsx")
 
-        File types: .xlsx (Excel), .csv, .tsv, .parquet and .json.
+        File types: .xlsx (Excel), .csv, .tsv, .parquet and .json. Without in_sheet=, saving to an
+        Excel file that already exists replaces the whole file, every sheet in it.
+
+        in_sheet="2026" saves the table as one sheet of an Excel file and keeps the sheets already
+        in it, so several tables go into one workbook:
+            marks_2025.save("results.xlsx", in_sheet="2025")
+            marks_2026.save("results.xlsx", in_sheet="2026")
+        If the file does not exist yet, it is made with that sheet. If it already has a sheet of that
+        name, that sheet is replaced (simplydata says so) and the other sheets are kept. Only .xlsx
+        files have sheets. Sheet names follow Excel's rules: at most 31 characters, none of
+        : \\ / ? * [ ], no apostrophe at the start or end, not "History" (Excel keeps it), and Excel
+        counts "Cleaned" and "cleaned" as the same name.
+
+        Mind the two names: sheet= reads a sheet, in_sheet= saves one. To read the workbook back:
+            sdata.table("results.xlsx", sheet="2026")               one sheet
+            everything = sdata.table("results.xlsx", sheet="all")   every sheet, stacked
+        sheet="all" makes one table with a "sheet" column naming the sheet each row came from, so
+        simplydata words work sheet by sheet:
+            everything.count_rows(for_each_group_in="sheet")                how many rows came from each sheet
+            everything.find_average_of("marks", for_each_group_in="sheet")  a summary per sheet
+            everything.keep_rows_where("sheet", is_equal_to="2026")         just one sheet's rows
+        (keep_rows_where changes everything; everything.undo() brings the other sheets back.)
+        sheet="all" stacks the sheets only when they have the same columns. Sheets that hold different
+        data are read by name, each on its own: simplydata says which columns differ and prints a line
+        to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
         """
         path = Path(file_name)
         kind = path.suffix.lower().lstrip(".")
@@ -293,8 +317,18 @@ class BaseTable:
             )
         if kind not in SAVE_TYPES:
             raise choice_error("save", "file type", kind, SAVE_TYPES)
+        if in_sheet is not None and kind != "xlsx":
+            raise SimplydataError(
+                f"in_sheet= saves the table as one sheet of an Excel file. Only .xlsx files have sheets; "
+                f"a .{kind} file holds one table.\n"
+                f'For example:  table.save("{path.stem}.xlsx", in_sheet={in_sheet!r}), '
+                f'or table.save("{path.name}") without in_sheet=.'
+            )
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
+        if in_sheet is not None:
+            self._save_in_sheet(path, in_sheet)
+            return self
         if kind == "csv":
             self._frame.write_csv(str(path))
         elif kind == "parquet":
@@ -308,6 +342,56 @@ class BaseTable:
             else:
                 pandas_table.to_json(path, orient="records", indent=2)
         return self
+
+    def _save_in_sheet(self, path, in_sheet):
+        """table.save("x.xlsx", in_sheet=...): pandas ExcelWriter with openpyxl, adding to the file if it exists.
+
+        The sheet name is checked first with Excel's rules as openpyxl states them (its INVALID_TITLE_REGEX, its
+        31-character warning, a name of at least one character) and Excel's own two (the reserved name "History" in any
+        capitals, no apostrophe at the start or end), so a bad name never leaves a half-written file.
+        """
+        import pandas as pd
+        from openpyxl.workbook.child import INVALID_TITLE_REGEX
+
+        example = f'table.save("{path.name}", in_sheet="cleaned")'
+        if not isinstance(in_sheet, str):
+            raise SimplydataError(f"in_sheet= is the name of a sheet, in quotes: in_sheet=\"{in_sheet}\", "
+                                  f"not {in_sheet!r}.\nFor example:  {example}")
+        if not in_sheet.strip():
+            raise SimplydataError(f"in_sheet= needs a name with at least one letter or digit.\nFor example:  {example}")
+        bad = INVALID_TITLE_REGEX.search(in_sheet)
+        if bad:
+            raise SimplydataError(f'Excel does not allow "{bad.group(0)}" in a sheet name, and none of : \\ / ? * [ ]. '
+                                  f'Try in_sheet="{INVALID_TITLE_REGEX.sub(" ", in_sheet).strip()}".')
+        if len(in_sheet) > 31:
+            raise SimplydataError(f'Excel allows at most 31 characters in a sheet name; "{in_sheet}" has '
+                                  f'{len(in_sheet)}. Try in_sheet="{in_sheet[:31].strip()}".')
+        if in_sheet.startswith("'") or in_sheet.endswith("'"):
+            raise SimplydataError(f"Excel does not allow an apostrophe (') at the start or the end of a sheet name. "
+                                  f"Try in_sheet=\"{in_sheet.strip(chr(39)).strip() or 'cleaned'}\".")
+        if in_sheet.lower() == "history":
+            raise SimplydataError(f'Excel keeps the sheet name "History" for itself (in any capitals), so '
+                                  f'in_sheet="{in_sheet}" cannot be used. Try in_sheet="history of changes".')
+        if not path.exists():
+            with pd.ExcelWriter(path, engine="openpyxl") as writer:
+                self._frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
+            return
+        try:
+            with pd.ExcelFile(path, engine="openpyxl") as book:
+                sheets = [str(name) for name in book.sheet_names]
+        except Exception:
+            raise SimplydataError(f'"{path.name}" exists but simplydata cannot open it as an Excel file, so it cannot '
+                                  f"add a sheet to it.\nSave to a new file name, or without in_sheet= to replace "
+                                  f'the file:  table.save("{path.name}")') from None
+        same_but_case = [name for name in sheets if name.lower() == in_sheet.lower() and name != in_sheet]
+        if same_but_case:
+            raise SimplydataError(f'"{path.name}" already has a sheet "{same_but_case[0]}", and Excel counts '
+                                  f'"{in_sheet}" as the same name.\nTo replace that sheet: '
+                                  f'table.save("{path.name}", in_sheet="{same_but_case[0]}"); or choose another name.')
+        with pd.ExcelWriter(path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            self._frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
+        if in_sheet in sheets:
+            print(f'Replaced the sheet "{in_sheet}" in {path.name}; the other sheets are kept.')
 
     # ------------------------------------------------------------------ looking words
     @friendly

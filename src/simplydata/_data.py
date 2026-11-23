@@ -13,6 +13,7 @@ import codecs
 import csv
 import glob
 import io
+import keyword
 import os
 import re
 import tempfile
@@ -387,7 +388,7 @@ def _read_excel(source, label, sheet, options):
         if not parts:
             raise SimplydataError(f'Every sheet in "{label}" is empty.')
         return _stack(parts, column="sheet", what="sheet",
-                      example=f'sdata.table("{label}", sheet="{parts[0][0]}")', keep_fast=False)
+                      example=f'sdata.table("{label}", sheet="{parts[0][0]}")', keep_fast=False, file_label=label)
     try:
         return pd.read_excel(_rewind(source), sheet_name=sheet, **extra)
     except ValueError:
@@ -543,10 +544,39 @@ def _is_number_column(native, name):
     return pd.api.types.is_numeric_dtype(column) and not pd.api.types.is_bool_dtype(column)
 
 
-def _stack(parts, column, what, example, keep_fast):
+def _variable_name(sheet_name, taken):
+    """A name to copy for a sheet: plain text cleaning only. Lowercase, anything but letters and digits becomes "_",
+    and a name that starts with a digit (or is a Python keyword) gets "sheet_" in front; a repeat gets _2, _3 ..."""
+    name = re.sub(r"_+", "_", re.sub(r"\W", "_", sheet_name.lower())).strip("_") or "sheet"
+    if name[0].isdigit() or keyword.iskeyword(name):
+        name = f"sheet_{name}"
+    base, n = name, 2
+    while name in taken:
+        name, n = f"{base}_{n}", n + 1
+    taken.add(name)
+    return name
+
+
+def _read_each_sheet(labels, file_label, shown=10):
+    """Ready-to-copy lines that read each sheet on its own; past about ten sheets the rest are named only."""
+    taken = set()
+    names = [_variable_name(label, taken) for label in labels[:shown]]
+    width = max(map(len, names))
+    def quoted(text):  # Excel allows " in a sheet name; then the line uses Python's own quotes
+        return repr(text) if '"' in text else f'"{text}"'
+
+    lines = [f'  {name.ljust(width)} = sdata.table({quoted(file_label)}, sheet={quoted(label)})'
+             for name, label in zip(names, labels)]
+    if len(labels) > shown:
+        lines.append("  and the same for the sheets " + ", ".join(f'"{label}"' for label in labels[shown:]))
+    return lines
+
+
+def _stack(parts, column, what, example, keep_fast, file_label=None):
     """Stack tables with the same columns, with a column saying where each row came from.
 
-    parts is a list of (label, table); what is "file", "sheet" or "table".
+    parts is a list of (label, table); what is "file", "sheet" or "table". For sheets, file_label is the Excel file's
+    name, and a refusal ends with a line to copy for each sheet.
     """
     def called(label):
         return {"file": f"{label}", "sheet": f'sheet "{label}"', "table": f"table {label}"}[what]
@@ -560,6 +590,15 @@ def _stack(parts, column, what, example, keep_fast):
         problems += [f'  {called(label)} has an extra column "{n}"' for n in names if n not in reference]
     if problems:
         shown = problems[:12] + ([f"  ... and {len(problems) - 12} more differences"] if len(problems) > 12 else [])
+        if what == "sheet" and file_label is not None:
+            raise SimplydataError(
+                f'The sheets in "{file_label}" do not have the same columns, so they cannot be joined into one table:\n'
+                + "\n".join(shown)
+                + f"\nColumns in {called(first_label)}: " + ", ".join(map(str, reference))
+                + "\nRead each sheet on its own:\n"
+                + "\n".join(_read_each_sheet([label for label, _ in parts], file_label))
+                + '\nOr make the columns match, and sheet="all" stacks them.'
+            )
         raise SimplydataError(
             f"These {what}s do not all have the same columns, so simplydata cannot stack them:\n"
             + "\n".join(shown)
