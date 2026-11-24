@@ -45,7 +45,9 @@ FRONT = r"""
 \vspace{0.4em}
 {\large\sffamily An hour a day: a warm-up from memory, a lesson, and a task to do yourself\par}
 \vspace{0.3em}
-{\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.\par}
+{\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
+\vspace{0.3em}
+{\sffamily\bfseries\itshape Easy to do, and you know why you're doing it.\par}
 \vspace{0.3em}
 {\sffamily\small\color{inkgrey} Version @VERSION@ \textbullet{} two tracks of 30 days \textbullet{} made from the code by
 \code{docs/make\_30\_days.py}\par}
@@ -80,7 +82,12 @@ summaries, tests, models and their checks, fitted lines and curves, and everyday
 time windows, smoothing and trend). The manual is the complete reference: some lessons and parts are
 only there (risks and diagnostic tests, forecasts, spectra and filters, systems, finding and solving,
 values between points). The days that come near them end with a line ``More in the manual'' that
-names the lesson, for when your own work needs it.
+names the lesson, for when your own work needs it. Two extra days come after the 30 and are optional:
+patterns across many columns (day 31) and planning a study (day 32); open them with
+\code{sdata.show\_day(31)} and \code{sdata.show\_day(32)}.
+
+\textbf{Tables and tests come early.} You open a real practice table on day 1 or 2 and test a first
+difference within the first week; charts are woven in between, a few days apart.
 
 \textbf{Missed a day, or a week?} That is fine. Carry on where you stopped: the days build on each
 other, and nothing is lost by taking a break. In Python, \code{sdata.show\_today()} does the same.
@@ -347,13 +354,18 @@ def _calendar(track: str) -> str:
            r"\begin{center}\small",
            r"\begin{longtable}{@{}c r >{\raggedright\arraybackslash}p{0.56\linewidth} >{\raggedright\arraybackslash}p{0.14\linewidth} r@{}}",
            r"\toprule & \textbf{Day} & \textbf{What you do} & \textbf{Lesson} & \textbf{Page}\\\midrule\endhead"]
-    for number, (title, _, units, kind) in enumerate(learn_days.DAYS[track], start=1):
+    for number, (title, _, units, kind) in enumerate(learn_days.DAYS[track][:learn_days.DAYS_IN_A_TRACK], start=1):
         lessons = sorted({n for u in units for n in learn_days.UNITS[u]["lessons"]})
         lesson_text = (", ".join(map(str, lessons)) or "-") if kind == "learn" else _KIND_NAME[kind]
         label = day_label(track, number)
         out.append(f"\\tick & \\hyperref[{label}]{{{number}}} & {esc(title)} & {esc(lesson_text)} & "
                    f"\\pageref*{{{label}}}\\\\[0.25em]")
     out.append(r"\bottomrule\end{longtable}\end{center}")
+    extras = [f"day {n}, {learn_days.DAYS[track][n - 1][0].lower()} (lesson "
+              f"{', '.join(str(k) for u in learn_days.DAYS[track][n - 1][2] for k in learn_days.UNITS[u]['lessons'])})"
+              for n in learn_days.EXTRA_DAYS]
+    out.append(rich("Extra days, optional, after the 30: " + "; ".join(extras) + ". Open them in Python with "
+                    f"sdata.show_day({learn_days.EXTRA_DAYS[0]}); sdata.show_today() never opens them."))
     return "\n".join(out)
 
 

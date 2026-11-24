@@ -5,6 +5,8 @@ Calling two chart types on the same chart puts them on top of each other.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 import warnings
 from contextlib import contextmanager
@@ -1082,8 +1084,8 @@ class ChartWords:
         self._set(projection=kind)
 
     @friendly
-    def draw_bars(self, x=None, y=None, colour=None, show="average", error=None,
-                  stacked=False, sideways=False, transparency=None):
+    def draw_bars(self: _Same, x=None, y=None, colour=None, show="average", error=None,
+                  stacked=False, sideways=False, transparency=None) -> _Same:
         """Bars. chart.draw_bars(x="name", y="marks") (with sdata.get_example("marks"))
 
         colour="class" gives each group its own colour, or colour="blue" one colour.
@@ -1119,8 +1121,8 @@ class ChartWords:
                          error=error, stacked=stacked, sideways=sideways, transparency=transparency)
 
     @friendly(renamed={"dots": "with_dots"})
-    def draw_lines(self, x=None, y=None, colour=None, show="average", error=None, with_dots=False, dashed=False,
-                   thickness=None, transparency=None, joined_by="straight lines"):
+    def draw_lines(self: _Same, x=None, y=None, colour=None, show="average", error=None, with_dots=False, dashed=False,
+                   thickness=None, transparency=None, joined_by="straight lines") -> _Same:
         """Lines. chart.draw_lines(x="month", y="temperature", colour="city") (with sdata.get_example("weather"))
 
         colour="city" draws one line per group. with_dots=True marks each point.
@@ -1160,7 +1162,7 @@ class ChartWords:
                          thickness=thickness, joined_by=joined_by)
 
     @friendly
-    def draw_dots(self, x=None, y=None, colour=None, size=None, shape=None, transparency=None):
+    def draw_dots(self: _Same, x=None, y=None, colour=None, size=None, shape=None, transparency=None) -> _Same:
         """Dots (a scatter chart). chart.draw_dots(x="hours", y="marks") (with sdata.get_example("marks"))
 
         colour="class" colours dots by group. size="height" makes dots bigger for bigger
@@ -1188,7 +1190,7 @@ class ChartWords:
                 raise SimplydataError(f"{option}= in .{word}() should be True or False, not {value!r}.")
 
     @friendly
-    def draw_area(self, x=None, y=None, colour=None, stacked=False, transparency=None, thickness=None):
+    def draw_area(self: _Same, x=None, y=None, colour=None, stacked=False, transparency=None, thickness=None) -> _Same:
         """A line with the space under it coloured in.
         chart.draw_area(x="year", y="population", colour="country") (with sdata.get_example("growth"))
 
@@ -1213,8 +1215,8 @@ class ChartWords:
                          transparency=transparency, thickness=thickness)
 
     @friendly(renamed={"bins": "with_bins"})
-    def draw_histogram(self, x=None, with_bins=None, colour=None, show="count", stacked=False, steps=False,
-                       cumulative=False, bin_width=None, transparency=None, thickness=None):
+    def draw_histogram(self: _Same, x=None, with_bins=None, colour=None, show="count", stacked=False, steps=False,
+                       cumulative=False, bin_width=None, transparency=None, thickness=None) -> _Same:
         """Bars that count how many values fall in each range. chart.draw_histogram(x="marks", with_bins=10)
         (with sdata.get_example("marks"))
 
@@ -1286,7 +1288,7 @@ class ChartWords:
                          transparency=transparency, thickness=thickness)
 
     @friendly
-    def draw_boxes(self, x=None, y=None, colour=None, transparency=None, thickness=None):
+    def draw_boxes(self: _Same, x=None, y=None, colour=None, transparency=None, thickness=None) -> _Same:
         """Boxes that show the middle half of the values and the median.
         chart.draw_boxes(x="class", y="marks") (with sdata.get_example("marks"))
 
@@ -1297,7 +1299,7 @@ class ChartWords:
         return self._boxes_or_violins("boxes", x, y, colour, transparency, thickness)
 
     @friendly
-    def draw_violins(self, x=None, y=None, colour=None, transparency=None, thickness=None):
+    def draw_violins(self: _Same, x=None, y=None, colour=None, transparency=None, thickness=None) -> _Same:
         """Shapes that are wide where many values are. chart.draw_violins(x="class", y="marks")
         (with sdata.get_example("marks"))
 
@@ -1308,7 +1310,7 @@ class ChartWords:
         return self._boxes_or_violins("violins", x, y, colour, transparency, thickness)
 
     @friendly
-    def draw_count_bars(self, x=None, colour=None, sideways=False, transparency=None):
+    def draw_count_bars(self: _Same, x=None, colour=None, sideways=False, transparency=None) -> _Same:
         """Bars that count how many rows each group has. chart.draw_count_bars(x="fruit", colour="shop")
         (with sdata.get_example("fruit"))
 
@@ -1326,7 +1328,7 @@ class ChartWords:
                          error=None, stacked=False, sideways=sideways, transparency=transparency)
 
     @friendly
-    def draw_all_dots(self, x=None, y=None, colour=None, transparency=None):
+    def draw_all_dots(self: _Same, x=None, y=None, colour=None, transparency=None) -> _Same:
         """Every value as a dot, spread out so no dot hides another.
         chart.draw_all_dots(x="class", y="marks") (with sdata.get_example("marks"))
 
@@ -1345,7 +1347,7 @@ class ChartWords:
         return self._add("all_dots", "draw", _draw_all_dots, x=x, y=y, colour=colour, transparency=transparency)
 
     @friendly
-    def draw_density(self, x=None, colour=None, transparency=None, thickness=None):
+    def draw_density(self: _Same, x=None, colour=None, transparency=None, thickness=None) -> _Same:
         """A smooth curve that is high where many values are. chart.draw_density(x="marks", colour="class")
         (with sdata.get_example("marks"))
 
@@ -1364,7 +1366,7 @@ class ChartWords:
                          thickness=thickness)
 
     @friendly(renamed={"numbers": "with_numbers"})
-    def draw_heatmap(self, x=None, y=None, value=None, with_numbers=False, cluster=False, transparency=None):
+    def draw_heatmap(self: _Same, x=None, y=None, value=None, with_numbers=False, cluster=False, transparency=None) -> _Same:
         """A grid of coloured squares, one colour for each number.
         chart.draw_heatmap(x="month", y="city", value="rain", with_numbers=True) (with sdata.get_example("weather"))
 
@@ -1396,7 +1398,7 @@ class ChartWords:
                          numbers=with_numbers, cluster=cluster, transparency=transparency)
 
     @friendly
-    def draw_map_of_empty_cells(self, columns=None):
+    def draw_map_of_empty_cells(self: _Same, columns=None) -> _Same:
         """A map of the empty cells: one row of the chart for each row of the table, one strip
         for each column, with empty cells coloured. chart.draw_map_of_empty_cells() (with sdata.get_example("shop"))
 
@@ -1420,7 +1422,7 @@ class ChartWords:
         return self._add("empty_cells", "draw", _draw_empty_cells, columns=columns)
 
     @friendly
-    def draw_pie(self, labels=None, values=None, transparency=None):
+    def draw_pie(self: _Same, labels=None, values=None, transparency=None) -> _Same:
         """A circle cut into slices, one slice per group. chart.draw_pie(labels="fruit", values="count")
         (with sdata.get_example("fruit"))
 
@@ -1436,7 +1438,7 @@ class ChartWords:
         return self._add("pie", "draw", _draw_pie, labels=labels, values=values, transparency=transparency)
 
     @friendly
-    def draw_polar(self, angle=None, distance=None, colour=None, degrees=True, transparency=None, full_turn=None):
+    def draw_polar(self: _Same, angle=None, distance=None, colour=None, degrees=True, transparency=None, full_turn=None) -> _Same:
         """Dots on a round chart: how far round, and how far out.
         chart.draw_polar(angle="wind_direction", distance="wind_speed", colour="city") (with sdata.get_example("weather"))
 
@@ -1482,7 +1484,7 @@ class ChartWords:
         _check_numbers(self._data, word, x=x, y=y, z=z)
 
     @friendly
-    def draw_contour(self, x=None, y=None, z=None, filled=True, transparency=None, thickness=None):
+    def draw_contour(self: _Same, x=None, y=None, z=None, filled=True, transparency=None, thickness=None) -> _Same:
         """A map where each colour band joins places with the same height.
         chart.draw_contour(x="east", y="north", z="height") (with sdata.get_example("island"))
 
@@ -1501,7 +1503,7 @@ class ChartWords:
                          transparency=transparency, thickness=thickness)
 
     @friendly
-    def draw_surface(self, x=None, y=None, z=None, transparency=None):
+    def draw_surface(self: _Same, x=None, y=None, z=None, transparency=None) -> _Same:
         """A 3D landscape: z= is how high the ground is.
         chart.draw_surface(x="east", y="north", z="height") (with sdata.get_example("island"))
 
@@ -1514,7 +1516,7 @@ class ChartWords:
         return self._add("surface", "draw", _draw_surface, x=x, y=y, z=z, transparency=transparency)
 
     @friendly
-    def draw_dots_3d(self, x=None, y=None, z=None, colour=None, transparency=None):
+    def draw_dots_3d(self: _Same, x=None, y=None, z=None, colour=None, transparency=None) -> _Same:
         """Dots floating in a 3D box. chart.draw_dots_3d(x="hours", y="height", z="marks", colour="class")
         (with sdata.get_example("marks"))
 
@@ -1530,7 +1532,7 @@ class ChartWords:
                          transparency=transparency)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_band(self, x=None, between=None, colour=None, labelled=None, transparency=None):
+    def draw_band(self: _Same, x=None, between=None, colour=None, labelled=None, transparency=None) -> _Same:
         """A shaded band between a low and a high column, along x.
         chart.draw_band(x="month", between=["lowest", "highest"]) (with a table that has those columns)
 
@@ -1570,7 +1572,7 @@ class ChartWords:
         return self._replace("band_legend", "extra", _band_legend)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def draw_qq_dots(self, column=None, for_each_group_in=None, transparency=None, thickness=None, distribution="normal"):
+    def draw_qq_dots(self: _Same, column=None, for_each_group_in=None, transparency=None, thickness=None, distribution="normal") -> _Same:
         """Dots that lie on a straight line when the values follow a normal (bell) curve.
         chart.draw_qq_dots("marks") (with sdata.get_example("marks"))
 
@@ -1600,7 +1602,7 @@ class ChartWords:
                          transparency=transparency, thickness=thickness, distribution=distribution, said={})
 
     @friendly
-    def draw_cumulative_share(self, x=None, colour=None, transparency=None, thickness=None):
+    def draw_cumulative_share(self: _Same, x=None, colour=None, transparency=None, thickness=None) -> _Same:
         """A line that climbs from 0 to 1: the share of values at or below each x.
         chart.draw_cumulative_share(x="marks", colour="class") (with sdata.get_example("marks"))
 

@@ -141,10 +141,10 @@ GROUPS = [
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
-    ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.turn_columns_into_rows",
-                             "table.turn_rows_into_columns"]),
+    ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.gather_into_rows",
+                             "table.spread_into_columns", "table.swap_rows_and_columns"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
-                         "table.start_chart", "table.as_pandas", "table.as_polars"]),
+                         "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
     ("Numbers: make and look", ["sdata.numbers", "sdata.make_random_numbers", "nums.show", "nums.show_first_numbers",
                                 "nums.show_last_numbers", "nums.get_number_at", "nums.count",
@@ -519,7 +519,8 @@ HELP_EXAMPLES = {
                                            'table.repeat_each_row_by("count")', 'print(table)']),
     "table.keep_biggest_rows": _tx("marks", 'table.keep_biggest_rows(3, by="marks", for_each_group_in="subject")\ntable.show()'),
     "table.keep_smallest_rows": _tx("marks", 'table.keep_smallest_rows(3, by="marks", for_each_group_in="subject")\ntable.show()'),
-    "table.show_rows_with_outliers": _tx("marks", 'table.show_rows_with_outliers("marks", for_each_group_in="class")'),
+    "table.show_rows_with_outliers": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                                  'table.show_rows_with_outliers("marks", for_each_group_in="class")'),
     "table.remove_rows_with_outliers": _tx("marks", 'table.remove_rows_with_outliers("marks", for_each_group_in="subject")\n'
                                                     "table.show_steps()"),
     # empty cells (the shop table has some)
@@ -554,7 +555,8 @@ HELP_EXAMPLES = {
                                            'table.count_each("grade")'),
     "table.add_z_score_column": _tx("marks", 'table.add_z_score_column("marks_z", from_column="marks", '
                                              'for_each_group_in="subject")\ntable.show_first_rows()'),
-    "table.find_interval_of": _tx("marks", 'table.find_interval_of("marks", "median", for_each_group_in="class")'),
+    "table.find_interval_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                           'table.find_interval_of("marks", "median", for_each_group_in="class")'),
     "table.add_rank_column": _tx("marks", 'table.add_rank_column("place", from_column="marks")\n'
                                           'table.sort_by("place")\ntable.show_first_rows()'),
     # dates and text
@@ -592,23 +594,31 @@ HELP_EXAMPLES = {
     "table.count_different_values_in": _tx("marks", 'table.count_different_values_in("name", for_each_group_in="class")'),
     "table.find_percentile_of": _tx("marks", 'table.find_percentile_of("marks", 90, for_each_group_in="class")'),
     "table.find_most_common_of": _tx("school", 'table.find_most_common_of("days_absent", for_each_group_in="school")'),
-    "table.find_correlation_between": _tx("marks", 'table.find_correlation_between("hours", "marks")'),
+    "table.find_correlation_between": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                                   'table.find_correlation_between("hours", "marks")'),
     # statistical tests
-    "table.compare_averages_of": _tx("marks", 'result = table.compare_averages_of("marks", for_each_group_in="class")\n'
+    "table.compare_averages_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                           'result = table.compare_averages_of("marks", for_each_group_in="class")\n'
                                            'table.compare_averages_of("marks", for_each_group_in="class", based_on="ranks")\n'
+                                           'table.undo()\n'
                                            'table.compare_averages_of("marks", for_each_group_in="subject", matched_by="name")\n'
                                            'result.save("marks_test.csv")'),
-    "table.compare_each_pair_of": _tx("marks", 'table.compare_each_pair_of("marks", for_each_group_in="class")'),
+    "table.compare_each_pair_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                               'table.compare_each_pair_of("marks", for_each_group_in="class")'),
     "table.compare_before_and_after": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
-                                               'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
+                                               'table.spread_into_columns(names_from="subject", values_from="marks")\n'
                                                'table.compare_before_and_after("Maths", "Science")'),
-    "table.compare_average_to": _tx("marks", 'table.compare_average_to("marks", 60)'),
-    "table.compare_counts_of": _tx("marks", 'table.add_group_column("result", from_column="marks", cut_at=[60], '
+    "table.compare_average_to": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                             'table.compare_average_to("marks", 60)'),
+    "table.compare_counts_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                            'table.add_group_column("result", from_column="marks", cut_at=[60], '
                                          'names=["below 60", "60 or more"])\n'
                                          'table.compare_counts_of("result", for_each_group_in="class")'),
     # fitting
-    "table.fit_line": _tx("marks", 'table.fit_line(x="hours", y="marks")'),
-    "table.fit_curve": _tx("marks", 'table.fit_curve(x="hours", y="marks", of_degree=2)'),
+    "table.fit_line": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                   'table.fit_line(x="hours", y="marks")'),
+    "table.fit_curve": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                    'table.fit_curve(x="hours", y="marks", of_degree=2)'),
     "table.fit_formula": _tx("growth", 'table.fit_formula("population = a * exp(b * (year - 2000))", '
                                        'for_each_group_in="country")\n'
                                        'table.keep_rows_where("country", is_equal_to="Applia")\n'
@@ -663,23 +673,28 @@ HELP_EXAMPLES = {
                       'chart.save("distribution.png")'),
     "dist.turn_into_table": _dx("result = dist.turn_into_table()\nresult.show()"),
     "dist.show_parameters": _dx("print(dist.show_parameters())"),
-    "table.compare_spreads_of": _tx("marks", 'table.compare_spreads_of("marks", for_each_group_in="class")'),
+    "table.compare_spreads_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                             'table.compare_spreads_of("marks", for_each_group_in="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
     "table.compare_percent_to": _tx("school", 'table.compare_percent_to("passed", value="yes", percent=50)'),
-    "table.compare_shape_to": _tx("marks", 'table.compare_shape_to("marks", "normal", for_each_group_in="class")\n'
+    "table.compare_shape_to": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                           'table.compare_shape_to("marks", "normal", for_each_group_in="class")\n'
                                            'table.compare_shape_to("marks", "normal", test_method="jarque-bera")'),
     "table.compare_matched_columns": _tx("marks", 'table.keep_columns("name", "subject", "marks")\n'
-                                          'table.turn_rows_into_columns(names_from="subject", values_from="marks")\n'
+                                          'table.spread_into_columns(names_from="subject", values_from="marks")\n'
                                           'table.compare_matched_columns("Maths", "Science", "English")'),
-    "table.compare_shapes_of": _tx("marks", 'table.compare_shapes_of("marks", for_each_group_in="class")'),
-    "table.check_if_random_order": _tx("marks", 'table.check_if_random_order("marks")'),
+    "table.compare_shapes_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                            'table.compare_shapes_of("marks", for_each_group_in="class")'),
+    "table.check_if_random_order": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                                'table.check_if_random_order("marks")'),
     "sdata.compare_averages": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])"""),
     "sdata.compare_counts": textwrap.dedent("""\
         import simplydata as sdata
         sdata.compare_counts([[20, 40], [30, 30]])"""),
-    "table.compare_correlations": _tx("marks", 'table.keep_rows_where("class", is_one_of=["A", "B"])\n'
+    "table.compare_correlations": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                               'table.keep_rows_where("class", is_one_of=["A", "B"])\n'
                                                'table.compare_correlations("hours", "marks", for_each_group_in="class")'),
     "table.compare_risks": _tx("trial", 'table.compare_risks("died", for_each_group_in="treatment", against="usual care")'),
     "table.compare_rates": _tx("clinic", 'table.compare_rates("infections", time="patient_days", for_each_group_in="ward", '
@@ -705,7 +720,8 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         sdata.compare_to_truth(found=45, missed=5, false_alarms=30, correct_negatives=920)
         sdata.compare_to_truth(sensitivity=90, specificity=95, prevalence=1)"""),
-    "table.add_adjusted_p_value_column": _tx("marks", 'table = table.find_correlation_between("hours", "marks", "height", '
+    "table.add_adjusted_p_value_column": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                                      'table = table.find_correlation_between("hours", "marks", "height", '
                                                       'show="each pair")\n'
                                                       'table.add_adjusted_p_value_column("q", test_method="benjamini-hochberg")\n'
                                                       "table.show()"),
@@ -714,11 +730,15 @@ HELP_EXAMPLES = {
                                     'table.join_with(ages, using="name", keep="all rows from this table")\n'
                                     "table.show_first_rows()"),
     "table.add_rows_from": _tx("marks", 'table.add_rows_from(sdata.get_example("marks"))\nprint(table)'),
-    "table.turn_columns_into_rows": _tx("weather", 'table.keep_columns("month", "city", "temperature", "rain")\n'
-                                                   'table.turn_columns_into_rows(["temperature", "rain"])\n'
+    "table.gather_into_rows": _tx("weather", 'table.keep_columns("month", "city", "temperature", "rain")\n'
+                                                   'table.gather_into_rows(["temperature", "rain"])\n'
                                                    "table.show_first_rows()"),
-    "table.turn_rows_into_columns": _tx("weather", 'table.turn_rows_into_columns(names_from="city", '
-                                                   'values_from="temperature")\ntable.show_first_rows()'),
+    "table.spread_into_columns": _tx("weather", 'table.keep_columns("month", "city", "temperature")\n'
+                                                'table.spread_into_columns(names_from="city", '
+                                                'values_from="temperature")\ntable.show_first_rows()'),
+    "table.swap_rows_and_columns": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
+                                                'table.keep_columns("name", "hours", "marks")\n'
+                                                "table.swap_rows_and_columns()\nprint(table)"),
     # undo and finish
     "table.undo": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ntable.undo()\nprint(table)'),
     "table.show_steps": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ntable.sort_by("marks")\ntable.show_steps()'),
@@ -729,6 +749,8 @@ HELP_EXAMPLES = {
     "table.start_chart": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\nchart = table.start_chart()\n'
                                 'chart.draw_bars(x="name", y="marks")\nchart.rotate_labels_x()\n'
                                 'chart.save("maths_marks.png")'),
+    "table.make_copy": _tx("marks", 'backup = table.make_copy()\ntable.keep_rows_where("class", is_equal_to="A")\n'
+                                    "backup.count_rows()\ntable.count_rows()"),
     "table.as_pandas": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ndf = table.as_pandas()\nprint(type(df))'),
     "table.as_polars": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\ndf = table.as_polars()\nprint(type(df))'),
     # models
@@ -1536,7 +1558,7 @@ def _print_help_overview() -> None:
                                          for numbers
           sdata.help("show=")            explains an option you use inside a step
           sdata.show_all_words()         lists every word, with a short example of each
-          sdata.show_lesson()            lists the lessons: learn the whole of simplydata in a day
+          sdata.show_lesson()            lists the lessons: start in a day
           sdata.start_30_days()          or learn it in 30 days, an hour a day: then sdata.show_today()
           sdata.get_example()            lists the made-up tables you can practise with
 
@@ -2554,6 +2576,15 @@ LESSONS = [
             "nice table.",
             "sdata.table reads the same files as sdata.chart: .xlsx, .csv, .tsv, .parquet and .json. "
             'For one sheet of an Excel file: sdata.table("results.xlsx", sheet="2026").',
+            'Every sheet at once: everything = sdata.table("results.xlsx", sheet="all") gives one table with a '
+            '"sheet" column naming the sheet each row came from. Then everything.count_rows(for_each_group_in="sheet") '
+            'counts the rows of each sheet, everything.find_average_of("marks", for_each_group_in="sheet") gives a '
+            'summary per sheet, and everything.keep_rows_where("sheet", is_equal_to="2026") keeps the rows of one sheet (everything.undo() brings the others back). '
+            'sheet="all" works only when the sheets have the same columns; sheets with different data are read by '
+            'name, one at a time, and simplydata prints a line to copy for each.',
+            'To write such a file, save each table as a sheet: marks_2025.save("results.xlsx", in_sheet="2025"), then '
+            'marks_2026.save("results.xlsx", in_sheet="2026") keeps the first sheet and adds the second. sheet= reads '
+            'a sheet; in_sheet= saves one.',
             "The row numbers on the left start at 1, the way people count: the last row of a table of 54 "
             "rows is row 54. Lesson 10 uses these numbers to choose rows by their place.",
             'A folder works too: sdata.table("data/") reads every table file in it. A web address '
@@ -2629,7 +2660,9 @@ LESSONS = [
                                                                   'the shorter name "temp".'),
                 ("print(table)", "Look at what is left: 6 rows and 5 columns."),
                 ('table.save("lesson10_summer.xlsx")', "Save the table as an Excel file. A name "
-                                                       "ending in .csv saves a CSV file."),
+                                                       "ending in .csv saves a CSV file. in_sheet=\"summer\" "
+                                                       "would save it as one sheet and keep the file's other "
+                                                       "sheets."),
             ]),
             ("A condition can also be written out, with and, or, not and brackets. And keep_biggest_rows "
              "keeps the top rows of each group.", [
@@ -2798,7 +2831,7 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
                 ('table.keep_columns("name", "class", "subject", "marks")', "Keep the columns we need."),
-                ('table.turn_rows_into_columns(names_from="subject", values_from="marks")',
+                ('table.spread_into_columns(names_from="subject", values_from="marks")',
                  "Make one column for each subject: Maths, Science and English. Each child now has "
                  "one row."),
                 ('table.add_column("total", "Maths + Science + English")', 'A new column "total": '
@@ -2908,7 +2941,7 @@ LESSONS = [
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("marks"))
                 table.keep_columns("name", "class", "subject", "marks")
-                table.turn_rows_into_columns(names_from="subject", values_from="marks")
+                table.spread_into_columns(names_from="subject", values_from="marks")
                 table.add_column("total", "Maths + Science + English")
                 table.add_column("best_two", "total - English")
                 table.show_first_rows()"""),
@@ -2925,7 +2958,7 @@ LESSONS = [
         words=["table.replace_values_in", "table.count_empty_cells_in", "table.fill_empty_cells_in",
                "table.remove_rows_with_empty_cells_in",
                "table.remove_extra_spaces_in", "table.turn_into_numbers", "table.add_column",
-               "table.add_group_column", "table.add_rank_column", "table.turn_rows_into_columns",
+               "table.add_group_column", "table.add_rank_column", "table.spread_into_columns",
                "table.add_is_empty_column", "draw_map_of_empty_cells", "table.add_column_with_part_of_date",
                "table.add_rolling_column", "table.split_column", "table.add_column_with_part_of_text",
                "table.replace_text_in", "table.turn_into_dates", "table.change_column", "table.round_numbers_in",
@@ -2948,6 +2981,9 @@ LESSONS = [
                 ('table.find_average_of("marks", for_each_group_in="class")', "One average for each class. for_each_group_in= "
                                                                 "also gives back a new, small table."),
                 ('table.find_biggest_of("marks", for_each_group_in="subject")', "The best mark in each subject."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks: one row per child. Each child is in the table three times, and a "
+                 "correlation over all 54 rows would count each child three times."),
                 ('table.find_correlation_between("hours", "marks")', "Do more hours go with more marks? "
                                                                 "The answer is a number r from -1 "
                                                                 "to 1 (Pearson's correlation), "
@@ -3000,7 +3036,7 @@ LESSONS = [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table({"name": ["Asha", "Ben", "Chen"], "test_1": [61, 73, 81], '
                  '"test_2": [70, 68, 90]})', "A small, wide table: two tests, one column for each."),
-                ('table.turn_columns_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")',
+                ('table.gather_into_rows(["test_1", "test_2"], names_to="test", values_to="mark")',
                  'Put the two tests under each other. The new column "test" says which test, and '
                  '"mark" holds the mark. Each child now has two rows.'),
                 ("table.show_first_rows(6)", "Look at the new, long shape."),
@@ -3037,6 +3073,8 @@ LESSONS = [
                 ('marks.find_average_of("marks", for_each_group_in="class", across="subject")', "The average mark of "
                                                                                   "each class in each "
                                                                                   "subject."),
+                ('marks.keep_rows_where("subject", is_equal_to="Maths")',
+                 "One row per child (a child's height is the same in all three of its rows)."),
                 ('marks.find_correlation_between("hours", "marks", "height")', "Every pair of the three "
                                                                          "columns at once: a "
                                                                          "correlation table, with the "
@@ -3079,7 +3117,7 @@ LESSONS = [
             "A chart never changes its table, and a table step never changes a chart you already "
             "made. So one cleaned table can feed many charts.",
             "table.add_rows_from(other) puts the rows of another table under this one. "
-            "turn_rows_into_columns does the opposite of turn_columns_into_rows.",
+            "spread_into_columns does the opposite of gather_into_rows.",
             "Lesson 13 teaches numbers, and lesson 14 the statistical tests: is a difference "
             "real, and how big is it?",
             "Every summary skips empty cells and says how many it skipped. find_summary_of can also show "
@@ -3126,7 +3164,7 @@ LESSONS = [
              "Class A, with an average of 79.2 in Science, against 67.5 for B and 62.3 for C."),
         ],
         words=["table.find_average_of", "table.find_biggest_of", "table.find_correlation_between", "table.find_total_of",
-               "table.start_chart", "sdata.put_side_by_side", "table.join_with", "table.turn_columns_into_rows",
+               "table.start_chart", "sdata.put_side_by_side", "table.join_with", "table.gather_into_rows",
                "table.add_rows_from", "table.find_summary_of", "table.find_percent_of_rows_where", "table.count_rows",
                "table.count_different_values_in", "table.find_percentile_of", "table.find_most_common_of"],
     ),
@@ -3268,36 +3306,52 @@ LESSONS = [
              "bigger than chance alone would often give?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
-                ('table.compare_averages_of("marks", for_each_group_in="class")',
+                ('children = table.find_average_of("marks", for_each_group_in=["class", "name"])',
+                 "Each child appears three times, once for each subject, so the 54 rows are not 54 independent "
+                 "children: the three marks of one child are alike. A test that counts them as 54 children is "
+                 "too sure of itself. So first make one value per child: the average of the child's three "
+                 "marks, in a new table of 18 rows with the column \"average of marks\"."),
+                ('children.compare_averages_of("average of marks", for_each_group_in="class")',
                  "Do the three classes really differ in their average mark? The answer comes in "
                  "words. The p-value says how often differences this big or bigger would turn up in "
-                 "studies like this one if the classes were truly the same: here in about 3 of 100 "
-                 "(p = 0.028). It is not the chance that the classes are the same. With three or more "
-                 "groups this test is also called Welch's ANOVA; with two groups, a t-test."),
-                ('table.compare_each_pair_of("marks", for_each_group_in="class")',
+                 "studies like this one if the classes were truly the same: here in about 8 of 100 "
+                 "(p = 0.081), so these 18 children cannot tell. It is not the chance that the classes are "
+                 "the same. (The 54 rows counted as 54 children would have given p = 0.028: too sure.) With "
+                 "three or more groups this test is also called Welch's ANOVA; with two groups, a t-test."),
+                ('children.compare_each_pair_of("average of marks", for_each_group_in="class")',
                  "Which classes differ? Each pair gets its own t-test (Welch's). Testing many pairs makes a "
-                 "false alarm more likely, so the p-values are adjusted (Holm's method)."),
-                ('table.compare_averages_of("marks", for_each_group_in="subject", based_on="ranks")',
-                 "based_on=\"ranks\" puts the marks in order and compares the places instead "
+                 "false alarm more likely, so the p-values are adjusted (Holm's method). Here no pair is "
+                 "clearly different (A and C: adjusted p = 0.092)."),
+                ('children.compare_averages_of("average of marks", for_each_group_in="class", based_on="ranks")',
+                 "based_on=\"ranks\" puts the values in order and compares the places instead "
                  "(a Kruskal-Wallis test, or Mann-Whitney for two groups). It is safer when groups "
-                 "are small and the values are not bell-shaped."),
+                 "are small and the values are not bell-shaped. Like the test above, it needs "
+                 "independent rows: one row per child."),
             ]),
             ("Counts can be compared too: does how often something happens differ between groups?", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks only: one row per child, so each child is counted once."),
                 ('table.add_group_column("result", from_column="marks", cut_at=[60], '
                  'names=["below 60", "60 or more"])', "A new column that says if each mark is below "
                                                       "60 or not."),
                 ('table.compare_counts_of("result", for_each_group_in="class")',
-                 "Do the classes differ in how many marks are 60 or more? This counts the rows for "
+                 "Do the classes differ in how many maths marks are 60 or more? This counts the children for "
                  "each class and result and uses the chi-square test. Cramer's V says how strong "
-                 "the link is, from 0 (none) to 1."),
+                 "the link is, from 0 (none) to 1. With only 18 children every expected count is below 5, "
+                 "and a note says the p-value may be off."),
+                ('table.compare_counts_of("result", for_each_group_in="class", p_value_by="shuffling")',
+                 "So take the p-value by shuffling, as the note suggests: it does not need large counts. "
+                 "p = 0.35 (the formula said 0.195): the data cannot tell."),
             ]),
             ("A fit finds the line or formula that follows the data best, and says how sure it is.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks: one row per child, so every row is a different child."),
                 ('table.fit_line(x="hours", y="marks")',
-                 "How much do the marks go up for each extra hour of study? This is linear regression "
+                 "How much do the maths marks go up for each extra hour of study? This is linear regression "
                  "by least squares. R squared says how much of the differences in marks the line "
                  "explains."),
                 ('growth = sdata.table(sdata.get_example("growth"))', "A second table, with the growth data."),
@@ -3311,28 +3365,33 @@ LESSONS = [
              "many tests, adjust the p-values.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks: one row per child."),
                 ('table.compare_shape_to("marks", "normal", for_each_group_in="class")',
                  "Do the marks of each class look bell-shaped (normal)? The Shapiro-Wilk test answers for "
                  "each class. Tests on averages work best with bell-shaped values, or with many values."),
                 ('table.show_rows_with_outliers("marks", for_each_group_in="class")',
                  "The rows whose mark is far from the rest of its class, by Tukey's rule (the one box "
-                 "plots use): here one mark of 33 in class B. The table does not change."),
+                 "plots use): here one maths mark of 47 in class A. The table does not change."),
                 ('pairs = table.find_correlation_between("hours", "marks", "height", show="each pair")',
                  "Test three pairs of columns at once: a table with one row per pair and its p-value."),
                 ('pairs.add_adjusted_p_value_column(test_method="holm")',
                  "With many tests, one of them looks real by chance more often. Holm's adjustment keeps "
-                 "the chance of even one false alarm at 5 %."),
+                 "the chance of even one false alarm to at most 5 %."),
                 ("pairs.show()", "The p-values and the adjusted ones, side by side."),
             ]),
             ("Some questions are about spread, or about counts compared with what you expect.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "Make a table of the marks."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks: one row per child."),
                 ('table.compare_spreads_of("marks", for_each_group_in="class")',
-                 "Are the marks of one class more spread out? The data cannot tell: differences in "
-                 "spread this big would turn up in about 91 of 100 studies even if the spreads were the "
-                 "same (p = 0.91)."),
+                 "Are the maths marks of one class more spread out? The data cannot tell: differences in "
+                 "spread this big would turn up in about 61 of 100 studies even if the spreads were the "
+                 "same (p = 0.61)."),
                 ('table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")',
-                 "Tukey's test compares every pair at once: only A and C differ (p = 0.020)."),
+                 "Tukey's test compares every pair at once: no pair is clearly different (A and C: "
+                 "p = 0.31)."),
                 ('school = sdata.table(sdata.get_example("school"))', "A table of pupils."),
                 ('school.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})',
                  "Did 60 % eat breakfast, as a survey said? 115 of 180 is close enough (p = 0.29)."),
@@ -3348,9 +3407,27 @@ LESSONS = [
                  "the three columns within each patient (the Friedman test, on ranks): the median pain falls "
                  "from 6 to 5 to 4, far more than chance would give (p < 0.0001). For two columns, "
                  "compare_before_and_after does the same."),
+                ('marks = sdata.table(sdata.get_example("marks"))',
+                 "The marks table is the same kind of data: each child has a mark in all three subjects."),
+                ('marks.keep_columns("name", "subject", "marks")', "Keep only who, which subject and the mark."),
+                ('marks.spread_into_columns(names_from="subject", values_from="marks")',
+                 "One row per child, one column per subject."),
+                ('marks.compare_matched_columns("Maths", "Science", "English")',
+                 "Do the subjects differ? Each child is compared with itself (Friedman): the median mark is "
+                 "64.5, 70 and 62, and differences this big would turn up in about 6 of 100 studies "
+                 "(p = 0.056), so the data cannot tell. A Kruskal-Wallis test of the subjects would treat "
+                 "the three marks of one child as marks of three different children."),
             ]),
         ],
         notes=[
+            "Tests count each row as a separate, independent piece of evidence. In the marks table each child "
+            "appears three times, so the rows are not independent: compare the classes on one value per child "
+            "(find_average_of(..., for_each_group_in=[\"class\", \"name\"]), or one subject), and compare the "
+            "subjects within each child (compare_matched_columns, or matched_by=). The same goes for pupils in "
+            "the same school (lesson 16: grouped_by=) and for repeated measurements of one patient, plant or "
+            "site. simplydata cannot see this in the data: you have to say it. The school examples of this lesson "
+            "treat the 180 pupils as independent to keep them short; lesson 16 shows how to allow for their "
+            "12 schools.",
             "The idea behind every test: imagine there is no real difference (this is called the "
             "null hypothesis). The p-value says how often a difference this big or bigger would turn "
             "up then, in studies like yours: p = 0.03 is \"about 3 of 100 studies\". It is not the "
@@ -3378,19 +3455,23 @@ LESSONS = [
             "BayesFactor; the lesson \"Bayesian answers\" in sdata.show_lesson()).",
         ],
         task=[
-            'Compare the average marks for_each_group_in="subject". Could the differences be chance?',
+            'Compare the classes on the science marks only (keep_rows_where("subject", is_equal_to="Science")). '
+            "Could the differences be chance?",
             'Is the average temperature different between the cities of sdata.get_example("weather")?',
             'Fit a straight line of "forest" against "year" in sdata.get_example("growth") for one country.',
-            'Remove the rows with outliers in "marks" for_each_group_in="class", then compare the average marks '
-            'for_each_group_in="class" again. Did the answer change?',
+            'Make the table of one average mark per child (children, as in part 3), remove the rows with outliers '
+            'in "average of marks" for_each_group_in="class", then compare the classes again. Did the answer '
+            "change?",
         ],
         solutions=[
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("marks"))
-                table.compare_averages_of("marks", for_each_group_in="subject")"""),
-             "Yes, they could: p = 0.26 is well above 0.05. That does not prove the subjects are "
-             "the same; these data simply cannot tell."),
+                table.keep_rows_where("subject", is_equal_to="Science")
+                table.compare_averages_of("marks", for_each_group_in="class")"""),
+             "Yes, they could: p = 0.20 is well above 0.05. That does not prove the classes are "
+             "the same; these 18 children simply cannot tell. A note says class B does not look "
+             "bell-shaped, so based_on=\"ranks\" is the safer test here."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("weather"))
@@ -3409,10 +3490,12 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("marks"))
-                table.remove_rows_with_outliers("marks", for_each_group_in="class")
-                table.compare_averages_of("marks", for_each_group_in="class")"""),
-             "Only one mark (33 in class B) is removed. Class B goes up from 64.3 to 66.1, but p stays 0.028: "
-             "the answer does not change. Say in a report that you checked, and how."),
+                children = table.find_average_of("marks", for_each_group_in=["class", "name"])
+                children.remove_rows_with_outliers("average of marks", for_each_group_in="class")
+                children.compare_averages_of("average of marks", for_each_group_in="class")"""),
+             "One child (Hana, 79.7 in class B) is removed. Class B goes down from 64.3 to 61.2, and p goes "
+             "from 0.081 to 0.042: with 18 children, one child can change the answer. Report both, say "
+             "which rule removed whom, and never remove a value only because it changes the result."),
         ],
         words=["table.compare_averages_of", "table.compare_each_pair_of", "table.compare_counts_of",
                "table.fit_line", "table.fit_formula", "table.add_group_column",
@@ -3439,8 +3522,12 @@ LESSONS = [
                 ("table.remove_rows_with_empty_cells_in()", "Clean: remove the rows with an empty cell. The "
                                                          "practice table has none, so nothing is removed."),
                 ('table.find_average_of("marks", for_each_group_in="class")', "Sum up: the average mark of each class."),
-                ('table.compare_averages_of("marks", for_each_group_in="class")', "Test: could the differences "
-                                                                     "between the classes be chance?"),
+                ('children = table.find_average_of("marks", for_each_group_in=["class", "name"])',
+                 "Each child is in the table three times, once for each subject, so the rows are not "
+                 "independent. For the test, one value per child: the average of the child's three marks."),
+                ('children.compare_averages_of("average of marks", for_each_group_in="class")',
+                 "Test: could the differences between the classes be chance? With one value per child, "
+                 "they could (p = 0.081)."),
                 ("a = table.start_chart()", "Chart A, from the cleaned table."),
                 ('a.draw_boxes(x="class", y="marks")', "The marks of each class as boxes."),
                 ('a.draw_all_dots(x="class", y="marks")', "Every mark as a dot, on top of the boxes."),
@@ -3577,7 +3664,10 @@ LESSONS = [
                  "Explain the marks from hours of study, hours of sleep and breakfast. Each extra hour of "
                  "study goes with about 2.7 more marks, each extra hour of sleep with 2.3 more, and "
                  "breakfast with 3.2 more, each with its 95 % confidence interval and p-value. This is "
-                 "a linear model (multiple regression) by least squares."),
+                 "a linear model (multiple regression) by least squares. It counts the 180 pupils as "
+                 "independent, but they come from 12 schools, and pupils of one school are alike: part 3 "
+                 "allows for that with grouped_by=\"school\". Until then, read these p-values as a little too "
+                 "small."),
                 ('table.explain("marks", using=["hours * breakfast"])',
                  "hours * breakfast also asks: does the effect of study depend on breakfast? That is an "
                  "interaction. Here the data cannot tell: about 31 of 100 studies would show this much "
@@ -3888,10 +3978,12 @@ LESSONS = [
              "fit_formula are the same words on a table (the numbers) and on a chart (the picture).", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("marks"))', "The marks table: hours of study and marks."),
+                ('table.keep_rows_where("subject", is_equal_to="Maths")',
+                 "Keep the maths marks: one row per child, so each child counts once."),
                 ('table.fit_line(x="hours", y="marks")',
-                 "The straight line: about 5.2 marks more for each hour of study, and R squared 0.69."),
+                 "The straight line: about 6.2 marks more for each hour of study, and R squared 0.78."),
                 ('table.fit_curve(x="hours", y="marks", of_degree=2)',
-                 "A curve with one bend (hours and hours**2). R squared only goes from 0.69 to 0.70, so the "
+                 "A curve with one bend (hours and hours**2). R squared only goes from 0.78 to 0.80, so the "
                  "bend adds little: the straight line is enough here."),
                 ("chart = table.start_chart()", "Start a chart of the same table."),
                 ('chart.draw_dots(x="hours", y="marks")', "The dots."),
@@ -3978,7 +4070,7 @@ LESSONS = [
             "column. The manual and the dictionary have the rest.",
         ],
         task=[
-            'Fit a curve of degree 3 to "marks" against "hours". Does R squared go up much from the straight '
+            'Fit a curve of degree 3 to the maths "marks" against "hours". Does R squared go up much from the straight '
             "line?",
             'With the weather table, keep the city Sunnyvale and fit "temperature = a + b * cos(2 * pi * '
             '(month_number - c) / 12)" with start={"a": 15, "b": 8, "c": 7}. In which month is it warmest (c)?',
@@ -3994,8 +4086,9 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("marks"))
+                table.keep_rows_where("subject", is_equal_to="Maths")
                 table.fit_curve(x="hours", y="marks", of_degree=3)"""),
-             "R squared is 0.71, against 0.69 for the straight line: the extra bends add very little."),
+             "R squared is 0.80, against 0.78 for the straight line: the extra bends add very little."),
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("weather"))
@@ -4211,6 +4304,10 @@ LESSONS = [
             ]),
         ],
         notes=[
+            "The pupils of the school table come from 12 schools, and pupils of one school are alike, so the "
+            "rows are not fully independent. These examples leave the schools out to stay short, so their "
+            "p-values are a little too small; in a report, allow for the schools with grouped_by=\"school\" "
+            "(lesson 16).",
             "Check before you trust: look at check_model_of's pictures before you read the p-values of explain().",
             'check_model_of(..., show="numbers") gives back the numbers it prints (variance inflation factors, the '
             "tests of equal spread) as a table; show_rows_that_pull_model gives back a table of the rows it found.",
@@ -4910,6 +5007,10 @@ LESSONS = [
             ]),
         ],
         notes=[
+            "The pupils of the school table come from 12 schools, and pupils of one school are alike, so the "
+            "rows are not fully independent. These examples leave the schools out to stay short, so their "
+            "p-values are a little too small; in a report, allow for the schools with grouped_by=\"school\" "
+            "(lesson 16).",
             "giving_outliers_less_weight=True changes the effects (rows far from the model count less); "
             "robust_errors=True keeps the effects and changes only their standard errors. Choose by the problem: "
             "outliers, or a spread that is not the same everywhere.",
@@ -5005,6 +5106,10 @@ LESSONS = [
             ]),
         ],
         notes=[
+            "The pupils of the school table come from 12 schools, and pupils of one school are alike, so the "
+            "rows are not fully independent. These examples leave the schools out to stay short, so their "
+            "p-values are a little too small; in a report, allow for the schools with grouped_by=\"school\" "
+            "(lesson 16).",
             "Picture first, then the test: the interaction picture shows what the interaction test is about.",
             "Compare the groups with the interaction test, not by which simple effects have small p-values: "
             '"significant in one group but not the other" is not a difference between the groups (Gelman & Stern '

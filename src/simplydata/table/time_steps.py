@@ -8,6 +8,8 @@ runmed for the running median).
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import narwhals as nw
 import numpy as np
 
@@ -40,7 +42,7 @@ def _common_every(days: np.ndarray):
 
 class TimeStepWords:
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_missing_dates(self, column=None, every=None, for_each_group_in=None, between=None):
+    def add_missing_dates(self: _Same, column=None, every=None, for_each_group_in=None, between=None) -> _Same:
         """Add a row for every date that is missing from a regular run of dates (other cells empty).
 
         table.add_missing_dates("date", every="day", for_each_group_in="station")   (with sdata.get_example("river"))
@@ -141,9 +143,9 @@ class TimeStepWords:
         return self._change(f'add {total} missing dates to "{column}"', frame)
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "degree": "of_degree"})
-    def add_smoothed_column(self, name=None, from_column=None, test_method="moving average", window=5, sorted_by=None,
+    def add_smoothed_column(self: _Same, name=None, from_column=None, test_method="moving average", window=5, sorted_by=None,
                             for_each_group_in=None, ends=None, weights=None, of_degree=None, newest_weight=None, width=None,
-                            smoothness=None, alpha=None, span=None, half_life=None, com=None, interval=None):
+                            smoothness=None, alpha=None, span=None, half_life=None, com=None, interval=None) -> _Same:
         """Add a smoothed copy of a column: each value becomes a summary of its neighbours in time.
 
         table.add_smoothed_column("signal_smoothed", from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")

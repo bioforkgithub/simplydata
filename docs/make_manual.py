@@ -11,6 +11,13 @@ library each word uses) and docs/manual/ideas.tex (the data science ideas).
     python docs/make_manual.py --no-run   # write the .tex and compile, without running the examples again
     python docs/make_manual.py --no-run --underneath-figures   # the same, but draw the pictures of the
                                           # "same underneath" boxes first (R words need R)
+    python docs/make_manual.py --only-run 2/4         # run only part 2 of 4 of the examples (no .tex, no PDF)
+    python docs/make_manual.py --only-run underneath  # draw only the "same underneath" pictures (no .tex, no PDF)
+
+The --only-run parts let several machines run the examples at the same time (the GitHub workflow
+.github/workflows/rebuild-docs.yml): part K of N runs every N-th example from the K-th, each in its own
+folder exactly as the whole run does; the parts' figures/ and output/ put together are what the whole run
+writes, and the PDFs are then compiled once with --no-run.
 
 Each word with a tested entry in simplydata._underneath gets a grey box "The same underneath" after its
 example: the same job in the package underneath, made from that entry, with one picture for chart words.
@@ -489,7 +496,7 @@ can write it up in a report or a paper.
 \section*{How this manual is built}
 \begin{description}[style=nextline,leftmargin=1.2em]
   \item[{\hyperref[part:lessons]{Part II: Lessons}}] @LESSON_COUNT@ short lessons that teach the whole
-    of simplydata in a day. Each lesson shows code you can run, says what every line does, shows
+    to start with simplydata in a day (the 30-day guide goes further). Each lesson shows code you can run, says what every line does, shows
     the real chart and output it makes, and ends with tasks to try yourself.
   \item[{\hyperref[part:dictionary]{Part III: Dictionary of words}}] Every word, with what it does,
     its options, an example you can run and the library it uses underneath.
@@ -507,12 +514,25 @@ will get.
 
 \section*{Install}
 \begin{lstlisting}[style=plain]
-pip install simplydata            # coming soon
+pip install simplydata
 pip install simplydata[fast]      # adds Polars, the fast engine for big data
 \end{lstlisting}
 
 \section*{Where to type the code}
-Any place that runs Python works. In \textbf{Jupyter}, \textbf{VS Code} or \textbf{Spyder}, a chart
+Use a place that completes names for you, so each long, clear name costs you three or four letters. We
+recommend one of two:
+\begin{itemize}
+  \item \textbf{VS Code}: install it from code.visualstudio.com; in its Extensions view add the ``Python''
+    and ``Jupyter'' extensions; open a folder, make a file such as \code{analysis.py} or a notebook
+    \code{analysis.ipynb}, and choose the Python where simplydata is installed. Names are listed as you
+    type; Ctrl+Space brings the list up at any time.
+  \item \textbf{Jupyter} (JupyterLab or Notebook): \code{pip install jupyterlab} in the same Python as
+    simplydata, then \code{jupyter lab}, which opens in your web browser and runs on your own computer.
+    Make a new notebook and type in a cell; Shift+Enter runs it. Type \code{table.keep} and press Tab to
+    see every word that starts that way.
+\end{itemize}
+Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so it is not recommended.
+In \textbf{Jupyter} and \textbf{VS Code} notebooks, a chart
 appears by itself when you write \code{chart} on the last line of a cell. In a script,
 \code{chart.show()} opens it in a window, and \code{chart.save("name.png")} always saves it as a file.
 
@@ -841,8 +861,10 @@ def _title_page() -> str:
 \vspace{0.4cm}
 {\large The manual: lessons, every word, the ideas behind them, and solutions\par}}
 \vspace{3.2cm}
-{\sffamily\Large\bfseries\color{brand} Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.\par}
-\vspace{1.2cm}
+{\sffamily\Large\bfseries\color{brand} Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
+\vspace{0.5cm}
+{\sffamily\large\bfseries\itshape\color{brand} Easy to do, and you know why you're doing it.\par}
+\vspace{0.7cm}
 \begin{lstlisting}[style=title]
 import simplydata as sdata
 
@@ -1192,9 +1214,10 @@ def _method_basis() -> str:
            f"{counts['convention']} follow the convention of the package named so that results match it, and "
            f"{counts['starting value']} are simplydata's own starting values, each changed with the option named. "
            "Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of "
-           "the later batches were read by an independent reviewer when they were designed, and in November 2026 "
-           "every entry, with its references, was checked again by independent reviewers acting as hostile "
-           "statistical referees; their findings were applied. The same text is in "
+           "the later batches were read by an automated review pass when they were designed, and in November 2026 "
+           "every entry, with its references, was read again by automated review passes told to act as hostile "
+           "statistical referees (AI review, not named human reviewers); their findings were applied. The same "
+           "text is in "
            + code("docs/how_simplydata_chooses.md") + ".",
            r"\unsection{The five principles}{basis:principles}",
            r"\begin{enumerate}"]
@@ -1410,8 +1433,9 @@ def _clean_output(text: str) -> str:
     return "\n".join(lines) + "\n" if lines else ""
 
 
-def run_examples() -> None:
-    """Run every lesson example and solution; keep their pictures and printed output."""
+def run_examples(part: tuple[int, int] | None = None, underneath: bool = True) -> None:
+    """Run every lesson example and solution; keep their pictures and printed output. part=(K, N): only every
+    N-th example from the K-th (K = 1 .. N); underneath=False: without the "same underneath" pictures."""
     import matplotlib
 
     matplotlib.use("Agg")
@@ -1426,7 +1450,8 @@ def run_examples() -> None:
     if work.exists():
         shutil.rmtree(work)
     start = Path.cwd()
-    for prefix, source in jobs():
+    selected = jobs() if part is None else jobs()[part[0] - 1::part[1]]
+    for prefix, source in selected:
         folder = work / prefix
         folder.mkdir(parents=True)
         os.chdir(folder)
@@ -1447,7 +1472,8 @@ def run_examples() -> None:
             else:
                 shutil.copyfile(folder / f"{stem}.pdf", MANUAL / target)
         print(f"  ran {prefix}")
-    run_underneath_figures()
+    if underneath:
+        run_underneath_figures()
 
 
 def run_underneath_figures() -> None:
@@ -1496,7 +1522,30 @@ def compile_pdf() -> Path:
     return build
 
 
+def _only_run(argv: list[str]) -> bool:
+    """--only-run K/N or --only-run underneath: run one part of the examples into figures/ and output/ (emptied
+    first, so they hold only that part), without writing the .tex or compiling."""
+    if "--only-run" not in argv:
+        return False
+    value = argv[argv.index("--only-run") + 1] if argv.index("--only-run") + 1 < len(argv) else ""
+    if value == "underneath":
+        for folder in (FIGURES, OUTPUT):
+            folder.mkdir(parents=True, exist_ok=True)
+            for old in folder.iterdir():
+                old.unlink()
+        run_underneath_figures()
+        return True
+    k, _, n = value.partition("/")
+    if not (k.isdigit() and n.isdigit() and 1 <= int(k) <= int(n)):
+        raise SystemExit("--only-run takes K/N (1 <= K <= N) or underneath")
+    print(f"Running part {k} of {n} of the lesson examples and solutions ...")
+    run_examples(part=(int(k), int(n)), underneath=False)
+    return True
+
+
 def main(argv: list[str]) -> None:
+    if _only_run(argv):
+        return
     MANUAL.mkdir(exist_ok=True)
     TEX.write_text(make(), encoding="utf-8")
     print(f"Wrote {TEX}")

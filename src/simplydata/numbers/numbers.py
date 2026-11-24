@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..chart import Chart
+    from ..table import Table
+
 import math
 import numbers as _nb
 import sys
@@ -237,7 +245,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._change(f"{verb} {picked.short_words()}", new)
 
     @friendly
-    def keep_rows_by_position(self, positions=None, to=None, step=None, **conditions):
+    def keep_rows_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep rows of the grid by their position, counting from 1: a run, every n-th row, or a list.
 
         grid.keep_rows_by_position(1, to=2)
@@ -249,7 +257,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._grid_step("keep_rows_by_position", picked, 0, keep=True)
 
     @friendly
-    def remove_rows_by_position(self, positions=None, to=None, step=None, **conditions):
+    def remove_rows_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove rows of the grid by their position, counting from 1. grid.remove_rows_by_position(1)
 
         The same positions as keep_rows_by_position. As NumPy np.delete(g, 0, axis=0).
@@ -258,7 +266,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._grid_step("remove_rows_by_position", picked, 0, keep=False)
 
     @friendly
-    def keep_columns_by_position(self, positions=None, to=None, step=None, **conditions):
+    def keep_columns_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep columns of the grid by their position, counting from 1 at the left. grid.keep_columns_by_position(2, to=3)
 
         The same positions as keep_rows_by_position: a run (to=), every n-th (step=) or a list.
@@ -268,7 +276,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._grid_step("keep_columns_by_position", picked, 1, keep=True)
 
     @friendly
-    def remove_columns_by_position(self, positions=None, to=None, step=None, **conditions):
+    def remove_columns_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove columns of the grid by their position, counting from 1 at the left. grid.remove_columns_by_position(1)
 
         The same positions as keep_columns_by_position. As NumPy np.delete(g, 0, axis=1).
@@ -290,7 +298,7 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
     replace_each_number_that.__wrapped__ = ReplacingWords.replace_each_number_that  # the same options in sdata.help()
 
     @friendly
-    def swap_rows_and_columns(self):
+    def swap_rows_and_columns(self: _Same) -> _Same:
         """Turn rows into columns and columns into rows (the transpose in maths).
 
         grid.swap_rows_and_columns()
@@ -300,14 +308,14 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         return self._change("swap rows and columns", self._values.T.copy())
 
     @friendly
-    def turn_into_table(self):
+    def turn_into_table(self) -> Table:
         """Turn the grid into a simplydata table with columns "1", "2", ... grid.turn_into_table()"""
         from ..table import Table
 
         return Table(self._as_pandas())
 
     @friendly
-    def start_chart(self):
+    def start_chart(self) -> Chart:
         """Start a chart from this grid, for example a heatmap. grid.start_chart().draw_heatmap(with_numbers=True)"""
         from ..chart import chart
 

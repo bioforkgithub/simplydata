@@ -114,7 +114,7 @@ FRONT = r"""
 \vspace{0.4em}
 {\large\sffamily Every word, A to Z, with the page of the manual that explains it\par}
 \vspace{0.3em}
-{\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools.\par}
+{\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
 \vspace{0.3em}
 {\sffamily\small\color{inkgrey} Version @VERSION@ \textbullet{} @WORDS@ words \textbullet{} @OTHERS@ names from other tools
 \textbullet{} made from the code by \code{docs/make\_dictionary.py}\par}

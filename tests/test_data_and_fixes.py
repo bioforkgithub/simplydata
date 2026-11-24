@@ -266,9 +266,13 @@ def test_the_underneath_docstring_counts_are_true():
     from simplydata._underneath import UNDERNEATH
 
     words = [key for _, keys in learn.GROUPS for key in keys if learn._kind(key) != "option"]
-    with_entry = {key.split(" ")[0] for key in UNDERNEATH}
+    # words only: the options listed as words (show=, error=) have entries but are not counted among the words
+    with_entry = {key.split(" ")[0] for key in UNDERNEATH} & set(words)
     text = " ".join(_underneath.__doc__.split())
     assert f"tested entries for {len(with_entry)} of simplydata's {len(words)} words" in text
     assert f"There are {len(UNDERNEATH)} entries: one for each of {len(with_entry)} words" in text
-    assert f"the other {len(words) - len(with_entry)} words have none" in text
+    if len(with_entry) == len(words):
+        assert "Every word has an entry." in text
+    else:
+        assert f"the other {len(words) - len(with_entry)} words have none" in text
     assert "one tested entry per" not in text

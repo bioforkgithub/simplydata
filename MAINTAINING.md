@@ -3,6 +3,16 @@
 This note is for the people who keep simplydata working as pandas, NumPy, SciPy, statsmodels,
 matplotlib, seaborn and Polars change. [GOVERNANCE.md](GOVERNANCE.md) says who decides what.
 
+## What the maintenance automation does and does not do
+
+Dependabot, the weekly checks (oldest and upcoming versions, the weekly notebook run) and the
+warning issues run only on GitHub's servers, against simplydata's own code and its public test
+data. They are not part of the installed package: nothing of them is on a user's computer. The
+warning issues contain only package versions and test names. The workflows upload nothing but
+their own build artifacts (the package, the rebuilt documents, test reports). The package
+itself never contacts any server, sends no telemetry and has no update check, and the tests
+block the network on every run.
+
 ## How a release works
 
 1. All work reaches `main` through a pull request. `main` is protected: the 10 checks of
@@ -13,9 +23,11 @@ matplotlib, seaborn and Polars change. [GOVERNANCE.md](GOVERNANCE.md) says who d
    (`python docs/make_manual.py`) so the PDFs match the release.
 3. After the merge, publish a release on GitHub with the tag `vX.Y.Z`.
    `.github/workflows/publish.yml` then builds the package and uploads it to PyPI.
-4. Release on conda-forge at the same time, with the same version: the conda-forge bot opens a
-   pull request on the simplydata feedstock after the PyPI upload; check that its
-   requirements match the ranges in `pyproject.toml`, then merge it.
+4. Release on conda-forge at the same time, with the same version. There is no conda-forge
+   feedstock yet: the recipe is still in review (conda-forge/staged-recipes pull request
+   #35769). Once the feedstock exists, the conda-forge bot will follow PyPI by itself: after
+   each PyPI upload it opens a pull request on the feedstock; check that its requirements match
+   the ranges in `pyproject.toml`, then merge it.
 
 ## The supported version ranges
 
@@ -83,5 +95,5 @@ differences"** there, with the new FAILs.
 2. Let the 10 checks run: they install the newest release. Fix any broken word as above.
 3. If a word needs a newer release than the lower bound, raise the lower bound, and check that
    the oldest-versions check passes.
-4. Mention the new range in `CHANGELOG.md`, and match it on the conda-forge feedstock at the
-   next release.
+4. Mention the new range in `CHANGELOG.md`, and match it in the conda-forge recipe (the
+   feedstock, once it exists) at the next release.

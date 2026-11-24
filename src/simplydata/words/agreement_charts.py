@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import re
 import warnings
 
@@ -266,8 +268,8 @@ def _draw_funnel(ctx, x, y, centre, on_log, ratios, colour=None):
 
 class AgreementChartWords:
     @friendly
-    def trade_off_curve(self, score=None, truth=None, positive=None, colour=None, positive_when="higher",
-                        transparency=None, thickness=None):
+    def trade_off_curve(self: _Same, score=None, truth=None, positive=None, colour=None, positive_when="higher",
+                        transparency=None, thickness=None) -> _Same:
         """How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).
         chart.trade_off_curve(score="crp", truth="infected") (with sdata.get_example("clinic"))
 
@@ -315,7 +317,7 @@ class AgreementChartWords:
                          thickness=thickness)
 
     @friendly(renamed={"x": "first", "y": "second"})
-    def difference_dots(self, first=None, second=None, transparency=None):
+    def difference_dots(self: _Same, first=None, second=None, transparency=None) -> _Same:
         """Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).
         chart.difference_dots(first="device_a", second="device_b") (with sdata.get_example("clinic"))
 
@@ -351,7 +353,7 @@ class AgreementChartWords:
                          transparency=transparency)
 
     @friendly(renamed={"ratios": "log_scale"})
-    def forest_plot(self, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None, size=None):
+    def forest_plot(self: _Same, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None, size=None) -> _Same:
         """Many results with their intervals, one line each (a forest plot).
         chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair_of's)
 
@@ -418,7 +420,7 @@ class AgreementChartWords:
                          others=others, line_given=line_given, size=size)
 
     @friendly(renamed={"color": "colour"})
-    def draw_funnel_plot(self, x="estimate", y="standard error", log_scale=None, colour=None):
+    def draw_funnel_plot(self: _Same, x="estimate", y="standard error", log_scale=None, colour=None) -> _Same:
         """A funnel plot: each study's effect against its standard error, to look for small-study effects.
 
         chart.draw_funnel_plot(x="estimate", y="standard error")   (on the result of table.combine_studies)

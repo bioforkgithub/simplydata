@@ -56,7 +56,8 @@ jobs:
             const fs = require('fs');
             const read = f => fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
             const versions = read('versions.txt').trim() || '(not recorded: the install failed)';
-            const failed = read('pytest.log').split('\n').filter(l => /^(FAILED|ERROR) /.test(l));
+            const failed = read('pytest.log').split('\n').filter(l => /^(FAILED|ERROR) /.test(l))
+              .map(l => l.split(' - ')[0]);  // test names only, never an error message
             const shown = failed.slice(0, 100).join('\n') || '(no test names: see the run log)';
             const more = failed.length > 100 ? `\n... and ${failed.length - 100} more` : '';
             const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

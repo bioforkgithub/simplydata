@@ -5,6 +5,8 @@ simplydata._forecast for the R calls and why Python's packages are not used.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import narwhals as nw
@@ -103,9 +105,9 @@ class ForecastWords:
         return series
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def forecast(self, column=None, sorted_by=None, steps_ahead=12, test_method="exponential smoothing",
+    def forecast(self: _Same, column=None, sorted_by=None, steps_ahead=12, test_method="exponential smoothing",
                  repeats_every=None, trend=True, season="added", order=None, seasonal_order=None, interval=95,
-                 check_on_last=None, show="forecast", for_each_group_in=None):
+                 check_on_last=None, show="forecast", for_each_group_in=None) -> _Same:
         """Forecast the next values of a column, with an interval for each.
 
         table.forecast("visitors", sorted_by="month", steps_ahead=12, repeats_every="year", for_each_group_in="museum")
@@ -217,8 +219,8 @@ class ForecastWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     @friendly(renamed={"methods": "test_method", "for_each": "for_each_group_in"})
-    def compare_forecasts_for(self, column=None, sorted_by=None, test_method=None, check_on_last=12, repeats_every=None,
-                              order=None, seasonal_order=None, for_each_group_in=None):
+    def compare_forecasts_for(self: _Same, column=None, sorted_by=None, test_method=None, check_on_last=12, repeats_every=None,
+                              order=None, seasonal_order=None, for_each_group_in=None) -> _Same:
         """Which forecast method would have done best on the last rows? (R forecast::accuracy)
 
         table.compare_forecasts_for("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
@@ -296,7 +298,7 @@ class ForecastWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_change_points_in(self, column=None, sorted_by=None, change="average", penalty="mbic", for_each_group_in=None):
+    def find_change_points_in(self: _Same, column=None, sorted_by=None, change="average", penalty="mbic", for_each_group_in=None) -> _Same:
         """Find the points where the average of a column jumps to a new level (R changepoint, PELT).
 
         table.find_change_points_in("nitrate", sorted_by="date", for_each_group_in="station")   (with sdata.get_example("river"))

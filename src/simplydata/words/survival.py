@@ -15,6 +15,8 @@ time, rising from 0 (Aalen-Johansen with competing_with=, through R; else 1 minu
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 import pandas as pd
 
@@ -216,15 +218,16 @@ def _event_kinds_check(rows, event, time, value, competing_with, word):
 class SurvivalChartWords:
     @friendly(renamed={"confidence_band": "with_confidence_band", "censor_marks": "with_censor_marks",
                        "at_risk_table": "with_at_risk_table"})
-    def draw_survival_curves(self, time=None, event=None, colour=None, with_confidence_band=False, with_censor_marks=True,
+    def draw_survival_curves(self: _Same, time=None, event=None, colour=None, with_confidence_band=False, with_censor_marks=True,
                              with_at_risk_table=False, transparency=None, thickness=None, value=None,
-                             allowing_for=None, followed_from=None):
+                             allowing_for=None, followed_from=None) -> _Same:
         """The share still without the event over time (Kaplan-Meier curves).
         chart.draw_survival_curves(time="days", event="died", colour="treatment") (with sdata.get_example("trial"))
 
         time= is the time until the event or the end of follow-up; event= says whether the
         event happened (yes/no, True/False or 1/0; value="relapse" names the value that is the event).
-        colour="treatment" draws one curve per group, or colour="blue" one colour. Each curve starts at 1 and
+        colour="treatment" draws one curve per group (for_each_group_in="treatment" says the same, as on the table
+        words), or colour="blue" one colour. Each curve starts at 1 and
         drops at each event; censored rows (followed without the event) are small ticks (with_censor_marks=False
         hides them). with_confidence_band=True shades the 95 % confidence interval. with_at_risk_table=True
         writes the number still at risk under the x-axis. transparency= (0 to 1) makes the curves
@@ -293,8 +296,8 @@ class SurvivalChartWords:
         return self
 
     @friendly
-    def draw_risk_curves(self, time=None, event=None, value=None, competing_with=None, colour=None,
-                         with_confidence_band=False, transparency=None, thickness=None):
+    def draw_risk_curves(self: _Same, time=None, event=None, value=None, competing_with=None, colour=None,
+                         with_confidence_band=False, transparency=None, thickness=None) -> _Same:
         """The chance of having had the event by each time, rising from 0 (cumulative incidence curves).
         chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged", colour="ward")
         (with sdata.get_example("admissions"), after table.add_time_and_event_columns(from_date="admitted",

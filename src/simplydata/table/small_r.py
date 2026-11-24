@@ -23,7 +23,7 @@ FRIEDMAN_PAIR_TESTS = {
                 "Nemenyi's test allows for all the pairs itself (the studentized range), so there is no further "
                 "adjustment: do not adjust these p-values again"),
     "conover": ("Conover's test for matched rows", 'PMCMRplus::frdAllPairsConoverTest(p.adjust.method = "holm")',
-                "the p-values are adjusted with Holm's method, so the chance of any false alarm stays at 5 %. "
+                "the p-values are adjusted with Holm's method, so the chance of any false alarm is at most 5 %. "
                 "scikit-posthocs gives unadjusted p-values and PMCMRplus single-step ones by default, so their "
                 "numbers differ"),
 }

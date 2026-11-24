@@ -19,6 +19,8 @@ tseries reads its p-values from the published tables (outside the tables it give
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import narwhals as nw
@@ -150,7 +152,7 @@ class TimeSeriesWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def check_steady_over_time(self, column=None, sorted_by=None, around="level", test_method="both", for_each_group_in=None):
+    def check_steady_over_time(self: _Same, column=None, sorted_by=None, around="level", test_method="both", for_each_group_in=None) -> _Same:
         """Does a column stay steady over time, or does it wander? (ADF and KPSS tests, as R tseries)
 
         table.check_steady_over_time("signal", sorted_by="time")   (with sdata.get_example("sensor"))
@@ -256,8 +258,8 @@ class TimeSeriesWords:
 
     # ------------------------------------------------------------------ trend and season
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def add_trend_and_season(self, column=None, sorted_by=None, repeats_every=None, test_method="loess", season="added",
-                             season_window=7, robust=False, for_each_group_in=None, names=None):
+    def add_trend_and_season(self: _Same, column=None, sorted_by=None, repeats_every=None, test_method="loess", season="added",
+                             season_window=7, robust=False, for_each_group_in=None, names=None) -> _Same:
         """Split a column into a trend, a season that repeats, and the rest, as three new columns.
 
         table.add_trend_and_season("visitors", sorted_by="month", repeats_every="year", for_each_group_in="museum")
@@ -323,7 +325,7 @@ class TimeSeriesWords:
 
     # ------------------------------------------------------------------ find_trend_of
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_trend_of(self, column=None, sorted_by=None, repeats_every=None, for_each_group_in=None):
+    def find_trend_of(self: _Same, column=None, sorted_by=None, repeats_every=None, for_each_group_in=None) -> _Same:
         """Does a column keep rising or falling over time, and by how much? (Mann-Kendall test, Sen's slope)
 
         table.find_trend_of("visitors", sorted_by="month", for_each_group_in="museum")   (with sdata.get_example("visitors"))

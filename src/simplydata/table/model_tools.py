@@ -21,6 +21,8 @@ and compare_models. They never change the table.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import itertools
 import math
 import re
@@ -783,7 +785,7 @@ class ModelToolWords:
 
     # ------------------------------------------------------------------ show_rows_that_pull_model
     @friendly
-    def show_rows_that_pull_model(self, column=None, using=None, outcome="numbers", grouped_by=None):
+    def show_rows_that_pull_model(self: _Same, column=None, using=None, outcome="numbers", grouped_by=None) -> _Same:
         """Show the rows that change a model from explain() the most (the table does not change).
 
         table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))

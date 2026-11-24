@@ -16,7 +16,8 @@ from simplydata import learn, learn_days
 ROOT = Path(__file__).resolve().parents[1]
 TRACKS = learn_days.TRACK_NAMES
 DAYS = range(1, learn_days.DAYS_IN_A_TRACK + 1)
-ALL_DAYS = [(t, n) for t in TRACKS for n in DAYS]
+EXTRA = learn_days.EXTRA_DAYS
+ALL_DAYS = [(t, n) for t in TRACKS for n in list(DAYS) + list(EXTRA)]
 START = datetime.date(2026, 11, 2)
 
 
@@ -50,8 +51,10 @@ MANUAL_ONLY = {learn.lesson_number(title) for title in learn_days.MANUAL_ONLY_LE
 
 @pytest.mark.parametrize("track", TRACKS)
 def test_each_track_has_thirty_days_and_every_everyday_lesson(track):
-    assert len(learn_days.DAYS[track]) == 30
-    taught = {n for n in DAYS for n in learn_days.plan(track, n)["lessons"]}
+    assert len(learn_days.DAYS[track]) == 30 + len(EXTRA) and EXTRA == (31, 32)
+    assert [learn_days.plan(track, n)["kind"] for n in EXTRA] == ["extra", "extra"]
+    assert "extra" not in {learn_days.plan(track, n)["kind"] for n in DAYS}
+    taught = {n for n in list(DAYS) + list(EXTRA) for n in learn_days.plan(track, n)["lessons"]}
     assert set(range(1, len(learn.LESSONS) + 1)) - MANUAL_ONLY <= taught, f"{track} misses lessons"
     assert not taught & MANUAL_ONLY, "the manual-only lessons are not days of their own"
     kinds = {n: learn_days.plan(track, n)["kind"] for n in DAYS}
@@ -62,14 +65,15 @@ def test_each_track_has_thirty_days_and_every_everyday_lesson(track):
 
 
 def test_the_python_track_follows_its_outline():
-    lessons = {n: learn_days.plan("python", n)["lessons"] for n in DAYS}
-    assert set(lessons[1] + lessons[2]) == {1, 2, 3}
-    assert {k for n in (3, 4, 5) for k in lessons[n]} == {4, 5, 6, 7, 8}
-    assert {k for n in (6, 8, 9) for k in lessons[n]} == {9, 10, 11, 12, 13}
-    assert {k for n in (10, 11, 12, 13) for k in lessons[n]} == {14, 15}
-    assert [lessons[n] for n in (15, 16, 17, 18, 19)] == [[16], [21], [17], [18], [19, 20]]
+    """The order of 2026-11-23: a table on day 2, a test on day 4, charts woven in, the dense days split."""
+    lessons = {n: learn_days.plan("python", n)["lessons"] for n in list(DAYS) + list(EXTRA)}
+    assert lessons[1] == [1, 2] and lessons[2] == [9, 10]
+    assert [lessons[n] for n in (3, 4, 5, 6)] == [[12], [14], [11], [3, 4]]
+    assert [lessons[n] for n in (8, 9, 10, 11, 12, 13)] == [[14], [5, 6], [], [7, 8], [15], [13]]
+    assert [lessons[n] for n in (15, 16, 17, 18, 19)] == [[16], [21, 16], [19], [20], [18]]
     time_series = {learn.lesson_number(t) for t in (learn.TIME_SERIES_LESSON, learn.CYCLES_LESSON)}
     assert set(lessons[20]) == time_series, "the time series lessons have a day of their own"
+    assert [lessons[n] for n in EXTRA] == [[17], [18]], "patterns and power are extra days"
     assert [learn_days.plan("python", n)["kind"] for n in range(22, 28)] == ["project"] * 6
     assert learn_days.plan("python", 28)["kind"] == "review"
 
@@ -79,7 +83,19 @@ def test_the_beginner_track_starts_with_python():
         p = learn_days.plan("beginner", n)
         assert p["examples"] or p["errors"], n
     assert learn_days.plan("beginner", 1)["lessons"] == []
-    assert 1 in learn_days.plan("beginner", 3)["lessons"]
+    assert 9 in learn_days.plan("beginner", 2)["lessons"], "a real practice table on day 2"
+    assert 1 in learn_days.plan("beginner", 4)["lessons"]
+    lessons = {n: learn_days.plan("beginner", n)["lessons"] for n in DAYS}
+    assert [lessons[n] for n in (17, 18, 19)] == [[16], [16], [16]], "models are split over three days"
+
+
+@pytest.mark.parametrize("track", TRACKS)
+def test_a_new_user_meets_a_table_early_and_a_test_within_a_week_and_charts_are_woven_in(track):
+    days_with = lambda lesson: [n for n in DAYS if lesson in learn_days.plan(track, n)["lessons"]]  # noqa: E731
+    assert days_with(9)[0] <= 3, "the first table lesson"
+    assert days_with(14)[0] <= 8, "the first test"
+    chart_days = sorted({n for lesson in range(1, 9) for n in days_with(lesson)})
+    assert 3 <= len(chart_days) <= 5 and chart_days[-1] - chart_days[0] >= 8, chart_days
 
 
 @pytest.mark.parametrize("track, number", ALL_DAYS)
@@ -354,7 +370,7 @@ def test_answers_without_a_number_is_the_last_day_opened(on, capsys):
     assert "Answers to day 2 (Python track)" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("bad", [0, 31, "5", 2.0, True])
+@pytest.mark.parametrize("bad", [0, 33, "5", 2.0, True])
 def test_wrong_day_number_is_explained(bad):
     with pytest.raises(sdata.SimplydataError, match="days 1 to 30"):
         sdata.show_day(bad)
@@ -383,6 +399,77 @@ def test_a_broken_progress_file_is_not_an_error(on, capsys):
     sdata.start_30_days(start_again=True)
     assert _saved()["track"] == "python"
 
+
+
+def _old_file(track, days):
+    """A progress file as simplydata wrote it before 2026-11-23: no "course", days of the old order."""
+    path = learn_days.progress_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    opened = {str(n): (START + datetime.timedelta(days=n - 1)).isoformat() for n in days}
+    path.write_text(json.dumps({"about": "x", "track": track, "started": START.isoformat(), "opened": opened}),
+                    encoding="utf-8")
+
+
+def test_new_files_say_which_order_they_follow(on):
+    sdata.start_30_days()
+    assert _saved()["course"] == learn_days.COURSE == 2
+
+
+def test_an_old_file_on_day_1_carries_on_with_day_2(on, capsys):
+    _old_file("beginner", [1])
+    on(2)
+    sdata.show_today()
+    out = capsys.readouterr().out
+    assert "new order" in out and "Day 2 of 30 (Beginner track)" in out
+    assert _saved()["course"] == 2 and set(_saved()["opened"]) == {"1", "2"}
+    sdata.show_today()
+    assert "new order" not in capsys.readouterr().out, "the note comes once"
+
+
+def test_an_old_file_at_day_12_keeps_what_was_done_and_fills_the_gaps(on, capsys):
+    # beginner, old days 1 to 12: Python, every chart lesson (1 to 8), word families, the first review and lesson 9
+    _old_file("beginner", range(1, 13))
+    on(13)
+    sdata.show_today()
+    out = capsys.readouterr().out
+    assert "Day 3 of 30 (Beginner track)" in out and "the first day not done yet" in out
+    opened = {int(n) for n in _saved()["opened"]}
+    assert opened == {1, 2, 3, 4, 7, 9, 11, 13}, opened  # 3 is opened now; 4, 9, 11 and 13 are the chart days
+    assert _saved()["opened"]["13"] == (START + datetime.timedelta(days=10)).isoformat(), "the old date is kept"
+    for expected in (5, 6, 8, 10, 12, 14):
+        sdata.go_to_next_day()
+        assert f"Day {expected} of 30" in capsys.readouterr().out
+
+
+def test_an_old_finished_file_stays_finished(on, capsys):
+    for track in TRACKS:
+        _old_file(track, range(1, 31))
+        on(40)
+        sdata.show_today()
+        assert "Well done" in capsys.readouterr().out
+        assert len(_saved()["opened"]) == 30
+
+
+def test_extra_days_are_never_opened_by_today(on, capsys):
+    sdata.start_30_days()
+    for _ in range(29):
+        sdata.go_to_next_day()
+    capsys.readouterr()
+    sdata.show_day(31)
+    out = capsys.readouterr().out
+    assert "Extra day 31" in out and "never opens it" in out and "sdata.show_day(32)" in out
+    sdata.go_to_next_day()
+    assert "Well done" in capsys.readouterr().out
+    assert set(_saved()["opened"]) == {str(n) for n in DAYS}
+
+
+def test_days_passed_over_with_the_calendar_stay_passed_over(on, capsys):
+    sdata.start_30_days()
+    on(5)
+    sdata.show_today(follow_calendar=True)
+    assert _saved()["skipped"] == [2, 3, 4]
+    sdata.go_to_next_day()
+    assert "Day 6 of 30" in capsys.readouterr().out
 
 def test_other_names_point_to_the_30_days(capsys):
     with pytest.raises(sdata.SimplydataError, match="start_30_days"):
@@ -432,7 +519,8 @@ def test_guide_has_every_day_with_its_answers_and_manual_pages():
     from make_dictionary import pages_in
 
     written = GUIDE.read_text(encoding="utf-8")
-    for track, number in ALL_DAYS:
+    # Extra days get no day pages in the printed guide, only a line under each calendar (checked below)
+    for track, number in [(t, n) for t in TRACKS for n in DAYS]:
         assert f"{{{guide.day_label(track, number)}}}" in written
         assert re.search(r"\\answerday\{" + str(number) + r"\}\{[^}]*\}\{" + re.escape(guide.answers_label(track, number)), written)
         for n in learn_days.plan(track, number)["lessons"]:
@@ -440,6 +528,9 @@ def test_guide_has_every_day_with_its_answers_and_manual_pages():
     pages = pages_in(written)
     assert pages and all(page.isdigit() and anchor for page, anchor in pages.values())
     assert written.count(r"\daystart{") == 60
+    assert written.count("Extra days, optional, after the 30: ") == len(TRACKS)
+    for number in EXTRA:
+        assert f"day {number}, " in written and not any(f"{{{guide.day_label(t, number)}}}" in written for t in TRACKS)
 
 
 @pytest.mark.parametrize("track", TRACKS)

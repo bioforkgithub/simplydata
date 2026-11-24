@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "simplydata"
 dynamic = ["version"]
-description = "Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools."
+description = "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "DATA_LICENSES.md"]
@@ -35,15 +35,15 @@ dependencies = [
     "seaborn>=0.13.2,<0.14",
     "pandas>=3.0,<4",
     "numpy>=2.0,<3",
-    "scipy>=1.16,<2",
+    "scipy>=1.17,<2",
     "statsmodels>=0.15,<0.16",
-    "openpyxl>=3.1,<4",
+    "openpyxl>=3.1.5,<4",
     "narwhals>=2.22,<3",
 ]
 
 [project.optional-dependencies]
-fast = ["polars>=1.29,<3", "pyarrow>=16,<27"]
-files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.7,<2"]
+fast = ["polars>=1.31,<3", "pyarrow>=19,<27"]
+files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
@@ -86,7 +86,7 @@ r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: 
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7,<10", "polars>=1.29,<3", "pyarrow>=16,<27", "statsmodels>=0.15,<0.16"]
+test = ["pytest>=7,<10", "polars>=1.31,<3", "pyarrow>=19,<27", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"

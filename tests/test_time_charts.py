@@ -97,6 +97,14 @@ def test_trend_and_season_panels_equal_the_table_word():
     assert panels[1].get_lines()[0].get_ydata() == pytest.approx(trend, rel=1e-12)
 
 
+def test_trend_and_season_says_what_is_underneath(capsys):
+    """The printout names the work underneath: statsmodels STL for the parts, matplotlib inset axes for the panels."""
+    sdata.chart(harbour()).trend_and_season(x="month", y="visitors", repeats_every="year")
+    printed = capsys.readouterr().out
+    assert "STL" in printed and "statsmodels" in printed
+    assert "Drawn by matplotlib" in printed and "inset axes" in printed
+
+
 @pytest.mark.usefixtures("needs_r")
 def test_chart_forecast_equals_table_forecast():
     data = harbour()

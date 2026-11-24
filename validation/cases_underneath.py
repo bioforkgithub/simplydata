@@ -220,6 +220,34 @@ def _cases(Case):
                      back = pd.read_csv(os.path.join(folder, "iris.csv"))
                  {"rows": len(back), "total petal length": back["Petal.Length"].sum(), "columns": back.shape[1]}
              """, parent_label="pandas to_csv(index=False)", parent_tolerance=1e-12),
+        Case("table.save", "iris saved as one Excel sheet for each species and read back with sheet=\"all\"", "iris",
+             "real data", option="in_sheet=",
+             ours="""
+                 import os
+                 import tempfile
+                 with tempfile.TemporaryDirectory() as folder:
+                     results = os.path.join(folder, "iris.xlsx")
+                     for species in ("setosa", "versicolor", "virginica"):
+                         sdata.table(data).keep_rows_where("Species", is_equal_to=species).save(results, in_sheet=species)
+                     back = sdata.table(results, sheet="all")
+                 per_sheet = back.count_rows(for_each_group_in="sheet")
+                 petals = back.get_column("Petal.Length")
+                 {"sheets": per_sheet.count_rows(), "rows": petals.count(), "total petal length": petals.find_total(),
+                  "columns": len(back.get_column_names())}
+             """,
+             parent="""
+                 import os
+                 import tempfile
+                 with tempfile.TemporaryDirectory() as folder:
+                     results = os.path.join(folder, "iris.xlsx")
+                     with pd.ExcelWriter(results, engine="openpyxl") as writer:
+                         for species, part in data.groupby("Species", sort=False):
+                             part.to_excel(writer, sheet_name=str(species), index=False)
+                     sheets = pd.read_excel(results, sheet_name=None)
+                 back = pd.concat([s.assign(sheet=n) for n, s in sheets.items()], ignore_index=True)
+                 {"sheets": len(sheets), "rows": len(back), "total petal length": back["Petal.Length"].sum(),
+                  "columns": back.shape[1]}
+             """, parent_label="pandas ExcelWriter (openpyxl), read_excel(sheet_name=None)", parent_tolerance=1e-12),
         Case("table.as_pandas", "iris given back as pandas, from a Polars table", "iris", "real data",
              ours="""
                  import polars as pl

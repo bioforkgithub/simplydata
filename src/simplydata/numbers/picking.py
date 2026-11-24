@@ -17,6 +17,8 @@ Positions count from 1: nums.get_number_at(1) is the first number.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import sys
 
 import numpy as np
@@ -254,7 +256,7 @@ class PickingWords(ReplacingWords):
         raise option_error(step, key, ["positions", "to", "step"])
 
     @friendly
-    def keep_numbers_by_position(self, positions=None, to=None, step=None, **conditions):
+    def keep_numbers_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep numbers by their position, counting from 1: a run, every n-th number, or a list.
 
         nums.keep_numbers_by_position(2, to=4)
@@ -274,7 +276,7 @@ class PickingWords(ReplacingWords):
         return self._change(f"keep {what} {picked.short_words()}", new)
 
     @friendly
-    def remove_numbers_by_position(self, positions=None, to=None, step=None, **conditions):
+    def remove_numbers_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove numbers by their position, counting from 1: a run, every n-th number, or a list.
 
         nums.remove_numbers_by_position("last")
@@ -297,9 +299,9 @@ class PickingWords(ReplacingWords):
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
                        "one_of": "is_one_of"})
-    def keep_each_number_that(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
+    def keep_each_number_that(self: _Same, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
                               is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN, is_one_of=NOT_GIVEN,
-                              is_empty=NOT_GIVEN):
+                              is_empty=NOT_GIVEN) -> _Same:
         """Keep only the numbers that match one condition. nums.keep_each_number_that(is_above=50)
 
         Conditions (the same as table.keep_rows_where): is_above, is_below, is_at_least, is_at_most, is_equal_to,
@@ -314,9 +316,9 @@ class PickingWords(ReplacingWords):
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
                        "one_of": "is_one_of"})
-    def remove_each_number_that(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
+    def remove_each_number_that(self: _Same, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
                                 is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN, is_one_of=NOT_GIVEN,
-                                is_empty=NOT_GIVEN):
+                                is_empty=NOT_GIVEN) -> _Same:
         """Remove the numbers that match one condition (the opposite of keep_each_number_that).
 
         nums.remove_each_number_that(is_below=0)
@@ -328,21 +330,21 @@ class PickingWords(ReplacingWords):
         return self._keep(f"remove numbers {words}", ~cond, kept_word=False)
 
     @friendly
-    def keep_first_numbers(self, how_many=5):
+    def keep_first_numbers(self: _Same, how_many=5) -> _Same:
         """Keep only the first numbers. nums.keep_first_numbers(10)"""
         n = check_whole("keep_first_numbers", "keep_first_numbers()", how_many, "nums.keep_first_numbers(10)")
         mask = np.arange(self._values.size) < n
         return self._keep(f"keep the first {amount(n)}", mask)
 
     @friendly
-    def keep_last_numbers(self, how_many=5):
+    def keep_last_numbers(self: _Same, how_many=5) -> _Same:
         """Keep only the last numbers. nums.keep_last_numbers(10)"""
         n = check_whole("keep_last_numbers", "keep_last_numbers()", how_many, "nums.keep_last_numbers(10)")
         mask = np.arange(self._values.size) >= self._values.size - n
         return self._keep(f"keep the last {amount(n)}", mask)
 
     @friendly(renamed={"seed": "with_seed"})
-    def keep_random_numbers(self, how_many=5, with_seed=None):
+    def keep_random_numbers(self: _Same, how_many=5, with_seed=None) -> _Same:
         """Keep some numbers picked at random (they keep their order); a seed gives the same pick every time.
 
         nums.keep_random_numbers(10, with_seed=1)
@@ -361,12 +363,12 @@ class PickingWords(ReplacingWords):
         return self._keep(what, mask)
 
     @friendly
-    def remove_empty_numbers(self):
+    def remove_empty_numbers(self: _Same) -> _Same:
         """Remove the empty (missing) values. nums.remove_empty_numbers()"""
         return self._keep("remove empty values", ~self._empty_mask(), kept_word=False)
 
     @friendly
-    def remove_duplicate_numbers(self):
+    def remove_duplicate_numbers(self: _Same) -> _Same:
         """Remove numbers that repeat an earlier number, so each number is left once, in its first place.
 
         nums.remove_duplicate_numbers()
@@ -377,7 +379,7 @@ class PickingWords(ReplacingWords):
         return self._keep("remove duplicate numbers", mask, kept_word=False)
 
     @friendly
-    def fill_empty_numbers(self, with_value=None, with_the=None):
+    def fill_empty_numbers(self: _Same, with_value=None, with_the=None) -> _Same:
         """Fill the empty values with a number, or with the average, median, value above or value below.
 
         nums.fill_empty_numbers(with_value=0)   or   nums.fill_empty_numbers(with_the="average")
@@ -430,7 +432,7 @@ class PickingWords(ReplacingWords):
 
     # ================================================================== order
     @friendly
-    def sort(self, biggest_first=False):
+    def sort(self: _Same, biggest_first=False) -> _Same:
         """Put the numbers in order, smallest first; empty values go last. nums.sort(biggest_first=True)"""
         if not isinstance(biggest_first, bool):
             raise SimplydataError("biggest_first= needs True or False (no quotes)." + self._example("sort(biggest_first=True)"))
@@ -442,12 +444,12 @@ class PickingWords(ReplacingWords):
         return self._change("sort, biggest first" if biggest_first else "sort, smallest first", new)
 
     @friendly
-    def reverse(self):
+    def reverse(self: _Same) -> _Same:
         """Turn the order round: the last number comes first. nums.reverse()"""
         return self._change("reverse", self._values[::-1].copy())
 
     @friendly
-    def turn_into_running_total(self):
+    def turn_into_running_total(self: _Same) -> _Same:
         """Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.
 
         nums.turn_into_running_total()

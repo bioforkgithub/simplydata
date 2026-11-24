@@ -30,16 +30,16 @@ from .._errors import SimplydataError
 R_PAIR_TESTS = {
     "games-howell": ("Games-Howell test", "averages", "rstatix::games_howell_test()",
                      "the p-values and 95 % intervals hold for all pairs at once (Tukey's studentized range "
-                     "with Welch's degrees of freedom), so the chance of any false alarm stays at 5 %"),
+                     "with Welch's degrees of freedom), so the chance of any false alarm is at most 5 %"),
     "scheffe": ("Scheffe's test", "averages", "DescTools::ScheffeTest()",
                 "the p-values and 95 % intervals hold for all pairs at once (and for any other comparison of the "
-                "averages), so the chance of any false alarm stays at 5 %"),
+                "averages), so the chance of any false alarm is at most 5 %"),
     "lsd": ("Fisher's least significant difference", "averages", 'DescTools::PostHocTest(method = "lsd")',
             "the p-values are NOT adjusted for the number of pairs, so with many pairs a false alarm is more likely"),
     "dunn": ("Dunn's test", "ranks", 'FSA::dunnTest() with p.adjust(method = "holm")',
-             "the p-values are adjusted with Holm's method, so the chance of any false alarm stays at 5 %"),
+             "the p-values are adjusted with Holm's method, so the chance of any false alarm is at most 5 %"),
     "conover": ("Conover's test", "ranks", 'PMCMRplus::kwAllPairsConoverTest(p.adjust.method = "holm")',
-                "the p-values are adjusted with Holm's method, so the chance of any false alarm stays at 5 %"),
+                "the p-values are adjusted with Holm's method, so the chance of any false alarm is at most 5 %"),
 }
 
 _R_CODE = {

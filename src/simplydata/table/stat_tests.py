@@ -78,6 +78,8 @@ studies". From p = 0.05 a second sentence says that this does not show there is 
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import ast
 import difflib
 import math
@@ -155,15 +157,15 @@ ADJUST_ALIASES = {"bh": "benjamini-hochberg", "fdr": "benjamini-hochberg", "by":
 # methods that come from R qvalue (Storey & Tibshirani 2003), not from p.adjust()
 STOREY_METHODS = {"storey": "Storey q-value", "local fdr": "local false discovery rate"}
 ADJUST_MEANING = {
-    "holm": "the chance of even one false alarm among all the tests stays at 5 %",
-    "bonferroni": "the chance of even one false alarm among all the tests stays at 5 %",
+    "holm": "the chance of even one false alarm among all the tests is at most 5 %",
+    "bonferroni": "the chance of even one false alarm among all the tests is at most 5 %",
     "benjamini-hochberg": "about 5 % of the findings below 0.05 are expected to be false alarms "
                           "(the false discovery rate)",
     "benjamini-yekutieli": "about 5 % of the findings below 0.05 are expected to be false alarms "
                            "(the false discovery rate), however the tests depend on each other",
-    "hochberg": "the chance of even one false alarm among all the tests stays at 5 % (when the tests do not "
+    "hochberg": "the chance of even one false alarm among all the tests is at most 5 % (when the tests do not "
                 "depend on each other in an unusual way)",
-    "hommel": "the chance of even one false alarm among all the tests stays at 5 % (when the tests do not depend "
+    "hommel": "the chance of even one false alarm among all the tests is at most 5 % (when the tests do not depend "
               "on each other in an unusual way)",
 }
 
@@ -714,7 +716,9 @@ class StatTestWords:
                             grouped_by=None, period=None, against=None, prior_width="medium"):
         """Are the averages of the groups really different?
 
-        table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_averages_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         Two groups: Welch's t-test (the R t.test() default). Three or more: Welch's one-way
         ANOVA (the R oneway.test() default). Neither needs the groups to have the same spread.
         based_on="ranks" uses ranks instead (Mann-Whitney U or Kruskal-Wallis): safer when
@@ -1179,10 +1183,12 @@ class StatTestWords:
                              show="pairs", matched_by=None, value=None):
         """Which pairs of groups differ? Every pair is compared, with Holm's correction.
 
-        table.compare_each_pair_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_each_pair_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         Each pair gets Welch's t-test (or Mann-Whitney U with based_on="ranks"). Testing many
         pairs makes a false alarm more likely, so the p-values are adjusted with Holm's
-        method: the chance of at least one false alarm stays at 5 %. This is the same as R
+        method: the chance of at least one false alarm is at most 5 %. This is the same as R
         pairwise.t.test(pool.sd = FALSE, p.adjust.method = "holm"), or with ranks R
         pairwise.wilcox.test(p.adjust.method = "holm") as R 4.6 gives it: exact p-values below 50
         values per group, also with tied values (those from R wilcox.test(); without R the normal
@@ -1315,7 +1321,7 @@ class StatTestWords:
         r_name = ("pairwise.t.test(paired = TRUE)" if based_on == "averages" else "pairwise.wilcox.test(paired = TRUE)")
         print(f'Each pair of "{for_each}" groups compared on "{column}" within the same {len(complete)} "{matched_by}" '
               f"values with {test}; the p-values are adjusted for {len(rows)} pair{'' if len(rows) == 1 else 's'} with "
-              f"Holm's method, so the chance of any false alarm stays at 5 %. As R {r_name}.")
+              f"Holm's method, so the chance of any false alarm is at most 5 %. As R {r_name}.")
         self._pair_lines(rows, "p-value (Holm)", "Holm-adjusted ")
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
         return self._new_table(frame)
@@ -1432,7 +1438,7 @@ class StatTestWords:
                "chi2_contingency), as R pairwise.prop.test(), whose default is the same")
         print(f'Each pair of "{for_each}" groups compared on the percent "{column}" = {_label(event)} with {how}; the '
               f"p-values are adjusted for {len(given)} pair{'' if len(given) == 1 else 's'} with Holm's method "
-              "(statsmodels multipletests), so the chance of any false alarm stays at 5 %. Each difference has "
+              "(statsmodels multipletests), so the chance of any false alarm is at most 5 %. Each difference has "
               "Newcombe's 95 % interval (statsmodels confint_proportions_2indep), as compare_risks.")
         null = f'the two groups had the same percent "{_label(event)}"'
         for row in rows:
@@ -1549,7 +1555,7 @@ class StatTestWords:
         test = "Welch's t-test" if based_on == "averages" else "Mann-Whitney U test"
         pairs = "pair" if len(rows) == 1 else "pairs"
         print(f'Each pair of "{for_each}" groups compared on "{column}" with {test}; the p-values are adjusted for '
-              f"{len(rows)} {pairs} with Holm's method, so the chance of any false alarm stays at 5 %.")
+              f"{len(rows)} {pairs} with Holm's method, so the chance of any false alarm is at most 5 %.")
         for row in rows:
             if based_on == "averages":
                 diff, word = row["difference"], "average"
@@ -1600,7 +1606,7 @@ class StatTestWords:
         others = "group" if len(rows) == 1 else "groups"
         print(f'Each "{for_each}" group compared on "{column}" with the control group "{against}" ({len(rows)} {others}) '
               "with Dunnett's test, as R multcomp::glht(mcp(group = \"Dunnett\")): the p-values and 95 % intervals hold "
-              "for all the comparisons at once, so the chance of any false alarm stays at 5 %. SciPy stats.dunnett "
+              "for all the comparisons at once, so the chance of any false alarm is at most 5 %. SciPy stats.dunnett "
               f"works this out with random numbers (seed {seed}); the last digit can differ from R's.")
         self._pair_lines(rows, "p-value (adjusted)", "adjusted ")
         frame = nw.from_dict({key: [r[key] for r in rows] for key in rows[0]}, backend=self._frame.implementation)
@@ -1634,7 +1640,7 @@ class StatTestWords:
         kramer = " (the Tukey-Kramer form, as the groups differ in size)" if sizes else ""
         print(f'Each pair of "{for_each}" groups compared on "{column}" with Tukey\'s honest significant difference'
               f"{kramer}, as R TukeyHSD(aov({column} ~ {for_each})): the p-values and 95 % confidence intervals hold "
-              f"for all {len(rows)} {pairs} at once, so the chance of any false alarm stays at 5 %. It assumes the "
+              f"for all {len(rows)} {pairs} at once, so the chance of any false alarm is at most 5 %. It assumes the "
               "groups have the same spread.")
         for row in rows:
             diff = row["difference"]
@@ -1657,10 +1663,12 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ compare_spreads_of
     @friendly(renamed={"test": "test_method", "for_each": "for_each_group_in"})
-    def compare_spreads_of(self, column=None, for_each_group_in=None, test_method="levene"):
+    def compare_spreads_of(self: _Same, column=None, for_each_group_in=None, test_method="levene") -> _Same:
         """Do the groups really differ in how spread out their values are?
 
-        table.compare_spreads_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_spreads_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         test_method="levene" (the default): Levene's test centred on each group's median, also
         called the Brown-Forsythe test. It is the default of R car::leveneTest() and SciPy
         levene(center="median"), and copes well with values that are not bell-shaped.
@@ -2182,7 +2190,9 @@ class StatTestWords:
                            standard_deviation=None, prior_width="medium", with_seed=1):
         """Is the average of a column really different from a number you choose?
 
-        table.compare_average_to("marks", 60)   (with sdata.get_example("marks"))
+        table.compare_average_to("marks", 60)   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         A one-sample t-test, or the Wilcoxon signed-rank test (on the median) with
         based_on="ranks". Empty cells are skipped. Effect size: Cohen's d, the difference
         in standard deviations. Gives back a one-row table of results.
@@ -2343,7 +2353,9 @@ class StatTestWords:
         """Does how often each value turns up really differ between groups?
 
         table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])
-        table.compare_counts_of("result", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_counts_of("result", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         (Do the classes differ in how many children score 60 or more?) Counts the rows for
         each pair of values and uses the chi-square test of independence (as R chisq.test():
         Yates' continuity correction for 2 x 2 tables only).
@@ -2617,7 +2629,7 @@ class StatTestWords:
         return [_plain(v) for v in kept[column].to_list()]
 
     @friendly
-    def compare_counts_to(self, column=None, expected=None):
+    def compare_counts_to(self: _Same, column=None, expected=None) -> _Same:
         """Does how often each value turns up really differ from the shares you expect?
 
         table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})   (with sdata.get_example("school"))
@@ -2748,8 +2760,8 @@ class StatTestWords:
         return labels, observed, [s / top for s in shares]
 
     @friendly(renamed={"method": "interval_by"})
-    def compare_percent_to(self, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
-                           alternative=None, interval_by="exact"):
+    def compare_percent_to(self: _Same, column=None, value=None, percent=None, sides=2, higher=None, lower=None,
+                           alternative=None, interval_by="exact") -> _Same:
         """Is the percent of rows with one value really different from a percent you choose?
 
         table.compare_percent_to("passed", value="yes", percent=50)   (with sdata.get_example("school"))
@@ -2890,7 +2902,9 @@ class StatTestWords:
                          full_turn=None):
         """Do the values look bell-shaped (normal), or are they too far from it?
 
-        table.compare_shape_to("marks", "normal", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.compare_shape_to("marks", "normal", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         Uses the Shapiro-Wilk test (as R shapiro.test()), for 3 to 5000 values in each
         group; empty cells are skipped. A small p-value says a shape this far from a bell
         shape would rarely turn up if the values were bell-shaped. A large p-value does not
@@ -3095,7 +3109,7 @@ class StatTestWords:
 
     # ------------------------------------------------------------------ many p-values at once
     @friendly(renamed={"method": "test_method"})
-    def add_adjusted_p_value_column(self, name=None, from_column="p-value", test_method="holm"):
+    def add_adjusted_p_value_column(self: _Same, name=None, from_column="p-value", test_method="holm") -> _Same:
         """Adjust p-values for testing many things at once, in a new column.
 
         table = sdata.table(sdata.get_example("marks")).find_correlation_between("hours", "marks", "height", show="each pair")
@@ -3103,7 +3117,7 @@ class StatTestWords:
         (table is now one row per pair of columns, with its p-value)
         The more tests you run, the more likely one of them looks real by chance; adjusted
         p-values allow for that. test_method="holm" (the default, as R p.adjust()): the chance
-        of even one false alarm among all the tests stays at 5 %. "bonferroni": the same
+        of even one false alarm among all the tests is at most 5 %. "bonferroni": the same
         promise, simpler and stricter. "benjamini-hochberg" (also "bh" or "fdr"): about 5 %
         of the findings below 0.05 are expected to be false alarms (the false discovery
         rate); it finds more with many tests. "benjamini-yekutieli" ("by"): a false
