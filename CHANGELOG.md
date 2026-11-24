@@ -5,6 +5,117 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: a front door for new users
+
+- New motto: "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain
+  words, with its results checked against the field's standard tools." It replaces the old one in the README,
+  pyproject, CITATION.cff, CONTRIBUTING.md, the package docstring and the title pages of the manual, dictionary
+  and 30-day guide.
+- A tagline under it, in bold italics, in the README's first screen, on the manual's title page and on the
+  30-day guide's front page: ***Easy to do, and you know why you're doing it.***
+- The second line says "safe for sensitive data" (was "patient data"), and so do the README's question on it and
+  the issue form.
+- The README now opens with who it is for, install, a quick start with its real output and where to go next,
+  then questions new users ask (why not pandas or R, why not ChatGPT, jamovi or JASP, sensitive data, R). The long
+  lists (packages, tasks, fields, lessons, examples by area) moved to
+  [docs/what_simplydata_handles.md](docs/what_simplydata_handles.md); the tests check them there.
+- The README says why the names are long (you read them more than you type them, you can guess them, and the
+  editor completes them), shows three tested "same underneath" pairs side by side, and recommends VS Code or
+  Jupyter with a few setup steps; so do the manual's "Install and first steps" and day 1 of the 30 days.
+- The 30 days have a new order. Both tracks open a real practice table on day 1 or 2 and test a first difference
+  by day 4 (Python track) or day 6 (beginner track); charts are woven in on four days. Models are split over two
+  days (Python) or three (beginner), survival curves have a day of their own, and fitting and distributions have
+  one day each. Patterns across many columns (lesson 17) and planning a study (lesson 18, example 3) are two
+  optional extra days, 31 and 32, opened only with `sdata.show_day(31)` and `sdata.show_day(32)`.
+- Progress files of the old order are moved to the new one the first time they are read, with a one-time note: a
+  new day is ticked when its lessons were all done before, `sdata.show_today()` carries on with the first day not
+  done, and a finished course stays finished. New progress files say which order they follow (`"course": 2`), and
+  remember the days passed over with `show_today(follow_calendar=True)`.
+
+### New: easier for new users
+
+- A note when rows repeat one person: when a test or model word (compare_averages_of, compare_spreads_of,
+  find_correlation_between, explain, fit_line and the like) runs on a table where an ID column repeats, such as
+  "name" in the marks table, one line after the result says so and names the ways out (`matched_by=`,
+  `grouped_by=`, `compare_matched_columns`, one row per person). It counts different values only, never changes the
+  method and never refuses. An ID column is one named like an ID ("name", "subject", "patient_id", "Sample ID" ...)
+  with at least 4 different values, or a column of codes ("P01", "S12") with at least 10 values in 2 to 10 rows
+  each; columns the call uses, and calls with matched_by= or grouped_by=, get no note.
+- `table.make_copy()` gives an independent copy that keeps the steps so far (pandas `df.copy()`, Polars
+  `df.clone()`); `copy.copy(table)` and `copy.deepcopy(table)` do the same. `copy`, `clone`, `deepcopy` and
+  `duplicate` point to it.
+- `table.count_empty_cells_in("OD600")` and `table.count_empty_cells_in(["a", "b"])` count the empty cells of those
+  columns; with no column it counts every column as before, and `show="patterns"` takes the columns too.
+- Charts whose `colour=` can be a column (draw_bars, draw_dots, draw_boxes, draw_survival_curves and 16 more) take
+  `for_each_group_in=` for the same thing, as the table words do, with a note once; seaborn's `hue=` works too.
+- Option names from other tools work with a note once: `on=` and `by=` on `join_with` (its `using=`); `by=`,
+  `groupby=` and `group_by=` on every word with `for_each_group_in=`; `random_state=` on every word with
+  `with_seed=`; `subset=` on `remove_duplicate_rows` (its `columns=`).
+
+### Changed: copies, not shared tables (check your code)
+
+- `table.as_pandas()` and `table.as_polars()` give a copy: changing it no longer changes the simplydata table, and
+  later steps on the table no longer change it (as `nums.as_numpy()` already did). `sdata.table(df)` copies `df`, so
+  changing `df` afterwards leaves the table as it was. Under pandas 3 the copy costs nothing until one of them
+  changes (copy-on-write).
+
+### New: name completion in editors
+
+- simplydata ships a `py.typed` marker, and every step that gives back the same table, chart or numbers says so in
+  its type hints, so VS Code (Pylance) and Jupyter (Jedi) complete `t.keep...` after `t = sdata.table(...)`, and
+  chained steps such as `t.keep_rows_where(...).sort_by(...)`. `sdata.get_example()`, `start_chart()`,
+  `get_column()`, `turn_into_table()` and `sdata.distribution()` say what they give back. Type hints only: nothing
+  runs differently. A test checks the completion with Jedi.
+
+### Changed: reshaping words renamed, and one new word (check your code)
+
+- `table.turn_rows_into_columns` is now `table.spread_into_columns(names_from=..., values_from=...)`, and
+  `table.turn_columns_into_rows` is now `table.gather_into_rows(columns, names_to=..., values_to=...)`. The options
+  are unchanged; the old names keep working for one release and print a one-line note with the new name.
+- `spread_into_columns` adds a note when the new columns get empty cells because another column differs between
+  rows that would otherwise merge (hours in the marks table), naming that column and saying how to keep only the
+  columns you need.
+- New: `table.swap_rows_and_columns()` flips the whole table (pandas `set_index(first).T`; a Polars table goes
+  through pandas and back). The first column names the new columns when it holds text with no repeat and no empty
+  cell; otherwise they are numbered "1", "2" ... and a note says why. `transpose`, `T` and `t` point to it.
+
+### Fixed: lessons that treated repeated rows as independent
+
+- The marks table has each child three times (one row per subject). Lesson 14 compared the classes on all 54 rows
+  and the subjects with Kruskal-Wallis, as if the rows were 54 children. The classes are now compared on one average
+  per child (`find_average_of(..., for_each_group_in=["class", "name"])`) or on one subject, and the subjects within
+  each child (`compare_matched_columns`, the Friedman test). The lesson says why in a plain sentence. Lessons 12,
+  15 and 19, the 30-day guide and the examples and docstrings of the test words do the same.
+- The school examples (pupils in 12 schools) that fit ordinary models now say that the p-values are a little too
+  small without `grouped_by="school"`.
+
+### Fixed: clearer messages
+
+- `table["marks"]` after a step that took the column away names that step and says `table.undo()`; every
+  "no column" message lists the columns there are.
+- `table.count_empty_cells_in(show="OD600")` says show= takes only "patterns" and how to count that column,
+  instead of `does not know show="OD600"` (a column in the first place is now counted, see above).
+- When R does not start, the message says whether R was not found, whether R_HOME points to a folder without R, or
+  that R is installed but did not start from Python (with what to try), instead of rpy2's own error.
+- `compare_to_truth` without R: the Method line says the likelihood ratios were not computed, and their rows say so,
+  instead of naming R epiR as if it had run.
+- `remove_duplicate_rows()` that removes nothing says so, and names the columns in which rows that are otherwise the
+  same differ.
+- Holm's, Bonferroni's, Tukey's and Dunnett's adjustments keep the chance of any false alarm "at most 5 %" (it said
+  "stays at 5 %").
+
+### New: several tables in one Excel file
+
+- `table.save("results.xlsx", in_sheet="cleaned")` saves the table as one sheet and keeps the other sheets of the
+  file (pandas `ExcelWriter(mode="a", if_sheet_exists="replace")` with openpyxl). A sheet of the same name is
+  replaced, and simplydata says so; a file that does not exist is made. Sheet names follow Excel's rules (at most 31
+  characters, none of `: \ / ? * [ ]`, no apostrophe at the start or end, not `History`, and the same name in other
+  capitals counts as the same sheet). Only .xlsx files have sheets. `sheet=` reads a sheet, `in_sheet=` saves one; `sheet_name=` (pandas) and `sheetName=` (R openxlsx)
+  point to `in_sheet=`. Without `in_sheet=`, saving replaces the whole file, as before.
+- `sdata.table("results.xlsx", sheet="all")`: when the sheets do not have the same columns, the message still lists
+  the differing columns and now gives a line to copy for each sheet, such as
+  `patients = sdata.table("study.xlsx", sheet="patients")`.
+
 ### New: three numbers given back instead of only printed
 
 - `table.add_correspondence_axes(..., show="numbers")` also gives each axis's eigenvalue (`CA1 eigenvalue`) and the

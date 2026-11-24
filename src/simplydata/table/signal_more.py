@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import narwhals as nw
 import numpy as np
 
@@ -11,9 +13,9 @@ from .._time_axis import need_filled, need_regular, series_of
 
 class SignalMoreTableWords:
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def add_filtered_column(self, name=None, from_column=None, keep_below=None, keep_above=None, keep_between=None,
+    def add_filtered_column(self: _Same, name=None, from_column=None, keep_below=None, keep_above=None, keep_between=None,
                             remove_between=None, remove_at=None, sorted_by=None, for_each_group_in=None, test_method="butterworth",
-                            steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1, show_filter=False):
+                            steepness=4, both_ways=True, ripple=0.5, removed_by=40, width=1, show_filter=False) -> _Same:
         """Add a filtered copy of a column: some frequencies kept or removed (low-pass, high-pass, band, notch).
 
         table.add_filtered_column("slow", from_column="signal", keep_below=10, sorted_by="time")   (with sdata.get_example("sensor"))
@@ -66,7 +68,7 @@ class SignalMoreTableWords:
         return self._change(f'add filtered column "{name}"', base.with_columns(new))
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_envelope_column(self, name=None, from_column=None, show="envelope", sorted_by=None, for_each_group_in=None):
+    def add_envelope_column(self: _Same, name=None, from_column=None, show="envelope", sorted_by=None, for_each_group_in=None) -> _Same:
         """Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform).
 
         table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")   (with sdata.get_example("sensor"))
@@ -142,8 +144,8 @@ class SignalMoreTableWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     @friendly(renamed={"at_least": "is_at_least", "for_each": "for_each_group_in"})
-    def find_each_peak_that(self, column=None, sorted_by=None, is_at_least=None, apart=None, stands_out_by=None,
-                            wide_at_least=None, for_each_group_in=None, **experts):
+    def find_each_peak_that(self: _Same, column=None, sorted_by=None, is_at_least=None, apart=None, stands_out_by=None,
+                            wide_at_least=None, for_each_group_in=None, **experts) -> _Same:
         """Find the peaks of a column: readings higher than both neighbours, with conditions.
 
         table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)   (with sdata.get_example("sensor"))
@@ -155,8 +157,8 @@ class SignalMoreTableWords:
                                  for_each_group_in, experts)
 
     @friendly(renamed={"at_most": "is_at_most", "for_each": "for_each_group_in"})
-    def find_each_dip_that(self, column=None, sorted_by=None, is_at_most=None, apart=None, stands_out_by=None,
-                           wide_at_least=None, for_each_group_in=None, **experts):
+    def find_each_dip_that(self: _Same, column=None, sorted_by=None, is_at_most=None, apart=None, stands_out_by=None,
+                           wide_at_least=None, for_each_group_in=None, **experts) -> _Same:
         """Find the dips of a column: readings lower than both neighbours (find_each_peak_that upside down).
 
         table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.05)   (with sdata.get_example("sensor"))

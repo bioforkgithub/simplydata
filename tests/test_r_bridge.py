@@ -13,11 +13,33 @@ def test_newest_r_folder_is_chosen_by_number():
     assert max(folders, key=_version_key).endswith("R-4.10.0")
 
 
-def test_r_that_did_not_start_says_why(monkeypatch):
-    monkeypatch.setattr(_r, "_STATE", {"error": "R_HOME points to a folder without R", "missing": "R"})
-    with pytest.raises(RMissing, match="R did not start: R_HOME points to a folder without R") as error:
+def test_r_that_did_not_start_says_why_in_plain_words(monkeypatch, tmp_path):
+    # rpy2's own error ("list index out of range") is never shown: the message says what to do instead
+    monkeypatch.setattr(_r, "_STATE", {"error": "list index out of range", "missing": "R"})
+    (tmp_path / "bin").mkdir()
+    monkeypatch.setenv("R_HOME", str(tmp_path))
+    with pytest.raises(RMissing) as error:
         _r.need_r(("vegan",), "NMDS")
-    assert "set the R_HOME environment variable" in str(error.value)
+    text = str(error.value)
+    assert "list index out of range" not in text
+    assert f"R is installed (in {tmp_path}) but did not start from Python" in text
+    assert "R_HOME" in text and 'install.packages(c("vegan"))' in text
+
+
+def test_r_home_without_r_says_so(monkeypatch, tmp_path):
+    monkeypatch.setattr(_r, "_STATE", {"error": "list index out of range", "missing": "R"})
+    monkeypatch.setenv("R_HOME", str(tmp_path / "nothing here"))
+    with pytest.raises(RMissing, match="R_HOME is set to .*but that folder has no R in it") as error:
+        _r.need_r(("vegan",), "NMDS")
+    assert "list index out of range" not in str(error.value)
+
+
+def test_r_not_found_says_install_r(monkeypatch):
+    monkeypatch.setattr(_r, "_STATE", {"error": "list index out of range", "missing": "R"})
+    monkeypatch.delenv("R_HOME", raising=False)
+    monkeypatch.setattr("shutil.which", lambda name: None)
+    with pytest.raises(RMissing, match="R was not found on this computer: install R from https://cran.r-project.org"):
+        _r.need_r(("vegan",), "NMDS")
 
 
 def test_missing_rpy2_says_restart(monkeypatch):

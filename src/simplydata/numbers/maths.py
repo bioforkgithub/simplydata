@@ -6,6 +6,8 @@ same answer, because they share one calculation (see _base.calculate).
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numbers as _nb
 
 import numpy as np
@@ -17,7 +19,7 @@ from ._base import is_number, note_empty, say
 class MathsWords:
     # ------------------------------------------------------------------ the four sums and power
     @friendly
-    def add(self, number=None):
+    def add(self: _Same, number=None) -> _Same:
         """Add a number to every number (or add numbers one by one). nums.add(5)
 
         For new numbers, write bigger = nums + 5 instead.
@@ -25,7 +27,7 @@ class MathsWords:
         return self._sum_word("add", number)
 
     @friendly
-    def subtract(self, number=None):
+    def subtract(self: _Same, number=None) -> _Same:
         """Take a number away from every number. nums.subtract(2)
 
         For new numbers, write smaller = nums - 2 instead.
@@ -33,7 +35,7 @@ class MathsWords:
         return self._sum_word("subtract", number)
 
     @friendly
-    def times(self, number=None):
+    def times(self: _Same, number=None) -> _Same:
         """Multiply every number by a number. nums.times(2)
 
         For new numbers, write double = nums * 2 instead.
@@ -41,7 +43,7 @@ class MathsWords:
         return self._sum_word("times", number)
 
     @friendly
-    def divide_by(self, number=None):
+    def divide_by(self: _Same, number=None) -> _Same:
         """Divide every number by a number. nums.divide_by(4)
 
         Dividing by 0 has no answer, so those values become empty and a note says how many.
@@ -50,7 +52,7 @@ class MathsWords:
         return self._sum_word("divide_by", number)
 
     @friendly
-    def raise_to_power(self, number=None):
+    def raise_to_power(self: _Same, number=None) -> _Same:
         """Raise every number to a power: raise_to_power(2) squares, raise_to_power(3) cubes. nums.raise_to_power(2)
 
         raise_to_power(0.5) is the same as the square root. For new numbers, write squares = nums ** 2.
@@ -63,7 +65,7 @@ class MathsWords:
         return self._change(what, values)
 
     @friendly
-    def take_square_root(self):
+    def take_square_root(self: _Same) -> _Same:
         """The square root of every number: 9 becomes 3. nums.take_square_root()
 
         Negative numbers have no square root among ordinary numbers, so they become empty.
@@ -76,12 +78,12 @@ class MathsWords:
                           "a negative number has no square root")
 
     @friendly
-    def take_absolute_value(self):
+    def take_absolute_value(self: _Same) -> _Same:
         """Every number without its minus sign: -3 becomes 3. nums.take_absolute_value()"""
         return self._each("absolute value", np.abs(self._values))
 
     @friendly(renamed={"decimals": "with_decimals"})
-    def round_to(self, with_decimals=0):
+    def round_to(self: _Same, with_decimals=0) -> _Same:
         """Round every number to this many decimal places. nums.round_to(2)
 
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
@@ -97,7 +99,7 @@ class MathsWords:
         return self._each(f"round to {with_decimals} {places}", np.round(self._values, with_decimals))
 
     @friendly
-    def take_log(self, base="e"):
+    def take_log(self: _Same, base="e") -> _Same:
         """The logarithm of every number: natural (base e) unless you give base=10 or base=2.
 
         nums.take_log()  nums.take_log(base=10)  nums.take_log(base=2)
@@ -124,7 +126,7 @@ class MathsWords:
         return self._each(what, result, int(bad.sum()), "the log only exists for numbers above 0")
 
     @friendly
-    def take_exp(self):
+    def take_exp(self: _Same) -> _Same:
         """e (about 2.718) to the power of every number; it undoes take_log(). nums.take_exp()"""
         with np.errstate(all="ignore"):
             result = np.exp(self._values.astype(float))

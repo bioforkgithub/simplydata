@@ -16,7 +16,7 @@ PAIN = """
 """
 PAIN_OURS = """
     table = sdata.get_example("clinic")
-    table.turn_columns_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
+    table.gather_into_rows(["pain_week_0", "pain_week_4", "pain_week_8"], names_to="week", values_to="pain")
 """
 PAIN_PAIRS = '    table.compare_each_pair_of("pain", for_each_group_in="week", matched_by="patient", test_method="{test}")\n'
 MANY = """
@@ -100,11 +100,13 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.find_correlation_between("hours", "marks", "height", show="covariance")
         """,
         code={"pandas": """
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # find_correlation_between("hours", "marks", "height", show="covariance")
             cov = df[["hours", "marks", "height"]].cov(ddof=1)   # (1)
             cov.rename_axis("column").reset_index()

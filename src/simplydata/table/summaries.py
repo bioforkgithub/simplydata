@@ -34,6 +34,13 @@ Below p = 0.001 it says "fewer than 1 in 1000 studies".
 
 from __future__ import annotations
 
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..numbers import Numbers
+
 import datetime as _dt
 import math
 
@@ -918,11 +925,13 @@ class SummaryWords:
         return table
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "seed": "with_seed"})
-    def find_interval_of(self, column=None, summary="average", for_each_group_in=None, interval=95, test_method="bootstrap",
-                         resamples=9999, with_seed=1):
+    def find_interval_of(self: _Same, column=None, summary="average", for_each_group_in=None, interval=95, test_method="bootstrap",
+                         resamples=9999, with_seed=1) -> _Same:
         """A confidence interval for any summary, from the bootstrap.
 
-        table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"))
+        table.find_interval_of("marks", "median", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         summary= is any one-number measure of find_summary_of() ("average", "median", "standard
         deviation", "trimmed average 20", "percentile 90", "coefficient of variation", ...) or a
         function of your own that gets the numbers (a NumPy array) and gives back one number.
@@ -1417,7 +1426,7 @@ class SummaryWords:
         return result
 
     @friendly
-    def count_each(self, column=None, interval=None, columns=None, in_order=None):
+    def count_each(self: _Same, column=None, interval=None, columns=None, in_order=None) -> _Same:
         """Each different value in a column, how many times it appears, and its percent.
 
         Biggest count first. Empty cells count as a value of their own, so the percents
@@ -1921,7 +1930,7 @@ class SummaryWords:
 
     # ------------------------------------------------------------------ one column on its own
     @friendly
-    def get_column(self, name=None):
+    def get_column(self, name=None) -> Numbers | list:
         """One column on its own: a column of numbers becomes sdata.numbers, any other a plain list.
 
         marks = table.get_column("marks")   (with sdata.get_example("marks"))
@@ -1959,7 +1968,9 @@ class SummaryWords:
                                  empty_cells="leave out", prior_width="medium"):
         """How strongly columns of numbers go up or down together, from -1 to 1.
 
-        table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"))
+        table.find_correlation_between("hours", "marks")   (with sdata.get_example("marks"), one subject)
+        One subject (table.keep_rows_where("subject", is_equal_to="Maths")) gives one row per child: each
+        child is in the marks table three times, and a test needs rows that are independent.
         test_method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R

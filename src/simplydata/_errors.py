@@ -11,6 +11,7 @@ import functools
 import inspect
 import re
 import threading
+from typing import Any, Callable, TypeVar, overload
 
 ISSUES_URL = "https://github.com/bioforkgithub/simplydata/issues"
 
@@ -208,7 +209,7 @@ def public_words(text: str) -> str:
 
 def other_option_note(other: str, own: str) -> None:
     """Print, once per session, that an option name from another tool is written another way here."""
-    key = f"other {other}="
+    key = f"other {other}={own}="
     if key in _NOTED:
         return
     _NOTED.add(key)
@@ -250,7 +251,67 @@ def _renamed_value(old: str, new: tuple, value):
     return name, now
 
 
+# Chart words whose colour= can be a column, so one colour per group (2026-11-23, new-user study): on them
+# for_each_group_in= means the same as colour= a column, as on draw_qq_dots and the table words. Words whose
+# colour= is only one colour (draw_line_at_x, draw_curve, fit_line ...) are not here.
+GROUP_COLOUR_WORDS = frozenset({
+    "draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
+    "draw_count_bars", "draw_all_dots", "draw_density", "draw_polar", "draw_band", "draw_cumulative_share",
+    "draw_survival_curves", "draw_risk_curves", "draw_richness_curves", "draw_interaction_lines", "sticks",
+    "trade_off_curve", "draw_all_pairs",
+})
+
+
+# Option names from pandas, seaborn, dplyr and scikit-learn that mean exactly one simplydata option, on every
+# word that has that option (2026-11-23, new-user study). Used only when the word has no option of that name.
+COMMON_OTHERS = {"by": "for_each_group_in", "groupby": "for_each_group_in", "group_by": "for_each_group_in",
+                 "random_state": "with_seed"}
+
+
+def _columns_of(thing):
+    """The column names of a chart's data or a table, or None when they cannot be seen."""
+    for name in ("_data", "_frame"):
+        found = getattr(thing, name, None)
+        if found is not None and hasattr(found, "columns"):
+            return [str(c) for c in found.columns]
+    return [str(c) for c in thing.columns] if hasattr(thing, "columns") else None
+
+
+def _group_colour(word: str, value, args, kwargs, note: bool = True) -> None:
+    """Checks for for_each_group_in= on a chart word, where it means colour= a column; the note once."""
+    example = f'chart.{word}(..., for_each_group_in="class")'
+    names = [value] if isinstance(value, str) else list(value) if isinstance(value, (list, tuple)) else None
+    if not names or not all(isinstance(n, str) for n in names):
+        raise SimplydataError(f"for_each_group_in= takes a column name, for example {example}; it got {value!r}.")
+    if "colour" in kwargs or "color" in kwargs:
+        raise SimplydataError(f"Give for_each_group_in= or colour=, not both: on .{word}() they mean the same "
+                              "(one colour for each group).")
+    columns = _columns_of(args[0]) if args else None
+    if columns is not None:
+        missing = [n for n in names if n not in columns]
+        if missing:
+            raise column_error(missing[0], columns)
+    key = "same for_each_group_in=colour="
+    if note and key not in _NOTED:
+        _NOTED.add(key)
+        shown = f'"{names[0]}"' if isinstance(value, str) else repr(names)
+        print(f"Note: on a chart, for_each_group_in={shown} is the same as colour={shown}: each group gets its "
+              "own colour.")
+
+
 _CALLS = threading.local()  # how deep inside words a call is: only the outermost word is checked by the survey guard
+
+
+_Word = TypeVar("_Word", bound=Callable[..., Any])
+
+
+@overload
+def friendly(func: _Word, *, renamed: dict | None = None, others: dict | None = None) -> _Word: ...
+
+
+@overload
+def friendly(func: None = None, *, renamed: dict | None = None,
+             others: dict | None = None) -> Callable[[_Word], _Word]: ...
 
 
 def friendly(func=None, *, renamed: dict | None = None, others: dict | None = None):
@@ -268,7 +329,10 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
     Use it as @friendly, or as @friendly(renamed={...}, others={...}).
     """
     if func is None:
-        return lambda f: friendly(f, renamed=renamed, others=others)
+        def decorate(word):
+            return friendly(word, renamed=renamed, others=others)
+
+        return decorate
     renamed = renamed or {}
     others = others or {}
     sig = inspect.signature(func)
@@ -288,6 +352,18 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
             for us, uk in FIRST_WORD_SPELLINGS.items():
                 if key.startswith(us + "_") and uk + key[len(us):] in params:
                     key = uk + key[len(us):]
+            if key in ("for_each_group_in", "hue") and key not in params and func.__name__ in GROUP_COLOUR_WORDS:
+                _group_colour(func.__name__, value, args, kwargs, note=key == "for_each_group_in")
+                if key == "hue":
+                    other_option_note("hue", "colour")  # seaborn's hue=
+                key = "colour"
+            elif (key in COMMON_OTHERS and key not in params and key not in renamed and key not in others
+                  and COMMON_OTHERS[key] in params):
+                new = COMMON_OTHERS[key]
+                other_option_note(key, new)
+                if new in kwargs or new in fixed:
+                    raise SimplydataError(f"Give {new}= only once ({key}= is another name for it).")
+                key = new
             if key in renamed and key not in params:
                 new = renamed[key]
                 if isinstance(new, tuple):  # the old option was a switch that is now one value of the new one
@@ -310,13 +386,23 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
         outer = not getattr(_CALLS, "depth", 0)
+        note = ""
         if outer and args and "." in func.__qualname__:  # a table's word under a survey design (S3d-1)
             guard = getattr(type(args[0]), "_survey_guard", None)
             if guard is not None:
                 guard(args[0], func.__name__)
+            repeats = getattr(type(args[0]), "_repeated_rows_note", None)  # rows that repeat one person
+            if repeats is not None:
+                try:
+                    note = repeats(args[0], func.__name__, params, args[1:], fixed)
+                except Exception:  # noqa: BLE001 - a note never stops a word
+                    note = ""
         _CALLS.depth = getattr(_CALLS, "depth", 0) + 1
         try:
-            return func(*args, **fixed)
+            result = func(*args, **fixed)
+            if note:
+                print(note)
+            return result
         except SimplydataError as exc:
             said = exc.args[0] if exc.args and isinstance(exc.args[0], str) else None
             if said is not None and "." in said:

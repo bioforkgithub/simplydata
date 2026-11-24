@@ -55,7 +55,7 @@ def _load_cases():
 study = _load_cases()
 
 PACKAGES = ("simplydata", "pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "matplotlib", "seaborn",
-            "rpy2")
+            "control", "rpy2")
 
 
 # ---------------------------------------------------------------- the setup
@@ -166,7 +166,7 @@ def check_case(case) -> list[dict]:
     if case.ours_r is not None and not r_ready(case.ours_r):
         return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
                          + " (simplydata runs R for this option)")]
-    data = None if case.dataset in ("made-up", "standard normal table") else study.load(case.dataset)
+    data = None if case.dataset in ("made-up", "standard normal table", "closed form (no data)") else         study.load(case.dataset)
     try:
         ours = run(case.ours, data)
     except Exception as error:  # noqa: BLE001 - a crash is a failed check, reported
@@ -189,7 +189,9 @@ def check_case(case) -> list[dict]:
                 row.update(passed=True, explained=case.explained[name])
             rows.append(row)
         else:
-            why = "" if source == "exact" else " (printed rounding)"
+            # a closed form is worked out from the formula: its tolerance allows for floating point, not rounding
+            why = (" (exact formula)" if case.kind == "closed form" else "" if str(source).startswith("exact")
+                   else " (printed rounding)")
             rows.append(_row(case, name, source, got, value, f"within {tolerance:g}{why}",
                              abs(got - value) <= tolerance))
     if case.parent:
@@ -326,7 +328,8 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
         "Each simplydata word is run on real, published data and compared with the published answer, with the "
         "package simplydata uses underneath called directly, and with R. Each \"same underneath\" box of the "
         "manual is run next to its word and compared too. How it works, and the datasets with their licences: "
-        "[validation/README.md](README.md).",
+        "[validation/README.md](README.md); which words are compared here, which in the separate test study "
+        "(simplydata_tests) and which have nothing to compare: its section \"Which words are compared, and where\".",
         "",
         f"**{passed} checks passed, {explained} explained differences, {failed} failed, {skipped} skipped** "
         f"(skipped: R or an R package is not installed on this computer, or, for {local}, the data may not be "
@@ -344,7 +347,9 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     out += ["", "## 1. Published and real data", "",
             "Kinds: *published* = real data with a published or certified answer; *real data* = real data, "
             "compared with the parent package and R; *made-up* = a made-up edge case (empty cells, no rows left, "
-            "an exact line) that no real dataset tests.", ""]
+            "an exact line) that no real dataset tests; *closed form* = no data at all: a word that makes "
+            "something from a formula (a system, a wave, a window shape) checked against the answer worked out by "
+            "hand from that formula (and against the parent package and R).", ""]
     words = list(dict.fromkeys(r["word"] for r in case_rows))
     for word in words:
         out.append(f"### `{word}`")
@@ -382,6 +387,12 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
                    f"relative {r['tolerance']:g} | {result} |")
     out += ["", "How each kind is compared:", ""]
     out += [f"- **{kind}**: {what}" for kind, what in COMPARE_KINDS.items() if kind != "none"]
+    nothing = [k for k, e in UNDERNEATH.items() if e.compare == "none"]
+    if nothing:
+        out += [f"- **none** ({len(nothing)} words: " + ", ".join(f"`{k}`" for k in nothing) + "): help, learning, "
+                "undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put "
+                "a table back as it was; they compute no number, so there is nothing to compare them with. Their box "
+                "is run to show that it runs."]
     out += ["", "## Choices simplydata makes", "",
             "Where simplydata's default differs from the package underneath, it is listed here, so a difference "
             "is never hidden. The manual shows each one as a numbered mark in the code.", ""]

@@ -273,6 +273,28 @@ ENTRIES = [
                  "mice::md.pattern() sorts by its own rule and turns the columns round).",),
         also="simplydata also prints the empty cells of each column and how many rows have none.",
     ),
+    Entry(
+        word="table.count_empty_cells_in", option="columns=",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.count_empty_cells_in(columns=["sales", "customers"])
+        """,
+        code={"pandas": """
+            import pandas as pd
+            df = pd.read_csv("shop.csv", parse_dates=["date"])
+            # count_empty_cells_in(["sales", "customers"])
+            counts = df[["sales", "customers"]].isna().sum()             # (1)
+            for column, n in counts.items():
+                print(f"  {column:<9}  {n}")
+            print(f"Total: {counts.sum()} cells empty.")
+        """},
+        compare="printed",
+        choices=("an empty cell is a missing value, NaN or text of only spaces; pandas isna() counts only the "
+                 "missing values and NaN.",),
+        also="Without columns it counts every column. A column that is not in the table is refused with the "
+             "nearest name.",
+    ),
     # ------------------------------------------------------------------ W06: answers on a scale
     Entry(
         word="table.count_each", option="columns=, in_order=",

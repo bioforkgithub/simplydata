@@ -33,9 +33,11 @@ PRINCIPLES = {
           "so results agree with what reviewers expect. Matching the reference package sometimes takes precedence "
           "over a method comparison; each such entry says which method the studies prefer and the option that "
           "gives it.",
-    "P4": "Check the data: refuse or warn when the chosen method does not fit, and say what to use instead.",
+    "P4": "Check the data where simplydata can: refuse or warn when the chosen method does not fit, and say what to "
+          "use instead. Whether the rows are independent cannot be seen in the data: the learner says it "
+          "(matched_by=, grouped_by=).",
     "P5": "Be open: the printout names the method; every default can be changed with an option; the manual "
-          "shows the code underneath; the reliability study checks the numbers; independent reviewers checked "
+          "shows the code underneath; the reliability study checks the numbers; automated review passes checked "
           "every default and its references (see 'How the defaults were reviewed').",
 }
 
@@ -930,7 +932,7 @@ BASIS["table.compare_each_pair_of"] = _b(
     "below 50 values per group, also with tied values).",
     "test_method=\"tukey\" (Tukey-Kramer), \"games-howell\", \"scheffe\", \"lsd\", \"dunn\", \"conover\"; "
     "based_on=\"ranks\" or \"percents\"; against= (Dunnett); show=\"letters\".",
-    "Holm's method keeps the chance of any false alarm at 5 % and is uniformly more powerful than Bonferroni (Holm "
+    "Holm's method keeps the chance of any false alarm to at most 5 % and is uniformly more powerful than Bonferroni (Holm "
     "1979; Aickin & Gensler 1996); multiplicity should be adjusted for and the method named (Bender & Lange 2001; "
     "ICH E9). Welch's test per pair keeps the error rate when spreads differ; it gives no simultaneous intervals, "
     "which Games & Howell's procedure does (test_method=\"games-howell\"; Games & Howell 1976). Tukey-Kramer (Kramer "
@@ -2843,7 +2845,7 @@ BASIS['table.compare_each_pair_of matched_by=, test_method="conover"'] = _b(
     "Conover's test after Friedman's (R PMCMRplus::frdAllPairsConoverTest()), with Holm's adjustment.",
     "test_method=\"nemenyi\"; the default Wilcoxon-Holm.",
     "Conover's test on the ranks within blocks is more powerful than Nemenyi's (Conover & Iman 1979); Holm keeps the "
-    "chance of any false alarm at 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
+    "chance of any false alarm to at most 5 % (Holm 1979), as for Conover after Kruskal-Wallis. PMCMRplus's default is "
     "single-step and scikit-posthocs adjusts nothing, so the printout says why their numbers differ. The same "
     "mean-rank caveat applies (Benavoli et al. 2016).",
     ("conover1979", "holm1979", "benavoli2016"), "P2", "As test_method=\"nemenyi\".")
@@ -3243,6 +3245,15 @@ BASIS["table.save"] = _b(
     "The file holds only the columns, without row labels.",
     "The end of the file name chooses the type (.xlsx, .csv, .tsv, .parquet, .json).",
     "Data handling: row labels are pandas' own and not part of the data.", (), "P5", "", "convention")
+BASIS["table.save in_sheet="] = _b(
+    "The sheet is added to the Excel file and the other sheets are kept; a sheet of the same name is replaced; a "
+    "file that does not exist is made with that one sheet.",
+    "Without in_sheet=, the whole file is replaced by one sheet.",
+    "Data handling: pandas' own append mode (ExcelWriter mode=\"a\", if_sheet_exists=\"replace\"); replacing the "
+    "named sheet, not the file, keeps the other sheets, and simplydata says when it replaced one.", (), "P5",
+    "Sheet names are checked with Excel's rules before the file is opened (at most 31 characters, none of "
+    ": \\ / ? * [ ], no apostrophe at the start or end, not History, not the same name in other capitals), so a "
+    "refused name leaves the file as it was.", "convention")
 BASIS["table.add_missing_dates"] = _b(
     "Each group gets its own run of dates from its first to its last date; the table comes back sorted by the "
     "groups and the dates; rows with an empty group cell are a group of their own.",
@@ -3469,6 +3480,225 @@ BASIS["animate"] = _b(
     "Showing results: fixed ranges keep the bars and dots from jumping about, so the change between pictures is "
     "the change in the data.", (), "P5", "A column with fewer than 2 values is refused.", "starting value")
 
+# ---- Phase U3, batch 6: statistics and distribution words
+BASIS["table.compare_shapes_of two groups"] = _b(
+    "Two groups: the two-sample Kolmogorov-Smirnov test, exact while the groups make fewer than 10000 pairs of "
+    "values; with tied values the exact p-value comes from R ks.test(), which allows for the ties.",
+    "Three or more groups get the k-sample Anderson-Darling test; the groups can be cut down to two with "
+    "keep_rows_where().",
+    "Kolmogorov-Smirnov is the standard test of two whole distributions (Massey 1951). SciPy's exact p-value "
+    "assumes no ties, so with ties the p-value of R, which counts them, is used: the field's standard software "
+    "decides.",
+    ("massey1951",), "P3", "The printout says when the p-value came from R because of tied values.", "convention")
+BASIS["table.compare_to_truth a column of numbers"] = _b(
+    "Higher scores count as positive, said before the ROC curve is made (pROC direction = \"<\"); the AUC with "
+    "DeLong's interval; the best cut-off by Youden's index.",
+    "positive_when=\"lower\"; cut_off= for a chosen cut-off.",
+    "DeLong's interval needs no assumption about the shape of the scores (DeLong et al. 1988). Fixing the "
+    "direction first keeps a score that works the wrong way round from looking good, as pROC's own guess would "
+    "make it; Youden's index is the usual summary of a cut-off (Youden 1950).",
+    ("delong1988", "youden1950"), "P5", "An AUC below 0.5 gets a note that suggests positive_when=.")
+BASIS["table.agreement_between columns of numbers"] = _b(
+    "The intraclass correlation from R irr::icc(): two-way, absolute agreement, one rater (ICC(A,1), Shrout and "
+    "Fleiss' ICC(2,1)).",
+    "raters=\"these only\" or \"different per row\"; checking_for=\"consistency\"; of=\"average of raters\"; "
+    "test_method=\"lin\".",
+    "The ICC form must be chosen and named; ICC(A,1) is the form for raters who are a sample of possible raters "
+    "when single ratings will be used (Shrout & Fleiss 1979; McGraw & Wong 1996; Koo & Li 2016). irr's own "
+    "default, the one-way model, would ignore that the same raters scored every row.",
+    ("shrout1979", "mcgraw1996", "koo2016"), "P1", "The form is always printed beside the value.")
+BASIS["dist.find_density_at"] = _b(
+    "The height of the SciPy density (pdf) at the value, with the parameters under R's names (shape, rate) turned "
+    "into SciPy's (a, scale = 1 / rate).",
+    "A list of values; dist.find_chance_that_value() for a chance.",
+    "R's names are the ones most textbooks and papers use; turning them into SciPy's is bookkeeping, not a "
+    "statistical choice.", (), "P3", "Count distributions are refused: they have no density.", "convention")
+BASIS["dist.find_cut_off"] = _b(
+    "The value with a chance above it is SciPy's inverse survival function isf(), not ppf(1 - chance); the value "
+    "with a chance below it is ppf().",
+    "with_chance_below=; a list of chances.",
+    "1 - chance loses digits when the chance is tiny; isf() keeps them. This is numerical care, not a statistical "
+    "choice.", (), "P3", "Chances outside 0 to 1 are refused, with find_percentile() offered for percents.",
+    "convention")
+BASIS["dist.find_middle_range"] = _b(
+    "The middle percent with equal tails: half of the rest is cut off at each end (ppf() of it for the lower end, "
+    "the same share from the top for the upper end).",
+    "Any percent above 0 and below 100.",
+    "Equal tails are the usual way to give a middle range (R qnorm(c(0.025, 0.975)) gives the same); the shortest "
+    "range would differ for skewed distributions.", (), "P3",
+    "A percent of 0, 100 or outside them is refused.", "convention")
+BASIS["dist.find_average"] = _b(
+    "The mean of the SciPy distribution, with R's parameter names turned into SciPy's.",
+    "dist.show_summary() for every summary at once.",
+    "The average of a distribution is a fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite average (heavy tails) gets a sentence that says so.", "convention")
+BASIS["dist.find_median"] = _b(
+    "The median of the SciPy distribution (its 50 % point), with R's parameter names turned into SciPy's.",
+    "dist.find_percentile(50) gives the same.",
+    "A fact of the distribution; only the names need care.", (), "P3", "", "convention")
+BASIS["dist.find_standard_deviation"] = _b(
+    "The standard deviation of the SciPy distribution itself (no sample, so no n - 1), with R's parameter names "
+    "turned into SciPy's.",
+    "dist.find_variance() for its square.",
+    "A fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite spread gets a sentence that says so.", "convention")
+BASIS["dist.find_variance"] = _b(
+    "The variance of the SciPy distribution, with R's parameter names turned into SciPy's.",
+    "dist.find_standard_deviation() for its square root.",
+    "A fact of the distribution; only the names need care.", (), "P3",
+    "A distribution with no finite variance gets a sentence that says so.", "convention")
+BASIS["dist.show_summary"] = _b(
+    "One row: average, median, standard deviation, variance, skewness, excess kurtosis (0 for the normal "
+    "distribution), entropy in nats and the lowest and highest possible values, all from SciPy.",
+    "The single dist words for one number each.",
+    "Excess kurtosis is the form SciPy and most software give, so 0 means as heavy-tailed as the normal "
+    "distribution.", (), "P3", "An entropy SciPy cannot work out is left empty.", "convention")
+BASIS["dist.make_random_numbers"] = _b(
+    "NumPy's generator (PCG64) seeded with with_seed=1, so the same seed gives the same numbers.",
+    "with_seed= any whole number, or None for different numbers each time; rows= and columns= for a grid.",
+    "A fixed seed makes every example and analysis repeatable; the printout says R's generator differs, so R's "
+    "numbers will not match.", (), "P5", "", "starting value")
+BASIS["dist.draw_chart"] = _b(
+    "The density curve from the 0.1 % to the 99.9 % point at 200 evenly spaced places; bars of each chance for "
+    "count distributions.",
+    "show=\"cumulative\"; between= for another range.",
+    "Showing results: the middle 99.8 % holds the whole visible curve without long flat tails.", (), "P5", "",
+    "starting value")
+BASIS["dist.turn_into_table"] = _b(
+    "One row: the distribution's name and its parameters under their plain names; parameters not given are "
+    "left out; a fitted distribution adds its standard errors, log-likelihood, AIC and BIC.",
+    "dist.show_parameters() for a dictionary.",
+    "Bookkeeping, not a method: the plain names are the ones the user typed.", (), "P5", "", "convention")
+# ---- Phase U3, batch 7: time series, cycles, waves and systems
+BASIS["nums.find_each_dip_that"] = _b(
+    "Every local minimum: SciPy signal.find_peaks on minus the numbers (as R pracma::findpeaks(-x) for dips without "
+    "flat bottoms); positions from 1, widths halfway down each dip.",
+    "is_at_most=, apart=, stands_out_by=, wide_at_least=, time_step=.",
+    "A dip is a peak turned upside down, so the same neutral start as find_each_peak_that: no threshold unless you "
+    "give one. These are SciPy's definitions.", (), "P3", "", "convention")
+BASIS["table.find_each_dip_that"] = _b(
+    "Every local minimum, as nums.find_each_dip_that; apart= and wide_at_least= in units of sorted_by, turned into "
+    "readings rounded to 9 decimals.",
+    "is_at_most=, apart=, stands_out_by=, wide_at_least=, for_each_group_in=.",
+    "As table.find_each_peak_that. Rounding the number of readings keeps floating point from making SciPy's distance "
+    "one reading longer.", (), "P3", "Empty cells are never dips; apart= and wide_at_least= need even spacing.",
+    "convention")
+BASIS["table.add_envelope_column"] = _b(
+    "The envelope: the size of the analytic signal from the Hilbert transform (SciPy signal.hilbert, as R "
+    "gsignal::hilbert), in order of sorted_by=.",
+    "show=\"phase\" (degrees, unwrapped) or \"frequency\"; for_each_group_in=.",
+    "The analytic signal is the standard way to read the size of a wave at each moment; it is SciPy's and R "
+    "gsignal's definition.", (), "P3", "The readings must be evenly spaced and filled in.", "convention")
+BASIS["nums.take_fourier_transform"] = _b(
+    "The half spectrum (SciPy rfft, frequency 0 up to the highest the readings can show), sizes and phases in degrees.",
+    "show=\"all\" (SciPy fft, negative frequencies too); time_step=.",
+    "For real numbers the negative frequencies mirror the positive ones, so the half spectrum holds everything. "
+    "Degrees are easier to read than radians.", (), "P3", "Empty values are refused.", "convention")
+BASIS["sdata.find_inverse_fourier_transform"] = _b(
+    "SciPy irfft with the number of readings remembered from the transform (ifft for a full spectrum).",
+    "None: the table says which transform it came from.",
+    "An odd number of readings cannot be told from the half spectrum, so the count travels with the table and a "
+    "round trip gives the numbers back.", (), "P3", "A table that did not come from take_fourier_transform is refused.",
+    "convention")
+BASIS["nums.convolve_with"] = _b(
+    "Every overlap (keep=\"all\": n + m - 1 numbers), SciPy signal.convolve(mode=\"full\").",
+    "keep=\"same\" (the middle n) or \"overlap\" (only full overlaps).",
+    "The full convolution loses nothing; it is SciPy's and NumPy's default and R convolve(type = \"open\").", (), "P3",
+    "", "convention")
+BASIS["nums.change_time_step"] = _b(
+    "Fourier resampling (SciPy signal.resample) to the number of readings that fills the same time.",
+    "test_method=\"polyphase\" (resample_poly) or \"filter then keep\" (decimate).",
+    "Fourier resampling keeps every frequency the new time step can show; it treats the recording as repeating, so "
+    "the other methods are offered for recordings whose ends differ.", (), "P5",
+    "A new step that would leave no readings is refused; a step that cannot be exact is said.", "convention")
+BASIS["sdata.make_wave"] = _b(
+    "Times from 0 in steps of time_step=; a square wave high for half of each cycle; SciPy signal's wave shapes.",
+    "shape=\"sine\", \"sawtooth\", \"chirp\", \"pulse\", \"impulse\"; high_share=, rising_share=, sweep=.",
+    "Half high is the usual square wave (SciPy's duty=0.5 default); starting at time 0 is SciPy's and R gsignal's "
+    "convention.", (), "P3", "how_many= and frequency= must be above 0.", "convention")
+BASIS["sdata.make_window_shape"] = _b(
+    "The symmetric window (SciPy get_window(fftbins=False)), as R gsignal::hann and NumPy hanning.",
+    "periodic=True (the version used inside spectra, SciPy's own default).",
+    "A window you look at or use as a filter is normally symmetric; the periodic one is for spectra, where SciPy "
+    "uses it on its own.", (), "P3", "An unknown window name is refused with a list of common ones.", "convention")
+BASIS["sdata.system"] = _b(
+    "The transfer function with the bottom's first coefficient scaled to 1, as SciPy's TransferFunction keeps it.",
+    "numerator=/denominator=, poles=/zeros=/gain=, a=/b=/c=/d=; time_step= for a system in steps.",
+    "Scaling the first coefficient to 1 gives every system one way to be written, so the same system always prints "
+    "the same.", (), "P3", "An improper formula (top of higher power than the bottom) is refused.", "convention")
+BASIS["system.step_response"] = _b(
+    "200 evenly spaced times from 0 to until= (SciPy chooses the end from the poles when until= is left out).",
+    "until=, how_many=, time_points=.",
+    "200 points draw a smooth curve for most systems; SciPy's own choice of end time follows the slowest pole.", (),
+    "P5", "time_points= must start at 0 and be evenly spaced.", "starting value")
+BASIS["system.impulse_response"] = _b(
+    "200 evenly spaced times from 0 to until=, as step_response.", "until=, how_many=, time_points=.",
+    "As system.step_response.", (), "P5", "As system.step_response.", "starting value")
+BASIS["system.response_to"] = _b(
+    "The system starts at rest and each input holds until the next time (zero order hold, SciPy lsim(interp=False)); "
+    "the times from the step the inputs remember.",
+    "time_points=.",
+    "A zero order hold is what a computer that reads and acts in steps does, and R control::lsim does the same; "
+    "SciPy's own default joins the inputs by straight lines.", (), "P3",
+    "Inputs whose time step differs from a system in steps are refused, with the line that fixes it.", "convention")
+BASIS["system.frequency_response"] = _b(
+    "200 frequencies evenly spaced on a log scale, in radians per second (cycles per unit of time for a filter); the "
+    "phase unwrapped.",
+    "between=, how_many=, unit=\"cycles per second\".",
+    "Radians per second is the unit of R control, SciPy and MATLAB; an unwrapped phase shows the delay growing "
+    "instead of jumping by 360 degrees.", (), "P3", "Frequencies above what a system in steps can show are refused.",
+    "convention")
+BASIS["system.poles"] = _b(
+    "Each pole with its distance from 0, damping ratio and natural frequency, as R control::damp.",
+    "None.",
+    "The damping ratio and natural frequency say how a pole moves the output; R control::damp's definitions are the "
+    "textbook ones.", (), "P3", "", "convention")
+BASIS["system.is_stable"] = _b(
+    "Stable only when every pole lies strictly inside: a real part below 0 (inside the unit circle in steps).",
+    "None.",
+    "A pole on the edge gives an output that never settles, so it does not count as stable (bounded-input, "
+    "bounded-output stability).", (), "P3", "", "convention")
+BASIS["system.steady_gain"] = _b(
+    "The formula at s = 0 (z = 1 in steps), as R control::dcgain.", "None.",
+    "Where the output settles for a constant input of 1 is the formula at zero frequency; simplydata says when the "
+    "output never settles there.", (), "P3", "A pole at s = 0 gives a gain without limit, and a system that is not "
+    "stable is named.", "convention")
+BASIS["system.in_steps"] = _b(
+    "Zero order hold (the input stays constant between steps), as R control::c2d.",
+    "test_method=\"bilinear\", \"forward difference\", \"backward difference\".",
+    "The zero order hold matches what a computer that acts in steps does, and it is R control's and MATLAB's c2d "
+    "default.", (), "P3", "A system already in steps is refused.", "convention")
+BASIS["system.then"] = _b(
+    "In series the formulas multiply, as R control::series.", "add() for side by side, with_feedback() for a loop.",
+    "That is what joining two systems in series means; there is no other choice.", (), "P3",
+    "Systems of different kinds (continuous and in steps) are refused.", "convention")
+BASIS["system.add"] = _b(
+    "Side by side the formulas add over a common bottom, as R control::parallel.", "then() for in series.",
+    "That is what joining two systems in parallel means.", (), "P3",
+    "Systems of different kinds (continuous and in steps) are refused.", "convention")
+BASIS["system.with_feedback"] = _b(
+    "Negative feedback through 1 (the output itself): G / (1 + G H) with H = 1, as R control::feedback.",
+    "through= another system; sign=\"positive\".",
+    "Negative unity feedback is the usual control loop and R control's default.", (), "P3",
+    "Systems of different kinds are refused.", "convention")
+BASIS["system.table"] = _b(
+    "The transfer function: one row per power, highest first, the top padded with zeros.",
+    "form=\"state space\" (SciPy tf2ss, as R control::tf2ss) or \"poles and zeros\".",
+    "Highest power first is how SciPy, R control and MATLAB write the coefficients; padding puts the top and bottom "
+    "of each power on one row.", (), "P3", "", "convention")
+BASIS["lag_dots"] = _b(
+    "Each value against the value rows_back=1 earlier, in the order of sorted_by=, with a dashed 1:1 line from the "
+    "smallest to the biggest value.",
+    "rows_back= a number or a list (one colour each), transparency=.",
+    "As R lag.plot: dots near the 1:1 line show values like the ones before them. One row back is R's default.", (),
+    "P3", "rows_back= must be whole numbers of 1 or more.", "convention")
+BASIS["system.chart"] = _b(
+    "The Bode chart: gain in decibels and the unwrapped phase in degrees against frequency on a log scale, 200 "
+    "frequencies SciPy picks from the poles and zeros, in two panels.",
+    "show=\"step\", \"impulse\", \"poles and zeros\", \"nyquist\"; between=, until=, unit=.",
+    "The Bode chart is the usual first look at a system, as R control::bode and MATLAB bode draw it.", (),
+    "P3",
+    "Options that do not go with the chosen show= are refused.", "convention")
 # ---- Phase U3, batch 5: chart words
 BASIS["draw_area"] = _b(
     "Rows at the same x averaged; the space under each line filled down to 0 in its colour, see-through (alpha "
@@ -3928,18 +4158,47 @@ BASIS["table.add_rows_from"] = _b(
     "another order.", (), "P4",
     "Columns found in only one table, or holding different kinds of values, are refused with their names.",
     "convention")
-BASIS["table.turn_columns_into_rows"] = _b(
+BASIS["table.gather_into_rows"] = _b(
     "The other columns stay beside each value; the new columns are called \"column\" and \"value\".",
     "names_to=, values_to=.",
     "Data preparation: a long table is what charts and models take; plain names say what each new column "
     "holds.", (), "P5", "Mixing text and number columns, or a name already in the table, is refused.",
     "convention")
-BASIS["table.turn_rows_into_columns"] = _b(
+BASIS["table.spread_into_columns"] = _b(
     "Rows and new columns stay in the order they first appear; all the other columns say which row is which.",
     "names_from=, values_from=.",
     "Data preparation: keeping the table's own order (pandas would sort) and refusing to choose between two "
     "values for one cell keep the result honest.", (), "P4",
-    "When two rows would fill one cell simplydata stops and suggests an average first.", "convention")
+    "When two rows would fill one cell simplydata stops and suggests an average first; when another column differs "
+    "between rows that would merge, so that the new columns get empty cells, a note names that column.", "convention")
+# ---- 2026-11-23 (PR user-study-fixes): the whole table flipped
+BASIS["table.swap_rows_and_columns"] = _b(
+    "The first column names the new columns when it holds text with no repeat and no empty cell (pandas "
+    "set_index(first).T); otherwise the new columns are numbered \"1\", \"2\" ... and the old column names go in "
+    "\"column\".",
+    "Keep or reorder the columns first (keep_columns) to choose which column names the rows.",
+    "Data preparation: a table read with its measurements as rows becomes one row per thing measured; using the "
+    "first text column as names keeps the row labels, as in pandas and R t() on a data frame with row names.",
+    (), "P5", "A table with no rows or no columns is refused; a first column that cannot name columns gives a note.",
+    "convention")
+# ---- 2026-11-23 (PR new-user-code): a copy word, and empty cells of the columns named
+BASIS["table.make_copy"] = _b(
+    "An independent copy that keeps the steps so far (backup.undo() and backup.show_steps() work on it); steps on "
+    "one table never change the other. pandas df.copy() (free until one changes under copy-on-write), Polars "
+    "df.clone().",
+    "sdata.table(table) starts a new table from this one without its steps; table.start_again() goes back to the "
+    "table as it was read.",
+    "A learner who writes backup = table expects a copy and gets a second name for the same table (the Python "
+    "behaviour that surprised users in the 2026-11-23 study); a word that says copy makes the difference visible, "
+    "as pandas copy() and Polars clone() do.",
+    (), "P5", "copy.copy(table) and copy.deepcopy(table) give the same copy.", "convention")
+BASIS["table.count_empty_cells_in columns="] = _b(
+    "Counts the empty cells of the columns named, in the order named; an empty cell is a missing value, NaN or text "
+    "of only spaces, as for every column.",
+    "table.count_empty_cells_in() for every column; show=\"patterns\" for which columns are empty together.",
+    "A learner who wants the empty cells of one column names it, as in pandas df[\"OD600\"].isna().sum(); spaces-only "
+    "text counts as empty because a spreadsheet shows it as an empty cell.",
+    (), "P5", "A column not in the table is refused with the nearest name.", "convention")
 # ---- 2026-11-21 (PR words-and-fixes): options that give back the numbers as a table, and R's datasets
 BASIS["table.check_model_of show=\"numbers\""] = _b(
     "The numbers check_model_of prints, as a table: variance inflation factors, Koenker's Breusch-Pagan test and "

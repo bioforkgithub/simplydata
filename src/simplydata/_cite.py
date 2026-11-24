@@ -296,7 +296,7 @@ def packages_of_word(key: str, options=()) -> tuple[str, ...]:
         return ()
     table_word = key.startswith("table.") or key == "sdata.table"
     found, own_entry = _underneath_packages(key, options)
-    func = None if own_entry else _word_function(key)
+    func = None if own_entry and found else _word_function(key)  # an entry that names no Python package (R, or nothing) falls back to the code
     if func is not None:
         code = _function_packages(func, _owner(key))
         if not code - set(HOLDERS if table_word else ()):

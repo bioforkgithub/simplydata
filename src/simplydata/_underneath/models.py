@@ -165,12 +165,14 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.explain("marks", using=["hours"], giving_outliers_less_weight=True)
         """,
         code={"statsmodels": """
             import statsmodels.api as sm
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # explain("marks", using=["hours"], giving_outliers_less_weight=True)
             X = sm.add_constant(df["hours"])
             huber = sm.robust.norms.HuberT()                          # (1)
@@ -247,6 +249,7 @@ ENTRIES = [
         data="marks",
         ours="""
             table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="Maths")
             table.explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
         """,
         code={"SciPy and statsmodels": """
@@ -255,6 +258,7 @@ ENTRIES = [
             from scipy import stats
             import pandas as pd
             df = pd.read_csv("marks.csv")
+            df = df[df["subject"] == "Maths"].reset_index(drop=True)   # one row per child
             # explain("marks", using=["hours"], interval_by="bootstrap", resamples=999, with_seed=1)
             X, y = sm.add_constant(df["hours"]).to_numpy(), df["marks"].to_numpy()
             def refit(rows):                                          # (1)

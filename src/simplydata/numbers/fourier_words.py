@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import numpy as np
@@ -65,7 +67,7 @@ class FourierNumberWords:
         return table
 
     @friendly
-    def find_envelope(self, show="envelope", time_step=None, sampling_rate=None, fs=None):
+    def find_envelope(self: _Same, show="envelope", time_step=None, sampling_rate=None, fs=None) -> _Same:
         """The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform).
 
         nums.find_envelope()
@@ -84,7 +86,7 @@ class FourierNumberWords:
         return self._change(f"envelope ({show})", out)
 
     @friendly
-    def convolve_with(self, other, keep="all"):
+    def convolve_with(self: _Same, other, keep="all") -> _Same:
         """Convolve the numbers with other numbers: each result is a sum of products as one list slides along.
 
         nums.convolve_with([1, 2, 1])
@@ -105,7 +107,7 @@ class FourierNumberWords:
         return self._change("convolve", out)
 
     @friendly
-    def deconvolve_by(self, other):
+    def deconvolve_by(self: _Same, other) -> _Same:
         """Undo a convolution: the numbers divided by other numbers (polynomial division).
 
         nums.deconvolve_by([1, 2, 3])

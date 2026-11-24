@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import narwhals as nw
 import numpy as np
 
@@ -15,8 +17,8 @@ EXAMPLE = 'table.find_spectrum_of("signal", sorted_by="time")'
 
 class SignalTableWords:
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in"})
-    def find_spectrum_of(self, column=None, sorted_by=None, test_method="periodogram", window=None, window_shape="hann",
-                         show="power", between=None, for_each_group_in=None):
+    def find_spectrum_of(self: _Same, column=None, sorted_by=None, test_method="periodogram", window=None, window_shape="hann",
+                         show="power", between=None, for_each_group_in=None) -> _Same:
         """Which repeating cycles (frequencies) a column holds over time, and how strong each is.
 
         table.find_spectrum_of("signal", sorted_by="time")   (with sdata.get_example("sensor"))

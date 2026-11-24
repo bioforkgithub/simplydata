@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "simplydata"
 dynamic = ["version"]
-description = "Learn basic Python, and simplydata takes you from your first table to publication-ready statistics, in plain words, with every number checked against the field's standard tools."
+description = "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "DATA_LICENSES.md"]
@@ -84,7 +84,7 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7", "polars>=1.29", "pyarrow>=14", "statsmodels>=0.14"]
+test = ["pytest>=7", "polars>=1.29", "pyarrow>=14", "statsmodels>=0.14", "jedi>=0.19"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"

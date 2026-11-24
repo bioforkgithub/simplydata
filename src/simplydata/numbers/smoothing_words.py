@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 
 from .. import _smoothing
@@ -10,8 +12,8 @@ from .._errors import friendly
 
 class SmoothingNumberWords:
     @friendly(renamed={"method": "test_method", "degree": "of_degree"})
-    def smooth(self, test_method="moving average", window=5, ends=None, weights=None, of_degree=None, newest_weight=None,
-               width=None, smoothness=None, alpha=None, span=None, half_life=None, com=None):
+    def smooth(self: _Same, test_method="moving average", window=5, ends=None, weights=None, of_degree=None, newest_weight=None,
+               width=None, smoothness=None, alpha=None, span=None, half_life=None, com=None) -> _Same:
         """Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
 
         nums.smooth(test_method="median", window=5)
@@ -35,7 +37,7 @@ class SmoothingNumberWords:
         return self._change(f"smooth ({_smoothing.read_method(test_method, 'smooth')})", got.values)
 
     @friendly(renamed={"method": "test_method"})
-    def remove_trend(self, test_method="straight line", breaks=None):
+    def remove_trend(self: _Same, test_method="straight line", breaks=None) -> _Same:
         """Take away the trend: the best straight line (or only the average) is taken from the numbers.
 
         nums.remove_trend()

@@ -13,6 +13,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 
 import numpy as np
@@ -89,7 +91,7 @@ def _draw_threshold_check(ctx, x, low, high):
 
 class PlaceChartWords:
     @friendly(others={"model": "of_kind", "kind": "of_kind", "cutoff": "between", "z": "column", "value": "column"})
-    def draw_variogram(self, column=None, x=None, y=None, of_kind="spherical", between=None):
+    def draw_variogram(self: _Same, column=None, x=None, y=None, of_kind="spherical", between=None) -> _Same:
         """A variogram: how different two values are, on average, at each distance apart, as dots and a curve.
 
         chart.draw_variogram("zinc", x="east", y="north")   (with sdata.get_example("stations"))
@@ -135,7 +137,7 @@ class PlaceChartWords:
         return self._add("variogram", "draw", _draw_variogram, column=column, x=x, y=y, kind=kind, cutoff=cutoff)
 
     @friendly(others={"threshold": "between", "thresholds": "between", "column": "x", "r": "between"})
-    def draw_threshold_check(self, x=None, between=None):
+    def draw_threshold_check(self: _Same, x=None, between=None) -> _Same:
         """The threshold check: two panels that help choose values_above= for find_return_levels_of.
 
         chart.draw_threshold_check(x="rain", between=[10, 30])   (with sdata.get_example("rain"))

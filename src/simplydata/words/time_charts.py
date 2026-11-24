@@ -8,6 +8,8 @@ the table word gives back and prints the same sentences. The drawing is matplotl
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 from matplotlib import rcParams
 
@@ -214,7 +216,7 @@ class TimeChartWords:
         return column, sorted_by
 
     @friendly
-    def sticks(self, x=None, y=None, colour=None, thickness=None):
+    def sticks(self: _Same, x=None, y=None, colour=None, thickness=None) -> _Same:
         """A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).
 
         chart.sticks(x="month_number", y="rain", colour="city")   (with sdata.get_example("weather"))
@@ -231,8 +233,8 @@ class TimeChartWords:
         return self._add("sticks", "draw", _draw_sticks, x=x, y=y, colour=colour, thickness=thickness)
 
     @friendly(renamed={"y": "column", "x": "sorted_by"})
-    def autocorrelation_bars(self, column=None, sorted_by=None, rows_back=None, show="correlation",
-                             band="white noise"):
+    def autocorrelation_bars(self: _Same, column=None, sorted_by=None, rows_back=None, show="correlation",
+                             band="white noise") -> _Same:
         """Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.
 
         chart.autocorrelation_bars("visitors", sorted_by="month")   (with one museum of sdata.get_example("visitors"))
@@ -250,7 +252,7 @@ class TimeChartWords:
                          group=None, low="band low", high="band high", word="autocorrelation_bars")
 
     @friendly(renamed={"x": "sorted_by"})
-    def cross_correlation_bars(self, *columns, sorted_by=None, rows_back=None, **other_names):
+    def cross_correlation_bars(self: _Same, *columns, sorted_by=None, rows_back=None, **other_names) -> _Same:
         """Sticks for the correlation of two columns when the second is shifted by -k to k rows.
 
         chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)   (with sdata.get_example("sensor"))
@@ -287,7 +289,7 @@ class TimeChartWords:
                          group=None, low=low, high=high, word="cross_correlation_bars")
 
     @friendly(renamed={"y": "column", "x": "sorted_by"})
-    def lag_dots(self, column=None, sorted_by=None, rows_back=1, transparency=None):
+    def lag_dots(self: _Same, column=None, sorted_by=None, rows_back=1, transparency=None) -> _Same:
         """Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).
 
         chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])   (with one museum of sdata.get_example("visitors"))
@@ -308,7 +310,7 @@ class TimeChartWords:
         return self._add("lag_dots", "draw", _draw_lag_dots, x=x, y=y, rows_back=list(ks), transparency=transparency)
 
     @friendly(renamed={"method": "test_method"})
-    def trend_and_season(self, x=None, y=None, repeats_every=None, test_method="loess"):
+    def trend_and_season(self: _Same, x=None, y=None, repeats_every=None, test_method="loess") -> _Same:
         """Four panels sharing x: the column itself, its trend, its season and the rest (as R plot(stl(...)),
         which labels the first panel "data").
 
@@ -322,6 +324,8 @@ class TimeChartWords:
         check(self._data, x=x, y=y)
         table = _table_of(self, [c for c in (x, y) if c is not None])
         table.add_trend_and_season(y, sorted_by=x, repeats_every=repeats_every, test_method=test_method)
+        print("Drawn by matplotlib: four panels sharing x (the column, its trend, its season and the rest), as inset "
+              "axes in one chart.")
         got = _frame(table)
         if x is not None:
             got = got.sort_values(x, kind="stable")
@@ -329,8 +333,8 @@ class TimeChartWords:
         return self._add("trend_and_season", "draw", _draw_trend_and_season, frame=got, x=x, y=y)
 
     @friendly(renamed={"method": "test_method"})
-    def forecast(self, x=None, y=None, steps_ahead=12, test_method="exponential smoothing", repeats_every=None, trend=True,
-                 season="added", order=None, seasonal_order=None, interval=95):
+    def forecast(self: _Same, x=None, y=None, steps_ahead=12, test_method="exponential smoothing", repeats_every=None, trend=True,
+                 season="added", order=None, seasonal_order=None, interval=95) -> _Same:
         """The forecast after the data: a dashed line and its interval band, per colour group.
 
         chart.forecast(steps_ahead=12, repeats_every="year")   (after chart.draw_lines(x="month", y="visitors",
@@ -346,7 +350,7 @@ class TimeChartWords:
         return self._add("forecast", "extra", _draw_forecast, frame=got, x=x, group=group, interval=interval)
 
     @friendly(renamed={"method": "test_method", "y": "column", "x": "sorted_by"})
-    def spectrum(self, column=None, sorted_by=None, test_method="periodogram", show="power", window=None, log_scale=True):
+    def spectrum(self: _Same, column=None, sorted_by=None, test_method="periodogram", show="power", window=None, log_scale=True) -> _Same:
         """Power against frequency: which cycles a column holds, the 3 strongest peaks labelled with their period.
 
         chart.spectrum("signal", sorted_by="time")   (with sdata.get_example("sensor"))
@@ -382,7 +386,7 @@ class TimeChartWords:
                          log_scale=bool(log_scale) and show != "decibels", peaks=peaks)
 
     @friendly(renamed={"y": "column", "x": "sorted_by"})
-    def spectrum_over_time(self, column=None, sorted_by=None, window=256, window_shape="hann"):
+    def spectrum_over_time(self: _Same, column=None, sorted_by=None, window=256, window_shape="hann") -> _Same:
         """How the cycles in a column change over time: a heat map of time, frequency and power (decibels).
 
         chart.spectrum_over_time("signal", sorted_by="time", window=100)   (with sdata.get_example("sensor"))
@@ -416,7 +420,7 @@ class TimeChartWords:
                          frequencies=frequencies, decibels=decibels)
 
     @friendly(renamed={"at_least": "is_at_least", "at_most": "is_at_most"})
-    def peak_dots(self, x=None, y=None, is_at_least=None, apart=None, stands_out_by=None, dips=False, is_at_most=None):
+    def peak_dots(self: _Same, x=None, y=None, is_at_least=None, apart=None, stands_out_by=None, dips=False, is_at_most=None) -> _Same:
         """Dots on the peaks of the line (and on the dips with dips=True).
 
         chart.peak_dots(is_at_least=1, apart=0.05)   (after chart.draw_lines(x="time", y="signal") with sdata.get_example("sensor"))

@@ -9,6 +9,8 @@ two. Colours: two hues with a neutral grey in the middle (no colour at the midpo
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import numpy as np
 
 from .._errors import friendly
@@ -72,7 +74,7 @@ def _draw_answers(ctx, columns, levels):
 
 class AnswerChartWords:
     @friendly(others={"items": "columns", "questions": "columns", "levels": "in_order", "order": "in_order"})
-    def draw_answer_bars(self, columns=None, in_order=None):
+    def draw_answer_bars(self: _Same, columns=None, in_order=None) -> _Same:
         """Bars of answers on a scale (Likert items): one bar per question, centred on the middle answer.
 
         chart.draw_answer_bars(columns=["teaching", "materials", "pace"], in_order=["strongly disagree", "disagree", "neutral", "agree", "strongly agree"])   (with sdata.get_example("course_feedback"))

@@ -19,6 +19,8 @@
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import contextlib
 import io
 import math
@@ -394,8 +396,8 @@ def _draw_fit_distribution(ctx, distribution, colour, thickness, said):
 # ====================================================================== words
 class CurveWords:
     @friendly(renamed={"label": "labelled"})
-    def draw_curve(self, formula_or_distribution=None, between=None, steps=200, dashed=False, colour=None, labelled=None,
-                   thickness=None, show="density"):
+    def draw_curve(self: _Same, formula_or_distribution=None, between=None, steps=200, dashed=False, colour=None, labelled=None,
+                   thickness=None, show="density") -> _Same:
         """Draw a formula, or a distribution, as a curve. chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])
 
         The formula uses one name (x, or any other) and the functions of table.add_column;
@@ -434,7 +436,7 @@ class CurveWords:
         return self
 
     @friendly
-    def fit_formula(self, formula=None, start=None, between=None, show_equation=False, colour=None, thickness=None):
+    def fit_formula(self: _Same, formula=None, start=None, between=None, show_equation=False, colour=None, thickness=None) -> _Same:
         """The curve of a formula fitted to the dots. chart.fit_formula("population = a * exp(b * (year - 2000))")
 
         After dots, for example chart.draw_dots(x="year", y="population", colour="country") (with
@@ -458,7 +460,7 @@ class CurveWords:
                          show_equation=bool(show_equation), colour=colour, thickness=thickness, said={})
 
     @friendly
-    def fit_distribution(self, distribution="normal", colour=None, thickness=None):
+    def fit_distribution(self: _Same, distribution="normal", colour=None, thickness=None) -> _Same:
         """The best-fitting distribution's curve over a histogram or density chart. chart.fit_distribution("normal")
 
         After a histogram or density, for example chart.draw_histogram(x="marks", show="density")

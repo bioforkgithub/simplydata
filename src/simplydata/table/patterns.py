@@ -48,6 +48,8 @@ distances). The average silhouette width is printed whenever R is there.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import math
 import re
 
@@ -369,7 +371,7 @@ class PatternWords:
 
     # ------------------------------------------------------------------ principal components
     @friendly
-    def add_principal_components(self, columns=None, how_many=2, same_scale=True):
+    def add_principal_components(self: _Same, columns=None, how_many=2, same_scale=True) -> _Same:
         """Add principal components: a few new columns that hold most of the spread of many columns.
 
         table.add_principal_components(how_many=2)   (with sdata.get_example("meadow"))
@@ -411,7 +413,7 @@ class PatternWords:
             [(n, scores[:, i]) for i, n in enumerate(names)], keep)
 
     @friendly
-    def find_principal_components_of(self, columns=None, same_scale=True):
+    def find_principal_components_of(self: _Same, columns=None, same_scale=True) -> _Same:
         """A table of the principal components: how much spread each explains and the weight of each column.
 
         table.find_principal_components_of()   (with sdata.get_example("meadow"))
@@ -473,8 +475,8 @@ class PatternWords:
         return "no real structure"
 
     @friendly(renamed={"method": "test_method", "seed": "with_seed"})
-    def add_clusters(self, columns=None, how_many=3, test_method="k-means", same_scale=True, with_seed=1, name="cluster",
-                     linkage=None, measure=None, show=None):
+    def add_clusters(self: _Same, columns=None, how_many=3, test_method="k-means", same_scale=True, with_seed=1, name="cluster",
+                     linkage=None, measure=None, show=None) -> _Same:
         """Sort the rows into groups of similar rows (clusters), in a new column.
 
         table.add_clusters(how_many=3)   (with sdata.get_example("meadow"))
@@ -638,7 +640,7 @@ class PatternWords:
         return names, labels
 
     @friendly
-    def find_distances_between_rows(self, columns=None, measure="bray-curtis", names=None):
+    def find_distances_between_rows(self: _Same, columns=None, measure="bray-curtis", names=None) -> _Same:
         """How different each row is from every other row: a square table of distances.
 
         table.find_distances_between_rows(names="plot")   (with sdata.get_example("meadow"))
@@ -675,7 +677,7 @@ class PatternWords:
 
     # ------------------------------------------------------------------ NMDS
     @friendly(renamed={"seed": "with_seed"})
-    def add_nmds(self, columns=None, measure="bray-curtis", dimensions=2, tries=20, with_seed=1, show=None):
+    def add_nmds(self: _Same, columns=None, measure="bray-curtis", dimensions=2, tries=20, with_seed=1, show=None) -> _Same:
         """Draw the rows as points on a map where close points are similar rows (NMDS), in new columns.
 
         table.add_nmds()   (with sdata.get_example("meadow"))
@@ -734,8 +736,8 @@ class PatternWords:
 
     # ------------------------------------------------------------------ PERMANOVA, ANOSIM, SIMPER
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "seed": "with_seed"})
-    def compare_profiles_of(self, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999,
-                            with_seed=1, test_method="permanova", show=None):
+    def compare_profiles_of(self: _Same, columns=None, for_each_group_in=None, measure="bray-curtis", permutations=999,
+                            with_seed=1, test_method="permanova", show=None) -> _Same:
         """Do the groups really differ in their make-up across many columns (PERMANOVA)?
 
         table.compare_profiles_of(for_each_group_in="grazed")   (with sdata.get_example("meadow"))

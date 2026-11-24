@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for telling us. **Please never paste real patient or personal data here.** Use a practice table (`sdata.get_example(...)`) or a few made-up rows instead.
+        Thank you for telling us. **Please never paste real sensitive or personal data here.** Use a practice table (`sdata.get_example(...)`) or a few made-up rows instead.
   - type: textarea
     id: what
     attributes:

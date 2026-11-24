@@ -1,7 +1,8 @@
-"""The same work in the packages underneath: tested entries for 317 of simplydata's 400 words.
+"""The same work in the packages underneath: tested entries for 402 of simplydata's 402 words.
 
-Not every word has an entry. There are 425 entries: one for each of 317 words, plus one for each option of those
-words that changes what the word calls underneath; the other 83 words have none, and are checked by their own tests
+Every word has an entry. There are 517 entries: one for each of 402 words, plus one for each option of those
+words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
+Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
 true by tests/test_data_and_fixes.py. Each entry keeps, once, the code that does a word's job in the package simplydata uses: pandas and
 Polars for tables, NumPy for numbers, matplotlib or seaborn for charts, SciPy or statsmodels for
@@ -30,6 +31,7 @@ causal.py (S3d-2: balancing groups, attributable fractions, standardised rates, 
 multiple imputation for other words), bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of)
 and more_words.py (2026-11-21: get_numbers_drawn, repeat_each_row_by, the table of show_rows_that_pull_model,
 check_model_of show="numbers", get_example from_r_package= and find_correlation_between show="result table").
+signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
 random numbers, a run of dates) and the help and 30-day words, which run no library (compare="none", with a note).
@@ -142,13 +144,13 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, checking, combining, communities, hidden_factors, lines, models,
-                   more_words, numbers, places, planning, planning_surveys, small_additions, starting, statistics,
-                   survival, tables)
+                   more_words, numbers, places, planning, planning_surveys, signals, small_additions, starting,
+                   statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
-                   more_words, starting):
+                   more_words, signals, starting):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

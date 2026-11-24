@@ -204,7 +204,10 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed
               # packages instead of stored copies (validation/r_data.py): AER (NMES1988), alr4 (galtonpeas), HH
               # (ProfChal) and mediation (jobs, the JOBS II records)
-              "AER", "alr4", "HH", "mediation")
+              "AER", "alr4", "HH", "mediation",
+              # reliability study only (validation/cases_underneath_signals.py): gsignal (envelopes, windows, filters),
+              # control (steady gain, step response) and pracma
+              "gsignal", "control", "pracma")
 # S3d-3: the large optional packages of the Bayesian models (rstanarm with Stan). CI installs them in a step of their
 # own; the needs_r fixture does not ask for them, so without rstanarm only its own tests skip (test_s3d3_bayesian.py)
 R_PACKAGES_HEAVY = ("rstanarm", "rstan", "posterior")

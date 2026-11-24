@@ -70,6 +70,8 @@ steps") are described in table/models_extra.py and table/models_more.py.
 
 from __future__ import annotations
 
+from .._typing import _Same
+
 import contextlib
 import io
 import itertools
@@ -2704,8 +2706,8 @@ class ModelWords:
 
     # ------------------------------------------------------------------ add_predicted_column
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_predicted_column(self, column=None, using=None, outcome="numbers", name=None, grouped_by=None,
-                             start=None, between=None, weights=None, for_each_group_in=None, interval=None, for_new_rows=False):
+    def add_predicted_column(self: _Same, column=None, using=None, outcome="numbers", name=None, grouped_by=None,
+                             start=None, between=None, weights=None, for_each_group_in=None, interval=None, for_new_rows=False) -> _Same:
         """Add a column with the value the model predicts for each row.
 
         table.add_predicted_column("marks", using=["hours", "breakfast"])   (with sdata.get_example("school"))
