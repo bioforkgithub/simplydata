@@ -31,19 +31,19 @@ classifiers = [
 # Supported version ranges (MAINTAINING.md): the lower bound is the oldest release CI tests
 # (.github/workflows/oldest-versions.yml), the upper bound the next untested major release.
 dependencies = [
-    "matplotlib>=3.8,<4",
-    "seaborn>=0.13,<0.14",
-    "pandas>=2.2,<4",
-    "numpy>=1.26,<3",
+    "matplotlib>=3.10,<4",
+    "seaborn>=0.13.2,<0.14",
+    "pandas>=2.2.2,<4",
+    "numpy>=2.0,<3",
     "scipy>=1.16,<2",
-    "statsmodels>=0.14.2,<0.16",
+    "statsmodels>=0.14.5,<0.16",
     "openpyxl>=3.1,<4",
-    "narwhals>=2.0,<3",
+    "narwhals>=2.22,<3",
 ]
 
 [project.optional-dependencies]
-fast = ["polars>=1.29,<3", "pyarrow>=14,<27"]
-files = ["python-docx>=1.1,<2", "pyreadstat>=1.2,<2"]
+fast = ["polars>=1.29,<3", "pyarrow>=16,<27"]
+files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.7,<2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
@@ -86,7 +86,7 @@ r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: 
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7,<10", "polars>=1.29,<3", "pyarrow>=14,<27", "statsmodels>=0.14.2,<0.16"]
+test = ["pytest>=7,<10", "polars>=1.29,<3", "pyarrow>=16,<27", "statsmodels>=0.14.5,<0.16"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"

@@ -78,8 +78,8 @@ differences"** there, with the new FAILs.
 
 ## How to widen a version range
 
-1. Change the upper bound in `pyproject.toml` (for example `numpy>=1.26,<3` to
-   `numpy>=1.26,<4`), usually in a Dependabot pull request.
+1. Change the upper bound in `pyproject.toml` (for example `numpy>=2.0,<3` to
+   `numpy>=2.0,<4`), usually in a Dependabot pull request.
 2. Let the 10 checks run: they install the newest release. Fix any broken word as above.
 3. If a word needs a newer release than the lower bound, raise the lower bound, and check that
    the oldest-versions check passes.
