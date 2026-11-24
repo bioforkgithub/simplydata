@@ -573,11 +573,11 @@ def test_cheat_sheet_is_up_to_date():
 def test_every_word_is_on_the_cheat_sheet():
     """Every current word has a row on its group's card, whose command (the example) names the word."""
     written = _tex_plain(CHEAT_SHEET.read_text(encoding="utf-8"))
-    cards = written.split("\card{")[1:]
+    cards = written.split(r"\card{")[1:]
     assert len(cards) == len(learn.GROUPS), "One card for each group of words"
     missing = []
     for (group, keys), card in zip(learn.GROUPS, cards):
-        commands = [line.split("}{")[0] for line in card.splitlines() if line.startswith("\cmd{")]
+        commands = [line.split("}{")[0] for line in card.splitlines() if line.startswith(r"\cmd{")]
         for key in keys:
             word = key if key.endswith("=") else learn._word(key)
             if not any(word in command for command in commands):
