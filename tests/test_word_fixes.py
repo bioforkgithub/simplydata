@@ -290,8 +290,11 @@ def test_pyproject_asks_for_the_polars_that_rounds_halves_to_even():
     wanted = project["optional-dependencies"]
     for extra in ("fast", "test"):
         polars = [d for d in wanted[extra] if d.startswith("polars")]
-        # the lower bound stays 1.29; the upper bound is the supported range (MAINTAINING.md)
-        assert len(polars) == 1 and polars[0].split(",")[0] == "polars>=1.29", extra
+        # the lower bound is 1.29 or newer (the oldest-versions check sets it); the upper bound is the supported
+        # range (MAINTAINING.md)
+        assert len(polars) == 1 and polars[0].startswith("polars>="), extra
+        lower = tuple(int(n) for n in polars[0].split(",")[0][len("polars>="):].split(".")[:2])
+        assert lower >= (1, 29), extra
 
 
 @pytest.mark.parametrize("places", [0, 1, 2])
