@@ -1,0 +1,22 @@
+# Weekly update pull requests for the version ranges in pyproject.toml and for the GitHub Actions used in
+# .github/workflows. Minor and patch updates come grouped in one pull request per ecosystem; a new major
+# release comes alone, because it means widening a range (MAINTAINING.md).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    versioning-strategy: widen
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]

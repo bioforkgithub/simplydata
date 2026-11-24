@@ -47,3 +47,6 @@ python -m pytest -q
   every pull request.
 
 By contributing you agree that your work is shared under the MIT licence.
+
+How releases, version ranges and the weekly warning issues work: [MAINTAINING.md](MAINTAINING.md).
+Who decides and the core rules: [GOVERNANCE.md](GOVERNANCE.md).
