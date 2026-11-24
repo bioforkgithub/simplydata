@@ -130,7 +130,7 @@ simplydata also prints each answer as a sentence and names the method it used.
 ## Where to go next
 
 - **Learn it step by step:** [the 30-day guide (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_30_days.pdf), or in Python `sdata.start_30_days(track="beginner")`. Short lessons: `sdata.show_lesson(1)`.
-- **Look up a word:** [the manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf), [the dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf), or `sdata.help("compare_averages_of")`.
+- **Look up a word:** [the manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf), [the cheat sheet (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf), [the dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf), or `sdata.help("compare_averages_of")`.
 - **Can I trust it?** [How much is checked](#can-i-trust-it), the [reliability report](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) and the separate [test repository](https://github.com/bioforkgithub/simplydata_tests).
 - **Tell us:** a problem, a wrong answer or a word you missed, in a [GitHub issue form](https://github.com/bioforkgithub/simplydata/issues/new/choose); questions and ideas in [Discussions](https://github.com/bioforkgithub/simplydata/discussions).
 
@@ -270,6 +270,8 @@ an example you can run and the library that does the work underneath), the data 
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
 task.
+
+**[Cheat sheet (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf)**: every command on learning cards, one card for each topic, with a short example, what it does and the package it calls. It is made from the code, like the manual.
 
 **[The simplydata dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** opens with every word at a glance, group by group, then lists every word A to Z, with its meaning, an example and the page of the manual that explains it, and turns names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) into simplydata words.
 
