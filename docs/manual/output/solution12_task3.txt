@@ -1,2 +1,3 @@
 The correlation between "height" and "marks" is r = 0.03 (Pearson, 54 rows): very weak, going up; values from -0.239 to 0.296 fit the data (95 % CI).
 If there were truly no link, a link this strong or stronger would turn up in about 83 of 100 studies like this one (p = 0.826). This does not show that there is no link.
+Note: "name" repeats (each value appears 3 times), so these rows may not be independent. If the same person was measured more than once, use one row per person (see lesson 14).

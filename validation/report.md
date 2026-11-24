@@ -2,9 +2,9 @@
 
 Made by `python validation/make_report.py` on 2026-11-23. Generated: do not edit by hand.
 
-Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md).
+Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**2749 checks passed, 9 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**3482 checks passed, 7 explained differences, 0 failed, 9 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -21,12 +21,13 @@ Each simplydata word is run on real, published data and compared with the publis
 | statsmodels | 0.15.0 |
 | matplotlib | 3.11.2 |
 | seaborn | 0.13.2 |
+| control | 0.10.2 |
 | rpy2 | 3.6.9 |
 | R | 4.6.2 (2026-10-29) |
 
 ## 1. Published and real data
 
-Kinds: *published* = real data with a published or certified answer; *real data* = real data, compared with the parent package and R; *made-up* = a made-up edge case (empty cells, no rows left, an exact line) that no real dataset tests.
+Kinds: *published* = real data with a published or certified answer; *real data* = real data, compared with the parent package and R; *made-up* = a made-up edge case (empty cells, no rows left, an exact line) that no real dataset tests; *closed form* = no data at all: a word that makes something from a formula (a system, a wave, a window shape) checked against the answer worked out by hand from that formula (and against the parent package and R).
 
 ### `table.fit_line`
 
@@ -35,19 +36,19 @@ Kinds: *published* = real data with a published or certified answer; *real data*
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | NIST certified | 1.00211681802045 | 1.00211681802045 | at least 9 digits (LRE 14.4) | pass |
-| intercept | NIST certified | -0.262323073774041 | -0.262323073774029 | at least 9 digits (LRE 13.3) | pass |
-| slope standard error | NIST certified | 0.000429796848185389 | 0.000429796848199937 | at least 9 digits (LRE 10.5) | pass |
-| intercept standard error | NIST certified | 0.232818234293272 | 0.232818234301152 | at least 9 digits (LRE 10.5) | pass |
+| intercept | NIST certified | -0.262323073773985 | -0.262323073774029 | at least 9 digits (LRE 12.8) | pass |
+| slope standard error | NIST certified | 0.000429796848200648 | 0.000429796848199937 | at least 9 digits (LRE 11.8) | pass |
+| intercept standard error | NIST certified | 0.232818234301538 | 0.232818234301152 | at least 9 digits (LRE 11.8) | pass |
 | R squared | NIST certified | 0.999993745883712 | 0.999993745883712 | at least 9 digits (LRE 15.0) | pass |
 | slope | SciPy stats.linregress | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | -0.262323073774041 | -0.262323073774041 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.000429796848185389 | 0.000429796848185389 | relative 1e-09 | pass |
-| intercept standard error | SciPy stats.linregress | 0.232818234293272 | 0.232818234293272 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | -0.262323073773985 | -0.262323073773985 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.000429796848200648 | 0.000429796848200648 | relative 1e-09 | pass |
+| intercept standard error | SciPy stats.linregress | 0.232818234301538 | 0.232818234301538 | relative 1e-09 | pass |
 | R squared | SciPy stats.linregress | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 | slope | R | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | R | -0.262323073774041 | -0.26232307377373 | relative 1e-09 | pass |
-| slope standard error | R | 0.000429796848185389 | 0.000429796848199947 | relative 1e-09 | pass |
-| intercept standard error | R | 0.232818234293272 | 0.232818234301158 | relative 1e-09 | pass |
+| intercept | R | -0.262323073773985 | -0.262323073773899 | relative 1e-09 | pass |
+| slope standard error | R | 0.000429796848200648 | 0.000429796848199944 | relative 1e-09 | pass |
+| intercept standard error | R | 0.232818234301538 | 0.232818234301156 | relative 1e-09 | pass |
 | R squared | R | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 
 **Anscombe's set 1: the same line through four different patterns** (published; data: Anscombe's quartet)
@@ -72,11 +73,11 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | slope | Anscombe (1973) | 0.5 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00090909090909 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117963745967641 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666242033727485 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666242033727484 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.5 | 0.5 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00090909090909 | 3.00090909090909 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117963745967641 | 0.117963745967641 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666242033727485 | 0.666242033727485 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666242033727484 | 0.666242033727484 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -85,13 +86,13 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499727272727273 | 0.5 | within 0.001 (printed rounding) | pass |
-| intercept | Anscombe (1973) | 3.00245454545454 | 3 | within 0.01 (printed rounding) | pass |
+| intercept | Anscombe (1973) | 3.00245454545455 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117877662221002 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.66632404106656 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666324041066559 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499727272727273 | 0.499727272727273 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | 3.00245454545454 | 3.00245454545454 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | 3.00245454545455 | 3.00245454545455 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117877662221002 | 0.117877662221002 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.66632404106656 | 0.66632404106656 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666324041066559 | 0.666324041066559 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -101,12 +102,12 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499909090909091 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00172727272727 | 3 | within 0.01 (printed rounding) | pass |
-| slope standard error | Anscombe (1973) | 0.117818941729686 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666707256898465 | 0.667 | within 0.001 (printed rounding) | pass |
+| slope standard error | Anscombe (1973) | 0.117818941729685 | 0.118 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666707256898466 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499909090909091 | 0.499909090909091 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00172727272727 | 3.00172727272727 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.117818941729686 | 0.117818941729686 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666707256898465 | 0.666707256898465 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.117818941729685 | 0.117818941729685 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666707256898466 | 0.666707256898466 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -315,10 +316,10 @@ Note: No data: the published value is the standard normal table (5 decimals).
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| slope | statsmodels WLS | 0.204801163243056 | 0.204801163243056 | relative 1e-09 | pass |
+| slope | statsmodels WLS | 0.204801163243055 | 0.204801163243055 | relative 1e-09 | pass |
 | slope standard error | statsmodels WLS | 0.0381548260706377 | 0.0381548260706378 | relative 1e-09 | pass |
 | intercept | statsmodels WLS | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
-| slope | R | 0.204801163243056 | 0.204801163243057 | relative 1e-09 | pass |
+| slope | R | 0.204801163243055 | 0.204801163243057 | relative 1e-09 | pass |
 | slope standard error | R | 0.0381548260706377 | 0.0381548260706376 | relative 1e-09 | pass |
 | intercept | R | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
 
@@ -330,13 +331,13 @@ Note: Weisberg (2014, section 7.1) fits this weighted line; the numbers are chec
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603428 | 0.540078166603428 | relative 1e-07 | pass |
+| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603429 | 0.540078166603428 | relative 1e-07 | pass |
 | extract standard error | statsmodels GLM (Binomial, scale X2) | 0.340867231336386 | 0.340867231336386 | relative 1e-07 | pass |
 | interaction standard error | statsmodels GLM (Binomial, scale X2) | 0.418124932214023 | 0.418124932214023 | relative 1e-07 | pass |
-| extract | R | 0.540078166603428 | 0.540078166603429 | relative 1e-06 | pass |
+| extract | R | 0.540078166603429 | 0.540078166603427 | relative 1e-06 | pass |
 | extract standard error | R | 0.340867231336386 | 0.340867231340939 | relative 1e-06 | pass |
 | interaction standard error | R | 0.418124932214023 | 0.418124932215663 | relative 1e-06 | pass |
-| interaction p-value | R | 0.0801390217137059 | 0.0801390217147883 | relative 1e-06 | pass |
+| interaction p-value | R | 0.0801390217137065 | 0.080139021714788 | relative 1e-06 | pass |
 
 Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the same data (Collett 2003, Modelling Binary Data) is checked here against statsmodels and R.
 
@@ -348,12 +349,12 @@ Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the
 |---|---|---|---|---|---|
 | spontaneous | statsmodels ConditionalLogit | 1.98587551668241 | 1.98587551668241 | relative 1e-07 | pass |
 | induced | statsmodels ConditionalLogit | 1.40901163187936 | 1.40901163187936 | relative 1e-07 | pass |
-| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539645452 | 0.352443543187006 | relative 1e-07 | pass |
-| induced standard error | statsmodels ConditionalLogit | 0.360712433692957 | 0.360712438256113 | relative 1e-07 | pass |
+| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539729635 | 0.352443543187006 | relative 1e-07 | pass |
+| induced standard error | statsmodels ConditionalLogit | 0.360712432546398 | 0.360712438256113 | relative 1e-07 | pass |
 | spontaneous | R | 1.98587551668241 | 1.98587551667772 | relative 1e-06 | pass |
 | induced | R | 1.40901163187936 | 1.40901163187514 | relative 1e-06 | pass |
-| spontaneous standard error | R | 0.352443539645452 | 0.35244353980717 | relative 1e-06 | pass |
-| induced standard error | R | 0.360712433692957 | 0.360712436248923 | relative 1e-06 | pass |
+| spontaneous standard error | R | 0.352443539729635 | 0.35244353980717 | relative 1e-06 | pass |
+| induced standard error | R | 0.360712432546398 | 0.360712436248923 | relative 1e-06 | pass |
 
 Note: The model of R's ?clogit example; R and statsmodels both use the exact conditional likelihood.
 
@@ -365,9 +366,9 @@ Note: The model of R's ?clogit example; R and statsmodels both use the exact con
 |---|---|---|---|---|---|
 | risk ratio, smoking alone | statsmodels Table2x2 and GLM (Poisson, HC0) | 1.6076421248835 | 1.6076421248835 | relative 1e-06 | pass |
 | log risk ratio with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.460730395503193 | 0.460730395503193 | relative 1e-06 | pass |
-| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081043 | 0.213624213081043 | relative 1e-06 | pass |
+| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081042 | 0.213624213081042 | relative 1e-06 | pass |
 | log risk ratio with age | R | 0.460730395503193 | 0.460730390124031 | relative 1e-06 | pass |
-| standard error with age | R | 0.213624213081043 | 0.2136243204413 | relative 1e-06 | pass |
+| standard error with age | R | 0.213624213081042 | 0.2136243204413 | relative 1e-06 | pass |
 
 Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table (Zou 2004), here from statsmodels' Table2x2.
 
@@ -386,15 +387,15 @@ Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| air flow | statsmodels RLM (HuberT) | 0.829384334599656 | 0.829384334599656 | relative 1e-09 | pass |
-| water temperature | statsmodels RLM (HuberT) | 0.926065966198343 | 0.926065966198346 | relative 1e-09 | pass |
-| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945885 | relative 1e-09 | pass |
-| intercept | statsmodels RLM (HuberT) | -41.0264983523997 | -41.0264983523998 | relative 1e-09 | pass |
-| air flow standard error | statsmodels RLM (HuberT) | 0.111005213354579 | 0.11100521335458 | relative 1e-09 | pass |
-| air flow | R | 0.829384334599656 | 0.829385770253742 | relative 1e-05 | pass |
-| water temperature | R | 0.926065966198343 | 0.92605941554903 | relative 1e-05 | pass |
+| air flow | statsmodels RLM (HuberT) | 0.829384334599657 | 0.829384334599655 | relative 1e-09 | pass |
+| water temperature | statsmodels RLM (HuberT) | 0.926065966198336 | 0.926065966198341 | relative 1e-09 | pass |
+| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945884 | relative 1e-09 | pass |
+| intercept | statsmodels RLM (HuberT) | -41.0264983523996 | -41.0264983523997 | relative 1e-09 | pass |
+| air flow standard error | statsmodels RLM (HuberT) | 0.11100521335458 | 0.11100521335458 | relative 1e-09 | pass |
+| air flow | R | 0.829384334599657 | 0.829385770253741 | relative 1e-05 | pass |
+| water temperature | R | 0.926065966198336 | 0.926059415549028 | relative 1e-05 | pass |
 | acid concentration | R | -0.127846724945884 | -0.12784631796544 | relative 1e-05 | pass |
-| intercept | R | -41.0264983523997 | -41.0264853732949 | relative 1e-05 | pass |
+| intercept | R | -41.0264983523996 | -41.0264853732949 | relative 1e-05 | pass |
 
 Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates agree with R to the stopping rules of the two fits; the standard errors are statsmodels' (Huber's H1), which differ from R's summary(rlm) in the third digit, so R's are not compared.
 
@@ -404,8 +405,8 @@ Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989212 | 1309424.66989217 | relative 1e-09 | pass |
-| F of the whole curve | R | 1309424.66989212 | 1309424.66989218 | relative 1e-08 | pass |
+| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989213 | 1309424.66989214 | relative 1e-09 | pass |
+| F of the whole curve | R | 1309424.66989213 | 1309424.66989224 | relative 1e-08 | pass |
 
 Note: The spline's own coefficients differ between patsy and R's ns() (another basis of the same curves); the test of the whole curve and the fitted values are the same, so those are compared.
 
@@ -415,7 +416,7 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133065 | relative 1e-09 | pass |
+| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133064 | relative 1e-09 | pass |
 | horsepower | statsmodels OLS on z-scores | -0.426359898323383 | -0.426359898323383 | relative 1e-09 | pass |
 | gearbox | statsmodels OLS on z-scores | 0.17251723761303 | 0.17251723761303 | relative 1e-09 | pass |
 | weight 95 % CI low | statsmodels OLS on z-scores | -0.768278926188221 | -0.768278926188221 | relative 1e-09 | pass |
@@ -430,9 +431,9 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688277 | 0.638744784688277 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688276 | 0.638744784688276 | relative 1e-09 | pass |
 | 95 % CI high | SciPy stats.bootstrap (BCa) | 1.17896864783934 | 1.17896864783934 | relative 1e-09 | pass |
-| 95 % CI low | R | 0.638744784688277 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
+| 95 % CI low | R | 0.638744784688276 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
 | 95 % CI high | R | 1.17896864783934 | 1.17339381682502 | within 4 Monte Carlo SE (0.00853) | pass |
 
 Note: R draws other random rows than SciPy, so R checks the same method within its Monte Carlo error: R boot runs 10 times (seeds 1 to 10, 9999 resamples each); the reference is their average, and the difference may be 4 Monte Carlo standard errors, from the spread of R's 10 runs (simplydata's one run of 9999 resamples is taken to vary as much as one of R's). SciPy with the same seed gives the same interval exactly.
@@ -443,7 +444,7 @@ Note: R draws other random rows than SciPy, so R checks the same method within i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke low | R | 0.032671077242603 | 0.032671077242603 | relative 1e-06 | pass |
+| smoke low | R | 0.0326710772426009 | 0.0326710772426009 | relative 1e-06 | pass |
 | smoke high | R | 1.31383593363347 | 1.31383593363347 | relative 1e-06 | pass |
 | lwt low | R | -0.0249706001060748 | -0.0249706001060748 | relative 1e-06 | pass |
 
@@ -455,12 +456,12 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670759 | 0.0393884378670759 | relative 1e-08 | pass |
-| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237077 | relative 1e-08 | pass |
-| lwt | statsmodels GLM refits and SciPy chi2 | 0.03600350492921 | 0.0360035049292094 | relative 1e-08 | pass |
-| smoke | R | 0.0393884378670759 | 0.0393884378670747 | relative 1e-07 | pass |
+| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670746 | 0.0393884378670746 | relative 1e-08 | pass |
+| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237073 | relative 1e-08 | pass |
+| lwt | statsmodels GLM refits and SciPy chi2 | 0.036003504929209 | 0.036003504929209 | relative 1e-08 | pass |
+| smoke | R | 0.0393884378670746 | 0.0393884378670747 | relative 1e-07 | pass |
 | age | R | 0.226723754237082 | 0.226723754237081 | relative 1e-07 | pass |
-| lwt | R | 0.03600350492921 | 0.0360035049292096 | relative 1e-07 | pass |
+| lwt | R | 0.036003504929209 | 0.0360035049292096 | relative 1e-07 | pass |
 
 ### `table.explain`
 
@@ -468,8 +469,8 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Nagelkerke | R | 0.0850637355720787 | 0.085063735572079 | relative 1e-09 | pass |
-| Tjur | R | 0.058487286125849 | 0.058487286125848 | relative 1e-09 | pass |
+| Nagelkerke | R | 0.0850637355720789 | 0.085063735572079 | relative 1e-09 | pass |
+| Tjur | R | 0.0584872861258487 | 0.058487286125848 | relative 1e-09 | pass |
 
 Note: The printout gives the two measures with 3 decimals; the check takes them at full precision from the same statsmodels fit and the same function explain() prints them with (and checks that the printout is their rounding), so it is not limited by the printed rounding.
 
@@ -477,20 +478,20 @@ Note: The printout gives the two measures with 3 decimals; the check takes them 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -3482258.63459792 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
-| b0 standard error | NIST certified | 890420.383607341 | 890420.383607373 | at least 9 digits (LRE 13.4) | pass |
-| b1 | NIST certified | 15.0618722715518 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
-| b1 standard error | NIST certified | 84.9149257747738 | 84.9149257747669 | at least 9 digits (LRE 13.1) | pass |
-| b2 | NIST certified | -0.035819179292647 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
-| b2 standard error | NIST certified | 0.0334910077722407 | 0.0334910077722432 | at least 9 digits (LRE 13.1) | pass |
-| b3 | NIST certified | -2.02022980381741 | -2.02022980381683 | at least 9 digits (LRE 12.5) | pass |
-| b3 standard error | NIST certified | 0.488399681651607 | 0.488399681651699 | at least 9 digits (LRE 12.7) | pass |
+| b0 | NIST certified | -3482258.63459781 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
+| b0 standard error | NIST certified | 890420.3836076 | 890420.383607373 | at least 9 digits (LRE 12.6) | pass |
+| b1 | NIST certified | 15.0618722715538 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
+| b1 standard error | NIST certified | 84.9149257747983 | 84.9149257747669 | at least 9 digits (LRE 12.4) | pass |
+| b2 | NIST certified | -0.0358191792926458 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
+| b2 standard error | NIST certified | 0.0334910077722505 | 0.0334910077722432 | at least 9 digits (LRE 12.7) | pass |
+| b3 | NIST certified | -2.02022980381739 | -2.02022980381683 | at least 9 digits (LRE 12.6) | pass |
+| b3 standard error | NIST certified | 0.488399681651751 | 0.488399681651699 | at least 9 digits (LRE 13.0) | pass |
 | b4 | NIST certified | -1.03322686717365 | -1.03322686717359 | at least 9 digits (LRE 13.2) | pass |
-| b4 standard error | NIST certified | 0.214274163161642 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
-| b5 | NIST certified | -0.051104105653695 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
-| b5 standard error | NIST certified | 0.226073200069334 | 0.22607320006937 | at least 9 digits (LRE 12.8) | pass |
-| b6 | NIST certified | 1829.15146461464 | 1829.15146461355 | at least 9 digits (LRE 12.2) | pass |
-| b6 standard error | NIST certified | 455.478499142198 | 455.478499142212 | at least 9 digits (LRE 13.5) | pass |
+| b4 standard error | NIST certified | 0.214274163161705 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
+| b5 | NIST certified | -0.0511041056536771 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
+| b5 standard error | NIST certified | 0.226073200069399 | 0.22607320006937 | at least 9 digits (LRE 12.9) | pass |
+| b6 | NIST certified | 1829.15146461458 | 1829.15146461355 | at least 9 digits (LRE 12.3) | pass |
+| b6 standard error | NIST certified | 455.478499142331 | 455.478499142212 | at least 9 digits (LRE 12.6) | pass |
 
 Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor; statsmodels' own inv(R'R) after its QR fit gave only 7.97 to 9.42 digits here.
 
@@ -500,9 +501,9 @@ Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| anger | R | 0.0574458838988813 | 0.0574458838988813 | relative 1e-06 | pass |
-| anger standard error | R | 0.0168463055675871 | 0.0168463055675871 | relative 1e-06 | pass |
-| gender | R | 0.320648189300347 | 0.320648189300347 | relative 1e-06 | pass |
+| anger | R | 0.0574458844202677 | 0.0574458844202677 | relative 1e-06 | pass |
+| anger standard error | R | 0.0168501572217191 | 0.0168501572217191 | relative 1e-06 | pass |
+| gender | R | 0.3206482938272 | 0.3206482938272 | relative 1e-06 | pass |
 
 Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their order is that of text ("1", "10", "100" ...); R's reference does the same. A user's own R run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical Hessian) then differ in the fourth digit.
 
@@ -512,13 +513,13 @@ Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); th
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008) | 0.211898197949242 | 0.211898 | within 5e-07 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008) | 0.315957574199259 | 0.315958 | within 5e-07 (printed rounding) | pass |
+| count: hospital | Zeileis et al. (2008) | 0.211898197949241 | 0.211898 | within 5e-07 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008) | 0.315957574199258 | 0.315958 | within 5e-07 (printed rounding) | pass |
 | count: chronic | Zeileis et al. (2008) | 0.126420588812089 | 0.126421 | within 5e-07 (printed rounding) | pass |
 | count: chronic standard error | Zeileis et al. (2008) | 0.0124523069035939 | 0.012452 | within 5e-07 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008) | 0.535212638440462 | 0.535213 | within 5e-07 (printed rounding) | pass |
-| zero: insurance | Zeileis et al. (2008) | 0.747119812959575 | 0.74712 | within 5e-07 (printed rounding) | pass |
-| zero: insurance standard error | Zeileis et al. (2008) | 0.100879503174149 | 0.10088 | within 5e-07 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008) | 0.535212637877491 | 0.535213 | within 5e-07 (printed rounding) | pass |
+| zero: insurance | Zeileis et al. (2008) | 0.747119812774805 | 0.74712 | within 5e-07 (printed rounding) | pass |
+| zero: insurance standard error | Zeileis et al. (2008) | 0.100879502575643 | 0.10088 | within 5e-07 (printed rounding) | pass |
 
 Note: The paper's model fm_hurdle0: a negative binomial count part and a logistic zero hurdle, the same columns in both.
 
@@ -528,14 +529,14 @@ Note: The paper's model fm_hurdle0: a negative binomial count part and a logisti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498611 | 0.201 | within 0.0005 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246967 | 0.285 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130165 | -0.8 | within 0.0005 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597445 | -1.248 | within 0.0005 (printed rounding) | pass |
-| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015324 | 0.648 | within 0.0005 (printed rounding) | pass |
-| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498611 | 0.201476841187623 | relative 0.0001 | pass |
-| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130165 | -0.800490700364435 | relative 0.0001 | pass |
-| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597445 | -1.24793581168842 | relative 0.0001 | pass |
+| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498612 | 0.201 | within 0.0005 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246968 | 0.285 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130287 | -0.8 | within 0.0005 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597441 | -1.248 | within 0.0005 (printed rounding) | pass |
+| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015306 | 0.648 | within 0.0005 (printed rounding) | pass |
+| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498612 | 0.201476841187617 | relative 0.0001 | pass |
+| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130287 | -0.800490700364446 | relative 0.0001 | pass |
+| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597441 | -1.2479358116885 | relative 0.0001 | pass |
 
 Note: The paper's model fm_zinb (the zero part without health). simplydata runs R pscl itself, for its standard errors; statsmodels gives the same estimates.
 
@@ -545,17 +546,17 @@ Note: The paper's model fm_zinb (the zero part without health). simplydata runs 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285058 | 0.016 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481662 | 0.318 | within 0.0005 (printed rounding) | pass |
+| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285051 | 0.016 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481663 | 0.318 | within 0.0005 (printed rounding) | pass |
 | zero: chronic | Zeileis et al. (2008), Table 2 | 0.54783250793305 | 0.548 | within 0.0005 (printed rounding) | pass |
 | zero: insurance | Zeileis et al. (2008), Table 2 | 0.745720049336323 | 0.746 | within 0.0005 (printed rounding) | pass |
-| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413954 | 0.057 | within 0.0005 (printed rounding) | pass |
+| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413957 | 0.057 | within 0.0005 (printed rounding) | pass |
 | zero: gender male | Zeileis et al. (2008), Table 2 | -0.419147791025234 | -0.419 | within 0.0005 (printed rounding) | pass |
-| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285058 | 0.0159401718063209 | relative 1e-06 | pass |
-| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481662 | 0.318434494004322 | relative 1e-06 | pass |
+| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285051 | 0.0159401718063212 | relative 1e-06 | pass |
+| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481663 | 0.318434494004322 | relative 1e-06 | pass |
 | zero: chronic | statsmodels Logit (the first step on its own) | 0.54783250793305 | 0.547832508738329 | relative 1e-06 | pass |
 | zero: insurance | statsmodels Logit (the first step on its own) | 0.745720049336323 | 0.745720049922439 | relative 1e-06 | pass |
-| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413954 | 0.0570728147518849 | relative 1e-06 | pass |
+| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413957 | 0.0570728147518849 | relative 1e-06 | pass |
 | zero: gender male | statsmodels Logit (the first step on its own) | -0.419147791025234 | -0.419147791543225 | relative 1e-06 | pass |
 
 Note: The first step of a hurdle model is a logistic regression of zero or not, so statsmodels' Logit gives the same numbers as pscl's zero hurdle.
@@ -566,12 +567,12 @@ Note: The first step of a hurdle model is a logistic regression of zero or not, 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867449863 | relative 2e-06 | pass |
-| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945466304 | relative 2e-06 | pass |
-| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232719357 | relative 2e-06 | pass |
-| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922438271 | relative 2e-06 | pass |
-| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516748209 | relative 2e-06 | pass |
-| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531612046 | relative 2e-06 | pass |
+| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867450264 | relative 2e-06 | pass |
+| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945390997 | relative 2e-06 | pass |
+| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232712923 | relative 2e-06 | pass |
+| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922446201 | relative 2e-06 | pass |
+| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516764472 | relative 2e-06 | pass |
+| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531645388 | relative 2e-06 | pass |
 | b | R | 2.98222857655474 | 2.98222857655474 | relative 1e-09 | pass |
 | c | R | 0.481409615432056 | 0.481409615432056 | relative 1e-09 | pass |
 | d | R | 7.79296184542426 | 7.79296184542426 | relative 1e-09 | pass |
@@ -589,7 +590,7 @@ Note: Python has no dose-response package with drc's ED intervals, so R drc itse
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | LD50 | Dobson & Barnett (2008) | 59.1181877103869 | 59.1186543855778 | within 0.01 (printed rounding) | pass |
-| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.118167606485 | relative 1e-06 | pass |
+| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.1181676064851 | relative 1e-06 | pass |
 | LD50 | R | 59.1181877103869 | 59.1181676064854 | relative 1e-06 | pass |
 
 Note: The 2 parameter log-logistic curve with binomial errors is logistic regression on log dose, so its LD50 is the published fit's; the tolerance allows the printed 3 decimals of the fit.
@@ -610,10 +611,10 @@ Note: The 2 parameter log-logistic curve with binomial errors is logistic regres
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | Box & Cox (1964) | -0.750162301479909 | -0.75 | within 0.01 (printed rounding) | pass |
+| power | Box & Cox (1964) | -0.750162301480205 | -0.75 | within 0.01 (printed rounding) | pass |
 | simple power | Box & Cox (1964) | -1 | -1 | within 0 (printed rounding) | pass |
-| power | R | -0.750162301479909 | -0.750162301479909 | relative 1e-06 | pass |
-| 95 % CI low | R | -1.13693054535237 | -1.13693054535237 | relative 1e-06 | pass |
+| power | R | -0.750162301480205 | -0.750162301480205 | relative 1e-06 | pass |
+| 95 % CI low | R | -1.13693054527241 | -1.13693054527241 | relative 1e-06 | pass |
 | simple power | R | -1 | -1 | relative 1e-06 | pass |
 
 Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power -1), the rate of dying.
@@ -624,9 +625,9 @@ Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | SciPy stats.boxcox(alpha=0.05) | -0.360158442078502 | -0.360158442078502 | relative 1e-09 | pass |
-| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.961993862358217 | -0.961993862358217 | relative 1e-09 | pass |
-| power | R | -0.360158442078502 | -0.360158410727371 | relative 0.0001 | pass |
+| power | SciPy stats.boxcox(alpha=0.05) | -0.360158452952329 | -0.360158452952329 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.96199386235822 | -0.96199386235822 | relative 1e-09 | pass |
+| power | R | -0.360158452952329 | -0.360158410727371 | relative 0.0001 | pass |
 
 Note: car::powerTransform maximises the same likelihood with another optimiser (to about 1e-5).
 
@@ -636,10 +637,10 @@ Note: car::powerTransform maximises the same likelihood with another optimiser (
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 72.4622374345916 | 72.462237576 | at least 6 digits (LRE 8.7) | pass |
-| b2 | NIST certified | 2.61807684336174 | 2.6180768402 | at least 6 digits (LRE 8.9) | pass |
-| b3 | NIST certified | 0.0673592003257281 | 0.067359200066 | at least 6 digits (LRE 8.4) | pass |
-| residual sum of squares | NIST certified | 8.05652293381126 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
+| b1 | NIST certified | 72.4622376211471 | 72.462237576 | at least 6 digits (LRE 9.2) | pass |
+| b2 | NIST certified | 2.61807683865333 | 2.6180768402 | at least 6 digits (LRE 9.2) | pass |
+| b3 | NIST certified | 0.0673591999756809 | 0.067359200066 | at least 6 digits (LRE 8.9) | pass |
+| residual sum of squares | NIST certified | 8.05652293381127 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
 
 Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid / scal and b3 is 1 / scal of R's SSlogis.
 
@@ -649,9 +650,9 @@ Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 238.942128882798 | 238.94212918 | at least 6 digits (LRE 8.9) | pass |
-| b2 | NIST certified | 0.000550156432601245 | 0.00055015643181 | at least 6 digits (LRE 8.8) | pass |
-| residual sum of squares | NIST certified | 0.1245513889444 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
+| b1 | NIST certified | 238.942129037623 | 238.94212918 | at least 6 digits (LRE 9.2) | pass |
+| b2 | NIST certified | 0.000550156432185112 | 0.00055015643181 | at least 6 digits (LRE 9.2) | pass |
+| residual sum of squares | NIST certified | 0.12455138894441 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
 
@@ -659,8 +660,8 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 213.809411675878 | 213.80940889 | at least 6 digits (LRE 7.9) | pass |
-| b2 | NIST certified | 0.547237453159843 | 0.54723748542 | at least 6 digits (LRE 7.2) | pass |
+| b1 | NIST certified | 213.809410992926 | 213.80940889 | at least 6 digits (LRE 8.0) | pass |
+| b2 | NIST certified | 0.547237460702395 | 0.54723748542 | at least 6 digits (LRE 7.3) | pass |
 | residual sum of squares | NIST certified | 1168.00887655557 | 1168.0088766 | at least 6 digits (LRE 10.4) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
@@ -671,28 +672,28 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -1467.48961422975 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
-| b0 standard error | NIST certified | 298.08453099553 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.5) | pass |
-| b1 standard error | NIST certified | 559.779865474937 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
+| b0 | NIST certified | -1467.48961422976 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
+| b0 standard error | NIST certified | 298.084530995529 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
+| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.6) | pass |
+| b1 standard error | NIST certified | 559.779865474936 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
 | b2 | NIST certified | -2316.37108160886 | -2316.37108160893 | at least 9 digits (LRE 13.5) | pass |
-| b2 standard error | NIST certified | 466.477572127786 | 466.477572127796 | at least 9 digits (LRE 13.7) | pass |
-| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.5) | pass |
-| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.7) | pass |
-| b4 | NIST certified | -354.478233703337 | -354.478233703349 | at least 9 digits (LRE 13.5) | pass |
-| b4 standard error | NIST certified | 71.6478660875912 | 71.6478660875927 | at least 9 digits (LRE 13.7) | pass |
-| b5 | NIST certified | -75.1242017393732 | -75.1242017393757 | at least 9 digits (LRE 13.5) | pass |
-| b5 standard error | NIST certified | 15.2897178747397 | 15.28971787474 | at least 9 digits (LRE 13.7) | pass |
-| b6 | NIST certified | -10.8753180355339 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
-| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.7) | pass |
-| b7 | NIST certified | -1.06221498588943 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
-| b7 standard error | NIST certified | 0.221624321934223 | 0.221624321934227 | at least 9 digits (LRE 13.7) | pass |
-| b8 | NIST certified | -0.0670191154593385 | -0.0670191154593408 | at least 9 digits (LRE 13.5) | pass |
-| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.7) | pass |
-| b9 | NIST certified | -0.0024678107827547 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
-| b9 standard error | NIST certified | 0.00053561740888981 | 0.000535617408889821 | at least 9 digits (LRE 13.7) | pass |
-| b10 | NIST certified | -4.02962525080388e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
-| b10 standard error | NIST certified | 8.96632837373851e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.7) | pass |
+| b2 standard error | NIST certified | 466.477572127785 | 466.477572127796 | at least 9 digits (LRE 13.6) | pass |
+| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.4) | pass |
+| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.6) | pass |
+| b4 | NIST certified | -354.478233703336 | -354.478233703349 | at least 9 digits (LRE 13.4) | pass |
+| b4 standard error | NIST certified | 71.647866087591 | 71.6478660875927 | at least 9 digits (LRE 13.6) | pass |
+| b5 | NIST certified | -75.1242017393729 | -75.1242017393757 | at least 9 digits (LRE 13.4) | pass |
+| b5 standard error | NIST certified | 15.2897178747396 | 15.28971787474 | at least 9 digits (LRE 13.6) | pass |
+| b6 | NIST certified | -10.8753180355338 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
+| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.6) | pass |
+| b7 | NIST certified | -1.06221498588942 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
+| b7 standard error | NIST certified | 0.221624321934222 | 0.221624321934227 | at least 9 digits (LRE 13.6) | pass |
+| b8 | NIST certified | -0.0670191154593381 | -0.0670191154593408 | at least 9 digits (LRE 13.4) | pass |
+| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.6) | pass |
+| b9 | NIST certified | -0.00246781078275468 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
+| b9 standard error | NIST certified | 0.000535617408889808 | 0.000535617408889821 | at least 9 digits (LRE 13.6) | pass |
+| b10 | NIST certified | -4.02962525080386e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
+| b10 standard error | NIST certified | 8.96632837373847e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.6) | pass |
 
 Note: The hardest NIST linear problem (condition number of the powers 1.8e15). simplydata fits on x mapped onto [-1, 1] and turns the answer back into the raw powers with statsmodels t_test(); a QR fit on the raw powers (simplydata 0.2.0) gave no standard errors for b5 to b10, and R lm() drops two terms.
 
@@ -700,18 +701,18 @@ Note: The hardest NIST linear problem (condition number of the powers 1.8e15). s
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 0.999999998195563 | 1 | at least 9 digits (LRE 8.7) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b0 standard error | NIST certified | 1.17536756270587e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 | NIST certified | 1.00000000096043 | 1 | at least 9 digits (LRE 9.0) | pass |
-| b1 standard error | NIST certified | 1.29071605473089e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 | NIST certified | 0.9999999997126 | 1 | at least 9 digits (LRE 9.5) | pass |
-| b2 standard error | NIST certified | 4.2559305313212e-10 | 0 | at least 9 digits (LRE 9.4) | pass |
-| b3 | NIST certified | 1.00000000003502 | 1 | at least 9 digits (LRE 10.5) | pass |
-| b3 standard error | NIST certified | 5.5414935427256e-11 | 0 | at least 9 digits (LRE 10.3) | pass |
-| b4 | NIST certified | 0.999999999998107 | 1 | at least 9 digits (LRE 11.7) | pass |
-| b4 standard error | NIST certified | 3.0830510308914e-12 | 0 | at least 9 digits (LRE 11.5) | pass |
-| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
-| b5 standard error | NIST certified | 6.13396741656262e-14 | 0 | at least 9 digits (LRE 13.2) | pass |
+| b0 | NIST certified | 1.00000000058208 | 1 | at least 9 digits (LRE 9.2) | pass |
+| b0 standard error | NIST certified | 1.55712885651003e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 | NIST certified | 0.999999999708962 | 1 | at least 9 digits (LRE 9.5) | pass |
+| b1 standard error | NIST certified | 1.70994272613356e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 | NIST certified | 0.999999999949068 | 1 | at least 9 digits (LRE 10.3) | pass |
+| b2 standard error | NIST certified | 5.63826368184418e-10 | 0 | at least 9 digits (LRE 9.2) | pass |
+| b3 | NIST certified | 1.00000000001637 | 1 | at least 9 digits (LRE 10.8) | pass |
+| b3 standard error | NIST certified | 7.34137964780744e-11 | 0 | at least 9 digits (LRE 10.1) | pass |
+| b4 | NIST certified | 0.999999999998805 | 1 | at least 9 digits (LRE 11.9) | pass |
+| b4 standard error | NIST certified | 4.08443101427947e-12 | 0 | at least 9 digits (LRE 11.4) | pass |
+| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
+| b5 standard error | NIST certified | 8.12628999836708e-14 | 0 | at least 9 digits (LRE 13.1) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -719,18 +720,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 0.999999999999975 | 1 | at least 9 digits (LRE 13.6) | pass |
-| b0 standard error | NIST certified | 2.09772532092002e-14 | 0 | at least 9 digits (LRE 13.7) | pass |
-| b1 | NIST certified | 0.100000000000016 | 0.1 | at least 9 digits (LRE 12.8) | pass |
-| b1 standard error | NIST certified | 2.30359237062298e-14 | 0 | at least 9 digits (LRE 13.6) | pass |
-| b2 | NIST certified | 0.00999999999999468 | 0.01 | at least 9 digits (LRE 12.3) | pass |
-| b2 standard error | NIST certified | 7.5957287940429e-15 | 0 | at least 9 digits (LRE 14.1) | pass |
-| b3 | NIST certified | 0.00100000000000068 | 0.001 | at least 9 digits (LRE 12.2) | pass |
-| b3 standard error | NIST certified | 9.89012432292142e-16 | 0 | at least 9 digits (LRE 15.0) | pass |
-| b4 | NIST certified | 9.99999999999629e-05 | 0.0001 | at least 9 digits (LRE 12.4) | pass |
-| b4 standard error | NIST certified | 5.50244401700223e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000007e-05 | 1e-05 | at least 9 digits (LRE 13.1) | pass |
-| b5 standard error | NIST certified | 1.09475360522959e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b0 | NIST certified | 1.00000000000001 | 1 | at least 9 digits (LRE 13.9) | pass |
+| b0 standard error | NIST certified | 3.12641750882078e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
+| b1 | NIST certified | 0.0999999999999968 | 0.1 | at least 9 digits (LRE 13.5) | pass |
+| b1 standard error | NIST certified | 3.43323858890304e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
+| b2 | NIST certified | 0.00999999999999818 | 0.01 | at least 9 digits (LRE 12.7) | pass |
+| b2 standard error | NIST certified | 1.13205572040932e-14 | 0 | at least 9 digits (LRE 13.9) | pass |
+| b3 | NIST certified | 0.00100000000000043 | 0.001 | at least 9 digits (LRE 12.4) | pass |
+| b3 standard error | NIST certified | 1.47400889617114e-15 | 0 | at least 9 digits (LRE 14.8) | pass |
+| b4 | NIST certified | 9.99999999999711e-05 | 0.0001 | at least 9 digits (LRE 12.5) | pass |
+| b4 standard error | NIST certified | 8.20075781347625e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b5 | NIST certified | 1.00000000000006e-05 | 1e-05 | at least 9 digits (LRE 13.2) | pass |
+| b5 standard error | NIST certified | 1.63160391167578e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -738,18 +739,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 0.999999999825377 | 1 | at least 9 digits (LRE 9.8) | pass |
+| b0 | NIST certified | 1.0000000015134 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b0 standard error | NIST certified | 2152.32624678175 | 2152.3262467817 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | 1.00000000026193 | 1 | at least 9 digits (LRE 9.6) | pass |
-| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.6) | pass |
-| b2 | NIST certified | 0.999999999843567 | 1 | at least 9 digits (LRE 9.8) | pass |
-| b2 standard error | NIST certified | 779.343524331603 | 779.343524331583 | at least 9 digits (LRE 13.6) | pass |
-| b3 | NIST certified | 1.00000000002319 | 1 | at least 9 digits (LRE 10.6) | pass |
-| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.6) | pass |
-| b4 | NIST certified | 0.999999999998682 | 1 | at least 9 digits (LRE 11.9) | pass |
-| b4 standard error | NIST certified | 5.64566512170767 | 5.64566512170752 | at least 9 digits (LRE 13.6) | pass |
-| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
-| b5 standard error | NIST certified | 0.112324854679315 | 0.112324854679312 | at least 9 digits (LRE 13.6) | pass |
+| b1 | NIST certified | 0.999999999592546 | 1 | at least 9 digits (LRE 9.4) | pass |
+| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.7) | pass |
+| b2 | NIST certified | 0.999999999919964 | 1 | at least 9 digits (LRE 10.1) | pass |
+| b2 standard error | NIST certified | 779.3435243316 | 779.343524331583 | at least 9 digits (LRE 13.7) | pass |
+| b3 | NIST certified | 1.00000000002228 | 1 | at least 9 digits (LRE 10.7) | pass |
+| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.8) | pass |
+| b4 | NIST certified | 0.999999999998442 | 1 | at least 9 digits (LRE 11.8) | pass |
+| b4 standard error | NIST certified | 5.64566512170763 | 5.64566512170752 | at least 9 digits (LRE 13.7) | pass |
+| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.5) | pass |
+| b5 standard error | NIST certified | 0.112324854679314 | 0.112324854679312 | at least 9 digits (LRE 13.7) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -757,17 +758,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 0.999999997729901 | 1 | at least 9 digits (LRE 8.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b0 standard error | NIST certified | 215232.624678169 | 215232.62467817 | at least 9 digits (LRE 14.6) | pass |
-| b1 | NIST certified | 1.00000000162981 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 14.7) | pass |
-| b2 | NIST certified | 0.999999999457941 | 1 | at least 9 digits (LRE 9.3) | pass |
-| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 15.0) | pass |
-| b3 | NIST certified | 1.00000000007071 | 1 | at least 9 digits (LRE 10.2) | pass |
+| b0 | NIST certified | 1.00000000023283 | 1 | at least 9 digits (LRE 9.6) | pass |
+| b0 standard error | NIST certified | 215232.624678172 | 215232.62467817 | at least 9 digits (LRE 14.1) | pass |
+| b1 | NIST certified | 1.00000000008731 | 1 | at least 9 digits (LRE 10.1) | pass |
+| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 15.0) | pass |
+| b2 | NIST certified | 0.999999999829015 | 1 | at least 9 digits (LRE 9.8) | pass |
+| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 14.8) | pass |
+| b3 | NIST certified | 1.00000000003229 | 1 | at least 9 digits (LRE 10.5) | pass |
 | b3 standard error | NIST certified | 10147.550755035 | 10147.550755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999996129 | 1 | at least 9 digits (LRE 11.4) | pass |
+| b4 | NIST certified | 0.999999999997922 | 1 | at least 9 digits (LRE 11.7) | pass |
 | b4 standard error | NIST certified | 564.566512170752 | 564.566512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000008 | 1 | at least 9 digits (LRE 13.1) | pass |
+| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
 | b5 standard error | NIST certified | 11.2324854679312 | 11.2324854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -776,17 +777,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 0.999999973806553 | 1 | at least 9 digits (LRE 7.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b0 standard error | NIST certified | 21523262.467817 | 21523262.467817 | at least 9 digits (LRE 15.0) | pass |
-| b1 | NIST certified | 1.00000008297502 | 1 | at least 9 digits (LRE 7.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 14.7) | pass |
-| b2 | NIST certified | 0.999999966697942 | 1 | at least 9 digits (LRE 7.5) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 15.0) | pass |
-| b3 | NIST certified | 1.00000000457021 | 1 | at least 9 digits (LRE 8.3) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 | NIST certified | 1.00000001234002 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 21523262.4678171 | 21523262.467817 | at least 9 digits (LRE 14.2) | pass |
+| b1 | NIST certified | 1.00000001394073 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 15.0) | pass |
+| b2 | NIST certified | 0.999999991876393 | 1 | at least 9 digits (LRE 8.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 14.8) | pass |
+| b3 | NIST certified | 1.00000000125374 | 1 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b3 standard error | NIST certified | 1014755.0755035 | 1014755.0755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999745376 | 1 | at least 9 digits (LRE 9.6) | pass |
+| b4 | NIST certified | 0.999999999925702 | 1 | at least 9 digits (LRE 10.1) | pass |
 | b4 standard error | NIST certified | 56456.6512170752 | 56456.6512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000496 | 1 | at least 9 digits (LRE 11.3) | pass |
+| b5 | NIST certified | 1.0000000000015 | 1 | at least 9 digits (LRE 11.8) | pass |
 | b5 standard error | NIST certified | 1123.24854679312 | 1123.24854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -824,10 +825,10 @@ Note: arctan is NumPy's arctan in the formula reader.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Vm | Bates & Watts (1988) | 212.683742750122 | 212.7 | within 0.05 (printed rounding) | pass |
-| K | Bates & Watts (1988) | 0.0641212810909031 | 0.06412 | within 5e-06 (printed rounding) | pass |
-| Vm | R | 212.683742750122 | 212.683707477025 | relative 1e-05 | pass |
-| K | R | 0.0641212810909031 | 0.0641212261151318 | relative 1e-05 | pass |
+| Vm | Bates & Watts (1988) | 212.683743078492 | 212.7 | within 0.05 (printed rounding) | pass |
+| K | Bates & Watts (1988) | 0.064121281534958 | 0.06412 | within 5e-06 (printed rounding) | pass |
+| Vm | R | 212.683743078492 | 212.683707332376 | relative 1e-05 | pass |
+| K | R | 0.064121281534958 | 0.0641212258897697 | relative 1e-05 | pass |
 
 Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
@@ -883,10 +884,10 @@ Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope st
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| bend 1 | R | 0.0411057838717026 | 0.0411057838717026 | relative 1e-09 | pass |
-| slope 1 | R | -0.422076814198344 | -0.422076814198344 | relative 1e-09 | pass |
-| slope 2 | R | -1.02056754472769 | -1.02056754472769 | relative 1e-09 | pass |
-| Davies p-value | R | 1.2908801233492e-17 | 1.2908801233492e-17 | relative 1e-09 | pass |
+| bend 1 | R | 0.0411057845539577 | 0.0411057845539577 | relative 1e-09 | pass |
+| slope 1 | R | -0.422076814402602 | -0.422076814402602 | relative 1e-09 | pass |
+| slope 2 | R | -1.02056754499518 | -1.02056754499518 | relative 1e-09 | pass |
+| Davies p-value | R | 1.29088012334925e-17 | 1.29088012334925e-17 | relative 1e-09 | pass |
 
 Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
 
@@ -896,11 +897,11 @@ Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| level change | statsmodels OLS with the two change columns | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
-| slope change | statsmodels OLS with the two change columns | 19.2016179865778 | 19.2016179865778 | relative 1e-09 | pass |
+| level change | statsmodels OLS with the two change columns | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
+| slope change | statsmodels OLS with the two change columns | 19.2016179865776 | 19.2016179865776 | relative 1e-09 | pass |
 | level change standard error | statsmodels OLS with the two change columns | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
-| level change | R | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
-| slope change | R | 19.2016179865778 | 19.2016179865777 | relative 1e-09 | pass |
+| level change | R | -457.768100628468 | -457.768100628469 | relative 1e-09 | pass |
+| slope change | R | 19.2016179865776 | 19.2016179865777 | relative 1e-09 | pass |
 | level change standard error | R | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
 
 Note: A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin model the season and the trend too.
@@ -911,9 +912,9 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
+| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189851 | 0.724689274189852 | relative 1e-07 | pass |
 | slope change | statsmodels GLM (Poisson) with the two change columns | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
-| jump | R | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
+| jump | R | 0.724689274189851 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | R | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
 
 ### `table.explain for_percentile=`
@@ -922,11 +923,11 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508508860644 | relative 1e-05 | pass |
-| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.686299496750445 | relative 1e-05 | pass |
+| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508507577411 | relative 1e-05 | pass |
+| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.68629949685196 | relative 1e-05 | pass |
 | intercept | R | 67.3508720801297 | 67.3508720801297 | relative 1e-09 | pass |
 | income | R | 0.686299480371905 | 0.686299480371905 | relative 1e-09 | pass |
-| income standard error | R | 0.0284907223757292 | 0.0284907223757292 | relative 1e-09 | pass |
+| income standard error | R | 0.0284907223757293 | 0.0284907223757293 | relative 1e-09 | pass |
 
 Note: statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; the lines agree to about 1e-7.
 
@@ -976,9 +977,9 @@ Note: R nlme::gls() is the reference: statsmodels has no variance functions. nlm
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| trend | R | -0.0194345899644702 | -0.0194345899644702 | relative 1e-05 | pass |
-| standard error | R | 0.0126641385380824 | 0.0126641385380824 | relative 1e-05 | pass |
-| phi | R | 0.824767413181072 | 0.824767413181072 | relative 1e-05 | pass |
+| trend | R | -0.0194345899685668 | -0.0194345899685668 | relative 1e-05 | pass |
+| standard error | R | 0.0126641385287768 | 0.0126641385287768 | relative 1e-05 | pass |
+| phi | R | 0.82476741303063 | 0.82476741303063 | relative 1e-05 | pass |
 
 ### `table.find_columns_that_predict`
 
@@ -999,9 +1000,9 @@ Note: R glmnet with the same seed is the reference (the random split is made in 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | AICc of Fertility ~ Education | statsmodels OLS and eval_measures.aicc | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.985031863347791 | 0.985031863347791 | relative 1e-09 | pass |
+| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
 | AICc of Fertility ~ Education | R | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | R | 0.985031863347791 | 0.98503186334779 | relative 1e-09 | pass |
+| weight of the biggest | R | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
 
 ### `table.compare_models check_on_left_out_rows=True`
 
@@ -1020,12 +1021,12 @@ Note: R boot::cv.glm with the same seed is the reference: the split is made by R
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603388 | 7.42688836034022 | relative 1e-09 | pass |
-| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.00642563574987153 | 0.00642563574986645 | relative 1e-09 | pass |
-| White | statsmodels het_breuschpagan, het_white | 7.95553731022935 | 7.95553731023029 | relative 1e-09 | pass |
-| Breusch-Pagan | R | 7.4268883603388 | 7.42688836033886 | relative 1e-08 | pass |
-| Breusch-Pagan p | R | 0.00642563574987153 | 0.00642563574987129 | relative 1e-08 | pass |
-| White | R | 7.95553731022935 | 7.95553731022924 | relative 1e-08 | pass |
+| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603395 | 7.42688836033877 | relative 1e-09 | pass |
+| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.006425635749869 | 0.00642563574987162 | relative 1e-09 | pass |
+| White | statsmodels het_breuschpagan, het_white | 7.95553731022983 | 7.95553731022923 | relative 1e-09 | pass |
+| Breusch-Pagan | R | 7.4268883603395 | 7.42688836033915 | relative 1e-08 | pass |
+| Breusch-Pagan p | R | 0.006425635749869 | 0.00642563574987025 | relative 1e-08 | pass |
+| White | R | 7.95553731022983 | 7.95553731022953 | relative 1e-08 | pass |
 
 ### `table.check_model_of outcome="yes or no"`
 
@@ -1112,12 +1113,12 @@ Note: The book's three-level table (rats, preparations, readings) tests treatmen
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Pillai | statsmodels MANOVA | 0.988500527043341 | 0.988500527043341 | relative 1e-09 | pass |
-| F | statsmodels MANOVA | 71.8287954469342 | 71.8287954469342 | relative 1e-09 | pass |
-| Wilks | statsmodels MANOVA | 0.0398783132489484 | 0.0398783132489484 | relative 1e-09 | pass |
-| Pillai | R | 0.988500527043341 | 0.988500527043341 | relative 1e-10 | pass |
-| F | R | 71.8287954469342 | 71.8287954469341 | relative 1e-10 | pass |
-| Wilks | R | 0.0398783132489484 | 0.0398783132489471 | relative 1e-10 | pass |
+| Pillai | statsmodels MANOVA | 0.988500527043352 | 0.988500527043352 | relative 1e-09 | pass |
+| F | statsmodels MANOVA | 71.8287954469357 | 71.8287954469357 | relative 1e-09 | pass |
+| Wilks | statsmodels MANOVA | 0.0398783132489431 | 0.0398783132489431 | relative 1e-09 | pass |
+| Pillai | R | 0.988500527043352 | 0.988500527043337 | relative 1e-10 | pass |
+| F | R | 71.8287954469357 | 71.8287954469336 | relative 1e-10 | pass |
+| Wilks | R | 0.0398783132489431 | 0.0398783132489472 | relative 1e-10 | pass |
 
 ### `table.add_time_and_event_columns`
 
@@ -1287,8 +1288,8 @@ Note: 36 rows start at a death time (each patient's second row starts at the tra
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370915 | relative 1e-06 | pass |
-| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665887 | relative 1e-06 | pass |
+| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370916 | relative 1e-06 | pass |
+| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665881 | relative 1e-06 | pass |
 | age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
 | men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
 
@@ -1450,9 +1451,9 @@ Note: Paule-Mandel is found by iteration. simplydata runs metafor to 1e-10 (its 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.86144494615464 | relative 1e-08 | pass |
-| p between | R | 0.3942687588839 | 0.394268758885585 | relative 1e-08 | pass |
+| p between | R | 0.394268758883901 | 0.394268758885584 | relative 1e-08 | pass |
 | random | R | 0.378717511421929 | 0.378717511421398 | relative 1e-08 | pass |
-| random tau2 | R | 0.392528006891837 | 0.392528006900774 | relative 1e-08 | pass |
+| random tau2 | R | 0.392528006891838 | 0.392528006900774 | relative 1e-08 | pass |
 
 Note: Each subgroup has its own between-study variance; the test of their difference uses each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the next case checks it against meta), not metafor's rma(mods = ~ alloc), which shares one variance.
 
@@ -1461,7 +1462,7 @@ Note: Each subgroup has its own between-study variance; the test of their differ
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.8614461412312 | relative 0.0001 | pass |
-| p between | R | 0.3942687588839 | 0.394268523294979 | relative 0.0001 | pass |
+| p between | R | 0.394268758883901 | 0.394268523294979 | relative 0.0001 | pass |
 
 Note: R meta (each subgroup its own between-study variance, REML) is a second package; meta's REML stops at its own tolerance, so the numbers agree to about 1e-5.
 
@@ -1472,8 +1473,8 @@ Note: R meta (each subgroup its own between-study variance, REML) is a second pa
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | R | -0.029101725011181 | -0.0291017250116429 | relative 1e-08 | pass |
-| low | R | -0.0471529230265922 | -0.0471529230250807 | relative 1e-08 | pass |
-| p-value | R | 0.00456505154515336 | 0.0045650515415926 | relative 1e-08 | pass |
+| low | R | -0.0471529230265922 | -0.0471529230250808 | relative 1e-08 | pass |
+| p-value | R | 0.00456505154515336 | 0.00456505154159258 | relative 1e-08 | pass |
 
 ### `table.combine_studies estimates=`
 
@@ -1837,7 +1838,7 @@ Note: The shares are read from the printout (one decimal) and compared with R ro
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PCo1 row 1 | R | 2.69778157533697 | 2.69778157533697 | relative 1e-08 | pass |
-| PCo2 row 70 | R | 0.0179984204752759 | 0.0179984204752759 | relative 1e-08 | pass |
+| PCo2 row 70 | R | 0.0179984204752766 | 0.0179984204752766 | relative 1e-08 | pass |
 
 ### `table.explain_profiles_of`
 
@@ -1860,7 +1861,7 @@ Note: The design check found adjusted R squared 0.0753 and marginal p-values 0.1
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| adjusted R squared | R | 0.0824713297170609 | 0.0824713297170609 | relative 1e-09 | pass |
+| adjusted R squared | R | 0.0824713297170611 | 0.0824713297170611 | relative 1e-09 | pass |
 | F all | R | 1.68911219341243 | 1.68911219341243 | relative 1e-09 | pass |
 | p all | R | 0.048 | 0.048 | relative 1e-09 | pass |
 
@@ -1872,7 +1873,7 @@ Note: The design check found adjusted R squared 0.0825.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| R squared | R | 0.309204040714596 | 0.309204040714596 | relative 1e-09 | pass |
+| R squared | R | 0.309204040714597 | 0.309204040714597 | relative 1e-09 | pass |
 | F all | R | 2.98403637676605 | 2.98403637676605 | relative 1e-09 | pass |
 | p Al | R | 0.001 | 0.001 | relative 1e-09 | pass |
 
@@ -2001,7 +2002,7 @@ Note: simplydata takes the shares of the trace from MASS's own print (4 decimals
 | CA2 % | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 17.1 | 17.1 | within 0.05 (printed rounding) | pass |
 | CA1 % | R | 25.2 | 25.2 | relative 1e-09 | pass |
 | CA2 % | R | 17.1 | 17.1 | relative 1e-09 | pass |
-| CA1 row 1 size | R | 0.108121658834307 | 0.108121658834307 | relative 1e-09 | pass |
+| CA1 row 1 size | R | 0.108121658834309 | 0.108121658834309 | relative 1e-09 | pass |
 
 Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares.
 
@@ -2020,11 +2021,11 @@ Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the print
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280495 | 0.5249 | within 5e-05 (printed rounding) | pass |
-| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083954 | 0.3568 | within 5e-05 (printed rounding) | pass |
+| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280496 | 0.5249 | within 5e-05 (printed rounding) | pass |
+| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083953 | 0.3568 | within 5e-05 (printed rounding) | pass |
 | total inertia | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 2.08319828789077 | 2.083 | within 0.0005 (printed rounding) | pass |
-| CA1 eigenvalue | R | 0.524931994280495 | 0.524931994280495 | relative 1e-10 | pass |
-| CA2 eigenvalue | R | 0.356798023083954 | 0.356798023083954 | relative 1e-10 | pass |
+| CA1 eigenvalue | R | 0.524931994280496 | 0.524931994280496 | relative 1e-10 | pass |
+| CA2 eigenvalue | R | 0.356798023083953 | 0.356798023083953 | relative 1e-10 | pass |
 | total inertia | R | 2.08319828789077 | 2.08319828789077 | relative 1e-10 | pass |
 
 Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given back as numbers; the tutorial prints them to 4 and 3 decimals.
@@ -2035,13 +2036,13 @@ Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: Parallel analysis finds the three factors of Holzinger and Swineford's design (visual, verbal and speed); x9 goes with two of them, as the modification indices of the confirmatory model also show.
@@ -2052,13 +2053,13 @@ Note: Parallel analysis finds the three factors of Holzinger and Swineford's des
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: The oblimin rotation of GPArotation starts from random numbers, so both sides set R's seed first (unseeded, the loadings change in the sixth digit from run to run).
@@ -2069,7 +2070,7 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.0390228442789628 | 0.0390228442789628 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.0390228442789629 | 0.0390228442789629 | relative 1e-08 | pass |
 | x4 on factor 1 | R | 0.849737553166453 | 0.849737553166453 | relative 1e-08 | pass |
 | x7 on factor 3 | R | -0.226409506419214 | -0.226409506419214 | relative 1e-08 | pass |
 | x9 on factor 2 | R | 0.47660221600333 | 0.47660221600333 | relative 1e-08 | pass |
@@ -2084,28 +2085,28 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173444 | 0.512528270944628 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748735622573245 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729758 | 0.542774252215347 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920193 | 0.279193071864288 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676014 | 0.242877188843203 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305216011904189 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916073 | 0.502208471160901 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794598 | 0.468549700257299 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483438 | 0.543246690740977 | relative 1e-05 | pass |
-| own part of x1 | R | 0.512529527173444 | 0.512528062225809 | relative 1e-05 | pass |
-| own part of x2 | R | 0.7487351603869 | 0.748735775106279 | relative 1e-05 | pass |
-| own part of x3 | R | 0.542773290729758 | 0.542774360019973 | relative 1e-05 | pass |
-| own part of x4 | R | 0.279193093920193 | 0.279193042201229 | relative 1e-05 | pass |
-| own part of x5 | R | 0.242877320676014 | 0.242877299279511 | relative 1e-05 | pass |
-| own part of x6 | R | 0.305215855558411 | 0.305215788140177 | relative 1e-05 | pass |
-| own part of x7 | R | 0.502207221916073 | 0.502208589415889 | relative 1e-05 | pass |
-| own part of x8 | R | 0.468550489794598 | 0.468549571050821 | relative 1e-05 | pass |
-| own part of x9 | R | 0.543247686483438 | 0.543246719035281 | relative 1e-05 | pass |
-| x1 on factor 2 | R | 0.622657847373775 | 0.622659197499037 | relative 1e-05 | pass |
-| x4 on factor 1 | R | 0.826999673867174 | 0.826999686293857 | relative 1e-05 | pass |
-| x7 on factor 3 | R | 0.695873917746764 | 0.695872958545316 | relative 1e-05 | pass |
-| x9 on factor 3 | R | 0.523617982828501 | 0.52361856724954 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512527881119709 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735769038678 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774299039337 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279192949949605 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877334473948 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215987193552 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208453344572 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549571935347 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246424802894 | relative 1e-05 | pass |
+| own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
+| own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
+| own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
+| own part of x4 | R | 0.279193093920191 | 0.279193042199911 | relative 1e-05 | pass |
+| own part of x5 | R | 0.242877320676011 | 0.242877299281568 | relative 1e-05 | pass |
+| own part of x6 | R | 0.305215855558411 | 0.305215788144815 | relative 1e-05 | pass |
+| own part of x7 | R | 0.50220722191608 | 0.502208589411399 | relative 1e-05 | pass |
+| own part of x8 | R | 0.468550489794592 | 0.468549571055329 | relative 1e-05 | pass |
+| own part of x9 | R | 0.54324768648344 | 0.543246719034091 | relative 1e-05 | pass |
+| x1 on factor 2 | R | 0.622657847373771 | 0.622659197499952 | relative 1e-05 | pass |
+| x4 on factor 1 | R | 0.826999673867176 | 0.826999686294711 | relative 1e-05 | pass |
+| x7 on factor 3 | R | 0.69587391774676 | 0.695872958548142 | relative 1e-05 | pass |
+| x9 on factor 3 | R | 0.5236179828285 | 0.523618567249556 | relative 1e-05 | pass |
 
 Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked against factanal (the same factor order and signs here). Both references are run to convergence (factanal's optim with factr = 1, statsmodels to 1e-14); they then agree with simplydata (R psych::fa(fm = "ml") with its own stopping rule) to 3e-6, so the check allows 1e-5. With their default stopping rules the three differed by up to 1.6e-5, and the check allowed 1e-3.
 
@@ -2115,20 +2116,20 @@ Note: The part of each column the factors do not share (the uniqueness) does not
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699732 | 85.306 | within 0.0005 (printed rounding) | pass |
+| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699727 | 85.306 | within 0.0005 (printed rounding) | pass |
 | degrees of freedom | exact | 24 | 24 | within 0 | pass |
 | CFI | Rosseel (2012), JSS 48(2) | 0.930559651799336 | 0.931 | within 0.0005 (printed rounding) | pass |
-| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699003 | 0.896 | within 0.0005 (printed rounding) | pass |
-| RMSEA | Rosseel (2012), JSS 48(2) | 0.092121484510169 | 0.092 | within 0.0005 (printed rounding) | pass |
-| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399386 | 0.071 | within 0.0005 (printed rounding) | pass |
+| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699004 | 0.896 | within 0.0005 (printed rounding) | pass |
+| RMSEA | Rosseel (2012), JSS 48(2) | 0.0921214845101686 | 0.092 | within 0.0005 (printed rounding) | pass |
+| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399382 | 0.071 | within 0.0005 (printed rounding) | pass |
 | RMSEA 90 % CI high | Rosseel (2012), JSS 48(2) | 0.113678016811963 | 0.114 | within 0.0005 (printed rounding) | pass |
 | SRMR | Rosseel (2012), JSS 48(2) | 0.0652050571843865 | 0.065 | within 0.0005 (printed rounding) | pass |
-| chi-square | R | 85.3055217699732 | 85.3055217699732 | relative 1e-08 | pass |
+| chi-square | R | 85.3055217699727 | 85.3055217699727 | relative 1e-08 | pass |
 | degrees of freedom | R | 24 | 24 | relative 1e-08 | pass |
 | CFI | R | 0.930559651799336 | 0.930559651799336 | relative 1e-08 | pass |
-| TLI | R | 0.895839477699003 | 0.895839477699003 | relative 1e-08 | pass |
-| RMSEA | R | 0.092121484510169 | 0.092121484510169 | relative 1e-08 | pass |
-| RMSEA 90 % CI low | R | 0.0714184904399386 | 0.0714184904399386 | relative 1e-08 | pass |
+| TLI | R | 0.895839477699004 | 0.895839477699004 | relative 1e-08 | pass |
+| RMSEA | R | 0.0921214845101686 | 0.0921214845101686 | relative 1e-08 | pass |
+| RMSEA 90 % CI low | R | 0.0714184904399382 | 0.0714184904399382 | relative 1e-08 | pass |
 | RMSEA 90 % CI high | R | 0.113678016811963 | 0.113678016811963 | relative 1e-08 | pass |
 | SRMR | R | 0.0652050571843865 | 0.0652050571843865 | relative 1e-08 | pass |
 
@@ -2138,7 +2139,7 @@ Note: Rosseel (2012) prints the fit of this model to three decimals; the p-value
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | R | 87.4018469694271 | 87.4018469694271 | relative 1e-08 | pass |
+| chi-square | R | 87.4018469694266 | 87.4018469694266 | relative 1e-08 | pass |
 | x1 loading | R | 0.791634162191103 | 0.791634162191103 | relative 1e-08 | pass |
 | CFI | R | 0.92794179373821 | 0.92794179373821 | relative 1e-08 | pass |
 
@@ -2151,9 +2152,9 @@ Note: Real data with 30 cells emptied on purpose (the first 30 rows of x1): ever
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | path | R | 0.460317218924395 | 0.460317218924395 | relative 1e-08 | pass |
-| its standard error | R | 0.0741697800420569 | 0.0741697800420569 | relative 1e-08 | pass |
-| chi-square | R | 47.4133581632695 | 47.4133581632695 | relative 1e-08 | pass |
-| CFI | R | 0.879367051234157 | 0.879367051234157 | relative 1e-08 | pass |
+| its standard error | R | 0.0741697800268379 | 0.0741697800268379 | relative 1e-08 | pass |
+| chi-square | R | 47.4133581632698 | 47.4133581632698 | relative 1e-08 | pass |
+| CFI | R | 0.879367051234156 | 0.879367051234156 | relative 1e-08 | pass |
 
 ### `table.find_average_direction_of`
 
@@ -2293,15 +2294,15 @@ Note: The exact ends: the profile log-likelihood of the 100-year level (the GEV 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985466404 | 3.87 | within 0.005 (printed rounding) | pass |
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956699285 | 0.198 | within 0.0005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095297651447 | -0.05 | within 0.0005 (printed rounding) | pass |
-| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985466404 | 3.87474985805047 | relative 1e-06 | pass |
-| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956699285 | 0.198043958575381 | relative 1e-06 | pass |
-| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095297651447 | -0.0501095462385828 | relative 1e-06 | pass |
-| location | R | 3.87474985466404 | 3.87474985509283 | relative 1e-06 | pass |
-| scale | R | 0.198043956699285 | 0.198043956945225 | relative 1e-06 | pass |
-| shape | R | -0.0501095297651447 | -0.0501095325366495 | relative 1e-06 | pass |
+| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985410054 | 3.87 | within 0.005 (printed rounding) | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956225498 | 0.198 | within 0.0005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095278177458 | -0.05 | within 0.0005 (printed rounding) | pass |
+| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985410054 | 3.87474985804743 | relative 1e-06 | pass |
+| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956225498 | 0.19804395857383 | relative 1e-06 | pass |
+| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095278177458 | -0.050109546237635 | relative 1e-06 | pass |
+| location | R | 3.87474985410054 | 3.87474985509283 | relative 1e-06 | pass |
+| scale | R | 0.198043956225498 | 0.198043956945225 | relative 1e-06 | pass |
+| shape | R | -0.0501095278177458 | -0.0501095325366495 | relative 1e-06 | pass |
 
 Note: SciPy's own fit stops a little short of the maximum (by up to 8e-5 here), so simplydata polishes it. Both references are run to 1e-14 (SciPy's fit with a tighter Nelder-Mead, R extRemes with optim's reltol 1e-14) and agree with simplydata to 1e-6; the shape, near 0, is the least precise (2e-7 relative). Before, the default fits were the references, at 5e-3 and 1e-4.
 
@@ -2324,10 +2325,10 @@ Note: Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026904808288 | 7.44 | within 0.005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.184499047010465 | 0.184 | within 0.0005 (printed rounding) | pass |
-| scale | R | 7.44026904808288 | 7.44025220565683 | relative 0.0001 | pass |
-| shape | R | 0.184499047010465 | 0.184497962931526 | relative 0.0001 | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026894085537 | 7.44 | within 0.005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.18449906745455 | 0.184 | within 0.0005 (printed rounding) | pass |
+| scale | R | 7.44026894085537 | 7.44025220565683 | relative 0.0001 | pass |
+| shape | R | 0.18449906745455 | 0.184497962931526 | relative 0.0001 | pass |
 
 ### `draw_threshold_check`
 
@@ -2432,10 +2433,10 @@ Note: The order is Box and Jenkins's airline model; the two estimates are checke
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474841 | 0.67 | within 0.005 (printed rounding) | pass |
-| pi0 | R | 0.669926026474841 | 0.669926026474842 | relative 1e-09 | pass |
+| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474838 | 0.67 | within 0.005 (printed rounding) | pass |
+| pi0 | R | 0.669926026474838 | 0.669926026474838 | relative 1e-09 | pass |
 | q-values below 0.05 | R | 162 | 162 | relative 1e-09 | pass |
-| first q-value | R | 0.0881916317044278 | 0.0881916317044278 | relative 1e-09 | pass |
+| first q-value | R | 0.0881916317044274 | 0.0881916317044274 | relative 1e-09 | pass |
 
 Note: pi0 is read back from the table as the q-value of the largest p-value divided by that p-value (qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; qvalue's copy of the p-values gives 162.
 
@@ -2446,8 +2447,8 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | below 0.05 | R | 85 | 85 | relative 1e-09 | pass |
-| first | R | 0.168270194881528 | 0.168270194881528 | relative 1e-09 | pass |
-| smallest | R | 0.00656991586563362 | 0.00656991586563362 | relative 1e-09 | pass |
+| first | R | 0.168270194881526 | 0.168270194881526 | relative 1e-09 | pass |
+| smallest | R | 0.00656991586563374 | 0.00656991586563374 | relative 1e-09 | pass |
 
 ### `table.compare_each_pair_of matched_by=, test_method="nemenyi"`
 
@@ -2698,9 +2699,9 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| meals | R | -3.11062899440931 | -3.11062899440931 | relative 1e-09 | pass |
+| meals | R | -3.1106289944093 | -3.1106289944093 | relative 1e-09 | pass |
 | meals standard error | R | 0.275765488815881 | 0.275765488815881 | relative 1e-09 | pass |
-| ell p-value | R | 0.193873946007243 | 0.193873946007243 | relative 1e-09 | pass |
+| ell p-value | R | 0.193873946007242 | 0.193873946007243 | relative 1e-09 | pass |
 | intercept | R | 823.857925625161 | 823.857925625161 | relative 1e-09 | pass |
 
 ### `table.compare_averages_of after use_survey_design()`
@@ -2720,7 +2721,7 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | F | R | 14.1694081180078 | 14.1694081180078 | relative 1e-09 | pass |
-| p-value | R | 2.08210867642843e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
+| p-value | R | 2.08210867642842e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
 | design degrees of freedom | R | 371.371769351819 | 371.371769351819 | relative 1e-09 | pass |
 
 ### `table.compare_balanced_groups_of`
@@ -2730,8 +2731,8 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 224.676308271437 | 224.676308271437 | relative 1e-09 | pass |
-| standard error | R | 876.193185586486 | 876.193185586486 | relative 1e-09 | pass |
-| p-value | R | 0.797624033434651 | 0.797624033434651 | relative 1e-09 | pass |
+| standard error | R | 876.193185589196 | 876.193185589196 | relative 1e-09 | pass |
+| p-value | R | 0.797624033435263 | 0.797624033435263 | relative 1e-09 | pass |
 
 Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); the survey comparison group is very unlike the trained men, so balancing on these columns does not recover it fully.
 
@@ -2759,7 +2760,7 @@ Note: The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standar
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 1770.60290641026 | 1770.60290641026 | relative 1e-09 | pass |
-| standard error | R | 924.234347046258 | 924.234347046258 | relative 1e-09 | pass |
+| standard error | R | 924.234347046257 | 924.234347046257 | relative 1e-09 | pass |
 
 ### `table.compare_risks show="attributable fractions"`
 
@@ -2816,11 +2817,11 @@ Note: The ratio and the expected count from R epitools::ageadjust.indirect (a se
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561466 | -0.0163155082561466 | relative 1e-09 | pass |
-| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325962 | -0.0457537091325962 | relative 1e-09 | pass |
-| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177594 | -0.0554964945177594 | relative 1e-09 | pass |
-| indirect effect | R | -0.0163155082561466 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
-| total effect | R | -0.0554964945177594 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
+| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561465 | -0.0163155082561465 | relative 1e-09 | pass |
+| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325961 | -0.0457537091325961 | relative 1e-09 | pass |
+| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177591 | -0.0554964945177591 | relative 1e-09 | pass |
+| indirect effect | R | -0.0163155082561465 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
+| total effect | R | -0.0554964945177591 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
 
 Note: For two linear models without an interaction the indirect effect is the product of the two coefficients and the total effect the coefficient of treat without job_seek (base R lm): the exact values the simulation (1000 draws) estimates, so the difference may be 4 Monte Carlo standard errors of simplydata's mean of 1000 draws. statsmodels with the same seed gives the same numbers exactly. R mediation::mediate(sims = 1000) gave -0.0159 (-0.0422 to 0.0105) here; Tingley et al. (2014) analyse the same data.
 
@@ -3138,6 +3139,17 @@ Note: The picture's lines are R stats::density() of the data and of each set mad
 | total petal length | pandas to_csv(index=False) | 563.7 | 563.7 | relative 1e-12 | pass |
 | columns | pandas to_csv(index=False) | 5 | 5 | relative 1e-12 | pass |
 
+### `table.save in_sheet=`
+
+**iris saved as one Excel sheet for each species and read back with sheet="all"** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sheets | pandas ExcelWriter (openpyxl), read_excel(sheet_name=None) | 3 | 3 | relative 1e-12 | pass |
+| rows | pandas ExcelWriter (openpyxl), read_excel(sheet_name=None) | 150 | 150 | relative 1e-12 | pass |
+| total petal length | pandas ExcelWriter (openpyxl), read_excel(sheet_name=None) | 563.7 | 563.7 | relative 1e-12 | pass |
+| columns | pandas ExcelWriter (openpyxl), read_excel(sheet_name=None) | 6 | 6 | relative 1e-12 | pass |
+
 ### `table.as_pandas`
 
 **iris given back as pandas, from a Polars table** (real data; data: iris)
@@ -3376,10 +3388,10 @@ Note: R's check is the Brown-Forsythe test written out: a one-way ANOVA of the d
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PC1 of row 1 | statsmodels PCA (SVD) | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | statsmodels PCA (SVD) | 0.957448488427992 | 0.957448488427994 | relative 1e-09 | pass |
 | PC1 of row 1 | R | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | R | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | R | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | R | 0.957448488427992 | 0.957448488427993 | relative 1e-09 | pass |
 
 ### `table.add_predicted_column`
@@ -3711,7 +3723,7 @@ Note: R's qqnorm() puts the dots at slightly different places (Blom's, not Filli
 |---|---|---|---|---|---|
 | log scale | matplotlib set_yscale("log") | 1 | 1 | relative 1e-12 | pass |
 | bottom of the y axis | matplotlib set_yscale("log") | 17.52208300845 | 17.52208300845 | relative 1e-12 | pass |
-| top of the y axis | matplotlib set_yscale("log") | 42.8898398220214 | 42.8898398220214 | relative 1e-12 | pass |
+| top of the y axis | matplotlib set_yscale("log") | 42.8898398220215 | 42.8898398220215 | relative 1e-12 | pass |
 
 ### `draw_line_at_x`
 
@@ -4993,6 +5005,1454 @@ Note: The dots of the forest plot are the differences between the averages of ea
 | numbers | R | 100 | 100 | relative 1e-12 | pass |
 | total | R | 29985.24 | 29985.24 | relative 1e-12 | pass |
 
+### `nums.smooth`
+
+**the level of Lake Huron, 1875-1972: a centred moving average of 5 years** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty at the ends | pandas rolling(5, center=True).mean() | 4 | 4 | relative 1e-12 | pass |
+| third year | pandas rolling(5, center=True).mean() | 580.76 | 580.76 | relative 1e-12 | pass |
+| year 50 | pandas rolling(5, center=True).mean() | 577.64 | 577.64 | relative 1e-12 | pass |
+| empty at the ends | R | 4 | 4 | relative 1e-12 | pass |
+| third year | R | 580.76 | 580.76 | relative 1e-12 | pass |
+| year 50 | R | 577.64 | 577.64 | relative 1e-12 | pass |
+
+### `nums.remove_trend`
+
+**the level of Lake Huron without its straight-line fall** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | SciPy signal.detrend | 0.202164502164351 | 0.202164502164351 | relative 1e-09 | pass |
+| last year | SciPy signal.detrend | 2.12967223252963 | 2.12967223252963 | relative 1e-09 | pass |
+| total | SciPy signal.detrend | 2.27373675443232e-13 | 2.27373675443232e-13 | relative 1e-09 | pass |
+| first year | R | 0.202164502164351 | 0.202164502165233 | relative 1e-09 | pass |
+| last year | R | 2.12967223252963 | 2.12967223252943 | relative 1e-09 | pass |
+
+### `table.add_trend_and_season`
+
+**the air passengers: trend, season and rest by STL (season window 7)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| trend, January 1949 | statsmodels STL with R stl()'s settings | 122.536917649433 | 122.536917649433 | relative 1e-09 | pass |
+| season, July 1955 | statsmodels STL with R stl()'s settings | 73.1963038772656 | 73.1963038772656 | relative 1e-09 | pass |
+| rest, December 1960 | statsmodels STL with R stl()'s settings | -12.4649554950755 | -12.4649554950755 | relative 1e-09 | pass |
+| trend, January 1949 | R | 122.536917649433 | 122.536917649433 | relative 1e-09 | pass |
+| season, July 1955 | R | 73.1963038772656 | 73.1963038772656 | relative 1e-09 | pass |
+| rest, December 1960 | R | -12.4649554950755 | -12.4649554950755 | relative 1e-09 | pass |
+
+### `nums.find_autocorrelation`
+
+**the level of Lake Huron: correlation with itself 1 and 2 years back** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows back | statsmodels acf and acorr_ljungbox | 19 | 19 | relative 1e-12 | pass |
+| 1 year back | statsmodels acf and acorr_ljungbox | 0.831911210352453 | 0.831911210352453 | relative 1e-12 | pass |
+| 2 years back | statsmodels acf and acorr_ljungbox | 0.609937103589568 | 0.609937103589568 | relative 1e-12 | pass |
+| Ljung-Box statistic | statsmodels acf and acorr_ljungbox | 192.258700438571 | 192.258700438571 | relative 1e-12 | pass |
+| rows back | R | 19 | 19 | relative 1e-12 | pass |
+| 1 year back | R | 0.831911210352453 | 0.831911210352453 | relative 1e-12 | pass |
+| 2 years back | R | 0.609937103589568 | 0.609937103589568 | relative 1e-12 | pass |
+| Ljung-Box statistic | R | 192.258700438571 | 192.258700438571 | relative 1e-12 | pass |
+
+### `table.check_steady_over_time`
+
+**the level of Lake Huron: the ADF and KPSS tests around one level** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ADF statistic | R | -2.50692013839604 | -2.50692013839604 | relative 1e-09 | pass |
+| ADF p-value | R | 0.117094492257189 | 0.117094492257189 | relative 1e-09 | pass |
+| KPSS statistic | R | 0.995290114411624 | 0.995290114411624 | relative 1e-09 | pass |
+
+### `table.find_change_points_in`
+
+**the level of Lake Huron: where its average jumps (PELT, MBIC)** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pieces | R | 8 | 8 | relative 1e-12 | pass |
+| first piece ends | R | 1888 | 1888 | relative 1e-12 | pass |
+| average of the first piece | R | 580.926428571429 | 580.926428571429 | relative 1e-12 | pass |
+
+### `nums.forecast`
+
+**the air passengers: Holt-Winters forecast of 1961 with its 95 % interval** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
+| January 1961, 95 % low | R | 428.41526696502 | 428.41526696502 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+
+### `table.compare_forecasts_for`
+
+**the air passengers: four methods checked on 1960** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| best MASE | R | 0.379783839708638 | 0.379783839708638 | relative 1e-09 | pass |
+| worst MASE | R | 2.49589490968801 | 2.49589490968801 | relative 1e-09 | pass |
+| best MAE | R | 11.564417919128 | 11.564417919128 | relative 1e-09 | pass |
+
+### `nums.find_each_peak_that`
+
+**the drivers killed or seriously injured: the peaks at least 6 months apart** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| peaks | SciPy find_peaks(distance=6) and peak_widths | 21 | 21 | relative 1e-12 | pass |
+| first peak | SciPy find_peaks(distance=6) and peak_widths | 5 | 5 | relative 1e-12 | pass |
+| its width | SciPy find_peaks(distance=6) and peak_widths | 0.744939271255061 | 0.744939271255061 | relative 1e-12 | pass |
+| peaks | R | 21 | 21 | exact | pass |
+| first peak | R | 5 | 5 | exact | pass |
+
+Note: pracma::findpeaks keeps the higher of two close peaks first, as SciPy's distance= does.
+
+**the yearly sunspot numbers: the solar maxima of at least 100** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| peaks | SciPy signal.find_peaks | 17 | 17 | exact | pass |
+| first position | SciPy signal.find_peaks | 28 | 28 | exact | pass |
+| sum of positions | SciPy signal.find_peaks | 3156 | 3156 | exact | pass |
+| highest | SciPy signal.find_peaks | 190.2 | 190.2 | exact | pass |
+| peaks | R | 17 | 17 | exact | pass |
+| first position | R | 28 | 28 | exact | pass |
+| sum of positions | R | 3156 | 3156 | exact | pass |
+| highest | R | 190.2 | 190.2 | exact | pass |
+
+Note: R: the readings higher than both neighbours, written out in base R.
+
+### `nums.find_each_dip_that`
+
+**the level of Lake Huron: the lowest years, dips at least 5 years apart** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dips | SciPy find_peaks on minus the level | 13 | 13 | exact | pass |
+| lowest dip | SciPy find_peaks on minus the level | 575.96 | 575.96 | exact | pass |
+| first dip | SciPy find_peaks on minus the level | 5 | 5 | exact | pass |
+
+**the yearly sunspot numbers: the solar minima of at most 5** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dips | SciPy signal.find_peaks on minus the numbers | 11 | 11 | relative 1e-12 | pass |
+| first position | SciPy signal.find_peaks on minus the numbers | 12 | 12 | relative 1e-12 | pass |
+| sum of positions | SciPy signal.find_peaks on minus the numbers | 1432 | 1432 | relative 1e-12 | pass |
+| biggest stands out by | SciPy signal.find_peaks on minus the numbers | 154.4 | 154.4 | relative 1e-12 | pass |
+
+### `table.find_each_dip_that`
+
+**the air passengers: the dips at least 6 months apart** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dips | SciPy find_peaks on minus the passengers | 15 | 15 | exact | pass |
+| first dip | SciPy find_peaks on minus the passengers | 5 | 5 | exact | pass |
+| lowest dip | SciPy find_peaks on minus the passengers | 104 | 104 | exact | pass |
+
+**the yearly sunspot numbers: the years of the solar minima of at most 5** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dips | SciPy signal.find_peaks on minus the numbers | 11 | 11 | exact | pass |
+| first year | SciPy signal.find_peaks on minus the numbers | 1711 | 1711 | exact | pass |
+| last year | SciPy signal.find_peaks on minus the numbers | 1954 | 1954 | exact | pass |
+
+### `table.find_spectrum_of`
+
+**the level of Lake Huron: the periodogram, per year** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| frequencies | SciPy signal.periodogram | 50 | 50 | relative 1e-09 | pass |
+| power at 1 / 98 per year | SciPy signal.periodogram | 50.5962422380123 | 50.5962422380123 | relative 1e-09 | pass |
+| power at 10 / 98 per year | SciPy signal.periodogram | 0.000959006180129825 | 0.000959006180129825 | relative 1e-09 | pass |
+| power at 1 / 98 per year | R | 50.5962422380123 | 50.596242238018 | relative 1e-09 | pass |
+| power at 10 / 98 per year | R | 0.000959006180129825 | 0.000959006180134383 | relative 1e-09 | pass |
+
+Note: R spec.pgram is two-sided and has no row for frequency 0, so its first value is SciPy's second, halved.
+
+**the yearly sunspot numbers: the strongest cycle and the periodogram** (published; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| strongest cycle (years) | Hathaway (2015): 11.0 years on average | 11.0357142857143 | 11 | within 0.5 (printed rounding) | pass |
+| strongest cycle (years) | SciPy signal.periodogram | 11.0357142857143 | 11.0357142857143 | relative 1e-09 | pass |
+| power of the 11-year cycle | SciPy signal.periodogram | 135012.909731365 | 135012.909731365 | relative 1e-09 | pass |
+| total power | SciPy signal.periodogram | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+| strongest cycle (years) | R | 11.0357142857143 | 11.0357142857143 | relative 1e-09 | pass |
+| power of the 11-year cycle | R | 135012.909731365 | 135012.909731365 | relative 1e-09 | pass |
+| total power | R | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+
+Note: R spec.pgram gives half the one-sided power and leaves out frequency 0 (whose power is 0 here up to rounding); with 309 readings there is no top frequency to treat apart.
+
+### `nums.find_spectrum`
+
+**the drivers killed or seriously injured: the yearly cycle in the periodogram** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power at 1 / 12 per month | SciPy signal.periodogram | 4998897.58613393 | 4998897.58613393 | relative 1e-09 | pass |
+| power at 1 / 12 per month | R | 4998897.58613393 | 4998897.58613393 | relative 1e-09 | pass |
+
+Note: 192 months: frequency 16 / 192 is once a year.
+
+**the yearly sunspot numbers as numbers: the periodogram, one reading a year** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| frequencies | SciPy signal.periodogram | 155 | 155 | relative 1e-09 | pass |
+| power at 1 / 103 years | SciPy signal.periodogram | 43837.7956506015 | 43837.7956506015 | relative 1e-09 | pass |
+| total power | SciPy signal.periodogram | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+| power at 1 / 103 years | R | 43837.7956506015 | 43837.7956506016 | relative 1e-09 | pass |
+| total power | R | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+
+### `spectrum`
+
+**the drawn periodogram of the Lake Huron level is SciPy's** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| points | SciPy signal.periodogram | 49 | 49 | relative 1e-09 | pass |
+| first power drawn | SciPy signal.periodogram | 50.5962422380123 | 50.5962422380123 | relative 1e-09 | pass |
+| labels | SciPy signal.periodogram | 3 | 3 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers: the periodogram the chart draws** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| points | SciPy signal.periodogram | 154 | 154 | relative 1e-09 | pass |
+| first power | SciPy signal.periodogram | 11952.1212354268 | 11952.1212354268 | relative 1e-09 | pass |
+| total power | SciPy signal.periodogram | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+| points | R | 154 | 154 | relative 1e-09 | pass |
+| first power | R | 11952.1212354268 | 11952.1212354268 | relative 1e-09 | pass |
+| total power | R | 504015.031132686 | 504015.031132686 | relative 1e-09 | pass |
+
+Note: The chart leaves out frequency 0 (log scale).
+
+### `spectrum_over_time`
+
+**the drivers killed or seriously injured: spectrum over time in pieces of 48 months** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | SciPy signal.spectrogram | 175 | 175 | relative 1e-09 | pass |
+| first cell (decibels) | SciPy signal.spectrogram | 48.1376306384409 | 48.1376306384409 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers in pieces of 64 years: the heat map** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | SciPy signal.spectrogram | 264 | 264 | relative 1e-09 | pass |
+| first cell (dB) | SciPy signal.spectrogram | 31.5414549131363 | 31.5414549131363 | relative 1e-09 | pass |
+| total (dB) | SciPy signal.spectrogram | 6255.24770167516 | 6255.24770167516 | relative 1e-09 | pass |
+
+### `nums.keep_each_frequency_that`
+
+**the Lake Huron level: cycles slower than 10 years kept** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | SciPy butter and sosfiltfilt | 580.383339492162 | 580.383339492162 | relative 1e-09 | pass |
+| year 50 | SciPy butter and sosfiltfilt | 577.644110448839 | 577.644110448839 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers: the cycles slower than 20 years** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy signal.butter and sosfiltfilt | 4.72252326731995 | 4.72252326731995 | relative 1e-09 | pass |
+| 1957 (position 258) | SciPy signal.butter and sosfiltfilt | 94.262193180326 | 94.262193180326 | relative 1e-09 | pass |
+| total | SciPy signal.butter and sosfiltfilt | 15321.7510272055 | 15321.7510272055 | relative 1e-09 | pass |
+
+### `nums.remove_each_frequency_that`
+
+**the drivers killed or seriously injured: the yearly cycle notched out** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first month | SciPy iirnotch and filtfilt | 1629.5699959513 | 1629.5699959513 | relative 1e-09 | pass |
+| month 100 | SciPy iirnotch and filtfilt | 1594.19196944698 | 1594.19196944698 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers without the 9 to 14-year band** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy signal.butter and sosfiltfilt | 1.70756638994537 | 1.70756638994537 | relative 1e-09 | pass |
+| 1957 (position 258) | SciPy signal.butter and sosfiltfilt | 141.812213467464 | 141.812213467464 | relative 1e-09 | pass |
+| total | SciPy signal.butter and sosfiltfilt | 15396.2757035565 | 15396.2757035565 | relative 1e-09 | pass |
+
+### `table.add_filtered_column`
+
+**the Lake Huron level: a column of the cycles slower than 10 years** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1875 | SciPy butter and sosfiltfilt | 580.383339492162 | 580.383339492162 | relative 1e-09 | pass |
+| 1924 | SciPy butter and sosfiltfilt | 577.644110448839 | 577.644110448839 | relative 1e-09 | pass |
+
+Note: The years are one apart, so keep_below=0.1 keeps the cycles longer than 10 years.
+
+### `sdata.frequency_filter`
+
+**the filter of keep_below=10 at 200 readings a second is R signal's** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| gain at 10 | exact: a Butterworth filter passes 1 / sqrt(2) at its cutoff | 0.707106781186548 | 0.707106781186548 | within 1e-12 (exact formula) | pass |
+| numerator total / denominator total | exact: a low-pass filter passes frequency 0 whole (gain 1 at z = 1) | 1.00000000000002 | 1 | within 1e-12 (exact formula) | pass |
+| b0 | SciPy signal.butter (as numerator and denominator) | 0.000416599204406599 | 0.000416599204406599 | relative 1e-09 | pass |
+| a1 | SciPy signal.butter (as numerator and denominator) | -3.18063854887472 | -3.18063854887472 | relative 1e-09 | pass |
+| a4 | SciPy signal.butter (as numerator and denominator) | 0.43826514226198 | 0.43826514226198 | relative 1e-09 | pass |
+| (all) | R with gsignal | | | | skipped: needs R with gsignal, which is not installed here |
+
+Note: A filter has no data: the Butterworth design of order 4 at a tenth of the top frequency. The coefficients are compared with SciPy and R signal; the two gains with their exact values.
+
+**the low-pass filter of the sunspot cases (below 0.05 a year): its poles** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| poles | SciPy signal.butter | 4 | 4 | relative 1e-09 | pass |
+| smallest distance | SciPy signal.butter | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
+| biggest distance | SciPy signal.butter | 0.887975078375119 | 0.887975078375118 | relative 1e-09 | pass |
+| steady gain | SciPy signal.butter | 1.00000000000002 | 1 | relative 1e-09 | pass |
+| poles | R | 4 | 4 | relative 1e-09 | pass |
+| smallest distance | R | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
+| biggest distance | R | 0.887975078375119 | 0.887975078375119 | relative 1e-09 | pass |
+
+Note: R: Butterworth's poles and the bilinear transform written out in base R.
+
+### `nums.find_envelope`
+
+**the Lake Huron level about its average: the envelope** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | SciPy signal.hilbert | 3.17450363547566 | 3.17450363547566 | relative 1e-09 | pass |
+| year 50 | SciPy signal.hilbert | 2.05123982484622 | 2.05123982484622 | relative 1e-09 | pass |
+| (all) | R with gsignal | | | | skipped: needs R with gsignal, which is not installed here |
+
+**the yearly sunspot numbers: the envelope of the solar cycle** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy signal.hilbert | 25.2468371760035 | 25.2468371760035 | relative 1e-09 | pass |
+| 1957 (position 258) | SciPy signal.hilbert | 196.927165296085 | 196.927165296085 | relative 1e-09 | pass |
+| total | SciPy signal.hilbert | 19786.6446978571 | 19786.6446978571 | relative 1e-09 | pass |
+| first | R | 25.2468371760035 | 25.2468371760031 | relative 1e-09 | pass |
+| 1957 (position 258) | R | 196.927165296085 | 196.927165296085 | relative 1e-09 | pass |
+| total | R | 19786.6446978571 | 19786.6446978571 | relative 1e-09 | pass |
+
+Note: R: the analytic signal written out with base R fft (as gsignal::hilbert).
+
+### `table.add_envelope_column`
+
+**the drivers killed or seriously injured: the envelope column** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first month | SciPy signal.hilbert | 1692.00337821708 | 1692.00337821708 | relative 1e-09 | pass |
+| month 100 | SciPy signal.hilbert | 1405.68102486951 | 1405.68102486951 | relative 1e-09 | pass |
+| (all) | R with gsignal | | | | skipped: needs R with gsignal, which is not installed here |
+
+**the yearly sunspot numbers: the envelope as a new column, by year** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1957 (row 258) | SciPy signal.hilbert | 196.927165296085 | 196.927165296085 | relative 1e-09 | pass |
+| last | SciPy signal.hilbert | 39.9516118079954 | 39.9516118079954 | relative 1e-09 | pass |
+| total | SciPy signal.hilbert | 19786.6446978571 | 19786.6446978571 | relative 1e-09 | pass |
+| 1957 (row 258) | R | 196.927165296085 | 196.927165296085 | relative 1e-09 | pass |
+| last | R | 39.9516118079954 | 39.951611807996 | relative 1e-09 | pass |
+| total | R | 19786.6446978571 | 19786.6446978571 | relative 1e-09 | pass |
+
+Note: The phase (show="phase") is not compared here: the sunspot phase has a step of exactly half a turn, where the last digit of the Fourier transform decides whether unwrapping adds or takes off 360 degrees.
+
+### `nums.take_fourier_transform`
+
+**the Lake Huron level: the size and phase of the first frequencies** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| frequencies | SciPy fft.rfft | 50 | 50 | relative 1e-12 | pass |
+| size at 0 | SciPy fft.rfft | 56742.4 | 56742.4 | relative 1e-12 | pass |
+| size at 1 / 98 | SciPy fft.rfft | 49.7917249115031 | 49.7917249115031 | relative 1e-12 | pass |
+| phase at 1 / 98 | SciPy fft.rfft | -46.2957869207093 | -46.2957869207093 | relative 1e-12 | pass |
+| size at 0 | R | 56742.4 | 56742.4 | relative 1e-10 | pass |
+| size at 1 / 98 | R | 49.7917249115031 | 49.7917249115039 | relative 1e-10 | pass |
+| phase at 1 / 98 | R | -46.2957869207093 | -46.2957869207089 | relative 1e-10 | pass |
+
+**the yearly sunspot numbers: size and phase of the 11-year wave** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| size at 28 / 309 | NumPy fft.rfft | 4567.21956484423 | 4567.21956484423 | relative 1e-09 | pass |
+| phase at 28 / 309 | NumPy fft.rfft | -164.067910640384 | -164.067910640384 | relative 1e-09 | pass |
+| total of the sizes | NumPy fft.rfft | 74053.1000175372 | 74053.1000175372 | relative 1e-09 | pass |
+| size at 28 / 309 | R | 4567.21956484423 | 4567.21956484423 | relative 1e-09 | pass |
+| phase at 28 / 309 | R | -164.067910640384 | -164.067910640384 | relative 1e-09 | pass |
+| total of the sizes | R | 74053.1000175372 | 74053.1000175372 | relative 1e-09 | pass |
+
+### `sdata.find_inverse_fourier_transform`
+
+**the Lake Huron level there and back** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | the data themselves | 98 | 98 | relative 1e-12 | pass |
+| first year | the data themselves | 580.38 | 580.38 | relative 1e-12 | pass |
+| last year | the data themselves | 579.96 | 579.96 | relative 1e-12 | pass |
+
+**the yearly sunspot numbers there and back** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | the numbers themselves | 309 | 309 | relative 1e-12 | pass |
+| 1957 (position 258) | the numbers themselves | 190.2 | 190.2 | relative 1e-12 | pass |
+| total | the numbers themselves | 15373.4 | 15373.4 | relative 1e-12 | pass |
+| numbers | R | 309 | 309 | relative 1e-12 | pass |
+| 1957 (position 258) | R | 190.2 | 190.2 | relative 1e-12 | pass |
+| total | R | 15373.4 | 15373.4 | relative 1e-12 | pass |
+
+### `nums.convolve_with`
+
+**the air passengers convolved with the weights 1, 2, 1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | NumPy convolve (full) | 146 | 146 | relative 1e-12 | pass |
+| first | NumPy convolve (full) | 112 | 112 | relative 1e-12 | pass |
+| number 100 | NumPy convolve (full) | 1361 | 1361 | relative 1e-12 | pass |
+| count | R | 146 | 146 | relative 1e-09 | pass |
+| first | R | 112 | 111.999999999989 | relative 1e-09 | pass |
+| number 100 | R | 1361 | 1361 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers, weighted with 0.5, 0.3 and 0.2** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | NumPy convolve | 311 | 311 | relative 1e-12 | pass |
+| third | NumPy convolve | 12.3 | 12.3 | relative 1e-12 | pass |
+| total | NumPy convolve | 15373.4 | 15373.4 | relative 1e-12 | pass |
+| numbers | R | 311 | 311 | relative 1e-09 | pass |
+| third | R | 12.3 | 12.3 | relative 1e-09 | pass |
+| total | R | 15373.4 | 15373.4 | relative 1e-09 | pass |
+
+### `nums.deconvolve_by`
+
+**the air passengers divided by 1 + 0.5 z^-1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | SciPy signal.deconvolve | 143 | 143 | relative 1e-12 | pass |
+| first | SciPy signal.deconvolve | 112 | 112 | relative 1e-12 | pass |
+| number 100 | SciPy signal.deconvolve | 219.573468074553 | 219.573468074553 | relative 1e-12 | pass |
+| count | R | 143 | 143 | relative 1e-09 | pass |
+| first | R | 112 | 112 | relative 1e-09 | pass |
+| number 100 | R | 219.573468074553 | 219.573468074553 | relative 1e-09 | pass |
+
+Note: Dividing by 1 + 0.5 z^-1 is the recursive filter y[t] = x[t] - 0.5 y[t - 1].
+
+**the yearly sunspot numbers divided by 1 - 0.5 z (polynomial division)** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | SciPy signal.deconvolve | 308 | 308 | relative 1e-12 | pass |
+| last | SciPy signal.deconvolve | 38.0335261670098 | 38.0335261670098 | relative 1e-12 | pass |
+| total | SciPy signal.deconvolve | 30702.966473833 | 30702.966473833 | relative 1e-12 | pass |
+| numbers | R | 308 | 308 | relative 1e-09 | pass |
+| last | R | 38.0335261670098 | 38.0335261670098 | relative 1e-09 | pass |
+| total | R | 30702.966473833 | 30702.966473833 | relative 1e-09 | pass |
+
+### `nums.change_time_step`
+
+**the air passengers every two months (Fourier resampling)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | SciPy signal.resample | 72 | 72 | relative 1e-09 | pass |
+| first | SciPy signal.resample | 196.468128462929 | 196.468128462929 | relative 1e-09 | pass |
+| number 30 | SciPy signal.resample | 193.571238670015 | 193.571238670015 | relative 1e-09 | pass |
+
+**the yearly sunspot numbers, one reading every 2 years (Fourier)** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numbers | SciPy signal.resample | 154 | 154 | relative 1e-09 | pass |
+| first | SciPy signal.resample | 6.93686411930335 | 6.93686411930335 | relative 1e-09 | pass |
+| total | SciPy signal.resample | 7661.82394822006 | 7661.82394822006 | relative 1e-09 | pass |
+
+### `sdata.make_wave`
+
+**a square wave of 5 cycles a second, 100 readings 0.01 seconds apart** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | exact: worked out by hand from the formula | 1 | 1 | within 0 (exact formula) | pass |
+| number 11 | exact: worked out by hand from the formula | -1 | -1 | within 0 (exact formula) | pass |
+| total | exact: worked out by hand from the formula | 0 | 0 | within 0 (exact formula) | pass |
+| first | SciPy signal.square | 1 | 1 | exact | pass |
+| number 11 | SciPy signal.square | -1 | -1 | exact | pass |
+| total | SciPy signal.square | 0 | 0 | exact | pass |
+
+Note: Each cycle is 20 readings: 10 high, then 10 low.
+
+**a sine wave of 5 cycles per second, 100 readings 0.01 apart** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| readings | NumPy sin | 100 | 100 | relative 1e-12 | pass |
+| third | NumPy sin | 0.587785252292473 | 0.587785252292473 | relative 1e-12 | pass |
+| biggest | NumPy sin | 1 | 1 | relative 1e-12 | pass |
+| total of squares | NumPy sin | 50 | 50 | relative 1e-12 | pass |
+| readings | R | 100 | 100 | relative 1e-12 | pass |
+| third | R | 0.587785252292473 | 0.587785252292473 | relative 1e-12 | pass |
+| biggest | R | 1 | 1 | relative 1e-12 | pass |
+| total of squares | R | 50 | 50 | relative 1e-12 | pass |
+
+### `sdata.make_window_shape`
+
+**the symmetric Hann window of 64 weights** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | exact: worked out by hand from the formula | 0 | 0 | within 1e-15 (exact formula) | pass |
+| total | exact: worked out by hand from the formula: (64 - 1) / 2 | 31.5 | 31.5 | within 1e-12 (exact formula) | pass |
+| first | NumPy hanning | 0 | 0 | relative 1e-12 | pass |
+| number 32 | NumPy hanning | 0.999378460609461 | 0.999378460609461 | relative 1e-12 | pass |
+| total | NumPy hanning | 31.5 | 31.5 | relative 1e-12 | pass |
+| (all) | R with gsignal | | | | skipped: needs R with gsignal, which is not installed here |
+| weights | NumPy hanning | 64 | 64 | relative 1e-12 | pass |
+| second | NumPy hanning | 0.0024846123172993 | 0.0024846123172993 | relative 1e-12 | pass |
+| total | NumPy hanning | 31.5 | 31.5 | relative 1e-12 | pass |
+| weights | R | 64 | 64 | relative 1e-12 | pass |
+| second | R | 0.0024846123172993 | 0.0024846123172993 | relative 1e-12 | pass |
+| total | R | 31.5 | 31.5 | relative 1e-12 | pass |
+
+### `sdata.system`
+
+**2 / (2 s^2 + 4 s + 10) is written as 1 / (s^2 + 2 s + 5)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top | exact: worked out by hand from the formula | 1 | 1 | within 1e-15 (exact formula) | pass |
+| s | exact: worked out by hand from the formula | 2 | 2 | within 1e-15 (exact formula) | pass |
+| constant | exact: worked out by hand from the formula | 5 | 5 | within 1e-15 (exact formula) | pass |
+
+**a system from its poles -1 and -2, zero -3 and gain 2** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numerator, s^0 | python-control zpk | 6 | 6 | relative 1e-12 | pass |
+| numerator, s^1 | python-control zpk | 2 | 2 | relative 1e-12 | pass |
+| denominator, s^1 | python-control zpk | 3 | 3 | relative 1e-12 | pass |
+| denominator, s^0 | python-control zpk | 2 | 2 | relative 1e-12 | pass |
+| numerator, s^0 | R | 6 | 6 | relative 1e-12 | pass |
+| numerator, s^1 | R | 2 | 2 | relative 1e-12 | pass |
+| denominator, s^1 | R | 3 | 3 | relative 1e-12 | pass |
+| denominator, s^0 | R | 2 | 2 | relative 1e-12 | pass |
+
+### `system.step_response`
+
+**1 / (s^2 + 2 s + 5): the step response against its closed form** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at time 10 / 199 x 31 | exact: 0.2 (1 - exp(-t) (cos 2t + sin 2t / 2)) | 0.241558177249802 | 0.241558177249802 | within 1e-07 (exact formula) | pass |
+| at time 10 | exact: 0.2 (1 - exp(-t) (cos 2t + sin 2t / 2)) | 0.199992149855585 | 0.199992149855585 | within 1e-07 (exact formula) | pass |
+| at time 10 / 199 x 31 | SciPy signal.step | 0.241558177249802 | 0.241558177249802 | relative 1e-12 | pass |
+| at time 10 | SciPy signal.step | 0.199992149855585 | 0.199992149855585 | relative 1e-12 | pass |
+
+Note: SciPy's step response solves the system numerically, so it agrees with the formula to about 1e-8.
+
+**1 / (s^2 + 2 s + 5): the answer to a step, 0 to 5 seconds** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 1.5 | python-control step_response | 0.241030623862586 | 0.241030623862586 | relative 1e-08 | pass |
+| at 5 | python-control step_response | 0.201497282439427 | 0.201497282439427 | relative 1e-08 | pass |
+| total | python-control step_response | 1.93984483430892 | 1.93984483430892 | relative 1e-08 | pass |
+| at 1.5 | R | 0.241030623862586 | 0.241030623862586 | relative 1e-08 | pass |
+| at 5 | R | 0.201497282439427 | 0.201497282439427 | relative 1e-08 | pass |
+| total | R | 1.93984483430892 | 1.93984483430892 | relative 1e-08 | pass |
+
+Note: R: the step response written out from the poles and residues of the formula.
+
+### `system.impulse_response`
+
+**1 / (s^2 + 2 s + 5): the impulse response against its closed form** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at time 10 / 199 x 31 | exact: exp(-t) sin(2t) / 2 | 0.00273906139735488 | 0.00273906139735484 | within 1e-07 (exact formula) | pass |
+| at time 10 | exact: exp(-t) sin(2t) / 2 | 2.07238251300142e-05 | 2.07238251300142e-05 | within 1e-07 (exact formula) | pass |
+| at time 10 / 199 x 31 | SciPy signal.impulse | 0.00273906139735488 | 0.00273906139735488 | relative 1e-12 | pass |
+| at time 10 | SciPy signal.impulse | 2.07238251300142e-05 | 2.07238251300142e-05 | relative 1e-12 | pass |
+
+**1 / (s^2 + 2 s + 5): the answer to a kick, 0 to 5 seconds** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 0.5 | python-control impulse_response | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
+| at 2 | python-control impulse_response | -0.0512110400283369 | -0.0512110400283368 | relative 1e-08 | pass |
+| total | python-control impulse_response | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+| at 0.5 | R | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
+| at 2 | R | -0.0512110400283369 | -0.0512110400283369 | relative 1e-08 | pass |
+| total | R | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+
+### `system.response_to`
+
+**a first-order lag 1 / (5 s + 1) fed the level of Lake Huron, year by year** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| output after 1 year | SciPy signal.lsim(interp=False) | 105.205045528601 | 105.205045528601 | relative 1e-09 | pass |
+| output in 1972 | SciPy signal.lsim(interp=False) | 578.682841342042 | 578.682841342042 | relative 1e-09 | pass |
+| output after 1 year | R | 105.205045528601 | 105.205045528601 | relative 1e-09 | pass |
+| output in 1972 | R | 578.682841342042 | 578.682841342042 | relative 1e-09 | pass |
+
+Note: With each input held for a year, the lag is exactly y[t] = a y[t - 1] + (1 - a) x[t - 1], a = exp(-1 / 5).
+
+**a first-order system (time constant 5 years) answering the sunspot numbers** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1957 (row 258) | python-control sample_system (zoh) and forced_response | 67.4058432652337 | 67.4058432652337 | relative 1e-09 | pass |
+| last | python-control sample_system (zoh) and forced_response | 47.1249787683812 | 47.1249787683812 | relative 1e-09 | pass |
+| total | python-control sample_system (zoh) and forced_response | 15157.6527023422 | 15157.6527023422 | relative 1e-09 | pass |
+| 1957 (row 258) | R | 67.4058432652337 | 67.4058432652337 | relative 1e-09 | pass |
+| last | R | 47.1249787683812 | 47.1249787683812 | relative 1e-09 | pass |
+| total | R | 15157.6527023422 | 15157.6527023422 | relative 1e-09 | pass |
+
+Note: Each input holds until the next year (zero order hold), as simplydata's response_to does; R gives the exact answer of that, written out year by year.
+
+### `system.frequency_response`
+
+**1 / (s^2 + 2 s + 5) at 1 radian per second** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| gain at 1 | exact: worked out by hand from the formula: 1 / sqrt(16 + 4) | 0.223606797749979 | 0.223606797749979 | within 1e-12 (exact formula) | pass |
+| phase at 1 | exact: worked out by hand from the formula: -atan(2 / 4) in degrees | -26.565051177078 | -26.565051177078 | within 1e-10 (exact formula) | pass |
+| gain at 1 | R | 0.223606797749979 | 0.223606797749979 | relative 1e-12 | pass |
+| phase at 1 | R | -26.565051177078 | -26.565051177078 | relative 1e-12 | pass |
+
+**1 / (s^2 + 2 s + 5): gain and phase from 0.1 to 10 radians a second** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| gain at 1 | python-control (the formula at s = i w) | 0.223606797749979 | 0.223606797749979 | relative 1e-09 | pass |
+| phase at 3.16 (degrees) | python-control (the formula at s = i w) | -128.328818101456 | -128.328818101456 | relative 1e-09 | pass |
+| gain at 10 (dB) | python-control (the formula at s = i w) | -39.7428135887783 | -39.7428135887783 | relative 1e-09 | pass |
+| gain at 1 | R | 0.223606797749979 | 0.223606797749979 | relative 1e-09 | pass |
+| phase at 3.16 (degrees) | R | -128.328818101456 | -128.328818101456 | relative 1e-09 | pass |
+| gain at 10 (dB) | R | -39.7428135887783 | -39.7428135887783 | relative 1e-09 | pass |
+
+### `system.poles`
+
+**1 / (s^2 + 2 s + 5): poles -1 +/- 2i** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| real part | exact: worked out by hand from the formula | -1 | -1 | within 1e-12 (exact formula) | pass |
+| damping ratio | exact: worked out by hand from the formula | 0.447213595499958 | 0.447213595499958 | within 1e-12 (exact formula) | pass |
+| natural frequency | exact: worked out by hand from the formula | 2.23606797749979 | 2.23606797749979 | within 1e-12 (exact formula) | pass |
+| real part | R | -1 | -1 | relative 1e-12 | pass |
+| damping ratio | R | 0.447213595499958 | 0.447213595499958 | relative 1e-12 | pass |
+| natural frequency | R | 2.23606797749979 | 2.23606797749979 | relative 1e-12 | pass |
+
+**(s^2 + 4 s + 13) / (s^3 + 3 s^2 + 7 s + 5): the poles -1 and -1 +/- 2i** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| poles | python-control poles | 3 | 3 | relative 1e-09 | pass |
+| biggest imaginary part | python-control poles | 2 | 2 | relative 1e-09 | pass |
+| total of the real parts | python-control poles | -3 | -3 | relative 1e-09 | pass |
+| smallest damping ratio | python-control poles | 0.447213595499958 | 0.447213595499958 | relative 1e-09 | pass |
+| poles | R | 3 | 3 | relative 1e-09 | pass |
+| biggest imaginary part | R | 2 | 2 | relative 1e-09 | pass |
+| total of the real parts | R | -3 | -3 | relative 1e-09 | pass |
+| smallest damping ratio | R | 0.447213595499958 | 0.447213595499958 | relative 1e-09 | pass |
+
+### `system.zeros`
+
+**(s + 1) / (s^2 + 2 s + 5): one zero at -1** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| zeros | exact: worked out by hand from the formula | 1 | 1 | within 0 (exact formula) | pass |
+| real part | exact: worked out by hand from the formula | -1 | -1 | within 1e-12 (exact formula) | pass |
+
+**(s^2 + 4 s + 13) / (s^3 + 3 s^2 + 7 s + 5): the zeros -2 +/- 3i** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| zeros | python-control zeros | 2 | 2 | relative 1e-09 | pass |
+| biggest imaginary part | python-control zeros | 3 | 3 | relative 1e-09 | pass |
+| distance from 0 | python-control zeros | 3.60555127546399 | 3.60555127546399 | relative 1e-09 | pass |
+| zeros | R | 2 | 2 | relative 1e-09 | pass |
+| biggest imaginary part | R | 3 | 2.99999999999999 | relative 1e-09 | pass |
+| distance from 0 | R | 3.60555127546399 | 3.60555127546399 | relative 1e-09 | pass |
+
+### `system.is_stable`
+
+**1 / (s^2 + 4) rings for ever: poles on the axis are not stable** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| stable (1 = yes) | exact: worked out by hand from the formula: poles +/- 2i | 0 | 0 | within 0 (exact formula) | pass |
+| 1 / (s + 1) stable | exact: worked out by hand from the formula: pole -1 | 1 | 1 | within 0 (exact formula) | pass |
+
+**1 / (s^2 + 2 s + 5) is stable; 1 / (s^2 - s + 2) is not** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| stable one | python-control poles | 1 | 1 | exact | pass |
+| unstable one | python-control poles | 0 | 0 | exact | pass |
+| stable one | R | 1 | 1 | exact | pass |
+| unstable one | R | 0 | 0 | exact | pass |
+
+### `system.steady_gain`
+
+**1 / (s^2 + 2 s + 5) settles at 0.2** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| steady gain | exact: worked out by hand from the formula: 1 / 5 | 0.2 | 0.2 | within 1e-15 (exact formula) | pass |
+| (all) | R with control | | | | skipped: needs R with control, which is not installed here |
+
+**(s^2 + 4 s + 13) / (s^3 + 3 s^2 + 7 s + 5) settles at 13 / 5** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| steady gain | python-control dcgain | 2.6 | 2.6 | relative 1e-12 | pass |
+| steady gain | R | 2.6 | 2.6 | relative 1e-12 | pass |
+
+### `system.in_steps`
+
+**1 / (s + 1) in steps of 0.1 (zero order hold)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top | exact: worked out by hand from the formula: 1 - exp(-0.1) | 0.0951625819640405 | 0.0951625819640405 | within 1e-12 (exact formula) | pass |
+| pole | exact: worked out by hand from the formula: exp(-0.1) | 0.90483741803596 | 0.90483741803596 | within 1e-12 (exact formula) | pass |
+| (all) | R with control | | | | skipped: needs R with control, which is not installed here |
+
+**1 / (s^2 + 2 s + 5) in steps of 0.1 (zero order hold)** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| distance of the poles from 0 | python-control sample_system (zoh) | 0.90483741803596 | 0.90483741803596 | relative 1e-09 | pass |
+| real part of the poles | python-control sample_system (zoh) | 0.886800911797208 | 0.886800911797208 | relative 1e-09 | pass |
+| steady gain | python-control sample_system (zoh) | 0.2 | 0.2 | relative 1e-09 | pass |
+| distance of the poles from 0 | R | 0.90483741803596 | 0.90483741803596 | relative 1e-09 | pass |
+| real part of the poles | R | 0.886800911797208 | 0.886800911797208 | relative 1e-09 | pass |
+| steady gain | R | 0.2 | 0.2 | relative 1e-09 | pass |
+
+### `system.then`
+
+**1 / (s + 1), then 1 / (s + 2): 1 / (s^2 + 3 s + 2)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| s | exact: worked out by hand from the formula | 3 | 3 | within 1e-15 (exact formula) | pass |
+| constant | exact: worked out by hand from the formula | 2 | 2 | within 1e-15 (exact formula) | pass |
+
+**1 / (s^2 + 2 s + 5), then 1 / (s + 3)** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| denominator, s^2 | python-control series | 5 | 5 | relative 1e-12 | pass |
+| denominator, s^1 | python-control series | 11 | 11 | relative 1e-12 | pass |
+| denominator, s^0 | python-control series | 15 | 15 | relative 1e-12 | pass |
+| numerator, s^0 | python-control series | 1 | 1 | relative 1e-12 | pass |
+| denominator, s^2 | R | 5 | 5 | relative 1e-12 | pass |
+| denominator, s^1 | R | 11 | 11 | relative 1e-12 | pass |
+| denominator, s^0 | R | 15 | 15 | relative 1e-12 | pass |
+| numerator, s^0 | R | 1 | 1 | relative 1e-12 | pass |
+
+### `system.add`
+
+**1 / (s + 1) and 1 / (s + 2) side by side: (2 s + 3) / (s^2 + 3 s + 2)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top s | exact: worked out by hand from the formula | 2 | 2 | within 1e-15 (exact formula) | pass |
+| top constant | exact: worked out by hand from the formula | 3 | 3 | within 1e-15 (exact formula) | pass |
+
+**1 / (s^2 + 2 s + 5) and 1 / (s + 3) side by side** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| numerator, s^2 | python-control parallel | 1 | 1 | relative 1e-12 | pass |
+| numerator, s^1 | python-control parallel | 3 | 3 | relative 1e-12 | pass |
+| numerator, s^0 | python-control parallel | 8 | 8 | relative 1e-12 | pass |
+| denominator, s^0 | python-control parallel | 15 | 15 | relative 1e-12 | pass |
+| numerator, s^2 | R | 1 | 1 | relative 1e-12 | pass |
+| numerator, s^1 | R | 3 | 3 | relative 1e-12 | pass |
+| numerator, s^0 | R | 8 | 8 | relative 1e-12 | pass |
+| denominator, s^0 | R | 15 | 15 | relative 1e-12 | pass |
+
+### `system.with_feedback`
+
+**1 / (s^2 + 2 s + 5) in a loop: 1 / (s^2 + 2 s + 6)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| constant | exact: worked out by hand from the formula | 6 | 6 | within 1e-15 (exact formula) | pass |
+
+**10 / (s + 10) with 1 / (0.1 s + 1) in the feedback path** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| steady gain | python-control feedback | 0.5 | 0.5 | relative 1e-09 | pass |
+| poles | python-control feedback | 2 | 2 | relative 1e-09 | pass |
+| biggest distance of a pole from 0 | python-control feedback | 14.142135623731 | 14.142135623731 | relative 1e-09 | pass |
+| steady gain | R | 0.5 | 0.5 | relative 1e-09 | pass |
+| poles | R | 2 | 2 | relative 1e-09 | pass |
+| biggest distance of a pole from 0 | R | 14.142135623731 | 14.1421356237312 | relative 1e-09 | pass |
+
+### `system.table`
+
+**(s + 1) / (s^2 + 2 s + 5) as numbers, and in state space** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| top s^2 | exact: worked out by hand from the formula | 0 | 0 | within 0 (exact formula) | pass |
+| rows of A, B, C, D | 4 + 2 + 2 + 1 numbers | 9 | 9 | within 0 (exact formula) | pass |
+
+### `system.chart`
+
+**the Bode chart of 1 / (s^2 + 2 s + 5): its first gain is SciPy's** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first gain minus its closed form | exact: 20 log10 \|1 / (5 - w^2 + 2iw)\| at the first frequency drawn | 3.5527136788005e-15 | 0 | within 1e-09 (exact formula) | pass |
+| frequencies | SciPy signal.freqresp | 200 | 200 | relative 1e-12 | pass |
+| first gain (decibels) | SciPy signal.freqresp | -13.9689819049622 | -13.9689819049622 | relative 1e-12 | pass |
+
+### `autocorrelation_bars`
+
+**the drawn sticks for the Lake Huron level are statsmodels' acf** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sticks | statsmodels acf | 19 | 19 | relative 1e-12 | pass |
+| 1 year back | statsmodels acf | 0.831911210352453 | 0.831911210352453 | relative 1e-12 | pass |
+| 1 year back | R | 0.831911210352453 | 0.831911210352453 | relative 1e-12 | pass |
+
+**the yearly sunspot numbers: the correlation with 1 to 24 years back** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bars | statsmodels acf | 24 | 24 | relative 1e-09 | pass |
+| 1 year back | statsmodels acf | 0.820201294420022 | 0.820201294420022 | relative 1e-09 | pass |
+| 11 years back | statsmodels acf | 0.650290819840704 | 0.650290819840704 | relative 1e-09 | pass |
+| 24 years back | statsmodels acf | 0.0449620792585651 | 0.0449620792585651 | relative 1e-09 | pass |
+| bars | R | 24 | 24 | relative 1e-09 | pass |
+| 1 year back | R | 0.820201294420022 | 0.820201294420022 | relative 1e-09 | pass |
+| 11 years back | R | 0.650290819840704 | 0.650290819840703 | relative 1e-09 | pass |
+| 24 years back | R | 0.0449620792585651 | 0.0449620792585652 | relative 1e-09 | pass |
+
+### `cross_correlation_bars`
+
+**drivers killed or injured and front-seat passengers: the drawn shift 0** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sticks | R | 25 | 25 | relative 1e-12 | pass |
+| shift 0 | R | 0.888826368428162 | 0.888826368428162 | relative 1e-12 | pass |
+| shift 1 | R | 0.614104086165664 | 0.614104086165664 | relative 1e-12 | pass |
+
+Note: A stick at shift s pairs the first column at month t with the second at month t + s: R's lag -s.
+
+**US inflation and unemployment: shifts of -4 to 4 quarters** (real data; data: US inflation and unemployment)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bars | the cross-correlation written out in NumPy (as R ccf) | 9 | 9 | relative 1e-09 | pass |
+| shift -4 | the cross-correlation written out in NumPy (as R ccf) | 0.0644056902275019 | 0.0644056902275018 | relative 1e-09 | pass |
+| shift 0 | the cross-correlation written out in NumPy (as R ccf) | 0.0650151415619891 | 0.0650151415619891 | relative 1e-09 | pass |
+| shift 4 | the cross-correlation written out in NumPy (as R ccf) | 0.337623557792578 | 0.337623557792578 | relative 1e-09 | pass |
+| bars | R | 9 | 9 | relative 1e-09 | pass |
+| shift -4 | R | 0.0644056902275019 | 0.0644056902275019 | relative 1e-09 | pass |
+| shift 0 | R | 0.0650151415619891 | 0.0650151415619891 | relative 1e-09 | pass |
+| shift 4 | R | 0.337623557792578 | 0.337623557792577 | relative 1e-09 | pass |
+
+### `lag_dots`
+
+**the Lake Huron level against the year before** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | pandas shift(1) | 97 | 97 | exact | pass |
+| first dot x | pandas shift(1) | 580.38 | 580.38 | exact | pass |
+| first dot y | pandas shift(1) | 581.86 | 581.86 | exact | pass |
+
+**the yearly sunspot numbers against the year before** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | NumPy (the pairs themselves) | 308 | 308 | relative 1e-12 | pass |
+| sum of the year before | NumPy (the pairs themselves) | 15370.5 | 15370.5 | relative 1e-12 | pass |
+| sum of the year itself | NumPy (the pairs themselves) | 15368.4 | 15368.4 | relative 1e-12 | pass |
+| dots | R | 308 | 308 | relative 1e-12 | pass |
+| sum of the year before | R | 15370.5 | 15370.5 | relative 1e-12 | pass |
+| sum of the year itself | R | 15368.4 | 15368.4 | relative 1e-12 | pass |
+
+### `peak_dots`
+
+**the drivers killed or seriously injured: a dot on each peak at least 6 months apart** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | SciPy find_peaks(distance=6) | 21 | 21 | exact | pass |
+| first dot (month) | SciPy find_peaks(distance=6) | 5 | 5 | exact | pass |
+| highest | SciPy find_peaks(distance=6) | 2654 | 2654 | exact | pass |
+
+**the yearly sunspot numbers: dots on the maxima of at least 150** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | SciPy signal.find_peaks | 5 | 5 | exact | pass |
+| first year | SciPy signal.find_peaks | 1778 | 1778 | exact | pass |
+| sum of years | SciPy signal.find_peaks | 9650 | 9650 | exact | pass |
+| highest | SciPy signal.find_peaks | 190.2 | 190.2 | exact | pass |
+| dots | R | 5 | 5 | exact | pass |
+| first year | R | 1778 | 1778 | exact | pass |
+| sum of years | R | 9650 | 9650 | exact | pass |
+| highest | R | 190.2 | 190.2 | exact | pass |
+
+### `forecast`
+
+**the drawn forecast of the air passengers is R's** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months drawn | R | 12 | 12 | relative 1e-09 | pass |
+| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+
+**El Nino sea temperatures: the next 12 months by Holt-Winters, drawn after the line** (real data; data: El Nino sea surface temperatures)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| forecast points | R | 12 | 12 | relative 1e-09 | pass |
+| first month | R | 23.8701353286347 | 23.8701353286347 | relative 1e-09 | pass |
+| twelfth month | R | 21.9750442568474 | 21.9750442568474 | relative 1e-09 | pass |
+
+Note: simplydata runs R HoltWinters through forecast::forecast; the reference is HoltWinters' own predict() in base R.
+
+### `trend_and_season`
+
+**the air passengers in four panels: the drawn trend is R stl()'s trend** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| panels | statsmodels STL with R stl()'s settings | 4 | 4 | relative 1e-09 | pass |
+| trend, January 1949 | statsmodels STL with R stl()'s settings | 122.536917649433 | 122.536917649433 | relative 1e-09 | pass |
+| trend, December 1960 | statsmodels STL with R stl()'s settings | 495.992096826481 | 495.992096826481 | relative 1e-09 | pass |
+| trend, January 1949 | R | 122.536917649433 | 122.536917649433 | relative 1e-09 | pass |
+| trend, December 1960 | R | 495.992096826481 | 495.992096826481 | relative 1e-09 | pass |
+
+**El Nino sea temperatures: the trend panel (season window 7)** (real data; data: El Nino sea surface temperatures)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| trend points | R | 732 | 732 | relative 1e-09 | pass |
+| first trend | R | 21.4686598246004 | 21.4686598246003 | relative 1e-09 | pass |
+| total trend | R | 16901.7872632438 | 16901.7872632438 | relative 1e-09 | pass |
+| first season | R | 1.23199147829935 | 1.23199147829935 | relative 1e-09 | pass |
+
+### `table.compare_counts_to`
+
+**mtcars: are the cars spread evenly over 3, 4 and 5 gears?** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | SciPy stats.chisquare | 4.9375 | 4.9375 | relative 1e-12 | pass |
+| p-value | SciPy stats.chisquare | 0.0846906561847805 | 0.0846906561847805 | relative 1e-12 | pass |
+| chi-square | R | 4.9375 | 4.9375 | relative 1e-12 | pass |
+| p-value | R | 0.0846906561847805 | 0.0846906561847805 | relative 1e-12 | pass |
+
+### `table.compare_shapes_of`
+
+**Fisher's iris: do the sepal lengths of the three species differ in shape?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| T | SciPy stats.anderson_ksamp(midrank=True) | 51.2306560743079 | 51.2306560743079 | relative 1e-12 | pass |
+
+Note: SciPy's midrank version is version 2 of R kSamples::ad.test(), which gives T.AD = 51.231 here.
+
+### `table.compare_shapes_of two groups`
+
+**Student's sleep data: do the two drugs differ in shape (tied values)?** (real data; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| D | SciPy stats.ks_2samp | 0.4 | 0.4 | relative 1e-12 | pass |
+| D | R | 0.4 | 0.4 | relative 1e-12 | pass |
+| p-value | R | 0.396826084132586 | 0.396826084132586 | relative 1e-12 | pass |
+
+### `table.check_if_random_order`
+
+**Lake Huron: do the yearly levels come in a random order?** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| z | statsmodels Runs.runs_test(correction=False) | -5.88932072818723 | -5.88932072818723 | relative 1e-12 | pass |
+| runs | statsmodels Runs.runs_test(correction=False) | 21 | 21 | relative 1e-12 | pass |
+| z | R | -5.88932072818723 | -5.88932072818723 | relative 1e-12 | pass |
+| runs | R | 21 | 21 | relative 1e-12 | pass |
+
+Note: The R code is the runs test of R randtests::runs.test(), written out in base R.
+
+### `table.compare_correlations`
+
+**Fisher's iris: sepal and petal length, setosa against versicolor** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| r in setosa | SciPy stats.pearsonr | 0.267175758868757 | 0.267175758868757 | relative 1e-12 | pass |
+| r in setosa | R | 0.267175758868757 | 0.267175758868757 | relative 1e-10 | pass |
+| z | R | -3.43436203811973 | -3.43436203811973 | relative 1e-10 | pass |
+| p-value | R | 0.00059395033066556 | 0.00059395033066556 | relative 1e-10 | pass |
+
+### `sdata.compare_averages`
+
+**Student's sleep data: Welch's t-test from each drug's average, standard deviation and count** (real data; data: Student's sleep data)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| t | SciPy stats.ttest_ind on the rows (Welch) | -1.86081346748685 | -1.86081346748685 | relative 1e-09 | pass |
+| degrees of freedom | SciPy stats.ttest_ind on the rows (Welch) | 17.7764735161785 | 17.7764735161785 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.ttest_ind on the rows (Welch) | -3.36548323071171 | -3.36548323071171 | relative 1e-09 | pass |
+| t | R | -1.86081346748685 | -1.86081346748685 | relative 1e-09 | pass |
+| degrees of freedom | R | 17.7764735161785 | 17.7764735161785 | relative 1e-09 | pass |
+| 95 % CI low | R | -3.36548323071171 | -3.36548323071171 | relative 1e-09 | pass |
+
+Note: The summary numbers give the same test as the rows (R t.test()).
+
+### `sdata.compare_counts`
+
+**dry cat food and FLUTD: the 2 x 2 table of counts** (real data; data: dry cat food and FLUTD)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | SciPy stats.chi2_contingency (Yates) | 6.85358978891301 | 6.85358978891301 | relative 1e-12 | pass |
+| p-value | SciPy stats.chi2_contingency (Yates) | 0.00884633510871052 | 0.00884633510871052 | relative 1e-12 | pass |
+| chi-square | R | 6.85358978891301 | 6.85358978891301 | relative 1e-10 | pass |
+| p-value | R | 0.00884633510871052 | 0.0088463351087105 | relative 1e-10 | pass |
+
+### `sdata.compare_risks`
+
+**dry cat food and FLUTD: the risk ratio of dry food against other food** (real data; data: dry cat food and FLUTD)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| risk ratio | statsmodels Table2x2 | 4.00753676470588 | 4.00753676470588 | relative 1e-12 | pass |
+| 95 % CI low | statsmodels Table2x2 | 1.43073388022936 | 1.43073388022936 | relative 1e-12 | pass |
+| risk ratio | R | 4.00753676470588 | 4.00753676470588 | relative 1e-09 | pass |
+| 95 % CI low | R | 1.43073388022936 | 1.43073388022936 | relative 1e-09 | pass |
+| p-value | R | 0.00884633510871052 | 0.0088463351087105 | relative 1e-09 | pass |
+
+### `sdata.compare_rates`
+
+**Hart 1999: strokes per patient-year with warfarin and with placebo, the first trial** (real data; data: Hart 1999 (metadat))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rate ratio | statsmodels test_poisson_2indep(method="exact-cond") | 0.456480183509621 | 0.456480183509621 | relative 1e-10 | pass |
+| p-value | statsmodels test_poisson_2indep(method="exact-cond") | 0.0578533500241171 | 0.0578533500241171 | relative 1e-10 | pass |
+| rate ratio | R | 0.456480183509621 | 0.456480183509621 | relative 1e-09 | pass |
+| 95 % CI high | R | 1.05880349446899 | 1.05880349446899 | relative 1e-09 | pass |
+| p-value | R | 0.0578533500241171 | 0.0578533500241171 | relative 1e-09 | pass |
+
+### `table.compare_to_truth`
+
+**birthwt: the mother's smoking as a marker of a low birth weight** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sensitivity | statsmodels proportion_confint(method="beta") | 0.508474576271186 | 0.508474576271186 | relative 1e-12 | pass |
+| 95 % CI low | statsmodels proportion_confint(method="beta") | 0.374982549734976 | 0.374982549734976 | relative 1e-12 | pass |
+| sensitivity | R | 0.508474576271186 | 0.508474576271186 | relative 1e-09 | pass |
+| 95 % CI low | R | 0.374982549734976 | 0.374982549734976 | relative 1e-09 | pass |
+
+### `table.compare_to_truth a column of numbers`
+
+**aSAH: the AUC of s100b for a poor outcome** (real data; data: aSAH (pROC))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| AUC | R | 0.731368563685637 | 0.731368563685637 | relative 1e-12 | pass |
+| 95 % CI low | R | 0.630118211761623 | 0.630118211761623 | relative 1e-12 | pass |
+
+Note: Robin et al. (2011) show the same curve in pROC's paper (AUC 0.731).
+
+### `table.compare_accuracy`
+
+**birthwt: the mother's weight against her age as a marker of a low birth weight (lower scores count)** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| difference | R | 0.060560625814863 | 0.060560625814863 | relative 1e-10 | pass |
+| z | R | 1.03645617956146 | 1.03645617956146 | relative 1e-10 | pass |
+| p-value | R | 0.299989372716979 | 0.299989372716979 | relative 1e-10 | pass |
+
+### `sdata.compare_to_truth`
+
+**birthwt: smoking against a low birth weight, from the four counts** (real data; data: birthwt)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| specificity | the shares of the counts (pandas) | 0.661538461538462 | 0.661538461538462 | relative 1e-12 | pass |
+| positive likelihood ratio | the shares of the counts (pandas) | 1.50231124807396 | 1.50231124807396 | relative 1e-12 | pass |
+| positive likelihood ratio | R | 1.50231124807396 | 1.50231124807396 | relative 1e-09 | pass |
+| its 95 % CI low | R | 1.06140381342675 | 1.06140381342675 | relative 1e-09 | pass |
+
+### `table.agreement_between`
+
+**wg93: how alike do the same people answer questions A and B?** (real data; data: wg93 (ca))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| kappa | statsmodels cohens_kappa | 0.124036695399308 | 0.124036695399308 | relative 1e-12 | pass |
+| z | statsmodels cohens_kappa | 7.32211646048832 | 7.32211646048832 | relative 1e-12 | pass |
+| kappa | R | 0.124036695399308 | 0.124036695399308 | relative 1e-12 | pass |
+
+### `table.agreement_between columns of numbers`
+
+**creatinine: serum and plasma measurements of the same samples (ICC)** (real data; data: creatinine (mcr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ICC | R | 0.944475141076693 | 0.944475141076693 | relative 1e-12 | pass |
+| 95 % CI low | R | 0.919789592912614 | 0.919789592912614 | relative 1e-12 | pass |
+
+### `table.limits_of_agreement`
+
+**creatinine: serum minus plasma, the Bland-Altman limits** (real data; data: creatinine (mcr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| lower limit | NumPy mean and standard deviation (n - 1) | -0.314264236170878 | -0.314264236170878 | relative 1e-12 | pass |
+| upper limit | NumPy mean and standard deviation (n - 1) | 0.298893865800508 | 0.298893865800508 | relative 1e-12 | pass |
+| lower limit | R | -0.314264236170878 | -0.314264236170878 | relative 1e-12 | pass |
+| upper limit | R | 0.298893865800508 | 0.298893865800508 | relative 1e-12 | pass |
+| upper limit 95 % CI high | R | 0.350573900861587 | 0.350573900861587 | relative 1e-12 | pass |
+
+### `table.reliability_of`
+
+**Holzinger & Swineford: Cronbach's alpha of the three visual tests** (real data; data: Holzinger & Swineford 1939 (lavaan))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| alpha | NumPy, Cronbach's formula | 0.626117131884981 | 0.626117131884981 | relative 1e-12 | pass |
+| alpha | R | 0.626117131884981 | 0.626117131884981 | relative 1e-12 | pass |
+| 95 % CI low | R | 0.546503337102635 | 0.546503337102635 | relative 1e-12 | pass |
+
+### `difference_dots`
+
+**creatinine: serum minus plasma against their average, with the limits** (real data; data: creatinine (mcr))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | NumPy differences, mean and standard deviation (n - 1) | 108 | 108 | relative 1e-12 | pass |
+| average difference | NumPy differences, mean and standard deviation (n - 1) | -0.00768518518518518 | -0.00768518518518518 | relative 1e-12 | pass |
+| lower limit | NumPy differences, mean and standard deviation (n - 1) | -0.314264236170878 | -0.314264236170878 | relative 1e-12 | pass |
+| first dot up | NumPy differences, mean and standard deviation (n - 1) | 0.0299999999999999 | 0.0299999999999999 | relative 1e-12 | pass |
+| lower limit | R | -0.314264236170878 | -0.314264236170878 | relative 1e-12 | pass |
+| average difference | R | -0.00768518518518518 | -0.00768518518518518 | relative 1e-12 | pass |
+
+### `sdata.find_where_smallest`
+
+**Michelson: the value closest to all 100 measurements (least squares) is their mean** (published; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mean | NIST certified | 299.852399999994 | 299.8524 | within 1e-08 (printed rounding) | pass |
+| mean | SciPy optimize.minimize_scalar(method="bounded", xatol=1e-10) | 299.852399999994 | 299.8524 | relative 1e-12 | pass |
+| mean | R | 299.852399999994 | 299.8524 | relative 1e-11 | pass |
+
+Note: The mean of the measurements makes the sum of squared distances smallest.
+
+**Rosenbrock's valley from (-1.2, 1) by Nelder-Mead** (published; data: Rosenbrock's valley)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | Rosenbrock (1960) | 0.999999999975851 | 1 | within 0.0001 (printed rounding) | pass |
+| y | Rosenbrock (1960) | 0.999999999951727 | 1 | within 0.0001 (printed rounding) | pass |
+| x | SciPy optimize.minimize (Nelder-Mead, run to 1e-10) | 0.999999999975851 | 0.999999999975851 | relative 1e-06 | pass |
+| y | SciPy optimize.minimize (Nelder-Mead, run to 1e-10) | 0.999999999951727 | 0.999999999951727 | relative 1e-06 | pass |
+| x | R | 0.999999999975851 | 0.999999941145949 | relative 0.001 | pass |
+| y | R | 0.999999999951727 | 0.999999901357752 | relative 0.001 | pass |
+
+Note: Nelder-Mead stops by its own rule: SciPy run to 1e-10 agrees to 1e-6; R optim's Nelder-Mead stops near the valley floor and agrees to 1e-3, the size of the step at which it stops.
+
+### `sdata.find_where_biggest`
+
+**Michelson: minus the sum of squared distances is biggest at the mean** (published; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mean | NIST certified | 299.852399999994 | 299.8524 | within 1e-08 (printed rounding) | pass |
+| mean | SciPy optimize.minimize_scalar on minus the formula | 299.852399999994 | 299.8524 | relative 1e-12 | pass |
+| mean | R | 299.852399999994 | 299.8524 | relative 1e-11 | pass |
+
+**the Wyndor Glass product mix (a linear program)** (published; data: Wyndor Glass linear program)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x1 | Hillier & Lieberman (2015) | 2 | 2 | within 1e-09 (printed rounding) | pass |
+| x2 | Hillier & Lieberman (2015) | 6 | 6 | within 1e-09 (printed rounding) | pass |
+| profit | Hillier & Lieberman (2015) | 36 | 36 | within 1e-09 (printed rounding) | pass |
+| shadow price of plant 2 | Hillier & Lieberman (2015) | 1.5 | 1.5 | within 1e-09 (printed rounding) | pass |
+| shadow price of plant 3 | Hillier & Lieberman (2015) | 1 | 1 | within 1e-09 (printed rounding) | pass |
+| x1 | SciPy optimize.linprog (HiGHS) | 2 | 2 | relative 1e-09 | pass |
+| x2 | SciPy optimize.linprog (HiGHS) | 6 | 6 | relative 1e-09 | pass |
+| profit | SciPy optimize.linprog (HiGHS) | 36 | 36 | relative 1e-09 | pass |
+| shadow price of plant 2 | SciPy optimize.linprog (HiGHS) | 1.5 | 1.5 | relative 1e-09 | pass |
+| shadow price of plant 3 | SciPy optimize.linprog (HiGHS) | 1 | 1 | relative 1e-09 | pass |
+
+### `sdata.solve`
+
+**Michelson: the value from which the 100 measurements add up to 0 is their mean** (published; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mean | NIST certified | 299.8524 | 299.8524 | within 1e-08 (printed rounding) | pass |
+| solutions | exact | 1 | 1 | within 0 | pass |
+| mean | SciPy optimize.brentq | 299.8524 | 299.8524 | relative 1e-12 | pass |
+| mean | R | 299.8524 | 299.8524 | relative 1e-12 | pass |
+
+**Newton's cubic x^3 - 2x = 5 between 0 and 3** (published; data: Newton's cubic)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | Newton (1669), as printed by Ypma (1995) | 2.09455148154233 | 2.09455148 | within 5e-09 (printed rounding) | pass |
+| solutions | exact | 1 | 1 | within 0 | pass |
+| x | SciPy optimize.brentq | 2.09455148154233 | 2.09455148154233 | relative 1e-12 | pass |
+| solutions | SciPy optimize.brentq | 1 | 1 | relative 1e-12 | pass |
+| x | R | 2.09455148154233 | 2.09455148154233 | relative 1e-12 | pass |
+| solutions | R | 1 | 1 | relative 1e-12 | pass |
+
+### `table.values_at`
+
+**Lake Huron: the level halfway between two years, and before the first year** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900.5 | NumPy interp | 579.07 | 579.07 | relative 1e-12 | pass |
+| 1950.25 | NumPy interp | 578.5275 | 578.5275 | relative 1e-12 | pass |
+| empty | NumPy interp | 1 | 1 | relative 1e-12 | pass |
+| 1900.5 | R | 579.07 | 579.07 | relative 1e-12 | pass |
+| 1950.25 | R | 578.5275 | 578.5275 | relative 1e-12 | pass |
+| empty | R | 1 | 1 | relative 1e-12 | pass |
+
+**the yearly sunspot numbers between the years, by straight lines** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1700.5 | NumPy interp | 8 | 8 | relative 1e-12 | pass |
+| 1850.25 | NumPy interp | 66.075 | 66.075 | relative 1e-12 | pass |
+| 2007.9 | NumPy interp | 3.35999999999958 | 3.35999999999958 | relative 1e-12 | pass |
+| 1700.5 | R | 8 | 8 | relative 1e-12 | pass |
+| 1850.25 | R | 66.075 | 66.075 | relative 1e-12 | pass |
+| 2007.9 | R | 3.35999999999958 | 3.35999999999958 | relative 1e-12 | pass |
+
+### `table.make_map_of`
+
+**Fisher's iris: petal length over a map of sepal length and width (flat triangles)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| middle of the map | SciPy interpolate.griddata(method="linear") | 5.02 | 5.02 | relative 1e-12 | pass |
+| places | SciPy interpolate.griddata(method="linear") | 25 | 25 | relative 1e-12 | pass |
+| empty | SciPy interpolate.griddata(method="linear") | 15 | 15 | relative 1e-12 | pass |
+
+Note: Several flowers share a place; their average is used, as SciPy needs distinct points.
+
+**the yearly sunspot numbers at 5 evenly spaced years** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| places | NumPy interp on linspace | 5 | 5 | relative 1e-12 | pass |
+| second place | NumPy interp on linspace | 92.5 | 92.5 | relative 1e-12 | pass |
+| total | NumPy interp on linspace | 142.2 | 142.2 | relative 1e-12 | pass |
+| places | R | 5 | 5 | relative 1e-12 | pass |
+| second place | R | 92.5 | 92.5 | relative 1e-12 | pass |
+| total | R | 142.2 | 142.2 | relative 1e-12 | pass |
+
+### `table.compare_distributions_for`
+
+**mtcars: horsepower, the lognormal fit among four** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| AIC | SciPy lognorm.fit(floc=0) and kstest | 358.626271880694 | 358.626271880694 | relative 1e-09 | pass |
+| Kolmogorov-Smirnov statistic | SciPy lognorm.fit(floc=0) and kstest | 0.133573478600718 | 0.133573478600718 | relative 1e-09 | pass |
+| AIC | R | 358.626271880694 | 358.626271880694 | relative 1e-09 | pass |
+| Kolmogorov-Smirnov statistic | R | 0.133573478600718 | 0.133573478600719 | relative 1e-09 | pass |
+
+Note: The R code is the closed-form lognormal fit of R MASS::fitdistr() and the statistic of R fitdistrplus::gofstat(), written out in base R.
+
+### `nums.fit_distribution`
+
+**mtcars: a gamma distribution fitted to horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| shape | SciPy gamma.fit(floc=0) | 4.86044202024079 | 4.86044202024079 | relative 1e-09 | pass |
+| rate | SciPy gamma.fit(floc=0) | 0.0331346707813603 | 0.0331346707813603 | relative 1e-09 | pass |
+| shape | R | 4.86044202024079 | 4.86045501592241 | relative 0.0001 | pass |
+| rate | R | 0.0331346707813603 | 0.0331347694005732 | relative 0.0001 | pass |
+
+Note: R fitdistr is given horsepower in hundreds (its search starts badly on the raw scale) and stops at its own tolerance, so it agrees to 4 digits.
+
+### `dist.find_density_at`
+
+**mtcars: the height of a normal curve shaped like fuel use, at 20 miles per gallon** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| density at 20 | SciPy stats.norm.pdf | 0.0661856015711465 | 0.0661856015711465 | relative 1e-14 | pass |
+| density at 20 | R | 0.0661856015711465 | 0.0661856015711465 | relative 1e-12 | pass |
+
+### `dist.find_cut_off`
+
+**the value with a 2.5 % chance above it in the standard normal distribution** (published; data: standard normal table)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cut-off | NIST/SEMATECH e-Handbook, table 1.3.6.7.1 | 1.95996398454005 | 1.96 | within 0.005 (printed rounding) | pass |
+| cut-off | SciPy stats.norm.isf | 1.95996398454005 | 1.95996398454005 | relative 1e-14 | pass |
+| cut-off | R | 1.95996398454005 | 1.95996398454005 | relative 1e-14 | pass |
+
+Note: No data: the published value is the standard normal table.
+
+### `dist.find_middle_range`
+
+**the middle 95 % of the standard normal distribution** (published; data: standard normal table)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| low | NIST/SEMATECH e-Handbook, table 1.3.6.7.1 | -1.95996398454005 | -1.96 | within 0.005 (printed rounding) | pass |
+| high | NIST/SEMATECH e-Handbook, table 1.3.6.7.1 | 1.95996398454005 | 1.96 | within 0.005 (printed rounding) | pass |
+| low | SciPy stats.norm.ppf and isf | -1.95996398454005 | -1.95996398454005 | relative 1e-14 | pass |
+| high | SciPy stats.norm.ppf and isf | 1.95996398454005 | 1.95996398454005 | relative 1e-14 | pass |
+| low | R | -1.95996398454005 | -1.95996398454005 | relative 1e-14 | pass |
+| high | R | 1.95996398454005 | 1.95996398454005 | relative 1e-14 | pass |
+
+Note: No data: the published value is the standard normal table.
+
+### `dist.find_average`
+
+**mtcars: the average of a gamma distribution shaped like horsepower (moments)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average | SciPy stats.gamma.mean | 146.6875 | 146.6875 | relative 1e-14 | pass |
+| average | R | 146.6875 | 146.6875 | relative 1e-12 | pass |
+
+Note: The shape and rate come from the average and variance of horsepower, so the average is theirs.
+
+### `dist.find_median`
+
+**mtcars: the median of a gamma distribution shaped like horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| median | SciPy stats.gamma.median | 136.154678864025 | 136.154678864025 | relative 1e-14 | pass |
+| median | R | 136.154678864025 | 136.154678864025 | relative 1e-10 | pass |
+
+### `dist.find_standard_deviation`
+
+**mtcars: the standard deviation of a gamma distribution shaped like horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| standard deviation | SciPy stats.gamma.std | 68.5628684893206 | 68.5628684893206 | relative 1e-14 | pass |
+| standard deviation | R | 68.5628684893206 | 68.5628684893206 | relative 1e-12 | pass |
+
+### `dist.find_variance`
+
+**mtcars: the variance of a gamma distribution shaped like horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| variance | SciPy stats.gamma.var | 4700.86693548387 | 4700.86693548387 | relative 1e-14 | pass |
+| variance | R | 4700.86693548387 | 4700.86693548387 | relative 1e-12 | pass |
+
+Note: Shaped by its moments, the distribution has the variance of horsepower itself.
+
+### `dist.show_summary`
+
+**mtcars: the skewness and excess kurtosis of a gamma distribution shaped like horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| skewness | SciPy stats.gamma.stats(moments="mvsk") | 0.934815420391248 | 0.934815420391248 | relative 1e-14 | pass |
+| excess kurtosis | SciPy stats.gamma.stats(moments="mvsk") | 1.3108198053019 | 1.3108198053019 | relative 1e-14 | pass |
+| skewness | R | 0.934815420391248 | 0.934815420391248 | relative 1e-12 | pass |
+| excess kurtosis | R | 1.3108198053019 | 1.3108198053019 | relative 1e-12 | pass |
+
+### `dist.make_random_numbers`
+
+**mtcars: random numbers from a normal curve shaped like fuel use, seed 1** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy stats.norm.rvs with NumPy default_rng(1) | 22.1734429731977 | 22.1734429731977 | relative 1e-12 | pass |
+| total | SciPy stats.norm.rvs with NumPy default_rng(1) | 637.00996748002 | 637.00996748002 | relative 1e-12 | pass |
+
+Note: Random numbers have no published answer; the check is that the same seed gives SciPy's numbers.
+
+### `dist.draw_chart`
+
+**mtcars: the curve of a normal distribution shaped like fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first x | SciPy ppf and pdf on 200 places (matplotlib draws them) | 1.46595542183908 | 1.46595542183908 | relative 1e-12 | pass |
+| last x | SciPy ppf and pdf on 200 places (matplotlib draws them) | 38.7152945781609 | 38.7152945781609 | relative 1e-12 | pass |
+| points | SciPy ppf and pdf on 200 places (matplotlib draws them) | 200 | 200 | relative 1e-12 | pass |
+| highest | SciPy ppf and pdf on 200 places (matplotlib draws them) | 0.0661851037414739 | 0.0661851037414739 | relative 1e-12 | pass |
+| first x | R | 1.46595542183908 | 1.46595542183908 | relative 1e-12 | pass |
+| last x | R | 38.7152945781609 | 38.7152945781609 | relative 1e-12 | pass |
+
+### `dist.turn_into_table`
+
+**mtcars: a normal distribution shaped like fuel use, as a table** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average | pandas mean and std | 20.090625 | 20.090625 | relative 1e-14 | pass |
+| standard deviation | pandas mean and std | 6.0269480520891 | 6.0269480520891 | relative 1e-14 | pass |
+| average | R | 20.090625 | 20.090625 | relative 1e-12 | pass |
+| standard deviation | R | 6.0269480520891 | 6.0269480520891 | relative 1e-12 | pass |
+
+### `table.find_principal_components_of`
+
+**Fisher's iris: the principal components of the four measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| PC1 standard deviation | NumPy linalg.svd | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
+| PC1 share (%) | NumPy linalg.svd | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
+| PC1 weight of petal length | NumPy linalg.svd | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+| PC1 standard deviation | R | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
+| PC1 share (%) | R | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
+| PC1 weight of petal length | R | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+
+Note: The sign of a component is arbitrary, so the weight is compared without its sign.
+
 ### `table.show_last_rows`
 
 **the last 3 of Fisher's 150 iris flowers, numbered 148 to 150** (real data; data: iris)
@@ -5441,7 +6901,7 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | rows | R | 300 | 300 | relative 1e-12 | pass |
 | total petal width | R | 359.8 | 359.8 | relative 1e-12 | pass |
 
-### `table.turn_columns_into_rows`
+### `table.gather_into_rows`
 
 **iris sepal length and width turned into rows** (real data; data: iris)
 
@@ -5453,7 +6913,7 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | rows | R | 300 | 300 | relative 1e-12 | pass |
 | total | R | 1335.1 | 1335.1 | relative 1e-12 | pass |
 
-### `table.turn_rows_into_columns`
+### `table.spread_into_columns`
 
 **Student's sleep data: one row for each patient, a column for each drug** (published; data: Student's sleep data)
 
@@ -5465,6 +6925,50 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | patient 1 drug 1 | pandas pivot | 0.7 | 0.7 | relative 1e-12 | pass |
 | average drug 2 | R | 2.33 | 2.33 | relative 1e-12 | pass |
 | patient 1 drug 1 | R | 0.7 | 0.7 | relative 1e-12 | pass |
+
+### `table.swap_rows_and_columns`
+
+**mtcars miles per gallon and horsepower, one column for each of the 32 cars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas set_index().T | 33 | 33 | exact | pass |
+| rows | pandas set_index().T | 2 | 2 | exact | pass |
+| Mazda RX4 mpg | pandas set_index().T | 21 | 21 | exact | pass |
+| Volvo 142E hp | pandas set_index().T | 109 | 109 | exact | pass |
+| rows | R | 2 | 2 | exact | pass |
+| Mazda RX4 mpg | R | 21 | 21 | exact | pass |
+| Volvo 142E hp | R | 109 | 109 | exact | pass |
+
+### `table.make_copy`
+
+**Fisher's iris: a copy keeps all 150 flowers after the table keeps the 50 setosa** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| table rows | pandas copy() | 50 | 50 | relative 1e-12 | pass |
+| copy rows | pandas copy() | 150 | 150 | relative 1e-12 | pass |
+| copy sepal length total | pandas copy() | 876.5 | 876.5 | relative 1e-12 | pass |
+| table rows | R | 50 | 50 | relative 1e-12 | pass |
+| copy rows | R | 150 | 150 | relative 1e-12 | pass |
+| copy sepal length total | R | 876.5 | 876.5 | relative 1e-12 | pass |
+
+### `table.count_empty_cells_in columns=`
+
+**NHANES: the empty cells of bmi, hyp and chl (9, 8 and 10)** (published; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bmi | van Buuren & Groothuis-Oudshoorn (2011) | 9 | 9 | within 0 (printed rounding) | pass |
+| hyp | van Buuren & Groothuis-Oudshoorn (2011) | 8 | 8 | within 0 (printed rounding) | pass |
+| chl | van Buuren & Groothuis-Oudshoorn (2011) | 10 | 10 | within 0 (printed rounding) | pass |
+| bmi | pandas isna().sum() | 9 | 9 | exact | pass |
+| hyp | pandas isna().sum() | 8 | 8 | exact | pass |
+| chl | pandas isna().sum() | 10 | 10 | exact | pass |
+| columns shown | pandas isna().sum() | 3 | 3 | exact | pass |
+| bmi | R | 9 | 9 | exact | pass |
+| hyp | R | 8 | 8 | exact | pass |
+| chl | R | 10 | 10 | exact | pass |
 
 ### `get_numbers_drawn`
 
@@ -5496,7 +7000,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | first row | Daniel & Wood (1980): observation 21 is the most influential | 21 | 21 | within 0 (printed rounding) | pass |
 | first row | R | 21 | 21 | relative 1e-09 | pass |
-| its Cook's distance | R | 0.691999916339513 | 0.69199991633951 | relative 1e-09 | pass |
+| its Cook's distance | R | 0.69199991633951 | 0.69199991633951 | relative 1e-09 | pass |
 | rows found | R | 1 | 1 | relative 1e-09 | pass |
 
 ### `sdata.get_example from_r_package=`
@@ -5515,8 +7019,8 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| BP | R | 0.880722470178803 | 0.880722470178814 | relative 1e-09 | pass |
-| p | R | 0.643803814544345 | 0.643803814544341 | relative 1e-09 | pass |
+| BP | R | 0.880722470178817 | 0.880722470178813 | relative 1e-09 | pass |
+| p | R | 0.64380381454434 | 0.643803814544342 | relative 1e-09 | pass |
 
 ### `table.find_correlation_between show="result table"`
 
@@ -5537,7 +7041,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | partial r | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
-| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620003e-06 | relative 1e-09 | pass |
+| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620001e-06 | relative 1e-09 | pass |
 | rows | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 32 | 32 | relative 1e-09 | pass |
 | partial r | R | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | R | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
@@ -5556,6 +7060,44 @@ Note: simplydata gives back R ppcor's own numbers; the residual route is the def
 | sensitivity there | R | 0.634146341463415 | 0.634146341463415 | relative 1e-12 | pass |
 
 Note: The cut-off written next to the marked dot is R pROC's coords("best", best.method = "youden") threshold, given back in the value column of get_numbers_drawn().
+
+### `table.add_filtered_column both_ways=False`
+
+**both_ways=False: the yearly sunspot numbers, a forward low-pass filter** (real data; data: yearly sunspot numbers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy signal.butter and sosfilt | 0.002082996022033 | 0.002082996022033 | relative 1e-09 | pass |
+| 1957 (position 258) | SciPy signal.butter and sosfilt | 80.1854664925231 | 80.1854664925231 | relative 1e-09 | pass |
+| total | SciPy signal.butter and sosfilt | 14994.8382962056 | 14994.8382962056 | relative 1e-09 | pass |
+
+### `system.table form="state space"`
+
+**form="state space": 1 / (s^2 + 2 s + 5) in controller form** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| A row 1, column 1 | SciPy signal.tf2ss | -2 | -2 | relative 1e-12 | pass |
+| A row 1, column 2 | SciPy signal.tf2ss | -5 | -5 | relative 1e-12 | pass |
+| A row 2, column 1 | SciPy signal.tf2ss | 1 | 1 | relative 1e-12 | pass |
+| C column 2 | SciPy signal.tf2ss | 1 | 1 | relative 1e-12 | pass |
+| A row 1, column 1 | R | -2 | -2 | relative 1e-12 | pass |
+| A row 1, column 2 | R | -5 | -5 | relative 1e-12 | pass |
+| A row 2, column 1 | R | 1 | 1 | relative 1e-12 | pass |
+| C column 2 | R | 1 | 1 | relative 1e-12 | pass |
+
+### `system.chart show="step"`
+
+**show="step": 1 / (s^2 + 2 s + 5), the step response drawn from 0 to 5** (real data; data: checks against R (no published example))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| points | python-control step_response | 200 | 200 | relative 1e-08 | pass |
+| highest point | python-control step_response | 0.241560775010704 | 0.241560775010704 | relative 1e-08 | pass |
+| last point | python-control step_response | 0.201497282439427 | 0.201497282439427 | relative 1e-08 | pass |
+| points | R | 200 | 200 | relative 1e-08 | pass |
+| highest point | R | 0.241560775010704 | 0.241560775010704 | relative 1e-08 | pass |
+| last point | R | 0.201497282439427 | 0.201497282439427 | relative 1e-08 | pass |
 
 ## 2. The same underneath (the manual's boxes)
 
@@ -5709,8 +7251,14 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.save` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.save` | pandas | polars | table | relative 1e-09 | pass |
 | `table.save` | Polars | polars | table | relative 1e-09 | pass |
+| `table.save in_sheet=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.save in_sheet=` | pandas | polars | table | relative 1e-09 | pass |
 | `table.as_pandas` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.as_pandas` | Polars | polars | table | relative 1e-09 | pass |
+| `table.make_copy` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.make_copy` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.make_copy` | pandas | polars | table | relative 1e-09 | pass |
+| `table.make_copy` | Polars | polars | table | relative 1e-09 | pass |
 | `table.as_polars` | pandas | pandas | table | relative 1e-09 | pass |
 | `table.as_polars` | pandas | polars | table | relative 1e-09 | pass |
 | `table.remove_extra_spaces_in` | pandas | pandas | table | relative 1e-09 | pass |
@@ -5885,14 +7433,18 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.add_rows_from` | Polars | pandas | table | relative 1e-09 | pass |
 | `table.add_rows_from` | pandas | polars | table | relative 1e-09 | pass |
 | `table.add_rows_from` | Polars | polars | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | pandas | polars | table | relative 1e-09 | pass |
-| `table.turn_columns_into_rows` | Polars | polars | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | pandas | pandas | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | Polars | pandas | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | pandas | polars | table | relative 1e-09 | pass |
-| `table.turn_rows_into_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.swap_rows_and_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.swap_rows_and_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.swap_rows_and_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.swap_rows_and_columns` | Polars | polars | table | relative 1e-09 | pass |
 | `table.start_again` | - | - | none | relative 0 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
@@ -5980,6 +7532,62 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.fit_formula` | SciPy | polars | result | relative 1e-07 | pass |
 | `table.compare_matched_columns` | R + SciPy | pandas | result | relative 1e-09 | pass |
 | `table.compare_matched_columns` | R + SciPy | polars | result | relative 1e-09 | pass |
+| `table.compare_counts_to` | SciPy | pandas | result | relative 1e-10 | pass |
+| `table.compare_counts_to` | SciPy | polars | result | relative 1e-10 | pass |
+| `table.compare_shapes_of` | SciPy | pandas | result | relative 1e-12 | pass |
+| `table.compare_shapes_of` | SciPy | polars | result | relative 1e-12 | pass |
+| `table.compare_shapes_of two groups` | R + SciPy | pandas | result | relative 1e-09 | pass |
+| `table.compare_shapes_of two groups` | R + SciPy | polars | result | relative 1e-09 | pass |
+| `table.check_if_random_order` | statsmodels | pandas | result | relative 1e-12 | pass |
+| `table.check_if_random_order` | statsmodels | polars | result | relative 1e-12 | pass |
+| `table.compare_correlations` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_correlations` | R + Python | polars | result | relative 1e-09 | pass |
+| `sdata.compare_averages` | R + SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.compare_counts` | SciPy | pandas | result | relative 1e-10 | pass |
+| `sdata.compare_risks` | statsmodels | pandas | result | relative 1e-10 | pass |
+| `sdata.compare_rates` | R + statsmodels | pandas | result | relative 1e-09 | pass |
+| `table.compare_to_truth` | statsmodels | pandas | result | relative 1e-10 | pass |
+| `table.compare_to_truth` | statsmodels | polars | result | relative 1e-10 | pass |
+| `table.compare_to_truth a column of numbers` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_to_truth a column of numbers` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.compare_accuracy` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.compare_accuracy` | R + Python | polars | result | relative 1e-09 | pass |
+| `sdata.compare_to_truth` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.agreement_between` | statsmodels | pandas | result | relative 1e-10 | pass |
+| `table.agreement_between` | statsmodels | polars | result | relative 1e-10 | pass |
+| `table.agreement_between columns of numbers` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.agreement_between columns of numbers` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.limits_of_agreement` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.limits_of_agreement` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.reliability_of` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.reliability_of` | R + Python | polars | result | relative 1e-09 | pass |
+| `difference_dots` | R + statsmodels | pandas | chart | relative 1e-09 | pass |
+| `sdata.find_where_smallest` | SciPy | pandas | result | relative 1e-12 | pass |
+| `sdata.find_where_biggest` | SciPy | pandas | result | relative 1e-12 | pass |
+| `sdata.solve` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.values_at` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.values_at` | pandas | polars | table | relative 1e-12 | pass |
+| `table.make_map_of` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.make_map_of` | SciPy | polars | table | relative 1e-12 | pass |
+| `table.compare_distributions_for` | SciPy | pandas | result | relative 1e-07 | pass |
+| `table.compare_distributions_for` | SciPy | polars | result | relative 1e-07 | pass |
+| `nums.fit_distribution` | SciPy | pandas | result | relative 1e-10 | pass |
+| `dist.find_density_at` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_cut_off` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_middle_range` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_average` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_median` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_standard_deviation` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.find_variance` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.show_summary` | SciPy | pandas | result | relative 1e-12 | pass |
+| `dist.make_random_numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.draw_chart` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `dist.turn_into_table` | pandas | pandas | table | relative 1e-12 | pass |
+| `dist.show_parameters` | - | - | none | relative 0 | pass |
+| `table.find_principal_components_of` | statsmodels | pandas | table | relative 1e-09 | pass |
+| `table.find_principal_components_of` | statsmodels | polars | table | relative 1e-09 | pass |
+| `table.use_survey_design` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.use_survey_design` | R + Python | polars | result | relative 1e-09 | pass |
 | `table.explain weights=` | statsmodels | pandas | result | relative 1e-09 | pass |
 | `table.explain weights=` | statsmodels | polars | result | relative 1e-09 | pass |
 | `table.explain outcome="yes or no (overdispersed)"` | statsmodels | pandas | result | relative 1e-08 | pass |
@@ -6240,6 +7848,8 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.keep_random_rows percent=` | pandas | polars | table | relative 1e-12 | pass |
 | `table.count_empty_cells_in show="patterns"` | pandas | pandas | table | relative 1e-12 | pass |
 | `table.count_empty_cells_in show="patterns"` | pandas | polars | table | relative 1e-12 | pass |
+| `table.count_empty_cells_in columns=` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.count_empty_cells_in columns=` | pandas | polars | printed | relative 1e-09 | pass |
 | `table.count_each columns=, in_order=` | pandas and NumPy | pandas | result | relative 1e-12 | pass |
 | `table.count_each columns=, in_order=` | pandas and NumPy | polars | result | relative 1e-12 | pass |
 | `draw_answer_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
@@ -6308,6 +7918,63 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.find_correlation_between allowing_for=, show="result table"` | R + Python | pandas | result | relative 1e-09 | pass |
 | `table.find_correlation_between allowing_for=, show="result table"` | R + Python | polars | result | relative 1e-09 | pass |
 | `trade_off_curve get_numbers_drawn()` | R + Python | pandas | result | relative 1e-12 | pass |
+| `nums.smooth` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.remove_trend` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.add_trend_and_season` | statsmodels | pandas | table | relative 1e-09 | pass |
+| `table.add_trend_and_season` | statsmodels | polars | table | relative 1e-09 | pass |
+| `nums.find_autocorrelation` | statsmodels | pandas | table | relative 1e-09 | pass |
+| `table.check_steady_over_time` | R + Python | pandas | result | relative 1e-09 | pass |
+| `table.check_steady_over_time` | R + Python | polars | result | relative 1e-09 | pass |
+| `table.find_change_points_in` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.find_change_points_in` | R + Python | polars | table | relative 1e-09 | pass |
+| `nums.forecast` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.compare_forecasts_for` | R + Python | pandas | table | relative 1e-09 | pass |
+| `table.compare_forecasts_for` | R + Python | polars | table | relative 1e-09 | pass |
+| `nums.find_each_peak_that` | SciPy | pandas | table | relative 1e-12 | pass |
+| `nums.find_each_dip_that` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.find_each_dip_that` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_each_dip_that` | SciPy | polars | table | relative 1e-09 | pass |
+| `table.find_spectrum_of` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_spectrum_of` | SciPy | polars | table | relative 1e-09 | pass |
+| `nums.find_spectrum` | SciPy | pandas | table | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.remove_each_frequency_that` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.add_filtered_column` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.add_filtered_column` | SciPy | polars | table | relative 1e-09 | pass |
+| `sdata.frequency_filter` | SciPy | pandas | table | relative 1e-09 | pass |
+| `nums.find_envelope` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.add_envelope_column` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.add_envelope_column` | SciPy | polars | table | relative 1e-09 | pass |
+| `nums.take_fourier_transform` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.find_inverse_fourier_transform` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.convolve_with` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.deconvolve_by` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.change_time_step` | SciPy | pandas | value | relative 1e-09 | pass |
+| `sdata.make_wave` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.make_window_shape` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.system` | SciPy | pandas | table | relative 1e-12 | pass |
+| `system.step_response` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.impulse_response` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.response_to` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.frequency_response` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.poles` | SciPy | pandas | table | relative 1e-12 | pass |
+| `system.zeros` | SciPy | pandas | table | relative 1e-12 | pass |
+| `system.is_stable` | SciPy | pandas | value | relative 0 | pass |
+| `system.steady_gain` | NumPy | pandas | value | relative 1e-12 | pass |
+| `system.in_steps` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.then` | NumPy | pandas | table | relative 1e-12 | pass |
+| `system.add` | NumPy | pandas | table | relative 1e-12 | pass |
+| `system.with_feedback` | NumPy | pandas | table | relative 1e-12 | pass |
+| `system.table` | SciPy | pandas | table | relative 1e-12 | pass |
+| `autocorrelation_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `cross_correlation_bars` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `lag_dots` | matplotlib | pandas | chart | relative 1e-12 | pass |
+| `peak_dots` | matplotlib | pandas | chart | relative 1e-12 | pass |
+| `spectrum` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `spectrum_over_time` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `trend_and_season` | matplotlib | pandas | chart | relative 1e-09 | pass |
+| `forecast` | R + matplotlib | pandas | chart | relative 1e-09 | pass |
+| `system.chart` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `sdata.table` | pandas | pandas | table | relative 1e-09 | pass |
 | `sdata.get_example` | pandas | pandas | table | relative 1e-09 | pass |
 | `sdata.chart` | seaborn | pandas | chart | relative 1e-09 | pass |
@@ -6335,6 +8002,7 @@ How each kind is compared:
 - **result**: the numbers in simplydata's result table (statistic, degrees of freedom, p-value ...) against the library's result
 - **chart**: the chart's data (bars, dots, lines, labels, limits ...), not its pixels
 - **printed**: for words that show something and give nothing back: every line the library code prints appears, in the same order, in what the word prints (spaces at the ends of lines left out)
+- **none** (16 words: `table.undo`, `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps`, `nums.start_again`, `dist.show_parameters`, `sdata.help`, `sdata.show_all_words`, `sdata.show_day`, `sdata.show_lesson`, `sdata.show_packages_used`, `sdata.start_30_days`, `sdata.show_today`, `sdata.show_answers`, `sdata.go_to_next_day`): help, learning, undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put a table back as it was; they compute no number, so there is nothing to compare them with. Their box is run to show that it runs.
 
 ## Choices simplydata makes
 
@@ -6490,6 +8158,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.join_with` (1): a column found in both tables (other than using=) keeps its name in this table and gets "_other" in the other table's copy.
 - `table.add_z_score_column` (1): the standard deviation of a sample (n - 1, ddof=1), as R scale(); SciPy's zscore uses n unless told ddof=1.
 - `table.save` (1): no row labels are written (index=False): the file holds only your columns.
+- `table.save in_sheet=` (1): mode="a" adds the sheet to the Excel file that is there and keeps its other sheets; if_sheet_exists="replace" replaces a sheet of the same name (simplydata prints that it did). A file that does not exist yet is made with pandas ExcelWriter and that one sheet.
+- `table.make_copy` (1): the copy keeps the steps so far, so backup.undo() and backup.show_steps() work on it; pandas df.copy() keeps only the data.
 - `table.add_missing_dates` (1): the table comes back sorted by the groups, then the dates; the group's name is copied into the new rows, and rows with an empty group cell are a group of their own (dropna=False).
 - `table.add_missing_dates` (2): each group's own run, from its first to its last date: no rows are added before or after (between= adds them).
 - `table.add_rolling_column` (1): the window follows sorted_by=, but the rows keep their place in the table (assign lines the values up by row).
@@ -6542,8 +8212,9 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_interval_of` (2): 9999 resamples (resamples= changes it).
 - `table.find_interval_of` (3): NumPy's random generator with seed 1 (with_seed=), printed, so the same call gives the same interval.
 - `table.add_rows_from` (1): columns are matched by their names, so the other table's columns may come in any order; pandas' concat matches them by name itself, Polars' needs them put in the same order first (select(df.columns)).
-- `table.turn_columns_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
-- `table.turn_rows_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
+- `table.gather_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
+- `table.spread_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
+- `table.swap_rows_and_columns` (1): the first column (here "name") names the new columns, because it holds text with no repeat and no empty cell, and the old column names go in a first column called "column"; pandas' plain .T and Polars' transpose() would number the columns instead.
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).
@@ -6622,6 +8293,72 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.compare_matched_columns` (1): the bootstrap interval of Kendall's W uses R's own random numbers after set.seed(1), so it is the same every time.
 - `table.compare_matched_columns` (2): Kendall's W: how alike the rows rank the columns, from 0 (no common order) to 1 (every row the same), with a two-sided 95 % interval.
 - `table.compare_matched_columns` (3): the Friedman test, which compares the ranks within each row, so it needs no bell shape (as R friedman.test()); rows with an empty cell are skipped first.
+- `table.compare_counts_to` (1): each share of expected= is matched to its value by name and turned into an expected count (share times the rows with a value); SciPy's own default, without expected counts, is the same count for every value.
+- `table.compare_counts_to` (2): the effect size is Cohen's w, the distance between the counted and the expected shares (statsmodels chisquare_effectsize).
+- `table.compare_shapes_of` (1): three or more groups get the Anderson-Darling k-sample test in its midrank version, which allows for tied values, as R kSamples::ad.test() version 2.
+- `table.compare_shapes_of` (2): the p-value comes from shuffling the group labels 9999 times with NumPy's generator seeded with 1 (with_seed=1), so the same seed gives the same p-value; SciPy's own default reads it from a table and caps it at 0.001 and 0.25.
+- `table.compare_shapes_of two groups` (1): with tied values the exact p-value comes from R ks.test(), which allows for the ties; SciPy's exact p-value assumes there are none.
+- `table.compare_shapes_of two groups` (2): the exact distribution while the two groups make fewer than 10000 pairs of values, as R ks.test(); larger groups use the normal approximation.
+- `table.check_if_random_order` (1): each value is above or below the median; values equal to the median (one here) are left out, as R randtests::runs.test() does.
+- `table.check_if_random_order` (2): the normal approximation without a continuity correction, the same numbers as R randtests::runs.test(); statsmodels' own default adds one below 50 values, as here.
+- `table.compare_correlations` (1): Fisher's z test for the p-value and Zou's interval for the difference; cocor's own default runs every test it knows.
+- `sdata.compare_averages` (1): Welch's t-test, which does not assume both groups have the same spread; test_method="student" assumes they do (equal_var=True, var.equal = TRUE).
+- `sdata.compare_counts` (1): the chi-square test of independence with Yates' continuity correction for a 2 x 2 table, as R chisq.test().
+- `sdata.compare_counts` (2): Cramer's V from the counts without the continuity correction, so it does not shrink with Yates' correction.
+- `sdata.compare_risks` (1): the interval of the risk difference is Newcombe's score interval, as R DescTools::BinomDiffCI(method = "score"); statsmodels' own default is another interval (Agresti-Caffo).
+- `sdata.compare_risks` (2): the p-value is the chi-square test with Yates' correction, as R prop.test(); p_value_by="exact" gives Fisher's exact test.
+- `sdata.compare_rates` (1): without against=, the first group given in names= (here ward B) is the one compared against; the ratio is ward A's rate over ward B's, with R poisson.test()'s exact interval.
+- `sdata.compare_rates` (2): the exact conditional test of the rate ratio, as R poisson.test(); statsmodels' own default is a score test.
+- `table.compare_to_truth` (1): "yes" in the truth column and "positive" in the test column count as having it and as a positive result; without such words the second value in sorted order counts, as R takes the second level; positive= chooses.
+- `table.compare_to_truth` (2): each share gets the exact Clopper-Pearson interval, as R epiR::epi.tests(method = "exact"); statsmodels' own default is the normal-curve interval.
+- `table.compare_to_truth a column of numbers` (1): higher scores count as positive (direction = "<"), said before the curve is made; pROC's own default guesses the direction from the data, which flatters a score that works the wrong way round. positive_when="lower" turns it round.
+- `table.compare_to_truth a column of numbers` (2): DeLong's interval of the AUC.
+- `table.compare_accuracy` (1): higher scores count as positive for both scores (direction = "<"), said before the curves are made, so neither curve is turned round on its own.
+- `table.compare_accuracy` (2): DeLong's test for two curves on the same people (paired = TRUE).
+- `sdata.compare_to_truth` (1): the four counts are laid out as epiR reads them: the test result in the rows (positive first) and the truth in the columns (has it first).
+- `sdata.compare_to_truth` (2): method = "exact": the shares get exact intervals; the likelihood ratios get epiR's intervals on the log scale.
+- `table.agreement_between` (1): a square table of counts with every category either rater used, in sorted order, so a category only one rater used ("severe" here) still counts.
+- `table.agreement_between` (2): Cohen's kappa without weights, as R irr::kappa2(); near_misses="linear" or "quadratic" counts near misses as partly right (wt="linear", "quadratic").
+- `table.agreement_between columns of numbers` (1): two-way, absolute agreement: the raters are a sample of many possible raters, and a rater who always reads higher counts against agreement (ICC(A,1), Shrout and Fleiss ICC(2,1)); irr's own default is the one-way model with consistency.
+- `table.agreement_between columns of numbers` (2): the agreement of one rater, not of the average of the raters (of="average of raters").
+- `table.limits_of_agreement` (1): the difference is the first column minus the second; the limits are the average difference plus and minus 1.96 standard deviations (with n - 1), each with its t interval.
+- `table.limits_of_agreement` (2): Lin's concordance correlation beside the limits, with its interval on Fisher's z scale.
+- `table.reliability_of` (1): raw alpha with the items as they are (check.keys = FALSE): an item scored the other way round is not turned round without saying so.
+- `table.reliability_of` (2): Feldt's 95 % interval (psych::alpha.ci()).
+- `difference_dots` (1): the limits of agreement come from R, with the standard deviation on n - 1, as table.limits_of_agreement() gives them.
+- `difference_dots` (2): statsmodels draws the dots and the average difference; sd_limit=0 leaves out its own limits, whose standard deviation uses n.
+- `sdata.find_where_smallest` (1): one name with a range: Brent's method on the range, as R optimize(); the method is decided by what you give (start=, rules=, search=) and printed.
+- `sdata.find_where_smallest` (2): a tolerance of 1e-10, as R optimize(tol = 1e-10); SciPy's own default stops at 1e-5.
+- `sdata.find_where_biggest` (1): a straight-line formula with straight-line rules is a linear program, solved exactly (HiGHS, as R lpSolve::lp(), except that lp() takes every name to be 0 or more, see (2)); the biggest value is the smallest value of minus the formula, and a rule with >= is turned into <= by changing its signs.
+- `sdata.find_where_biggest` (2): the names may be any number unless a rule or between= limits them: simplydata passes bounds=(None, None), while SciPy linprog's own default (0, None) and R lp() take every name to be 0 or more; here y may go down to -1, which gives 13 instead of 12.
+- `sdata.solve` (1): the range is cut into 1000 steps and every step where the two sides cross is searched, so every solution that crosses is found (as R rootSolve::uniroot.all()), not only one.
+- `sdata.solve` (2): Brent's method in each step with a tolerance of 1e-12, as R uniroot(tol = 1e-12); SciPy's own default (2e-12) gives the same roots here.
+- `table.values_at` (1): several values at the same place (country A in 2002) are averaged first, as R approx(ties = mean).
+- `table.values_at` (2): straight lines between neighbours (NumPy interp, as R approx()), and places outside the known points stay empty, as R approx(rule = 1); NumPy's own default carries the end value on, which outside="nearest end" gives.
+- `table.make_map_of` (1): the known points form a full grid (every east with every north), so they are read as a grid; scattered points are joined by flat triangles instead (SciPy griddata, as R interp::interp()).
+- `table.make_map_of` (2): straight lines along each direction (bilinear interpolation, RegularGridInterpolator's method="linear").
+- `table.make_map_of` (3): steps= evenly spaced places from the smallest to the biggest known value of each column, every combination, the first column changing slowest.
+- `table.compare_distributions_for` (1): each distribution is fitted by maximum likelihood; the families for positive values start at 0 (floc=0), as R MASS::fitdistr() and fitdistrplus fit them, not with SciPy's own extra location.
+- `table.compare_distributions_for` (2): AIC counts only the parameters that were fitted, and the rows are sorted by it, smallest (best) first.
+- `nums.fit_distribution` (1): maximum likelihood with the gamma starting at 0 (floc=0), as R MASS::fitdistr(x, "gamma"); SciPy's own fit also moves the start.
+- `nums.fit_distribution` (2): the second parameter is the rate (1 / SciPy's scale), as R's dgamma(shape, rate).
+- `dist.find_density_at` (1): the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).
+- `dist.find_cut_off` (1): the value with a chance above it is the inverse survival function isf(), not ppf(1 - chance): it stays accurate far out in the tail (1 - 1e-9 cannot be stored exactly). with_chance_below= uses ppf().
+- `dist.find_middle_range` (1): equal tails: half of what is left (2.5 % here) is cut off at each end, not the shortest range.
+- `dist.find_average` (1): the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).
+- `dist.find_median` (1): the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).
+- `dist.find_standard_deviation` (1): the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).
+- `dist.find_variance` (1): the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).
+- `dist.show_summary` (1): the kurtosis is the excess kurtosis (0 for the normal distribution), as SciPy gives it.
+- `dist.make_random_numbers` (1): NumPy's generator (PCG64) seeded with with_seed=1, so the same seed gives the same numbers; R's rnorm() uses another generator, so its numbers differ.
+- `dist.draw_chart` (1): the curve runs from the 0.1 % point to the 99.9 % point (the ends of the possible values where they are closer), at 200 evenly spaced places.
+- `dist.turn_into_table` (1): one row with the parameters under their plain names (R's names, shape and rate; underscores become spaces), not SciPy's (a, scale); parameters not given are left out.
+- `table.find_principal_components_of` (1): every number column is put on the same scale first (mean 0, standard deviation with n - 1), as R prcomp(scale. = TRUE); same_scale=False leaves the columns as they are.
+- `table.find_principal_components_of` (2): the standard deviation of each component divides by n - 1, as R prcomp()$sdev.
+- `table.find_principal_components_of` (3): the sign of a component is arbitrary and differs between computers, so each one is turned so its biggest weight is positive.
+- `table.use_survey_design` (1): a stratum with only one cluster is centred at the overall average (survey.lonely.psu = "adjust"); survey's own default stops with an error.
+- `table.use_survey_design` (2): clusters are counted within their stratum (nest = TRUE): a district that turns up in two school types is two clusters; without it survey refuses these data.
+- `table.use_survey_design` (3): the intervals use t on the design's degrees of freedom (degf(design), here 159), not survey's own normal-curve confint().
 - `table.explain weights=` (1): precision weights, as R lm(weights =): statsmodels WLS; for the other outcomes GLM(var_weights=). Not freq_weights, which would change the degrees of freedom.
 - `table.explain outcome="yes or no (overdispersed)"` (1): quasi-binomial as R glm(family = quasibinomial): the shares, with the tries as var_weights and the Pearson dispersion (scale="X2"). A two-column endog would give statsmodels another dispersion.
 - `table.explain matched_by=` (1): conditional logistic regression with the exact conditional likelihood, as R survival::clogit() (its default method = "exact"); no intercept, each pair compared only with itself.
@@ -6849,6 +8586,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.keep_random_rows for_each_group_in=` (1): the rows keep their order in the table (sort_index()); a group with n rows or fewer is kept whole, with a note (pandas stops with an error).
 - `table.keep_random_rows percent=` (1): pandas rounds each group's share; a group whose share rounds to no row still gets one row (a stratified sample keeps every stratum).
 - `table.count_empty_cells_in show="patterns"` (1): an empty cell is a missing value, NaN or text of only spaces (as count_empty_cells_in); the patterns are sorted by how many cells they leave empty, then by how many rows have them (R mice::md.pattern() sorts by its own rule and turns the columns round).
+- `table.count_empty_cells_in columns=` (1): an empty cell is a missing value, NaN or text of only spaces; pandas isna() counts only the missing values and NaN.
 - `table.count_each columns=, in_order=` (1): percents out of the answers given (empty cells left out), and no averages of the answers: the steps between them need not be equal.
 - `table.count_each columns=, in_order=` (2): the median answer is a real answer, the inverted CDF (R quantile(type = 1)), never a value between two.
 - `draw_answer_bars` (1): diverging bars (Heiberger & Robbins 2014): the answers below the middle to the left of 0, the middle answer split half and half across 0, and the first question at the top.
@@ -6898,6 +8636,89 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_correlation_between show="result table"` (1): the 95 % interval of Pearson's r from Fisher's z, as SciPy pearsonr and R cor.test.
 - `table.find_correlation_between allowing_for=, show="result table"` (1): the partial correlation of R ppcor::pcor.test(): the link left after taking out what both columns share with the third; its statistic is t (z for Kendall) and it gives no interval.
 - `trade_off_curve get_numbers_drawn()` (1): the best cut-off by Youden's index, R pROC::coords("best", best.method = "youden"); its threshold is the value of the marked dot, its sensitivity the dot's y.
+- `nums.smooth` (1): a moving average of 5 readings centred on each one (window=5); the weights add up to 1.
+- `nums.smooth` (2): the first and last 2 readings have no full window, so they are left empty, as R stats::filter(x, rep(1 / 5, 5), sides = 2) (ends="empty"; "shorter windows" and "mirror" fill them).
+- `nums.remove_trend` (1): the least-squares straight line through the readings, one step apart, is taken away, as R residuals(lm(x ~ seq_along(x))); test_method="average" takes away the average only.
+- `table.add_trend_and_season` (1): repeats_every="year" with monthly readings is a cycle of 12 readings.
+- `table.add_trend_and_season` (2): R stl()'s settings: a season window of 7 cycles (season_window=), a season of degree 0, and R's trend span (23), low-pass span (13) and jumps worked out from the cycle; statsmodels' own defaults differ and give other numbers.
+- `table.add_trend_and_season` (3): 2 inner passes and no robustness passes, as R stl(robust = FALSE) (robust=True: 1 and 15).
+- `nums.find_autocorrelation` (1): rows back 1 to 10 x log10(n), as R acf's lag.max (30 for 1,000 readings).
+- `nums.find_autocorrelation` (2): each correlation divides by n, not by the number of pairs, as R acf (adjusted=False).
+- `nums.find_autocorrelation` (3): the band is +/- qnorm(0.975) / sqrt(n), the dashed lines of R plot.acf; the Ljung-Box test runs up to the last rows back.
+- `table.check_steady_over_time` (1): trunc((n - 1)^(1/3)) rows back in the test regression, the rule of tseries::adf.test.
+- `table.check_steady_over_time` (2): around="level" asks about one steady level, so the Dickey-Fuller regression has a constant and no trend (urca type = "drift"): tseries::adf.test always allows a trend, so a column that rises steadily would pass it as steady.
+- `table.check_steady_over_time` (3): MacKinnon's p-value (urca::punitroot), with N the number of rows in the test regression.
+- `table.find_change_points_in` (1): the readings are divided by the noise size s = mad(diff(x)) / sqrt(2) first: cpt.mean assumes noise with a standard deviation of 1, and changepoint itself does not scale. Taking s from the differences between neighbours keeps the jumps from inflating it. This is simplydata's own choice.
+- `table.find_change_points_in` (2): the PELT search with R's own MBIC penalty (penalty="bic", "aic" or "hannan-quinn" instead).
+- `nums.forecast` (1): test_method="exponential smoothing" is Holt-Winters as R stats::HoltWinters fits it: a level, a trend and a season that is added (trend=True, season="added"), the weights chosen by R.
+- `nums.forecast` (2): 95 % prediction intervals (interval=95), from forecast::forecast.
+- `table.compare_forecasts_for` (1): each method is fitted on all but the last 12 readings (check_on_last=12) and forecasts them.
+- `table.compare_forecasts_for` (2): the held-back readings are given to forecast::accuracy as a series with 12 readings a cycle, so MASE divides the average error by that of the same season last time inside the fitted readings (the last value without repeats_every=); given as plain numbers, accuracy would scale by the last value.
+- `table.compare_forecasts_for` (3): the methods are ranked by MASE, best first.
+- `nums.find_each_peak_that` (1): each peak's width is measured halfway down its prominence: SciPy peak_widths(rel_height=0.5), as MATLAB findpeaks("WidthReference", "halfprom"); in readings (in units of time with time_step=).
+- `nums.find_each_peak_that` (2): positions and bases count from 1.
+- `nums.find_each_dip_that` (1): the dips are the peaks of minus the numbers, so is_at_most=2 becomes SciPy's height=-2 (as R pracma::findpeaks(-x) for dips without flat bottoms); widths are measured halfway down.
+- `nums.find_each_dip_that` (2): positions and bases count from 1; the value is the number itself, not minus it.
+- `table.find_each_dip_that` (1): the dips are the peaks of minus the readings: is_at_most=-1 becomes SciPy's height=1.
+- `table.find_each_dip_that` (2): apart= is in units of sorted_by, so it becomes a number of readings (0.035 / 0.005 = 7). simplydata rounds it to 9 decimals first: in floating point it is 7.000000000000001, which SciPy rounds up to 8 readings, and 3 of the dips here would be lost.
+- `table.find_spectrum_of` (1): sorted_by="time" gives the time between readings (0.005), so the frequencies are per second.
+- `table.find_spectrum_of` (2): the periodogram as SciPy makes it: the average taken away, no taper, one-sided and scaled so that power x frequency step adds up to the variance; that is 2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec at every frequency but the top one.
+- `nums.find_spectrum` (1): without time_step= the readings are one step apart, so the frequencies are cycles per reading.
+- `nums.find_spectrum` (2): the one-sided periodogram, scaled so that power x frequency step adds up to the variance (2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec, except at the top frequency).
+- `nums.keep_each_frequency_that` (1): a Butterworth filter of steepness 4 (the filter order), made as second-order sections so it stays stable; as R signal::butter(4, 10 / 100).
+- `nums.keep_each_frequency_that` (2): run forwards and backwards (both_ways=True), so nothing moves in time; the ends follow SciPy (odd reflection, steady start, as MATLAB filtfilt), which differs from R signal::filtfilt near the ends.
+- `nums.remove_each_frequency_that` (1): one frequency is removed by a notch filter whose width is 1 (width=1), so its quality factor is 50 / 1.
+- `nums.remove_each_frequency_that` (2): run forwards and backwards (both_ways=True), so nothing moves in time.
+- `table.add_filtered_column` (1): the readings are filtered in order of sorted_by="time", whatever the order of the rows, and the time between them (0.005 seconds) makes keep_below=10 mean 10 cycles per second; each row keeps its own filtered value.
+- `table.add_filtered_column` (2): a Butterworth filter of steepness 4, as second-order sections (R signal::butter(4, 10 / 100)).
+- `table.add_filtered_column` (3): run forwards and backwards (both_ways=True), so nothing moves in time.
+- `sdata.frequency_filter` (1): the filter of add_filtered_column(keep_below=10): Butterworth, steepness 4, as second-order sections.
+- `sdata.frequency_filter` (2): its formula in z comes from the sections (sos2tf), highest power first (system.table() shows it).
+- `table.add_envelope_column` (1): the envelope is the size of the analytic signal from the Hilbert transform, worked out on the readings in order of sorted_by=, whatever the order of the rows; each row keeps its own value.
+- `nums.take_fourier_transform` (1): show="half": the frequencies from 0 up to the highest the readings can show (rfft); show="all" gives every frequency, negative ones too (fft).
+- `nums.take_fourier_transform` (2): the phase is in degrees, as R Arg(fft(x)) * 180 / pi.
+- `sdata.find_inverse_fourier_transform` (1): the number of readings is remembered from the transform: an odd count (5) cannot be told from the half spectrum, and irfft's own default would give 4 numbers.
+- `nums.convolve_with` (1): keep="all": every overlap, n + m - 1 numbers, as R convolve(x, rev(y), type = "open"); "same" keeps the middle n, "overlap" only full overlaps.
+- `nums.change_time_step` (1): the new number of readings fills the same time: n x old step / new step (1,000 readings become 500).
+- `nums.change_time_step` (2): test_method="fourier": SciPy resample, which treats the recording as repeating; "polyphase" (resample_poly) and "filter then keep" (decimate) are the other methods.
+- `sdata.make_wave` (1): the times start at 0 and go up by time_step=.
+- `sdata.make_wave` (2): a square wave is high (1) for half of each cycle (high_share=0.5) and low (-1) for the rest.
+- `sdata.make_window_shape` (1): the symmetric window (as R gsignal::hann and NumPy hanning); SciPy get_window's own default is the periodic one used inside spectra (periodic=True).
+- `sdata.system` (1): the coefficients are divided by the first one of the bottom, so it is 1, as SciPy's TransferFunction keeps them (1 / (s**2 + 2*s + 5)).
+- `system.step_response` (1): 200 times, evenly spaced from 0 to until= (how_many=200).
+- `system.impulse_response` (1): 200 times, evenly spaced from 0 to until= (how_many=200).
+- `system.response_to` (1): the times come from the time step the input numbers remember (0.05), starting at 0.
+- `system.response_to` (2): the system starts at rest and each input value holds until the next time (interp=False, a zero order hold), as R control::lsim; SciPy's own default joins the inputs by straight lines.
+- `system.frequency_response` (1): 200 frequencies spaced evenly on a log scale, in radians per second (unit=).
+- `system.frequency_response` (2): the phase is unwrapped, so it runs on past -180 degrees (to -270 here) without jumping back to +180.
+- `system.poles` (1): the damping ratio and natural frequency of each pole, as R control::damp (for a system in steps worked out from log(pole) / time step).
+- `system.is_stable` (1): stable means every pole has a real part below 0 (inside the unit circle in steps); poles on the edge, such as +/- 2i here, are not stable, because the output never settles.
+- `system.steady_gain` (1): the formula at s = 0 (z = 1 in steps), as R control::dcgain.
+- `system.in_steps` (1): test_method="zero order hold": the input stays constant between steps, as R control::c2d(sys, 0.1).
+- `system.then` (1): in series the formulas multiply, top by top and bottom by bottom, as R control::series.
+- `system.add` (1): side by side the outputs add, so the formulas add over a common bottom, as R control::parallel.
+- `system.with_feedback` (1): negative feedback through 1 (the output itself): G / (1 + G), as R control::feedback(sys, 1); sign="positive" gives G / (1 - G).
+- `system.table` (1): form="transfer function": one row per power, highest first, with the top padded with zeros to the length of the bottom.
+- `autocorrelation_bars` (1): rows back 1 to 10 x log10(n), as R acf (21 for 144 months); each correlation divides by n.
+- `autocorrelation_bars` (2): the dashed band is +/- qnorm(0.975) / sqrt(n), as the dashed lines of R plot(acf(x)).
+- `cross_correlation_bars` (1): a stick at shift s pairs the first column at row t with the second at row t + s (R ccf's lag -s), so a high stick at shift 6 means the second follows the first 6 rows later.
+- `cross_correlation_bars` (2): the dashed band is +/- qnorm(0.975) / sqrt(n), as R plot(ccf(a, b)).
+- `lag_dots` (1): each value against the value k rows earlier, in the order of sorted_by=; the first k rows have no partner and are left out. Each rows_back= gets its own colour.
+- `lag_dots` (2): the dashed 1:1 line runs from the smallest to the biggest value shown, as R lag.plot(diag = TRUE).
+- `peak_dots` (1): the peaks of table.find_each_peak_that: apart= is in units of x, so 0.035 / 0.005 = 7 readings, rounded to 9 decimals first (in floating point it is 7.000000000000001, which SciPy would round up to 8 and lose 3 peaks).
+- `spectrum` (1): the periodogram of table.find_spectrum_of: one-sided, no taper, scaled so the powers add up to the variance; the time step (0.005) gives frequencies per second.
+- `spectrum` (2): frequency 0 (the average) is left out, and the power is on a log scale (log_scale=True).
+- `spectrum` (3): the 3 frequencies with the biggest powers (frequency 0 left out) are labelled with how often they repeat; they can be neighbours on one peak.
+- `spectrum_over_time` (1): pieces of window=100 readings with a Hann window (window_shape=), each with its own periodogram.
+- `spectrum_over_time` (2): the pieces overlap by half and each piece's average is taken away first.
+- `spectrum_over_time` (3): the power is shown in decibels (10 x log10), on viridis colours; each piece sits at its middle time.
+- `trend_and_season` (1): the parts are those of table.add_trend_and_season: STL with R stl()'s settings (season window 7, season of degree 0, R's spans and jumps), on a cycle of 12 months.
+- `trend_and_season` (2): four panels sharing x, top to bottom: the column itself, its trend, its season and the rest, the rest drawn as sticks from 0, as R plot(stl(...)) (which names the first panel "data").
+- `forecast` (1): the numbers of table.forecast: Holt-Winters as R stats::HoltWinters fits it (a level, a trend and an added season, repeats_every="year" = 12 months).
+- `forecast` (2): the band is the 95 % prediction interval (interval=95), from forecast::forecast.
+- `forecast` (3): the months carry on after the last one, one month apart.
+- `system.chart` (1): show="bode": 200 frequencies SciPy picks from the poles and zeros (findfreqs), in radians per second (unit=).
+- `system.chart` (2): two panels sharing a log x-axis: the gain in decibels above, the phase in degrees below, unwrapped so it runs on past -180 degrees.
 - `sdata.table` (1): the separator is guessed from the file (sep=None), so a file with ; or tabs between the values is read too; separator= sets it yourself.
 - `sdata.get_example` (1): a column of dates is read as dates (parse_dates=), so date words work on it at once.
 - `sdata.numbers` (1): the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.
@@ -6970,7 +8791,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [Curtis 1998 (metadat)](https://cran.r-project.org/package=metadat) | 102 experiments on the growth of woody plants under raised and ambient CO2: average biomass, its standard deviation and the plants in each group | Curtis, P. S. & Wang, X. (1998). A meta-analysis of elevated CO2 effects on woody plant mass, form, and physiology. Oecologia 113, 299-313; the log response ratio of Hedges, L. V., Gurevitch, J. & Curtis, P. S. (1999). Ecology 80, 1150-1156. Shipped with the R package metadat (dat.curtis1998). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [Hart 1999 (metadat)](https://cran.r-project.org/package=metadat) | 6 trials of warfarin against placebo in atrial fibrillation: strokes and patient-years in each group | Hart, R. G., Benavente, O., McBride, R. & Pearce, L. A. (1999). Antithrombotic therapy to prevent stroke in patients with atrial fibrillation: a meta-analysis. Annals of Internal Medicine 131, 492-501. Shipped with the R package metadat (dat.hart1999). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
 | [McDaniel 1994 (metadat)](https://cran.r-project.org/package=metadat) | 160 studies of the correlation between employment interview ratings and job performance, with the number of people in each | McDaniel, M. A., Whetzel, D. L., Schmidt, F. L. & Maurer, S. D. (1994). The validity of employment interviews: a comprehensive review and meta-analysis. Journal of Applied Psychology 79, 599-616. Shipped with the R package metadat (dat.mcdaniel1994). | The numbers are facts published in the paper; the metadat copy is GPL (>= 2). Read here from metadat (installed with metafor), so it needs R; the practice tables bcg and passive_smoking hold the same published numbers. |
-| [checks against R (no published example)](https://doi.org/10.1186/1471-2288-11-94) | no data: the inputs are written in the code, and R (or SciPy with the same seed) is the reference; used where no published worked example was read | simplydata's reliability study. Simulation checks follow Arnold, B. F., Hogan, D. R., Colford, J. M. & Hubbard, A. E. (2011). Simulation methods to estimate design power. BMC Medical Research Methodology 11, 94. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
+| [checks against R (no published example)](https://doi.org/10.1186/1471-2288-11-94) | no data: the inputs are written in the code, and R (or SciPy with the same seed, or python-control) is the reference; used where no published worked example was read | simplydata's reliability study. Simulation checks follow Arnold, B. F., Hogan, D. R., Colford, J. M. & Hubbard, A. E. (2011). Simulation methods to estimate design power. BMC Medical Research Methodology 11, 94. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
 | [pwr manual and vignette](https://cran.r-project.org/package=pwr) | the pwr.f2.test example of the pwr vignette (Kutner et al., exercise 8.43): two columns added, R squared 0.3, significance 0.001 | Champely, S. et al. pwr: Basic Functions for Power Analysis, vignette (pwr.f2.test); Kutner, M. H., Nachtsheim, C. J., Neter, J. & Li, W. (2005). Applied Linear Statistical Models, 5th ed., exercise 8.43. | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
 | [presize paper (JOSS)](https://doi.org/10.21105/joss.03118) | the worked example of presize's paper: the values needed for a 95 % Wilson interval of a percent near 15 % that is 5 points wide | Haynes, A. G., Lenz, A., Stalder, O. & Limacher, A. (2021). presize: An R-package for precision-based sample size calculation in clinical research. Journal of Open Source Software 6(60), 3118 (CC BY 4.0). | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
 | [Stata power manuals](https://www.stata.com/manuals/pss-2powerlogrank.pdf) | worked examples of the Stata power manuals: the log-rank test by Schoenfeld's and by Freedman's formula, and two averages in clusters | StataCorp. Stata Power, Precision, and Sample-Size Reference Manual: [PSS-2] power logrank, examples 1, 2 and 5 (example 5 from Machin, D. et al. (2009). Sample Size Tables for Clinical Studies, 3rd ed., p. 91); [PSS-2] power twomeans, cluster, example 1 (from Ahn, C., Heo, M. & Zhang, S. (2015). Sample Size Calculations for Clustered and Longitudinal Outcomes in Clinical Research, p. 37). | No data: published worked examples (facts); only the numbers printed there are quoted, nothing is stored. |
@@ -7006,3 +8827,10 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [bioequivalence reference datasets](https://doi.org/10.1208/s12248-014-9661-0) | three 2 x 2 crossover bioequivalence studies (AUC of a test and a reference formulation): A, 18 subjects (Sauter et al. 1992); B, 18 subjects (Clayton & Leslie 1981); C, 13 subjects (B with subjects removed, unbalanced) | Schütz, H., Labes, D. & Fuglsang, A. (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period Bioequivalence Studies. The AAPS Journal 16, 1292-1297, supplementary data sets A, B and C (PMC4389751). | (c) AAPS 2014, with no open licence for the article or its supplementary files, so not shipped (DATA_LICENSES.md). simplydata was tested on them on 2026-11-21 (all three ratios and 90 % intervals equal to Table II at its 2 printed decimals of percent, and to R lm() to 1e-9). To rerun the cases, save the data as a CSV file (columns dataset, subject, period, formulation, auc) and name it in the environment variable SIMPLYDATA_SCHUTZ2014_FILE; without it they are skipped. |
 | [airquality (R datasets)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) | daily air quality in New York, May to September 1973: ozone (37 empty cells), solar radiation (7 empty), wind and temperature | Chambers, J. M. et al. (1983). Graphical Methods for Data Analysis. Wadsworth; data from the New York State Department of Conservation and the National Weather Service. R's datasets package. | Public data; R's datasets package is GPL-2 \| GPL-3; read from R, so it needs R. |
 | [lung with weight loss (survival)](https://doi.org/10.1200/JCO.1994.12.3.601) | 228 patients with advanced lung cancer: survival time, status, age, sex, Karnofsky score (empty cells) and weight loss (14 empty cells) | Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607. As shipped by the R package survival (lung). | LGPL (>= 2) (survival); read from the installed package, so it needs R. |
+| closed form (no data) | no data: systems, waves and window shapes made from a formula, checked against the answer worked out by hand from the same formula | The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py. | No data, so no licence; the worked answers are the same as simplydata's (see LICENSE). |
+| [yearly sunspot numbers](https://www.statsmodels.org/stable/datasets/generated/sunspots.html) | 309 yearly mean sunspot numbers (Wolf's relative numbers), 1700 to 2008 | NOAA National Geophysical Data Center, yearly sunspot numbers (compiled from the Royal Observatory of Belgium, SIDC). Copy from statsmodels (statsmodels.datasets.sunspots). The solar cycle of about 11 years: Schwabe, H. (1844). Astronomische Nachrichten 21, 233-236; its average length 11.0 years: Hathaway, D. H. (2015). The solar cycle. Living Reviews in Solar Physics 12, 4. | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
+| [US inflation and unemployment](https://www.statsmodels.org/stable/datasets/generated/macrodata.html) | 203 quarters of the US economy, 1959 to 2009: inflation and the unemployment rate (2 of 14 columns) | Federal Reserve Bank of St. Louis (FRED) and the US Bureau of Labor Statistics, compiled by S. Seabold. Copy from statsmodels (statsmodels.datasets.macrodata). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
+| [El Nino sea surface temperatures](https://www.statsmodels.org/stable/datasets/generated/elnino.html) | 732 monthly averages of the sea surface temperature (degrees Celsius) of the Pacific between 0 and 10 degrees south and 90 and 80 degrees west (Nino 1+2), January 1950 to December 2010 | NOAA Climate Prediction Center, ERSST v3b, Nino 1+2 index. Copy from statsmodels (statsmodels.datasets.elnino). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
+| [Newton's cubic](https://doi.org/10.1137/1037125) | the cubic x^3 - 2x - 5 = 0, Newton's own example for his method; its root 2.09455148 | Newton, I. (1669). De analysi per aequationes numero terminorum infinitas, published by Wallis, J. (1685). A Treatise of Algebra, chapter 94; the root to 8 decimals as in Ypma, T. J. (1995). Historical development of the Newton-Raphson method. SIAM Review 37(4), 531-551. | No data: a published worked example (facts); only the numbers printed there are quoted, nothing is stored. |
+| [Rosenbrock's valley](https://doi.org/10.1093/comjnl/3.3.175) | Rosenbrock's function 100 (y - x^2)^2 + (1 - x)^2 from the start (-1.2, 1); its smallest value 0, at x = 1, y = 1 | Rosenbrock, H. H. (1960). An automatic method for finding the greatest or least value of a function. The Computer Journal 3(3), 175-184. | No data: a published worked example (facts); only the numbers printed there are quoted, nothing is stored. |
+| [Wyndor Glass linear program](https://www.mheducation.com/) | the Wyndor Glass Co. product mix: largest 3 x1 + 5 x2 with x1 <= 4, 2 x2 <= 12, 3 x1 + 2 x2 <= 18; the answer x1 = 2, x2 = 6, profit 36, shadow prices 0, 1.5 and 1 | Hillier, F. S. & Lieberman, G. J. Introduction to Operations Research (10th ed., 2015), sections 3.1 and 4.7, McGraw-Hill. | No data: a published worked example (facts); only the numbers printed there are quoted, nothing is stored. |
