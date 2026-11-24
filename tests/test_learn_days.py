@@ -519,7 +519,8 @@ def test_guide_has_every_day_with_its_answers_and_manual_pages():
     from make_dictionary import pages_in
 
     written = GUIDE.read_text(encoding="utf-8")
-    for track, number in ALL_DAYS:
+    # Extra days get no day pages in the printed guide, only a line under each calendar (checked below)
+    for track, number in [(t, n) for t in TRACKS for n in DAYS]:
         assert f"{{{guide.day_label(track, number)}}}" in written
         assert re.search(r"\\answerday\{" + str(number) + r"\}\{[^}]*\}\{" + re.escape(guide.answers_label(track, number)), written)
         for n in learn_days.plan(track, number)["lessons"]:
@@ -527,6 +528,9 @@ def test_guide_has_every_day_with_its_answers_and_manual_pages():
     pages = pages_in(written)
     assert pages and all(page.isdigit() and anchor for page, anchor in pages.values())
     assert written.count(r"\daystart{") == 60
+    assert written.count("Extra days, optional, after the 30: ") == len(TRACKS)
+    for number in EXTRA:
+        assert f"day {number}, " in written and not any(f"{{{guide.day_label(t, number)}}}" in written for t in TRACKS)
 
 
 @pytest.mark.parametrize("track", TRACKS)
