@@ -33,10 +33,10 @@ classifiers = [
 dependencies = [
     "matplotlib>=3.10,<4",
     "seaborn>=0.13.2,<0.14",
-    "pandas>=2.2.2,<4",
+    "pandas>=3.0,<4",
     "numpy>=2.0,<3",
     "scipy>=1.16,<2",
-    "statsmodels>=0.14.5,<0.16",
+    "statsmodels>=0.15,<0.16",
     "openpyxl>=3.1,<4",
     "narwhals>=2.22,<3",
 ]
@@ -86,7 +86,7 @@ r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: 
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7,<10", "polars>=1.29,<3", "pyarrow>=16,<27", "statsmodels>=0.14.5,<0.16"]
+test = ["pytest>=7,<10", "polars>=1.29,<3", "pyarrow>=16,<27", "statsmodels>=0.15,<0.16"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"
