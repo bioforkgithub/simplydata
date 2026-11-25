@@ -5,6 +5,28 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
+
+- Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
+  `f.make_simpler()`, `f.turn_into_sum()`, `f.turn_into_product()`, `f.find_slope_formula()`, `f.find_area_formula()`,
+  `f.find_value_at(x=2)`, `f.put_in(x="y + 1")`, `f.show_as_latex()`, `f.find_limit_as("x", goes_to=0)`,
+  `f.find_taylor_series(around=0, up_to_power=4)` and `f.undo()`; `sdata.solve("x**2 = 2", exactly=True)`;
+  `nums.show_as_fraction()`. The text is checked with Python's ast before SymPy reads it, and every letter stays a
+  letter (E, I, N and beta too). A formula is accepted by `find_where_smallest`, `find_where_biggest` and
+  `find_area_under`. Without SymPy these words say how to install it.
+- Areas and paths over time (SciPy integrate): `sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])`
+  (quad; `test_method="gauss"`; `exactly=True`), `sdata.find_volume_under(...)` (dblquad, tplquad, nquad),
+  `sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start=, between=, known=, time_step=, stop_when=)`
+  (solve_ivp with R deSolve's tolerances; `exactly=True` with SymPy dsolve) and `nums.turn_into_running_area()`.
+- Numbers: `take_cube_root()` (also on grids), `find_coherence_with(other)`, `take_cosine_transform()`.
+- Grids: `get_numbers_at_pairs(rows=, columns=)`, `get_numbers_from_each_row_at(columns=)`,
+  `find_each_patch_that(is_above=, touching=)`, `change_size_to(rows=, columns=)`, `rotate(by_degrees=)`,
+  `take_matrix_exp()` and `find_null_space()`.
+- Tables: `find_nearest_rows_to(point, how_many=, within=)`, `find_distances_to_rows_of(other, using=)` and
+  `find_fence_around(x=, y=)` (SciPy spatial).
+- Other names from SymPy, SciPy, MATLAB and R point to the new words; lessons 13 and 19 have new parts; SymPy is
+  cited (Meurer et al. 2017).
+
 ### Added: charts phase, batch 1 (the priority-1 matplotlib and seaborn words; approved by Manish 2026-11-25)
 
 - Reading a chart back: `chart.get_text_drawn()` (a table of every piece of text: title, axis names, legend title and

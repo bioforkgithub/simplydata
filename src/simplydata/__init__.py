@@ -38,6 +38,8 @@ from ._dates import make_run_of_dates
 from ._waves import find_inverse_fourier_transform, make_wave, make_window_shape
 from .systems import System, frequency_filter, system
 from ._sql import run_sql  # tables phase, batch 3: SQL on files, with DuckDB
+from ._formula import formula  # numbers phase, batch 3: exact maths with SymPy (simplydata[exact])
+from ._calculus import find_area_under, find_path_over_time, find_volume_under  # numbers phase, batch 3
 
 # Last, on purpose: the old name sdata.words (defined below) must win over the subpackage simplydata.words
 # (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
@@ -87,8 +89,9 @@ def __getattr__(name):
 __all__ = [
     "Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "distribution", "draw_all_pairs",
-    "find_chance_of_finding", "find_how_many_needed", "find_inverse_fourier_transform", "find_where_biggest",
-    "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "make_design_table",
+    "find_area_under", "find_chance_of_finding", "find_how_many_needed", "find_inverse_fourier_transform",
+    "find_path_over_time", "find_volume_under", "find_where_biggest", "find_where_smallest", "formula",
+    "frequency_filter", "get_example", "go_to_next_day", "help", "make_design_table",
     "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_grid", "numbers", "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",

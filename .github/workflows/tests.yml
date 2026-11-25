@@ -75,7 +75,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,r,systems,sql,web]"
+          python -m pip install -e ".[test,r,systems,sql,web,exact]"
         env:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
@@ -87,6 +87,7 @@ jobs:
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
           SIMPLYDATA_REQUIRE_CONTROL: "1"  # and the python-control tests (simplydata[systems])
           SIMPLYDATA_REQUIRE_PLOTLY: "1"  # and the web page tests (simplydata[web])
+          SIMPLYDATA_REQUIRE_SYMPY: "1"  # and the exact-maths tests (simplydata[exact])
       # The public reliability report (validation/README.md), made on every setup and kept with the run
       - name: Reliability report
         run: python validation/make_report.py --check --out reliability-report.md
@@ -112,7 +113,7 @@ jobs:
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,systems,sql,web]"
+          python -m pip install -e ".[test,systems,sql,web,exact]"
       - name: Run tests
         run: python -m pytest -q
         env:
@@ -120,3 +121,4 @@ jobs:
           SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R
           SIMPLYDATA_REQUIRE_CONTROL: "1"  # python-control (simplydata[systems]) is installed here
           SIMPLYDATA_REQUIRE_PLOTLY: "1"  # and plotly (simplydata[web]): the web page tests must run
+          SIMPLYDATA_REQUIRE_SYMPY: "1"  # and SymPy (simplydata[exact]): the exact-maths tests must run

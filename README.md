@@ -316,6 +316,7 @@ pip install "simplydata[systems]" # adds python-control: rise time, settling tim
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
 pip install "simplydata[web]"     # adds plotly: charts as web pages (chart.save("marks.html")), no internet needed
+pip install "simplydata[exact]"   # adds SymPy: exact maths with sdata.formula(...), solve(exactly=True), fractions
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
@@ -420,7 +421,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 546 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 586 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

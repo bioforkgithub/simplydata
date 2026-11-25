@@ -61,6 +61,10 @@ sql = ["duckdb>=2.0,<3"]
 # is drawn by matplotlib and copied into plotly, and plotly.js goes inside the page; kaleido is not needed. Lower
 # bound: the release CI tests; upper bound: the next untested major release.
 web = ["plotly>=6.0,<8"]
+# SymPy for exact maths: sdata.formula(...) and its words, sdata.solve(exactly=True), find_area_under(exactly=True),
+# find_path_over_time(exactly=True) and show_as_fraction (numbers phase, batch 3). Lower bound: the release CI tests;
+# upper bound: the next untested major release.
+exact = ["sympy>=1.13,<2"]
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg
