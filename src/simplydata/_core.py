@@ -100,13 +100,16 @@ def _quoted(names):
 
 
 SAVE_FORMATS = ("png", "pdf", "svg", "eps", "jpg", "jpeg", "tif", "tiff", "gif")
+WEB_FORMATS = ("html",)  # a web page drawn by plotly from what matplotlib drew (simplydata._web; simplydata[web])
 
 # The word that changes each setting, for the line chart.undo() prints (charts phase, batch 1)
 _SETTING_WORDS = {"style": "use_style", "width": "set_size", "height": "set_size", "pixels": "set_size",
                   "size_set": "set_size", "colour": "use_colour", "colours": "use_colours",
                   "colour_scale": "use_colour_scale", "grid": "show_grid", "font_size": "use_font_size",
                   "font_name": "use_font", "legend_title": "label_legend", "split": "draw_one_chart_for_each_group_in",
-                  "animate": "animate", "shapes": "use_shapes", "title": "write_title_on_top"}
+                  "animate": "animate", "shapes": "use_shapes", "title": "write_title_on_top",
+                  # charts phase, batch 3
+                  "y_break": "break_between_y", "pointing": "show_when_pointing", "range_bar_x": "add_range_bar_x"}
 
 
 @dataclass
@@ -312,7 +315,15 @@ class BaseChart:
         with _style.context(s):
             fig = Figure(figsize=(s["width"], s["height"]), layout="constrained")
             split = s["split"]
-            if not split:
+            if s.get("y_break"):  # chart.break_between_y(...) (charts phase, batch 3)
+                from .words.extra_charts import render_broken
+
+                if split or s["projection"] is not None:
+                    raise SimplydataError(".break_between_y() works on a flat chart with one panel, not on round or "
+                                          "3D charts or charts split into panels.")
+                axes, ctx = render_broken(self, fig)
+                self._draw_figure_steps(fig, axes, ctx)
+            elif not split:
                 ax = fig.add_subplot(projection=s["projection"])
                 ctx = self._draw_panel(fig, ax)
                 self._draw_figure_steps(fig, [ax], ctx)
@@ -365,7 +376,9 @@ class BaseChart:
     def save(self, file_name, quality: str = "normal", resolution=None, dpi=None, see_through=False):
         """Save the chart. chart.save("marks.png") or chart.save("marks.tif", resolution=600)
 
-        The end of the file name decides the format: "marks.png", "marks.pdf", "marks.svg", "marks.eps".
+        The end of the file name decides the format: "marks.png", "marks.pdf", "marks.svg", "marks.eps", or
+        "marks.html" for a web page in which you can point at marks, zoom and click the legend (it needs
+        simplydata[web] and works with no internet; the numbers are the picture's own).
         resolution= is the sharpness in dots per inch (dpi); normally 300.
         see_through=True saves the page with no background (the marks keep their colours), for a logo or a slide
         of another colour. Text in a .pdf, .svg or .eps file stays real text that editors and journals can read.
@@ -379,10 +392,21 @@ class BaseChart:
             raise SimplydataError(
                 f'Add a file type to the name, for example "{path.name}.png" or "{path.name}.pdf".'
             )
-        if fmt not in SAVE_FORMATS:
-            raise choice_error("save", "file type", fmt, SAVE_FORMATS)
+        if fmt not in SAVE_FORMATS + WEB_FORMATS:
+            raise choice_error("save", "file type", fmt, SAVE_FORMATS + WEB_FORMATS)
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
+        if fmt in WEB_FORMATS:  # a web page (charts phase, batch 3)
+            from ._web import need_plotly, save_page
+
+            if resolution is not None or dpi is not None or quality != "normal":
+                raise SimplydataError("A web page (.html) has no resolution: it is drawn sharp at any size. Leave "
+                                      "out resolution=, dpi= and quality=, or save a picture (.png, .tif) instead.")
+            need_plotly()
+            return save_page(self, path, see_through=see_through)
+        from ._web import picture_note
+
+        picture_note(self)
         resolution = self._save_resolution(fmt, quality, resolution, dpi)
         if fmt == "eps" and self._draws_see_through():
             print("Note: an .eps file cannot hold see-through colours, so the see-through parts of this chart "
@@ -503,6 +527,9 @@ class BaseChart:
         """
         import matplotlib.pyplot as plt
 
+        from ._web import picture_note
+
+        picture_note(self)
         self._cache = None
         fig = self._render()
         holder = plt.figure()

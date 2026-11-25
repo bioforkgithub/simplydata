@@ -77,8 +77,10 @@ def _range(ctx, axis, low, high):
 
 
 # ---------------------------------------------------------------- log scales
-def _set_log(ctx, axis):
-    (ctx.ax.set_xscale if axis == "x" else ctx.ax.set_yscale)("log")
+def _set_log(ctx, axis, through_zero=False):
+    """use_log_scale_y(): matplotlib's log scale; through_zero=True its symmetric log scale ("symlog"), which is
+    straight (linear) near 0, so 0 and numbers below it can be shown (charts phase, batch 3)."""
+    (ctx.ax.set_xscale if axis == "x" else ctx.ax.set_yscale)("symlog" if through_zero else "log")
 
 
 def _values_on(ctx, axis):
@@ -548,7 +550,7 @@ class AxesWords:
                     f"Write chart.{step}({high!r}, {low!r}). To turn the axis around, use chart.{flip}()."
                 )
         if (isinstance(low, numbers.Real) and low <= 0
-                and any(s.name == f"log_scale_{axis}" for s in self._steps)):
+                and any(s.name == f"log_scale_{axis}" and not s.kwargs.get("through_zero") for s in self._steps)):
             raise SimplydataError(
                 f".{step}() starts at {low}, but this chart has .log_scale_{axis}(), "
                 "which cannot show 0 or negative numbers.\n"
@@ -573,7 +575,14 @@ class AxesWords:
         return self._range_word("y", low, high)
 
     # -------------------------------------------------------------- log scales
-    def _log_word(self, axis):
+    def _log_word(self, axis, through_zero=False):
+        if not isinstance(through_zero, bool):
+            raise SimplydataError(f".use_log_scale_{axis}() needs through_zero=True or through_zero=False, not "
+                                  f"{through_zero!r}.")
+        if through_zero:  # 0 and numbers below it can be shown: no check that every value is above 0
+            self._remember_for_undo(f"use_log_scale_{axis}")
+            self._steps = [s for s in self._steps if s.name not in (f"log_scale_{axis}_check", f"scale_{axis}")]
+            return self._replace(f"log_scale_{axis}", "setup", _set_log, axis=axis, through_zero=True)
         for s in self._steps:
             low = s.kwargs.get("low")
             if s.name == f"range_{axis}" and isinstance(low, numbers.Real) and low <= 0:
@@ -584,18 +593,28 @@ class AxesWords:
                 )
         # The scale is set before drawing (so seaborn works in log space and later ticks and
         # ranges are not reset by it); the data are checked after drawing.
+        self._remember_for_undo(f"use_log_scale_{axis}")
+        self._steps = [s for s in self._steps if s.name != f"scale_{axis}"]  # one scale for an axis (use_scale_y)
         self._replace(f"log_scale_{axis}", "setup", _set_log, axis=axis)
         return self._replace(f"log_scale_{axis}_check", "axes", _check_log, axis=axis)
 
     @friendly
-    def use_log_scale_x(self: _Same) -> _Same:
-        """A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_x()"""
-        return self._log_word("x")
+    def use_log_scale_x(self: _Same, through_zero=False) -> _Same:
+        """A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_x()
+
+        through_zero=True also shows 0 and numbers below it: the scale is straight close to 0 and a log
+        scale further out, on both sides (pictures only; a web page cannot draw it).
+        """
+        return self._log_word("x", through_zero)
 
     @friendly
-    def use_log_scale_y(self: _Same) -> _Same:
-        """A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_y()"""
-        return self._log_word("y")
+    def use_log_scale_y(self: _Same, through_zero=False) -> _Same:
+        """A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced. chart.use_log_scale_y()
+
+        through_zero=True also shows 0 and numbers below it: the scale is straight close to 0 and a log
+        scale further out, on both sides (pictures only; a web page cannot draw it).
+        """
+        return self._log_word("y", through_zero)
 
     # -------------------------------------------------------------- ticks
     def _ticks_word(self, axis, values, labels, every=None, how_many=None, whole_numbers=False):

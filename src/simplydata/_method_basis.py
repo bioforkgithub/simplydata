@@ -4594,3 +4594,54 @@ BASIS["use_font_size title="] = _b(
     "use_font_size(12) alone scales every size together.",
     "Showing results: journals often ask for one size for tick words and another for titles.", (), "P5",
     "Sizes from 4 to 60.", "convention")
+
+# ---------------------------------------------------------------- charts phase, batch 3 (approved by Manish 2026-11-25)
+BASIS["break_between_y"] = _b(
+    "The matplotlib gallery's broken axis: the chart drawn twice on two panels of equal height that share x, the "
+    "lower one up to the first number and the upper one from the second, with short slanted lines at the break.",
+    "Leave the break out and use use_log_scale_y() or a second chart when the values are far apart.",
+    "Showing results: a broken axis hides how far apart the two parts are, so simplydata prints a note to say in the "
+    "caption what is left out, and a web page refuses it.", (), "P5",
+    "Both numbers inside the drawn range: something must be drawn below the first and above the second.",
+    "convention")
+BASIS["draw_hexagon_bins"] = _b(
+    "About 20 hexagons across the x range (matplotlib hexbin gridsize=20); hexagons with no rows left out "
+    "(mincnt=1); viridis, with a colour bar named \"count\".",
+    "with_bins= another number of hexagons across; use_colour_scale() for other colours.",
+    "Showing results: viridis is readable in grey and by readers with colour blindness, as on heat maps; empty "
+    "hexagons drawn in the lowest colour would look like a count of 1.", (), "P5",
+    "with_bins= a whole number from 3 to 200.", "starting value")
+BASIS["draw_side_histograms drawn_as="] = _b(
+    "drawn_as=\"density\": seaborn's density curve (kdeplot: Gaussian kernel, Scott's bandwidth) on each edge, "
+    "filled; with colour groups one outline per group, each with an area of 1.",
+    "drawn_as=\"bars\" (normal) for histograms.",
+    "Showing results: each group's own curve shows its shape whatever its size, as draw_density() does.", (), "P5",
+    "drawn_as= is \"bars\" or \"density\".", "convention")
+BASIS["draw_time_bars"] = _b(
+    "Bars 0.8 of a row high, the first row of the table at the top, one colour (or one per group of colour=).",
+    "colour= a column for groups; label_x / label_y for the axis names.",
+    "Showing results: a plan is read from the top down, in the order the rows were written.", (), "P5",
+    "start= and end= both dates or both numbers; no row may end before it starts.", "convention")
+BASIS["draw_rectangle"] = _b(
+    "Filled with a quarter of the colour (see-through), with a solid edge 1.5 points wide, in the first colour.",
+    "hollow=True for the outline only; colour= and transparency= for another look.",
+    "Showing results: a see-through fill marks an area without hiding the marks inside it.", (), "P5",
+    "x_between= and y_between= each two numbers (or dates), the low end first.", "starting value")
+BASIS["draw_residual_dots"] = _b(
+    "seaborn residplot (a straight line by least squares, a dotted line at 0), with the y-axis named \"residual "
+    "of\" the column.",
+    "fit_line() on the dots themselves to see the line.",
+    "Showing results: the axis name says the dots are what is left after the line, not the column itself.", (),
+    "P5", "x= and y= columns of numbers.", "convention")
+BASIS["draw_event_lines"] = _b(
+    "One row of lines for each group of y=, in the order they first appear; lines 0.8 of a row long and 1.5 points "
+    "wide (matplotlib eventplot).",
+    "Without y= all lines on one row; thickness= for the width.",
+    "Showing results: rows in the table's order keep the groups where the reader expects them.", (), "P5",
+    "colour= is the column of y= or one colour.", "starting value")
+BASIS["draw_bars_3d"] = _b(
+    "One bar per row, standing on 0, 0.8 of the smallest gap between two places wide and deep; names along an axis "
+    "at 0, 1, 2 ... in the order they first appear; a note that a heat map is often clearer.",
+    "draw_heatmap() for the same numbers in two dimensions.",
+    "Showing results: 3D bars hide each other and their heights are hard to read, so simplydata says so once.", (),
+    "P5", "Each place (x and y) needs one row.", "starting value")

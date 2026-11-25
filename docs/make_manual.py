@@ -144,6 +144,22 @@ UNDERNEATH = {
     "look_from": "matplotlib (Axes3D.view_init(elev=, azim=))",
     "say_what_it_shows": "simplydata itself: the chart's steps and their columns; the axes, legend and colour bar "
                          "are read from what matplotlib drew",
+    # charts phase, batch 3
+    "show_in_web_page": "plotly (a Figure built from what matplotlib drew; plotly.io.to_html with plotly.js inside the "
+                        "page), opened from a file on this computer",
+    "show_when_pointing": "plotly (hover text and hovertemplate; hovermode=\"x unified\" for all_lines=True)",
+    "add_range_bar_x": "plotly (the x-axis's rangeslider)",
+    "break_between_y": "matplotlib (two Axes sharing x, as the gallery's broken axis)",
+    "use_scale_x": "matplotlib (Axes.set_xscale: \"function\" with a square root, \"logit\", \"asinh\")",
+    "use_scale_y": "matplotlib (Axes.set_yscale: \"function\" with a square root, \"logit\", \"asinh\")",
+    "use_background_colour": "matplotlib (Axes.set_facecolor)",
+    "draw_hexagon_bins": "matplotlib (Axes.hexbin)",
+    "draw_time_bars": "matplotlib (Axes.barh with left=)",
+    "draw_rectangle": "matplotlib (patches.Rectangle, Axes.add_patch)",
+    "draw_circle": "matplotlib (patches.Circle, Axes.add_patch)",
+    "draw_residual_dots": "seaborn (residplot)",
+    "draw_event_lines": "matplotlib (Axes.eventplot)",
+    "draw_bars_3d": "matplotlib (Axes3D.bar3d)",
     "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
                          "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types

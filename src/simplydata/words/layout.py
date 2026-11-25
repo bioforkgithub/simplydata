@@ -27,6 +27,7 @@ from .._data import is_listlike
 from .._errors import SimplydataError, column_error, friendly, option_error, renamed_note
 from .look import LookWords
 from .read_back import ReadBackWords
+from .web_words import WebWords
 
 # Inset positions inside the main plot: [left, bottom, width, height] as parts of the plot.
 _ZOOM_PLACES = {
@@ -275,7 +276,7 @@ class LayoutWords:
 
 
 # ---------------------------------------------------------------- pages of several charts
-class Page(ReadBackWords, BaseChart):
+class Page(ReadBackWords, WebWords, BaseChart):
     """Several charts on one page. Make one with sdata.put_side_by_side, sdata.put_one_above_other or sdata.put_in_rows_and_columns."""
 
     def __init__(self, charts, rows, columns, same_x=False, same_y=False, how="grid", letters=False, cells=None,

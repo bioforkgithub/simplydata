@@ -550,13 +550,18 @@ _WHAT_IS_DRAWN = {
     "draw_rug_lines": "a short line at each value along the axis", "draw_cumulative_share":
         "lines that climb from 0 to 1: the share of values at or below each x",
     "draw_wind_rose": "bars round a compass (north at the top): how many rows come from each direction",
+    # charts phase, batch 3
+    "draw_hexagon_bins": "hexagons coloured by how many dots fall in each (a colour bar gives the counts)",
+    "draw_time_bars": "a bar from the start to the end of each row, the first row at the top",
+    "draw_residual_dots": "what is left of y after a straight line on x, as dots round a line at 0",
+    "draw_event_lines": "a short upright line at each value", "draw_bars_3d": "bars standing in a 3D box",
 }
 _ONE_PER_GROUP = {"draw_lines": ("line", "lines"), "draw_area": ("area", "areas"),
                   "draw_density": ("curve", "curves"), "draw_cumulative_share": ("line", "lines"),
                   "draw_lines_3d": ("line", "lines")}
 _OPTION_NAMES = {"draw_wind_rose": {"angle": "direction", "distance": "speed"}}
 _COLUMN_KEYS = ("x", "y", "z", "value", "colour", "size", "shape", "labels", "values", "angle", "distance", "low",
-                "high", "column")
+                "high", "column", "start", "end")
 
 
 def _is_number_text(text):
@@ -586,7 +591,10 @@ def _axis_words(ax, axis):
     else:
         low, high = sorted(obj.get_view_interval())
         span = f"from {low:.4g} to {high:.4g}"
-    scale = " (log scale)" if obj.get_scale() == "log" else ""
+    scale = {"log": " (log scale)", "symlog": " (log scale through zero)", "logit": " (logit scale)",
+             "asinh": " (asinh scale)"}.get(obj.get_scale(), "")
+    if obj.get_scale() == "function" and getattr(obj, "simplydata_scale", None):
+        scale = f" ({obj.simplydata_scale} scale)"  # use_scale_y("square root") (charts phase, batch 3)
     return f'{axis}-axis "{name}", {span}{scale}' + (" (flipped)" if flipped else "")
 
 
@@ -671,6 +679,14 @@ def _extra_words(chart, step):
         return f"{word}(): error bars showing {ERROR_MEANING.get(code, kw.get('kind'))}."
     if word == "put_chart_inside":
         return "put_chart_inside(): a small chart drawn inside this one."
+    if word == "draw_rectangle":  # charts phase, batch 3
+        return (f"draw_rectangle(): a rectangle from x = {kw['x_between'][0]} to {kw['x_between'][1]} and "
+                f"y = {kw['y_between'][0]} to {kw['y_between'][1]}" + (", outline only." if kw.get("hollow") else "."))
+    if word == "draw_circle":
+        return (f"draw_circle(): a circle round x = {kw['centre'][0]:g}, y = {kw['centre'][1]:g} with radius "
+                f"{kw['radius']:g}" + (", outline only." if kw.get("hollow") else "."))
+    if word == "draw_side_histograms" and kw.get("drawn_as") == "density":
+        return "draw_side_histograms(drawn_as=\"density\"): density curves of x and y along the top and right edges."
     if word == "write_note":
         place = (f' at the {kw["where"]} of the chart' if kw.get("where") else
                  f' at x = {kw.get("x")}, y = {kw.get("y")}' + (" with an arrow" if kw.get("arrow") else ""))
@@ -746,6 +762,13 @@ def describe_chart(chart) -> str:
         lines.append(f"Legend{f' ({legend_title})' if legend_title else ''}{_legend_place(chart)}: "
                      + ", ".join(entries) + ".")
     lines += _look_words(chart)
+    y_break = chart._settings.get("y_break")
+    if y_break:  # break_between_y (charts phase, batch 3)
+        lines.append(f"The y-axis is broken: the part from {y_break[0]:g} to {y_break[1]:g} is left out, so the chart "
+                     "is drawn twice, below and above the break.")
+    background = next((s for s in chart._steps if s.name == "background_colour"), None)
+    if background is not None:
+        lines.append(f'The plot area is coloured "{background.kwargs["colour"]}".')
     for bar_ax in (a for a in fig.axes if a.get_label() == "<colorbar>"):
         horizontal = bool(bar_ax.get_xlabel()) and not bar_ax.get_ylabel()
         name = bar_ax.get_xlabel() if horizontal else bar_ax.get_ylabel()

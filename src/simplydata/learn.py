@@ -63,6 +63,11 @@ GROUPS = [
                     "put_ticks_colour_bar"]),
     ("3D charts", ["draw_lines_3d", "label_z", "set_range_z", "put_ticks_z", "look_from"]),
     ("Describing a chart", ["say_what_it_shows"]),
+    # charts phase, batch 3 (approved by Manish 2026-11-25)
+    ("Web pages", ["show_in_web_page", "show_when_pointing", "add_range_bar_x"]),
+    ("Breaks and other scales", ["break_between_y", "use_scale_x", "use_scale_y", "use_background_colour"]),
+    ("More marks", ["draw_hexagon_bins", "draw_time_bars", "draw_rectangle", "draw_circle", "draw_residual_dots",
+                    "draw_event_lines", "draw_bars_3d"]),
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
@@ -1292,6 +1297,42 @@ HELP_EXAMPLES.update({
                      'chart.look_from(height=20, around=45)', "look_from"),
     "say_what_it_shows": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.say_what_it_shows()',
                              "say_what_it_shows"),
+})
+
+
+def _web_ex(table: str, body: str, file: str) -> str:
+    """A runnable example that ends with a web page: chart.save("....html") (needs simplydata[web])."""
+    return _ex(table, body, file).rsplit("\n", 1)[0] + f'\nchart.save("{file}.html")'
+
+
+# charts phase, batch 3 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "show_in_web_page": "\n".join(["import simplydata as sdata", 'marks = sdata.get_example("marks")',
+                                   "chart = sdata.chart(marks)", 'chart.draw_dots(x="hours", y="marks")',
+                                   "chart.show_in_web_page()"]),
+    "show_when_pointing": _web_ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                                  'chart.show_when_pointing("name", "class")', "marks_pointing"),
+    "add_range_bar_x": _web_ex("visitors", 'chart.draw_lines(x="month", y="visitors", colour="museum")\n'
+                               "chart.add_range_bar_x()", "visitors_range_bar"),
+    "break_between_y": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.break_between_y(5, 50)',
+                           "break_between_y"),
+    "use_scale_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_scale_x("square root")',
+                       "use_scale_x"),
+    "use_scale_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_scale_y("square root")',
+                       "use_scale_y"),
+    "use_background_colour": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                                 'chart.use_background_colour("ivory")', "use_background_colour"),
+    "draw_hexagon_bins": _ex("marks", 'chart.draw_hexagon_bins(x="hours", y="height")', "draw_hexagon_bins"),
+    "draw_time_bars": "\n".join(["import simplydata as sdata", "chart = sdata.chart()",
+                                 'chart.draw_time_bars(start=[1, 3, 6], end=[4, 7, 9], y=["plan", "build", "test"])',
+                                 'chart.label_x("Week")', 'chart.save("draw_time_bars.png")']),
+    "draw_rectangle": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                          "chart.draw_rectangle(x_between=[4, 6], y_between=[60, 80])", "draw_rectangle"),
+    "draw_circle": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                       "chart.draw_circle(centre=[5, 70], radius=1)", "draw_circle"),
+    "draw_residual_dots": _ex("marks", 'chart.draw_residual_dots(x="hours", y="marks")', "draw_residual_dots"),
+    "draw_event_lines": _ex("marks", 'chart.draw_event_lines(x="hours", y="class")', "draw_event_lines"),
+    "draw_bars_3d": _ex("weather", 'chart.draw_bars_3d(x="month", y="city", z="rain")', "draw_bars_3d"),
 })
 
 
@@ -2593,6 +2634,7 @@ LESSONS = [
             "a second y-axis, a zoom box and a moving chart",
             "a heatmap that sorts itself",
             "a wind rose, a map in its true shape, a 3D view, and words that say what a chart shows",
+            "a web page you can point at, and dots counted in hexagons",
             "how to write your own program from start to end",
         ],
         parts=[
@@ -2653,6 +2695,30 @@ LESSONS = [
                 ("chart.say_what_it_shows()", "Print what the chart shows: what is drawn, the axes and the "
                                              "colour bar, read from the chart itself."),
                 ('chart.save("lesson8_true_shape.png")', "Save it."),
+            ]),
+            ("A chart can also be a web page: point at a dot to read its row, zoom with the mouse, click the "
+             "legend to hide a group. The numbers are the picture's own: matplotlib draws the chart, and the web "
+             "page shows what it drew.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('marks = sdata.get_example("marks")', "Get the marks table."),
+                ("chart = sdata.chart(marks)", "Start a chart."),
+                ('chart.draw_dots(x="hours", y="marks", colour="class")', "One dot per student, coloured by class."),
+                ('chart.show_when_pointing("name", "subject")', "Pointing at a dot shows the student's name and "
+                                                                "subject, and nothing else of the row."),
+                ('chart.save("lesson8_marks.html")', "The end .html makes a web page; it works with no internet. "
+                                                     "Open it in your browser."),
+            ]),
+            ("When many dots cover each other, count them in hexagons; a rectangle marks the part you write "
+             "about.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('marks = sdata.get_example("marks")', "Get the marks table."),
+                ("chart = sdata.chart(marks)", "Start a chart."),
+                ('chart.draw_hexagon_bins(x="hours", y="height", with_bins=8)',
+                 "About 8 hexagons across; the darker, the more students."),
+                ("chart.draw_rectangle(x_between=[5, 7], y_between=[145, 155], hollow=True)",
+                 "An outline round the busiest part."),
+                ('chart.use_background_colour("ivory")', "A soft colour behind the hexagons."),
+                ('chart.save("lesson8_hexagons.png")', "Save it."),
             ]),
             ("A 3D chart can be turned to look at it from any side.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2745,7 +2811,9 @@ LESSONS = [
                "draw_contour", "write_note", "use_style", "sdata.show_all_words", "sdata.help",
                # charts phase, batch 2
                "draw_wind_rose", "use_true_shape", "put_colour_bar_at_bottom", "say_what_it_shows", "draw_surface",
-               "look_from"],
+               "look_from",
+               # charts phase, batch 3
+               "show_when_pointing", "draw_hexagon_bins", "draw_rectangle", "use_background_colour"],
     ),
     dict(
         title="Tables: open one and look at it",

@@ -82,7 +82,11 @@ NETWORK_CALLS = {
 OS_CALLS = {"system", "popen", "startfile"}  # os.system(...), not platform.system()
 # The one place simplydata reaches the network: sdata.table("https://...") with a web address the user gives
 ALLOWED_IMPORTS = {("_data.py", "<module>", "urllib.error"), ("_data.py", "<module>", "urllib.parse"),
-                   ("_data.py", "<module>", "urllib.request")}
+                   ("_data.py", "<module>", "urllib.request"),
+                   # chart.show_in_web_page() from a script: the browser opens a web page that is a file on this
+                   # computer (file: addresses only; tests/test_charts_batch3_web.py checks that nothing else is
+                   # opened, that no server is started and that the page loads nothing from the web)
+                   ("_web.py", "open_file_in_browser", "webbrowser")}
 ALLOWED_USES = {  # (file, function) where urllib.<part>.<name> may be used
     "urllib.request": {("_data.py", "_download")},
     "urllib.error": {("_data.py", "_download")},

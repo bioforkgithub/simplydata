@@ -608,6 +608,28 @@ _CHART_2 = [
     ("chart.draw_line_at_x(4, between=[20, 60])", "vlines"),
 ]
 
+# chart.<name>, charts phase batch 3 (approved by Manish 2026-11-25): web pages and the priority-3 words
+_CHART_3 = [
+    ('chart.save("marks.html")', "write_html to_html write_json saveWidget"),
+    ("chart.show_in_web_page()", "iplot ggplotly mpld3 show_in_browser show_interactive"),
+    ('chart.show_when_pointing("name", "marks")',
+     "hovertemplate hover_data hover_name hover tooltip tooltips mplcursors on_hover show_on_hover"),
+    ("chart.add_range_bar_x()", "rangeslider range_slider add_range_slider_x dyRangeSelector"),
+    ("chart.break_between_y(50, 500)", "brokenaxes broken_axis scale_y_break gap_plot break_y"),
+    ('chart.use_scale_y("square root")', "set_yscale scale_y_sqrt scale_y_continuous"),
+    ('chart.use_scale_x("square root")', "set_xscale scale_x_sqrt scale_x_continuous"),
+    ("chart.use_log_scale_y(through_zero=True)", "symlog pseudo_log_trans"),
+    ('chart.use_background_colour("ivory")', "set_facecolor plot_bgcolor panel_background"),
+    ('chart.draw_hexagon_bins(x="hours", y="height")', "hexbin geom_hex density_heatmap"),
+    ('chart.draw_time_bars(start=[1, 3, 6], end=[4, 7, 9], y=["plan", "build", "test"])',
+     "broken_barh timeline gantt gantt_chart"),
+    ("chart.draw_rectangle(x_between=[4, 6], y_between=[60, 80])", "Rectangle add_patch geom_rect rect"),
+    ("chart.draw_circle(centre=[5, 70], radius=1)", "Circle add_circle"),
+    ('chart.draw_residual_dots(x="hours", y="marks")', "residplot resid_plot residuals_plot"),
+    ('chart.draw_event_lines(x="hours", y="class")', "eventplot event_plot raster_plot"),
+    ('chart.draw_bars_3d(x="month", y="city", z="rain")', "bar3d bar_3d"),
+]
+
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
 _NUMBERS = [
     ('nums.fit_distribution("gamma")', "fit fitdistr fitdist"),
@@ -643,5 +665,5 @@ def _build(groups):
     return table
 
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2),
+OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2 + _CHART_3),
                "numbers": _build(_NUMBERS)}

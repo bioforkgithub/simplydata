@@ -97,6 +97,38 @@ working for one release and prints a one-line note with its new name.
   a note.
 - The other name `windrose` now points to `draw_wind_rose` (it pointed to `draw_polar`).
 
+### Added: charts phase, batch 3 (web pages and the priority-3 words; approved by Manish 2026-11-25)
+
+- Web pages: `chart.save("marks.html")` and `chart.show_in_web_page()`. The chart is drawn by matplotlib and seaborn
+  as for a picture, and what they drew is copied into plotly (decision D3): the same numbers, words and scales as
+  the picture, nothing worked out again. Point at marks, zoom, click the legend. Lines, dots, bars, bands, error
+  bars, stems, shapes, contour lines, heat maps, hexagons, pies, round charts, 3D lines, dots, surfaces and bars,
+  notes, legends, colour bars, pages of charts and animations (a play button and a slider) all go to the web page.
+  Needs the new extra `pip install "simplydata[web]"` (plotly); without it the two words say how to install it.
+- Privacy: plotly.js is written inside the page, so it opens with no internet and loads nothing (no web address, no
+  MathJax, no web fonts, plotly's links and picture button switched off); pictures still come from matplotlib
+  (decision D4). `show_in_web_page()` writes the page to a file on this computer and opens it in the browser (no
+  server), or shows it below the cell in a notebook. Saving says once that the page holds the numbers drawn.
+- `chart.show_when_pointing("name", "class")`: the columns shown when pointing at a dot or a line (only those, never
+  the whole row); `all_lines=True` shows every line at that x. `chart.add_range_bar_x()`: a bar under the x-axis to
+  choose the range shown. A picture leaves both out, with a note once.
+- Refused in web pages with one sentence (decision D5): `chart.break_between_y(50, 500)` (a broken y-axis, drawn on
+  two panels as in the matplotlib gallery), `chart.use_scale_y("square root")` / `use_scale_x` (also "logit" and
+  "asinh") and `use_log_scale_y(through_zero=True)` / `use_log_scale_x(through_zero=True)` (matplotlib's symlog);
+  all three work in pictures.
+- `chart.use_background_colour("ivory")`, `chart.draw_hexagon_bins(x=, y=)` (matplotlib hexbin, with a colour bar
+  of the counts), `draw_side_histograms(drawn_as="density")` (seaborn kdeplot on the edges),
+  `chart.draw_time_bars(start=, end=, y=)` (bars from a start to an end, dates or numbers),
+  `chart.draw_rectangle(x_between=, y_between=)`, `chart.draw_circle(centre=, radius=)`,
+  `chart.draw_residual_dots(x=, y=)` (seaborn residplot), `chart.draw_event_lines(x=, y=)` (matplotlib eventplot) and
+  `chart.draw_bars_3d(x=, y=, z=)` (matplotlib bar3d, with a note that a heat map is often clearer).
+- `get_numbers_drawn()` reads hexagons (kind "hexagon": the centre and the count of each), circles and 3D bars;
+  `get_scales_drawn()` names a square-root scale "square root". `say_what_it_shows()` describes the new words, a
+  broken axis and the other scales.
+- `interactive=True` on `sdata.chart()` and `table.start_chart()`, and plotly names (`write_html`, `iplot`,
+  `hovertemplate`, `rangeslider`, `hexbin`, `bar3d` ...) point to the simplydata words. `sdata.show_packages_used()`
+  lists plotly when a web page was made.
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

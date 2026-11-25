@@ -562,7 +562,7 @@ def _draw_dose_response(ctx, kind, colour, thickness=None):
     ctx.ax.legend(fontsize="small")
 
 
-def _draw_side_histograms(ctx):
+def _draw_side_histograms(ctx, drawn_as="bars"):
     last = _layer(ctx, "side_histograms", {"dots"})
     table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
     _numeric_xy("draw_side_histograms", table, x, y)
@@ -576,7 +576,11 @@ def _draw_side_histograms(ctx):
         edges[col] = e if len(e) <= 51 else np.histogram_bin_edges(values, bins=50)
     many = group is not None
     fixed = None if many else default_colour(ctx.settings)
-    for _, part, colour in _groups(ctx, table, group, fixed):
+    if drawn_as == "density":  # seaborn kdeplot on the edges (charts phase, batch 3)
+        from .extra_charts import side_densities
+
+        side_densities(ctx, top, right, list(_groups(ctx, table, group, fixed)), x, y, many)
+    for _, part, colour in ([] if drawn_as == "density" else _groups(ctx, table, group, fixed)):
         if many:  # outlines, so overlapping groups stay readable
             kw = dict(color=colour, histtype="step", linewidth=1.5)
         else:
@@ -849,10 +853,17 @@ class StatsWords:
                          method=test_method, smoothness=smoothness)
 
     @friendly
-    def draw_side_histograms(self: _Same) -> _Same:
-        """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()"""
+    def draw_side_histograms(self: _Same, drawn_as="bars") -> _Same:
+        """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()
+
+        drawn_as="density" draws smooth density curves on the edges instead of bars (seaborn kdeplot,
+        one curve for each colour group).
+        """
+        if isinstance(drawn_as, str) and drawn_as.strip().lower() in ("bars", "density"):
+            drawn_as = drawn_as.strip().lower()
+        self._check_choice("draw_side_histograms", "drawn_as", drawn_as, ("bars", "density"))
         self._check_layer_now("draw_side_histograms", {"dots"})
-        return self._add("side_histograms", "extra", _draw_side_histograms)
+        return self._add("side_histograms", "extra", _draw_side_histograms, drawn_as=drawn_as)
 
     @friendly(renamed={"label": "labelled"})
     def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None,

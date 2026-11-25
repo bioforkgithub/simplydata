@@ -10,6 +10,7 @@ from .words.axes import AxesWords
 from .words.charts import ChartWords
 from .words.community_charts import CommunityChartWords
 from .words.curves import CurveWords
+from .words.extra_charts import ExtraChartWords
 from .words.interaction_charts import InteractionChartWords
 from .words.layout import LayoutWords
 from .words.letters_and_legends import LetterLegendWords
@@ -22,16 +23,17 @@ from .words.stats import StatsWords
 from .words.survival import SurvivalChartWords
 from .words.text import TextWords
 from .words.time_charts import TimeChartWords
+from .words.web_words import WEB_POINTERS, WebWords
 
 
 class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords,
             CommunityChartWords, PlaceChartWords, AnswerChartWords, TimeChartWords, TextWords,
             AxesWords, LookWords, LayoutWords, ReadBackWords, SecondCueWords, LetterLegendWords, MoreChartWords,
-            BaseChart):
+            ExtraChartWords, WebWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 
 
-@friendly(renamed={"big_data": "fast"})
+@friendly(renamed={"big_data": "fast"}, pointers=WEB_POINTERS)
 def chart(data=None, sheet=None, fast: bool = False) -> Chart:
     """Start a chart. sdata.chart(sdata.get_example("marks"))
 

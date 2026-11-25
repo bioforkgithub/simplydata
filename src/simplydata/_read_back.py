@@ -271,6 +271,8 @@ def _axis_row(panel, scale, ax, axis, name, which):
         flipped = bool(ax.zaxis_inverted())
     low, high = sorted(float(v) for v in limits)
     shown = {"date": "dates", "group": "groups"}.get(kind) or _SCALE_KINDS.get(axis.get_scale(), axis.get_scale())
+    if axis.get_scale() == "function" and getattr(axis, "simplydata_scale", None):
+        shown = axis.simplydata_scale  # use_scale_y("square root"): matplotlib calls it a "function" scale
     ticks = _ticks(axis, ax)
     if kind == "number":
         low_v, high_v = low, high

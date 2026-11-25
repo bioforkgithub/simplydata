@@ -315,6 +315,7 @@ pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
+pip install "simplydata[web]"     # adds plotly: charts as web pages (chart.save("marks.html")), no internet needed
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
