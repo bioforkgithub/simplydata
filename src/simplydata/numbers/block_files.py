@@ -40,17 +40,34 @@ def is_file_name(value) -> bool:
     return isinstance(value, (str, os.PathLike)) and not isinstance(value, bytes)
 
 
+def refuse_network_path(text: str, step: str) -> None:
+    """Refuse, before anything is opened or resolved, every name that could reach another computer: a web address or
+    any scheme:// (http, s3, OPeNDAP, file:// ...), a network share (\\\\server\\share or //server/share) and an fsspec
+    chain ("simplecache::x.nc")."""
+    stripped = text.strip()
+    why = None
+    if _SCHEME.match(stripped) or stripped.lower().startswith(("http:", "https:", "s3:", "gs:", "ftp:")):
+        why = "web addresses"
+    elif stripped.startswith(("\\\\", "//", "\\/", "/\\")):
+        why = "network shares (\\\\server\\share or //server/share)"
+    elif "::" in stripped:
+        why = 'chains of other tools ("simplecache::...")'
+    if why:
+        raise SimplydataError(
+            f"{step} reads and writes files on this computer only, so it does not open {why} (\"{text}\"). This keeps "
+            "sensitive data off the network. Copy the file to this computer yourself, then give its name, such as "
+            "\"sst.nc\".")
+
+
 def local_path(name, step: str) -> Path:
-    """The file as an absolute local path; web addresses and every other scheme:// are refused (no network)."""
+    """The file as an absolute local path; network names are refused first (no network)."""
     text = os.fspath(name)
     if not isinstance(text, str):
         raise SimplydataError(f"{step} needs a file name in quotes, such as \"sst.nc\".")
-    if _SCHEME.match(text.strip()) or text.strip().lower().startswith(("http:", "https:", "s3:", "gs:", "ftp:")):
-        raise SimplydataError(
-            f"{step} reads and writes files on this computer only, so it does not open web addresses "
-            f"(\"{text}\"). This keeps sensitive data off the network. Download the file yourself, then give its "
-            "name, such as \"sst.nc\".")
-    return Path(text).expanduser().resolve()
+    refuse_network_path(text, step)
+    path = Path(text).expanduser().resolve()
+    refuse_network_path(str(path), step)  # a mapped name that resolves to a share
+    return path
 
 
 def _existing(path: Path, step: str) -> Path:
@@ -90,17 +107,60 @@ def engine_for(path: Path) -> str:
                           ".nc files; for tables use sdata.table(...).")
 
 
+def check_no_links_out(path: Path, step: str) -> None:
+    """Refuse a netCDF-4 (HDF5) file whose variables come from another file: an external link or a virtual dataset
+    would make the word read a file you never named, perhaps on another computer. Checked with h5py before xarray
+    opens the file (opening alone follows nothing; reading would)."""
+    import h5py
+
+    found = []
+    with h5py.File(path, "r") as handle:
+        seen = set()
+
+        def walk(group, prefix):
+            if group.id.__hash__() in seen:
+                return
+            seen.add(group.id.__hash__())
+            for key in group.keys():
+                link = group.get(key, getlink=True)
+                where = f"{prefix}{key}"
+                if isinstance(link, h5py.ExternalLink):
+                    found.append(f'"{where}" (a link to {link.filename})')
+                    continue
+                if isinstance(link, h5py.SoftLink):
+                    target = group.get(key)
+                    if target is None:
+                        found.append(f'"{where}" (a link to {link.path}, which is not in the file)')
+                    continue
+                item = group.get(key)
+                if isinstance(item, h5py.Dataset) and item.is_virtual:
+                    sources = sorted({vs.file_name for vs in item.virtual_sources()})
+                    found.append(f'"{where}" (made from {", ".join(sources)})')
+                elif isinstance(item, h5py.Group):
+                    walk(item, f"{where}/")
+
+        walk(handle, "")
+    if found:
+        raise SimplydataError(
+            f"{step} does not read \"{path.name}\": the variable {found[0]} comes from another file, so reading it "
+            "would open a file you did not name (perhaps on another computer). simplydata reads only numbers stored in "
+            "the file itself. Copy the numbers into the file, or open that file yourself."
+            + (f" Other variables like this: {', '.join(found[1:])}." if len(found) > 1 else ""))
+
+
 def _open(path: Path, step: str):
     """One local netCDF file as an xarray Dataset (lazy: only its labels are read)."""
     engine = engine_for(path)
     xr = need_xarray(step, engine=engine == "h5netcdf")
+    if engine == "h5netcdf":
+        check_no_links_out(path, step)
     return xr.open_dataset(path, engine=engine, cache=False), engine
 
 
 def _files(name, step: str) -> list[Path]:
     text = os.fspath(name)
     if any(ch in text for ch in "*?["):
-        local_path(text, step)  # refuses a web address before looking
+        refuse_network_path(text, step)  # before looking for files
         found = sorted(Path(p).resolve() for p in _glob.glob(os.path.expanduser(text)))
         found = [p for p in found if p.is_file()]
         if not found:
@@ -165,6 +225,7 @@ def _pick_values(ds, values, path_words: str, step: str):
         raise SimplydataError("The variables in values= need the same directions to be stacked: "
                               + "; ".join(f"{v}: {', '.join(ds[v].dims)}" for v in wanted) + ".")
     stacked = ds[list(wanted)].to_dataarray(dim="variable")
+    stacked.attrs["simplydata_variables"] = {v: dict(ds[v].attrs) for v in wanted}
     return stacked, "+".join(wanted)
 
 
@@ -192,20 +253,21 @@ def read_block(source, values=None, keep_on_disk=False, empty_values=None, direc
             datasets.append(ds)
             engines.add(engine)
         if len(datasets) > 1:
-            xr = need_xarray(step)
-            ds = xr.combine_by_coords(datasets, combine_attrs="override")
-            how = f"{len(files)} files joined by their labels (xarray combine_by_coords)"
+            ds = _join(datasets, files, values, step)
+            how = f"{len(files)} files joined by their labels (xarray combine_by_coords, join=\"exact\")"
         else:
             ds = datasets[0]
             how = "xarray open_dataset"
         da, name = _pick_values(ds, values, text, step)
-        if empty_values is not None:
-            markers = _markers(empty_values)
+        variables = da.attrs.pop("simplydata_variables", None)
+        markers = _markers(empty_values) if empty_values is not None else None
+        if markers is not None and not keep_on_disk:
             hits = int(da.isin(markers).sum())
             da = da.where(~da.isin(markers))
             print(f"{hits} value{'' if hits == 1 else 's'} equal to {', '.join(f'{m:g}' for m in markers)} "
                   f"{'is' if hits == 1 else 'are'} now empty (xarray where).")
         attrs = dict(da.attrs)
+        about = {"name": name, "attrs": attrs, "variables": variables}
         engine_words = " and ".join(sorted(engines))
         if keep_on_disk:
             from .blocks import FileBlock
@@ -220,8 +282,10 @@ def read_block(source, values=None, keep_on_disk=False, empty_values=None, direc
                 names = new
             print(describe(name, np.broadcast_to(0, da.shape), names, labels, attrs)
                   + f". The numbers stay in the file until a word needs them. {how} ({engine_words} engine), "
-                  "not loaded")
-            return FileBlock(da, names, labels, {"name": name, "attrs": attrs}, files[0])
+                  "not loaded"
+                  + (f". Values equal to {', '.join(f'{m:g}' for m in markers)} become empty when the numbers are read"
+                     if markers is not None else ""))
+            return FileBlock(da, names, labels, about, files[0], datasets[0], markers)
         da = da.load()
     finally:
         if not keep_on_disk:
@@ -235,8 +299,46 @@ def read_block(source, values=None, keep_on_disk=False, empty_values=None, direc
         names = new
     print(describe(name, arr, names, labels, attrs) + f". {how} ({engine_words} engine)")
     block = NumberBlock(arr, names, [True] * len(names), labels)
-    object.__setattr__(block, "_about", {"name": name, "attrs": attrs})
+    object.__setattr__(block, "_about", about)
     return block
+
+
+def _join(datasets, files, values, step):
+    """Several files as one Dataset: xarray combine_by_coords with join="exact", so labels that differ between files
+    are refused instead of filled with empty values; and units that differ are refused, not hidden."""
+    xr = need_xarray(step)
+    wanted = [values] if isinstance(values, str) else list(values or [])
+    for var in wanted:
+        units = {}
+        for path, ds in zip(files, datasets):
+            if var in ds.data_vars:
+                units.setdefault(str(ds[var].attrs.get("units")), path.name)
+        if len(units) > 1:
+            said = "; ".join(f"{u} in {f}" for u, f in units.items())
+            raise SimplydataError(f'The files give "{var}" in different units ({said}), so joining them would mix them '
+                                  "up. Change the numbers of one file to the other's units first, and read the files "
+                                  "one at a time.")
+    try:
+        return xr.combine_by_coords(datasets, combine_attrs="override", join="exact", data_vars="all")
+    except ValueError:
+        differ = []
+        dims = sorted({str(d) for ds in datasets for d in ds.dims})
+        for dim in dims:
+            labels = [np.asarray(ds[dim].values) for ds in datasets if dim in ds.coords]
+            if len(labels) < 2:
+                continue
+            same = all(lab.shape == labels[0].shape and (lab == labels[0]).all() for lab in labels)
+            apart = all(np.intersect1d(a, b).size == 0 for i, a in enumerate(labels) for b in labels[i + 1:])
+            if not same and not apart:
+                differ.append(dim)
+            elif not same and apart and len({lab.size for lab in labels}) > 0:
+                continue
+        if not differ:
+            differ = [d for d in dims if any(d in ds.dims for ds in datasets)]
+        raise SimplydataError(f"The files cannot be joined: the labels of {', '.join(differ)} differ from file to file, "
+                              "so some places would be empty. Files are joined only when every other direction has the "
+                              "same labels. Read the files one at a time and keep the same labels in each "
+                              "(block.keep_where).") from None
 
 
 def _markers(empty_values) -> list:
@@ -259,14 +361,29 @@ def save_block(block, file_name) -> None:
     xr = need_xarray(step, engine=True)
     about = getattr(block, "_about", None) or {}
     name = about.get("name") or "values"
-    if "+" in name:
-        name = "values"
+    values = block._values  # a block kept on disk is read now, and its file closed
     coords = {n: np.asarray(lab) for n, lab in block._labels.items() if n in block._names}
-    da = xr.DataArray(block._values, dims=list(block._names), coords=coords, name=name,
-                      attrs=dict(about.get("attrs") or {}))
-    encoding = {name: {"zlib": True, "complevel": 4}}
-    da.to_netcdf(path, engine="h5netcdf", encoding=encoding)
-    print(f"Saved {say_shape(block._values.shape, block._names)} as \"{name}\" to {Path(file_name).name} (netCDF-4, "
+    variables = about.get("variables")
+    if variables and "variable" in block._names and "variable" in block._labels:
+        da = xr.DataArray(values, dims=list(block._names), coords=coords)
+        ds = da.to_dataset(dim="variable")
+        for var in ds.data_vars:
+            ds[var].attrs.update(variables.get(str(var), {}))
+        names_said = ", ".join(str(v) for v in ds.data_vars)
+    else:
+        if "+" in name:
+            name = "values"
+        ds = xr.DataArray(values, dims=list(block._names), coords=coords, name=name,
+                          attrs=dict(about.get("attrs") or {})).to_dataset()
+        names_said = name
+    encoding = {str(var): {"zlib": True, "complevel": 4} for var in ds.data_vars}
+    try:
+        ds.to_netcdf(path, engine="h5netcdf", encoding=encoding)
+    except OSError:
+        raise SimplydataError(f'"{Path(file_name).name}" cannot be written: it is open, perhaps in another block read '
+                              "with keep_on_disk=True. Save under another name, or read that block's numbers first "
+                              "(any word that needs them closes the file).") from None
+    print(f"Saved {say_shape(values.shape, block._names)} as \"{names_said}\" to {Path(file_name).name} (netCDF-4, "
           f"compressed). xarray to_netcdf(engine=\"h5netcdf\")")
 
 

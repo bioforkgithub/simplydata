@@ -353,7 +353,10 @@ class BlockLabelWords:
         out = out.reshape([out.shape[i] for i in keep])
         names = [names[i] for i in keep]
         labels = {n: v for n, v in labels.items() if n in names}
-        outside = int(np.isnan(out).sum() - np.isnan(self._values).sum()) if out.size else 0
+        inside = [int(((t >= lab.min()) & (t <= lab.max())).sum()) for t, lab in zip(wanted, points)]
+        asked = int(np.prod([t.size for t in wanted]))
+        others = int(np.prod([s for i, s in enumerate(self._values.shape) if i not in axes]))
+        outside = (asked - int(np.prod(inside))) * others  # places asked for beyond the first or last label
         print(f"Values at {_say_at(at)} by {test_method} interpolation between the labels"
               + (f"; {outside} places outside the labels are empty" if outside > 0 else "")
               + f". SciPy interpolate.interpn(method=\"{test_method}\") (as xarray interp)")
@@ -469,8 +472,8 @@ class BlockLabelWords:
         """Smooth a block along some directions: each number becomes a summary of its neighbours. block.smooth(over=["latitude", "longitude"], window=3)
 
         over= names the directions (a block of three or more directions needs it). test_method= "moving average"
-        (window= neighbours along each direction; ends="empty" or "mirror"), "gaussian" (width=2) or "median", as
-        grid.smooth. SciPy ndimage.uniform_filter, gaussian_filter and median_filter with axes=. Labels stay as they
+        (window= neighbours along each direction; ends="empty", "reflect" or "mirror", SciPy's modes), "gaussian"
+        (width=2) or "median", as grid.smooth. SciPy ndimage.uniform_filter, gaussian_filter and median_filter with axes=. Labels stay as they
         are. Undo with block.undo().
         """
         return SmoothOverWords.smooth(self, over=over, test_method=test_method, window=window, width=width, ends=ends)
@@ -584,8 +587,17 @@ def _label_values(labels, example) -> np.ndarray:
         if frame.shape[1] != 1:
             raise SimplydataError("A table of labels needs one column (such as sdata.make_run_of_dates(...)).")
         labels = frame.iloc[:, 0]
-    elif getattr(labels, "_values", None) is not None and not isinstance(labels, (list, tuple)):
+    elif getattr(labels, "_is_simplydata_numbers", False) or getattr(labels, "_is_simplydata_block", False):
         labels = labels._values
+    if hasattr(labels, "dt") and getattr(labels.dt, "tz", None) is not None:
+        labels = pd.DatetimeIndex(labels)
+    if isinstance(labels, pd.arrays.DatetimeArray) and labels.tz is not None:
+        labels = pd.DatetimeIndex(labels)
+    if isinstance(labels, pd.DatetimeIndex) and labels.tz is not None:
+        print(f"Note: the dates are in the time zone {labels.tz}; they are kept as the same moments in UTC (blocks hold "
+              "dates without a time zone). To keep the local clock, change the time zone in a table first "
+              "(table.change_time_zone_in).")
+        labels = labels.tz_convert("UTC").tz_localize(None)
     if hasattr(labels, "to_numpy"):
         values = labels.to_numpy()
     else:
@@ -593,10 +605,14 @@ def _label_values(labels, example) -> np.ndarray:
             raise SimplydataError(f"add_labels_to() needs a list of labels in square brackets.\nFor example:  {example}")
         items = list(labels)
         if items and all(isinstance(v, (datetime.date, np.datetime64, pd.Timestamp)) for v in items):
-            values = pd.to_datetime(items).to_numpy()
-        else:
-            values = np.asarray(items)
+            return _label_values(pd.DatetimeIndex(pd.to_datetime(items, utc=any(
+                getattr(v, "tzinfo", None) is not None for v in items))), example)
+        values = np.asarray(items)
     if values.dtype.kind == "O":
+        if any(isinstance(v, (datetime.date, np.datetime64, pd.Timestamp)) for v in values):
+            if all(isinstance(v, (datetime.date, np.datetime64, pd.Timestamp)) for v in values):
+                return _label_values(list(values), example)
+            raise SimplydataError("The labels mix dates with other values; give all dates, or all text.")
         values = values.astype(str)
     if values.dtype.kind == "M":
         values = values.astype("datetime64[ns]")
@@ -614,10 +630,12 @@ class SmoothOverWords:
         """Smooth along some directions: each number becomes a summary of its neighbours, as blurring a picture. grid.smooth(window=3)
 
         over= names the directions (a grid: both, unless you say). test_method= "moving average" (the average of
-        window= neighbours along each direction; ends="empty" leaves the edges without a full window empty, as
-        nums.smooth, or "mirror"), "gaussian" (a bell curve with a standard deviation of width=2 places) or
-        "median" (removes single spikes). SciPy ndimage.uniform_filter, gaussian_filter and median_filter with
-        axes=; at the edges the numbers are mirrored (mode "reflect"). Undo with undo().
+        window= neighbours along each direction), "gaussian" (a bell curve with a standard deviation of width=2
+        places) or "median" (removes single spikes). SciPy ndimage.uniform_filter, gaussian_filter and median_filter
+        with axes=. ends= says what happens at the edges, with SciPy's own names for its modes: "empty" (the moving
+        average's default: the edges without a full window are left empty, as nums.smooth), "reflect" (the
+        gaussian's and median's default: the edge number is repeated, d c b a | a b c d) or "mirror" (it is not:
+        d c b | a b c d). Undo with undo().
         """
         from scipy import ndimage
 
@@ -650,17 +668,22 @@ class SmoothOverWords:
                                   "Fill them first.")
         along = " and ".join(names[a] for a in axes)
         numpy_axes = tuple(axes)
+        edge_words = {"reflect": "at the edges the edge number is repeated (SciPy mode \"reflect\")",
+                      "mirror": "at the edges the numbers are mirrored about the edge number (SciPy mode \"mirror\")"}
         if method == "gaussian":
-            if window != 5 or ends not in (None, "mirror"):
+            if window != 5:
                 raise SimplydataError('test_method="gaussian" takes width= (the standard deviation, in places), not '
-                                      'window= or ends=.')
+                                      'window=.')
+            mode = "reflect" if ends is None else ends
+            if mode not in edge_words:
+                raise choice_error(step, "ends", ends, list(edge_words))
             width = 2 if width is None else width
             if not is_number(width) or width <= 0:
                 raise SimplydataError("width= needs a number of places above 0 (the bell curve's standard deviation).")
-            out = ndimage.gaussian_filter(values, sigma=float(width), truncate=4.0, mode="reflect", axes=numpy_axes)
+            out = ndimage.gaussian_filter(values, sigma=float(width), truncate=4.0, mode=mode, axes=numpy_axes)
             words = (f"a bell curve (standard deviation {say(width)} place{'' if width == 1 else 's'}) along {along}; "
-                     "at the edges the numbers are mirrored")
-            call = f"ndimage.gaussian_filter(block, sigma={say(width)}, mode=\"reflect\", axes={numpy_axes})"
+                     + edge_words[mode])
+            call = f"ndimage.gaussian_filter(block, sigma={say(width)}, mode=\"{mode}\", axes={numpy_axes})"
         else:
             if width is not None:
                 raise SimplydataError(f'width= goes with test_method="gaussian"; test_method="{method}" takes window=.')
@@ -672,17 +695,19 @@ class SmoothOverWords:
                 if self._values.shape[a] < k:
                     raise SimplydataError(f"{names[a]} has {self._values.shape[a]} places, fewer than the window ({k}).")
             if method == "median":
-                if ends not in (None, "mirror"):
-                    raise choice_error(step, "ends", ends, ["mirror"])
-                out = ndimage.median_filter(values, size=k, mode="reflect", axes=numpy_axes)
-                words = f"the median of {k} neighbours along {along}; at the edges the numbers are mirrored"
-                call = f"ndimage.median_filter(block, size={k}, mode=\"reflect\", axes={numpy_axes})"
+                mode = "reflect" if ends is None else ends
+                if mode not in edge_words:
+                    raise choice_error(step, "ends", ends, list(edge_words))
+                out = ndimage.median_filter(values, size=k, mode=mode, axes=numpy_axes)
+                words = f"the median of {k} neighbours along {along}; {edge_words[mode]}"
+                call = f"ndimage.median_filter(block, size={k}, mode=\"{mode}\", axes={numpy_axes})"
             else:
                 ends = "empty" if ends is None else ends
-                if ends not in ("empty", "mirror"):
-                    raise choice_error(step, "ends", ends, ["empty", "mirror"])
-                out = ndimage.uniform_filter(values, size=k, mode="reflect", axes=numpy_axes)
-                call = f"ndimage.uniform_filter(block, size={k}, mode=\"reflect\", axes={numpy_axes})"
+                if ends not in ("empty", "reflect", "mirror"):
+                    raise choice_error(step, "ends", ends, ["empty", "reflect", "mirror"])
+                mode = "reflect" if ends == "empty" else ends  # the edges are left empty anyway
+                out = ndimage.uniform_filter(values, size=k, mode=mode, axes=numpy_axes)
+                call = f"ndimage.uniform_filter(block, size={k}, mode=\"{mode}\", axes={numpy_axes})"
                 half = k // 2
                 if ends == "empty":
                     for a in axes:
@@ -692,7 +717,7 @@ class SmoothOverWords:
                     words = (f"the average of {k} neighbours along {along}; the first and last {half} along each have "
                              "no full window, so they are empty")
                 else:
-                    words = f"the average of {k} neighbours along {along}; at the edges the numbers are mirrored"
+                    words = f"the average of {k} neighbours along {along}; {edge_words[ends]}"
         print(f"Smoothed with {words}. SciPy {call}")
         return self._change(f"smooth ({method}) over {along}", out)
 

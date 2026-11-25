@@ -266,8 +266,9 @@ def test_numbers_from_a_text_file_with_empty_values_equal_pandas(tmp_path, no_ne
     assert '"depth", is the name' in capsys.readouterr().out
     csv = tmp_path / "r.csv"
     csv.write_text("1\n2\nNA\n4\n")
-    np.testing.assert_array_equal(sdata.numbers(str(csv)).as_numpy(),
-                                  pd.read_csv(csv, header=None).iloc[:, 0].to_numpy())
+    np.testing.assert_array_equal(sdata.numbers(str(csv), empty_values=["NA"]).as_numpy(),
+                                  pd.read_csv(csv, header=None, na_values=["NA"],
+                                              keep_default_na=False).iloc[:, 0].to_numpy())
 
 
 def test_numbers_from_text_refuse_text_and_columns(tmp_path):

@@ -1297,6 +1297,8 @@ def _summary_word(step: str):
                     "the year,\n        all years together (xarray groupby(\"time.month\"); also \"season\", \"year\", "
                     "\"quarter\", \"day of year\", \"hour\"),\n        and every=\"month\" one for each calendar month "
                     "(xarray resample; also \"hour\", \"day\", \"week\", \"quarter\", \"year\").\n"
+                    "        \"day of year\" counts as xarray does: 29 February of a leap year is day 60, grouped with "
+                    "1 March of other years.\n"
                     "        in_groups_of={\"latitude\": 4} gives one answer for each group of 4 next to each other (a "
                     "coarser grid;\n        NumPy reshape, as xarray coarsen).\n        ")
     word.__name__ = word.__qualname__ = f"find_{step}"
@@ -1307,6 +1309,17 @@ for _step in ("average", "median", "total", "smallest", "biggest", "standard_dev
     setattr(NumberBlock, f"find_{_step}", _summary_word(_step))
 
 
+def _is_xarray(value) -> bool:
+    return type(value).__module__.split(".")[0] == "xarray"
+
+
+def _variable_of(dataset, name):
+    """One variable of an open Dataset, or the stacked ones ("u+v") as a new direction "variable"."""
+    if "+" in name and name not in dataset.data_vars:
+        return dataset[name.split("+")].to_dataarray(dim="variable")
+    return dataset[name]
+
+
 class FileBlock(NumberBlock):
     """A block whose numbers stay in their netCDF file until a word needs them (keep_on_disk=True).
 
@@ -1315,7 +1328,14 @@ class FileBlock(NumberBlock):
     reads the numbers (once, with a note) and the block then works as any other.
     """
 
-    def __init__(self, lazy, names, labels, about, source):
+    def __init__(self, lazy, names, labels, about, source, dataset=None, markers=None):
+        import weakref
+
+        object.__setattr__(self, "_markers", markers)
+        object.__setattr__(self, "_dims_in_file", None if dataset is None else
+                           list(_variable_of(dataset, about["name"]).dims))
+        # the file is closed when the numbers are read, and when the block is deleted
+        object.__setattr__(self, "_closer", weakref.finalize(self, dataset.close) if dataset is not None else None)
         object.__setattr__(self, "_lazy", lazy)
         object.__setattr__(self, "_original_lazy", lazy)
         object.__setattr__(self, "_loaded", None)
@@ -1330,7 +1350,27 @@ class FileBlock(NumberBlock):
     # the numbers: read from the file the first time a word needs them
     def _read(self, lazy):
         print(f"Reading {say_shape(lazy.shape, self._names)} from {self._source.name} now (xarray load).")
-        return np.asarray(lazy.values)
+        found = lazy.load()
+        markers = object.__getattribute__(self, "_markers")
+        if markers is not None:
+            hits = int(found.isin(markers).sum())
+            found = found.where(~found.isin(markers))
+            print(f"{hits} value{'' if hits == 1 else 's'} equal to {', '.join(f'{m:g}' for m in markers)} "
+                  f"{'is' if hits == 1 else 'are'} now empty (xarray where).")
+        return np.asarray(found.values)
+
+    def _close_file(self):
+        """Close the file once the numbers are read: the steps that cut it in the file can no longer be undone
+        one by one (start_again opens it again)."""
+        closer = object.__getattribute__(self, "_closer")
+        if closer is not None and closer.alive:
+            closer()
+            lazy_steps = [h for h in self._history if _is_xarray(h[1])]
+            if lazy_steps:
+                self._history[:] = [h for h in self._history if not _is_xarray(h[1])]
+                print(f"The file {self._source.name} is closed now that its numbers are read; the "
+                      f"{len(lazy_steps)} step{'' if len(lazy_steps) == 1 else 's'} done in the file cannot be undone "
+                      "one by one (block.start_again() reads the file again).")
 
     @property
     def _values(self):
@@ -1339,7 +1379,21 @@ class FileBlock(NumberBlock):
             loaded = self._read(object.__getattribute__(self, "_lazy"))
             object.__setattr__(self, "_loaded", loaded)
             object.__setattr__(self, "_lazy", None)
+            self._close_file()
         return loaded
+
+    def _open_again(self):
+        """The variable, lazily, from a fresh open of the file (after it was closed)."""
+        import weakref
+
+        from .block_files import _open
+
+        dataset, _ = _open(self._source, "block.start_again()")
+        lazy = _variable_of(dataset, self._about["name"])
+        dims = object.__getattribute__(self, "_dims_in_file") or [str(d) for d in lazy.dims]
+        lazy = lazy.rename({old: new for old, new in zip(dims, self._original_state[0]) if old != new})
+        object.__setattr__(self, "_closer", weakref.finalize(self, dataset.close))
+        return lazy
 
     @_values.setter
     def _values(self, values):
@@ -1451,7 +1505,7 @@ class FileBlock(NumberBlock):
     @friendly
     def undo(self: _Same) -> _Same:
         """Take the last step back; the directions come back with the numbers. block.undo()"""
-        if self._history and type(self._history[-1][1]).__module__.split(".")[0] == "xarray":
+        if self._history and _is_xarray(self._history[-1][1]):
             what, before, _, (names, named, labels) = self._history.pop()
             object.__setattr__(self, "_lazy", before)
             object.__setattr__(self, "_loaded", None)
@@ -1466,9 +1520,16 @@ class FileBlock(NumberBlock):
     def start_again(self: _Same) -> _Same:
         """Go back to the block as it was at the start (still in the file). block.start_again()"""
         names, named, labels = self._original_state
-        self._history.append(("start again", self._lazy if self._on_disk() else self._values, None,
-                              (self._names, self._named, self._labels)))
-        object.__setattr__(self, "_lazy", self._original_lazy)
+        closer = object.__getattribute__(self, "_closer")
+        if self._on_disk():
+            before = self._lazy
+            original = self._original_lazy
+        else:
+            before = self._values
+            original = self._open_again() if closer is not None and not closer.alive else self._original_lazy
+            object.__setattr__(self, "_original_lazy", original)
+        self._history.append(("start again", before, None, (self._names, self._named, self._labels)))
+        object.__setattr__(self, "_lazy", original)
         object.__setattr__(self, "_loaded", None)
         object.__setattr__(self, "_names", list(names))
         object.__setattr__(self, "_named", list(named))

@@ -4712,14 +4712,15 @@ BASIS["block.find_values_at"] = _b(
 BASIS["block.smooth"] = _b(
     "A moving average of window=5 places along each direction named; the edges without a full window are empty "
     "(ends=\"empty\"), as nums.smooth.",
-    "ends=\"mirror\"; test_method=\"gaussian\" (width=2) or \"median\".",
+    "ends=\"reflect\" or \"mirror\" (SciPy's modes of those names); test_method=\"gaussian\" (width=2) or "
+    "\"median\".",
     "The same starting values as nums.smooth (R stats::filter leaves the ends empty), so a block smoothed along one "
     "direction gives what each list of numbers would give.", (), "P3",
     "window= is odd, so it is centred; empty values are refused.", "convention")
 BASIS["grid.smooth"] = _b(
-    "Along the rows and the columns together (a picture blurred); the edges mirrored for \"gaussian\" and "
-    "\"median\" (SciPy mode \"reflect\"), the bell curve cut at 4 standard deviations.",
-    "over=\"row\" or \"column\" for one direction; window=, width=, ends=.",
+    "Along the rows and the columns together (a picture blurred); for \"gaussian\" and \"median\" the edge "
+    "number is repeated (SciPy mode \"reflect\"), and the bell curve is cut at 4 standard deviations.",
+    "over=\"row\" or \"column\" for one direction; window=, width=; ends=\"mirror\" (SciPy mode \"mirror\").",
     "SciPy ndimage's own defaults, so the grid equals gaussian_filter and median_filter in scipy.ndimage.", (), "P3",
     "Empty values are refused.", "convention")
 BASIS["block.change_size_to"] = _b(

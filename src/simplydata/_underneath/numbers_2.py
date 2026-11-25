@@ -142,8 +142,8 @@ ENTRIES = [
             out
         """)}, 'test_method="gaussian" (ndimage.gaussian_filter, width=) and "median" (ndimage.median_filter) work the '
                "same way along the directions named.",
-       choices=('ends="empty": the places without a full window are left empty, as nums.smooth; ends="mirror" keeps '
-                "SciPy's mirrored edges.",)),
+       choices=('ends="empty": the places without a full window are left empty, as nums.smooth; ends="reflect" and '
+                "\"mirror\" keep SciPy's edges of those names.",)),
     _e("grid.smooth", """
             grid = sdata.number_grid([[1.0, 4, 2, 8, 5], [3, 9, 7, 1, 6], [2, 2, 8, 4, 3], [6, 5, 1, 9, 2]])
             grid.smooth(test_method="gaussian", width=1)
@@ -154,7 +154,8 @@ ENTRIES = [
             # grid.smooth(test_method="gaussian", width=1)
             ndimage.gaussian_filter(grid, sigma=1, truncate=4.0, mode="reflect", axes=(0, 1))  # (1)
         """}, "Without over= a grid is smoothed along its rows and its columns, as a picture is blurred.",
-       choices=("the bell curve is cut at 4 standard deviations and the edges are mirrored (SciPy's own defaults).",)),
+       choices=('the bell curve is cut at 4 standard deviations and the edge number is repeated (mode "reflect"), '
+                "SciPy's own defaults.",)),
     _e("block.change_size_to", _ours("""
             block.change_size_to(latitude=5, longitude=7)
         """), {"SciPy": _sea("""

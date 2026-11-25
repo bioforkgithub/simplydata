@@ -392,7 +392,8 @@ def numbers(*values, to=None, step=None, how_many=None, channel=None, empty_valu
     sdata.numbers(10, to=1)                  counting down: 10, 9 ... 1
     sdata.numbers("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
     sdata.numbers("readings.txt", empty_values=[-999])   one column of numbers from a text file (.txt, .csv, .tsv,
-                                             .dat); empty_values= are the numbers that mean "no reading" (pandas read_csv)
+                                             .dat); empty_values= are the markers that mean "no reading" (only those:
+                                             other text, "NA" too, is refused; pandas read_csv)
     None or NaN in a list is an empty (missing) value.
     """
     if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(_TEXT_ENDINGS):
@@ -464,7 +465,9 @@ def _read_text_numbers(file_name, empty_values=None) -> Numbers:
         markers = list(markers)
     ending = path.suffix.lower()
     sep = {".csv": ",", ".tsv": "\t"}.get(ending, r"\s+")
-    options = dict(sep=sep, header=None, na_values=markers, skip_blank_lines=True)
+    # keep_default_na=False: only the markers you give mean "no value" (pandas would also take "NA", "null", "n/a"
+    # ... by itself), so other text among the numbers is refused with the line to write
+    options = dict(sep=sep, header=None, na_values=markers, keep_default_na=False, skip_blank_lines=True)
     frame = pd.read_csv(path, **options)
     header = None
     if len(frame) and not _is_number_text(frame.iloc[0, 0]):

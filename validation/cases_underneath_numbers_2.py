@@ -79,34 +79,43 @@ def cases(Case):
         # ---------------------------------------------------------------- netCDF files (written and read back here)
         Case("block.save", "El Nino: 732 months with their dates saved as netCDF and read back", **nino,
              ours=_code(NINO_OURS, """
-                 import os, tempfile
-                 path = os.path.join(tempfile.mkdtemp(), "nino.nc")
+                 import os, shutil, tempfile
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "nino.nc")
                  block.save(path)
                  again = sdata.number_block(path, values="values")
+                 shutil.rmtree(folder)
              """, _ours_flat("again.get_all_numbers()")),
              parent=_code(NINO_XR, """
-                 import os, tempfile
-                 path = os.path.join(tempfile.mkdtemp(), "nino.nc")
+                 import os, shutil, tempfile
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "nino.nc")
                  sst.rename("values").to_netcdf(path, engine="h5netcdf", encoding={"values": {"zlib": True}})
                  with xr.open_dataset(path, engine="h5netcdf") as ds:
                      x = ds["values"].values
+                 shutil.rmtree(folder)
              """, NP_FLAT), parent_label="xarray to_netcdf and open_dataset (h5netcdf)", parent_tolerance=0.0,
              r=R_FLAT + "flat(temperature)", r_tolerance=0.0),
         Case("sdata.number_block", "El Nino in a netCDF file: the years 2000-2009 cut in the file, then read",
              **nino, option="keep_on_disk=",
              ours=_code(NINO_OURS, """
-                 import os, tempfile
-                 path = os.path.join(tempfile.mkdtemp(), "nino.nc")
+                 import os, shutil, tempfile
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "nino.nc")
                  block.save(path)
                  lazy = sdata.number_block(path, values="values", keep_on_disk=True)
                  lazy.keep_where("time", is_between=["2000-01-01", "2009-12-01"])
-             """, _ours_flat("lazy.get_all_numbers()")),
+                 kept = lazy.get_all_numbers()
+                 shutil.rmtree(folder)
+             """, _ours_flat("kept")),
              parent=_code(NINO_XR, """
-                 import os, tempfile
-                 path = os.path.join(tempfile.mkdtemp(), "nino.nc")
+                 import os, shutil, tempfile
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "nino.nc")
                  sst.rename("values").to_netcdf(path, engine="h5netcdf")
                  with xr.open_dataset(path, engine="h5netcdf") as ds:
                      x = ds["values"].sel(time=slice("2000-01-01", "2009-12-01")).values
+                 shutil.rmtree(folder)
              """, NP_FLAT), parent_label="xarray open_dataset and sel", parent_tolerance=0.0,
              r=R_FLAT + "flat(temperature[year >= 2000 & year <= 2009])", r_tolerance=0.0),
         # ---------------------------------------------------------------- labels
@@ -274,21 +283,25 @@ def cases(Case):
         Case("sdata.numbers", "Lake Huron levels in a text file with every tenth reading marked -999", **huron,
              option="empty_values=",
              ours=_code("""
-                 import os, tempfile
-                 path = os.path.join(tempfile.mkdtemp(), "huron.txt")
+                 import os, shutil, tempfile
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "huron.txt")
                  marked = [-999 if i % 10 == 9 else v for i, v in enumerate(data["level"].tolist())]
                  with open(path, "w") as f:
                      f.write("\\n".join(str(v) for v in marked))
                  levels = sdata.numbers(path, empty_values=[-999]).remove_empty_numbers()
+                 shutil.rmtree(folder)
              """, _ours_flat("levels")),
              parent=_code("""
-                 import os, tempfile
+                 import os, shutil, tempfile
                  import numpy as np, pandas as pd
-                 path = os.path.join(tempfile.mkdtemp(), "huron.txt")
+                 folder = tempfile.mkdtemp()
+                 path = os.path.join(folder, "huron.txt")
                  marked = [-999 if i % 10 == 9 else v for i, v in enumerate(data["level"].tolist())]
                  with open(path, "w") as f:
                      f.write("\\n".join(str(v) for v in marked))
                  x = pd.read_csv(path, header=None, sep=r"\\s+", na_values=[-999]).iloc[:, 0].dropna().to_numpy()
+                 shutil.rmtree(folder)
              """, NP_FLAT), parent_label="pandas read_csv(na_values=[-999])", parent_tolerance=0.0,
              r=R_FLAT + "flat(level[seq_along(level) %% 10 != 0])", r_tolerance=0.0),
         Case("sdata.make_random_numbers", "iris-sized block of 3 x 50 x 4 bell-shaped numbers with the iris average",
