@@ -278,8 +278,9 @@ def test_say_what_it_shows_reads_the_drawn_chart(capsys):
     assert text in capsys.readouterr().out
     ax = axes_of(chart)
     low, high = ax.get_ylim()
-    assert '"Marks". It draws 9 bars.' in text
-    assert 'x-axis "class", with the groups A, B, C' in text
+    assert 'Title: "Marks".' in text
+    assert 'draw_bars(x="class", y="marks", colour="subject"): bars; one colour for each subject: Maths, Science, '            "English; each bar is the average of \"marks\"." in text
+    assert 'x-axis "class", with the names A, B, C' in text
     assert f'y-axis "marks", from {low:.4g} to {high:.4g}' in text
     assert "Legend (subject): Maths, Science, English." in text
 

@@ -4564,11 +4564,14 @@ BASIS["draw_dots show="] = _b(
     "Showing results: a line between groups would suggest a trend that groups do not have; side by side, error "
     "bars do not cover each other.", (), "P5", "show=\"count\" is refused (use draw_count_bars).", "starting value")
 BASIS["draw_bars stacked="] = _b(
-    "stacked=\"percent\": each stack's values as a percent of its total (pandas div and sum), with the axis named "
-    "\"percent of\" the column.",
-    "stacked=True for the values themselves; also on draw_area.",
-    "Showing results: shares are compared better when every stack has the same height.", (), "P5",
-    "Needs colour= a column to stack.", "convention")
+    "stacked=\"percent\": each group's total as a percent of the stack's total (pandas div and sum), with the axis "
+    "named \"percent of total\" the column; a group with no rows at an x counts as 0, with a note.",
+    "show=\"average\" for shares of averages (with a note); stacked=True for the values themselves; also on "
+    "draw_area.",
+    "Showing results: shares are compared better when every stack has the same height, and a share means a part of "
+    "a total, so totals are the normal.", (), "P5",
+    "Needs colour= a column to stack; values below 0 are refused; a stack whose total is 0 is drawn empty, with a "
+    "note.", "convention")
 BASIS["draw_pie hole="] = _b(
     "A ring whose width is 1 - hole of the radius (matplotlib wedgeprops width), the percents in the middle of "
     "the ring.",

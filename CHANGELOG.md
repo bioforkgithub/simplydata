@@ -13,11 +13,14 @@ working for one release and prints a one-line note with its new name.
   `hide_ticks_x()` / `_y()`, `show_small_ticks_x()` / `_y()`, `use_true_shape()`, `make_square()`,
   `put_colour_bar_at_bottom()` / `_at_top()` / `_at_left()`, `hide_colour_bar()`, `put_ticks_colour_bar(...)`, the
   3D words `draw_lines_3d()`, `label_z()`, `set_range_z()`, `put_ticks_z()`, `look_from(height=, around=)`
-  (`view_from` works too), and `say_what_it_shows()`, which prints and gives back what a chart shows, read from the
-  drawn figure only (`describe` points to it).
+  (`view_from` works too), and `say_what_it_shows()`, which prints and gives back what a chart shows: each chart
+  type you drew with its columns and groups ("3 lines, one for each city: ..."), error bars, lines on top, and the
+  axes, legend and colour bar read from the drawn figure; nothing is counted or worked out (`describe` points to
+  it).
 - New options: `y=` on `draw_histogram` and `draw_density` (two-way), `in_halves=True` on `draw_violins`,
-  `show=` and `error=` on `draw_dots` (one dot per group, seaborn pointplot), `stacked="percent"` on `draw_bars` and
-  `draw_area`, `hole=` on `draw_pie`, `as_wires=` and `with_height_lines=` on `draw_surface`, `between=` on
+  `show=` and `error=` on `draw_dots` (one dot per group, seaborn pointplot; number x keeps its spacing),
+  `stacked="percent"` on `draw_bars` and `draw_area` (shares of totals, with the axis named "percent of total";
+  values below 0 are refused, and empty places and stacks with a total of 0 get a note), `hole=` on `draw_pie`, `as_wires=` and `with_height_lines=` on `draw_surface`, `between=` on
   `draw_line_at_y` and `draw_line_at_x`, `title=` and `ticks=` on `use_font_size`, `per_row=` on
   `put_legend_at_bottom` and `put_legend_at_top`, and `formula=` on `add_second_y` (the way back by SciPy brentq).
 - One option, one meaning: `value=` and `z=` are the same option on `draw_heatmap`, `draw_contour` and

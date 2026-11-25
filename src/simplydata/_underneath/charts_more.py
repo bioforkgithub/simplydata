@@ -516,15 +516,17 @@ ENTRIES = [
             df = pd.read_csv("marks.csv")
             fig, ax = plt.subplots()
             # draw_bars(x="class", y="marks", colour="subject", stacked="percent")
-            wide = df.groupby(["class", "subject"])["marks"].mean().unstack("subject")
+            wide = df.groupby(["class", "subject"])["marks"].sum().unstack("subject")      # (1)
             wide = wide[["Maths", "Science", "English"]]
             shares = wide.div(wide.sum(axis=1), axis=0).mul(100)
             shares.plot(kind="bar", stacked=True, rot=0, width=0.8, ax=ax)
-            ax.set_ylabel("percent of marks")                                           # (1)
+            ax.set_ylabel("percent of total marks")                                     # (2)
         '''},
         compare="chart",
         check=("bars", "labels"),
-        choices=("the y-axis is named \"percent of\" the column, so the chart says it shows shares.",),
+        choices=("with stacked=\"percent\" each bar is the total of its group (show=\"total\"), so a stack shows shares "
+                 "of the whole; show=\"average\" gives shares of averages, with a note.",
+                 "the y-axis says whose shares they are: \"percent of total\" the column.",),
         also="The groups keep the order they appear in (order_legend changes it). " + LOOK,
     ),
     Entry(

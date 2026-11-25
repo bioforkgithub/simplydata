@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from .._core import Context
+from .._core import PHASES, Context
 from .._data import is_listlike
 from .._errors import SimplydataError, column_error, friendly
 from ._helpers import check, check_thickness, check_transparency, colour_role, default_colour, opacity
@@ -90,10 +90,42 @@ def check_between(word, between, example):
 
 
 # ====================================================================== options of older words
-def as_percent_of_each_row(wide: pd.DataFrame) -> pd.DataFrame:
-    """stacked="percent": each row's values as a percent of the row's total (pandas div and sum)."""
-    wide = wide.fillna(0)
-    return wide.div(wide.sum(axis=1), axis=0).mul(100)
+def check_no_negatives(data, word, y):
+    """stacked="percent" shows shares of a whole, which a value below 0 cannot be part of: refuse at once."""
+    if not isinstance(y, str) or y not in getattr(data, "columns", ()):
+        return
+    values = pd.to_numeric(data[y], errors="coerce")
+    below = values[values < 0]
+    if len(below):
+        raise SimplydataError(
+            f'.{word}(stacked="percent") shows each stack as shares of 100 %, so it cannot show values below 0, '
+            f'and "{y}" has {len(below)} of them (smallest: {below.min():g}).\n'
+            "Remove those rows first, or use stacked=True to show the values themselves.")
+
+
+def as_percent_of_each_row(wide: pd.DataFrame, word: str) -> pd.DataFrame:
+    """stacked="percent": each row's values as a percent of the row's total (pandas div and sum).
+
+    A group with no rows at an x is an empty cell of `wide`: it counts as 0 there (it adds nothing to the stack),
+    and a note says how many cells that was. A stack whose total is 0 has no shares: it is drawn empty, with a
+    note naming it. Values below 0 are refused before drawing (check_no_negatives)."""
+    from .._core import chart_note
+
+    empty = int(wide.isna().sum().sum())
+    if empty:
+        line = (f'Note: .{word}(stacked="percent"): {empty} place{"s" if empty != 1 else ""} where a group has no '
+                "value counted as 0 % of the stack.")
+        chart_note(("percent empty", word), lambda _n, line=line: line)
+    totals = wide.sum(axis=1)  # pandas leaves the empty cells out of the sum, the same as counting them as 0
+    if (totals < 0).any():
+        raise SimplydataError(f'.{word}(stacked="percent") cannot show stacks whose total is below 0.')
+    zero = [str(i) for i in totals.index[totals == 0]]
+    if zero:
+        line = (f'Note: .{word}(stacked="percent"): the total of {", ".join(zero)} is 0, so '
+                f'{"its stack is" if len(zero) == 1 else "their stacks are"} drawn empty.')
+        chart_note(("percent zero", word), lambda _n, line=line: line)
+    shares = wide.div(totals.where(totals != 0), axis=0).mul(100)
+    return shares.where(wide.notna() | totals.eq(0).to_numpy()[:, None], 0.0)
 
 
 def draw_histogram_2d(ctx, x, y, bins, colour, show, transparency=None):
@@ -138,6 +170,9 @@ def draw_average_dots(ctx, x, y, colour, show, error, transparency=None):
         kw["capsize"] = 0.1
     if transparency is not None:
         kw["alpha"] = opacity(transparency)
+    x_values = table[n["x"]]
+    if pd.api.types.is_numeric_dtype(x_values) and not pd.api.types.is_bool_dtype(x_values):
+        kw["native_scale"] = True  # numbers keep their spacing (1, 2, 10); words and groups sit at 0, 1, 2 ...
     sns.pointplot(**kw)
     _remember(ctx, "dots_average", table, n, show=show)
 
@@ -481,81 +516,177 @@ def _look_from(ctx, height, around):
 
 
 # ====================================================================== what it shows
-_KIND_WORDS = {"line": ("line", "lines"), "dot": ("dot", "dots"), "bar": ("bar", "bars"), "band": ("band", "bands"),
-               "stem": ("stem", "stems"), "error bar": ("error bar", "error bars"),
-               "segment": ("line piece", "line pieces"), "rectangle": ("rectangle", "rectangles"),
-               "cell": ("coloured cell", "coloured cells"), "slice": ("pie slice", "pie slices"),
-               "shape": ("shape", "shapes"), "contour": ("contour line point", "contour line points")}
+# say_what_it_shows() describes each drawing step the user wrote (the chart word and the columns it was given, as
+# recorded in the chart's steps) and reads everything else from the drawn figure: the group names from the legend,
+# the axis names, their ranges or the names along them, the title and the colour bar. It never counts the pieces
+# matplotlib draws with (a line of 12 points is one line, not 12; an error bar is not a line of data).
+_WHAT_IS_DRAWN = {
+    "draw_bars": "bars", "draw_count_bars": "bars that count the rows", "draw_lines": "lines", "draw_dots": "dots",
+    "draw_area": "coloured areas under lines", "draw_histogram": "a histogram: bars that count the values in ranges",
+    "draw_boxes": "boxes (the line is the median, the box the middle half of the values)",
+    "draw_violins": "violins (shapes that are wide where many values are)", "draw_all_dots": "every value as a dot",
+    "draw_density": "smooth density curves", "draw_heatmap": "a grid of coloured squares",
+    "draw_pie": "a pie, one slice per group", "draw_polar": "dots on a round chart",
+    "draw_contour": "a contour map (each colour band is one height)", "draw_surface": "a 3D surface",
+    "draw_dots_3d": "dots in a 3D box", "draw_lines_3d": "lines in a 3D box", "draw_band": "a shaded band",
+    "draw_rug_lines": "a short line at each value along the axis", "draw_cumulative_share":
+        "lines that climb from 0 to 1: the share of values at or below each x",
+    "draw_wind_rose": "bars round a compass (north at the top): how many rows come from each direction",
+}
+_ONE_PER_GROUP = {"draw_lines": ("line", "lines"), "draw_area": ("area", "areas"),
+                  "draw_density": ("curve", "curves"), "draw_cumulative_share": ("line", "lines"),
+                  "draw_lines_3d": ("line", "lines")}
+_OPTION_NAMES = {"draw_wind_rose": {"angle": "direction", "distance": "speed"}}
+_COLUMN_KEYS = ("x", "y", "z", "value", "colour", "size", "shape", "labels", "values", "angle", "distance", "low",
+                "high", "column")
+
+
+def _is_number_text(text):
+    try:
+        float(text.replace("−", "-").replace(",", "").rstrip("%").strip())
+        return True
+    except ValueError:
+        return False
 
 
 def _axis_words(ax, axis):
-    """How an axis is drawn, in words: its name and its range (or its group names), read from the axes."""
+    """An axis in words, read from the drawn axes: its name, then the names written along it (a category axis,
+    a heatmap) or the range of its numbers or dates; a log scale and a flipped axis are said."""
     from matplotlib import dates as mdates
 
-    from .axes import _has_group_names, _is_date_axis
+    from .axes import _is_date_axis
 
     obj = {"x": ax.xaxis, "y": ax.yaxis}.get(axis) or ax.zaxis
     name = obj.get_label().get_text() or "no name"
-    if _has_group_names(obj) and not _is_date_axis(obj):
-        labels = [t.get_text() for t in obj.get_ticklabels() if t.get_text()]
-        return f'{axis}-axis "{name}", with the groups ' + ", ".join(labels) if labels else f'{axis}-axis "{name}"'
-    low, high = sorted(obj.get_view_interval())
+    labels = [t.get_text() for t in obj.get_ticklabels() if t.get_text()]
+    flipped = axis in "xy" and (ax.xaxis_inverted() if axis == "x" else ax.yaxis_inverted())
     if _is_date_axis(obj):
-        low, high = (mdates.num2date(v).strftime("%Y-%m-%d") for v in (low, high))
+        low, high = (mdates.num2date(v).strftime("%Y-%m-%d") for v in sorted(obj.get_view_interval()))
         span = f"from {low} to {high}"
+    elif labels and not all(_is_number_text(t) for t in labels):
+        return f'{axis}-axis "{name}", with the names ' + ", ".join(labels)  # their order says the direction
     else:
+        low, high = sorted(obj.get_view_interval())
         span = f"from {low:.4g} to {high:.4g}"
     scale = " (log scale)" if obj.get_scale() == "log" else ""
-    flipped = " (flipped)" if axis in "xy" and (ax.xaxis_inverted() if axis == "x" else ax.yaxis_inverted()) else ""
-    return f'{axis}-axis "{name}", {span}{scale}{flipped}'
+    return f'{axis}-axis "{name}", {span}{scale}' + (" (flipped)" if flipped else "")
 
 
-def describe_chart(fig) -> str:
-    """The description of say_what_it_shows(): read from the drawn figure only (titles, axis names and ranges,
-    legend entries, colour bars, and how many marks of each kind get_numbers_drawn() reads)."""
-    from .._numbers_drawn import numbers_of_panel, panels_of
+def _legend_of(ax, fig):
+    legend = ax.get_legend() or next(iter(fig.legends), None)
+    if legend is None or not legend.get_visible():
+        return None, []
+    return legend.get_title().get_text(), [t.get_text() for t in legend.get_texts() if t.get_text()]
 
-    panels = []
-    for ax in panels_of(fig):
-        if ax.__class__.__name__ == "SecondaryAxis":  # a second scale (add_second_x(formula=)) is said below
-            continue
-        found = numbers_of_panel(ax, 1)[0]  # the same reader as chart.get_numbers_drawn()
-        if found or ax.get_title() or ax.get_title(loc="left"):
-            panels.append((ax, pd.Series([row["kind"] for row in found], dtype=object)))
+
+def _step_words(chart, step, ax, fig):
+    """One drawing step in words: the word and its columns as written, what it draws, and its groups (read from
+    the drawn legend)."""
+    from .._stats import ERROR_MEANING
+
+    word = chart._public_name(step.name)
+    kw = step.kwargs
+    rename = _OPTION_NAMES.get(word, {})
+    written = ", ".join(f'{rename.get(k, k)}="{v}"' for k, v in kw.items() if k in _COLUMN_KEYS and isinstance(v, str))
+    parts = ["" if word in _ONE_PER_GROUP else _WHAT_IS_DRAWN.get(word, "")]  # those say "3 lines ..." below
+    group = kw.get("colour")
+    data = chart._data
+    if isinstance(group, str) and group in getattr(data, "columns", ()):
+        title, names = _legend_of(ax, fig)
+        if word in _ONE_PER_GROUP:
+            one, many = _ONE_PER_GROUP[word]
+            noun = one if len(names) == 1 else many
+            parts.append(f"{len(names)} {noun}, one for each {group}: " + ", ".join(names) if names
+                         else f"one {_ONE_PER_GROUP[word][0]} for each {group}")
+        else:
+            parts.append(f"one colour for each {group}" + (": " + ", ".join(names) if names else ""))
+    elif word in _ONE_PER_GROUP:
+        parts.append(f"one {_ONE_PER_GROUP[word][0]}")
+    show = kw.get("show")
+    if show and word in ("draw_bars", "draw_lines", "draw_dots"):
+        mark = {"draw_bars": "bar", "draw_lines": "point of a line", "draw_dots": "dot"}[word]
+        y = kw.get("y")
+        parts.append(f"each {mark} counts rows" if show == "count" else
+                     f'each {mark} is the {show} of "{y}"' if isinstance(y, str) else f"each {mark} is the {show}")
+    if word == "draw_histogram":
+        parts.append(f'the height of a bar is the {kw.get("show", "count")}')
+    if kw.get("stacked") == "percent":
+        parts.append("stacked, each stack making 100 %")
+    elif kw.get("stacked") is True:
+        parts.append("stacked on top of each other")
+    if word == "draw_wind_rose":
+        parts[0] += f', one bar for every {kw.get("every", 30):g} degrees'
+        if kw.get("distance"):
+            title, names = _legend_of(ax, fig)
+            parts.append(f'stacked by bands of "{kw["distance"]}": ' + ", ".join(names))
+    error = kw.get("error")
+    if error in ERROR_MEANING:
+        parts.append(("a shaded band shows " if word == "draw_lines" else "error bars show ") + ERROR_MEANING[error])
+    return f"{word}({written}): " + "; ".join(p for p in parts if p) + "."
+
+
+def _extra_words(chart, step):
+    """A step drawn on top of the chart types (a reference line, a fitted line, error bars ...), in words."""
+    from .._stats import ERROR_MEANING, ERRORS
+
+    word = chart._public_name(step.name)
+    if not (word.startswith(("draw_", "fit_", "shade_", "write_note", "put_chart_inside", "add_"))):
+        return None
+    kw = step.kwargs
+    if word in ("draw_line_at_x", "draw_line_at_y"):
+        between = kw.get("between")
+        where = f" from {between[0]} to {between[1]}" if between else ""
+        return f"{word}({kw['value']}): a straight line at {word[-1]} = {kw['value']}{where}."
+    if word == "draw_error_bars":
+        code = ERRORS.get(str(kw.get("kind")).lower(), kw.get("kind"))
+        return f"{word}(): error bars showing {ERROR_MEANING.get(code, kw.get('kind'))}."
+    if word == "put_chart_inside":
+        return "put_chart_inside(): a small chart drawn inside this one."
+    return f"{word}(): drawn on top."
+
+
+def describe_chart(chart) -> str:
+    """The text of say_what_it_shows(): the drawing steps as written, and the title, axes, legend and colour bar
+    as drawn. Nothing is counted or worked out from the data."""
+    import io
+
+    fig = chart._render()
+    fig.savefig(io.BytesIO(), format="png")  # tick names and second scales are only set when a chart is drawn
+    panels = [a for a in fig.axes if a.get_label() != "<colorbar>" and a.get_visible()
+              and a.__class__.__name__ != "SecondaryAxis"]
+    ax = panels[0]
     lines = []
     sup = getattr(fig, "_suptitle", None)
-    if sup is not None and sup.get_visible() and sup.get_text():
-        lines.append(f'Title of the whole chart: "{sup.get_text()}".')
-    for number, (ax, kinds) in enumerate(panels, start=1):
-        head = f"Chart {number} of {len(panels)}: " if len(panels) > 1 else ""
-        counts = kinds.value_counts(sort=False)
-        drawn = ", ".join(f"{k} {_KIND_WORDS.get(kind, (kind, kind))[0 if k == 1 else 1]}"
-                          for kind, k in counts.items())
-        title = ax.get_title() or ax.get_title(loc="left")
-        lines.append(head + (f'"{title}". ' if title else "") + (f"It draws {drawn}." if drawn else "It draws nothing "
-                                                                                                   "that has numbers."))
-        if ax.name == "polar":
-            lines.append("It is a round (polar) chart: angles go round, distances go out from the middle.")
-        elif ax.name != "rectilinear" or ax.axison:
-            axes = ["x", "y"] + (["z"] if ax.name == THREE_D else [])
-            lines.append("; ".join(_axis_words(ax, a) for a in axes) + ".")
-        for second in (c for c in ax.child_axes if c.__class__.__name__ == "SecondaryAxis"):
-            name = second.xaxis.get_label().get_text() or second.yaxis.get_label().get_text()
-            lines.append("A second scale shows the same places in other units" + (f': "{name}".' if name else "."))
-        legend = ax.get_legend() or next(iter(fig.legends), None)
-        if legend is not None and legend.get_visible():
-            entries = [t.get_text() for t in legend.get_texts() if t.get_text()]
-            title = legend.get_title().get_text()
-            if entries:
-                lines.append(f"Legend{f' ({title})' if title else ''}: " + ", ".join(entries) + ".")
+    title = (sup.get_text() if sup is not None and sup.get_visible() else "") or ax.get_title() \
+        or ax.get_title(loc="left")
+    if title:
+        lines.append(f'Title: "{title}".')
+    draws = [s for s in chart._steps if s.phase == PHASES["draw"]]
+    if not draws:
+        lines.append("Nothing is drawn yet.")
+    lines += [_step_words(chart, s, ax, fig) for s in draws]
+    extras = [_extra_words(chart, s) for s in chart._steps if s.phase != PHASES["draw"]]
+    lines += [e for e in extras if e]
+    split = chart._settings.get("split") or {}
+    if len(panels) > 1 and split:
+        by = [c for c in (split.get("by"), split.get("down"), split.get("row"), split.get("column")) if c]
+        lines.append(f"It is drawn as {len(panels)} small charts, one for each group of " + " and ".join(by) + ".")
+    if ax.name == "polar":
+        lines.append("It is a round chart: directions go round, counts or distances go out from the middle.")
+    elif ax.name == THREE_D or ax.axison:
+        axes = ["x", "y"] + (["z"] if ax.name == THREE_D else [])
+        lines.append("; ".join(_axis_words(ax, a) for a in axes) + ".")
+    for second in (c for c in ax.child_axes if c.__class__.__name__ == "SecondaryAxis"):
+        name = second.xaxis.get_label().get_text() or second.yaxis.get_label().get_text()
+        lines.append("A second scale shows the same places in other units" + (f': "{name}".' if name else "."))
+    legend_title, entries = _legend_of(ax, fig)
+    if entries:
+        lines.append(f"Legend{f' ({legend_title})' if legend_title else ''}: " + ", ".join(entries) + ".")
     for bar_ax in (a for a in fig.axes if a.get_label() == "<colorbar>"):
         horizontal = bool(bar_ax.get_xlabel()) and not bar_ax.get_ylabel()
         name = bar_ax.get_xlabel() if horizontal else bar_ax.get_ylabel()
         low, high = sorted(bar_ax.get_xlim() if horizontal else bar_ax.get_ylim())
         lines.append(f'Colour bar{f" {chr(34)}{name}{chr(34)}" if name else ""}: from {low:.4g} to {high:.4g}.')
-    for text in (getattr(fig, "_supxlabel", None),):
-        if text is not None and text.get_visible() and text.get_text():
-            lines.append(f'Name under all charts: "{text.get_text()}".')
     return "\n".join(lines)
 
 
@@ -587,7 +718,7 @@ class MoreChartWords:
         if other_chart._settings.get("projection") is not None or other_chart._settings.get("split"):
             raise SimplydataError(".put_chart_inside() draws a flat chart with one panel inside this one; the other "
                                   "chart is round, 3D or split into panels.")
-        if any(s.name == "chart_inside" for s in other_chart._steps):
+        if any(s.name == "put_chart_inside" for s in other_chart._steps):
             raise SimplydataError(".put_chart_inside(): the other chart already holds a chart inside it. Put both "
                                   "small charts inside this one instead.")
         if isinstance(where, str) and where.strip().lower() in INSIDE_PLACES:
@@ -596,7 +727,7 @@ class MoreChartWords:
         if isinstance(size, bool) or not isinstance(size, numbers.Real) or not 0.1 <= size <= 0.6:
             raise SimplydataError(f"size= in .put_chart_inside() is the share of this chart the small one takes, "
                                   f"from 0.1 to 0.6, such as size=0.4, not {size!r}.")
-        return self._add("chart_inside", "finish", _chart_inside, other=other_chart, where=where, size=float(size))
+        return self._add("put_chart_inside", "finish", _chart_inside, other=other_chart, where=where, size=float(size))
 
     # -------------------------------------------------------------- second x scale
     @friendly
@@ -622,7 +753,7 @@ class MoreChartWords:
         check(self._data, x=x)
         if colour is not None and not (isinstance(colour, str) and matplotlib.colors.is_color_like(colour)):
             raise SimplydataError(f'.add_second_x() needs one colour name for colour=, such as "red", not {colour!r}.')
-        return self._replace("second_x", "extra", _draw_second_x_column, x=x, drawn_as=drawn_as,
+        return self._replace("add_second_x", "extra", _draw_second_x_column, x=x, drawn_as=drawn_as,
                              label=None if labelled is None else str(labelled), colour=colour)
 
     def _second_scale_step(self, axis, formula, labelled):
@@ -656,7 +787,7 @@ class MoreChartWords:
         if colour is not None and not (isinstance(colour, str) and matplotlib.colors.is_color_like(colour)):
             raise SimplydataError(f'.draw_arrow() does not know the colour {colour!r}. Use a name such as "black".')
         thickness = check_thickness("draw_arrow", thickness)
-        return self._add("arrow", "extra", _draw_arrow, start=list(start), end=list(end), colour=colour,
+        return self._add("draw_arrow", "extra", _draw_arrow, start=list(start), end=list(end), colour=colour,
                          label=None if labelled is None else str(labelled), thickness=thickness)
 
     # -------------------------------------------------------------- frame and ticks
@@ -681,12 +812,12 @@ class MoreChartWords:
     @friendly
     def show_small_ticks_x(self: _Same) -> _Same:
         """Small ticks between the numbered ticks of the x-axis. chart.show_small_ticks_x()"""
-        return self._replace("small_ticks_x", "axes", _small_ticks, axis="x")
+        return self._replace("show_small_ticks_x", "axes", _small_ticks, axis="x")
 
     @friendly
     def show_small_ticks_y(self: _Same) -> _Same:
         """Small ticks between the numbered ticks of the y-axis. chart.show_small_ticks_y()"""
-        return self._replace("small_ticks_y", "axes", _small_ticks, axis="y")
+        return self._replace("show_small_ticks_y", "axes", _small_ticks, axis="y")
 
     # -------------------------------------------------------------- shape of the plot area
     @friendly
@@ -694,12 +825,12 @@ class MoreChartWords:
         """One unit along x is as long as one unit along y, so maps and shapes are not stretched.
         chart.use_true_shape() (with chart.draw_contour(x="east", y="north", z="height") on sdata.get_example("island"))
         """
-        return self._replace("true_shape", "axes", _true_shape)
+        return self._replace("use_true_shape", "axes", _true_shape)
 
     @friendly
     def make_square(self: _Same) -> _Same:
         """A square plot area, whatever the numbers on the axes. chart.make_square()"""
-        return self._replace("square", "axes", _make_square)
+        return self._replace("make_square", "axes", _make_square)
 
     # -------------------------------------------------------------- colour bar
     def _colour_bar_place(self, place):
@@ -762,7 +893,7 @@ class MoreChartWords:
                 raise SimplydataError(f".put_ticks_colour_bar() got {len(values)} places, so labels= needs "
                                       f"{len(values)} words in a list, such as labels=[\"low\", ...].")
             labels = [str(t) for t in labels]
-        return self._replace("ticks_colour_bar", "text", _ticks_colour_bar, values=[float(v) for v in values],
+        return self._replace("put_ticks_colour_bar", "text", _ticks_colour_bar, values=[float(v) for v in values],
                              labels=labels)
 
     put_ticks_color_bar = put_ticks_colour_bar  # American spelling, same word
@@ -773,14 +904,15 @@ class MoreChartWords:
         """Say in words what the chart shows, for a caption or for readers who cannot see it.
         chart.say_what_it_shows() (with chart.draw_bars(x="class", y="marks") on sdata.get_example("marks"))
 
-        Prints and gives back the title, what is drawn (how many bars, dots, lines ...), the name
-        and range of each axis (or its groups), the legend and the colour bar, all read from the
-        chart as drawn: nothing is worked out. Add what the chart means in your own words.
+        Prints and gives back the title, each chart type you drew with its columns and groups (3 lines,
+        one for each city ...), error bars and lines on top, the name and range of each axis (or the
+        names along it), the legend and the colour bar. It is read from your steps and from the chart
+        as drawn: nothing is worked out. Add what the chart means in your own words.
         """
         from .._core import chart_notes
 
         with chart_notes():
-            text = describe_chart(self._render())
+            text = describe_chart(self)
         print(text)
         return text
 
@@ -803,7 +935,7 @@ class MoreChartWords:
 
         _check_numbers(self._data, "draw_rug_lines", x=x, y=y)
         self._need_axes("draw_rug_lines")
-        return self._add("rug_lines", "draw", _draw_rug_lines, x=x, y=y, colour=colour, transparency=transparency,
+        return self._add("draw_rug_lines", "draw", _draw_rug_lines, x=x, y=y, colour=colour, transparency=transparency,
                          thickness=thickness)
 
     # -------------------------------------------------------------- wind rose
@@ -827,8 +959,15 @@ class MoreChartWords:
         from .charts import _check_numbers
 
         _check_numbers(self._data, "draw_wind_rose", direction=direction, speed=speed)
+        if isinstance(speed, str):
+            speeds = pd.to_numeric(self._data[speed], errors="coerce")
+            below = speeds[speeds < 0]
+            if len(below):
+                raise SimplydataError(
+                    f'.draw_wind_rose() needs speeds of 0 or more, but "{speed}" has {len(below)} below 0 (smallest: '
+                    f"{below.min():g}). Fix or remove those rows first.")
         self._need_axes("draw_wind_rose", "polar")
-        return self._add("wind_rose", "draw", _draw_wind_rose, angle=direction, distance=speed, every=float(every),
+        return self._add("draw_wind_rose", "draw", _draw_wind_rose, angle=direction, distance=speed, every=float(every),
                          transparency=transparency)
 
     # -------------------------------------------------------------- 3D
@@ -844,7 +983,7 @@ class MoreChartWords:
         group, _ = colour_role(self._data, colour)
         self._xyz("draw_lines_3d", x, y, z, colour=group)
         self._need_axes("draw_lines_3d", "3d")
-        return self._add("lines_3d", "draw", _draw_lines_3d, x=x, y=y, z=z, colour=colour,
+        return self._add("draw_lines_3d", "draw", _draw_lines_3d, x=x, y=y, z=z, colour=colour,
                          transparency=transparency, thickness=thickness)
 
     @friendly
@@ -871,7 +1010,7 @@ class MoreChartWords:
                 raise SimplydataError(f".set_range_z() needs numbers, but {name} is {v!r}.\nFor example: {example}")
         if low is not None and high is not None and not low < high:
             raise SimplydataError(f".set_range_z({low!r}, {high!r}): the low end must be smaller than the high end.")
-        return self._replace("range_z", "axes", _range_z, low=low, high=high)
+        return self._replace("set_range_z", "axes", _range_z, low=low, high=high)
 
     @friendly
     def put_ticks_z(self: _Same, *values, labels=None) -> _Same:
@@ -893,7 +1032,7 @@ class MoreChartWords:
                 raise SimplydataError(f".put_ticks_z() got {len(values)} ticks, so labels= needs {len(values)} words "
                                       "in a list.")
             labels = [str(t) for t in labels]
-        return self._replace("ticks_z", "axes", _ticks_z, values=[float(v) for v in values], labels=labels)
+        return self._replace("put_ticks_z", "axes", _ticks_z, values=[float(v) for v in values], labels=labels)
 
     @friendly(others={"elev": "height", "elevation": "height", "azim": "around", "azimuth": "around"})
     def look_from(self: _Same, height=30, around=-60) -> _Same:

@@ -122,11 +122,11 @@ def test_bars_stacked_percent_are_pandas_shares_of_each_stack():
     marks = example_frame("marks")
     chart = sdata.chart(marks).draw_bars(x="class", y="marks", colour="subject", stacked="percent")
     ax = axes_of(chart)
-    wide = marks.groupby(["class", "subject"])["marks"].mean().unstack("subject")[["Maths", "Science", "English"]]
+    wide = marks.groupby(["class", "subject"])["marks"].sum().unstack("subject")[["Maths", "Science", "English"]]
     shares = wide.div(wide.sum(axis=1), axis=0) * 100
     drawn = np.array([[p.get_height() for p in c.patches] for c in ax.containers]).T
     assert drawn == pytest.approx(shares.to_numpy())
-    assert ax.get_ylabel() == "percent of marks"
+    assert ax.get_ylabel() == "percent of total marks"
     tops = chart.get_numbers_drawn().as_pandas().groupby("x")["high"].max()
     assert tops.to_numpy() == pytest.approx([100, 100, 100])
 
@@ -141,7 +141,7 @@ def test_area_stacked_percent_makes_each_x_100():
     assert first["high"].to_numpy() == pytest.approx(shares[first["series"].iloc[0]].to_numpy())
     last = drawn[drawn["layer"] == drawn["layer"].max()]
     assert last["high"].to_numpy() == pytest.approx(np.full(len(shares), 100.0))
-    assert axes_of(chart).get_ylabel() == "percent of population"
+    assert axes_of(chart).get_ylabel() == "percent of total population"
 
 
 @pytest.mark.parametrize("stacked", ["half", 1, None])

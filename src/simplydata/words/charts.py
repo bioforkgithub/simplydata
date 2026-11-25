@@ -359,15 +359,17 @@ def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=N
         if stacked == "percent":  # each stack makes 100 % (charts phase, batch 2)
             from .more_charts import as_percent_of_each_row
 
-            wide = as_percent_of_each_row(wide)
+            wide = as_percent_of_each_row(wide, "draw_bars")
         if sideways:
             wide = wide.iloc[::-1]  # barh draws the first row at the bottom; put it at the top
         wide.plot(kind="barh" if sideways else "bar", stacked=True, ax=ax, rot=0, width=0.8,
                   color=palette_for(table, n["colour"], ctx.settings), alpha=opacity(transparency))
         ax.legend(title=n["colour"])
         name = n["y"] or "count"
-        if stacked == "percent":
-            name = f"percent of {name}"
+        if stacked == "percent":  # whose shares they are: of totals (the normal), of averages ...
+            what = {"sum": "total ", "mean": "average ", "count": "", "median": "median ", "min": "smallest ",
+                    "max": "biggest ", "std": "standard deviation of "}[how]
+            name = f"percent of {what}{name}"
         if sideways:
             ax.set_xlabel(name)
         else:
@@ -584,7 +586,7 @@ def _draw_area(ctx, x, y, colour, stacked, transparency=None, thickness=None):
     if stacked == "percent":  # each x makes 100 % (charts phase, batch 2)
         from .more_charts import as_percent_of_each_row
 
-        wide = as_percent_of_each_row(wide)
+        wide = as_percent_of_each_row(wide, "draw_area")
     xs = list(wide.index)
     if stacked:
         ax.stackplot(xs, *[wide[c].fillna(0).to_numpy(dtype=float) for c in wide.columns],
@@ -598,7 +600,7 @@ def _draw_area(ctx, x, y, colour, stacked, transparency=None, thickness=None):
     if n["colour"]:
         ax.legend(title=n["colour"])
     ax.set_xlabel(n["x"])
-    ax.set_ylabel(f'percent of {n["y"]}' if stacked == "percent" else n["y"])
+    ax.set_ylabel(f'percent of total {n["y"]}' if stacked == "percent" else n["y"])
     ctx.store["area_table"] = wide  # the heights drawn, one column per group
     _remember(ctx, "area", table, n)
 
@@ -1129,7 +1131,7 @@ class ChartWords:
         self._set(projection=kind)
 
     @friendly
-    def draw_bars(self: _Same, x=None, y=None, colour=None, show="average", error=None,
+    def draw_bars(self: _Same, x=None, y=None, colour=None, show=None, error=None,
                   stacked=False, sideways=False, transparency=None) -> _Same:
         """Bars. chart.draw_bars(x="name", y="marks") (with sdata.get_example("marks"))
 
@@ -1139,12 +1141,15 @@ class ChartWords:
         error="standard deviation", "standard error" or "confidence interval" adds error
         bars (with show="average"); a line says which one was drawn.
         stacked=True puts groups on top of each other; stacked="percent" makes each stack 100 %, so the
-        bars show shares; sideways=True lays bars down.
+        bars show shares of the total (show="total" is then the normal); sideways=True lays bars down.
         transparency=0.5 makes them half see-through (0 is solid).
         """
         from .more_charts import check_stacked
 
         stacked = check_stacked("draw_bars", stacked)
+        said_show = show
+        if show is None:  # stacks of shares are shares of the total; other bars show averages
+            show = "total" if stacked == "percent" else "average"
         transparency = check_transparency("draw_bars", transparency)
         show = check_show("draw_bars", show)
         check_error("draw_bars", error, show)
@@ -1162,6 +1167,13 @@ class ChartWords:
             raise SimplydataError('stacked=True needs groups to stack: add colour="a column".')
         if stacked and error:
             raise SimplydataError("Error bars cannot be drawn on stacked bars. Remove error= or stacked=True.")
+        if stacked == "percent":
+            from .more_charts import check_no_negatives
+
+            check_no_negatives(self._data, "draw_bars", y)
+            if said_show is not None and SHOW[show] not in ("sum", "count"):
+                print(f'Note: draw_bars(stacked="percent", show="{show}"): each stack shows shares of the '
+                      f'{show}s of its groups, not of their totals. Leave out show= for shares of the total.')
         check(self._data, x=x, y=y, colour=group)
         self._need_axes("draw_bars")
         if error:
@@ -1275,6 +1287,10 @@ class ChartWords:
         transparency = check_transparency("draw_area", transparency)
         thickness = check_thickness("draw_area", thickness)
         stacked = check_stacked("draw_area", stacked)
+        if stacked == "percent":
+            from .more_charts import check_no_negatives
+
+            check_no_negatives(self._data, "draw_area", y)
         x, y = single_list(x, y)
         if x is None or y is None:
             raise SimplydataError('.draw_area() needs x= and y=, for example chart.draw_area(x="year", y="population").')
@@ -1375,6 +1391,13 @@ class ChartWords:
                                       "it needs colour= a column with two groups, for example\n"
                                       f'    chart.{said}(x="class", y="marks", colour="breakfast", in_halves=True) '
                                       '(with sdata.get_example("school"))')
+            if isinstance(group, str) and group in self._data.columns:
+                found = [str(g) for g in pd.unique(self._data[group].dropna())]
+                if len(found) != 2:
+                    raise SimplydataError(
+                        f'.{said}(in_halves=True) puts one group in each half of a violin, so colour= needs a column '
+                        f'with exactly two groups, but "{group}" has {len(found)}: ' + ", ".join(found) + ".\n"
+                        "Keep two of them first (table.keep_rows_where(...)), or leave out in_halves=True.")
         return self._add(word, "draw", _draw_boxes, x=x, y=y, colour=colour, violins=word == "violins",
                          transparency=transparency, thickness=thickness, split=bool(in_halves))
 
