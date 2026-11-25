@@ -52,11 +52,12 @@ class SharedWords3:
 
     @friendly
     def show_as_fraction(self) -> None:
-        """Show each number as a fraction, such as 0.333333 as 1/3; the numbers do not change. nums.show_as_fraction()
+        """Show each number as a fraction, such as 0.25 as 1/4; the numbers do not change. nums.show_as_fraction()
 
-        The simplest fraction that gives the number back to its printed digits (SymPy nsimplify(rational=True));
-        a number that is no simple fraction shows its decimal digits over a power of 10. Needs the extra
-        simplydata[exact] (SymPy).
+        Each number is written with all the digits Python keeps (about 16), and SymPy nsimplify(rational=True) gives
+        the fraction of exactly those digits: 1/3 worked out as a decimal (0.3333333333333333) shows as 1/3, but
+        0.333333 typed with six digits shows as 333333/1000000, and a number that is no simple fraction shows its
+        digits over a power of 10. Needs the extra simplydata[exact] (SymPy).
         """
         from .._formula import fraction_text
 
@@ -109,9 +110,10 @@ class NumberWords3:
 
         nums.find_coherence_with(other, time_step=0.01)
         Gives back a table: frequency, coherence. 1 means the two always move together at that frequency
-        (with a fixed delay), 0 that they are unrelated there. Welch's method: SciPy signal.coherence with its
-        Hann window and segments of 256 readings, half overlapping; a shorter recording is cut into eight
-        half-overlapping segments (as MATLAB mscohere), so the coherence is always an average.
+        (with a fixed delay), 0 that they are unrelated there. Welch's method: SciPy signal.coherence with its own
+        settings (Hann window, segments half overlapping, no padding). The segments are SciPy's 256 readings for a
+        recording of 1152 readings or more; a shorter one is cut into eight half-overlapping segments of n / 4.5
+        readings (only this rule follows MATLAB mscohere), so the coherence is always an average.
         """
         import pandas as pd
         from scipy import signal

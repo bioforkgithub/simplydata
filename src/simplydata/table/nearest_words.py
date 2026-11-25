@@ -194,6 +194,9 @@ class NearestWords:
         example = 'table.find_fence_around(x="east", y="north")'
         if not isinstance(x, str) or not isinstance(y, str):
             raise SimplydataError(f"{step}() needs x= and y=, two columns of numbers.\nFor example:  {example}")
+        if x == y:
+            raise SimplydataError(f'{step}() needs two different columns for x= and y=; both are "{x}".\n'
+                                  f"For example:  {example}")
         points, rows, _ = self._points(step, [x, y], example)
         if len(points) < 3:
             raise SimplydataError(f"{step}() needs at least 3 points; it found {len(points)}.")

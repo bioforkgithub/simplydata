@@ -134,7 +134,13 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
         return float(read({name: x}))
 
     if key == "quad":
-        (value, error), notes = _quiet(integrate.quad, curve, low, high)
+        try:
+            (value, error), notes = _quiet(integrate.quad, curve, low, high)
+        except (ZeroDivisionError, OverflowError):
+            raise SimplydataError(
+                f"{text} cannot be worked out at some {name} between {_show(low)} and {_show(high)} (such as a "
+                f"division by 0), so the area there may not exist. Split the range at that point, for example "
+                f"between=[{_show(low)}, 0] and between=[0, {_show(high)}], or check the formula.") from None
         said = f"error below {error:.2g}"
     else:
         if math.isinf(low) or math.isinf(high):
@@ -167,6 +173,13 @@ def _area_exactly(text, name, low, high, known):
         return sp.oo if v == math.inf else (-sp.oo if v == -math.inf else sp.nsimplify(v, rational=True))
 
     found = sp.integrate(expr, (x, end(low), end(high)))
+    if found in (sp.oo, -sp.oo):
+        raise SimplydataError(f"The area under {text} for {name} from {_show(low)} to {_show(high)} is "
+                              f"{'infinite' if found == sp.oo else 'minus infinite'}: it does not settle on a number "
+                              "(SymPy integrate).")
+    if found is sp.nan or found.has(sp.nan) or found.has(sp.zoo):
+        raise SimplydataError(f"The area under {text} for {name} from {_show(low)} to {_show(high)} does not settle "
+                              "on a number (the integral does not converge; SymPy integrate gives no value).")
     if found.has(sp.Integral):
         raise SimplydataError(f"SymPy found no exact area under {text}; without exactly=True simplydata gives it as "
                               "a decimal.")
@@ -315,8 +328,15 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
         if isinstance(time_step, bool) or not isinstance(time_step, (int, float, np.integer, np.floating)) or \
                 not time_step > 0:
             raise SimplydataError("time_step= needs a number above 0, such as time_step=0.5.")
-        count = int(math.floor((t1 - t0) / time_step + 1e-9))
-        times = t0 + time_step * np.arange(count + 1)
+        steps = (t1 - t0) / time_step
+        if abs(steps - round(steps)) <= 1e-9 * max(1.0, steps):
+            # the step fits the span: evenly spaced times that end exactly at the last time (never past it)
+            times = np.linspace(t0, t1, int(round(steps)) + 1)
+        else:
+            times = t0 + time_step * np.arange(int(math.floor(steps)) + 1)
+            times = times[times <= t1]
+            print(f"Note: time_step={_show(time_step)} does not fit {_show(t0)} to {_show(t1)} a whole number of "
+                  f"times, so the last time in the table is {_show(times[-1])}.")
 
     def change(t, y):
         values = dict(zip(names, y))
@@ -324,9 +344,17 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
         return [float(f({k: values[k] for k in f.names})) for f in formulas]
 
     events, stop_text = None, None
-    if stop_when is not None:
-        events, stop_text = _stop_event(stop_when, names, time, known)
     start = [float(at_start[n]) for n in names]
+    if stop_when is not None:
+        events, stop_text, holds = _stop_event(stop_when, names, time, known)
+        if holds(t0, start):
+            import pandas as pd
+
+            from .table import Table
+
+            print(f"{stop_text} is already true at the start ({time} = {_show(t0)}, "
+                  + ", ".join(f"{n} = {_show(at_start[n])}" for n in names) + "), so the path stops there at once.")
+            return Table(pd.DataFrame({"time": [t0], **{n: [float(at_start[n])] for n in names}}))
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         found = integrate.solve_ivp(change, (t0, t1), start, method=PATH_SCIPY[key], t_eval=times, events=events,
@@ -371,8 +399,14 @@ def _stop_event(stop_when, names, time, known):
         return float(rule({k: values[k] for k in rule.names}))
 
     event.terminal = True
+    # >= and > come true when the difference rises through 0, <= and < when it falls through 0, = either way
     event.direction = {">=": 1, ">": 1, "<=": -1, "<": -1, "=": 0}[sign]
-    return [event], stop_when.strip()
+
+    def holds(t, y):
+        gap = event(t, y)
+        return {">=": gap >= 0, ">": gap > 0, "<=": gap <= 0, "<": gap < 0, "=": gap == 0}[sign]
+
+    return [event], stop_when.strip(), holds
 
 
 def _path_exactly(texts, names, rights, time, at_start, t0, known):

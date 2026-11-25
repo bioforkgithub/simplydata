@@ -404,14 +404,19 @@ def cases(Case):
              ours=_code(AIR_GRID, """
                  p = grid.find_each_patch_that(is_above=400)
                  {"patches": p.count_rows(), "cells": p.get_column("cells").find_total(),
-                  "biggest total": p.get_column("total").find_biggest()}
+                  "biggest total": p.get_column("total").find_biggest(),
+                  "centre rows": p.get_column("centre row").find_total(),
+                  "centre columns": p.get_column("centre column").find_total()}
              """),
              parent=_code(AIR_NUMPY, """
                  from scipy import ndimage
                  labels, n = ndimage.label(g > 400)
                  totals = ndimage.sum_labels(g, labels, np.arange(1, n + 1))
-                 {"patches": n, "cells": int((g > 400).sum()), "biggest total": totals.max()}
-             """), parent_label="SciPy ndimage.label and sum_labels", parent_tolerance=0.0),
+                 centres = np.array(ndimage.center_of_mass(g > 400, labels, np.arange(1, n + 1))) + 1
+                 {"patches": n, "cells": int((g > 400).sum()), "biggest total": totals.max(),
+                  "centre rows": centres[:, 0].sum(), "centre columns": centres[:, 1].sum()}
+             """), parent_label="SciPy ndimage.label, sum_labels and center_of_mass (from 1)",
+             parent_tolerance=1e-12),
         Case("grid.change_size_to", "AirPassengers' 12 x 12 grid made 24 x 24 (straight lines between cells)",
              "AirPassengers", "real data",
              ours=_code(AIR_GRID, """

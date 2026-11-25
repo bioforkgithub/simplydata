@@ -263,7 +263,7 @@ ENTRIES = [
             from scipy.integrate import solve_ivp
             # find_path_over_time("dN/dt = r * N * (1 - N / K)", ...)
             r, K = 0.3, 1000
-            t = 0 + 0.5 * np.arange(101)                                  # (1)
+            t = np.linspace(0, 50, 101)                                   # (1)
             s = solve_ivp(lambda t, N: r * N * (1 - N / K), (0, 50), [10],
                           method="RK45", t_eval=t, rtol=1e-6, atol=1e-6)   # (2)
             pd.DataFrame({"time": s.t, "N": s.y[0]})

@@ -72,6 +72,50 @@ def _formula_error(problem: str) -> SimplydataError:
         f"beta besselJ sinc.\nFor example:  {FORMULA_EXAMPLE}")
 
 
+MAX_DIGITS = 1000  # a whole number made by powers of numbers may have at most this many digits
+# names SymPy's reader writes into the text it runs (Integer(2), Symbol('x') ...): never letters of a formula
+RESERVED = ("Integer", "Float", "Rational", "Symbol", "Function", "Lambda")
+
+
+def _constant(node):
+    """The size of a piece made only of numbers (float, never exact; inf when too big), or None."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+        return float(node.value)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        inner = _constant(node.operand)
+        return None if inner is None else (-inner if isinstance(node.op, ast.USub) else inner)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
+                                                            ast.BitXor)):
+        a, b = _constant(node.left), _constant(node.right)
+        if a is None or b is None:
+            return None
+        try:
+            if isinstance(node.op, ast.Add):
+                return a + b
+            if isinstance(node.op, ast.Sub):
+                return a - b
+            if isinstance(node.op, ast.Mult):
+                return a * b
+            if isinstance(node.op, ast.Div):
+                return a / b if b else math.inf
+            return math.pow(abs(a), b) if a else 0.0
+        except OverflowError:
+            return math.inf
+    return None
+
+
+def _check_power(node, text: str):
+    """Refuse a power of numbers too big to write down (9**9**9 has 369 million digits; SymPy would try)."""
+    base, power = _constant(node.left), _constant(node.right)
+    if base is None or power is None or abs(base) <= 1:
+        return
+    digits = power * math.log10(abs(base)) if math.isfinite(power) else math.inf
+    if digits > MAX_DIGITS:
+        raise _formula_error(f'"{ast.get_source_segment(text, node) or text}" is a number with more than '
+                             f"{MAX_DIGITS} digits, too big to work with exactly. Use smaller numbers, or a letter "
+                             "for it.")
+
+
 def _check_node(node, text: str, letters: list, functions: set):
     """Check one piece of the formula (ast, never run); note the letters and functions it uses."""
     if isinstance(node, ast.Expression):
@@ -86,6 +130,9 @@ def _check_node(node, text: str, letters: list, functions: set):
             raise _formula_error(f'"{name}" cannot be a letter in a formula (it starts with _).')
         if (name in FUNCTIONS or name in SPELLINGS) and name not in FREE_NAMES:
             raise _formula_error(f"{name} needs brackets after it, for example {name}(x).")
+        if name in RESERVED:
+            raise _formula_error(f'"{name}" cannot be a letter in a formula: SymPy uses that name itself. Use '
+                                 f'another name, such as "{name.lower()}_value".')
         if name != "pi" and name not in letters:
             letters.append(name)
         return
@@ -95,7 +142,10 @@ def _check_node(node, text: str, letters: list, functions: set):
         if not isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.BitXor)):
             raise _formula_error(f'The sign in "{ast.get_source_segment(text, node)}" is not allowed in a formula.')
         _check_node(node.left, text, letters, functions)
-        return _check_node(node.right, text, letters, functions)
+        _check_node(node.right, text, letters, functions)
+        if isinstance(node.op, (ast.Pow, ast.BitXor)):
+            _check_power(node, text)
+        return
     if isinstance(node, ast.Call):
         if not isinstance(node.func, ast.Name):
             raise _formula_error(f'"{ast.get_source_segment(text, node)}" is not allowed in a formula.')
@@ -402,7 +452,9 @@ class Formula:
 
         f = sdata.formula("x**3 - 2*x"), then f.find_value_at(x=2) gives 4. Give every letter a value. Many
         values at once (a list or numbers) give numbers back: f.find_value_at(x=sdata.numbers(0, to=3,
-        how_many=50)). One value: SymPy subs and evalf; many: SymPy lambdify with NumPy and SciPy.
+        how_many=50)). One value: SymPy subs and evalf; many: SymPy lambdify with NumPy and SciPy. An empty value
+        (NaN) gives an empty answer, as in a list. lgamma(x) is the log of the size of gamma(x) (SciPy gammaln, as R
+        lgamma), for one value and for many.
         """
         sp = need_sympy("f.find_value_at()")
         letters = self._values_for("find_value_at", values, "find_value_at(x=2)")
@@ -416,7 +468,10 @@ class Formula:
             if name not in many and (isinstance(value, bool) or not isinstance(value, (int, float, np.integer,
                                                                                          np.floating))):
                 raise SimplydataError(f"{name}= needs a number or a list of numbers; it got {value!r}.")
-        if not many:
+        singles_empty = any(isinstance(v, (float, np.floating)) and math.isnan(v) for k, v in values.items()
+                            if k not in many)
+        by_numbers = bool(many) or singles_empty or self._expr.has(sp.loggamma)
+        if not by_numbers:
             found = self._expr.subs({sp.Symbol(k): parse(v, "find_value_at()") for k, v in values.items()}).evalf()
             if not found.is_real:
                 if found.is_number:
@@ -432,7 +487,11 @@ class Formula:
 
         arrays = [np.asarray(to_array(values[n], "find_value_at()", "f.find_value_at(x=[0, 1, 2])"), dtype=float)
                   if n in many else float(values[n]) for n in letters]
-        function = sp.lambdify([sp.Symbol(n) for n in letters], self._expr, modules=["scipy", "numpy"])
+        from scipy import special
+
+        # lgamma is the log of the size of gamma (SciPy gammaln, as R lgamma and fit_formula), real for every x
+        function = sp.lambdify([sp.Symbol(n) for n in letters], self._expr,
+                               modules=[{"loggamma": special.gammaln}, "scipy", "numpy"])
         with np.errstate(all="ignore"):
             out = np.asarray(function(*arrays), dtype=complex)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
@@ -441,6 +500,11 @@ class Formula:
             raise SimplydataError("For some of these values the formula has no value among the ordinary numbers "
                                   "(a square root or log of a negative number).")
         result = np.array(out.real, dtype=float)
+        if not many:
+            answer = float(result.reshape(-1)[0])
+            print(f"{_show(self._expr)} at {_places(values)}: {_decimal(answer)}   (SymPy lambdify, worked out by NumPy "
+                  "and SciPy" + ("; an empty value gives an empty answer)" if singles_empty else ")"))
+            return answer
         print(f"{_show(self._expr)} at {result.size} values (SymPy lambdify, worked out by NumPy and SciPy).")
         return Numbers(result.ravel())
 
@@ -490,14 +554,19 @@ class Formula:
         side = "+-" if target.is_finite else "+"
         try:
             found = sp.limit(self._expr, x, target, dir=side)
-            if found.has(sp.zoo):  # SymPy's "complex infinity": the two sides go to different infinities
+            if found.has(sp.zoo) and side == "+-":  # SymPy's "complex infinity": the sides may differ
                 raise ValueError(found)
         except ValueError:
             above = sp.limit(self._expr, x, target, dir="+")
             below = sp.limit(self._expr, x, target, dir="-")
-            raise SimplydataError(f"{_show(self._expr)} comes to different values from the two sides of {x} = "
-                                  f"{target}: {above} from above and {below} from below, so it has no limit "
-                                  "there.") from None
+            if above != below or above.has(sp.zoo):
+                raise SimplydataError(f"{_show(self._expr)} comes to different values from the two sides of {x} = "
+                                      f"{target}: {above} from above and {below} from below, so it has no limit "
+                                      "there.") from None
+            found = above
+        if found.has(sp.zoo):
+            raise SimplydataError(f"{_show(self._expr)} grows without end as {x} goes to {target}, but not towards "
+                                  "plus or minus infinity (SymPy calls it complex infinity), so it has no limit.")
         if found.has(sp.Limit) or isinstance(found, sp.AccumBounds):
             raise SimplydataError(f"SymPy found no limit of {_show(self._expr)} as {x} goes to {target} "
                                   f"(it gave {found}).")
@@ -505,8 +574,10 @@ class Formula:
               + (", from both sides)" if side == "+-" else ")"))
         if found.free_symbols:
             return Formula(found)
-        if found.is_infinite:
-            return math.inf if found.is_positive else -math.inf
+        if found == sp.oo:  # SymPy's oo is not "positive" (is_positive is False): compare with oo itself
+            return math.inf
+        if found == -sp.oo:
+            return -math.inf
         return float(found) if found.is_real else complex(found)
 
     @friendly
@@ -548,7 +619,8 @@ def formula(text=None) -> Formula:
     fit_formula: letters (x, y, rate), numbers, + - * / and ** (^ works too), brackets, pi and the functions exp,
     log, sqrt, abs, sin, cos, tan, erf ... The letters are found by themselves. Needs the extra
     simplydata[exact] (SymPy): pip install "simplydata[exact]". A formula can be handed to find_where_smallest,
-    find_where_biggest and find_area_under.
+    find_where_biggest and find_area_under. lgamma(x) is the log of the size of gamma(x), as R lgamma and SciPy
+    gammaln (real also where gamma is negative). Powers of numbers with more than 1000 digits are refused.
     """
     if text is None:
         raise SimplydataError(f"sdata.formula() needs a formula in quotes.\nFor example:  {FORMULA_EXAMPLE}")
@@ -607,10 +679,27 @@ def solve_exactly(texts: list, known, fast: bool):
         rows.append(row)
         said.append(", ".join(parts))
     print(f"{shown} when " + " or ".join(said) + "   (SymPy solve, exact)")
+    print(_completeness(sp, equations, symbols, len(found)))
     if any(any(math.isnan(r[n]) for n in names) for r in rows):
         print("A solution that is not an ordinary (real) number has an empty decimal; its exact form is in the "
               "table.")
     return _result(rows, fast)
+
+
+def _completeness(sp, equations, symbols, listed: int) -> str:
+    """Whether the solutions listed are all of them: SymPy solveset gives the whole set for one equation in one
+    letter (an endless, repeating set for sin(x) = 0); for several equations, a polynomial system is complete."""
+    if len(equations) == 1 and len(symbols) == 1:
+        whole = sp.solveset(equations[0], symbols[0])
+        if isinstance(whole, sp.FiniteSet) and len(whole) == listed:
+            return "These are all the solutions (SymPy solveset gives the same set)."
+        if isinstance(whole, sp.ConditionSet):
+            return "SymPy found these solutions; there may be more that it cannot write down."
+        return (f"SymPy found these solutions; there are more. The whole set (SymPy solveset) is {whole}"
+                + (", which repeats without end." if whole.has(sp.ImageSet) else "."))
+    if all(eq.lhs.is_polynomial(*symbols) and eq.rhs.is_polynomial(*symbols) for eq in equations):
+        return "These are all the solutions (the equations are polynomials, which SymPy solves completely)."
+    return "SymPy found these solutions; there may be more."
 
 
 # ---------------------------------------------------------------- show_as_fraction (numbers and grids)
