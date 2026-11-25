@@ -22,6 +22,7 @@ from .meta_words import MetaWords
 from .model_tools import ModelToolWords
 from .models import ModelWords
 from .more_table_words import MoreTableWords
+from .more_table_words_2 import MoreTableWords2
 from .more_tests import MoreTestWords
 from .patterns import PatternWords
 from .places import PlaceWords
@@ -43,7 +44,7 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, MoreTableWords, BaseTable):
+            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 
@@ -51,11 +52,20 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
 # runs as read_as_text= when every type in it is text (a note once); other types are refused with the words to use
 _READ_AS_TEXT_OTHERS = {"dtype": "read_as_text", "dtypes": "read_as_text", "schema_overrides": "read_as_text",
                         "col_types": "read_as_text", "colClasses": "read_as_text"}
+# tables phase, batch 2: pandas usecols= / names= / comment=, Polars columns= / new_columns= / comment_prefix=, R
+# col_select= / col_names= / comment=; header=None has no one-to-one option, so it points and never runs
+_READING_OTHERS = {"usecols": "columns", "col_select": "columns", "names": "column_names",
+                   "new_columns": "column_names", "col_names": "column_names", "comment": "skip_lines_starting_with",
+                   "comment_prefix": "skip_lines_starting_with", "comment_char": "skip_lines_starting_with"}
+_READING_POINTERS = {"header": 'column_names=["time", "temperature"] for a file without a line of column names',
+                     "has_header": 'column_names=["time", "temperature"] for a file without a line of column names'}
 
 
-@friendly(renamed={"big_data": "fast"}, others=_READ_AS_TEXT_OTHERS)
+@friendly(renamed={"big_data": "fast"}, others={**_READ_AS_TEXT_OTHERS, **_READING_OTHERS},
+          pointers=_READING_POINTERS)
 def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mark=None, thousands_mark=None,
-          empty_values=None, skip_rows=None, encoding=None, table_number=None, read_as_text=None) -> Table:
+          empty_values=None, skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
+          column_names=None, skip_lines_starting_with=None) -> Table:
     """Start a table.
 
     sdata.table(sdata.get_example("marks"))         a practice table
@@ -100,6 +110,19 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     them. As pandas read_csv(dtype={"sample_id": str}) and Polars read_csv(schema_overrides=
     {"sample_id": pl.String}); for CSV, TSV, Excel and Word files.
     sdata.table("fjord_lab.csv", read_as_text=["sample_id"])
+
+    Three more reading options (CSV and TSV files; columns= and column_names= also for Excel,
+    columns= also for Parquet):
+    columns=["month", "city", "rain"]       read only these columns, in this order: quicker and
+                                           lighter for a big file
+    column_names=["time", "temperature"]   for a file without a line of column names: one name
+                                           for each column, in order
+    skip_lines_starting_with="#"           skip the note lines a logger or a lab machine writes
+    As pandas read_csv(usecols=, header=None, names=, comment="#") and Polars read_csv(columns=,
+    has_header=False, new_columns=, comment_prefix="#"). With column_names=, columns= takes the new
+    names. A file with the sign inside a line (not at its start) is refused with the line, because
+    pandas would cut the line there.
+    sdata.table("weather.csv", columns=["month", "city", "rain"])
     """
     if not isinstance(fast, bool):
         raise SimplydataError("fast= should be True or False.")
@@ -107,5 +130,6 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
         raise SimplydataError('sdata.table() needs some data, for example sdata.table(sdata.get_example("marks")).')
     reading = reading_options(separator=separator, decimal_mark=decimal_mark, thousands_mark=thousands_mark,
                               empty_values=empty_values, skip_rows=skip_rows, encoding=encoding,
-                              table_number=table_number, read_as_text=read_as_text)
+                              table_number=table_number, read_as_text=read_as_text, columns=columns,
+                              column_names=column_names, skip_lines_starting_with=skip_lines_starting_with)
     return Table(data, sheet=sheet, fast=fast, _reading=reading)

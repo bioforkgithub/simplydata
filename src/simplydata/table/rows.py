@@ -36,10 +36,17 @@ from .conditions import (
 # Conditions for keep_rows_where() / remove_rows_where(), in the order they are listed in messages.
 CONDITIONS = (
     "above", "below", "at_least", "at_most", "equal_to", "not_equal_to",
-    "between", "one_of", "contains", "starts_with", "ends_with", "is_empty", "after", "before",
+    "between", "one_of", "contains", "starts_with", "ends_with", "is_empty", "after", "before", "matches_pattern",
 )
 COMPARE = ("above", "below", "at_least", "at_most")
-TEXT_ONLY = ("contains", "starts_with", "ends_with")
+TEXT_ONLY = ("contains", "starts_with", "ends_with", "matches_pattern")
+# capitals_matter=False (tables phase, batch 2): the conditions on text that it changes
+CAPITALS_OPTIONS = ("equal_to", "not_equal_to", "one_of", "contains", "starts_with", "ends_with", "matches_pattern")
+# option names from other tools for capitals_matter= / matches_pattern=; they never run (ignore_case=True is
+# capitals_matter=False, so it cannot be translated one to one)
+CAPITALS_POINTERS = {"ignore_case": "capitals_matter=False",
+                     "case": "capitals_matter= (case=False is capitals_matter=False)",
+                     "regex": "matches_pattern="}
 FILL_CHOICES = ("average", "median", "value above", "value below", "line between neighbours",
                 "curve between neighbours", "curve without overshoot")
 # with_the= choices that join the filled neighbours (they take sorted_by= and for_each_group_in=)
@@ -61,7 +68,8 @@ DATE_FORMATS = (
 
 def _is(key: str) -> str:
     """The condition option as it is written now: above -> is_above (the old names still work)."""
-    return key if key.startswith("is_") or key in ("contains", "starts_with", "ends_with") else f"is_{key}"
+    return key if key.startswith("is_") or key in ("contains", "starts_with", "ends_with", "matches_pattern") \
+        else f"is_{key}"
 
 def _with_times(*days):
     """Each day format, then the same with a time after it."""
@@ -229,6 +237,81 @@ def _parse_dates(native, formats=DATE_FORMATS):
 
 
 
+# ---------------------------------------------------------------- written_like= (tables phase, batch 2)
+# An example date in the layout wanted ("31.12.2026", "March 15, 2026 14:30") is turned into the % codes of
+# strftime / strptime by this fixed table of parts; pandas dt.strftime / to_datetime(format=) and Polars
+# dt.to_string / str.strptime then do the work.
+_MONTH_WORDS = {name.lower(): "%B" for name in ("January", "February", "March", "April", "May", "June", "July",
+                                                 "August", "September", "October", "November", "December")}
+_MONTH_WORDS.update({name[:3].lower(): "%b" for name in _MONTH_WORDS})
+_DAY_WORDS = {name.lower(): "%A" for name in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+                                               "Sunday")}
+_DAY_WORDS.update({name[:3].lower(): "%a" for name in _DAY_WORDS})
+WRITTEN_LIKE_EXAMPLE = 'table.turn_into_text("date", written_like="31.12.2026")'
+
+
+def format_from_example(example: str) -> str:
+    """The strftime / strptime codes of an example date: "31.12.2026" -> "%d.%m.%Y", "03/15/2026 14:30" ->
+    "%m/%d/%Y %H:%M". The day must be above 12, so it cannot be taken for the month; text with % in it is taken as
+    the codes themselves."""
+    how = (f"\nFor example:  {WRITTEN_LIKE_EXAMPLE}  (any date written the way you want; use a day above 12, such "
+           "as the 31st, so the day cannot be taken for the month)")
+    if not isinstance(example, str) or not example.strip():
+        raise SimplydataError("written_like= takes an example date in quotes, written the way you want." + how)
+    if "%" in example:
+        return example
+    pieces = re.findall(r"\d+|[A-Za-z]+|[^\dA-Za-z]+", example)
+    codes = [None] * len(pieces)
+    numbers = [i for i, p in enumerate(pieces) if p.isdigit()]
+    # the time of day: numbers joined by ":" (14:30 or 14:30:05), after the date
+    time = [i for i in numbers if (i > 0 and pieces[i - 1] == ":") or (i + 1 < len(pieces) and pieces[i + 1] == ":")]
+    twelve = any(p.lower() in ("am", "pm") for p in pieces)
+    for i, code in zip(time, ("%I" if twelve else "%H", "%M", "%S")):
+        codes[i] = code
+    if len(time) > 3:
+        raise SimplydataError(f'written_like="{example}": a time of day has at most hours, minutes and seconds.' + how)
+    for i, p in enumerate(pieces):
+        word = p.lower()
+        if not p.isalpha():
+            continue
+        if word in _MONTH_WORDS:
+            codes[i] = _MONTH_WORDS[word]
+        elif word in _DAY_WORDS:
+            codes[i] = _DAY_WORDS[word]
+        elif word in ("am", "pm"):
+            codes[i] = "%p"
+    month_word = any(c in ("%B", "%b") for c in codes)
+    date = [i for i in numbers if i not in time]
+    years = [i for i in date if len(pieces[i]) == 4]
+    if len(years) != 1:
+        raise SimplydataError(f'written_like="{example}" needs the year written with four digits, like 2026 (or give '
+                              'the % codes yourself, such as written_like="%d.%m.%y").' + how)
+    codes[years[0]] = "%Y"
+    rest = [i for i in date if i != years[0]]
+    if month_word:
+        if len(rest) != 1:
+            raise SimplydataError(f'written_like="{example}" is not a date simplydata can read: with the month as a '
+                                  "word, it needs one number for the day." + how)
+        codes[rest[0]] = "%d"
+    else:
+        if len(rest) != 2:
+            raise SimplydataError(f'written_like="{example}" is not a date simplydata can read: it needs a day, a month '
+                                  "and a year." + how)
+        above = [i for i in rest if int(pieces[i]) > 12]
+        if len(above) != 1 or int(pieces[above[0]]) > 31:
+            raise SimplydataError(f'In written_like="{example}" simplydata cannot tell the day from the month. Write '
+                                  "the example with a day above 12, such as the 31st." + how)
+        codes[above[0]] = "%d"
+        codes[next(i for i in rest if i != above[0])] = "%m"
+    layout = "".join(c if c is not None else p.replace("%", "%%") for p, c in zip(pieces, codes))
+    try:
+        _dt.datetime.strptime(example.strip(), layout.strip())
+    except ValueError:
+        raise SimplydataError(f'written_like="{example}" is not a date that exists (check the day and the month).'
+                              + how) from None
+    return layout
+
+
 TEST_RULES = ("grubbs", "dixon", "rosner")  # outlier tests, run in R (simplydata[r])
 
 
@@ -346,8 +429,12 @@ class RowWords:
             f'"{column}" is a date column, so {_is(option)}= needs a date like "2026-03-15" (you gave {_say(value)}).'
         )
 
-    def _condition(self, step: str, column, options: dict, extra: tuple):
-        """Build the row condition for keep_rows_where()/remove_rows_where(). Gives (expression, words)."""
+    def _condition(self, step: str, column, options: dict, extra: tuple, capitals_matter=True):
+        """Build the row condition for keep_rows_where()/remove_rows_where(). Gives (expression, words).
+
+        capitals_matter=False compares text in small letters on both sides (pandas str.lower(), Polars
+        str.to_lowercase()); a pattern gets (?i) in front, which pandas (Python re) and Polars (Rust regex) both
+        read as "capitals do not matter"."""
         example = f'table.{step}("marks", is_above=50)'
         if extra:
             raise SimplydataError(
@@ -376,6 +463,18 @@ class RowWords:
         kind = self._kind_of(column)
         col = nw.col(column)
         empty = self._empty(column)
+        if not isinstance(capitals_matter, bool):
+            raise SimplydataError("capitals_matter= should be True or False.")
+        any_case = not capitals_matter
+        if any_case and (kind != "text" or option not in CAPITALS_OPTIONS):
+            what = f'"{column}" is a {kind} column' if kind != "text" else f"{_is(option)}= does not compare text"
+            raise SimplydataError(
+                "capitals_matter=False is for conditions on text (is_equal_to, is_not_equal_to, is_one_of, contains, "
+                f"starts_with, ends_with, matches_pattern), and {what}."
+                + _example(f'table.{step}("subject", is_equal_to="maths", capitals_matter=False)')
+            )
+        lower = (lambda v: v.lower()) if any_case else (lambda v: v)
+        any_words = " (capitals do not matter)" if any_case else ""
 
         if option == "is_empty":
             if not isinstance(value, bool):
@@ -424,12 +523,26 @@ class RowWords:
                     + _example(f'table.{step}("name", {_is(option)}="A")')
                 )
             text = col.cast(nw.String)
+            if option == "matches_pattern":
+                try:
+                    re.compile(value)
+                except re.error as error:
+                    raise SimplydataError(
+                        f'matches_pattern= is a regular expression, and "{value}" is not one that works ({error}). '
+                        "For plain text use contains=, starts_with= or ends_with="
+                        + _example(f'table.{step}("name", matches_pattern="^A")')) from None
+                # pandas str.contains(pattern), Polars str.contains(pattern); (?i): capitals do not matter
+                cond = text.str.contains(("(?i)" if any_case else "") + value, literal=False)
+                words = f"matches the pattern {_say(value)}"
+            elif any_case:
+                text = text.str.to_lowercase()  # pandas str.lower(), Polars str.to_lowercase()
             if option == "contains":
-                cond, words = text.str.contains(value, literal=True), f"contains {_say(value)}"
+                cond, words = text.str.contains(lower(value), literal=True), f"contains {_say(value)}"
             elif option == "starts_with":
-                cond, words = text.str.starts_with(value), f"starts with {_say(value)}"
-            else:
-                cond, words = text.str.ends_with(value), f"ends with {_say(value)}"
+                cond, words = text.str.starts_with(lower(value)), f"starts with {_say(value)}"
+            elif option == "ends_with":
+                cond, words = text.str.ends_with(lower(value)), f"ends with {_say(value)}"
+            words += any_words
         elif option in COMPARE:
             value = self._value_for(option, column, value, example)
             cond = {"above": col > value, "below": col < value,
@@ -455,13 +568,18 @@ class RowWords:
                     "is_one_of= needs at least one value in the list."
                     + _example(f'table.{step}("subject", is_one_of=["Maths", "Science"])')
                 )
-            cond, words = self._is_in(column, values), "is one of " + ", ".join(_say(v) for v in values)
+            if any_case:
+                cond = col.cast(nw.String).str.to_lowercase().is_in([v.lower() for v in values])
+            else:
+                cond = self._is_in(column, values)
+            words = "is one of " + ", ".join(_say(v) for v in values) + any_words
         else:  # equal_to, not_equal_to
             value = self._value_for(option, column, value, f'table.{step}("class", is_equal_to="A")')
+            seen = col.cast(nw.String).str.to_lowercase() if any_case else col
             if option == "equal_to":
-                cond, words = col == value, f"is {_say(value)}"
+                cond, words = seen == lower(value), f"is {_say(value)}{any_words}"
             else:
-                cond, words = col != value, f"is not {_say(value)}"
+                cond, words = seen != lower(value), f"is not {_say(value)}{any_words}"
         return cond.fill_null(False) & ~empty, words
 
     def _only_in_rows(self, step: str, column: str, condition, run):
@@ -649,7 +767,8 @@ class RowWords:
         return self._new_table(nw.from_native(out, eager_only=True))
 
     # ================================================================== choosing columns
-    def _columns_chosen(self, step: str, names: tuple, to, kind, starts_with, ends_with, contains, pattern):
+    def _columns_chosen(self, step: str, names: tuple, to, kind, starts_with, ends_with, contains, pattern,
+                        capitals_matter=True):
         """The columns keep_columns()/remove_columns() mean, in table order or the order given.
 
         Gives (names, words for show_steps(), plain): plain is True for a list of names (the old way).
@@ -728,9 +847,14 @@ class RowWords:
         if not isinstance(value, str) or not value:
             raise SimplydataError(f'{option}= needs some text in quotes, like {option}="wind".'
                                   + _example(f'table.{step}({option}="wind")', "weather"))
+        if not isinstance(capitals_matter, bool):
+            raise SimplydataError("capitals_matter= should be True or False.")
+        # capitals_matter=False: names and text compared in small letters, a pattern with (?i) in front
+        fold = (lambda t: str(t)) if capitals_matter else (lambda t: str(t).lower())
+        value = value if option == "pattern" else fold(value)
         if option == "pattern":
             try:
-                found = re.compile(value)
+                found = re.compile(value, 0 if capitals_matter else re.IGNORECASE)
             except re.error as error:
                 raise SimplydataError(
                     f'matches_pattern= is a regular expression, and "{value}" is not one that works ({error}). '
@@ -740,23 +864,24 @@ class RowWords:
             chosen = [c for c in columns if found.search(str(c))]
             words, none = f'whose names match the pattern "{value}"', f'matches the pattern "{value}"'
         elif option == "starts_with":
-            chosen = [c for c in columns if str(c).startswith(value)]
+            chosen = [c for c in columns if fold(c).startswith(value)]
             words, none = f'whose names start with "{value}"', f'starts with "{value}"'
         elif option == "ends_with":
-            chosen = [c for c in columns if str(c).endswith(value)]
+            chosen = [c for c in columns if fold(c).endswith(value)]
             words, none = f'whose names end with "{value}"', f'ends with "{value}"'
         else:
-            chosen = [c for c in columns if value in str(c)]
+            chosen = [c for c in columns if value in fold(c)]
             words, none = f'whose names contain "{value}"', f'contains "{value}"'
         if not chosen:
             raise SimplydataError(
-                f"No column name {none} (capital letters matter).\nColumns you have: " + ", ".join(columns)
+                f"No column name {none} ({'capital letters matter' if capitals_matter else 'in any capitals'})."
+                "\nColumns you have: " + ", ".join(columns)
             )
-        return chosen, words, False
+        return chosen, words + ("" if capitals_matter else " (capitals do not matter)"), False
 
-    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
+    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"}, pointers=CAPITALS_POINTERS)
     def keep_columns(self: _Same, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
-                     matches_pattern=None) -> _Same:
+                     matches_pattern=None, capitals_matter=True) -> _Same:
         """Keep only these columns: by name (in the order you list them), a run of names, or by kind.
 
         table.keep_columns("name", "marks")   (with sdata.get_example("marks"))
@@ -765,24 +890,35 @@ class RowWords:
         keeps every column of that kind; starts_with=, ends_with=, contains= (plain text, capital
         letters matter) and matches_pattern= (a regular expression) choose by the column names.
         One way at a time; two steps one after the other keep the columns that meet both.
+        capitals_matter=False finds the names in any capitals: keep_columns(starts_with="wind",
+        capitals_matter=False) also keeps "Wind_speed".
         """
+        if capitals_matter is not True and not any(v is not None for v in (starts_with, ends_with, contains,
+                                                                           matches_pattern)):
+            raise SimplydataError("capitals_matter= goes with starts_with=, ends_with=, contains= or matches_pattern=."
+                                  + _example('table.keep_columns(starts_with="wind", capitals_matter=False)', "weather"))
         chosen, words, plain_names = self._columns_chosen("keep_columns", names, to, of_kind, starts_with, ends_with,
-                                                          contains, matches_pattern)
+                                                          contains, matches_pattern, capitals_matter)
         if not plain_names:
             print(f"Kept {_columns_count(len(chosen))}: {', '.join(chosen)}.")
         return self._change("keep columns " + words, self._frame.select(chosen))
 
-    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"})
+    @friendly(renamed={"kind": "of_kind", "pattern": "matches_pattern"}, pointers=CAPITALS_POINTERS)
     def remove_columns(self: _Same, *names, to=None, of_kind=None, starts_with=None, ends_with=None, contains=None,
-                       matches_pattern=None) -> _Same:
+                       matches_pattern=None, capitals_matter=True) -> _Same:
         """Remove these columns: by name, a run of names, or by kind.
 
         table.remove_columns("height")   (with sdata.get_example("marks"))
         The same ways as keep_columns: remove_columns("hours", to="marks"), remove_columns(of_kind="text"),
-        remove_columns(starts_with="wind"), remove_columns(matches_pattern="^wind_").
+        remove_columns(starts_with="wind"), remove_columns(matches_pattern="^wind_"), and capitals_matter=False.
         """
+        if capitals_matter is not True and not any(v is not None for v in (starts_with, ends_with, contains,
+                                                                           matches_pattern)):
+            raise SimplydataError("capitals_matter= goes with starts_with=, ends_with=, contains= or matches_pattern=."
+                                  + _example('table.remove_columns(starts_with="wind", capitals_matter=False)',
+                                             "weather"))
         chosen, words, plain_names = self._columns_chosen("remove_columns", names, to, of_kind, starts_with,
-                                                          ends_with, contains, matches_pattern)
+                                                          ends_with, contains, matches_pattern, capitals_matter)
         if len(chosen) == len(self._columns):
             raise SimplydataError(
                 "That would remove every column. Keep at least one." + _example('table.remove_columns("height")')
@@ -812,9 +948,13 @@ class RowWords:
         return self._change(f'rename column "{old}" to "{to}"', self._frame.rename({old: to}))
 
     # ================================================================== choosing rows
-    def _where(self, step: str, column, options: dict, extra: tuple):
+    def _where(self, step: str, column, options: dict, extra: tuple, capitals_matter=True):
         """(condition, words, note) for keep_rows_where()/remove_rows_where(): a written condition or one plain word."""
         given = any(v is not _NOT_GIVEN for v in options.values())
+        if capitals_matter is not True and not given:
+            raise SimplydataError(
+                "capitals_matter= goes with a plain word on a text column, such as is_equal_to= or contains=."
+                + _example(f'table.{step}("subject", is_equal_to="maths", capitals_matter=False)'))
         if isinstance(column, str) and column not in self._frame.columns:
             text = column.strip()
             if text and not text.isidentifier():  # "marks > 50 and class == 'A'"
@@ -829,7 +969,7 @@ class RowWords:
         if is_yes_no and not given and not extra:  # keep_rows_where("passed")
             true, note = self._read_condition(step, f"`{column}`")
             return true, f"{column} is True", note
-        cond, words = self._condition(step, column, options, extra)
+        cond, words = self._condition(step, column, options, extra, capitals_matter)
         return cond, f"{column} {words}", ""
 
     def _read_condition(self, step: str, text: str):
@@ -852,11 +992,12 @@ class RowWords:
 
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
-                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
+                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"}, pointers=CAPITALS_POINTERS)
     def keep_rows_where(self: _Same, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
                         is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
                         is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                        is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
+                        is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN, matches_pattern=_NOT_GIVEN,
+                        capitals_matter=True) -> _Same:
         """Keep only the rows that match a condition.
 
         table.keep_rows_where("marks", is_above=50)   (with sdata.get_example("marks"))
@@ -866,31 +1007,41 @@ class RowWords:
         ends_with (capital letters matter), is_empty=True, and is_after= / is_before= for dates.
         Written conditions use == != < <= > >=, and, or, not, brackets, in [...], is empty;
         text and dates go in quotes. Empty cells only match is_empty / is empty.
+        capitals_matter=False makes "maths", "Maths" and "MATHS" the same in the text words
+        (pandas str.lower(), Polars str.to_lowercase()); matches_pattern= takes a regular expression,
+        a pattern language for text (pandas and Polars str.contains):
+          table.keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
+          table.keep_rows_where("name", matches_pattern=r"^A")   names that start with A
         """
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
                        not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
-                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before)
-        cond, words, note = self._where("keep_rows_where", column, options, extra)
+                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before,
+                       matches_pattern=matches_pattern)
+        cond, words, note = self._where("keep_rows_where", column, options, extra, capitals_matter)
         return self._filter(f"keep rows where {words}", cond, note=note)
 
     @friendly(renamed={"above": "is_above", "below": "is_below", "at_least": "is_at_least", "at_most": "is_at_most",
                        "equal_to": "is_equal_to", "not_equal_to": "is_not_equal_to", "between": "is_between",
-                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"})
+                       "one_of": "is_one_of", "after": "is_after", "before": "is_before"}, pointers=CAPITALS_POINTERS)
     def remove_rows_where(self: _Same, column=None, *extra, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN,
                           is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
                           is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
-                          is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
+                          is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN, matches_pattern=_NOT_GIVEN,
+                          capitals_matter=True) -> _Same:
         """Remove the rows that match a condition (the opposite of keep_rows_where).
 
         table.remove_rows_where("subject", is_equal_to="English")   (with sdata.get_example("marks"))
         table.remove_rows_where("marks < 40 or hours < 2")   a written condition
         Same conditions as keep_rows_where; is_between=[low, high] includes both ends. A row whose
         cell is empty is never removed by a comparison on that cell (use is_empty=True).
+        capitals_matter=False and matches_pattern= work as in keep_rows_where:
+          table.remove_rows_where("subject", is_equal_to="english", capitals_matter=False)
         """
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
                        not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
-                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before)
-        cond, words, note = self._where("remove_rows_where", column, options, extra)
+                       starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before,
+                       matches_pattern=matches_pattern)
+        cond, words, note = self._where("remove_rows_where", column, options, extra, capitals_matter)
         return self._filter(f"remove rows where {words}", ~cond, kept_word=False, note=note)
 
     def _place_in_group(self, keys, from_end=False):
@@ -1192,7 +1343,7 @@ class RowWords:
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def fill_empty_cells_in(self: _Same, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None,
-                            in_rows_where=None) -> _Same:
+                            in_rows_where=None, from_column=None) -> _Same:
         """Fill the empty cells of a column with a value, or with the average, median, value above or value below.
 
         table.fill_empty_cells_in("customers", with_the="median")   (with sdata.get_example("shop"))
@@ -1209,13 +1360,19 @@ class RowWords:
         in_rows_where= fills only the empty cells of the rows that meet a written condition (the
         average or median is still that of the whole column):
           table.fill_empty_cells_in("customers", with_value=0, in_rows_where="shop == 'Northgate'")
+        from_column= fills each empty cell with the value of another column in the same row, such as
+        a phone number from the mobile number; filled cells never change (pandas
+        df["phone"].fillna(df["mobile"]), Polars pl.coalesce("phone", "mobile")):
+          table.fill_empty_cells_in("phone", from_column="mobile")
         """
         example = 'table.fill_empty_cells_in("marks", with_the="average")'
         self._need_one_column("fill_empty_cells_in", column, example)
         if in_rows_where is not None:
             return self._only_in_rows("fill_empty_cells_in", column, in_rows_where, lambda: self.fill_empty_cells_in(
                 column, with_value=with_value, with_the=with_the, sorted_by=sorted_by,
-                for_each_group_in=for_each_group_in))
+                for_each_group_in=for_each_group_in, from_column=from_column))
+        if from_column is not None:
+            return self._fill_from_column(column, from_column, with_value, with_the, sorted_by, for_each_group_in)
         if (with_value is None) == (with_the is None):
             raise SimplydataError(
                 ".fill_empty_cells_in() needs exactly one of with_value= or with_the=."
@@ -1261,6 +1418,30 @@ class RowWords:
         print(f"Filled {_cells(before - after)} in {column}."
               + (f" {_cells(after)} stayed empty (nothing to copy from)." if after else ""))
         return self._change(f"fill empty cells in {column} with {how}", new)
+
+    def _fill_from_column(self, column, from_column, with_value, with_the, sorted_by, for_each):
+        """fill_empty_cells_in(column, from_column=): pandas fillna(df[other]), Polars pl.coalesce(column, other)."""
+        example = _example('table.fill_empty_cells_in("phone", from_column="mobile")')
+        if any(v is not None for v in (with_value, with_the, sorted_by, for_each)):
+            raise SimplydataError("from_column= is one way to fill, so leave out with_value=, with_the=, sorted_by= "
+                                  "and for_each_group_in=." + example)
+        self._need_one_column("fill_empty_cells_in", from_column, 'table.fill_empty_cells_in("phone", '
+                                                                  'from_column="mobile")')
+        if from_column == column:
+            raise SimplydataError("from_column= needs another column than the one to fill." + example)
+        here, there = self._kind_of(column), self._kind_of(from_column)
+        if here != there:
+            raise SimplydataError(f'"{column}" holds {here} values but "{from_column}" holds {there} values, so one '
+                                  "cannot fill the other. Make them the same kind first (turn_into_numbers, "
+                                  "turn_into_text, turn_into_dates)." + example)
+        empty, source_empty = self._empty(column), self._empty(from_column)
+        new_col = nw.when(empty & ~source_empty).then(nw.col(from_column)).otherwise(nw.col(column))
+        before = self._count(empty)
+        new = self._frame.with_columns(new_col.alias(column))
+        after = _count_in(new, _empty_in(new, column))
+        print(f'Filled {_cells(before - after)} in {column} from "{from_column}".'
+              + (f" {_cells(after)} stayed empty ({from_column} is empty there too)." if after else ""))
+        return self._change(f"fill empty cells in {column} from {from_column}", new)
 
     def _fill_by_line(self, column, sorted_by, for_each, choice="line between neighbours"):
         """fill_empty_cells_in(with_the="line between neighbours"): see line_between_neighbours().
@@ -1371,8 +1552,8 @@ class RowWords:
         print(f"{column} is now numbers.")
         return self._change(f"turn {column} into numbers", self._frame.with_columns(values))
 
-    @friendly
-    def turn_into_dates(self: _Same, column=None, order=None) -> _Same:
+    @friendly(others={"format": "written_like", "date_format": "written_like"})
+    def turn_into_dates(self: _Same, column=None, order=None, written_like=None) -> _Same:
         """Turn a column into dates; cells that are not dates become empty.
 
         table.turn_into_dates("year")   (with sdata.get_example("growth"))
@@ -1381,9 +1562,20 @@ class RowWords:
         order= says how the dates are written, so nothing is guessed: "day month year"
         (15/03/2026), "month day year" (03/15/2026) or "year month day" (2026/03/15).
           table.turn_into_dates("when", order="month day year")
+        written_like= gives an example date written the way the column writes them, so any layout
+        can be read: written_like="03/15/2026 14:30" (the day must be above 12, so it is not taken for
+        the month). Cells written another way become empty, and the sentence counts them. % codes
+        (written_like="%d.%m.%y") work too. As pandas pd.to_datetime(format="%m/%d/%Y %H:%M") and
+        Polars str.strptime(pl.Datetime, "%m/%d/%Y %H:%M"):
+          table.turn_into_dates("when", written_like="03/15/2026")
         """
         example = 'table.turn_into_dates("year")'
         self._need_one_column("turn_into_dates", column, example)
+        layout = None
+        if written_like is not None:
+            if order is not None:
+                raise SimplydataError("Give order= or written_like=, not both: written_like= already says the order.")
+            layout = format_from_example(written_like)
         if order is not None:
             if isinstance(order, str):
                 order = " ".join(order.lower().replace(",", " ").replace("-", " ").split())
@@ -1405,19 +1597,28 @@ class RowWords:
             nw.when(text.str.contains(r"^\d{4}-\d{1,2}$").fill_null(False)).then(text + nw.lit("-01")).otherwise(text)
         )
         cleaned = self._frame.select(text.alias(column))[column]
-        formats = DATE_FORMATS if order is None else DATE_ORDERS[order]
+        formats = (layout,) if layout is not None else DATE_FORMATS if order is None else DATE_ORDERS[order]
         values = nw.from_native(_parse_dates(cleaned.to_native(), formats), series_only=True).alias(column)
         self._report_failed(column, "dates", values)
         read_as = "" if order is None else f" (read as {order})"
+        if layout is not None:
+            read_as = f" (read as {layout})"
         print(f"{column} is now dates{read_as}.")
-        what = f"turn {column} into dates" + ("" if order is None else f', order="{order}"')
+        what = f"turn {column} into dates" + ("" if order is None else f', order="{order}"') + (
+            "" if layout is None else f', written_like="{written_like}"')
         return self._change(what, self._frame.with_columns(values))
 
-    @friendly
-    def turn_into_text(self: _Same, column=None) -> _Same:
+    @friendly(others={"format": "written_like", "date_format": "written_like"})
+    def turn_into_text(self: _Same, column=None, written_like=None) -> _Same:
         """Turn a column into text.
 
         table.turn_into_text("month_number")   (with sdata.get_example("weather"))
+        Dates become text such as 2026-03-15. written_like= gives an example date written the way
+        you want them: written_like="31.12.2026" gives 15.03.2026 for 15 March, and
+        written_like="March 31, 2026" gives March 15, 2026 (the day must be above 12, so it is not
+        taken for the month; days and months are written with two digits, 03). As pandas
+        dt.strftime("%d.%m.%Y") and Polars dt.to_string("%d.%m.%Y"); % codes work too:
+          table.turn_into_text("date", written_like="31.12.2026")   (with sdata.get_example("shop"))
         """
         example = 'table.turn_into_text("month_number")'
         self._need_one_column("turn_into_text", column, example)
@@ -1425,6 +1626,17 @@ class RowWords:
         dtype = self._frame.schema[column]
         col = nw.col(column)
         empty = self._empty(column)
+        if written_like is not None:
+            if kind != "date":
+                raise SimplydataError(f'written_like= is for dates, and "{column}" holds {kind} values.'
+                                      + _example('table.turn_into_text("date", written_like="31.12.2026")', "shop"))
+            layout = format_from_example(written_like)
+            text = col.dt.to_string(layout)  # pandas dt.strftime(layout), Polars dt.to_string(layout)
+            new = self._frame.with_columns(nw.when(~empty).then(text).alias(column))
+            first = new.filter(~nw.col(column).is_null())
+            shown = f', such as "{first[column].item(0)}"' if len(first) else ""
+            print(f"{column} is now text, written like {written_like}{shown} ({layout}).")
+            return self._change(f'turn {column} into text, written like "{written_like}"', new)
         if dtype == nw.String:
             print(f"{column} is already text.")
             return self
@@ -1482,7 +1694,7 @@ class RowWords:
                           is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN,
                           is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN,
                           starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN,
-                          in_rows_where=None) -> _Same:
+                          in_rows_where=None, capitals_matter=True) -> _Same:
         """Replace a value (or a list of values) in a column; with_value=None makes those cells empty.
 
         table.replace_values_in("subject", "Maths", with_value="Math")   (with sdata.get_example("marks"))
@@ -1496,6 +1708,9 @@ class RowWords:
         Empty cells never match (fill them with fill_empty_cells_in).
         in_rows_where= replaces only in the rows that meet a written condition on other columns:
           table.replace_values_in("subject", "Maths", with_value="Math", in_rows_where="class == 'A'")
+        capitals_matter=False finds the old text in any capitals ("maths", "MATHS"), in the old value
+        and in the text conditions:
+          table.replace_values_in("subject", "maths", with_value="Maths", capitals_matter=False)
         """
         example = 'table.replace_values_in("subject", "Maths", with_value="Math")'
         self._need_one_column("replace_values_in", column, example)
@@ -1506,11 +1721,22 @@ class RowWords:
             given = {f"is_{k}" if k not in ("contains", "starts_with", "ends_with") else k: v
                      for k, v in options.items() if v is not _NOT_GIVEN}
             given.update({k: v for k, v in (("old", old), ("with_value", with_value)) if v is not _NOT_GIVEN})
+            given["capitals_matter"] = capitals_matter
             return self._only_in_rows("replace_values_in", column, in_rows_where,
                                       lambda: self.replace_values_in(column, **given))
         if any(v is not _NOT_GIVEN for v in options.values()):
-            return self._replace_where(column, old, with_value, options)
+            return self._replace_where(column, old, with_value, options, capitals_matter)
+        if not isinstance(capitals_matter, bool):
+            raise SimplydataError("capitals_matter= should be True or False.")
+        if not capitals_matter and self._kind_of(column) != "text":
+            raise SimplydataError(f'capitals_matter=False is for text, and "{column}" is a {self._kind_of(column)} '
+                                  "column." + _example('table.replace_values_in("subject", "maths", '
+                                                       'with_value="Maths", capitals_matter=False)'))
         if isinstance(old, dict):
+            if not capitals_matter:
+                raise SimplydataError("capitals_matter=False goes with one old value (or a list of them), not with "
+                                      "{old: new} pairs." + _example('table.replace_values_in("subject", "maths", '
+                                                                     'with_value="Maths", capitals_matter=False)'))
             return self._replace_many(column, old, with_value)
         if old is _NOT_GIVEN or with_value is _NOT_GIVEN:
             raise SimplydataError(
@@ -1521,7 +1747,10 @@ class RowWords:
         olds = list(old) if isinstance(old, (list, tuple, set)) else [old]
         olds = [self._value_for("old value", column, v, example) for v in olds]
         col = nw.col(column)
-        match = self._is_in(column, olds).fill_null(False)
+        if capitals_matter:
+            match = self._is_in(column, olds).fill_null(False)
+        else:  # pandas str.lower().isin(...), Polars str.to_lowercase().is_in(...)
+            match = col.cast(nw.String).str.to_lowercase().is_in([v.lower() for v in olds]).fill_null(False)
         if with_value is None:
             new_col = nw.when(~match).then(col)
         else:
@@ -1529,11 +1758,11 @@ class RowWords:
             new_col = nw.when(match).then(nw.lit(new_value)).otherwise(col)
         n = self._count(match)
         new = self._frame.with_columns(new_col.alias(column))
-        print(f"Replaced {_cells(n)} in {column}.")
-        olds_words = " or ".join(_say(v) for v in olds)
+        print(f"Replaced {_cells(n)} in {column}" + ("" if capitals_matter else " (capitals do not matter)") + ".")
+        olds_words = " or ".join(_say(v) for v in olds) + ("" if capitals_matter else " in any capitals")
         return self._change(f"replace {olds_words} in {column} with {_say(with_value)}", new)
 
-    def _replace_where(self, column, old, with_value, options: dict):
+    def _replace_where(self, column, old, with_value, options: dict, capitals_matter=True):
         """replace_values_in(column, is_above=100, with_value=100): the cells that meet one keep_rows_where condition."""
         given = [k for k, v in options.items() if v is not _NOT_GIVEN]
         example = f'table.replace_values_in("marks", is_above=90, with_value=90)'
@@ -1546,7 +1775,7 @@ class RowWords:
             raise SimplydataError(
                 ".replace_values_in() needs with_value=, the new value (None makes the cells empty)." + _example(example)
             )
-        cond, words = self._condition("replace_values_in", column, options, ())
+        cond, words = self._condition("replace_values_in", column, options, (), capitals_matter)
         col = nw.col(column)
         if with_value is None:
             new_col, said = nw.when(~cond).then(col), "empty"

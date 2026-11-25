@@ -5,6 +5,31 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: tables phase, batch 2 (ranks 16-30 of the tables proposal; approved by Manish 2026-11-25)
+
+- `sdata.table(..., columns=[...], column_names=[...], skip_lines_starting_with="#")`: read only some columns (in the
+  order given), name the columns of a file without a header line, and skip a logger's note lines (pandas `usecols=`,
+  `header=None, names=`, `comment=`; Polars `columns=`, `new_columns=`, `comment_prefix=`). `usecols=`, `names=`,
+  `comment=` and friends run with a note once; `header=` points to `column_names=`.
+- `capitals_matter=False` on `keep_rows_where`, `remove_rows_where`, `replace_values_in`, `replace_text_in`,
+  `find_percent_of_rows_where`, `keep_columns` and `remove_columns`; `matches_pattern=` on `keep_rows_where` and
+  `remove_rows_where`. `ignore_case=`, `case=` and `regex=` point to them.
+- Durations: `add_column("check_on", from_column="date", plus="1 month")` (also "30 days", "2 weeks", "1 year",
+  "12 hours", and `minus=`); `add_column(..., by_subtracting=[end, start], counted_in="hours")`.
+- `written_like="31.12.2026"` on `turn_into_text` and `turn_into_dates`: an example date instead of % codes.
+- `table.add_missing_combinations_of("station", "depth_m")`, `table.count_columns()`,
+  `table.rename_columns({...})` / `rename_columns(add_in_front="w_")`, `table.round_dates_in("date",
+  down_to="month")` (`up_to=`, `to_the=`), `table.change_time_zone_in("time", to="UTC", recorded_in="Europe/Oslo")`,
+  `table.spread_into_yes_no_columns("fruit")` (empty cells get a column "fruit: (empty)" on both engines),
+  `table.fill_empty_cells_from(other, using="id")`.
+- `with_totals=True` on `count_rows`, `find_total_of` and `find_average_of` cross tables; `fill_empty_cells_in(...,
+  from_column=)`; new `part=` values on `add_column_with_part_of_date` ("date", "time", "second", "is weekend", "days
+  in month", "is month end", "is leap year", "year and month"); `add_rank_column(..., for_each_group_in=,
+  when_tied=)`; `add_group_column(..., into_equal_groups=4)`.
+- Other names: `shape` points to count_rows and count_columns, `crosstab` to count_rows(across=) first, `complete`
+  to add_missing_combinations_of and add_missing_dates; get_dummies, tz_convert, combine_first, qcut, strftime ...
+  point to the new words.
+
 ### Added: tables phase, batch 1 (the 15 jobs a messy table needs most; approved by Manish 2026-11-25)
 
 - `sdata.table("lab.csv", read_as_text=["sample_id"])` keeps columns as text, exactly as typed: 007 stays 007 and a

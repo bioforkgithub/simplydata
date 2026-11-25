@@ -54,9 +54,11 @@ GROUPS = [
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
-                                "table.get_row", "table.get_cell_at"]),
+                                "table.get_row", "table.get_cell_at",
+                                "table.count_columns"]),
     ("Choose columns", ["table.keep_columns", "table.remove_columns", "table.keep_columns_by_position",
-                        "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names"]),
+                        "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names",
+                        "table.rename_columns"]),
     ("Choose rows", ["table.keep_rows_where", "table.remove_rows_where", "table.keep_first_rows",
                      "table.keep_last_rows", "table.keep_rows_by_position", "table.remove_rows_by_position",
                      "table.reverse_rows", "table.keep_random_rows", "table.remove_duplicate_rows",
@@ -65,7 +67,8 @@ GROUPS = [
                      "table.remove_groups_where"]),
     ("Empty cells", ["table.count_empty_cells_in", "table.remove_rows_with_empty_cells_in",
                      "table.fill_empty_cells_in", "table.add_is_empty_column", "table.remove_rows_that_are_all_empty",
-                     "table.remove_columns_that_are_all_empty"]),
+                     "table.remove_columns_that_are_all_empty",
+                     "table.fill_empty_cells_from"]),
     ("Fix columns", ["table.turn_into_numbers", "table.turn_into_text", "table.turn_into_dates",
                      "table.turn_into_lowercase", "table.turn_into_uppercase", "table.remove_extra_spaces_in",
                      "table.replace_values_in", "table.round_numbers_in", "table.change_column",
@@ -74,7 +77,8 @@ GROUPS = [
                               "table.add_rank_column", "table.add_z_score_column", "table.add_row_summary_column",
                               "table.add_row_number_column"]),
     ("Dates and text", ["table.add_column_with_part_of_date", "table.add_column_with_part_of_text", "table.split_column",
-                        "table.replace_text_in", "table.split_into_rows"]),
+                        "table.replace_text_in", "table.split_into_rows",
+                        "table.round_dates_in", "table.change_time_zone_in"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column",
                        "table.add_running_column"]),
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
@@ -148,7 +152,8 @@ GROUPS = [
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
     ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.gather_into_rows",
                              "table.spread_into_columns", "table.swap_rows_and_columns", "table.keep_rows_found_in",
-                             "table.remove_rows_found_in"]),
+                             "table.remove_rows_found_in",
+                             "table.add_missing_combinations_of", "table.spread_into_yes_no_columns"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
                          "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
@@ -1157,6 +1162,29 @@ HELP_EXAMPLES = {
         levels.show()"""),
     "draw_interaction_lines": _ex("school", 'chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")',
                                   "draw_interaction_lines"),
+    # tables phase, batch 2 (approved by Manish 2026-11-25)
+    "table.count_columns": _tx("marks", "table.count_columns()\ntable.count_rows()"),
+    "table.rename_columns": _tx("weather", 'table.rename_columns({"temperature": "temp", "rain": "rain_mm"})\n'
+                                           'table.rename_columns(add_in_front="w_")\n'
+                                           "print(table.get_column_names())"),
+    "table.fill_empty_cells_from": _tx("fjord_samples", 'table.fill_empty_cells_from({"sample_id": [1, 2, 12], '
+                                                        '"notes": ["calm", "calm", "rain"]}, using="sample_id")\n'
+                                                        'table.keep_columns("sample_id", "notes")\n'
+                                                        "table.show_first_rows(3)"),
+    "table.round_dates_in": _tx("shop", 'table.round_dates_in("date", down_to="month")\n'
+                                        'table.find_total_of("sales", for_each_group_in=["shop", "date"])'),
+    "table.change_time_zone_in": _tx("fjord_samples", 'table.change_time_zone_in("sampled_local", to="UTC", '
+                                                      'recorded_in="Europe/Oslo")\n'
+                                                      'table.round_dates_in("sampled_local", to_the="hour")\n'
+                                                      'table.show_first_rows(3)'),
+    "table.add_missing_combinations_of": _tx("fjord_samples", 'table.add_missing_combinations_of("station", "depth_m")\n'
+                                                              'table.keep_rows_where("sample_id", is_empty=True)\n'
+                                                              'table.show()'),
+    "table.spread_into_yes_no_columns": _tx("fruit", 'table.spread_into_yes_no_columns("fruit")\n'
+                                                     'table.show_first_rows(3)\n'
+                                                     'table.undo()\n'
+                                                     'table.spread_into_yes_no_columns("shop")\n'
+                                                     'print(table.get_column_names())'),
 }
 
 
