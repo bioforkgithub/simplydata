@@ -427,7 +427,7 @@ class MoreTableWords:
         print(f'Split "{column}"{at} into rows: {_rows(before)} became {_rows(len(frame))}.')
         if frame.schema[column] == nw.String:
             text = nw.col(column)
-            loose = _count_in(frame, (text != text.str.strip_chars()).fill_null(False))
+            loose = _count_in(frame, (text != text.str.strip_chars()).fill_null(False) & ~text.is_null())
             if loose:
                 print(f"Note: {loose} of the new cells start or end with a space; "
                       f'table.remove_extra_spaces_in("{column}") takes the spaces away.')
@@ -443,7 +443,8 @@ class MoreTableWords:
         show= can be "total" (a cumulative sum), "average", "smallest", "biggest", "count" (the filled
         cells so far) or "product". for_each_group_in= starts again in each group; sorted_by= works it
         out in the order of a column such as a date (the rows themselves keep their place).
-        An empty cell stays empty and is left out of the rows after it. Running: from the first row
+        An empty cell is left out of the rows after it, and its own row stays empty, except with
+        show="count", which gives the count of filled cells so far there too. Running: from the first row
         to this one; rolling (add_rolling_column): a window of the last few rows that moves.
         As pandas groupby().cumsum() (cummax, cummin, cumprod, and expanding().mean() for the
         average) and Polars cum_sum().over() (cum_max, cum_min, cum_prod, cum_count).

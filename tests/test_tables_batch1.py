@@ -124,7 +124,7 @@ def test_join_how_runs_as_keep(engine, capsys):
 def test_join_check_that(engine, capsys):
     t = build(raw("marks"), engine)
     repeated = {"name": ["Asha", "Asha", "Ben"], "pet": ["cat", "dog", "fish"]}
-    with pytest.raises(SimplydataError, match=r'check_that="each row has one match" failed: 1 value of name appear '
+    with pytest.raises(SimplydataError, match=r'check_that="each row has one match" failed: 1 value of name appears '
                                               r'more than once in the other table: "Asha"'):
         t.join_with(repeated, using="name", check_that="each row has one match")
     assert len(t) == 54 and not t._history  # nothing joined
@@ -357,7 +357,7 @@ def test_row_summary_on_the_clinic_table(engine, capsys):
 
 # ---------------------------------------------------------------- P08 spread_into_columns(show=)
 @pytest.mark.parametrize("show, aggfunc", [("total", "sum"), ("average", "mean"), ("median", "median"),
-                                           ("smallest", "min"), ("biggest", "max"), ("count", "size")])
+                                           ("smallest", "min"), ("biggest", "max"), ("count", "count")])
 def test_spread_show_matches_pivot_table(engine, show, aggfunc, capsys):
     fruit = raw("fruit")[["day", "fruit", "count"]]
     t = build(fruit, engine)
@@ -372,6 +372,112 @@ def test_spread_show_matches_pivot_table(engine, show, aggfunc, capsys):
                                              aggregate_function="sum" if show == "total" else "len")
         assert (polars.select(pl.exclude("day")).to_pandas() == 0).to_numpy().any()
         assert got.isna().to_numpy().any()
+
+
+# review of PR #59: empty keys and "count" with show=, the same on both engines and as plain pandas / Polars
+EMPTY_DAY = {"day": ["m", "m", None, None, "t", "t"], "f": ["a", "a", "a", "b", "b", "b"], "n": [1, 2, 3, 4, None, 5]}
+EMPTY_NAME = {"day": ["m", "m", "t", "t"], "f": ["a", None, "b", None], "n": [1, 2, 5, None]}
+
+
+def _cells(t):
+    """Rows as tuples, empty cells as None, numbers as floats: for a strict comparison of the two engines."""
+    frame = plain(t)
+    return list(frame.columns), [tuple(None if pd.isna(v) else (float(v) if isinstance(v, (int, float, np.number))
+                                                                 else v) for v in row) for row in frame.values]
+
+
+@pytest.mark.parametrize("data", [EMPTY_DAY, EMPTY_NAME])
+@pytest.mark.parametrize("show, pandas_way, polars_way", [
+    ("total", "sum", pl.element().sum()), ("average", "mean", pl.element().mean()),
+    ("median", "median", pl.element().median()), ("smallest", "min", pl.element().min()),
+    ("biggest", "max", pl.element().max()), ("count", "count", pl.element().count())])
+def test_spread_show_keeps_empty_keys_on_both_engines(data, show, pandas_way, polars_way, capsys):
+    got = {}
+    for engine in ENGINES:
+        t = build(data, engine)
+        t.spread_into_columns(names_from="f", values_from="n", show=show)
+        got[engine] = _cells(t)
+    # the same column names, rows, values and empty cells on both engines; empty names make a column "(empty)"
+    assert got["pandas"] == got["polars"]
+    names = [str(v) for v in dict.fromkeys(data["f"])]
+    assert got["pandas"][0] == ["day", *[n if n != "None" else "(empty)" for n in names]]
+    # plain pandas, keeping empty keys (groupby(dropna=False)); a pair that never appears is an empty cell
+    frame = pd.DataFrame(data)
+    wide = frame.groupby(["day", "f"], dropna=False, sort=False)["n"].agg(pandas_way).unstack("f").reset_index()
+    expected = [tuple(None if pd.isna(v) else (float(v) if not isinstance(v, str) else v) for v in row)
+                for row in wide.values]
+    assert got["pandas"][1] == expected
+    # plain Polars: the same filled cells (Polars writes 0 where a pair never appears; simplydata an empty cell)
+    polars = pl.DataFrame(data).pivot(on="f", index="day", values="n", aggregate_function=polars_way)
+    for ours, theirs in zip(got["polars"][1], polars.rows()):
+        assert all(a == (None if b is None else float(b)) or a is None for a, b in zip(ours[1:], theirs[1:]))
+    assert len(got["polars"][1]) == polars.height == len({row[0] for row in got["pandas"][1]})
+
+
+def test_spread_empty_names_make_a_column_called_empty(capsys):
+    data = {"day": ["m", "m", "t"], "f": ["a", None, "b"], "n": [1, 2, 5]}
+    got = {}
+    for engine in ENGINES:
+        t = build(data, engine)
+        t.spread_into_columns(names_from="f", values_from="n")
+        got[engine] = _cells(t)
+        assert '1 row had an empty cell in "f"; its values went into a column called "(empty)".' in \
+            capsys.readouterr().out
+    assert got["pandas"] == got["polars"] == (["day", "a", "(empty)", "b"], [("m", 1.0, 2.0, None),
+                                                                           ("t", None, None, 5.0)])
+    # plain pandas and Polars give the same cells under their own names for the empty column
+    pandas = pd.DataFrame(data).pivot(index="day", columns="f", values="n")
+    assert pandas.loc["m", "a"] == 1 and pandas.loc["t", "b"] == 5
+    assert pl.DataFrame(data).pivot(on="f", index="day", values="n")["null"].to_list() == [2, None]
+    # numbers as names: the empty one is "(empty)" too
+    for engine in ENGINES:
+        t = build({"day": ["m", "m"], "f": [1.0, None], "n": [1, 2]}, engine)
+        t.spread_into_columns(names_from="f", values_from="n")
+        assert t.get_column_names()[-1] == "(empty)"
+
+
+def test_spread_refuses_a_real_value_called_empty(engine):
+    t = build({"day": ["m", "m", "t"], "f": ["(empty)", None, "b"], "n": [1, 2, 5]}, engine)
+    for show in (None, "total"):
+        with pytest.raises(SimplydataError, match=r'fill_empty_cells_in\("f", with_value="no f"\)'):
+            t.spread_into_columns(names_from="f", values_from="n", show=show)
+    assert not t._history
+
+
+def test_spread_count_is_filled_cells(engine, capsys):
+    t = build({"day": ["m", "m", "m", "t"], "f": ["a", "a", "b", "a"], "n": [1, None, None, 2]}, engine)
+    t.spread_into_columns(names_from="f", values_from="n", show="count")
+    assert _cells(t)[1] == [("m", 1.0, 0.0), ("t", 1.0, None)]  # (m, b) has one row, no filled cell: 0
+
+
+def test_check_that_ignores_empty_keys_on_both_engines(capsys):
+    for engine in ENGINES:
+        t = build({"k": ["a", "b", None], "v": [1, 2, 3]}, engine)
+        t.join_with({"k": ["a", None, None], "w": [1, 2, 3]}, using="k", check_that="each row has one match")
+        assert _cells(t)[1] == [("a", 1.0, 1.0)]
+        assert "appear more than once" not in capsys.readouterr().out  # only empty keys repeat: no row repeats
+        t.undo()
+        t.join_with({"k": ["a", None, None], "w": [1, 2, 3]}, using="k", check_that="each key appears once in both",
+                    keep="all rows from this table")
+        assert _cells(t)[1] == [("a", 1.0, 1.0), ("b", 2.0, None), (None, 3.0, None)]
+        with pytest.raises(SimplydataError, match=r'1 value of k appears more than once in the other table: "a"\.'):
+            t.join_with({"k": ["a", "a", None], "w": [1, 2, 3]}, using="k", check_that="each row has one match")
+
+
+def test_split_into_rows_space_note_agrees(capsys):
+    for engine in ENGINES:
+        build({"g": ["a;b", None, "", "x ; y"]}, engine).split_into_rows("g", separator=";")
+        assert "Note: 2 of the new cells start or end with a space" in capsys.readouterr().out
+
+
+def test_running_count_counts_filled_cells(capsys):
+    for engine in ENGINES:
+        t = build({"x": [1.0, None, 3.0]}, engine)
+        t.add_running_column("c", from_column="x", show="count")
+        t.add_running_column("total", from_column="x", show="total")
+        assert _cells(t)[1] == [(1.0, 1.0, 1.0), (None, 1.0, None), (3.0, 2.0, 4.0)]
+    assert pd.Series([1.0, None, 3.0]).expanding().count().tolist() == [1.0, 1.0, 2.0]
+    assert pl.Series([1.0, None, 3.0]).cum_count().to_list() == [1, 1, 2]
 
 
 def test_spread_without_show_names_the_repeats(engine):
