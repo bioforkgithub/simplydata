@@ -118,6 +118,32 @@ UNDERNEATH = {
     "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
     "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
     "use_shapes": "seaborn (scatterplot style= and markers=)",
+    # charts phase, batch 2
+    "draw_rug_lines": "seaborn (rugplot)",
+    "draw_wind_rose": "NumPy (histogram2d counts the rows in each direction and speed band); matplotlib draws the "
+                      "counts as stacked bars on a polar axis",
+    "draw_arrow": "matplotlib (Axes.annotate with an arrow)",
+    "put_chart_inside": "matplotlib (Axes.inset_axes); the inner chart is drawn there with its own steps",
+    "add_second_x": "matplotlib (Axes.secondary_xaxis with functions= for formula=; Axes.twiny for a column)",
+    "hide_frame": "matplotlib (Axes.set_axis_off)",
+    "hide_ticks_x": "matplotlib (Axes.tick_params(axis=\"x\", length=0, labelbottom=False))",
+    "hide_ticks_y": "matplotlib (Axes.tick_params(axis=\"y\", length=0, labelleft=False))",
+    "show_small_ticks_x": "matplotlib (Axis.minorticks_on)",
+    "show_small_ticks_y": "matplotlib (Axis.minorticks_on)",
+    "use_true_shape": "matplotlib (Axes.set_aspect(\"equal\"))",
+    "make_square": "matplotlib (Axes.set_box_aspect(1))",
+    "put_colour_bar_at_bottom": "matplotlib (Figure.colorbar(location=\"bottom\"))",
+    "put_colour_bar_at_top": "matplotlib (Figure.colorbar(location=\"top\"))",
+    "put_colour_bar_at_left": "matplotlib (Figure.colorbar(location=\"left\"))",
+    "hide_colour_bar": "matplotlib (the colour bar is not drawn: no Figure.colorbar)",
+    "put_ticks_colour_bar": "matplotlib (Colorbar.set_ticks)",
+    "draw_lines_3d": "matplotlib (Axes3D.plot)",
+    "label_z": "matplotlib (Axes3D.set_zlabel)",
+    "set_range_z": "matplotlib (Axes3D.set_zlim)",
+    "put_ticks_z": "matplotlib (Axes3D.set_zticks)",
+    "look_from": "matplotlib (Axes3D.view_init(elev=, azim=))",
+    "say_what_it_shows": "simplydata itself: the chart's steps and their columns; the axes, legend and colour bar "
+                         "are read from what matplotlib drew",
     "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
                          "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types

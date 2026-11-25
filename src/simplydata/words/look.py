@@ -134,7 +134,7 @@ _LEGEND_PLACES = {
 }
 
 
-def _legend(ctx, where):
+def _legend(ctx, where, per_row=None):
     handles, labels, group_title = _collect_entries(ctx)
     if ctx.settings.get("legend_title") is not None:  # chart.label_legend("Class")
         group_title = ctx.settings["legend_title"]
@@ -178,6 +178,8 @@ def _legend(ctx, where):
         kw["title"] = group_title
     if where in ("top", "bottom"):
         kw["ncols"] = min(len(handles), 6)  # one row; wraps only when there are many entries
+    if per_row is not None:  # put_legend_at_bottom(per_row=3) (charts phase, batch 2)
+        kw["ncols"] = per_row
     fig.legend(handles, labels, **kw)
 
 
@@ -308,20 +310,30 @@ class LookWords:
         return self._set(grid=False)
 
     # ------------------------------------------------------------ legend
-    def _legend_step(self, where):
-        return self._replace("legend", "finish", _legend, scope="figure", where=where)
+    def _legend_step(self, where, per_row=None):
+        if per_row is not None and (isinstance(per_row, bool) or not isinstance(per_row, int) or per_row < 1):
+            raise SimplydataError(f"per_row= is how many legend entries go in each row, a whole number such as "
+                                  f"per_row=3, not {per_row!r}.")
+        return self._replace("legend", "finish", _legend, scope="figure", where=where,
+                             **({"per_row": per_row} if per_row is not None else {}))
 
-    @friendly
-    def put_legend_at_top(self: _Same) -> _Same:
-        """The legend above the chart, in one row. chart.put_legend_at_top()"""
-        return self._legend_step("top")
+    @friendly(others={"ncol": "per_row", "ncols": "per_row"})
+    def put_legend_at_top(self: _Same, per_row=None) -> _Same:
+        """The legend above the chart, in one row. chart.put_legend_at_top()
+
+        per_row=3 puts 3 entries in each row, so a long legend takes several rows.
+        """
+        return self._legend_step("top", per_row)
 
     put_legend_on_top = put_legend_at_top  # the other spelling, same word
 
-    @friendly
-    def put_legend_at_bottom(self: _Same) -> _Same:
-        """The legend below the chart, in one row under the x-axis name. chart.put_legend_at_bottom()"""
-        return self._legend_step("bottom")
+    @friendly(others={"ncol": "per_row", "ncols": "per_row"})
+    def put_legend_at_bottom(self: _Same, per_row=None) -> _Same:
+        """The legend below the chart, in one row under the x-axis name. chart.put_legend_at_bottom()
+
+        per_row=3 puts 3 entries in each row, so a long legend takes several rows.
+        """
+        return self._legend_step("bottom", per_row)
 
     put_legend_on_bottom = put_legend_at_bottom  # the other spelling, same word
 

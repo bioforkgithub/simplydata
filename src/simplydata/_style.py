@@ -102,6 +102,10 @@ def rc_for(settings: dict) -> dict:
         scale = size / rc["font.size"]
         for key in _FONT_KEYS:
             rc[key] = rc[key] * scale
+    if settings.get("title_size"):  # use_font_size(title=) (charts phase, batch 2)
+        rc["axes.titlesize"] = settings["title_size"]
+    if settings.get("ticks_size"):  # use_font_size(ticks=)
+        rc["xtick.labelsize"] = rc["ytick.labelsize"] = settings["ticks_size"]
     if settings.get("font_name"):
         rc["font.family"] = settings["font_name"]
     if settings.get("grid") is False:

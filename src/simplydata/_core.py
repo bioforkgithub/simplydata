@@ -190,7 +190,7 @@ class BaseChart:
 
         A word that changes several things (a setting and a step) is one step back: everything changed while
         one word runs (the outermost word the user called) shares one memory."""
-        from ._cite import _frames
+        from ._cite import _frames, outermost_word
 
         history = self.__dict__.get("_history")
         if history is None:  # a page of charts, or a chart made before undo existed
@@ -202,6 +202,7 @@ class BaseChart:
             return
         settings = {k: (dict(v) if isinstance(v, dict) else list(v) if isinstance(v, list) else v)
                     for k, v in self._settings.items()}
+        what = outermost_word() or what  # the word the user called, not the step it adds ("legend")
         history.append((word_running, what, list(self._steps), settings))
 
     def _add(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):

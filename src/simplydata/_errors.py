@@ -260,6 +260,7 @@ GROUP_COLOUR_WORDS = frozenset({
     "draw_survival_curves", "draw_risk_curves", "draw_richness_curves", "draw_interaction_lines", "draw_sticks",
     "draw_trade_off_curve", "draw_all_pairs",
 })
+GROUP_COLOUR_WORDS = GROUP_COLOUR_WORDS | {"draw_rug_lines", "draw_lines_3d"}  # charts phase, batch 2
 
 
 # Option names from pandas, seaborn, dplyr and scikit-learn that mean exactly one simplydata option, on every

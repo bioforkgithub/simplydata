@@ -1,6 +1,6 @@
-"""The same work in the packages underneath: tested entries for 438 of simplydata's 438 words.
+"""The same work in the packages underneath: tested entries for 461 of simplydata's 461 words.
 
-Every word has an entry. There are 570 entries: one for each of 438 words, plus one for each option of those
+Every word has an entry. There are 605 entries: one for each of 461 words, plus one for each option of those
 words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
 Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
@@ -18,7 +18,7 @@ The library code holds no simplydata names: it reads the practice table from its
 (pd.read_csv("marks.csv"); check.py runs it in the folder of the practice files), so a rename only touches the
 key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
-The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
+The entries are split by area: charts.py, charts_more.py (the charts phase, batch 2), tables.py, numbers.py, statistics.py, models.py (the options of
 explain()), lines.py (the lines-and-curves words and their options), checking.py (the checking-and-comparing
 words and their options), survival.py (S3b-3: the survival and person-time words and options),
 combining.py (S3b-1: combining studies), planning.py (S3b-2: the power words and their options) and
@@ -145,12 +145,12 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import (bayesian, causal, charts, charts_batch1, checking, combining, communities, hidden_factors, lines,
-                   models, more_words, numbers, places, planning, planning_surveys, signals, small_additions,
-                   starting, statistics, survival, tables)
+    from . import (bayesian, causal, charts, charts_batch1, charts_more, checking, combining, communities,
+                   hidden_factors, lines, models, more_words, numbers, places, planning, planning_surveys, signals,
+                   small_additions, starting, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
+    for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
                    more_words, signals, starting, charts_batch1):
         for entry in module.ENTRIES:

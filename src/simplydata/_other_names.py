@@ -580,7 +580,32 @@ _CHART = [
     ('chart.draw_variogram("zinc", x="east", y="north")', "plot_variogram variogram_plot"),
     ('chart.draw_threshold_check(x="rain", between=[20, 40])',
      "mrlplot mrl_plot mean_residual_life threshrange threshrange_plot mean_excess_plot"),
-    ('chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)', "rose rose_diagram windrose"),
+    ('chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)', "rose rose_diagram"),
+]
+
+# chart.<name>, charts phase batch 2 (approved by Manish 2026-11-25)
+_CHART_2 = [
+    ('chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")', "windrose wind_rose bar_polar barpolar"),
+    ('chart.draw_rug_lines(x="marks")', "rugplot geom_rug rug"),
+    ("chart.draw_arrow(start=[2, 40], end=[4, 60])", "arrow FancyArrow geom_segment"),
+    ('chart.put_chart_inside(detail, where="top right")', "inset_axes add_axes inset_element annotation_custom"),
+    ('chart.add_second_x(formula="x * 9 / 5 + 32")', "twiny secondary_xaxis sec_axis dup_axis"),
+    ('chart.add_second_y(formula="y * 9 / 5 + 32")', "secondary_yaxis"),
+    ("chart.hide_frame()", "set_axis_off axis_off theme_void"),
+    ("chart.show_small_ticks_x()", "minorticks_on minor_ticks AutoMinorLocator"),
+    ("chart.use_true_shape()", "set_aspect coord_equal coord_fixed"),
+    ("chart.make_square()", "set_box_aspect"),
+    ("chart.say_what_it_shows()", "describe alt_text get_alt_text"),
+    ('chart.draw_lines_3d(x="east", y="north", z="height")', "plot3D plot3d line_3d"),
+    ('chart.label_z("Height (m)")', "zlabel set_zlabel zlab"),
+    ("chart.set_range_z(-10, 20)", "zlim set_zlim"),
+    ("chart.put_ticks_z(-10, 0, 10, 20)", "zticks set_zticks"),
+    ("chart.look_from(height=20, around=45)", "view_init camera persp"),
+    ('chart.draw_histogram(x="hours", y="marks")', "hist2d histogram2d geom_bin_2d"),
+    ('chart.draw_density(x="hours", y="marks")', "kde2d geom_density_2d"),
+    ('chart.draw_pie(labels="fruit", values="count", hole=0.4)', "donut doughnut"),
+    ("chart.draw_line_at_y(50, between=[2, 6])", "hlines"),
+    ("chart.draw_line_at_x(4, between=[20, 60])", "vlines"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
@@ -618,5 +643,5 @@ def _build(groups):
     return table
 
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART),
+OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2),
                "numbers": _build(_NUMBERS)}

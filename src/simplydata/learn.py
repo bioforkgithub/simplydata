@@ -55,6 +55,14 @@ GROUPS = [
     ("Order of groups", ["order_x", "order_y", "order_legend"]),
     ("Several charts", ["draw_one_chart_for_each_group_in", "sdata.put_side_by_side", "sdata.put_one_above_other", "sdata.put_in_rows_and_columns",
                         "add_zoom_box", "animate"]),
+    # charts phase, batch 2 (approved by Manish 2026-11-25)
+    ("More chart types", ["draw_rug_lines", "draw_wind_rose", "draw_arrow", "put_chart_inside", "add_second_x"]),
+    ("Frame, ticks and shape", ["hide_frame", "hide_ticks_x", "hide_ticks_y", "show_small_ticks_x",
+                                "show_small_ticks_y", "use_true_shape", "make_square"]),
+    ("Colour bar", ["put_colour_bar_at_bottom", "put_colour_bar_at_top", "put_colour_bar_at_left", "hide_colour_bar",
+                    "put_ticks_colour_bar"]),
+    ("3D charts", ["draw_lines_3d", "label_z", "set_range_z", "put_ticks_z", "look_from"]),
+    ("Describing a chart", ["say_what_it_shows"]),
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
@@ -1239,6 +1247,52 @@ HELP_EXAMPLES = {
                                                      'table.spread_into_yes_no_columns("shop")\n'
                                                      'print(table.get_column_names())'),
 }
+
+# charts phase, batch 2 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "draw_rug_lines": _ex("marks", 'chart.draw_density(x="marks")\nchart.draw_rug_lines(x="marks")', "draw_rug_lines"),
+    "draw_wind_rose": _ex("weather", 'chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")',
+                          "draw_wind_rose"),
+    "draw_arrow": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                      'chart.draw_arrow(start=[2, 40], end=[4, 60], labelled="more hours")', "draw_arrow"),
+    "put_chart_inside": _ex("weather", 'chart.draw_lines(x="month_number", y="temperature", colour="city")\n'
+                            'detail = sdata.chart(weather).draw_bars(x="city", y="rain")\n'
+                            'detail.write_title_on_top("Rain")\n'
+                            'chart.put_chart_inside(detail, where="bottom right", size=0.35)', "put_chart_inside"),
+    "add_second_x": _ex("weather", 'chart.draw_dots(x="temperature", y="rain")\n'
+                        'chart.add_second_x(formula="x * 9 / 5 + 32", labelled="Temperature (°F)")', "add_second_x"),
+    "hide_frame": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_frame()', "hide_frame"),
+    "hide_ticks_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_ticks_x()', "hide_ticks_x"),
+    "hide_ticks_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_ticks_y()', "hide_ticks_y"),
+    "show_small_ticks_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_small_ticks_x()',
+                              "show_small_ticks_x"),
+    "show_small_ticks_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_small_ticks_y()',
+                              "show_small_ticks_y"),
+    "use_true_shape": _ex("island", 'chart.draw_contour(x="east", y="north", z="height")\nchart.use_true_shape()',
+                          "use_true_shape"),
+    "make_square": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.make_square()', "make_square"),
+    "put_colour_bar_at_bottom": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                    'chart.put_colour_bar_at_bottom()', "put_colour_bar_at_bottom"),
+    "put_colour_bar_at_top": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                 'chart.put_colour_bar_at_top()', "put_colour_bar_at_top"),
+    "put_colour_bar_at_left": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                  'chart.put_colour_bar_at_left()', "put_colour_bar_at_left"),
+    "hide_colour_bar": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain", with_numbers=True)\n'
+                           'chart.hide_colour_bar()', "hide_colour_bar"),
+    "put_ticks_colour_bar": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                'chart.put_ticks_colour_bar(0, 10, 20, 30)', "put_ticks_colour_bar"),
+    "draw_lines_3d": _ex("island", 'chart.draw_lines_3d(x="east", y="north", z="height")', "draw_lines_3d"),
+    "label_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\nchart.label_z("Height (m)")',
+                   "label_z"),
+    "set_range_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\nchart.set_range_z(-10, 20)',
+                       "set_range_z"),
+    "put_ticks_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\n'
+                       'chart.put_ticks_z(-10, 0, 10, 20)', "put_ticks_z"),
+    "look_from": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\n'
+                     'chart.look_from(height=20, around=45)', "look_from"),
+    "say_what_it_shows": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.say_what_it_shows()',
+                             "say_what_it_shows"),
+})
 
 
 # ---------------------------------------------------------------- finding words
@@ -2538,6 +2592,7 @@ LESSONS = [
         learn=[
             "a second y-axis, a zoom box and a moving chart",
             "a heatmap that sorts itself",
+            "a wind rose, a map in its true shape, a 3D view, and words that say what a chart shows",
             "how to write your own program from start to end",
         ],
         parts=[
@@ -2575,6 +2630,39 @@ LESSONS = [
                 ('chart.label_colour_bar("Rain (mm)")', "Name the colour bar."),
                 ("chart.set_size(width=12, height=4)", "Make the chart wide and low."),
                 ('chart.save("lesson8_heatmap.png")', "Save it."),
+            ]),
+            ("A wind rose shows how often the wind blows from each direction, and how hard: one bar "
+             "for every 30 degrees of the compass, split into bands of wind speed.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('weather = sdata.get_example("weather")', "Get the weather table."),
+                ("chart = sdata.chart(weather)", "Start a chart."),
+                ('chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")',
+                 "Count the months for each direction (north at the top) and stack them by wind speed, "
+                 "the calmest in the middle."),
+                ('chart.save("lesson8_wind_rose.png")', "Save it."),
+            ]),
+            ("A map should keep its true shape, and a chart can say in words what it shows, for a "
+             "caption or for a reader who cannot see it.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('island = sdata.get_example("island")', "Get the island table."),
+                ("chart = sdata.chart(island)", "Start a chart."),
+                ('chart.draw_contour(x="east", y="north", z="height")', "A map of the heights."),
+                ("chart.use_true_shape()", "One km east is as long as one km north, so the island is not "
+                                          "stretched."),
+                ("chart.put_colour_bar_at_bottom()", "Lay the colour bar under the map."),
+                ("chart.say_what_it_shows()", "Print what the chart shows: what is drawn, the axes and the "
+                                             "colour bar, read from the chart itself."),
+                ('chart.save("lesson8_true_shape.png")', "Save it."),
+            ]),
+            ("A 3D chart can be turned to look at it from any side.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('island = sdata.get_example("island")', "Get the island table."),
+                ("chart = sdata.chart(island)", "Start a chart."),
+                ('chart.draw_surface(x="east", y="north", z="height", with_height_lines=True)',
+                 "The island as a landscape, with lines of equal height on the floor of the box."),
+                ("chart.look_from(height=20, around=45)", "Look from 20 degrees above the ground, after "
+                                                         "walking 45 degrees round it."),
+                ('chart.save("lesson8_3d.png")', "Save it."),
             ]),
             ("An animation is a chart that moves: one picture for each value of a column.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2654,7 +2742,10 @@ LESSONS = [
              "Two charts of one table on one page, saved as a PDF because the name ends in .pdf."),
         ],
         words=["add_second_y", "add_zoom_box", "draw_heatmap", "label_colour_bar", "set_size", "animate",
-               "draw_contour", "write_note", "use_style", "sdata.show_all_words", "sdata.help"],
+               "draw_contour", "write_note", "use_style", "sdata.show_all_words", "sdata.help",
+               # charts phase, batch 2
+               "draw_wind_rose", "use_true_shape", "put_colour_bar_at_bottom", "say_what_it_shows", "draw_surface",
+               "look_from"],
     ),
     dict(
         title="Tables: open one and look at it",

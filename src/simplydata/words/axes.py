@@ -795,7 +795,7 @@ class AxesWords:
 
     # -------------------------------------------------------------- second y-axis
     @friendly(renamed={"chart": "drawn_as", "label": "labelled"})
-    def add_second_y(self: _Same, y, drawn_as="lines", labelled=None, colour=None) -> _Same:
+    def add_second_y(self: _Same, y=None, drawn_as="lines", labelled=None, colour=None, formula=None) -> _Same:
         """A second y-axis on the right, for a column measured in other units.
 
         chart.draw_lines(x="month", y="temperature")
@@ -803,7 +803,15 @@ class AxesWords:
         (with sdata.get_example("weather"))
 
         drawn_as= can be "lines", "bars" or "dots". It shares the x-axis with the chart before it.
+        formula= writes the same values in other units on the right instead, with no new column:
+        chart.add_second_y(formula="y * 9 / 5 + 32", labelled="Temperature (°F)"). The formula turns
+        a number on the y-axis into the number on the right (any one name, such as y); it must only
+        go up (or only down).
         """
+        if formula is not None:  # charts phase, batch 2
+            if y is not None:
+                raise SimplydataError(".add_second_y() takes a column or formula=, not both.")
+            return self._second_scale_step("y", formula, labelled)
         self._check_choice("add_second_y", "drawn_as", drawn_as, SECOND_KINDS)
         if y is None or not (isinstance(y, str) or is_listlike(y)):
             raise SimplydataError(

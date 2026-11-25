@@ -591,11 +591,15 @@ def _draw_side_histograms(ctx):
     right.tick_params(labelleft=False, left=False, bottom=False, labelbottom=False)
 
 
-def _draw_line_at(ctx, axis, value, dashed, colour, label, thickness=None):
+def _draw_line_at(ctx, axis, value, dashed, colour, label, thickness=None, between=None):
     ax = ctx.ax
     style = dict(color=colour, linestyle="--" if dashed else "-",
                  linewidth=1.5 if thickness is None else thickness, zorder=2.5)
     size = rcParams["legend.fontsize"]
+    if between is not None:  # only from one value to another (charts phase, batch 2)
+        from .more_charts import draw_line_between
+
+        return draw_line_between(ctx, axis, value, between[0], between[1], style, label, size)
     back = dict(boxstyle="round,pad=0.15", fc=rcParams["axes.facecolor"], ec="none", alpha=0.85)
     if axis == "x":
         ax.axvline(value, **style)
@@ -851,28 +855,40 @@ class StatsWords:
         return self._add("side_histograms", "extra", _draw_side_histograms)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
+    def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None,
+                       between=None) -> _Same:
         """A straight up-and-down line at one x value. chart.draw_line_at_x(2010, labelled="2010")
 
         thickness=3 draws a thicker line (normal is 1.5).
+        between=[20, 60] draws it only from y = 20 to y = 60 instead of right across the chart.
         """
+        from .more_charts import check_between
+
         _check_position("draw_line_at_x", "value", value, "draw_line_at_x(10)")
         _fixed_colour("draw_line_at_x", colour)
         thickness = check_thickness("draw_line_at_x", thickness)
+        between = check_between("draw_line_at_x", between, "draw_line_at_x(10, between=[20, 60])")
         return self._add("line_at_x", "extra", _draw_line_at, axis="x", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness,
+                         between=between)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_y(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
+    def draw_line_at_y(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None,
+                       between=None) -> _Same:
         """A straight side-to-side line at one y value. chart.draw_line_at_y(50, labelled="pass mark")
 
         thickness=3 draws a thicker line (normal is 1.5).
+        between=[2, 6] draws it only from x = 2 to x = 6 instead of right across the chart.
         """
+        from .more_charts import check_between
+
         _check_position("draw_line_at_y", "value", value, "draw_line_at_y(50)")
         _fixed_colour("draw_line_at_y", colour)
         thickness = check_thickness("draw_line_at_y", thickness)
+        between = check_between("draw_line_at_y", between, "draw_line_at_y(50, between=[2, 6])")
         return self._add("line_at_y", "extra", _draw_line_at, axis="y", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness,
+                         between=between)
 
     @friendly(renamed={"label": "labelled"})
     def draw_line_with_slope(self: _Same, slope, through=None, intercept=None, dashed=True, colour="grey", labelled=None,

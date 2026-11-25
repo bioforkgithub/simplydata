@@ -20,20 +20,21 @@ INSIDE_PLACES = {"top left": "upper left", "top right": "upper right", "bottom l
 LETTER_PLACES = ("top left", "top right")
 
 
-def _legend_inside(ctx, where):
+def _legend_inside(ctx, where, per_row=None):
     import seaborn as sns
 
     loc = INSIDE_PLACES[where]
+    columns = {} if per_row is None else {"ncols": per_row}  # per_row=2 (as on put_legend_at_bottom)
     if len(ctx.axes) > 1:  # several panels: each keeps its own legend, moved inside it
         for ax in ctx.axes:
             if ax.get_legend() is not None:
-                sns.move_legend(ax, loc)
+                sns.move_legend(ax, loc, **columns)
         return
     handles, labels, group_title = _collect_entries(ctx)  # also the entries of a second y-axis
     if ctx.settings.get("legend_title") is not None:  # chart.label_legend("Class")
         group_title = ctx.settings["legend_title"]
     if handles:
-        ctx.ax.legend(handles, labels, loc=loc, title=group_title or None)
+        ctx.ax.legend(handles, labels, loc=loc, title=group_title or None, **columns)
 
 
 def _letter_size():
@@ -69,17 +70,22 @@ class LetterLegendWords:
         return self._replace("write_letter", "text", _write_letter, scope="figure", text=str(text).strip(),
                              where=where)
 
-    @friendly
-    def put_legend_inside(self: _Same, where="best") -> _Same:
+    @friendly(others={"ncol": "per_row", "ncols": "per_row"})
+    def put_legend_inside(self: _Same, where="best", per_row=None) -> _Same:
         """The legend inside the chart, in a corner. chart.put_legend_inside("top left")
         (with chart.draw_lines(x="month", y="temperature", colour="city") on sdata.get_example("weather"))
 
         where= is "top left", "top right", "bottom left", "bottom right", "top", "bottom", "left", "right",
         "middle", or "best" (normal): the place where it covers the fewest lines, dots and bars.
+        per_row=2 puts 2 entries in each row, as on put_legend_at_bottom.
         """
         self._check_choice("put_legend_inside", "where", where, list(INSIDE_PLACES))
-        return self._legend_step_inside(where)
+        return self._legend_step_inside(where, per_row)
 
-    def _legend_step_inside(self, where):
+    def _legend_step_inside(self, where, per_row=None):
+        if per_row is not None and (isinstance(per_row, bool) or not isinstance(per_row, int) or per_row < 1):
+            raise SimplydataError(f"per_row= is how many legend entries go in each row, a whole number such as "
+                                  f"per_row=2, not {per_row!r}.")
         # the same step as put_legend_at_top ...: the last of them wins, and show_legend() takes it away
-        return self._replace("legend", "finish", _legend_inside, scope="figure", where=where)
+        return self._replace("legend", "finish", _legend_inside, scope="figure", where=where,
+                             **({"per_row": per_row} if per_row is not None else {}))

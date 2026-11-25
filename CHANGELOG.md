@@ -59,6 +59,41 @@ working for one release and prints a one-line note with its new name.
 - `get_numbers_drawn()`: what is drawn on a second y-axis belongs to the panel it is on (panel 1 of a single
   chart), its layers after the panel's own, as the docstring always said.
 
+### Added: charts phase, batch 2 (priority-2 matplotlib and seaborn words; approved by Manish 2026-11-25)
+
+- New chart words: `draw_wind_rose(direction=, speed=, every=30)` (NumPy histogram2d counts as bars round a
+  compass), `draw_rug_lines(x=)` (seaborn rugplot), `draw_arrow(start=, end=)`, `put_chart_inside(other_chart,
+  where=, size=)`, `add_second_x(...)` (a column, or `formula=` for the same places in other units), `hide_frame()`,
+  `hide_ticks_x()` / `_y()`, `show_small_ticks_x()` / `_y()`, `use_true_shape()`, `make_square()`,
+  `put_colour_bar_at_bottom()` / `_at_top()` / `_at_left()`, `hide_colour_bar()`, `put_ticks_colour_bar(...)`, the
+  3D words `draw_lines_3d()`, `label_z()`, `set_range_z()`, `put_ticks_z()`, `look_from(height=, around=)`
+  (`view_from` works too), and `say_what_it_shows()`, which prints and gives back what a chart shows: each chart
+  type you drew with its columns and groups ("3 lines, one for each city: ..."), error bars, lines on top, and the
+  axes, legend and colour bar read from the drawn figure; nothing is counted or worked out (`describe` points to
+  it).
+- New options: `y=` on `draw_histogram` and `draw_density` (two-way), `in_halves=True` on `draw_violins`,
+  `show=` and `error=` on `draw_dots` (one dot per group, seaborn pointplot; number x keeps its spacing),
+  `stacked="percent"` on `draw_bars` and `draw_area` (shares of totals, with the axis named "percent of total";
+  values below 0 are refused, and empty places and stacks with a total of 0 get a note), `hole=` on `draw_pie`, `as_wires=` and `with_height_lines=` on `draw_surface`, `between=` on
+  `draw_line_at_y` and `draw_line_at_x`, `title=` and `ticks=` on `use_font_size`, `per_row=` on
+  `put_legend_at_bottom`, `put_legend_at_top` and `put_legend_inside`, and `formula=` on `add_second_y` (the way back by SciPy brentq).
+- One option, one meaning: `value=` and `z=` are the same option on `draw_heatmap`, `draw_contour` and
+  `draw_surface`; `x=` and `y=` mean `labels=` and `values=` on `draw_pie`.
+
+- Both batches together: `chart.undo()` takes back every batch-2 word and names the word you used
+  ("Undone: chart.draw_wind_rose()", not the step inside it); in black and white, wind roses get greys and a pattern
+  for each speed band, 3D lines get dashes, average dots (`show=`) get shapes (`use_shapes` works on them too) and
+  two-way histograms get greys; `say_what_it_shows()` names a panel letter (not as a title), notes with their text,
+  where a legend was put, patterns, hollow dots, dashes, dot shapes and the black-and-white style; pages have
+  `page.say_what_it_shows()` (each chart by its letter and place); `hatched=True` and `drawn_as="outline"` on
+  `draw_histogram` are refused together, as `hatched=` with `y=`.
+
+### Changed: charts phase, batch 2
+
+- `draw_histogram(steps=True)` is now `draw_histogram(drawn_as="outline")`; `steps=True` works for one release with
+  a note.
+- The other name `windrose` now points to `draw_wind_rose` (it pointed to `draw_polar`).
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

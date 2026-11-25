@@ -193,8 +193,10 @@ def test_hatched_on_histograms_areas_and_pies(capsys):
     pie = sdata.chart(sdata.get_example("fruit")).draw_pie(labels="fruit", values="count", hatched=True)
     wedges = [p for p in _drawn(pie).axes[0].patches if p.get_hatch()]
     assert [w.get_hatch() for w in wedges] == HATCHES[:len(wedges)]
-    with pytest.raises(sdata.SimplydataError, match="steps=True"):
-        _marks().draw_histogram(x="marks", hatched=True, steps=True)
+    with pytest.raises(sdata.SimplydataError, match='drawn_as="outline"'):
+        _marks().draw_histogram(x="marks", hatched=True, drawn_as="outline")
+    with pytest.raises(sdata.SimplydataError, match="hatched="):  # a two-way histogram has no bars to fill
+        _marks().draw_histogram(x="marks", y="hours", hatched=True)
 
 
 def test_hollow_dots_keep_seaborns_colours_as_outlines(capsys):

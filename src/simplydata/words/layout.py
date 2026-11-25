@@ -320,6 +320,32 @@ class Page(ReadBackWords, BaseChart):
         """A title above the whole page. page.write_title_on_top("Marks in both classes")"""
         return self._set(title=str(text))
 
+    @friendly
+    def say_what_it_shows(self) -> str:
+        """Say in words what each chart on the page shows. page.say_what_it_shows()
+
+        The page title, how the charts are placed, then each chart (by its letter with with_letters=True) as
+        chart.say_what_it_shows() says it. Read from the steps and from the charts as drawn: nothing is worked out.
+        """
+        from .more_charts import describe_chart
+
+        s = self._settings
+        with chart_notes():
+            lines = [f'Title: "{s["title"]}".'] if s["title"] else []
+            lines.append(f"A page of {len(self._cells)} charts, {self._how}"
+                         + (", with one legend for the whole page." if self._one_legend else "."))
+            if s["style_set"] and s["style"] == "black and white":
+                lines.append('Style "black and white": greys; the groups also differ by pattern, dashes or dot shape.')
+            for number, (chart, r0, r1, c0, c1) in enumerate(self._cells):
+                rows = f"row {r0 + 1}" if r1 - r0 == 1 else f"rows {r0 + 1} to {r1}"
+                columns = f"column {c0 + 1}" if c1 - c0 == 1 else f"columns {c0 + 1} to {c1}"
+                name = f"Chart {_letter(number)}" if self._letters else f"Chart {number + 1}"
+                lines.append(f"{name} ({rows}, {columns}):")
+                lines += ["  " + line for line in describe_chart(chart).splitlines()]
+        text = "\n".join(lines)
+        print(text)
+        return text
+
     def _page_size(self):
         s = self._settings
         if s["size_set"]:
