@@ -106,8 +106,7 @@ JOIN_POINTERS = {"left_on": _PAIRED, "right_on": _PAIRED, "validate": _CHECKS, "
 SPREAD_SHOWS = {"average": "mean", "total": "sum", "median": "median", "smallest": "min", "biggest": "max",
                 "count": "len"}
 # pandas aggfunc= and Polars aggregate_function= values, run as show= with a note once
-SPREAD_OTHER_SHOWS = {"mean": "average", "sum": "total", "min": "smallest", "max": "biggest", "len": "count",
-                      "size": "count", "length": "count"}
+SPREAD_OTHER_SHOWS = {"mean": "average", "sum": "total", "min": "smallest", "max": "biggest"}
 
 
 def _value_note(key: str, text: str) -> None:
@@ -1799,7 +1798,9 @@ class ColumnWords:
     def _check_join(self, right, keys, check_that, said):
         """check_that=: pandas merge(validate=) or Polars join(validate=) on the key columns; their refusal in words."""
         pandas_way, polars_way = CHECK_THAT[check_that]
-        here, there = self._frame.select(keys), right.select(keys)
+        # an empty key never matches in join_with (on both engines), so its repeats cannot repeat rows
+        filled = ~nw.any_horizontal(*[nw.col(k).is_null() for k in keys], ignore_nulls=True)
+        here, there = self._frame.select(keys).filter(filled), right.select(keys).filter(filled)
         try:
             if here.implementation.is_polars():
                 here.to_native().join(there.to_native(), on=keys, how="left", validate=polars_way)
@@ -1818,7 +1819,8 @@ class ColumnWords:
                     more = " ..." if len(repeated) > 5 else ""
                     raise SimplydataError(
                         f'check_that="{check_that}" failed: {len(repeated)} value{"s" if len(repeated) != 1 else ""} '
-                        f"of {said} appear more than once in {side}: {shown}{more}.\n"
+                        f"of {said} {'appears' if len(repeated) == 1 else 'appear'} more than once in {side}: "
+                        f"{shown}{more}.\n"
                         "Joining would repeat rows. Remove the repeats first (remove_duplicate_rows, or "
                         "show_duplicate_rows to look at them), or match on more columns."
                     ) from None
@@ -1907,7 +1909,8 @@ class ColumnWords:
         if how == "right":
             found = len(right.join(self._frame.select(keys).unique(), on=keys, how="semi"))
             print(f"{found} of {len(right)} rows in the other table found a match in this table.")
-        if len(right_keys) < len(right):
+        filled_keys = right.select(keys).drop_nulls()  # an empty key never matches, so its repeats repeat no row
+        if len(filled_keys.unique()) < len(filled_keys):
             print(f"Note: some {said} values appear more than once in the other table, "
                   "so some rows of this table now appear more than once.")
         what = f"join with another table using {said} (keep {keep})"
@@ -2007,7 +2010,7 @@ class ColumnWords:
         table.spread_into_columns(names_from="city", values_from="temperature")   (with sdata.get_example("weather"))
         When several rows would fill the same cell (the fruit table sells apples on Monday in two
         shops), simplydata stops and names them, and nothing is averaged without your word. show=
-        says how to combine them: "average", "total", "median", "smallest", "biggest" or "count"
+        says how to combine them: "average", "total", "median", "smallest", "biggest" or "count" (the filled cells)
         (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)):
           table.spread_into_columns(names_from="fruit", values_from="count", show="total")
         A pair that never appears stays an empty cell, for every show=.
@@ -2056,9 +2059,25 @@ class ColumnWords:
         ordered = self._frame.with_row_index(order).with_columns(nw.col(order).min().over(*index))
         if show is None:
             frame = ordered.pivot(on=names_from, index=[order, *index], values=values_from)
-        else:  # pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)
-            frame = ordered.pivot(on=names_from, index=[order, *index], values=values_from,
-                                  aggregate_function=SPREAD_SHOWS[show])
+        elif ordered.implementation.is_pandas_like():
+            # pandas groupby(dropna=False).agg().unstack(), the steps of pivot_table(aggfunc=): pivot_table itself
+            # drops the rows and columns whose key is empty; "count" is the filled cells (aggfunc="count")
+            pandas_way = {"average": "mean", "total": "sum", "median": "median", "smallest": "min",
+                          "biggest": "max", "count": "count"}[show]
+            wide = (ordered.to_native().groupby([order, *index, names_from], dropna=False, sort=False)[values_from]
+                    .agg(pandas_way).unstack(names_from))
+            wide.columns = [str(c) for c in wide.columns]  # an empty name is "nan", as without show=
+            frame = nw.from_native(wide.reset_index(), eager_only=True)
+        else:  # Polars pivot(aggregate_function=); "count" is the filled cells, pl.element().count()
+            if show == "count":
+                import polars as pl
+
+                frame = nw.from_native(ordered.to_native().pivot(
+                    on=names_from, index=[order, *index], values=values_from,
+                    aggregate_function=pl.element().count()), eager_only=True)
+            else:
+                frame = ordered.pivot(on=names_from, index=[order, *index], values=values_from,
+                                      aggregate_function=SPREAD_SHOWS[show])
             if frame.implementation.is_polars():  # Polars gives 0 for a total or count of no rows; pandas an empty cell
                 rows = ordered.pivot(on=names_from, index=[order, *index], values=values_from, aggregate_function="len")
                 new = [c for c in frame.columns if c not in (order, *index)]
