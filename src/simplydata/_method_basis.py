@@ -4431,9 +4431,13 @@ BASIS["table.turn_into_text written_like="] = _b(
     "so an example whose day is 12 or less is refused rather than guessed.", (), "P4",
     "A date that does not exist (31.02.2026) and a two-digit year are refused.", "convention")
 BASIS["table.count_rows with_totals="] = _b(
-    "A \"total\" row and a \"total\" column, each worked out from the rows themselves (pandas crosstab(margins=True), "
-    "pivot_table(margins=True)); the same on find_total_of and find_average_of.",
+    "A \"(total)\" row and a \"(total)\" column (named like \"(empty)\"), each worked out from the rows "
+    "themselves (pandas crosstab(margins=True), pivot_table(margins=True)); rows with an empty group or across= "
+    "value stay in the table as \"(empty)\" and count in the totals; the same on find_total_of and "
+    "find_average_of.",
     "across= is needed; with_totals= does not go with every= or in_percent=True.",
     "Data preparation: pandas margins give the total (or average) of all the rows in a row or column, not of the "
-    "cells; Polars has no margins, so simplydata works each total out with group_by().agg() on both engines.", (),
-    "P5", "A cross table that already has a value or column called \"total\" is refused.", "convention")
+    "cells, but leave out rows with an empty key; simplydata cross tables keep them, so the totals do too. Polars "
+    "has no margins, so simplydata works each total out with group_by().agg() on both engines.", (),
+    "P5", "A table that already holds the value \"(total)\" is refused, with the replace_values_in line that "
+    "renames it.", "convention")

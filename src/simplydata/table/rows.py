@@ -243,10 +243,10 @@ def _parse_dates(native, formats=DATE_FORMATS):
 # dt.to_string / str.strptime then do the work.
 _MONTH_WORDS = {name.lower(): "%B" for name in ("January", "February", "March", "April", "May", "June", "July",
                                                  "August", "September", "October", "November", "December")}
-_MONTH_WORDS.update({name[:3].lower(): "%b" for name in _MONTH_WORDS})
+_MONTH_WORDS.update({name[:3]: "%b" for name in _MONTH_WORDS if name[:3] != name})  # "may" stays %B
 _DAY_WORDS = {name.lower(): "%A" for name in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
                                                "Sunday")}
-_DAY_WORDS.update({name[:3].lower(): "%a" for name in _DAY_WORDS})
+_DAY_WORDS.update({name[:3]: "%a" for name in _DAY_WORDS})
 WRITTEN_LIKE_EXAMPLE = 'table.turn_into_text("date", written_like="31.12.2026")'
 
 
@@ -310,6 +310,64 @@ def format_from_example(example: str) -> str:
         raise SimplydataError(f'written_like="{example}" is not a date that exists (check the day and the month).'
                               + how) from None
     return layout
+
+
+# ---------------------------------------------------------------- capitals_matter= and matches_pattern= (batch 2)
+def _text_values(frame, column) -> list:
+    """The different filled values of a text column, as Python text."""
+    return [v for v in frame.filter(~nw.col(column).is_null()).select(nw.col(column).cast(nw.String))[column]
+            .unique().to_list() if v is not None]
+
+
+def _found_among(column, values, found) -> "nw.Expr":
+    """column is one of the values for which found is True (narwhals is_in: pandas isin, Polars is_in)."""
+    matches = [v for v, ok in zip(values, found) if ok]
+    return nw.col(column).cast(nw.String).is_in(matches) if matches else nw.lit(False)
+
+
+def casefold_matches(frame, column, test) -> "nw.Expr":
+    """capitals_matter=False: one rule on both engines. pandas and Polars lowercase text differently outside plain
+    English (the Greek final sigma, the German ß), so every value is compared after pandas str.casefold(), the
+    Unicode case folding, for both engines: ΟΔΟΣ and οδος match, Straße and STRASSE match, Øl and øl match;
+    the Turkish İ folds to i with a dot above, so İstanbul does not match istanbul. test() gets the folded
+    values (a pandas Series) and gives True or False for each."""
+    import pandas as pd
+
+    values = _text_values(frame, column)
+    found = test(pd.Series(values, dtype=object).str.casefold()).tolist() if values else []
+    return _found_among(column, values, found)
+
+
+def pattern_matches(frame, column, pattern, any_case, step) -> "nw.Expr":
+    """matches_pattern=: Polars str.contains(pattern) for both engines (the Rust regex rules), so a pattern means
+    the same on both: no look-ahead or look-behind, and "$" is the very end of the text. (?i) in front: capitals
+    do not matter (Unicode simple case folding)."""
+    example = _example(f'table.{step}("name", matches_pattern="^A")')
+    if not isinstance(pattern, str) or not pattern:
+        raise SimplydataError("matches_pattern= needs a regular expression in quotes." + example)
+    try:
+        import polars as pl
+    except ImportError:
+        raise SimplydataError("matches_pattern= on rows uses the fast engine (Polars) for every table, so that a "
+                              "pattern means the same everywhere.\nInstall it with:  pip install simplydata[fast]") from None
+    values = _text_values(frame, column)
+    try:
+        found = pl.Series(values, dtype=pl.String).str.contains(("(?i)" if any_case else "") + pattern).to_list()
+    except Exception as error:  # noqa: BLE001 - the parent's refusal, said in words
+        raise SimplydataError(
+            f'matches_pattern="{pattern}" is not a pattern simplydata can use ({str(error).splitlines()[0][:120]}). '
+            "Patterns follow the Rust regex rules on every table: look-ahead (?=...) and look-behind (?<=...) are "
+            "not allowed. For plain text use contains=, starts_with= or ends_with=." + example) from None
+    return _found_among(column, values, found)
+
+
+def reading_layouts(layout: str) -> tuple:
+    """The layouts turn_into_dates(written_like=) tries: the one from the example, and the same with month and
+    weekday names written the other way (full or short), so "31 May 2026" also reads "15 September 2026" and
+    "15 Sep 2026" (pandas %b reads only short names, so both are tried, on both engines)."""
+    other = layout.translate(str.maketrans({"B": "b", "b": "B", "A": "a", "a": "A"})) if "%" in layout else layout
+    swapped = "".join(other[i] if layout[i - 1:i] == "%" else layout[i] for i in range(len(layout)))
+    return (layout,) if swapped == layout else (layout, swapped)
 
 
 TEST_RULES = ("grubbs", "dixon", "rosner")  # outlier tests, run in R (simplydata[r])
@@ -473,7 +531,6 @@ class RowWords:
                 f"starts_with, ends_with, matches_pattern), and {what}."
                 + _example(f'table.{step}("subject", is_equal_to="maths", capitals_matter=False)')
             )
-        lower = (lambda v: v.lower()) if any_case else (lambda v: v)
         any_words = " (capitals do not matter)" if any_case else ""
 
         if option == "is_empty":
@@ -524,24 +581,23 @@ class RowWords:
                 )
             text = col.cast(nw.String)
             if option == "matches_pattern":
-                try:
-                    re.compile(value)
-                except re.error as error:
-                    raise SimplydataError(
-                        f'matches_pattern= is a regular expression, and "{value}" is not one that works ({error}). '
-                        "For plain text use contains=, starts_with= or ends_with="
-                        + _example(f'table.{step}("name", matches_pattern="^A")')) from None
-                # pandas str.contains(pattern), Polars str.contains(pattern); (?i): capitals do not matter
-                cond = text.str.contains(("(?i)" if any_case else "") + value, literal=False)
+                # Polars str.contains(pattern) for both engines, so a pattern means the same on both
+                cond = pattern_matches(self._frame, column, value, any_case, step)
                 words = f"matches the pattern {_say(value)}"
-            elif any_case:
-                text = text.str.to_lowercase()  # pandas str.lower(), Polars str.to_lowercase()
-            if option == "contains":
-                cond, words = text.str.contains(lower(value), literal=True), f"contains {_say(value)}"
+            elif any_case:  # pandas str.casefold() for both engines (see casefold_matches)
+                folded = value.casefold()
+                test = {"contains": lambda f: f.str.contains(folded, regex=False),
+                        "starts_with": lambda f: f.str.startswith(folded),
+                        "ends_with": lambda f: f.str.endswith(folded)}[option]
+                cond = casefold_matches(self._frame, column, test)
+            elif option == "contains":
+                cond = text.str.contains(value, literal=True)
             elif option == "starts_with":
-                cond, words = text.str.starts_with(lower(value)), f"starts with {_say(value)}"
-            elif option == "ends_with":
-                cond, words = text.str.ends_with(lower(value)), f"ends with {_say(value)}"
+                cond = text.str.starts_with(value)
+            else:
+                cond = text.str.ends_with(value)
+            words = {"contains": f"contains {_say(value)}", "starts_with": f"starts with {_say(value)}",
+                     "ends_with": f"ends with {_say(value)}"}.get(option, words if option == "matches_pattern" else "")
             words += any_words
         elif option in COMPARE:
             value = self._value_for(option, column, value, example)
@@ -569,17 +625,19 @@ class RowWords:
                     + _example(f'table.{step}("subject", is_one_of=["Maths", "Science"])')
                 )
             if any_case:
-                cond = col.cast(nw.String).str.to_lowercase().is_in([v.lower() for v in values])
+                folded = [v.casefold() for v in values]
+                cond = casefold_matches(self._frame, column, lambda f: f.isin(folded))
             else:
                 cond = self._is_in(column, values)
             words = "is one of " + ", ".join(_say(v) for v in values) + any_words
         else:  # equal_to, not_equal_to
             value = self._value_for(option, column, value, f'table.{step}("class", is_equal_to="A")')
-            seen = col.cast(nw.String).str.to_lowercase() if any_case else col
-            if option == "equal_to":
-                cond, words = seen == lower(value), f"is {_say(value)}{any_words}"
+            if any_case:
+                same = casefold_matches(self._frame, column, lambda f: f == value.casefold())
+                cond = same if option == "equal_to" else ~same
             else:
-                cond, words = seen != lower(value), f"is not {_say(value)}{any_words}"
+                cond = col == value if option == "equal_to" else col != value
+            words = f"is {'' if option == 'equal_to' else 'not '}{_say(value)}{any_words}"
         return cond.fill_null(False) & ~empty, words
 
     def _only_in_rows(self, step: str, column: str, condition, run):
@@ -1007,9 +1065,11 @@ class RowWords:
         ends_with (capital letters matter), is_empty=True, and is_after= / is_before= for dates.
         Written conditions use == != < <= > >=, and, or, not, brackets, in [...], is empty;
         text and dates go in quotes. Empty cells only match is_empty / is empty.
-        capitals_matter=False makes "maths", "Maths" and "MATHS" the same in the text words
-        (pandas str.lower(), Polars str.to_lowercase()); matches_pattern= takes a regular expression,
-        a pattern language for text (pandas and Polars str.contains):
+        capitals_matter=False makes "maths", "Maths" and "MATHS" the same in the text words. One rule
+        on both engines: pandas str.casefold(), the Unicode case folding (ΟΔΟΣ matches οδος, Straße
+        matches STRASSE; the Turkish İ folds to i with a dot, so İstanbul does not match istanbul).
+        matches_pattern= takes a regular expression, a pattern language for text, read by Polars
+        str.contains on every table (no look-ahead or look-behind; "$" is the very end of the text):
           table.keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
           table.keep_rows_where("name", matches_pattern=r"^A")   names that start with A
         """
@@ -1564,7 +1624,8 @@ class RowWords:
           table.turn_into_dates("when", order="month day year")
         written_like= gives an example date written the way the column writes them, so any layout
         can be read: written_like="03/15/2026 14:30" (the day must be above 12, so it is not taken for
-        the month). Cells written another way become empty, and the sentence counts them. % codes
+        the month). Month names are read written out or short ("September" and "Sep") whichever the
+        example uses. Cells written another way become empty, and the sentence counts them. % codes
         (written_like="%d.%m.%y") work too. As pandas pd.to_datetime(format="%m/%d/%Y %H:%M") and
         Polars str.strptime(pl.Datetime, "%m/%d/%Y %H:%M"):
           table.turn_into_dates("when", written_like="03/15/2026")
@@ -1597,7 +1658,7 @@ class RowWords:
             nw.when(text.str.contains(r"^\d{4}-\d{1,2}$").fill_null(False)).then(text + nw.lit("-01")).otherwise(text)
         )
         cleaned = self._frame.select(text.alias(column))[column]
-        formats = (layout,) if layout is not None else DATE_FORMATS if order is None else DATE_ORDERS[order]
+        formats = reading_layouts(layout) if layout is not None else DATE_FORMATS if order is None else DATE_ORDERS[order]
         values = nw.from_native(_parse_dates(cleaned.to_native(), formats), series_only=True).alias(column)
         self._report_failed(column, "dates", values)
         read_as = "" if order is None else f" (read as {order})"
@@ -1749,8 +1810,9 @@ class RowWords:
         col = nw.col(column)
         if capitals_matter:
             match = self._is_in(column, olds).fill_null(False)
-        else:  # pandas str.lower().isin(...), Polars str.to_lowercase().is_in(...)
-            match = col.cast(nw.String).str.to_lowercase().is_in([v.lower() for v in olds]).fill_null(False)
+        else:  # pandas str.casefold().isin(...), for both engines
+            folded = [v.casefold() for v in olds]
+            match = casefold_matches(self._frame, column, lambda f: f.isin(folded)).fill_null(False)
         if with_value is None:
             new_col = nw.when(~match).then(col)
         else:

@@ -2733,13 +2733,15 @@ ENTRIES += [
                 df = pd.read_csv("fruit.csv")
                 # count_rows(for_each_group_in="shop", across="fruit", with_totals=True)
                 pd.crosstab(df["shop"], df["fruit"], margins=True,
-                            margins_name="total").reset_index()                     # (1)
+                            margins_name="(total)").reset_index()                   # (1)
             """,
         },
         compare="table",
         choices=("each total is worked out from the rows themselves, as pandas margins=True does (for an average, "
                  "the average of all the rows, not of the cells); Polars has no margins, so simplydata works out "
-                 "each total with group_by().agg() on both engines.",),
+                 "each total with group_by().agg() on both engines. The total row and column are called "
+                 "\"(total)\"; rows with an empty key stay, as \"(empty)\", and count in the totals (pandas "
+                 "leaves them out; this table has none).",),
         also="find_total_of and find_average_of take with_totals= too (pandas pivot_table(margins=True)).",
     ),
     Entry(

@@ -12,6 +12,7 @@ from __future__ import annotations
 import codecs
 import csv
 import glob
+import inspect
 import io
 import keyword
 import os
@@ -498,6 +499,14 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
                     extra["columns"] = options["columns"]
                 if "skip_lines_starting_with" in options:  # Polars read_csv(comment_prefix="#")
                     extra["comment_prefix"] = options["skip_lines_starting_with"]
+                    if "skip_rows" in options:
+                        # Polars skip_rows= counts the rows left after the note lines are taken out; pandas
+                        # skiprows= counts the lines as they are in the file. Polars skip_lines= counts those too.
+                        if "skip_lines" not in inspect.signature(pl.read_csv).parameters:
+                            raise SimplydataError(
+                                "skip_rows= and skip_lines_starting_with= together need a newer fast engine (Polars "
+                                "with skip_lines=). Leave out fast=True, or update Polars.")
+                        extra["skip_lines"] = extra.pop("skip_rows")
                 fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
             return fast_table if keep_fast else fast_table.to_pandas()
 

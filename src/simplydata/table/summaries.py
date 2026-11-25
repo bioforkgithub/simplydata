@@ -592,6 +592,10 @@ def _measure_values(names, raw: dict) -> dict:
     return out
 
 
+# with_totals=True: the name of the total row and column, in the style of "(empty)"
+TOTAL = "(total)"
+
+
 def _check_with_totals(step, with_totals, across, every, in_percent=False):
     """with_totals= (tables phase, batch 2) goes with across= only: it adds a total row and column to a cross table."""
     if not isinstance(with_totals, bool):
@@ -707,10 +711,12 @@ class SummaryWords:
     def _cross(self, frame, groups: list[str], across: str, expr, fill=None, periods=None, with_totals=False):
         """A cross table: one row per group, one column per value of across=, expr in each cell.
 
-        with_totals=True adds a "total" column (expr over each row's group) and a "total" row (expr over each
-        across= value, and over every row in its last cell), as pandas crosstab(margins=True, margins_name="total")
-        and pivot_table(margins=True): each total is worked out from the rows themselves (group_by().agg()), not
-        from the cells, so the total average is the average of all the rows, as pandas gives it."""
+        with_totals=True adds a "(total)" column (expr over each row's group) and a "(total)" row (expr over each
+        across= value, and over every row in its last cell), named in the style of "(empty)". As pandas
+        crosstab(margins=True) and pivot_table(margins=True), each total is worked out from the rows themselves
+        (group_by().agg()), not from the cells, so the total average is the average of all the rows. Unlike pandas,
+        rows with an empty group or across= value stay in the table (as "(empty)") and so count in the totals;
+        pandas leaves them out of the table and its margins."""
         long = frame.group_by([*groups, across], drop_null_keys=False).agg(expr.alias("__value"))
         rows = long.select(*groups, across, "__value").rows()
         row_keys = sorted({_key(r[:-2]) for r in rows}, key=lambda k: tuple(_order(v) for v in k))
@@ -724,23 +730,25 @@ class SummaryWords:
             data[label] = [cells.get((k, c), fill) for k in row_keys]
         if with_totals:
             labels = [c for c in data if c not in groups]
-            if "total" in labels or "total" in groups:
-                raise SimplydataError('with_totals=True adds a column called "total", and the cross table already '
-                                      'has one. Rename that value or column first.')
+            first = data[groups[0]] if groups else []
+            if TOTAL in labels or TOTAL in groups or any(str(v) == TOTAL for v in first if v is not None):
+                raise SimplydataError(f'with_totals=True adds a row and a column called "{TOTAL}", and the table '
+                                      f'already holds the value "{TOTAL}". Rename that value first, for example '
+                                      f'table.replace_values_in("{across}", "{TOTAL}", with_value="total (typed)").')
             by_row = {_key(r[:-1]): _plain(r[-1]) for r in frame.group_by(groups, drop_null_keys=False)
                       .agg(expr.alias("__value")).select(*groups, "__value").rows()}
             by_column = {_key(r[:1])[0]: _plain(r[1]) for r in frame.group_by([across], drop_null_keys=False)
                          .agg(expr.alias("__value")).select(across, "__value").rows()}
             everything = _plain(frame.select(expr.alias("__value")).item())
-            data["total"] = [by_row.get(k, fill) for k in row_keys]
-            for i, g in enumerate(groups):  # the total row: "total" in the first group column, text from here on
+            data[TOTAL] = [by_row.get(k, fill) for k in row_keys]
+            for i, g in enumerate(groups):  # the total row: "(total)" in the first group column, text from here on
                 values = data[g]
                 if not all(v is None or isinstance(v, str) for v in values):
                     values = [None if v is None else str(_say_label(v, (periods or {}).get(g))) for v in values]
-                data[g] = values + (["total"] if i == 0 else [None])
+                data[g] = values + ([TOTAL] if i == 0 else [None])
             for c, label in zip(col_keys, labels):
                 data[label].append(by_column.get(c, fill))
-            data["total"].append(everything)
+            data[TOTAL].append(everything)
         result = nw.from_dict(data, backend=frame.implementation)
         return self._new_table(result), [str(c) for c in data if c not in groups]
 
@@ -1057,8 +1065,9 @@ class SummaryWords:
         column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         Under a survey design (table.use_survey_design) it gives the population average with its
         standard error and interval, from R survey::svymean.
-        with_totals=True adds a "total" row and column to a cross table: the average of all the rows
-        of that group (or subject), as pandas pivot_table(aggfunc="mean", margins=True):
+        with_totals=True adds a "(total)" row and column to a cross table: the average of all the rows
+        of that group (or subject), as pandas pivot_table(aggfunc="mean", margins=True); rows with an
+        empty group are kept, as "(empty)", and count in the totals (pandas leaves them out):
         table.find_average_of("marks", for_each_group_in="class", across="subject", with_totals=True)
         """
         from .places import direction_note
@@ -1112,8 +1121,9 @@ class SummaryWords:
         table.find_total_of("count", for_each_group_in="shop", across="fruit")   a cross table
         every="month" with a date column in for_each_group_in= gives the total of each month.
         Under a survey design (use_survey_design) it gives the estimated population total (R survey).
-        with_totals=True adds a "total" row and a "total" column to the cross table (pandas
-        pivot_table(aggfunc="sum", margins=True)):
+        with_totals=True adds a "(total)" row and a "(total)" column to the cross table (pandas
+        pivot_table(aggfunc="sum", margins=True), except that rows with an empty group are kept, as
+        "(empty)", and count in the totals):
         table.find_total_of("count", for_each_group_in="shop", across="fruit", with_totals=True)
         """
         if self._survey_on():
@@ -1423,8 +1433,9 @@ class SummaryWords:
         every="month" with a date column in for_each_group_in= counts the rows of each month.
         Under a survey design (use_survey_design) it gives the estimated number in the population
         (R survey), and with in_percent=True each group's estimated share.
-        with_totals=True adds a "total" row and a "total" column to a cross table, as pandas
-        crosstab(margins=True, margins_name="total"):
+        with_totals=True adds a "(total)" row and a "(total)" column to a cross table, as pandas
+        crosstab(margins=True, margins_name="(total)"). Rows with an empty group or across= value are
+        kept, as "(empty)", and count in the totals; pandas crosstab leaves them out:
         table.count_rows(for_each_group_in="shop", across="fruit", with_totals=True)
         """
         if self._survey_on():

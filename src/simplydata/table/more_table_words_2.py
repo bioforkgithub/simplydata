@@ -172,7 +172,19 @@ class MoreTableWords2:
             grid = values if grid is None else grid.join(values, how="cross")
         missing = grid.join(frame.select(cols).unique(), on=cols, how="anti")  # the pairs not in the table
         index = "_simplydata_row_"
-        new = nw.concat([frame, missing], how="diagonal") if len(missing) else frame
+        if len(missing) and not frame.implementation.is_polars():
+            # pandas would turn whole numbers into decimals for the new empty cells (and lose digits above 2**53):
+            # its nullable whole numbers (Int64) keep them whole, as Polars does
+            import pandas as pd
+
+            whole = [c for c, d in frame.schema.items() if d.is_integer()]
+            native = frame.to_native().astype({c: "Int64" for c in whole})
+            extra = missing.to_native().astype({c: "Int64" for c in whole if c in missing.columns})
+            extra = extra.assign(**{c: pd.array([pd.NA] * len(extra), dtype="Int64") for c in whole
+                                    if c not in extra.columns})
+            new = nw.from_native(pd.concat([native, extra], ignore_index=True), eager_only=True)
+        else:
+            new = nw.concat([frame, missing], how="diagonal") if len(missing) else frame
         new = (new.with_row_index(index).sort([*cols, index], nulls_last=True).drop(index))
         sizes = " x ".join(str(len(frame.select(c).filter(~nw.col(c).is_null()).unique())) for c in cols)
         print(f"Added {_rows(len(missing))} for the missing combinations of {_words_list(cols)} ({sizes} = "
@@ -194,8 +206,10 @@ class MoreTableWords2:
         seconds, minutes, hours or days. to_the= takes units of one length only: a month or a year has
         no one length, so they are rounded with down_to= or up_to=. Empty cells stay empty. As pandas
         dt.floor("h") (dt.to_period("M").dt.to_timestamp() for months), dt.ceil("h") and dt.round("h"),
-        and Polars dt.truncate("1h") and dt.round("1h"); pandas dt.round sends a time half way to the
-        even hour, so simplydata rounds half way up on both, as Polars does. Undo with table.undo().
+        and Polars dt.truncate("1h") and dt.round("1h"). simplydata runs Polars for every table: pandas
+        dt.round sends a time half way to the even hour and stops at the hour that comes twice when
+        summer time ends, so Polars' rule (half way goes up; summer-time changes kept in order) is
+        used on pandas tables too. Undo with table.undo().
         """
         step = "round_dates_in"
         example = _example(f'table.{step}("date", down_to="month")', "shop")
@@ -218,60 +232,39 @@ class MoreTableWords2:
         if option == "to_the" and unit not in _NEAREST_UNITS:
             raise SimplydataError(f'to_the="{value}" is not offered: a {unit} has no one length, so "the nearest {unit}" '
                                   f'has no one answer. Use down_to="{unit}" (the start of the {unit}) or up_to="{unit}".')
-        code = f"{count}{DATE_UNITS[unit][0]}"
-        col = nw.col(column)
+        code = "1w" if unit == "week" else f"{count}{DATE_UNITS[unit][0]}"
+        step_code = "7d" if unit == "week" else code
+        # one parent for both engines: Polars dt.round / dt.truncate / dt.offset_by. pandas dt.round sends half way to
+        # the even hour and refuses the repeated hour of the autumn change ("Cannot infer dst time"), so a pandas
+        # table is rounded by Polars too, and comes back as pandas
+        try:
+            import polars as pl
+        except ImportError:
+            raise SimplydataError("round_dates_in() uses the fast engine (Polars) for every table, so that summer-time "
+                                  "changes are rounded the same way everywhere.\n"
+                                  "Install it with:  pip install simplydata[fast]") from None
+        native = self._frame[column].to_native()
+        polars = self._frame.implementation.is_polars()
+        values = native if polars else pl.from_pandas(native)
+        d = pl.col(column)
         if option == "to_the":
-            native = self._frame.to_native()
-            if self._frame.implementation.is_polars():
-                import polars as pl
-
-                rounded = native.select(pl.col(column).dt.round(code))[column]  # Polars dt.round("1h")
-            else:
-                import pandas as pd
-
-                freq = f"{count}{DATE_UNITS[unit][1]}"
-                # pandas dt.floor(freq) of the time plus half a step: half way goes up, as Polars dt.round
-                rounded = (native[column] + pd.Timedelta(freq) / 2).dt.floor(freq)
-            new = self._frame.with_columns(nw.new_series(column, rounded, dtype, backend=self._frame.implementation))
-            how = f"to the nearest {value}"
-        else:
-            frame, down = self._start_of(self._frame, column, unit, code)
-            if option == "down_to":
-                expr, how = down, f"down to the {value}"
-            else:
-                step_code = "7d" if unit == "week" else code
-                # up: the start of the unit, unless the value is on it already; then one unit on (pandas dt.ceil)
-                expr, how = nw.when(col == down).then(col).otherwise(down.dt.offset_by(step_code)), f"up to the {value}"
-            new = frame.with_columns(expr.alias(column)).select(self._columns)
+            expr, how = d.dt.round(code), f"to the nearest {value}"  # Polars dt.round("1h"): half way goes up
+        elif option == "down_to":
+            expr, how = d.dt.truncate(code), f"down to the {value}"  # Polars dt.truncate("1mo")
+        else:  # up: the start of the unit, unless the value is on it already; then one unit on (pandas dt.ceil)
+            down = d.dt.truncate(code)
+            expr, how = pl.when(d == down).then(d).otherwise(down.dt.offset_by(step_code)), f"up to the {value}"
+        rounded = pl.DataFrame({column: values}).select(expr.alias(column))[column]
+        if not polars:
+            rounded = rounded.to_pandas().astype(native.dtype)
+            rounded.index = native.index
+        new = self._frame.with_columns(nw.from_native(rounded, series_only=True).alias(column))
         old = "_simplydata_old_"
         both = new.with_columns(self._frame[column].alias(old)).filter((nw.col(column) != nw.col(old)).fill_null(False))
         changed = len(both)
         shown = f" For example {both[old].item(0)} became {both[column].item(0)}." if changed else ""
         print(f'Rounded the dates in "{column}" {how}: {changed} of {_rows(len(new))} changed.{shown}')
         return self._change(f'round dates in "{column}" {how}', new)
-
-    def _start_of(self, frame, column, unit, code):
-        """(frame, the start of the unit each value lies in): narwhals dt.truncate (pandas dt.floor, Polars
-        dt.truncate). narwhals does not truncate to weeks, so the week start comes from pandas
-        dt.to_period("W").dt.start_time or Polars dt.truncate("1w") (both start on Monday), as a helper column."""
-        if unit != "week":
-            return frame, nw.col(column).dt.truncate(code)
-        native = frame.to_native()
-        if frame.implementation.is_polars():
-            import polars as pl
-
-            start = native.select(pl.col(column).dt.truncate("1w"))[column]
-        else:
-            values = native[column]
-            zone = values.dt.tz
-            plain = values.dt.tz_localize(None) if zone is not None else values
-            start = plain.dt.to_period("W").dt.start_time
-            if zone is not None:
-                start = start.dt.tz_localize(zone, ambiguous="NaT", nonexistent="shift_forward")
-            start = start.astype(values.dtype)
-        helper = "_simplydata_start_"
-        series = nw.new_series(helper, start, frame.schema[column], backend=frame.implementation)
-        return frame.with_columns(series), nw.col(helper)
 
     @friendly(others={"tz": "to", "time_zone": "to", "from_zone": "recorded_in", "tzone": "to"})
     def change_time_zone_in(self: _Same, column=None, to=None, recorded_in=None) -> _Same:
@@ -463,29 +456,40 @@ class MoreTableWords2:
         if not shared:
             raise SimplydataError(f"The two tables share no column apart from {said}, so there is nothing to fill. "
                                   "To bring the other table's columns in, use join_with.")
+        # an empty key matches nothing (pandas merge would match two empty keys; Polars does not), so the rows of
+        # the other table with an empty key are left out before anything else, and their repeats do not matter
+        right = right.filter(~nw.any_horizontal(*[nw.col(k).is_null() for k in keys], ignore_nulls=True))
         repeats = right.filter(right.select(keys).is_duplicated()).select(keys).unique()
         if len(repeats):
             shown = ", ".join(" / ".join(str(v) for v in r) for r in repeats.rows()[:5])
             raise SimplydataError(f"The other table has {said} {shown}{' ...' if len(repeats) > 5 else ''} more than "
                                   "once, so it is not clear which row fills the empty cells. Remove the repeats there "
                                   "first (remove_duplicate_rows).")
+        tag = "_simplydata_other_"
+        index = "_simplydata_row_"
+        # a cell of only spaces in the other table is empty too: it never fills anything
+        right = right.with_columns(nw.when(~self._empty_expr(c, right)).then(nw.col(c)).alias(c) for c in shared)
+        usable = []
         for c in shared:
+            if right[c].null_count() == len(right):  # nothing to fill from (a Polars column of only empty cells
+                continue                              # has no kind, so it is left out rather than refused)
             here, there = _kind(self._frame.schema[c]), _kind(right.schema[c])
-            if here != there:
+            if here != there and self._frame[c].null_count() < len(self._frame):
                 raise SimplydataError(f'"{c}" holds {here} values in this table but {there} values in the other, so '
                                       "one cannot fill the other. Make them the same kind first (turn_into_numbers, "
                                       "turn_into_text, turn_into_dates).")
-        tag = "_simplydata_other_"
-        index = "_simplydata_row_"
-        # an empty key matches nothing (pandas merge would match two empty keys; Polars does not)
-        others = (right.filter(~nw.any_horizontal(*[nw.col(k).is_null() for k in keys], ignore_nulls=True))
-                  .select(*keys, *[nw.col(c).alias(c + tag) for c in shared]))
+            usable.append(c)
+        others = right.select(*keys, *[nw.col(c).alias(c + tag) for c in usable])
         joined = (self._frame.with_row_index(index).join(others, on=keys, how="left").sort(index).drop(index))
-        counts = {}
-        for c in shared:
-            empty = self._empty_expr(c, joined)
-            counts[c] = _count_in(joined, empty & ~nw.col(c + tag).is_null())
-            joined = joined.with_columns(nw.when(empty).then(nw.col(c + tag)).otherwise(nw.col(c)).alias(c))
+        counts = {c: 0 for c in shared}
+        for c in usable:
+            if joined.schema[c] != joined.schema[c + tag] and joined[c].null_count() == len(joined):
+                joined = joined.with_columns(nw.col(c).cast(joined.schema[c + tag]))  # a column of only empty cells
+            empty, source = self._empty_expr(c, joined), ~nw.col(c + tag).is_null()
+            counts[c] = _count_in(joined, empty & source)
+            # only an empty cell with a value to take changes; a cell of only spaces with nothing to take stays as it is
+            joined = joined.with_columns(nw.when(empty & source).then(nw.col(c + tag)).otherwise(nw.col(c)).alias(c))
+        shared = usable
         new = joined.drop([c + tag for c in shared])
         total = sum(counts.values())
         filled = "; ".join(f"{c} {n}" for c, n in counts.items() if n)

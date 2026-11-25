@@ -1211,37 +1211,29 @@ class ColumnWords:
         filled = int(len(values) - self._frame[from_column].null_count())
         if filled < n:
             raise SimplydataError(f'"{from_column}" has {filled} filled cells, too few for {n} groups.')
-        labels = list(names) if names is not None else [str(i) for i in range(1, n + 1)]
-        problem = None
+        labels = list(names) if names is not None else list(range(1, n + 1))
+        # one parent for both engines: pandas qcut (Polars qcut makes empty groups where pandas refuses, and its
+        # replacement bin_quantiles cuts at data values), so a Polars table gets the very same groups and cut points
+        import pandas as pd
+
+        series = self._frame[from_column].to_pandas().astype("float64")
         try:
-            if self._frame.implementation.is_polars():
-                import polars as pl
-
-                with warnings.catch_warnings():  # Polars 2 marks qcut as deprecated; its new bin_quantiles cuts at
-                    warnings.simplefilter("ignore", DeprecationWarning)  # data values, not at pandas' percentiles
-                    found = values.qcut(n, labels=labels, include_breaks=True)  # Polars qcut(4)
-                groups = found.struct.field("category").cast(pl.String)
-                cuts = sorted(set(v for v in found.struct.field("breakpoint").drop_nulls().to_list()
-                                  if v != float("inf")))
-                if names is None:
-                    groups = groups.cast(pl.Int64)
-                groups = groups.rename(name)
-            else:
-                import pandas as pd
-
-                groups, edges = pd.qcut(values, n, labels=labels, retbins=True)  # pandas pd.qcut(marks, 4)
-                cuts = list(edges[1:-1])
-                groups = groups.astype(object).where(groups.notna(), None)
-                if names is None:
-                    groups = groups.astype("Int64").astype("float64")
-                    groups = groups.astype("int64") if not groups.isna().any() else groups
-                groups = groups.rename(name)
-        except Exception as error:  # noqa: BLE001 - the parent's refusal, said in words below
-            problem = str(error).splitlines()[0]
-        if problem is not None:
+            found, edges = pd.qcut(series, n, labels=labels, retbins=True)  # pandas pd.qcut(marks, 4)
+        except ValueError as error:  # duplicate edges: the parent's refusal, said in words below
             raise SimplydataError(
                 f'"{from_column}" has too many equal values to cut it into {n} groups of about equal size (two cut '
-                f"points would be the same value). Make fewer groups, or give cut_at= yourself.\n({problem})")
+                f"points would be the same value). Make fewer groups, such as into_equal_groups={max(2, n - 1)}, or "
+                f"give cut_at= yourself.\n({str(error).splitlines()[0]})") from None
+        cuts = list(edges[1:-1])
+        values = [None if pd.isna(v) else (int(v) if names is None else str(v)) for v in found.astype(object)]
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            groups = pl.Series(name, values, dtype=pl.Int64 if names is None else pl.String)
+        else:  # whole group numbers stay whole next to an empty cell (pandas Int64)
+            groups = pd.Series(values, name=name, dtype="Int64" if names is None else object)
+            if names is None and not groups.isna().any():
+                groups = groups.astype("int64")
         frame = self._frame.with_columns(nw.from_native(groups, series_only=True).alias(name))
         shown = ", ".join(f"{float(c):g}" for c in cuts)
         print(f'"{name}" puts each row into one of {n} groups with about the same number of rows, by "{from_column}", '
@@ -1635,9 +1627,11 @@ class ColumnWords:
                 value = with_value.replace("$", "$$")
             else:
                 value = with_value.replace("\\", "\\\\")
-            pattern = matches_pattern if capitals_matter else "(?i)" + matches_pattern  # (?i): any capitals
-            found = text.str.contains(pattern, literal=False)
-            new = text.str.replace_all(pattern, value, literal=False)
+            if capitals_matter:
+                found = text.str.contains(matches_pattern, literal=False)
+                new = text.str.replace_all(matches_pattern, value, literal=False)
+            else:  # capitals do not matter: Polars str.replace_all("(?i)...") for both engines, so it is one rule
+                found, new = self._replace_any_capitals(column, matches_pattern, with_value)
             what = (_plain(plain_old) if plain_old is not None else f"the pattern {_plain(matches_pattern)}") + (
                 "" if capitals_matter else " (capitals do not matter)")
         try:
@@ -1649,6 +1643,30 @@ class ColumnWords:
             raise self._pattern_engine_error(matches_pattern, error) from None
         print(f"Replaced {what} in {_cells_word(n)} of {column}.")
         return self._change(f"replace {what} in {column} with {_plain(with_value)}", frame)
+
+    def _replace_any_capitals(self, column, pattern, with_value):
+        """replace_text_in(capitals_matter=False): each different value of the column is changed by Polars
+        str.replace_all("(?i)" + pattern) (the Rust rules: Unicode simple case folding), on pandas tables too, and
+        the column takes the new values (narwhals replace_strict). Gives (found, new) as expressions."""
+        from .rows import _found_among, _text_values
+
+        try:
+            import polars as pl
+        except ImportError:
+            raise SimplydataError("capitals_matter=False in replace_text_in uses the fast engine (Polars) for every "
+                                  "table, so that it is one rule everywhere.\nInstall it with:  pip install "
+                                  "simplydata[fast]") from None
+        values = _text_values(self._frame, column)
+        try:
+            changed = pl.Series(values, dtype=pl.String).str.replace_all("(?i)" + pattern,
+                                                                         with_value.replace("$", "$$")).to_list()
+        except Exception as error:  # noqa: BLE001 - the parent's refusal, said in words
+            raise self._pattern_engine_error(pattern, error) from None
+        mapping = dict(zip(values, changed))
+        found = _found_among(column, values, [old != new for old, new in mapping.items()])
+        text = nw.col(column).cast(nw.String)
+        new = text.replace_strict(mapping, default=text, return_dtype=nw.String) if mapping else text
+        return found, new
 
     @staticmethod
     def _check_pattern(pattern):

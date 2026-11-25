@@ -22,10 +22,11 @@ working for one release and prints a one-line note with its new name.
   down_to="month")` (`up_to=`, `to_the=`), `table.change_time_zone_in("time", to="UTC", recorded_in="Europe/Oslo")`,
   `table.spread_into_yes_no_columns("fruit")` (empty cells get a column "fruit: (empty)" on both engines),
   `table.fill_empty_cells_from(other, using="id")`.
-- `with_totals=True` on `count_rows`, `find_total_of` and `find_average_of` cross tables; `fill_empty_cells_in(...,
+- `with_totals=True` on `count_rows`, `find_total_of` and `find_average_of` cross tables (a "(total)" row and column; rows with an empty key count in them, unlike pandas margins); `fill_empty_cells_in(...,
   from_column=)`; new `part=` values on `add_column_with_part_of_date` ("date", "time", "second", "is weekend", "days
   in month", "is month end", "is leap year", "year and month"); `add_rank_column(..., for_each_group_in=,
   when_tied=)`; `add_group_column(..., into_equal_groups=4)`.
+- One rule on both engines where pandas and Polars differ: `capitals_matter=False` compares after pandas `str.casefold()`; `matches_pattern=` on rows, `round_dates_in` and `replace_text_in(capitals_matter=False)` run through Polars; `into_equal_groups=` through pandas `qcut`.
 - Other names: `shape` points to count_rows and count_columns, `crosstab` to count_rows(across=) first, `complete`
   to add_missing_combinations_of and add_missing_dates; get_dummies, tz_convert, combine_first, qcut, strftime ...
   point to the new words.

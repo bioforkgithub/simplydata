@@ -139,7 +139,7 @@ def test_matches_pattern_on_rows_matches_pandas_and_polars(engine, capsys):
     t = build(marks, engine)
     t.remove_rows_where("name", matches_pattern=r"^a", capitals_matter=False)
     same(plain(t), marks[~marks["name"].str.contains(r"^a", case=False)])
-    with pytest.raises(SimplydataError, match="not one that works"):
+    with pytest.raises(SimplydataError, match="not a pattern simplydata can use"):
         build(marks, engine).keep_rows_where("name", matches_pattern="(")
 
 
@@ -299,7 +299,7 @@ def test_missing_combinations_keep_empty_keys_and_repeats(engine, capsys):
 def test_count_rows_with_totals_matches_crosstab_margins(engine, capsys):
     fruit = raw("fruit")
     result = plain(build(fruit, engine).count_rows(for_each_group_in="shop", across="fruit", with_totals=True))
-    expected = pd.crosstab(fruit["shop"], fruit["fruit"], margins=True, margins_name="total").reset_index()
+    expected = pd.crosstab(fruit["shop"], fruit["fruit"], margins=True, margins_name="(total)").reset_index()
     expected.columns.name = None
     same(result, expected)
 
@@ -310,7 +310,7 @@ def test_summaries_with_totals_match_pivot_table_margins(engine, word, aggfunc, 
     result = plain(getattr(build(marks, engine), word)("marks", for_each_group_in="class", across="subject",
                                                         with_totals=True))
     expected = pd.pivot_table(marks, index="class", columns="subject", values="marks", aggfunc=aggfunc,
-                              margins=True, margins_name="total").reset_index()
+                              margins=True, margins_name="(total)").reset_index()
     expected.columns.name = None
     pd.testing.assert_frame_equal(result.astype({c: float for c in result.columns[1:]}),
                                   expected.astype({c: float for c in expected.columns[1:]}), check_dtype=False)
