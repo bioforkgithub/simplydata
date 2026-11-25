@@ -662,6 +662,9 @@ _UNICODE = {
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
     "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
     "š": r"\v{s}", "å": r"\aa{}", "Å": r"\AA{}", "ø": r"\o{}", "æ": r"\ae{}",
+    # the Greek and Turkish letters of the capitals_matter= notes (ΟΔΟΣ and οδος, İ)
+    "Ο": "O", "Δ": r"$\Delta$", "Σ": r"$\Sigma$", "ο": "o", "δ": r"$\delta$", "ς": r"$\varsigma$",
+    "σ": r"$\sigma$", "İ": r"\.I",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",
