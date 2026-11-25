@@ -25,7 +25,7 @@ import re
 import narwhals as nw
 
 from .._errors import SimplydataError, column_error
-from .columns import CONSTANTS, FORMULA_HELP, _FormulaReader
+from .columns import CONSTANTS, FORMULA_HELP, TEXT_FUNCTIONS, _FormulaReader
 
 
 class _NotGiven:
@@ -314,9 +314,15 @@ class _ConditionReader(_FormulaReader):
                 name = self.placeholders.get(part.id, part.id)
                 if name in self.columns and name not in names:
                     names.append(name)
+        # length(name) and count_text(name, ";") take a text column (tables phase, batch 3)
+        text_args = {self.placeholders.get(part.args[0].id, part.args[0].id) for part in ast.walk(node)
+                     if isinstance(part, ast.Call) and isinstance(part.func, ast.Name)
+                     and part.func.id in TEXT_FUNCTIONS and part.args and isinstance(part.args[0], ast.Name)}
         for name in names:
             kind = _kind(self.frame.schema[name])
-            if kind != "number":
+            if name in text_args and kind != "text":
+                raise _condition_error(f'length() and count_text() work on text, but "{name}" is a {kind} column.')
+            if kind != "number" and name not in text_args:
                 raise _condition_error(f'"{name}" is a {kind} column, so it cannot be used in a sum.')
         self.in_sum = True
         try:

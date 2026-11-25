@@ -201,4 +201,4 @@ CITATIONS = {
 # Packages that are used but ask for no paper: their import name -> (shown name, distribution name)
 NAMES = {"narwhals": ("narwhals", "narwhals"), "rpy2": ("rpy2", "rpy2"), "pyarrow": ("pyarrow", "pyarrow"),
          "openpyxl": ("openpyxl", "openpyxl"), "patsy": ("patsy", "patsy"), "pyreadstat": ("pyreadstat", "pyreadstat"),
-         "docx": ("python-docx", "python-docx")}
+         "docx": ("python-docx", "python-docx"), "duckdb": ("DuckDB", "duckdb")}

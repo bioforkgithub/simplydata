@@ -11,9 +11,9 @@ Approximate: the names counted on 2026-11-21, the code per task on 2026-11-23.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 774 names: 402 commands and 372 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 807 names: 424 commands and 383 options, about 92 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 3320 lines and 2957 function calls in the 501 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1326 lines and 1350 calls (median 2 lines a task), about 60 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 3471 lines and 3096 function calls in the 533 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1422 lines and 1442 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](how_simplydata_chooses.md) (you can also choose the method you want) |
 
 ## Packages underneath
@@ -33,6 +33,7 @@ Python packages:
 | seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
+| DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
 | rpy2 | the bridge to R: runs the R package itself and brings the answer back | [r] |
 
@@ -95,7 +96,7 @@ R users, not packages simplydata needs.
 
 | Task | What you can do | Example words |
 |---|---|---|
-| Reading and saving tables | read Excel (one sheet or all), CSV, TSV, Parquet, JSON, Word, SPSS and Stata files, several files at once or a file on the web, with IDs such as 007 kept as typed; save as Excel, CSV, TSV, Parquet or JSON | `sdata.table("data/*.csv")`, `sdata.table("lab.csv", read_as_text=["sample_id"])`, `sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")` |
+| Reading and saving tables | read Excel (one sheet or all), CSV, TSV, Parquet, JSON, Word, SPSS and Stata files, compressed CSV, Feather, JSON lines, XML, SAS and database files (SQLite, DuckDB), several files at once or a file on the web, with IDs such as 007 kept as typed; save as Excel, CSV, TSV, Parquet, JSON, Feather, Stata, HTML or a table of a database; SQL on a table or on files | `sdata.table("data/*.csv")`, `sdata.table("lab.csv", read_as_text=["sample_id"])`, `sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")` |
 | Looking and choosing | see the first rows and each column; keep or remove columns and rows by condition, position, random draw or biggest values (within each group too); keep or remove whole groups by a summary | `show_first_rows`, `describe_columns`, `keep_rows_where`, `keep_columns`, `keep_random_rows`, `keep_biggest_rows`, `keep_first_rows(2, for_each_group_in=...)`, `keep_groups_where` |
 | Cleaning | turn text into numbers, dates or categories in an order, clean column names, fix spaces and case, replace values (in chosen rows too), round, show and remove duplicates, show or remove outliers, one value per cell | `turn_into_numbers`, `turn_into_dates`, `turn_into_categories`, `clean_column_names`, `remove_extra_spaces_in`, `replace_values_in`, `show_duplicate_rows`, `remove_duplicate_rows`, `show_rows_with_outliers`, `split_into_rows` |
 | Empty cells (missing data) | count them, find which are empty together (patterns), map them, remove rows, remove rows or columns that are all empty, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model, a Cox model or a correlation | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |

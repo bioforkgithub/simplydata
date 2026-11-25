@@ -46,6 +46,9 @@ fast = ["polars>=1.37,<3", "pyarrow>=19,<27"]
 files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
+# DuckDB for SQL (table.run_sql, sdata.run_sql) and .duckdb files; simplydata opens it with no extensions and no web
+# access (src/simplydata/_sql.py). Lower bound: the release CI tests; upper bound: the next untested major release.
+sql = ["duckdb>=2.0,<3"]
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg

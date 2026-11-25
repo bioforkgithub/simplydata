@@ -44,11 +44,30 @@ _READERS = {
     ".sav": "spss",    # optional extra: pyreadstat
     ".zsav": "spss",
     ".dta": "stata",
+    # tables phase, batch 3 (P38): more file types by name, each read by pandas itself
+    ".csv.gz": "csv",   # pandas read_csv(compression="gzip")
+    ".tsv.gz": "tsv",
+    ".txt.gz": "csv",
+    ".zip": "csv",      # one CSV file inside: pandas read_csv(compression="zip")
+    ".feather": "feather",  # pandas read_feather (pyarrow, in simplydata[fast])
+    ".arrow": "feather",
+    ".jsonl": "jsonl",  # pandas read_json(lines=True)
+    ".ndjson": "jsonl",
+    ".xml": "xml",      # pandas read_xml(parser="etree"), Python's own XML reader
+    ".sas7bdat": "sas",  # pandas read_sas
+    ".sqlite": "sqlite",  # Python's sqlite3 and pandas read_sql_query
+    ".sqlite3": "sqlite",
+    ".db": "sqlite",
+    ".duckdb": "duckdb",  # DuckDB (simplydata[sql]), opened read-only, with no extensions and no files
 }
+# file endings of two parts: the compressed text files
+_TWO_PART_ENDINGS = (".csv.gz", ".tsv.gz", ".txt.gz")
 
 _KIND_NAMES = {
     "csv": "CSV and text", "tsv": "TSV", "excel": "Excel", "parquet": "Parquet", "json": "JSON",
     "word": "Word", "spss": "SPSS", "stata": "Stata",
+    "feather": "Feather (Arrow)", "jsonl": "JSON lines", "xml": "XML", "sas": "SAS", "sqlite": "SQLite",
+    "duckdb": "DuckDB",
 }
 
 # Which reading options make sense for which kind of file.
@@ -65,6 +84,7 @@ _OPTIONS_FOR = {
     "columns": ("csv", "tsv", "excel", "parquet"),
     "column_names": ("csv", "tsv", "excel"),
     "skip_lines_starting_with": ("csv", "tsv"),
+    "table_name": ("sqlite", "duckdb"),  # tables phase, batch 3 (P38)
 }
 
 READING_OPTIONS = tuple(_OPTIONS_FOR)
@@ -150,7 +170,7 @@ def _names_option(option, value, example) -> list:
 
 def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empty_values=None,
                     skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
-                    column_names=None, skip_lines_starting_with=None) -> dict:
+                    column_names=None, skip_lines_starting_with=None, table_name=None) -> dict:
     """Check the reading options at once and give back only the ones that were given.
 
     sdata.table(...) and sdata.chart(...) pass their options through here, so every
@@ -241,6 +261,13 @@ def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empt
         if missing:
             raise SimplydataError(f'columns= names "{missing[0]}", which is not in column_names=. With column_names= '
                                   "the names in columns= are the new names.")
+    if table_name is not None:  # tables phase, batch 3 (P38): one table of a database file
+        if not isinstance(table_name, str) or not table_name.strip():
+            raise SimplydataError(
+                "table_name= is the name of one table in a database file, in quotes.\n"
+                'For example:  sdata.table("lab.sqlite", table_name="samples")'
+            )
+        options["table_name"] = table_name
     return options
 
 
@@ -265,6 +292,21 @@ def _check_reading_source(source, options) -> None:
         )
 
 
+def _file_suffix(name) -> str:
+    """The file type by the end of the name: ".csv", or ".csv.gz" for the compressed text files."""
+    lowered = str(name).lower()
+    for ending in _TWO_PART_ENDINGS:
+        if lowered.endswith(ending):
+            return ending
+    return Path(lowered).suffix
+
+
+def _compression(label) -> str | None:
+    """pandas read_csv(compression=) for a compressed text file, by its name."""
+    lowered = str(label).lower()
+    return "gzip" if lowered.endswith(".gz") else "zip" if lowered.endswith(".zip") else None
+
+
 def _kind_of(suffix: str, label: str) -> str:
     kind = _READERS.get(suffix.lower())
     if kind is None:
@@ -281,13 +323,15 @@ _SEPARATOR_OPTION = {",": '","', ";": '";"', "\t": '"tab"', "|": '"|"'}
 _guesses: list | None = None  # while a folder is read, the guesses are collected and said once
 
 
-def _guess_separator(source, encoding="utf-8", skip_rows=0) -> str:
+def _guess_separator(source, encoding="utf-8", skip_rows=0, compression=None) -> str:
     """The character between values in a text file: Python's csv.Sniffer, allowed to choose only a comma,
     semicolon, tab or bar. Anything else it might find (a letter such as the "e" of "species", a digit, a
     space or another sign) is refused. A file with one column has none of the four, so the sniffer fails and
     "," is used: the file is read as one column."""
     try:
-        if isinstance(source, io.BytesIO):
+        if compression is not None:  # a .csv.gz or .zip file: the guess reads the start of the text inside
+            sample = _start_of_compressed(source, compression)
+        elif isinstance(source, io.BytesIO):
             sample = source.getvalue()[:65536]
         else:
             with open(source, "rb") as fh:
@@ -311,6 +355,24 @@ def _guess_separator(source, encoding="utf-8", skip_rows=0) -> str:
     return found if found in SEPARATORS else ","
 
 
+def _start_of_compressed(source, compression) -> bytes:
+    """The first 64 KB of the text in a .gz file (Python's gzip) or in the one file of a .zip (zipfile)."""
+    import gzip
+    import zipfile
+
+    if isinstance(source, io.BytesIO):
+        source = io.BytesIO(source.getvalue())
+    if compression == "gzip":
+        with gzip.open(source, "rb") as fh:
+            return fh.read(65536)
+    with zipfile.ZipFile(source) as archive:
+        names = [n for n in archive.namelist() if not n.endswith("/")]
+        if len(names) != 1:
+            return b""
+        with archive.open(names[0]) as fh:
+            return fh.read(65536)
+
+
 def _say_guess(label, sep) -> None:
     """One plain line when simplydata guessed the separator (none when separator= was given)."""
     if _guesses is not None:
@@ -326,7 +388,8 @@ def _separator_for(source, kind, label, options) -> str:
         return options["separator"]
     if kind == "tsv":
         return "\t"
-    sep = _guess_separator(_rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0))
+    sep = _guess_separator(_rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0),
+                           _compression(label))
     _say_guess(label, sep)
     return sep
 
@@ -356,7 +419,7 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
                           options=options, asked_for=text)
     if not path.exists():
         raise _missing_file_error(path)
-    kind = _kind_of(path.suffix, path.name)
+    kind = _kind_of(_file_suffix(path.name), path.name)
     return _read_one(path, kind, path.stat().st_size, path.name, sheet=sheet, fast=fast,
                      keep_fast=keep_fast, options=options)
 
@@ -465,7 +528,7 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
 
     asked = fast
     fast = asked or size > BIG_FILE_BYTES
-    polars_can = ("thousands_mark" not in options
+    polars_can = ("thousands_mark" not in options and _compression(label) is None
                   and str(options.get("encoding", "utf-8")).lower().replace("_", "-") in ("utf-8", "utf8"))
     if fast and kind in ("csv", "tsv", "parquet") and polars_can:
         try:
@@ -522,7 +585,94 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
         return _read_word(source, label, options)
     if kind == "spss":
         return _read_spss(source)
+    if kind in _MORE_KINDS:  # tables phase, batch 3 (P38)
+        return _read_more(source, kind, label, options)
     return pd.read_stata(_rewind(source))
+
+
+# ---------------------------------------------------------------- more file types (tables phase, batch 3, P38)
+_MORE_KINDS = ("feather", "jsonl", "xml", "sas", "sqlite", "duckdb")
+
+
+def _read_more(source, kind, label, options):
+    """Feather, JSON lines, XML, SAS and database files, each read by pandas (or DuckDB) itself."""
+    if kind == "feather":
+        try:
+            import pyarrow  # noqa: F401
+        except ImportError:
+            raise SimplydataError("Reading Feather (Arrow) files needs pyarrow.\n"
+                                  "Install it with:  pip install simplydata[fast]") from None
+        return pd.read_feather(_rewind(source))  # pandas read_feather
+    if kind == "jsonl":
+        return pd.read_json(_rewind(source), lines=True)  # pandas read_json(lines=True): one row per line
+    if kind == "xml":
+        return pd.read_xml(_rewind(source), parser="etree")  # pandas read_xml, with Python's own XML reader
+    if kind == "sas":
+        return pd.read_sas(_rewind(source), format="sas7bdat", encoding="infer")  # pandas read_sas
+    if isinstance(source, io.BytesIO):
+        raise SimplydataError(f'"{label}" is a database file. simplydata reads databases from this computer only: '
+                              "download it, then read it by its file name.")
+    if kind == "sqlite":
+        return _read_sqlite(Path(source), label, options.get("table_name"))
+    return _read_duckdb(Path(source), label, options.get("table_name"))
+
+
+def _which_table(names, wanted, label) -> str:
+    """The database table to read: the one named by table_name=, or the only one there is."""
+    example = f'sdata.table("{label}", table_name="{names[0] if names else "samples"}")'
+    if not names:
+        raise SimplydataError(f'"{label}" has no tables in it.')
+    if wanted is None:
+        if len(names) == 1:
+            print(f'"{label}" holds one table, "{names[0]}"; reading it.')
+            return names[0]
+        raise SimplydataError(f'"{label}" holds {len(names)} tables: ' + ", ".join(f'"{n}"' for n in names)
+                              + f".\nSay which one with table_name=, for example:  {example}")
+    if wanted not in names:
+        lines = [f'"{label}" has no table called "{wanted}".']
+        guess = suggest(wanted, names, n=1)
+        if guess:
+            lines.append(f'Did you mean table_name="{guess[0]}"?')
+        lines.append("Its tables: " + ", ".join(f'"{n}"' for n in names))
+        raise SimplydataError("\n".join(lines))
+    return wanted
+
+
+def _read_sqlite(path, label, wanted):
+    """One table of an SQLite file: Python's sqlite3 (read-only) and pandas read_sql_query."""
+    import sqlite3
+
+    from ._sql import quoted
+
+    try:
+        con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
+    except sqlite3.Error as problem:
+        raise SimplydataError(f'simplydata could not open "{label}" as an SQLite database ({problem}).') from None
+    try:
+        names = [row[0] for row in con.execute(
+            "SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' "
+            "ORDER BY name")]
+        name = _which_table(names, wanted, label)
+        return pd.read_sql_query(f"SELECT * FROM {quoted(name)}", con)  # pandas read_sql_query
+    except sqlite3.DatabaseError as problem:
+        raise SimplydataError(f'"{label}" is not an SQLite database that simplydata can read ({problem}).') from None
+    finally:
+        con.close()
+
+
+def _read_duckdb(path, label, wanted):
+    """One table of a DuckDB file, opened read-only with no extensions and no other files (simplydata._sql)."""
+    from . import _sql
+
+    con = _sql.connect(f'Reading "{label}"', database=str(path), read_only=True)
+    try:
+        names = [row[0] for row in con.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main' ORDER BY table_name"
+        ).fetchall()]
+        name = _which_table(names, wanted, label)
+        return con.sql(f"SELECT * FROM {_sql.quoted(name)}").df()  # DuckDB con.sql(...).df()
+    finally:
+        con.close()
 
 
 def _pandas_text_options(options: dict) -> dict:
@@ -554,6 +704,8 @@ def _read_text(source, kind, label, options):
     sep = _separator_for(source, kind, label, options)
     try:
         engine = {} if len(sep) == 1 else {"engine": "python"}
+        if _compression(label) is not None:  # .csv.gz, .zip: pandas read_csv(compression=)
+            extra["compression"] = _compression(label)
         return pd.read_csv(_rewind(source), sep=sep, **engine, **extra)
     except UnicodeDecodeError:
         raise SimplydataError(
@@ -571,6 +723,12 @@ def _read_text(source, kind, label, options):
             "If there are notes above the column names, skip them:  "
             f'sdata.table("{label}", skip_rows=2)'
         ) from None
+    except ValueError as problem:  # a .zip with more than one file in it
+        if _compression(label) != "zip":
+            raise
+        raise SimplydataError(f'simplydata reads a .zip file that holds one CSV or TSV file; "{label}" could not be '
+                              f"read that way ({str(problem).strip()}).\nUnzip it and read the files, for example "
+                              'sdata.table("folder/*.csv").') from None
 
 
 def _read_excel(source, label, sheet, options):
@@ -672,7 +830,8 @@ def _list_some(names) -> str:
 
 
 def _files_in_folder(folder: Path) -> list[Path]:
-    files = sorted((p for p in folder.iterdir() if _readable(p) and p.suffix.lower() in _READERS), key=_natural_key)
+    files = sorted((p for p in folder.iterdir() if _readable(p) and _file_suffix(p.name) in _READERS),
+                   key=_natural_key)
     if not files:
         there = [p.name for p in folder.iterdir() if p.is_file()]
         lines = [f'The folder "{folder}" has no files simplydata can read.',
@@ -713,7 +872,7 @@ def _read_many(files, sheet, fast, keep_fast, options, asked_for):
     _guesses = []
     try:
         for path, label in zip(files, labels):
-            kind = _kind_of(path.suffix, path.name)
+            kind = _kind_of(_file_suffix(path.name), path.name)
             parts.append((label, _read_one(path, kind, path.stat().st_size, label, sheet=sheet, fast=fast,
                                            keep_fast=keep_fast, options=options)))
         guessed = sorted(set(_guesses), key=SEPARATORS.index)
@@ -901,7 +1060,7 @@ def _size_in_words(size: int) -> str:
 def _read_web(url, sheet, fast, keep_fast, options):
     parts = urllib.parse.urlparse(url)
     name = Path(urllib.parse.unquote(parts.path)).name or parts.netloc
-    suffix = Path(name).suffix.lower()
+    suffix = _file_suffix(name)
     if suffix not in _READERS:
         wanted = urllib.parse.parse_qs(parts.query).get("format", [""])[0].lower()  # such as ?format=csv
         suffix = "." + wanted if wanted and "." + wanted in _READERS else ""

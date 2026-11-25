@@ -80,7 +80,7 @@ jobs:
       - uses: ./.github/actions/setup-simplydata
         with:
           r: "true"
-          extras: test,r,systems,fast,files
+          extras: test,r,systems,fast,files,sql
       - name: Run part ${{ matrix.part }} of the examples
         run: python docs/make_manual.py --only-run "${{ matrix.part }}"
         env:
@@ -106,7 +106,7 @@ jobs:
       - uses: ./.github/actions/setup-simplydata
         with:
           r: "true"
-          extras: test,r,systems,fast,files
+          extras: test,r,systems,fast,files,sql
       - name: Reliability report
         run: python validation/make_report.py
         env:

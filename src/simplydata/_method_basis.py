@@ -4441,3 +4441,89 @@ BASIS["table.count_rows with_totals="] = _b(
     "has no margins, so simplydata works each total out with group_by().agg() on both engines.", (),
     "P5", "A table that already holds the value \"(total)\" is refused, with the replace_values_in line that "
     "renames it.", "convention")
+
+# ---- 2026-11-25 (PR tables-3): tables phase, batch 3 (approved by Manish 2026-11-25)
+BASIS["table.add_zeros_in_front_of"] = _b(
+    "Zeros in front until the text has to_length= characters (pandas and Polars str.zfill); a longer text is never "
+    "cut, a minus or plus sign stays in front, and an empty cell stays empty.",
+    "turn_into_text() first for a column of numbers; other filling characters in pandas str.pad.",
+    "Data preparation: IDs typed as 7 in one file and 007 in another never match in a join; padding the shorter ones "
+    "is the usual fix, and cutting a longer one would change an ID without a word.", (), "P4",
+    "A column that is not text is refused with the step that makes it text; the sentence says how many values were "
+    "already longer.", "convention")
+BASIS["table.show_rows_with_empty_cells_in"] = _b(
+    "A row is shown when any of its cells (or of the columns= named) is empty, with its row number; text of only "
+    "spaces counts as empty.",
+    "columns= for some columns only; remove_rows_with_empty_cells_in() or fill_empty_cells_in() afterwards.",
+    "Data preparation: looking at the rows with a hole before removing them shows whether they are missing at "
+    "random or all from one place or time.", (), "P4", "", "convention")
+BASIS["table.show_differences_from"] = _b(
+    "Rows compared in order, two empty cells the same (pandas compare); differing cells listed as row, column, "
+    "this, other.",
+    "check_if_same_as() for a plain same or not.",
+    "Data preparation: after cleaning, the cells a step changed should be the ones meant; listing only those makes "
+    "the check quick.", (), "P4",
+    "Tables with other columns or another number of rows are not compared cell by cell: simplydata says how they "
+    "differ.", "convention")
+BASIS["table.check_if_same_as"] = _b(
+    "The same columns in the same order, the same rows, the same values and the same kinds (pandas and Polars "
+    "equals); two empty cells count as the same.",
+    "show_differences_from() lists every differing cell.",
+    "Data preparation: a strict check (kinds too) catches a column that turned from whole numbers into decimals or "
+    "text; the sentence names the first difference.", (), "P4", "", "convention")
+BASIS["table.run_sql"] = _b(
+    "DuckDB, with the table called data; no extensions loaded or installed on their own, no files, the settings "
+    "locked, and one SELECT only. Without DuckDB the word stops with the install line.",
+    "sdata.run_sql() for queries on files; the table words for the same jobs without SQL.",
+    "Privacy: simplydata is used on sensitive data, so a query must never fetch from or send to the web, open a "
+    "file, install anything or write a file; DuckDB's own settings and its own parser's statement type enforce it. "
+    "Polars SQL is not used as a stand-in: its read_csv and read_parquet table functions can open any file.", (),
+    "P4",
+    "A query with a web or cloud address, more than one statement, or anything but a SELECT is refused before it "
+    "runs.", "convention")
+BASIS["sdata.run_sql"] = _b(
+    "DuckDB on the files of this computer; no extensions loaded or installed on their own, the settings locked, and "
+    "one SELECT only.",
+    "table.run_sql() on a table already read; sdata.table() to read a file whole.",
+    "Privacy: the query reads local files only, so data never leave the computer; DuckDB reads only the rows and "
+    "columns a query needs, which keeps big files quick.", (), "P4",
+    "An address such as https:// or s3:// is refused before DuckDB sees it; so are statements that are not a "
+    "SELECT.", "convention")
+BASIS["table.make_one_table_for_each_group_in"] = _b(
+    "Groups in the order they are first seen, rows in their order, an empty value a group of its own; one column's "
+    "tables are found by the value itself.",
+    "for_each_group_in= on most words works group by group without splitting the table.",
+    "Data preparation: pandas groupby sorts the groups and drops empty keys by default, and Polars partition_by "
+    "keeps them; one rule for both keeps every row.", (), "P3", "", "convention")
+BASIS["table.find_summary_of show="] = _b(
+    "\"first\" and \"last\": the first and last filled value in the order of the rows (empty cells left out, as "
+    "pandas groupby first() and last()).",
+    "sort_by() first for another order; every= for one row per period (open, high, low, close).",
+    "Data preparation: every other measure leaves empty cells out, so first and last do too; pandas does this by "
+    "default and Polars after drop_nulls().", (), "P3", "", "convention")
+BASIS["table.sort_by biggest_first="] = _b(
+    "A list gives each column its own direction; rows that tie keep their order.",
+    "biggest_first=True or False for every column at once.",
+    "Data preparation: sorting by class A to Z and marks best first is a common need; pandas ascending= means the "
+    "opposite, so it points to biggest_first= instead of running.", (), "P3",
+    "A list of the wrong length, or with anything but True and False, is refused.", "convention")
+BASIS["table.gather_into_rows starts_with="] = _b(
+    "starts_with=, ends_with= and matches_pattern= choose the columns by their names as keep_columns does, in table "
+    "order (capital letters matter).",
+    "A list of columns; one way at a time.",
+    "Data preparation: wide files name repeated measures with a shared start (pain_week_0, pain_week_4); choosing "
+    "them by it avoids typing every name.", (), "P3", "No match is refused with the column names there are.",
+    "convention")
+BASIS["table.join_with match="] = _b(
+    "\"nearest before\" (pandas merge_asof direction=\"backward\"), both tables sorted by the date first and the "
+    "rows put back in order; within= as a time such as \"2 days\".",
+    "\"nearest after\", \"nearest\"; keep=\"all rows from this table\" keeps rows with nothing near enough.",
+    "Data preparation: measurements at different times (a river and a rain gauge) are matched to the last reading "
+    "before each one, which is what was known then; a limit stops a match to a reading weeks away.", (), "P4",
+    "Empty dates are refused, and dates or numbers are needed in both tables.", "convention")
+BASIS["table.save in_table="] = _b(
+    "Replace that one table and keep the other tables of the database file (pandas to_sql(if_exists=\"replace\"), "
+    "no row labels); DuckDB files through DuckDB with no extensions.",
+    "in_sheet= for Excel; sdata.table(table_name=) to read it back.",
+    "Data preparation: mirrors in_sheet=, so several tables go into one file and saving again never removes the "
+    "others.", (), "P4", "A database file without in_table= is refused with an example.", "convention")

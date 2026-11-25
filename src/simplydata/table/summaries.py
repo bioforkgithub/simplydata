@@ -103,7 +103,11 @@ EVERY_EXAMPLE = ('table.turn_into_dates("year")\n'
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
+            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
+            "first", "last")  # first, last: tables phase, batch 3
+# "first" and "last": the first and last filled value in the order of the rows (pandas groupby().first() / last(),
+# which skip empty cells; Polars drop_nulls().first() / last()); not a NumPy measure, not one of _measure_values
+FIRST_LAST = ("first", "last")
 MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation", "se": "standard error",
                    "ci": "confidence interval", "iqr": "interquartile range", "geometric average": "geometric mean",
                    "gmean": "geometric mean", "skew": "skewness", "cv": "coefficient of variation",
@@ -1822,7 +1826,10 @@ class SummaryWords:
         "percentile 90" (any percent, R quantile type 7), "harmonic mean" (numbers above 0,
         SciPy hmean, as R psych::harmonic.mean) and "winsorised average" (the lowest and
         highest 20 % set to the nearest value kept, then the average; SciPy, as R
-        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %).
+        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %), and "first" and "last"
+        (the first and last filled value, in the order of the rows: sort first with sort_by, as
+        pandas groupby().first() / last() and Polars first() / last()). With every="month",
+        show=["first", "biggest", "smallest", "last"] gives each month's open, high, low and close.
         Without show=: count, average, standard deviation, smallest, median,
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
@@ -1848,7 +1855,8 @@ class SummaryWords:
         frame, periods = self._periods(step, frame, groups or None, every)
         frame = frame.with_columns(nw.col(c).is_null().cast(nw.Int64).alias(f"__empty {i}")
                                    for i, c in enumerate(columns))
-        names = [m for m in measures if isinstance(m, str) and not _is_array_measure(m)]
+        names = [m for m in measures if isinstance(m, str) and not _is_array_measure(m) and m not in FIRST_LAST]
+        ends = [m for m in measures if m in FIRST_LAST]
         arrays = [m for m in measures if _is_array_measure(m)]
         own = [m for m in measures if not isinstance(m, str)]
         problems: dict = {}  # (measure, why) -> [where]
@@ -1883,6 +1891,8 @@ class SummaryWords:
                 agg = frame.select(*exprs)
             own_values = self._own_measures(frame, groups, c, own, own_names) if own else {}
             array_values = self._array_measures(frame, groups, c, arrays, problems, len(columns) > 1) if arrays else {}
+            if ends:
+                array_values = {**array_values, **self._first_and_last(frame, groups, c, ends)}
             for row in agg.rows(named=True):
                 key = _key([row[g] for g in groups])
                 data["column"].append(c)
@@ -1900,6 +1910,8 @@ class SummaryWords:
         float_names = [n for n in out_names if _is_array_measure(n)]
         if float_names:
             result = result.with_columns(nw.col(n).cast(nw.Float64) for n in float_names)
+        if ends:  # first and last keep the column's own kind (a whole number above 2**53 stays exact)
+            result = self._ends_in_own_kind(result, data, columns, ends)
         result = result.with_columns(nw.col(n).cast(nw.Int64) for n in ("count", "empty cells") if n in out_names)
         table = self._new_table(result)
         self._note_empty(frame, columns)
@@ -1923,6 +1935,51 @@ class SummaryWords:
                       f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
         return table
+
+    def _ends_in_own_kind(self, result, data, columns, ends):
+        """The "first" and "last" columns built in the summarised column's own kind: Polars pl.Series(dtype=), pandas
+        the same numpy kind, or its nullable twin (Int64 for int64) when a group has no value. Several columns of
+        different kinds become decimals."""
+        native = self._frame.to_native()
+        kinds = {native.schema[c] if self._frame.implementation.is_polars() else native[c].dtype for c in columns}
+        values = {end: [None if isinstance(v, float) and math.isnan(v) else v for v in data[end]] for end in ends}
+        if len(kinds) != 1:
+            return result.with_columns(nw.col(end).cast(nw.Float64) for end in ends)
+        kind = next(iter(kinds))
+        out = result.to_native()
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            out = out.with_columns(pl.Series(end, values[end], dtype=kind) for end in ends)
+        else:
+            import pandas as pd
+
+            for end in ends:
+                target, name = kind, str(kind)
+                if any(v is None for v in values[end]) and name.startswith(("int", "uint")):  # numpy int64 -> Int64
+                    target = "UInt" + name[4:] if name.startswith("uint") else "Int" + name[3:]
+                out[end] = pd.Series(pd.array(values[end], dtype=target), index=out.index)
+        return nw.from_native(out, eager_only=True)
+
+    @staticmethod
+    def _first_and_last(frame, groups, column, ends) -> dict:
+        """find_summary_of(show=["first", "last"]): the first and last filled value of each group, in row order.
+
+        The empty cells are left out first, as for every other measure, so the first value is the first filled one
+        (pandas groupby().first() / last() skip empty cells; Polars first() / last() after drop_nulls()). A group
+        whose every cell is empty has no first value, so its cell stays empty."""
+        filled = frame.filter(~nw.col(column).is_null())
+        exprs = [getattr(nw.col(column), end)().alias(f"__{end}") for end in ends]  # narwhals first() / last()
+        if groups:
+            found = filled.group_by(groups, drop_null_keys=False).agg(*exprs)
+        else:
+            found = filled.select(*exprs) if len(filled) else None
+        values = {}
+        for row in (found.rows(named=True) if found is not None else []):
+            key = _key([row[g] for g in groups])
+            for end in ends:
+                values[(key, end)] = _plain(row[f"__{end}"])
+        return values
 
     @staticmethod
     def _group_arrays(frame, groups, column) -> dict:

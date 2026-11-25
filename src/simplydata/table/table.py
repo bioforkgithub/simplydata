@@ -23,6 +23,7 @@ from .model_tools import ModelToolWords
 from .models import ModelWords
 from .more_table_words import MoreTableWords
 from .more_table_words_2 import MoreTableWords2
+from .more_table_words_3 import MoreTableWordsThree
 from .more_tests import MoreTestWords
 from .patterns import PatternWords
 from .places import PlaceWords
@@ -44,7 +45,7 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, BaseTable):
+            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 
@@ -65,7 +66,7 @@ _READING_POINTERS = {"header": 'column_names=["time", "temperature"] for a file 
           pointers=_READING_POINTERS)
 def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mark=None, thousands_mark=None,
           empty_values=None, skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
-          column_names=None, skip_lines_starting_with=None) -> Table:
+          column_names=None, skip_lines_starting_with=None, table_name=None) -> Table:
     """Start a table.
 
     sdata.table(sdata.get_example("marks"))         a practice table
@@ -123,6 +124,13 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     names. A file with the sign inside a line (not at its start) is refused with the line, because
     pandas would cut the line there.
     sdata.table("weather.csv", columns=["month", "city", "rain"])
+    More file types, by the end of the name (each read by pandas itself): .csv.gz and .tsv.gz
+    (compressed), .zip (one CSV file inside), .feather and .arrow, .jsonl and .ndjson (one JSON
+    row per line), .xml, .sas7bdat (SAS), and the databases .sqlite, .db and .duckdb.
+    table_name="samples" reads one table of a database file (the mirror of table.save(in_table=)):
+    sdata.table("lab.sqlite", table_name="samples")
+    A database with one table needs no table_name=. .duckdb files need DuckDB
+    (pip install "simplydata[sql]"); they are opened read-only, with no extensions.
     """
     if not isinstance(fast, bool):
         raise SimplydataError("fast= should be True or False.")
@@ -131,5 +139,6 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     reading = reading_options(separator=separator, decimal_mark=decimal_mark, thousands_mark=thousands_mark,
                               empty_values=empty_values, skip_rows=skip_rows, encoding=encoding,
                               table_number=table_number, read_as_text=read_as_text, columns=columns,
-                              column_names=column_names, skip_lines_starting_with=skip_lines_starting_with)
+                              column_names=column_names, skip_lines_starting_with=skip_lines_starting_with,
+                              table_name=table_name)
     return Table(data, sheet=sheet, fast=fast, _reading=reading)

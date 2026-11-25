@@ -57,6 +57,8 @@ FORMULA_HELP = (
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
     "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
+    "  length(x)                  how many characters the text in a column has\n"
+    "  count_text(x, \";\")         how many times a piece of text is in the text of a column\n"
     "  average(x)  median(x)      summary words: one value for the whole column,\n"
     "  total(x)  count(x)         or for each group with for_each_group_in=\n"
     "  smallest(x)  biggest(x)    (count counts the cells that are not empty)\n"
@@ -71,12 +73,18 @@ FUNCTIONS = {"round": (1, 2), "abs": (1, 1), "sqrt": (1, 1), "log": (1, 2), "exp
 SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ", "sinc")
 FUNCTION_SPELLINGS = {"besselj": "besselJ"}  # both spellings work
 CONSTANTS = {"pi": math.pi}
+# text functions (tables phase, batch 3): how many things inside the brackets. length(name) is pandas str.len() and
+# Polars str.len_chars(); count_text(notes, ";") is pandas str.count(re.escape(";")) and Polars
+# str.count_matches(";", literal=True)
+TEXT_FUNCTIONS = {"length": 1, "count_text": 2}
 # summary words inside formulas -> the narwhals method that works them out
 SUMMARY_WORDS = {"average": "mean", "median": "median", "total": "sum",
                  "smallest": "min", "biggest": "max", "count": "count"}
 # names people bring from other tools -> the simplydata word
 OTHER_TOOL_NAMES = {"mean": "average", "avg": "average", "sum": "total", "min": "smallest",
-                    "max": "biggest", "n": "count", "len": "count", "length": "count",
+                    "max": "biggest", "n": "count", "len": "length", "nchar": "length", "str_length": "length",
+                    "len_chars": "length", "str_len": "length", "str_count": "count_text",
+                    "count_matches": "count_text",
                     "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "besselJ",
                     "power": "**", "pow": "**"}
 MAX_FORMULA_LENGTH = 500
@@ -86,11 +94,12 @@ KEEP_CHOICES = {
     "all rows from this table": "left",
     "all rows from the other table": "right",
     "all rows from both": "full",
+    "every combination": "cross",  # tables phase, batch 3: a cross join (more_table_words_3.py)
 }
 JOIN_SUFFIX = "_other"
 # pandas merge(how=) and Polars join(how=) values: how= runs as keep= with a note once
 HOW_TO_KEEP = {"inner": "matching rows", "left": "all rows from this table", "right": "all rows from the other table",
-               "outer": "all rows from both", "full": "all rows from both"}
+               "outer": "all rows from both", "full": "all rows from both", "cross": "every combination"}
 # join_with(check_that=): the pandas merge(validate=) and Polars join(validate=) value of each check
 CHECK_THAT = {
     "each row has one match": ("many_to_one", "m:1"),
@@ -101,7 +110,14 @@ MATCH_COLUMN = "found in"  # join_with(with_match_column=True)
 _PAIRED = 'using={"name": "student"}: this table\'s column, then the other table\'s column'
 _CHECKS = 'check_that="each row has one match" (or "each key appears once in both", "each key appears once here")'
 JOIN_POINTERS = {"left_on": _PAIRED, "right_on": _PAIRED, "validate": _CHECKS, "relationship": _CHECKS,
-                 "indicator": 'with_match_column=True, which adds a column "found in"'}
+                 "indicator": 'with_match_column=True, which adds a column "found in"',
+                 # tables phase, batch 3: pandas merge_asof / Polars join_asof options
+                 "direction": 'match="nearest before" (or "nearest after", "nearest")',
+                 "strategy": 'match="nearest before" (or "nearest after", "nearest")',
+                 "tolerance": 'within="2 days" (with match=)'}
+# sort_by: pandas sort_values(ascending=) means the opposite of biggest_first=, so it points and never runs
+SORT_POINTERS = {"ascending": "biggest_first= with the opposite value: ascending=False is biggest_first=True, and "
+                              "ascending=[True, False] is biggest_first=[False, True]"}
 # spread_into_columns(show=): the house measure names, and the narwhals pivot(aggregate_function=) of each
 SPREAD_SHOWS = {"average": "mean", "total": "sum", "median": "median", "smallest": "min", "biggest": "max",
                 "count": "len"}
@@ -185,6 +201,7 @@ class _FormulaReader:
         self.summaries: list = []
         self.specials: list = []  # (temporary column, expressions inside, function name)
         self.steps: list = []  # summaries and special functions, inner ones first
+        self.text_used: list = []  # the columns length() and count_text() need to hold text
         self._in_summary = False
 
     def _error(self, problem):
@@ -325,6 +342,8 @@ class _FormulaReader:
     def _call(self, node):
         if isinstance(node.func, ast.Name) and node.func.id in SUMMARY_WORDS:
             return self._summary(node)
+        if isinstance(node.func, ast.Name) and node.func.id in TEXT_FUNCTIONS:
+            return self._text_function(node)
         if isinstance(node.func, ast.Name) and node.func.id in FUNCTION_SPELLINGS:
             node.func.id = FUNCTION_SPELLINGS[node.func.id]
         if not isinstance(node.func, ast.Name) or node.func.id not in FUNCTIONS:
@@ -380,6 +399,30 @@ class _FormulaReader:
             raise self._error("The base of log() must be a positive number other than 1, for example log(x, 10).")
         return inner.cast(nw.Float64).log(base=float(second.value))
 
+    def _text_function(self, node):
+        """length(name) and count_text(notes, ";"): a number for the text in each row (tables phase, batch 3)."""
+        name = node.func.id
+        example = 'length(name)' if name == "length" else 'count_text(genes, ";")'
+        if node.keywords or any(isinstance(a, ast.Starred) for a in node.args) or len(node.args) != TEXT_FUNCTIONS[name]:
+            what = "one column" if name == "length" else "a column and a piece of text in quotes"
+            raise self._error(f"{name}() takes {what}, for example {example}.")
+        column = self._column_name(node.args[0])
+        if column is None:
+            raise self._error(f"The first thing in {name}() is a column of text, for example {example}.")
+        inner = self._column(column, needs_number=False)
+        if column not in self.text_used:
+            self.text_used.append(column)
+        if name == "length":
+            return inner.cast(nw.String).str.len_chars()  # pandas str.len(), Polars str.len_chars()
+        piece = node.args[1]
+        if not (isinstance(piece, ast.Constant) and isinstance(piece.value, str) and piece.value):
+            raise self._error(f"The second thing in count_text() is the piece of text to count, in quotes, for "
+                              f"example {example}.")
+        key = f"_simplydata_special_{len(self.steps)}_"
+        self.specials.append((key, [inner], name))
+        self.steps.append(("count_text", key, inner, piece.value))
+        return nw.col(key)
+
     def _summary(self, node):
         """average(marks), total(marks) ...: one value for the whole column (or each group)."""
         name = node.func.id
@@ -415,6 +458,10 @@ def _apply_summaries(frame, reader, keys):
 
     temporary = []
     for kind, key, inner, word in reader.steps:
+        if kind == "count_text":  # count_text(notes, ";"): word is the piece of text
+            frame = _count_text(frame.with_columns(inner.cast(nw.String).alias(key + "in_")), key + "in_", key, word)
+            temporary += [key + "in_", key]
+            continue
         if kind == "summary":
             frame = frame.with_columns(inner.alias(key + "in_"))
             expr = getattr(nw.col(key + "in_"), SUMMARY_WORDS[word])()
@@ -430,6 +477,19 @@ def _apply_summaries(frame, reader, keys):
         frame = frame.with_columns(nw.col(key).fill_nan(None))
         temporary += names + [key]
     return frame, temporary
+
+
+def _count_text(frame, source, key, piece):
+    """How many times piece is in each text: pandas str.count(re.escape(piece)), Polars
+    str.count_matches(piece, literal=True). An empty cell stays empty."""
+    native = frame.to_native()
+    if frame.implementation.is_polars():
+        import polars as pl
+
+        native = native.with_columns(pl.col(source).str.count_matches(piece, literal=True).cast(pl.Int64).alias(key))
+    else:
+        native = native.assign(**{key: native[source].str.count(re.escape(piece))})
+    return nw.from_native(native, eager_only=True)
 
 
 def _dtype_kind(dtype) -> str:
@@ -743,30 +803,48 @@ class ColumnWords:
         return nw.from_native(frame.to_pandas(), eager_only=True)
 
     # ------------------------------------------------------------------ sorting
-    @friendly
+    @friendly(others={"descending": "biggest_first"}, pointers=SORT_POINTERS)
     def sort_by(self: _Same, *columns, biggest_first=False) -> _Same:
         """Put the rows in order of one or more columns; empty cells go last.
 
         Numbers go smallest first and text goes A to Z. biggest_first=True turns this round:
         biggest number first, and text Z to A. Rows that tie keep the order they had.
         table.sort_by("marks", biggest_first=True)   (with sdata.get_example("marks"))
+        With several columns, a list gives each its own direction:
+          table.sort_by("class", "marks", biggest_first=[False, True])
+        puts the classes A to Z and, inside each class, the best marks first (pandas
+        sort_values(ascending=[True, False]), Polars sort(descending=[False, True])).
+        Polars' descending= works here too; pandas' ascending= means the opposite, so it points here.
         """
         names = _as_list(columns)
         if not names:
             raise SimplydataError(
                 'sort_by() needs a column name, for example table.sort_by("marks")   (with sdata.get_example("marks"))'
             )
-        if not isinstance(biggest_first, bool):
-            raise SimplydataError("biggest_first= should be True or False.")
+        if isinstance(biggest_first, (list, tuple)):  # tables phase, batch 3: one direction for each column
+            if len(biggest_first) != len(names) or not all(isinstance(b, bool) for b in biggest_first):
+                raise SimplydataError(
+                    f"biggest_first= as a list needs one True or False for each column: {len(names)} here.\n"
+                    'For example:  table.sort_by("class", "marks", biggest_first=[False, True])'
+                    '   (with sdata.get_example("marks"))'
+                )
+            directions = list(biggest_first)
+        elif isinstance(biggest_first, bool):
+            directions = [biggest_first] * len(names)
+        else:
+            raise SimplydataError("biggest_first= should be True or False, or a list with one for each column.")
         self._need_columns(*names)
         order_column = "_simplydata_order_"
         frame = (
             self._frame.with_row_index(order_column)
-            .sort([*names, order_column], descending=[biggest_first] * len(names) + [False], nulls_last=True)
+            .sort([*names, order_column], descending=directions + [False], nulls_last=True)
             .drop(order_column)
         )
-        order = "biggest first" if biggest_first else "smallest first"
-        return self._change(f"sort by {', '.join(map(str, names))} ({order})", frame)
+        if len(set(directions)) == 1:
+            order = "biggest first" if directions[0] else "smallest first"
+            return self._change(f"sort by {', '.join(map(str, names))} ({order})", frame)
+        words = ", ".join(f"{n} ({'biggest first' if d else 'smallest first'})" for n, d in zip(names, directions))
+        return self._change(f"sort by {words}", frame)
 
     # ------------------------------------------------------------------ new columns
     def _work_out(self, step, name, formula=None, by_adding=None, by_subtracting=None, by_multiplying=None,
@@ -819,6 +897,11 @@ class ColumnWords:
             reader = _FormulaReader(formula, self._columns)
             expr = reader.read()
             self._need_numbers(*reader.number_used, step=step)
+            for column in reader.text_used:  # length() and count_text() work on text
+                if self._kind(column) != "text":
+                    raise SimplydataError(f'length() and count_text() work on text, but "{column}" holds '
+                                          f'{self._kind(column)} values. Make it text first: '
+                                          f'table.turn_into_text("{column}").')
             keys = self._group_keys(for_each, share_example)
             if keys and not reader.summaries:
                 raise SimplydataError(
@@ -2068,7 +2151,7 @@ class ColumnWords:
 
     @friendly(others={"on": "using", "by": "using", "how": "keep"}, pointers=JOIN_POINTERS)
     def join_with(self: _Same, other=None, using=None, keep="matching rows", check_that=None,
-                  with_match_column=False) -> _Same:
+                  with_match_column=False, match=None, within=None) -> _Same:
         """Bring in the columns of another table, matching rows on a column such as a name.
 
         keep= says which rows stay:
@@ -2092,6 +2175,21 @@ class ColumnWords:
         only" or "other table only" (pandas merge(indicator=True)), so rows without a match are easy to find.
         on= (pandas merge) and by= (R merge, dplyr joins) work too, with a note once: they are using= here;
         how="left" (and inner, right, outer) runs as the keep= value with a note once.
+        match="nearest before" joins each row to the row of the other table with the nearest earlier
+        (or equal) date, "nearest after" the nearest later one and "nearest" the nearest either way;
+        within="2 days" (or "12 hours", "1 week"; a number for a column of numbers) is the furthest
+        it looks. The last using= column is matched to the nearest value and the others exactly
+        (using=["station", "date"]); the other table's date comes in as "date_other". keep="matching
+        rows" leaves out rows with nothing near enough; keep="all rows from this table" keeps them
+        with empty cells. Both pandas and Polars tables run through Polars join_asof(strategy="backward",
+        tolerance="2d"), so they give the same rows; both tables are sorted by the date first, keeping
+        the order of rows with the same date. When the other table has several rows with the same
+        date, "nearest before" takes the last of them and "nearest after" the first; with "nearest",
+        a date as far before as after goes to the later one (Polars' rules). An empty value in an
+        exact using= column never matches, as in every join; whole numbers and decimals match:
+          river.join_with(rain, using="date", match="nearest before", within="2 days")
+        keep="every combination" pairs every row with every row, without using= (a cross join:
+        pandas merge(how="cross"), Polars join(how="cross")).
         """
         step = "join_with"
         if isinstance(keep, str) and keep not in KEEP_CHOICES and keep.strip().lower() in HOW_TO_KEEP:
@@ -2099,6 +2197,16 @@ class ColumnWords:
             _value_note(f"join how={keep}", f'Note: how="{keep}" is keep="{new}" in simplydata.')
             keep = new
         self._check_choice(step, "keep", keep, list(KEEP_CHOICES))
+        if keep == "every combination":  # tables phase, batch 3 (more_table_words_3.py)
+            if match is not None or within is not None or check_that is not None or with_match_column:
+                raise SimplydataError('keep="every combination" pairs every row with every row; it takes no match=, '
+                                      "within=, check_that= or with_match_column=.")
+            return self._join_every_combination(other, using)
+        if within is not None and match is None:
+            raise SimplydataError('within= goes with match=, for example join_with(rain, using="date", '
+                                  'match="nearest before", within="2 days").')
+        if match is not None:
+            return self._join_nearest(other, using, keep, match, within, check_that, with_match_column)
         if check_that is not None:
             self._check_choice(step, "check_that", check_that, list(CHECK_THAT))
         if not isinstance(with_match_column, bool):
@@ -2203,15 +2311,30 @@ class ColumnWords:
         return self._change(f"add {len(bottom)} rows from another table", nw.from_native(native, eager_only=True))
 
     # ------------------------------------------------------------------ reshaping
-    @friendly
-    def gather_into_rows(self: _Same, columns=None, names_to="column", values_to="value") -> _Same:
+    @friendly(renamed={"pattern": "matches_pattern"})
+    def gather_into_rows(self: _Same, columns=None, names_to="column", values_to="value", starts_with=None,
+                         ends_with=None, matches_pattern=None) -> _Same:
         """Turn some columns into rows: each value gets its own row, with its old column name beside it.
 
         This makes a "long" table, which most charts like. The new column names_to= holds the
         old column names and values_to= holds the values.
         table.gather_into_rows(["temperature", "rain"])   (with sdata.get_example("weather"))
+        Instead of a list, starts_with=, ends_with= or matches_pattern= (a regular expression) choose
+        the columns by their names, as in keep_columns:
+          table.gather_into_rows(starts_with="pain_week_", names_to="week", values_to="pain")
+        (pandas melt(value_vars=[the columns whose names start so]), Polars unpivot(on=cs.starts_with(...))).
         """
         example = 'For example: table.gather_into_rows(["temperature", "rain"])   (with sdata.get_example("weather"))'
+        by_name = {"starts_with": starts_with, "ends_with": ends_with, "matches_pattern": matches_pattern}
+        given = [f"{k}=" for k, v in by_name.items() if v is not None]
+        if given:  # tables phase, batch 3: the columns chosen by their names, as keep_columns chooses them
+            if columns is not None or len(given) > 1:
+                shown = " and ".join((["a list of columns"] if columns is not None else []) + given)
+                raise SimplydataError(f"gather_into_rows() chooses the columns one way at a time, but you gave {shown}."
+                                      '\nFor example: table.gather_into_rows(starts_with="pain_week_")'
+                                      '   (with sdata.get_example("clinic"))')
+            columns, _, _ = self._columns_chosen("gather_into_rows", (), None, None, starts_with, ends_with, None,
+                                                 matches_pattern)
         cols = _as_list(columns) if columns is not None else []
         if not cols or not all(isinstance(c, str) for c in cols):
             raise SimplydataError(f"gather_into_rows() needs the columns to turn into rows.\n{example}")

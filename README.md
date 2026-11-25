@@ -186,11 +186,11 @@ it says what to install, as the note in the quick start does; see [Using the wor
 
 ## What simplydata handles
 
-**402 words (commands) in 48 groups, with 372 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
+**424 words (commands) in 48 groups, with 383 different options, on top of 15 Python packages (8 installed always, 7 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 3494 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
-`[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
+`[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
 
 **Simple words for data science in Python.** One small vocabulary: you can start in a day, and the 30-day guide
 takes you further. It is built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
@@ -315,6 +315,7 @@ pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
+pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
@@ -340,6 +341,7 @@ Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if
 conda install -c conda-forge polars pyarrow           # Polars, the fast engine for big data
 conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
 conda install -c conda-forge control                  # rise time, settling time and margins of systems
+conda install -c conda-forge python-duckdb            # SQL on a table or on files (run_sql)
 conda install -c conda-forge rpy2 r-base              # R and the bridge to it, for the methods only R has
 ```
 
@@ -419,7 +421,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 534 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 546 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
