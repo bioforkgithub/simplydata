@@ -4367,3 +4367,77 @@ BASIS["table.keep_first_rows for_each_group_in="] = _b(
     "for_each_group_in= too.",
     "Polars group_by().head() would put each group's rows together; keeping the order makes the result easy to "
     "check against the table.", (), "P5", "", "convention")
+
+# ---- 2026-11-25 (tables-2): tables phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["table.fill_empty_cells_from"] = _b(
+    "Only empty cells take the other table's value (a missing value or text of only spaces); a filled cell never "
+    "changes (pandas combine_first, Polars join + coalesce).",
+    "join_with() to bring the other table's columns in; fill_empty_cells_in(from_column=) to fill from a column of "
+    "the same row.",
+    "Data preparation: pandas update() would overwrite filled cells, which loses data typed by hand; a key that is in "
+    "the other table twice is refused, so it is never unclear which row fills.", (), "P4",
+    "Keys of different kinds and columns of different kinds are refused; the sentence counts the cells filled in "
+    "each column.", "convention")
+BASIS["table.round_dates_in to_the="] = _b(
+    "A time exactly half way goes up (10:30 to the hour is 11:00), as Polars dt.round(); pandas is made to agree "
+    "with dt.floor() of the time plus half a step.",
+    "down_to= (the start of the unit, pandas dt.floor / Polars dt.truncate) and up_to= (pandas dt.ceil).",
+    "Data preparation: pandas dt.round() sends half way to the even unit, Polars up; one rule on both engines keeps "
+    "the same table on both; a month or a year has no one length, so to_the= refuses them.", (), "P5",
+    "Dates without a time of day are refused for hours, minutes and seconds.", "convention")
+BASIS["table.change_time_zone_in"] = _b(
+    "A clock time that never happened (summer time starts) or happened twice (it ends) becomes an empty cell, with a "
+    "note (pandas tz_localize(nonexistent=\"NaT\", ambiguous=\"NaT\"), Polars replace_time_zone(non_existent="
+    "\"null\", ambiguous=\"null\")).",
+    "recorded_in= for clock times without a zone; to= for the clock to change to.",
+    "Data preparation: the parents' default stops the whole column at one such time, and shifting it would invent a "
+    "time; an empty cell keeps every other time and says what happened. Clock times without a zone are never "
+    "assumed to be UTC.", (), "P4",
+    "Zone names are checked against the IANA list with a did-you-mean; a column that has a zone refuses recorded_in=.",
+    "convention")
+BASIS["table.add_missing_combinations_of"] = _b(
+    "Every combination of the values found in the columns gets a row; the rows come out sorted by those columns, a "
+    "combination that is there twice keeps both rows, and a row with an empty key stays, at the end.",
+    "add_missing_dates() for a run of dates.",
+    "Data preparation: pandas reindex refuses repeated keys and R tidyr::complete() keeps them; keeping every row "
+    "already there means the word only ever adds rows.", (), "P5",
+    "The sentence says how many rows were added and how many combinations there are.", "convention")
+BASIS["table.spread_into_yes_no_columns"] = _b(
+    "One True/False column for each value, named \"column: value\", A to Z, after the other columns; the column "
+    "itself stays; empty cells get a column of their own, \"column: (empty)\", last, named as the cross tables of "
+    "count_rows name them (pandas get_dummies, Polars to_dummies).",
+    "separator= for cells that hold several values (pandas str.get_dummies).",
+    "Data preparation: pandas names the column of empty cells \"nan\" and Polars \"null\"; one plain name on both "
+    "engines keeps the same table on both (approved by Manish 2026-11-25).", (), "P5",
+    "Text columns only; a column that holds the value \"(empty)\" next to empty cells is refused, with the "
+    "fill_empty_cells_in line that fixes it; a new name that already exists is refused.", "convention")
+BASIS["table.add_column counted_in="] = _b(
+    "Whole units counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars total_hours(); pandas "
+    "(end - start) / pd.Timedelta(hours=1), truncated).",
+    "counted_in= \"days\" (the default), \"hours\", \"minutes\" or \"weeks\".",
+    "Data preparation: the same rule as the whole days simplydata already counts, so a unit never changes how the "
+    "count is cut.", (), "P5", "Two date columns only.", "convention")
+BASIS["table.add_group_column into_equal_groups="] = _b(
+    "Groups numbered 1 (the smallest values) to n, cut at the percentiles of the data (pandas qcut, Polars qcut); a "
+    "value on a cut goes into the lower group; the cut points are printed.",
+    "names= for names of your own; cut_at= for cut points of your own.",
+    "Learners count from 1, as every position word of simplydata does (pandas labels=False counts from 0).", (),
+    "P5", "Too many equal values for n groups is refused with a plain sentence.", "convention")
+BASIS["table.turn_into_text written_like="] = _b(
+    "An example date is turned into strftime codes by a fixed table of its parts: the four-digit year, the number "
+    "above 12 as the day, the other number as the month, month and weekday names, and a time joined by \":\".",
+    "% codes may be given directly; turn_into_dates(written_like=) reads the same way.",
+    "Data preparation: an example is easier to write than % codes, but 03/04/2026 cannot say which number is the day, "
+    "so an example whose day is 12 or less is refused rather than guessed.", (), "P4",
+    "A date that does not exist (31.02.2026) and a two-digit year are refused.", "convention")
+BASIS["table.count_rows with_totals="] = _b(
+    "A \"(total)\" row and a \"(total)\" column (named like \"(empty)\"), each worked out from the rows "
+    "themselves (pandas crosstab(margins=True), pivot_table(margins=True)); rows with an empty group or across= "
+    "value stay in the table as \"(empty)\" and count in the totals; the same on find_total_of and "
+    "find_average_of.",
+    "across= is needed; with_totals= does not go with every= or in_percent=True.",
+    "Data preparation: pandas margins give the total (or average) of all the rows in a row or column, not of the "
+    "cells, but leave out rows with an empty key; simplydata cross tables keep them, so the totals do too. Polars "
+    "has no margins, so simplydata works each total out with group_by().agg() on both engines.", (),
+    "P5", "A table that already holds the value \"(total)\" is refused, with the replace_values_in line that "
+    "renames it.", "convention")

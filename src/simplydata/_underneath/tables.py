@@ -2485,3 +2485,409 @@ ENTRIES += [
         also="keep_last_rows and keep_rows_by_position take for_each_group_in= too. " + SAID,
     ),
 ]
+
+
+# ---------------------------------------------------------------- tables phase, batch 2 (approved by Manish 2026-11-25)
+ENTRIES += [
+    Entry(
+        word="table.count_columns",
+        data="weather",
+        ours="""
+            table = sdata.get_example("weather")
+            table.count_columns()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
+                # count_columns()
+                df.shape[1]
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("weather.csv")
+                # count_columns()
+                df.width
+            """,
+        },
+        compare="value",
+        also="simplydata also says it in a sentence; count_rows() gives the rows.",
+    ),
+    Entry(
+        word="table.rename_columns",
+        data="weather",
+        ours="""
+            table = sdata.get_example("weather")
+            table.rename_columns({"temperature": "temp", "rain": "rain_mm"})
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("weather.csv")
+                # rename_columns({"temperature": "temp", "rain": "rain_mm"})
+                df.rename(columns={"temperature": "temp", "rain": "rain_mm"})
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("weather.csv")
+                # rename_columns({"temperature": "temp", "rain": "rain_mm"})
+                df.rename({"temperature": "temp", "rain": "rain_mm"})
+            """,
+        },
+        compare="table",
+        also="add_in_front= and add_at_end= are pandas add_prefix() and add_suffix(); a new name that would repeat "
+             "another is refused before anything changes. " + SAID,
+    ),
+    Entry(
+        word="table.add_missing_combinations_of",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.add_missing_combinations_of("station", "depth_m")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv", parse_dates=["sampled_local"])
+                keys = ["station", "depth_m"]
+                # add_missing_combinations_of("station", "depth_m")
+                grid = pd.MultiIndex.from_product([df[k].dropna().unique() for k in keys], names=keys)
+                found = grid.to_frame(index=False).merge(df[keys].drop_duplicates(), how="left", indicator=True)
+                missing = found[found["_merge"] == "left_only"].drop(columns="_merge")
+                pd.concat([df, missing]).sort_values(keys, kind="stable", na_position="last")  # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv", try_parse_dates=True)
+                keys = ["station", "depth_m"]
+                # add_missing_combinations_of("station", "depth_m")
+                grid = df.select(keys[0]).drop_nulls().unique().join(df.select(keys[1]).drop_nulls().unique(),
+                                                                     how="cross")
+                missing = grid.join(df.select(keys).unique(), on=keys, how="anti")
+                pl.concat([df, missing], how="diagonal").sort(keys, maintain_order=True, nulls_last=True)  # (1)
+            """,
+        },
+        compare="table",
+        choices=("the rows come out sorted by the key columns, and every row already there stays as it is: a "
+                 "combination that is there twice keeps both rows (pandas' reindex would refuse it), and a row with "
+                 "an empty key stays, at the end.",),
+        also="simplydata also says how many rows were added and how many combinations there are (as R "
+             "tidyr::complete()). " + SAID,
+    ),
+    Entry(
+        word="table.round_dates_in",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.round_dates_in("date", down_to="month")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
+                # round_dates_in("date", down_to="month")
+                df.assign(date=df["date"].dt.to_period("M").dt.to_timestamp())
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
+                # round_dates_in("date", down_to="month")
+                df.with_columns(pl.col("date").dt.truncate("1mo"))
+            """,
+        },
+        compare="table",
+        also="up_to= is pandas dt.ceil() and to_the= dt.round(); down_to=\"week\" goes back to the Monday. " + SAID,
+    ),
+    Entry(
+        word="table.change_time_zone_in",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.change_time_zone_in("sampled_local", to="UTC", recorded_in="Europe/Oslo")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv", parse_dates=["sampled_local"])
+                # change_time_zone_in("sampled_local", to="UTC", recorded_in="Europe/Oslo")
+                local = df["sampled_local"].dt.tz_localize("Europe/Oslo", nonexistent="NaT",
+                                                           ambiguous="NaT")         # (1)
+                df.assign(sampled_local=local.dt.tz_convert("UTC"))
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv", try_parse_dates=True)
+                # change_time_zone_in("sampled_local", to="UTC", recorded_in="Europe/Oslo")
+                local = pl.col("sampled_local").dt.replace_time_zone(
+                    "Europe/Oslo", non_existent="null", ambiguous="null")             # (1)
+                df.with_columns(local.dt.convert_time_zone("UTC"))
+            """,
+        },
+        compare="table",
+        choices=("a clock time that never happened (the hour skipped when summer time starts) or happened twice "
+                 "(when it ends) becomes an empty cell, with a note, instead of stopping the whole column (the "
+                 "pandas and Polars default) or being moved without a word.",),
+        also="simplydata also shows one time before and after, and refuses clock times without a zone unless "
+             "recorded_in= says where they were written. " + SAID,
+    ),
+    Entry(
+        word="table.spread_into_yes_no_columns",
+        data="fruit",
+        ours="""
+            table = sdata.get_example("fruit")
+            table.spread_into_yes_no_columns("fruit")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fruit.csv")
+                # spread_into_yes_no_columns("fruit")
+                yes_no = pd.get_dummies(df["fruit"], prefix="fruit", prefix_sep=": ")   # (1)
+                pd.concat([df, yes_no], axis=1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fruit.csv")
+                # spread_into_yes_no_columns("fruit")
+                yes_no = df["fruit"].to_dummies(separator=": ").cast(pl.Boolean)      # (1)
+                pl.concat([df, yes_no], how="horizontal")
+            """,
+        },
+        compare="table",
+        choices=("the new columns are True/False, A to Z, after the others, and the column itself stays; empty "
+                 "cells get a column of their own called \"fruit: (empty)\" on both engines (pandas dummy_na=True "
+                 "names it \"fruit: nan\", Polars \"fruit: null\").",),
+        also="separator=\";\" is pandas str.get_dummies(sep=\";\"), for cells that hold several values. " + SAID,
+    ),
+    Entry(
+        word="table.fill_empty_cells_from",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.fill_empty_cells_from({"sample_id": [1, 2, 12], "notes": ["calm", "calm", "rain"]},
+                                        using="sample_id")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv", parse_dates=["sampled_local"])
+                other = pd.DataFrame({"sample_id": [1, 2, 12], "notes": ["calm", "calm", "rain"]})
+                # fill_empty_cells_from(other, using="sample_id")
+                keyed = df.set_index("sample_id")
+                filled = keyed.combine_first(other.set_index("sample_id"))          # (1)
+                filled.loc[keyed.index, list(keyed.columns)].reset_index()
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv", try_parse_dates=True)
+                other = pl.DataFrame({"sample_id": [1, 2, 12], "notes": ["calm", "calm", "rain"]})
+                # fill_empty_cells_from(other, using="sample_id")
+                joined = df.join(other, on="sample_id", how="left", suffix="_other", maintain_order="left")
+                joined.with_columns(pl.coalesce("notes", "notes_other").alias("notes")).drop("notes_other")  # (1)
+            """,
+        },
+        compare="table",
+        choices=("only empty cells take a value (text of only spaces counts as empty); a filled cell never changes, "
+                 "and a key that is in the other table twice stops the word with its name, so it is never unclear "
+                 "which row fills.",),
+        also="simplydata also counts the cells filled in each column (as R dplyr::rows_patch()). " + SAID,
+    ),
+    # options of existing words
+    Entry(
+        word="table.keep_rows_where",
+        option="capitals_matter=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
+                df[df["subject"].str.lower() == "maths"]
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
+                df.filter(pl.col("subject").str.to_lowercase() == "maths")
+            """,
+        },
+        compare="table",
+        also="matches_pattern= takes a regular expression (pandas and Polars str.contains), and capitals_matter=False "
+             "puts (?i) in front of it. " + SAID,
+    ),
+    Entry(
+        word="table.count_rows",
+        option="with_totals=",
+        data="fruit",
+        ours="""
+            table = sdata.get_example("fruit")
+            table.count_rows(for_each_group_in="shop", across="fruit", with_totals=True)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fruit.csv")
+                # count_rows(for_each_group_in="shop", across="fruit", with_totals=True)
+                pd.crosstab(df["shop"], df["fruit"], margins=True,
+                            margins_name="(total)").reset_index()                   # (1)
+            """,
+        },
+        compare="table",
+        choices=("each total is worked out from the rows themselves, as pandas margins=True does (for an average, "
+                 "the average of all the rows, not of the cells); Polars has no margins, so simplydata works out "
+                 "each total with group_by().agg() on both engines. The total row and column are called "
+                 "\"(total)\"; rows with an empty key stay, as \"(empty)\", and count in the totals (pandas "
+                 "leaves them out; this table has none).",),
+        also="find_total_of and find_average_of take with_totals= too (pandas pivot_table(margins=True)).",
+    ),
+    Entry(
+        word="table.add_rank_column",
+        option="when_tied=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.add_rank_column("place", from_column="marks", for_each_group_in="subject",
+                                  when_tied="share the average place")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # add_rank_column("place", from_column="marks", for_each_group_in="subject", when_tied=...)
+                place = df.groupby("subject")["marks"].rank(method="average", ascending=False)
+                df.assign(place=place)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # add_rank_column("place", from_column="marks", for_each_group_in="subject", when_tied=...)
+                place = pl.col("marks").rank("average", descending=True).over("subject")
+                df.with_columns(place.alias("place"))
+            """,
+        },
+        compare="table",
+        also="when_tied= \"share the best place\" is method=\"min\", \"no gaps\" \"dense\" and \"in table order\" "
+             "\"first\" (Polars \"ordinal\"). " + SAID,
+    ),
+    Entry(
+        word="table.add_group_column",
+        option="into_equal_groups=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.add_group_column("quarter", from_column="marks", into_equal_groups=4)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # add_group_column("quarter", from_column="marks", into_equal_groups=4)
+                df.assign(quarter=pd.qcut(df["marks"], 4, labels=False) + 1)        # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # add_group_column("quarter", from_column="marks", into_equal_groups=4)
+                quarter = pl.col("marks").qcut(4, labels=["1", "2", "3", "4"]).cast(pl.String)
+                df.with_columns(quarter.cast(pl.Int64).alias("quarter"))             # (1)
+            """,
+        },
+        compare="table",
+        choices=("the groups are numbered 1 (the smallest values) to 4, counted from 1 as everywhere in simplydata "
+                 "(pandas labels=False counts from 0), or named with names=; the cut points are printed.",),
+        also="too many equal values for the groups is refused with a plain sentence. " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_text",
+        option="written_like=",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.turn_into_text("date", written_like="31.12.2026")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
+                # turn_into_text("date", written_like="31.12.2026")
+                df.assign(date=df["date"].dt.strftime("%d.%m.%Y"))                  # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
+                # turn_into_text("date", written_like="31.12.2026")
+                df.with_columns(pl.col("date").dt.to_string("%d.%m.%Y"))             # (1)
+            """,
+        },
+        compare="table",
+        choices=("the example date is turned into the % codes by a fixed table of its parts (a four-digit year, "
+                 "the number above 12 as the day, month and weekday names); an example whose day is 12 or less is "
+                 "refused, because then the day cannot be told from the month.",),
+        also="turn_into_dates(written_like=) reads text the same way (pandas to_datetime(format=), Polars "
+             "str.strptime). " + SAID,
+    ),
+    Entry(
+        word="table.add_column",
+        option="counted_in=",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.add_column("check_on", from_column="date", plus="36 hours")
+            table.add_column("hours", by_subtracting=["check_on", "date"], counted_in="hours")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd, numpy as np
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
+                df["check_on"] = df["date"] + pd.Timedelta(hours=36)
+                # add_column("hours", by_subtracting=["check_on", "date"], counted_in="hours")
+                df.assign(hours=np.trunc((df["check_on"] - df["date"]) / pd.Timedelta(hours=1)))  # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("shop.csv", try_parse_dates=True).with_columns(pl.col("date").cast(pl.Datetime))
+                df = df.with_columns(pl.col("date").dt.offset_by("36h").alias("check_on"))
+                # add_column("hours", by_subtracting=["check_on", "date"], counted_in="hours")
+                df.with_columns((pl.col("check_on") - pl.col("date")).dt.total_hours().alias("hours"))  # (1)
+            """,
+        },
+        compare="table",
+        choices=("whole units, counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars total_hours(); "
+                 "pandas gives 1.98 until it is truncated).",),
+        also="plus= and minus= on a date column take \"1 month\", \"2 weeks\", \"30 days\" or \"12 hours\" (pandas "
+             "DateOffset, Polars dt.offset_by). " + SAID,
+    ),
+    Entry(
+        word="table.round_dates_in",
+        option="to_the=",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.round_dates_in("sampled_local", to_the="hour")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv", parse_dates=["sampled_local"])
+                # round_dates_in("sampled_local", to_the="hour")
+                half_up = (df["sampled_local"] + pd.Timedelta("30min")).dt.floor("h")   # (1)
+                df.assign(sampled_local=half_up)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv", try_parse_dates=True)
+                # round_dates_in("sampled_local", to_the="hour")
+                df.with_columns(pl.col("sampled_local").dt.round("1h"))              # (1)
+            """,
+        },
+        compare="table",
+        choices=("a time exactly half way goes up (10:30 becomes 11:00), as Polars dt.round() does; pandas "
+                 "dt.round() would send it to the even hour (10:00), so the two engines would differ.",),
+        also="to_the= takes seconds, minutes, hours and days; months and years have no one length, so they are "
+             "rounded with down_to= or up_to=. " + SAID,
+    ),
+]

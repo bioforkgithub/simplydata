@@ -109,6 +109,10 @@ SPREAD_SHOWS = {"average": "mean", "total": "sum", "median": "median", "smallest
 SPREAD_OTHER_SHOWS = {"mean": "average", "sum": "total", "min": "smallest", "max": "biggest"}
 
 
+# replace_text_in(capitals_matter=False): the signs that have a meaning in a pattern, in Python re and Rust regex
+_PATTERN_SIGNS = re.compile(r"[\\.^$|?*+()\[\]{}]")
+
+
 def _value_note(key: str, text: str) -> None:
     """One line, once per session, when a value from another tool runs as the simplydata value."""
     from .._errors import _NOTED
@@ -569,7 +573,36 @@ FROM_COLUMN_EXAMPLE = (
     'For example: table.add_column("half", from_column="marks", divide_by=2)   (with sdata.get_example("marks"))'
 )
 DATE_PARTS = ("year", "quarter", "month", "month name", "week", "day", "weekday", "weekday name",
-              "day of year", "hour", "minute")
+              "day of year", "hour", "minute",
+              # tables phase, batch 2 (approved by Manish 2026-11-25)
+              "date", "time", "second", "is weekend", "days in month", "is month end", "is leap year",
+              "year and month")
+# the parts that need a time of day in the column
+_TIME_PARTS = ("hour", "minute", "time", "second")
+
+# ---------------------------------------------------------------- tables phase, batch 2 (approved 2026-11-25)
+# add_column(from_column=<a date>, plus="1 month"): the units, and the narwhals dt.offset_by code of one of each
+# (pandas DateOffset / Timedelta, Polars dt.offset_by("1mo")); a week is 7 days
+DURATION_UNITS = {"second": "s", "minute": "m", "hour": "h", "day": "d", "week": "d", "month": "mo", "year": "y"}
+# add_column(by_subtracting=[end, start], counted_in=): the seconds in one of each unit
+COUNTED_IN = {"days": 86400, "hours": 3600, "minutes": 60, "weeks": 604800}
+# add_rank_column(when_tied=): the house words and the narwhals rank(method=) of each (pandas rank(method=),
+# Polars rank(method=); narwhals "ordinal" is pandas "first")
+WHEN_TIED = {"share the best place": "min", "share the average place": "average", "no gaps": "dense",
+             "in table order": "ordinal"}
+
+
+def _duration(option, value):
+    """ "1 month" -> ("1mo", "1 month"); "2 weeks" -> ("14d", "2 weeks"). A number and a unit, nothing else."""
+    example = 'For example: table.add_column("check_on", from_column="date", plus="1 month")   (with sdata.get_example("shop"))'
+    words = value.strip().lower().split() if isinstance(value, str) else []
+    if len(words) == 2 and words[0].isdigit() and words[1].rstrip("s") in DURATION_UNITS:
+        count, unit = int(words[0]), words[1].rstrip("s")
+        code = f"{count * 7}d" if unit == "week" else f"{count}{DURATION_UNITS[unit]}"
+        return code, unit, f"{count} {unit}{'s' if count != 1 else ''}"
+    raise SimplydataError(
+        f'{option}= on a date column takes a number and a unit in quotes, such as {option}="1 month", "30 days", '
+        '"2 weeks", "1 year" or "12 hours".\n' + example)
 MONTH_NAMES = ("January", "February", "March", "April", "May", "June", "July", "August",
                "September", "October", "November", "December")
 WEEKDAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
@@ -738,8 +771,15 @@ class ColumnWords:
     # ------------------------------------------------------------------ new columns
     def _work_out(self, step, name, formula=None, by_adding=None, by_subtracting=None, by_multiplying=None,
                   by_dividing=None, by_joining_text=None, separator=None, by_running=None, for_each=None,
-                  from_column=None, plus=None, minus=None, times=None, divide_by=None, value=None):
+                  from_column=None, plus=None, minus=None, times=None, divide_by=None, value=None, counted_in=None):
         """The new values for add_column() and change_column(): (frame with the column, words for show_steps())."""
+        if counted_in is not None and (by_subtracting is None or not isinstance(by_subtracting, (list, tuple)) or not
+                                       all(isinstance(n, str) and n in self._columns and self._kind(n) == "date"
+                                           for n in by_subtracting)):
+            raise SimplydataError(
+                "counted_in= says the unit of the time between two dates, so it goes with by_subtracting= and two "
+                'date columns, for example\ntable.add_column("hours", by_subtracting=["end", "start"], '
+                'counted_in="hours")')
         lists = {"by_adding": by_adding, "by_subtracting": by_subtracting,
                  "by_multiplying": by_multiplying, "by_dividing": by_dividing}
         numbers_given = {"plus": plus, "minus": minus, "times": times, "divide_by": divide_by}
@@ -809,6 +849,8 @@ class ColumnWords:
             if not isinstance(from_column, str):
                 raise SimplydataError(f"from_column= should be one column name.\n{FROM_COLUMN_EXAMPLE}")
             self._need_columns(from_column)
+            if self._kind(from_column) == "date" and len(given_numbers) == 1 and given_numbers[0] in ("plus", "minus"):
+                return self._date_plus(name, from_column, given_numbers[0], numbers_given[given_numbers[0]])
             self._need_numbers(from_column, step=step)
             if len(given_numbers) != 1:
                 raise SimplydataError(
@@ -840,7 +882,7 @@ class ColumnWords:
         if option == "by_joining_text":
             return self._join_text(name, cols, separator)
         if any(self._kind(c) == "date" for c in cols):
-            return self._days_between(name, option, cols)
+            return self._days_between(name, option, cols, counted_in)
         self._need_numbers(*cols, step=step)
         expr = nw.col(cols[0])
         for c in cols[1:]:
@@ -855,8 +897,22 @@ class ColumnWords:
         sign = {"by_adding": " + ", "by_subtracting": " - ", "by_multiplying": " * ", "by_dividing": " / "}[option]
         return self._frame.with_columns(expr.alias(name)), sign.join(cols)
 
-    def _days_between(self, name, option, cols):
-        """end - start for two date columns: the number of whole days."""
+    def _date_plus(self, name, column, option, amount):
+        """from_column=<dates>, plus="1 month" / minus="30 days": narwhals dt.offset_by (pandas + pd.DateOffset(months=1),
+        Polars dt.offset_by("1mo")). A month on from 31 January is the last day of February, on both."""
+        code, unit, said = _duration(option, amount)
+        if self._frame.schema[column] == nw.Date and unit in ("hour", "minute", "second"):
+            raise SimplydataError(f'"{column}" holds dates without a time of day, so {said} cannot be added to it.')
+        if option == "minus":
+            code = "-" + code
+        frame = self._frame.with_columns(nw.col(column).dt.offset_by(code).alias(name))
+        sign = "+" if option == "plus" else "-"
+        if unit in ("month", "year"):
+            print(f'"{name}" is {column} {sign} {said}; a day that the new month lacks (31 April) becomes its last day.')
+        return frame, f"{column} {sign} {said}"
+
+    def _days_between(self, name, option, cols, counted_in=None):
+        """end - start for two date columns: the number of whole days (or hours, minutes, weeks with counted_in=)."""
         example = 'For example: table.add_column("days", by_subtracting=["end", "start"])'
         not_dates = [c for c in cols if self._kind(c) != "date"]
         if option != "by_subtracting" or len(cols) != 2 or not_dates:
@@ -872,17 +928,22 @@ class ColumnWords:
             a = a.cast(types[1])
         elif types[1] == nw.Date and types[0] != nw.Date:
             b = b.cast(types[0])
+        unit = "days" if counted_in is None else counted_in
+        if unit not in COUNTED_IN:
+            raise choice_error("add_column", "counted_in", counted_in, list(COUNTED_IN))
+        size = COUNTED_IN[unit]
         seconds = (a - b).dt.total_seconds()
-        # whole days, counted towards zero: 1 day 23 hours is 1 day, and -1 day 23 hours is -1 day
-        days = nw.when(seconds >= 0).then(seconds // 86400).otherwise(-((-seconds) // 86400))
+        # whole units, counted towards zero: 1 day 23 hours is 1 day, and -1 day 23 hours is -1 day (as Polars
+        # dt.total_days() / total_hours() / total_minutes(), and pandas (end - start) / pd.Timedelta(hours=1), truncated)
+        days = nw.when(seconds >= 0).then(seconds // size).otherwise(-((-seconds) // size))
         try:
             frame = self._frame.with_columns(days.alias(name))
         except Exception as error:  # for example one column with a time zone and one without
             raise SimplydataError(f"The days between {end} and {start} could not be worked out: {error}") from None
         if frame[name].null_count() == 0:
             frame = frame.with_columns(nw.col(name).cast(nw.Int64))
-        print(f'"{name}" is the number of whole days from {start} to {end} (negative when {end} is earlier).')
-        return frame, f"{end} - {start} (whole days)"
+        print(f'"{name}" is the number of whole {unit} from {start} to {end} (negative when {end} is earlier).')
+        return frame, f"{end} - {start} (whole {unit})"
 
     def _join_text(self, name, cols, separator):
         sep = " " if separator is None else separator
@@ -950,7 +1011,7 @@ class ColumnWords:
             raise SimplydataError(f"The values from {fname} could not become a column: {error}") from None
         return frame, f"{fname.replace('()', '')}(row) for each row"
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"units": "counted_in"})
     def add_column(
         self: _Same,
         name=None,
@@ -969,6 +1030,7 @@ class ColumnWords:
         times=None,
         divide_by=None,
         value=None,
+        counted_in=None,
     ) -> _Same:
         """Add a new column, worked out from other columns in plain words or with a formula.
 
@@ -984,6 +1046,13 @@ class ColumnWords:
 
         Days between two dates: by_subtracting=["end", "start"] with two date columns gives
         the number of whole days from start to end (a part of a day is not counted).
+        counted_in="hours" (or "minutes", "weeks") counts whole hours instead, as Polars
+        (end - start).dt.total_hours() and pandas (end - start) / pd.Timedelta(hours=1):
+          table.add_column("hours", by_subtracting=["end", "start"], counted_in="hours")
+        A date some time later or earlier: from_column= a date column with plus= or minus= a number
+        and a unit, "30 days", "2 weeks", "1 month", "1 year" or "12 hours" (pandas + pd.DateOffset(months=1),
+        Polars dt.offset_by("1mo")). A month after 31 January is 28 (or 29) February:
+          table.add_column("check_on", from_column="date", plus="1 month")   (with sdata.get_example("shop"))
 
         Summary words in a formula, average() median() total() smallest() biggest() count(),
         give one value for the whole column, or for each group with for_each_group_in=:
@@ -1000,10 +1069,11 @@ class ColumnWords:
         self._check_new_name(name, "add_column")
         frame, words = self._work_out(
             "add_column", name, formula, by_adding, by_subtracting, by_multiplying, by_dividing, by_joining_text,
-            separator, by_running, for_each_group_in, from_column, plus, minus, times, divide_by, value)
+            separator, by_running, for_each_group_in, from_column, plus, minus, times, divide_by, value,
+            counted_in=counted_in)
         return self._finish(name, frame, f'add column "{name}" = {words}')
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"units": "counted_in"})
     def change_column(
         self: _Same,
         column=None,
@@ -1023,6 +1093,7 @@ class ColumnWords:
         divide_by=None,
         value=None,
         in_rows_where=None,
+        counted_in=None,
     ) -> _Same:
         """Change the values of a column in place, with the same ways as add_column().
 
@@ -1045,14 +1116,16 @@ class ColumnWords:
                 column, formula, by_adding=by_adding, by_subtracting=by_subtracting, by_multiplying=by_multiplying,
                 by_dividing=by_dividing, by_joining_text=by_joining_text, separator=separator, by_running=by_running,
                 for_each_group_in=for_each_group_in, from_column=from_column, plus=plus, minus=minus, times=times,
-                divide_by=divide_by, value=value))
+                divide_by=divide_by, value=value, counted_in=counted_in))
         frame, words = self._work_out(
             "change_column", column, formula, by_adding, by_subtracting, by_multiplying, by_dividing,
-            by_joining_text, separator, by_running, for_each_group_in, from_column, plus, minus, times, divide_by, value)
+            by_joining_text, separator, by_running, for_each_group_in, from_column, plus, minus, times, divide_by, value,
+            counted_in=counted_in)
         return self._finish(column, frame, f'change column "{column}" = {words}')
 
-    @friendly
-    def add_group_column(self: _Same, name=None, from_column=None, cut_at=None, names=None, rules=None, otherwise=None) -> _Same:
+    @friendly(others={"q": "into_equal_groups"})
+    def add_group_column(self: _Same, name=None, from_column=None, cut_at=None, names=None, rules=None, otherwise=None,
+                         into_equal_groups=None) -> _Same:
         """Add a column that puts each row into a group, like turning marks into grades.
 
         Two ways. With numbers: cut_at= says where one group ends and the next begins; names=
@@ -1065,8 +1138,19 @@ class ColumnWords:
           table.add_group_column("result", rules={"marks >= 80": "top", "marks >= 50": "pass"}, otherwise="fail")
         (both with sdata.get_example("marks")). Rules can also be a list of pairs:
         rules=[("marks >= 80", "top"), ("marks >= 50", "pass")].
+        into_equal_groups=4 makes 4 groups with about the same number of rows each (quarters): the
+        cut points are the 25th, 50th and 75th percentiles, printed in the sentence. The groups are
+        1 (the smallest values) to 4, or the names in names=. As pandas pd.qcut(marks, 4) and Polars
+        qcut(4); a value on a cut point goes into the lower group, as both do.
+          table.add_group_column("quarter", from_column="marks", into_equal_groups=4)
         """
         step = "add_group_column"
+        if into_equal_groups is not None:
+            if rules is not None or cut_at is not None or otherwise is not None:
+                raise SimplydataError("into_equal_groups= makes its own cut points, so leave out cut_at=, rules= and "
+                                      "otherwise=.\nFor example: table.add_group_column(\"quarter\", from_column="
+                                      "\"marks\", into_equal_groups=4)   (with sdata.get_example(\"marks\"))")
+            return self._equal_groups(name, from_column, into_equal_groups, names)
         example = ('For example: table.add_group_column("grade", from_column="marks", '
                    'cut_at=[40, 60, 80], names=["D", "C", "B", "A"])   (with sdata.get_example("marks"))')
         self._check_new_name(name, step)
@@ -1106,6 +1190,55 @@ class ColumnWords:
             expr = nw.when(col < cut).then(nw.lit(label)).otherwise(expr)
         expr = nw.when(~col.is_null()).then(expr)
         return self._put_column(name, expr, f'add group column "{name}" from {from_column} (cut at {list(cut_at)})')
+
+    def _equal_groups(self, name, from_column, n, names):
+        """add_group_column(into_equal_groups=n): pandas pd.qcut(x, n) / Polars qcut(n); groups 1..n or names=."""
+        step = "add_group_column"
+        example = ('For example: table.add_group_column("quarter", from_column="marks", into_equal_groups=4)'
+                   '   (with sdata.get_example("marks"))')
+        self._check_new_name(name, step)
+        if not isinstance(from_column, str):
+            raise SimplydataError(f"into_equal_groups= needs from_column= with one column name.\n{example}")
+        self._need_columns(from_column)
+        self._need_numbers(from_column, step=step)
+        if isinstance(n, bool) or not isinstance(n, int) or n < 2:
+            raise SimplydataError(f"into_equal_groups= is how many groups to make: a whole number, 2 or more.\n{example}")
+        if names is not None and (not isinstance(names, (list, tuple)) or len(names) != n
+                                  or not all(isinstance(v, str) for v in names)):
+            raise SimplydataError(f"names= needs {n} group names in quotes, one for each group, smallest values "
+                                  f"first.\n{example}")
+        values = self._frame[from_column].to_native()
+        filled = int(len(values) - self._frame[from_column].null_count())
+        if filled < n:
+            raise SimplydataError(f'"{from_column}" has {filled} filled cells, too few for {n} groups.')
+        labels = list(names) if names is not None else list(range(1, n + 1))
+        # one parent for both engines: pandas qcut (Polars qcut makes empty groups where pandas refuses, and its
+        # replacement bin_quantiles cuts at data values), so a Polars table gets the very same groups and cut points
+        import pandas as pd
+
+        series = self._frame[from_column].to_pandas().astype("float64")
+        try:
+            found, edges = pd.qcut(series, n, labels=labels, retbins=True)  # pandas pd.qcut(marks, 4)
+        except ValueError as error:  # duplicate edges: the parent's refusal, said in words below
+            raise SimplydataError(
+                f'"{from_column}" has too many equal values to cut it into {n} groups of about equal size (two cut '
+                f"points would be the same value). Make fewer groups, such as into_equal_groups={max(2, n - 1)}, or "
+                f"give cut_at= yourself.\n({str(error).splitlines()[0]})") from None
+        cuts = list(edges[1:-1])
+        values = [None if pd.isna(v) else (int(v) if names is None else str(v)) for v in found.astype(object)]
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            groups = pl.Series(name, values, dtype=pl.Int64 if names is None else pl.String)
+        else:  # whole group numbers stay whole next to an empty cell (pandas Int64)
+            groups = pd.Series(values, name=name, dtype="Int64" if names is None else object)
+            if names is None and not groups.isna().any():
+                groups = groups.astype("int64")
+        frame = self._frame.with_columns(nw.from_native(groups, series_only=True).alias(name))
+        shown = ", ".join(f"{float(c):g}" for c in cuts)
+        print(f'"{name}" puts each row into one of {n} groups with about the same number of rows, by "{from_column}", '
+              f"cut at {shown} (a value on a cut point goes into the lower group).")
+        return self._finish(name, frame, f'add group column "{name}" from {from_column} ({n} equal groups)')
 
     def _group_by_rules(self, name, rules, otherwise):
         example = ('For example: table.add_group_column("result", rules={"marks >= 80": "top", "marks >= 50": "pass"}, '
@@ -1165,14 +1298,23 @@ class ColumnWords:
             rule_words += f"; otherwise {_plain(otherwise)}"
         return self._finish(name, frame, f'add group column "{name}" by rules ({rule_words})')
 
-    @friendly
-    def add_rank_column(self: _Same, name=None, from_column=None, biggest_first=True) -> _Same:
+    @friendly(renamed={"for_each": "for_each_group_in"},
+              pointers={"method": 'when_tied= ("share the best place", "share the average place", "no gaps" or '
+                                  '"in table order")'})
+    def add_rank_column(self: _Same, name=None, from_column=None, biggest_first=True, for_each_group_in=None,
+                        when_tied="share the best place") -> _Same:
         """Add a column with each row's place, where 1 is the best.
 
         The biggest value gets place 1 (biggest_first=False gives 1 to the smallest). Rows that
         tie share the best place and the next place is skipped, as in sports tables: 1, 2, 2, 4.
         Empty cells get no place.
         table.add_rank_column("place", from_column="marks")   (with sdata.get_example("marks"))
+        for_each_group_in= starts the places again at 1 in each group. when_tied= says what rows
+        that tie get: "share the best place" (1, 2, 2, 4), "share the average place" (1, 2.5, 2.5, 4),
+        "no gaps" (1, 2, 2, 3) or "in table order" (1, 2, 3, 4). As pandas
+        groupby("subject")["marks"].rank(method="min" / "average" / "dense" / "first") and Polars
+        rank(method=...).over("subject"):
+          table.add_rank_column("place", from_column="marks", for_each_group_in="subject", when_tied="share the average place")
         """
         self._check_new_name(name, "add_rank_column")
         if not isinstance(from_column, str):
@@ -1183,11 +1325,23 @@ class ColumnWords:
         if not isinstance(biggest_first, bool):
             raise SimplydataError("biggest_first= should be True or False.")
         self._need_columns(from_column)
-        expr = nw.col(from_column).rank("min", descending=biggest_first)
-        if self._frame[from_column].null_count() == 0:
+        self._check_choice("add_rank_column", "when_tied", when_tied, tuple(WHEN_TIED))
+        keys = self._group_keys(for_each_group_in, 'For example: table.add_rank_column("place", from_column="marks", '
+                                                   'for_each_group_in="subject")   (with sdata.get_example("marks"))')
+        method = WHEN_TIED[when_tied]
+        expr = nw.col(from_column).rank(method, descending=biggest_first)  # pandas rank(method=), Polars rank(method=)
+        if keys:
+            expr = expr.over(*keys)  # pandas groupby(keys)[column].rank(...), Polars rank(...).over(keys)
+        if self._frame[from_column].null_count() == 0 and method != "average":
             expr = expr.cast(nw.Int64)
         order = "biggest first" if biggest_first else "smallest first"
-        return self._put_column(name, expr, f'add rank column "{name}" from {from_column} ({order})')
+        more = ""
+        if keys or when_tied != "share the best place":
+            group = f" in each {', '.join(keys)}" if keys else ""
+            print(f'"{name}" is each row\'s place by {from_column}{group} ({order}); rows that tie: {when_tied}.')
+            more = (f", for each {', '.join(keys)}" if keys else "") + (
+                f", {when_tied}" if when_tied != "share the best place" else "")
+        return self._put_column(name, expr, f'add rank column "{name}" from {from_column} ({order}{more})')
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def add_z_score_column(self: _Same, name=None, from_column=None, for_each_group_in=None) -> _Same:
@@ -1258,6 +1412,14 @@ class ColumnWords:
         "day of year" (1 to 366), "hour" or "minute". Empty dates give empty cells.
           table.add_column_with_part_of_date("weekday", from_column="date", part="weekday name")
         (with sdata.get_example("shop"): which weekday was each day?)
+        More parts: "date" (the day, without the time), "time" (the time of day), "second",
+        "is weekend" (True on Saturday and Sunday), "days in month" (28 to 31), "is month end" (True
+        on the last day of a month), "is leap year", and "year and month" (text such as "2026-03", to
+        group by month across years). As pandas dt.normalize(), dt.time, dt.second, dt.dayofweek >= 5,
+        dt.days_in_month, dt.is_month_end, dt.is_leap_year and dt.strftime("%Y-%m"), and Polars
+        dt.truncate("1d"), dt.time(), dt.second(), dt.weekday() >= 6, dt.days_in_month(),
+        dt.month_end(), dt.is_leap_year() and dt.to_string("%Y-%m"):
+          table.add_column_with_part_of_date("weekend", from_column="date", part="is weekend")
         """
         step = "add_column_with_part_of_date"
         example = ('For example: table.add_column_with_part_of_date("weekday", from_column="date", part="weekday name")'
@@ -1278,11 +1440,14 @@ class ColumnWords:
                     if kind in ("text", "number") else "")
             raise SimplydataError(f'"{from_column}" holds {kind} values, not dates.{hint}\n{example}')
         dtype = self._frame.schema[from_column]
-        if part in ("hour", "minute") and dtype == nw.Date:
+        if part in _TIME_PARTS and dtype == nw.Date:
             raise SimplydataError(f'"{from_column}" holds dates without a time of day, so it has no {part}s.')
         col = nw.col(from_column)
         if part == "week":
             return self._finish(name, self._iso_week(name, from_column), f'add date part column "{name}" = week of {from_column}')
+        if part in ("time", "days in month", "is month end", "is leap year"):
+            return self._finish(name, self._native_date_part(name, from_column, part),
+                                f'add date part column "{name}" = {part} of {from_column}')
         expr = {
             "year": lambda: col.dt.year(),
             "quarter": lambda: (col.dt.month() - 1) // 3 + 1,
@@ -1296,10 +1461,41 @@ class ColumnWords:
             "day of year": lambda: col.dt.ordinal_day(),
             "hour": lambda: col.dt.hour(),
             "minute": lambda: col.dt.minute(),
+            "date": lambda: col.dt.truncate("1d"),  # pandas dt.normalize() (dt.floor("D")), Polars dt.truncate("1d")
+            "second": lambda: col.dt.second(),
+            "is weekend": lambda: nw.when(~col.is_null()).then(col.dt.weekday() >= 6),  # 6 and 7: Sat and Sun (ISO)
+            "year and month": lambda: col.dt.to_string("%Y-%m"),  # pandas dt.strftime, Polars dt.to_string
         }[part]()
-        if part not in ("month name", "weekday name") and self._frame[from_column].null_count() == 0:
+        if part not in ("month name", "weekday name", "date", "is weekend", "year and month") and \
+                self._frame[from_column].null_count() == 0:
             expr = expr.cast(nw.Int64)
         return self._put_column(name, expr, f'add date part column "{name}" = {part} of {from_column}')
+
+    def _native_date_part(self, name, column, part):
+        """The date parts narwhals has no word for, from each engine: pandas dt.time, dt.days_in_month,
+        dt.is_month_end, dt.is_leap_year; Polars dt.time(), dt.days_in_month(), dt.month_end(), dt.is_leap_year().
+        An empty date gives an empty cell (pandas gives False for NaT in the yes/no parts)."""
+        native = self._frame[column].to_native()
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            frame = pl.DataFrame({"d": native})
+            d = pl.col("d")
+            expr = {"time": lambda: d.dt.time(), "days in month": lambda: d.dt.days_in_month().cast(pl.Int64),
+                    "is month end": lambda: d.dt.month_end().dt.day() == d.dt.day(),
+                    "is leap year": lambda: d.dt.is_leap_year()}[part]()
+            values = frame.select(expr.alias(name))[name]
+        else:
+            empty = native.isna()
+            values = {"time": lambda: native.dt.time, "days in month": lambda: native.dt.days_in_month,
+                      "is month end": lambda: native.dt.is_month_end,
+                      "is leap year": lambda: native.dt.is_leap_year}[part]()
+            if empty.any():
+                values = values.astype(object).where(~empty, None)
+            elif part == "days in month":
+                values = values.astype("int64")
+            values = values.rename(name)
+        return self._frame.with_columns(nw.from_native(values, series_only=True).alias(name))
 
     def _iso_week(self, name, column):
         """ISO week numbers (weeks start on Monday; week 1 holds the year's first Thursday)."""
@@ -1375,8 +1571,11 @@ class ColumnWords:
             print(f"{_cells_word(longer)} had more than {k} pieces; the rest stays in {into[-1]}.")
         return self._change(f"split {column} at {_plain(separator)} into {', '.join(into)}", frame)
 
-    @friendly(renamed={"pattern": "matches_pattern"})
-    def replace_text_in(self: _Same, column=None, old=None, with_value=None, matches_pattern=None) -> _Same:
+    @friendly(renamed={"pattern": "matches_pattern"},
+              pointers={"case": "capitals_matter= (case=False is capitals_matter=False)",
+                        "ignore_case": "capitals_matter=False", "regex": "matches_pattern="})
+    def replace_text_in(self: _Same, column=None, old=None, with_value=None, matches_pattern=None,
+                        capitals_matter=True) -> _Same:
         """Replace a piece of text inside the cells of a text column, wherever it appears.
 
         The old text is plain text and capitals matter. with_value="" removes it.
@@ -1384,6 +1583,9 @@ class ColumnWords:
         matches_pattern= takes a regular expression instead of plain text (a pattern language for
         text: \\d means a digit, \\s a space, + "one or more"):
           table.replace_text_in("shop", matches_pattern=r"\\s+", with_value="_")
+        capitals_matter=False finds the old text in any capitals (" Shop", " SHOP"), as pandas
+        str.replace(case=False) and Polars str.replace_all("(?i)..."):
+          table.replace_text_in("shop", " SHOP", with_value="", capitals_matter=False)
         """
         step = "replace_text_in"
         example = 'For example: table.replace_text_in("shop", " shop", with_value="")   (with sdata.get_example("fruit"))'
@@ -1399,6 +1601,16 @@ class ColumnWords:
             raise SimplydataError(f'.replace_text_in() needs with_value= the new text (with_value="" removes it).\n{example}')
         if not isinstance(with_value, str):
             raise SimplydataError(f'with_value= should be text in quotes, like with_value="{with_value}".')
+        if not isinstance(capitals_matter, bool):
+            raise SimplydataError("capitals_matter= should be True or False.")
+        if not capitals_matter and old is not None:
+            if not isinstance(old, str) or old == "":
+                raise SimplydataError("The old text should be some text in quotes.\n" + example)
+            # the plain text as a pattern: each sign that means something in a pattern (in Python re and in Polars'
+            # Rust regex alike) gets a backslash in front, so the text is found as written
+            plain_old, matches_pattern, old = old, _PATTERN_SIGNS.sub(r"\\\g<0>", old), None
+        else:
+            plain_old = None
         if old is not None:
             if not isinstance(old, str) or old == "":
                 raise SimplydataError(
@@ -1415,9 +1627,13 @@ class ColumnWords:
                 value = with_value.replace("$", "$$")
             else:
                 value = with_value.replace("\\", "\\\\")
-            found = text.str.contains(matches_pattern, literal=False)
-            new = text.str.replace_all(matches_pattern, value, literal=False)
-            what = f"the pattern {_plain(matches_pattern)}"
+            if capitals_matter:
+                found = text.str.contains(matches_pattern, literal=False)
+                new = text.str.replace_all(matches_pattern, value, literal=False)
+            else:  # capitals do not matter: Polars str.replace_all("(?i)...") for both engines, so it is one rule
+                found, new = self._replace_any_capitals(column, matches_pattern, with_value)
+            what = (_plain(plain_old) if plain_old is not None else f"the pattern {_plain(matches_pattern)}") + (
+                "" if capitals_matter else " (capitals do not matter)")
         try:
             with warnings.catch_warnings():  # pandas warns about brackets ( ) in a pattern used for finding
                 warnings.simplefilter("ignore", UserWarning)
@@ -1427,6 +1643,30 @@ class ColumnWords:
             raise self._pattern_engine_error(matches_pattern, error) from None
         print(f"Replaced {what} in {_cells_word(n)} of {column}.")
         return self._change(f"replace {what} in {column} with {_plain(with_value)}", frame)
+
+    def _replace_any_capitals(self, column, pattern, with_value):
+        """replace_text_in(capitals_matter=False): each different value of the column is changed by Polars
+        str.replace_all("(?i)" + pattern) (the Rust rules: Unicode simple case folding), on pandas tables too, and
+        the column takes the new values (narwhals replace_strict). Gives (found, new) as expressions."""
+        from .rows import _found_among, _text_values
+
+        try:
+            import polars as pl
+        except ImportError:
+            raise SimplydataError("capitals_matter=False in replace_text_in uses the fast engine (Polars) for every "
+                                  "table, so that it is one rule everywhere.\nInstall it with:  pip install "
+                                  "simplydata[fast]") from None
+        values = _text_values(self._frame, column)
+        try:
+            changed = pl.Series(values, dtype=pl.String).str.replace_all("(?i)" + pattern,
+                                                                         with_value.replace("$", "$$")).to_list()
+        except Exception as error:  # noqa: BLE001 - the parent's refusal, said in words
+            raise self._pattern_engine_error(pattern, error) from None
+        mapping = dict(zip(values, changed))
+        found = _found_among(column, values, [old != new for old, new in mapping.items()])
+        text = nw.col(column).cast(nw.String)
+        new = text.replace_strict(mapping, default=text, return_dtype=nw.String) if mapping else text
+        return found, new
 
     @staticmethod
     def _check_pattern(pattern):

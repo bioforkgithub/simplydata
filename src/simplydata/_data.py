@@ -12,6 +12,7 @@ from __future__ import annotations
 import codecs
 import csv
 import glob
+import inspect
 import io
 import keyword
 import os
@@ -60,6 +61,10 @@ _OPTIONS_FOR = {
     "skip_rows": ("csv", "tsv", "excel", "word"),
     "table_number": ("word",),
     "read_as_text": ("csv", "tsv", "excel", "word"),
+    # tables phase, batch 2 (approved by Manish 2026-11-25)
+    "columns": ("csv", "tsv", "excel", "parquet"),
+    "column_names": ("csv", "tsv", "excel"),
+    "skip_lines_starting_with": ("csv", "tsv"),
 }
 
 READING_OPTIONS = tuple(_OPTIONS_FOR)
@@ -129,8 +134,23 @@ def _read_as_text_names(value) -> list:
     return list(dict.fromkeys(value))
 
 
+def _names_option(option, value, example) -> list:
+    """columns= / column_names=: one name or a list of names, each once."""
+    if isinstance(value, str):
+        value = [value]
+    if (not isinstance(value, (list, tuple)) or not value
+            or not all(isinstance(v, str) and v.strip() for v in value)):
+        raise SimplydataError(f"{option}= is a list of column names in quotes.\nFor example:  {example}")
+    twice = sorted({v for v in value if list(value).count(v) > 1})
+    if twice:
+        raise SimplydataError(f"{option}= has {', '.join(twice)} more than once; give each name once.\n"
+                              f"For example:  {example}")
+    return list(value)
+
+
 def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empty_values=None,
-                    skip_rows=None, encoding=None, table_number=None, read_as_text=None) -> dict:
+                    skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
+                    column_names=None, skip_lines_starting_with=None) -> dict:
     """Check the reading options at once and give back only the ones that were given.
 
     sdata.table(...) and sdata.chart(...) pass their options through here, so every
@@ -202,6 +222,25 @@ def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empt
         options["table_number"] = table_number if table_number == "all" else int(table_number)
     if read_as_text is not None:
         options["read_as_text"] = _read_as_text_names(read_as_text)
+    if columns is not None:  # pandas read_csv(usecols=), Polars read_csv(columns=)
+        options["columns"] = _names_option("columns", columns, 'sdata.table("weather.csv", columns=["month", "city", '
+                                                               '"rain"])')
+    if column_names is not None:  # pandas read_csv(header=None, names=), Polars read_csv(has_header=False, new_columns=)
+        options["column_names"] = _names_option("column_names", column_names,
+                                                'sdata.table("logger.csv", column_names=["time", "temperature"])')
+    if skip_lines_starting_with is not None:  # pandas read_csv(comment=), Polars read_csv(comment_prefix=)
+        mark = skip_lines_starting_with
+        if not isinstance(mark, str) or len(mark) != 1 or mark.isalnum() or mark in ",;\t\"' \n":
+            raise SimplydataError(
+                "skip_lines_starting_with= is the one sign that starts a note line in the file, such as \"#\" "
+                "(not a letter, a digit, a quote or a separator).\n"
+                'For example:  sdata.table("logger.csv", skip_lines_starting_with="#")')
+        options["skip_lines_starting_with"] = mark
+    if "columns" in options and "column_names" in options:
+        missing = [c for c in options["columns"] if c not in options["column_names"]]
+        if missing:
+            raise SimplydataError(f'columns= names "{missing[0]}", which is not in column_names=. With column_names= '
+                                  "the names in columns= are the new names.")
     return options
 
 
@@ -325,10 +364,86 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
 def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False, options=None):
     """Read one file (a path, or the bytes of a downloaded file)."""
     options = options or {}
-    found = _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options)
+    if "column_names" in options and kind in ("csv", "tsv", "excel"):
+        _check_column_names(source, kind, label, options)
+    if "skip_lines_starting_with" in options and kind in ("csv", "tsv"):
+        _check_note_mark(source, label, options)
+    try:
+        found = _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options)
+    except SimplydataError:
+        raise
+    except Exception:
+        if "columns" in options:  # the parent's refusal of a missing column, said in words
+            _check_columns_wanted(source, kind, label, options)
+        raise
     if "read_as_text" in options:
         _check_read_as_text(found, options["read_as_text"], label)
+    if "columns" in options:  # in the order given (pandas usecols= and Polars columns= keep the file's order)
+        wanted = options["columns"]
+        found = found.select(wanted) if _is_polars(found) else found[wanted]
     return found
+
+
+def _header_of(source, kind, options, header="infer"):
+    """The first lines of a file, read by pandas with the file's reading options (for the checks below)."""
+    if kind == "excel":
+        return pd.read_excel(_rewind(source), nrows=1, header=0 if header == "infer" else None,
+                             skiprows=options.get("skip_rows"))
+    if kind == "parquet":
+        return pd.read_parquet(_rewind(source)).head(1)
+    sep = options.get("separator") or ("\t" if kind == "tsv" else _guess_separator(
+        _rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0)))
+    return pd.read_csv(_rewind(source), sep=sep, nrows=1, header=header, skiprows=options.get("skip_rows"),
+                       comment=options.get("skip_lines_starting_with"), encoding=options.get("encoding"),
+                       engine=None if len(sep) == 1 else "python")
+
+
+def _check_columns_wanted(source, kind, label, options) -> None:
+    """Every column named in columns= must be in the file; the refusal names the file's columns."""
+    try:
+        names = (options["column_names"] if "column_names" in options
+                 else [str(c) for c in _header_of(source, kind, options).columns])
+    except Exception:  # noqa: BLE001 - the original error is raised instead
+        return
+    missing = [c for c in options["columns"] if c not in names]
+    if missing:
+        lines = [f'columns= names "{missing[0]}", but "{label}" has no column called that.']
+        guess = suggest(missing[0], names, n=1)
+        if guess:
+            lines.append(f'Did you mean "{guess[0]}"?')
+        lines.append("Its columns: " + ", ".join(names))
+        raise SimplydataError("\n".join(lines))
+
+
+def _check_column_names(source, kind, label, options) -> None:
+    """column_names= gives one name for each column of the file (pandas would put extra columns in the row labels,
+    Polars would keep the extra columns' own names)."""
+    width = _header_of(source, kind, options, header=None).shape[1]
+    given = len(options["column_names"])
+    if given != width:
+        raise SimplydataError(
+            f'"{label}" has {width} column{"s" if width != 1 else ""}, but column_names= gives {given} '
+            f'name{"s" if given != 1 else ""}. Give one name for each column, in order; to keep only some of them, '
+            "add columns= with the ones you want.")
+
+
+def _check_note_mark(source, label, options) -> None:
+    """skip_lines_starting_with= skips whole lines. pandas comment= also cuts a line where the sign appears later in
+    it, so a file in which it does is refused, with the line, rather than cut without a word."""
+    mark = options["skip_lines_starting_with"]
+    encoding = options.get("encoding", "utf-8")
+    if isinstance(source, io.BytesIO):
+        text = source.getvalue().decode(encoding, errors="ignore")
+    else:
+        with open(source, encoding=encoding, errors="ignore") as fh:
+            text = fh.read()
+    for number, line in enumerate(text.splitlines(), 1):
+        if mark in line[1:] and not line.startswith(mark):
+            raise SimplydataError(
+                f'Line {number} of "{label}" has "{mark}" inside it, not at its start: {line.strip()[:60]!r}.\n'
+                f'skip_lines_starting_with="{mark}" skips whole lines that start with it, and pandas would cut this '
+                "line at the sign. Choose a sign that starts only the note lines.")
+    _rewind(source)
 
 
 def _check_read_as_text(found, names, label) -> None:
@@ -364,8 +479,8 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
         else:
             if not asked:
                 print("This file is large, so simplydata is using its fast mode.")
-            if kind == "parquet":
-                fast_table = pl.read_parquet(_rewind(source))
+            if kind == "parquet":  # Polars read_parquet(columns=[...])
+                fast_table = pl.read_parquet(_rewind(source), columns=options.get("columns"))
             else:
                 sep = _separator_for(source, kind, label, options)
                 extra = {}
@@ -377,6 +492,21 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
                     extra["skip_rows"] = options["skip_rows"]
                 if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})
                     extra["schema_overrides"] = {name: pl.String for name in options["read_as_text"]}
+                if "column_names" in options:  # Polars read_csv(has_header=False, new_columns=[...])
+                    extra["has_header"] = False
+                    extra["new_columns"] = options["column_names"]
+                elif "columns" in options:  # Polars read_csv(columns=[...])
+                    extra["columns"] = options["columns"]
+                if "skip_lines_starting_with" in options:  # Polars read_csv(comment_prefix="#")
+                    extra["comment_prefix"] = options["skip_lines_starting_with"]
+                    if "skip_rows" in options:
+                        # Polars skip_rows= counts the rows left after the note lines are taken out; pandas
+                        # skiprows= counts the lines as they are in the file. Polars skip_lines= counts those too.
+                        if "skip_lines" not in inspect.signature(pl.read_csv).parameters:
+                            raise SimplydataError(
+                                "skip_rows= and skip_lines_starting_with= together need a newer fast engine (Polars "
+                                "with skip_lines=). Leave out fast=True, or update Polars.")
+                        extra["skip_lines"] = extra.pop("skip_rows")
                 fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
             return fast_table if keep_fast else fast_table.to_pandas()
 
@@ -384,8 +514,8 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
         return _read_text(source, kind, label, options)
     if kind == "excel":
         return _read_excel(source, label, sheet, options)
-    if kind == "parquet":
-        return pd.read_parquet(_rewind(source))
+    if kind == "parquet":  # pandas read_parquet(columns=[...])
+        return pd.read_parquet(_rewind(source), columns=options.get("columns"))
     if kind == "json":
         return pd.read_json(_rewind(source))
     if kind == "word":
@@ -407,6 +537,13 @@ def _pandas_text_options(options: dict) -> dict:
         extra["skiprows"] = options["skip_rows"]
     if "read_as_text" in options:  # pandas read_csv(dtype={"sample_id": str}); empty cells stay empty
         extra["dtype"] = {name: str for name in options["read_as_text"]}
+    if "column_names" in options:  # pandas read_csv(header=None, names=[...])
+        extra["header"] = None
+        extra["names"] = options["column_names"]
+    if "columns" in options:  # pandas read_csv(usecols=[...])
+        extra["usecols"] = options["columns"]
+    if "skip_lines_starting_with" in options:  # pandas read_csv(comment="#")
+        extra["comment"] = options["skip_lines_starting_with"]
     return extra
 
 
