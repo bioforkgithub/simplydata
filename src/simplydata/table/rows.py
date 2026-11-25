@@ -30,7 +30,7 @@ from ._base import numbered, numbered_at
 from ._base import show as _show_native
 from .conditions import (
     _NOT_GIVEN, _ConditionReader, _condition_error, _count_in, _empty_in, _is_number, _kind,
-    _looks_like_number, _rows, _say, empty_cells_note,
+    _looks_like_number, _on_clock_of, _rows, _say, empty_cells_note,
 )
 
 # Conditions for keep_rows_where() / remove_rows_where(), in the order they are listed in messages.
@@ -477,7 +477,7 @@ class RowWords:
         if hasattr(value, "to_pydatetime"):  # a pandas Timestamp
             value = value.to_pydatetime()
         if isinstance(value, _dt.datetime):
-            return value if is_datetime else value.date()
+            return _on_clock_of(value, self._frame.schema[column]) if is_datetime else value.date()
         if isinstance(value, _dt.date):
             return _dt.datetime.combine(value, _dt.time()) if is_datetime else value
         raise SimplydataError(

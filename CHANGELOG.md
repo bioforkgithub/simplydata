@@ -16,6 +16,21 @@ working for one release and prints a one-line note with its new name.
 
 ### Fixed
 
+- Time zone names with `_`, `-`, `+` or digits (`America/New_York`, `America/Port-au-Prince`, `Etc/GMT+5`,
+  `America/Argentina/Buenos_Aires`) on a pandas table. narwhals (2.27 to 2.29) reads the kind of a pandas column from
+  its written dtype with a pattern that takes only letters and `/` in the zone, so such a column was `Unknown`: every
+  date word on a pandas table (the parts of a date, days between, `plus=`, `round_dates_in`, `change_time_zone_in`,
+  `keep_rows_where`, `every=`, `join_with(match="nearest")`, `add_missing_dates` ...) stopped or called the column
+  "other values". simplydata now widens that one narwhals pattern when it is loaded, and only while narwhals needs it;
+  the date steps still run in pandas' and Polars' own methods. Polars tables were not affected.
+- `every="month"` (and `"quarter"`, `"year"`) on a pandas column with a time zone east of UTC: narwhals truncated
+  pandas dates on the UTC clock, so 1 July 00:00 in Oslo was counted in June. It is now truncated by Polars
+  `dt.truncate` on the column's own clock, as on a Polars table.
+- `keep_rows_where` (`is_after=`, `is_before=`, `is_between=`, a written condition such as `"t > '2024-01-01'"`) on a
+  column with a time zone stopped on both engines (a time without a zone cannot be compared with one). A date or time
+  given there is now read on the column's clock (pandas `Timestamp.tz_localize`); one that never happens or happens
+  twice there stops with a message.
+- `round_dates_in`: on a pandas table the sentence counted empty cells as changed.
 - `sdata.table(..., fast=True)`: a blank line in a CSV or TSV file is now skipped, as without `fast=True`. Polars
   made it a row of empty cells, the same row as a line of empty fields (`,,`), which both engines keep; Polars
   cannot tell the two apart, so a file with a row of only empty cells is read by pandas (`skip_blank_lines`) and

@@ -51,6 +51,29 @@ def _kind(dtype) -> str:
     return "other"
 
 
+def _on_clock_of(value, dtype):
+    """A date and time given for a column with a time zone, read on that column's clock.
+
+    Both engines refuse to compare a column with a time zone to a time without one, so "2024-01-01" for a
+    column of Oslo times means midnight in Oslo, as pandas Timestamp("2024-01-01").tz_localize("Europe/Oslo")
+    and Polars lit(...).dt.replace_time_zone("Europe/Oslo"); a time written with its own offset is moved to
+    the column's clock (pandas tz_convert). A clock time that never happens or happens twice in that zone
+    cannot be placed and stops with a message.
+    """
+    zone = getattr(dtype, "time_zone", None) if dtype == nw.Datetime else None
+    if not zone or not isinstance(value, _dt.datetime):
+        return value
+    import pandas as pd
+
+    stamp = pd.Timestamp(value)
+    try:
+        stamp = stamp.tz_convert(zone) if stamp.tzinfo is not None else stamp.tz_localize(zone)
+    except (ValueError, TypeError) as error:  # pandas AmbiguousTimeError / NonExistentTimeError are ValueErrors
+        raise SimplydataError(f"{value} never happens or happens twice on the {zone} clock (the summer-time "
+                              f"change), so it cannot be placed. Give a time an hour earlier or later.") from error
+    return stamp.to_pydatetime()
+
+
 def _empty_in(frame, column):
     """True for every empty cell in the column (missing, NaN, or blank text)."""
     dtype = frame.schema[column]
@@ -434,7 +457,7 @@ class _ConditionReader(_FormulaReader):
                 except ValueError:
                     when = None
                 if when is not None:
-                    return when if is_datetime else when.date()
+                    return _on_clock_of(when, self.frame.schema[side.column]) if is_datetime else when.date()
             raise _condition_error(
                 f"\"{label}\" is a date column, so write the date in quotes as year-month-day: {label} {sign} '2026-03-15'."
             )

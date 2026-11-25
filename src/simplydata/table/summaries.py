@@ -130,6 +130,24 @@ SUMMARY_LINES = 12  # find_summary_of prints at most this many rows; the table h
 STRENGTH_WORDS = ((0.8, "very strong"), (0.6, "strong"), (0.4, "medium"), (0.2, "weak"), (0.0, "very weak"))
 
 
+def _truncated(frame, column, code):
+    """narwhals dt.truncate(code) of a date column, the start of its hour, day, month, quarter or year.
+
+    A pandas column with a time zone is truncated by Polars dt.truncate and comes back as pandas: narwhals
+    truncates pandas months, quarters and years on the UTC clock (through NumPy datetime64), so 1 July 00:00
+    in Oslo (30 June 22:00 UTC) fell in June, while Polars uses the column's own clock.
+    """
+    dtype = frame.schema[column]
+    if frame.implementation.is_polars() or not (dtype == nw.Datetime and dtype.time_zone):
+        return nw.col(column).dt.truncate(code)
+    import polars as pl
+
+    native = frame[column].to_native()
+    start = pl.from_pandas(native).dt.truncate(code).to_pandas().astype(native.dtype)
+    start.index = native.index
+    return nw.from_native(start, series_only=True).alias(column)
+
+
 def _plain(value):
     """A plain Python number (not a NumPy one); empty becomes nan."""
     if value is None:
@@ -709,7 +727,7 @@ class SummaryWords:
             elif schema[g] == nw.Date and name == "hour":
                 continue  # a date has no hours: each day stays as it is
             else:
-                frame = frame.with_columns(nw.col(g).dt.truncate(EVERY[name]))
+                frame = frame.with_columns(_truncated(frame, g, EVERY[name]))
         return frame, {g: name for g in dates}
 
     def _cross(self, frame, groups: list[str], across: str, expr, fill=None, periods=None, with_totals=False):

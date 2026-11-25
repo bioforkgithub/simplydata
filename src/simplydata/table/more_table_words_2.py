@@ -256,7 +256,8 @@ class MoreTableWords2:
             rounded.index = native.index
         new = self._frame.with_columns(nw.from_native(rounded, series_only=True).alias(column))
         old = "_simplydata_old_"
-        both = new.with_columns(self._frame[column].alias(old)).filter((nw.col(column) != nw.col(old)).fill_null(False))
+        both = new.with_columns(self._frame[column].alias(old)).filter(
+            (nw.col(column) != nw.col(old)).fill_null(False) & ~nw.col(old).is_null())  # pandas NaT != NaT is True
         changed = len(both)
         shown = f" For example {both[old].item(0)} became {both[column].item(0)}." if changed else ""
         print(f'Rounded the dates in "{column}" {how}: {changed} of {_rows(len(new))} changed.{shown}')

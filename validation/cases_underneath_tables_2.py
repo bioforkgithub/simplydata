@@ -393,6 +393,67 @@ def cases(Case):
              list(`months at 22:00 UTC (summer time)` = sum(h == 22), `months at 23:00 UTC` = sum(h == 23),
                   `sum of row x hour` = sum(seq_along(h) * h))
          """)
+    # America/New_York: a zone name with "_", which narwhals 2.27 to 2.29 did not read on a pandas table (the column was
+    # "Unknown"); simplydata._narwhals_mend lets it read the name (tests/test_time_zone_names.py)
+    both("table.change_time_zone_in", "AirPassengers: midnight at the start of each month on the New York clock, "
+         "1949-1960, on the UTC clock (US summer time; the IANA time zone database)", "AirPassengers", "real data",
+         setup='data = data.assign(month=pd.to_datetime(data["month"]))',
+         ours="""
+             t = sdata.table(source).change_time_zone_in("month", to="UTC", recorded_in="America/New_York")
+             hours = [t.get_cell_at(row=i, column="month").hour for i in range(1, 145)]
+             {"months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """,
+         pandas="""
+             local = data["month"].dt.tz_localize("America/New_York", nonexistent="NaT", ambiguous="NaT")
+             hours = list(local.dt.tz_convert("UTC").dt.hour)
+             {"months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """, pandas_label="pandas dt.tz_localize(\"America/New_York\").dt.tz_convert(\"UTC\")",
+         polars="""
+             local = pl.col("month").dt.replace_time_zone("America/New_York", non_existent="null", ambiguous="null")
+             hours = df.select(local.dt.convert_time_zone("UTC").dt.hour())["month"].to_list()
+             {"months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """, polars_label="Polars dt.replace_time_zone(\"America/New_York\").dt.convert_time_zone(\"UTC\")",
+         r="""
+             x <- as.POSIXct(substr(as.character(month), 1, 10), tz = "America/New_York")
+             h <- as.integer(format(x, "%H", tz = "UTC"))
+             list(`months at 04:00 UTC (summer time)` = sum(h == 4), `months at 05:00 UTC` = sum(h == 5),
+                  `sum of row x hour` = sum(seq_along(h) * h))
+         """)
+    both("table.change_time_zone_in", "AirPassengers: a column that already carries the America/New_York zone "
+         "(midnight at the start of each month, 1949-1960), its day of the month, then the same moments on the "
+         "UTC clock", "AirPassengers", "real data",
+         setup='data = data.assign(month=pd.to_datetime(data["month"]).dt.tz_localize("America/New_York"))',
+         ours="""
+             t = sdata.table(source)
+             t.add_column_with_part_of_date("day", from_column="month", part="day")
+             t.change_time_zone_in("month", to="UTC")
+             hours = [t.get_cell_at(row=i, column="month").hour for i in range(1, 145)]
+             {"first of the month in New York": sum(d == 1 for d in t.get_column("day")),
+              "months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """,
+         pandas="""
+             hours = list(data["month"].dt.tz_convert("UTC").dt.hour)
+             {"first of the month in New York": int((data["month"].dt.day == 1).sum()),
+              "months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """, pandas_label="pandas dt.day and dt.tz_convert(\"UTC\")",
+         polars="""
+             hours = df.select(pl.col("month").dt.convert_time_zone("UTC").dt.hour())["month"].to_list()
+             {"first of the month in New York": int((df["month"].dt.day() == 1).sum()),
+              "months at 04:00 UTC (summer time)": hours.count(4), "months at 05:00 UTC": hours.count(5),
+              "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
+         """, polars_label="Polars dt.day() and dt.convert_time_zone(\"UTC\")",
+         r="""
+             x <- as.POSIXct(substr(as.character(month), 1, 10), tz = "America/New_York")
+             h <- as.integer(format(x, "%H", tz = "UTC"))
+             list(`first of the month in New York` = sum(as.integer(format(x, "%d")) == 1),
+                  `months at 04:00 UTC (summer time)` = sum(h == 4), `months at 05:00 UTC` = sum(h == 5),
+                  `sum of row x hour` = sum(seq_along(h) * h))
+         """)
     both("table.round_dates_in", "AirPassengers: the first day of each month taken back to the Monday of its week",
          "AirPassengers", "real data",
          ours="""
