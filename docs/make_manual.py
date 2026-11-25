@@ -103,6 +103,15 @@ GROUP_UNDERNEATH = {
                                     "repeat, tile, concatenate, array_split, unstack, stack)",
     "Blocks: stretching": "NumPy (broadcast_shapes, broadcast_to, broadcast_arrays); xarray (broadcast) lines up named "
                           "directions when simplydata[xarray] is installed",
+    # NumPy + SciPy phase, batch 2
+    "Blocks: files": "xarray (open_dataset, combine_by_coords, to_netcdf) with h5netcdf for netCDF-4 files and SciPy's "
+                     "engine for classic netCDF-3 files (simplydata[xarray]); NumPy and openpyxl read .npz, .npy and "
+                     ".xlsx headers",
+    "Blocks: labels, dates and places": "xarray (coords, assign_coords, groupby, interp for dates), pandas "
+                                        "(Index.get_indexer for the nearest label) and SciPy (interpolate.interpn, "
+                                        "ndimage filters and zoom)",
+    "Numbers: chances and random picks": "NumPy (random.default_rng().choice) and SciPy (special.logit, expit, comb, "
+                                         "perm)",
     "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
                "the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and "
                "margins from python-control (step_info, stability_margins: simplydata[systems])",
@@ -466,16 +475,40 @@ UNDERNEATH = {
     "table.as_pandas": "pandas",
     "table.as_polars": "Polars",
     # numbers
-    "sdata.make_random_numbers": "NumPy (random.default_rng)",
+    "sdata.make_random_numbers": "NumPy (random.default_rng; of_shape= for a block)",
+    "sdata.numbers": "NumPy (arange, linspace); SciPy (io.wavfile) for .wav files; pandas (read_csv with na_values=) for "
+                     "text files",
     "nums.find_percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
     "sdata.number_block": "NumPy (asarray, full); pandas (reindex on every combination of the labels) for a table; "
-                          "an xarray DataArray brings its names and labels",
+                          "an xarray DataArray brings its names and labels; a netCDF file is read with xarray "
+                          "(open_dataset, combine_by_coords for several files; h5netcdf or SciPy's netCDF-3 engine)",
+    "block.find_average": "NumPy (the nan summaries with axis=); xarray (groupby, resample) for in_each=\"month\" and "
+                          "every=; NumPy reshape (as xarray coarsen) for in_groups_of=",
+    "block.rotate": "NumPy (rot90); SciPy (ndimage.rotate) for by_degrees=",
     "block.keep_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels)",
     "block.remove_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels), "
                           "then NumPy delete",
     "block.find_direction_names": "simplydata itself: the names are kept next to the NumPy array",
     "sdata.hide_stretching_notes": "simplydata itself: a setting",
     "sdata.show_stretching_notes": "simplydata itself: a setting",
+    # NumPy + SciPy phase, batch 2
+    "sdata.show_whats_inside": "xarray (open_dataset: names, sizes, units and labels only), NumPy (np.lib.format "
+                               "header readers) and openpyxl (read only)",
+    "block.save": "xarray (to_netcdf, h5netcdf engine, zlib) for .nc; pandas for table files",
+    "block.get_labels_of": "xarray (coords)",
+    "block.add_labels_to": "xarray (assign_coords)",
+    "block.find_values_at": "SciPy (interpolate.interpn, as xarray interp); xarray interp for dates",
+    "block.get_numbers_nearest_to": "pandas (Index.get_indexer(method=\"nearest\"), as xarray sel(method=\"nearest\"))",
+    "block.turn_into_change_from_average": "xarray (groupby(\"time.month\") minus its mean) or NumPy (nanmean with "
+                                           "keepdims=True)",
+    "block.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "block.change_size_to": "SciPy (ndimage.zoom)",
+    "nums.make_random_picks": "NumPy (random.default_rng(seed).choice)",
+    "nums.take_log_odds": "SciPy (special.logit)",
+    "nums.turn_into_chances": "SciPy (special.expit)",
+    "sdata.count_ways_to_choose": "SciPy (special.comb, exact=True)",
+    "sdata.count_ways_to_order": "SciPy (special.perm, exact=True)",
     "nums.turn_into_table": "pandas",
     "nums.start_chart": "matplotlib and seaborn, from a pandas table with one column called value",
     "nums.save": "pandas (to_csv, to_excel ...)",

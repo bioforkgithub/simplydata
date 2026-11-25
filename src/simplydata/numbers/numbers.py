@@ -29,10 +29,11 @@ from .fourier_words import FourierNumberWords
 from .peak_words import PeakNumberWords
 from .summaries import GridSummaryWords, SummaryWords
 from .more_number_words import MoreNumberWords, _short
+from .numbers_2 import ChanceWords, RandomPickWords, SmoothOverWords  # NumPy + SciPy phase, batch 2
 from ._base import NOT_GIVEN
 
 
-class Numbers(MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
+class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
               FourierNumberWords, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
@@ -85,7 +86,8 @@ _GRID_KEEP_NUMBERS = (
 )
 
 
-class NumberGrid(MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
+class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
+                 BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -380,7 +382,7 @@ _NUMBERS_EXAMPLE = "sdata.numbers([3, 5, 2, 8])   or   sdata.numbers(1, to=10)"
 
 
 @friendly
-def numbers(*values, to=None, step=None, how_many=None, channel=None) -> Numbers:
+def numbers(*values, to=None, step=None, how_many=None, channel=None, empty_values=None) -> Numbers:
     """Make a list of numbers.
 
     sdata.numbers([3, 5, 2, 8])              these numbers (or sdata.numbers(3, 5, 2, 8))
@@ -389,8 +391,17 @@ def numbers(*values, to=None, step=None, how_many=None, channel=None) -> Numbers
     sdata.numbers(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
     sdata.numbers(10, to=1)                  counting down: 10, 9 ... 1
     sdata.numbers("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
+    sdata.numbers("readings.txt", empty_values=[-999])   one column of numbers from a text file (.txt, .csv, .tsv,
+                                             .dat); empty_values= are the numbers that mean "no reading" (pandas read_csv)
     None or NaN in a list is an empty (missing) value.
     """
+    if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(_TEXT_ENDINGS):
+        if to is not None or step is not None or how_many is not None or channel is not None:
+            raise SimplydataError("to=, step=, how_many= and channel= do not go with a text file.")
+        return _read_text_numbers(values[0], empty_values)
+    if empty_values is not None:
+        raise SimplydataError('empty_values= goes with a file, such as sdata.numbers("readings.txt", '
+                              'empty_values=[-999]).')
     if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(".wav"):
         return _read_wav(values[0], channel)
     if channel is not None:
@@ -423,6 +434,68 @@ def numbers(*values, to=None, step=None, how_many=None, channel=None) -> Numbers
             f"to count up to it write sdata.numbers(1, to={n})."
         )
     return Numbers(to_array(list(values), "sdata.numbers()", _NUMBERS_EXAMPLE))
+
+
+_TEXT_ENDINGS = (".txt", ".csv", ".tsv", ".dat")
+
+
+def _read_text_numbers(file_name, empty_values=None) -> Numbers:
+    """One column of numbers from a local text file: pandas read_csv(header=None, na_values=empty_values).
+
+    Separated by commas (.csv), tabs (.tsv) or spaces (.txt, .dat). A first line that is not a number is taken as the
+    column's name. Web addresses are refused: the file is read from this computer only.
+    """
+    import pandas as pd
+
+    from .block_files import local_path
+
+    path = local_path(file_name, "sdata.numbers()")
+    if not path.is_file():
+        from .._data import _missing_file_error
+
+        raise _missing_file_error(path)
+    markers = None
+    if empty_values is not None:
+        markers = [empty_values] if is_number(empty_values) or isinstance(empty_values, str) else empty_values
+        if not isinstance(markers, (list, tuple, set)) or not markers or not all(
+                is_number(v) or isinstance(v, str) for v in markers):
+            raise SimplydataError('empty_values= is a list of the markers that mean "no value" in your file, such as '
+                                  'empty_values=[-999] or ["NA", -999].')
+        markers = list(markers)
+    ending = path.suffix.lower()
+    sep = {".csv": ",", ".tsv": "\t"}.get(ending, r"\s+")
+    options = dict(sep=sep, header=None, na_values=markers, skip_blank_lines=True)
+    frame = pd.read_csv(path, **options)
+    header = None
+    if len(frame) and not _is_number_text(frame.iloc[0, 0]):
+        frame = pd.read_csv(path, **{**options, "header": 0})
+        header = str(frame.columns[0])
+    if frame.shape[1] != 1:
+        raise SimplydataError(f'"{path.name}" has {frame.shape[1]} columns; sdata.numbers() reads one. For several '
+                              f'columns use sdata.table("{path.name}").')
+    column = pd.to_numeric(frame.iloc[:, 0], errors="coerce")
+    text = int(column.isna().sum() - frame.iloc[:, 0].isna().sum())
+    if text:
+        bad = frame.iloc[:, 0][column.isna() & frame.iloc[:, 0].notna()].iloc[0]
+        raise SimplydataError(f'"{path.name}" has text among its numbers, such as "{bad}". Name the markers for '
+                              f'"no value":  sdata.numbers("{path.name}", empty_values=["{bad}"])')
+    arr = to_array(column.to_numpy(), "sdata.numbers()", _NUMBERS_EXAMPLE)
+    empty = int(np.isnan(arr).sum()) if arr.dtype.kind == "f" else 0
+    print(f"{amount(arr.size)} from {path.name}" + (f' (the first line, "{header}", is the name)' if header else "")
+          + (f"; {empty} {'is' if empty == 1 else 'are'} empty" if empty else "")
+          + (f" (the markers {', '.join(map(str, markers))} mean no value)" if markers else "")
+          + f". pandas read_csv(header=None{', na_values=' + repr(markers) if markers else ''})")
+    return Numbers(arr)
+
+
+def _is_number_text(value) -> bool:
+    if is_number(value):
+        return True
+    try:
+        float(str(value))
+        return True
+    except ValueError:
+        return value is None or (isinstance(value, float) and np.isnan(value))
 
 
 def _wav_header(file_name):
@@ -566,7 +639,7 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0) -> NumberGr
 
 @friendly(renamed={"seed": "with_seed"})
 def make_random_numbers(how_many=None, between=None, average=None, standard_deviation=None,
-                        whole_numbers=False, with_seed=None, rows=None, columns=None):
+                        whole_numbers=False, with_seed=None, rows=None, columns=None, of_shape=None):
     """Make random numbers; give with_seed= to get the same numbers every time.
 
     sdata.make_random_numbers(how_many=10, between=[0, 1], with_seed=1)
@@ -576,18 +649,32 @@ def make_random_numbers(how_many=None, between=None, average=None, standard_devi
     sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)
         numbers that bunch around the average in a bell shape (a normal distribution);
         about 2 in 3 land within one standard deviation of the average
-    rows= and columns= in place of how_many= give a grid.
+    rows= and columns= in place of how_many= give a grid; of_shape=(24, 8, 12) gives a block with any number of
+    directions (named as sdata.number_block names them).
     """
     example = "sdata.make_random_numbers(how_many=10, between=[0, 1], with_seed=1)"
     with_seed = check_seed(with_seed, example)
     if not isinstance(whole_numbers, bool):
         raise SimplydataError(f"whole_numbers= needs True or False (no quotes).\nFor example:  {example}")
+    if of_shape is not None:
+        if how_many is not None or rows is not None or columns is not None:
+            raise SimplydataError("Give of_shape= for a block, or how_many= for a list, or rows= and columns= for a "
+                                  f"grid: one of them.\nFor example:  {example}")
+        if isinstance(of_shape, _nb.Integral) and not isinstance(of_shape, bool):
+            of_shape = (of_shape,)
+        if (not isinstance(of_shape, (tuple, list)) or not of_shape
+                or not all(isinstance(n, _nb.Integral) and not isinstance(n, bool) and n >= 1 for n in of_shape)):
+            raise SimplydataError("of_shape= needs the size of each direction in brackets, such as (24, 8, 12).\n"
+                                  "For example:  sdata.make_random_numbers(of_shape=(24, 8, 12), with_seed=1)")
+        how_many = tuple(int(n) for n in of_shape)
     if how_many is not None and (rows is not None or columns is not None):
         raise SimplydataError(
             "Give how_many= for a list, or rows= and columns= for a grid, not both.\n"
             f"For example:  {example}"
         )
-    if how_many is not None:
+    if isinstance(how_many, tuple):
+        size = how_many
+    elif how_many is not None:
         size = check_whole("random_numbers", "how_many=", how_many, example)
     elif rows is not None and columns is not None:
         size = (check_whole("random_numbers", "rows=", rows, example, smallest=1),
@@ -628,6 +715,14 @@ def make_random_numbers(how_many=None, between=None, average=None, standard_devi
             values = rng.integers(int(low), int(high), size, endpoint=True)
         else:
             values = rng.uniform(low, high, size)
+    if of_shape is not None:
+        from .blocks import NumberBlock
+
+        block = NumberBlock(values)
+        print(f"A block of {block._shape_words()} random numbers"
+              + (f" (seed {with_seed})" if with_seed is not None else "; no seed: different each run, add with_seed=1 "
+                 "to repeat it") + ". NumPy random.default_rng")
+        return block
     return NumberGrid(values) if isinstance(size, tuple) else Numbers(values)
 
 

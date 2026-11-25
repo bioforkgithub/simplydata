@@ -220,6 +220,14 @@ GROUPS = [
                                       "block.split_into_one_block_per", "sdata.stack_up"]),
     ("Blocks: stretching", ["block.show_how_it_lines_up_with", "block.stretch_to", "sdata.stretch_to_same_shape",
                             "sdata.hide_stretching_notes", "sdata.show_stretching_notes"]),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25): netCDF files, labels, dates and places on blocks,
+    # smoothing grids and blocks, chances and random picks
+    ("Blocks: files", ["sdata.show_whats_inside", "block.save"]),
+    ("Blocks: labels, dates and places", ["block.get_labels_of", "block.add_labels_to", "block.find_values_at",
+                                          "block.get_numbers_nearest_to", "block.turn_into_change_from_average",
+                                          "block.smooth", "block.change_size_to", "grid.smooth"]),
+    ("Numbers: chances and random picks", ["nums.make_random_picks", "nums.take_log_odds", "nums.turn_into_chances",
+                                           "sdata.count_ways_to_choose", "sdata.count_ways_to_order"]),
     # "system.name" is a step on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then system.poles().
     ("Waves and systems", ["nums.convolve_with", "nums.deconvolve_by", "nums.change_time_step", "sdata.make_wave",
                            "sdata.make_window_shape", "sdata.system", "system.step_response", "system.impulse_response",
@@ -362,6 +370,20 @@ def _kx(body: str) -> str:
     """A runnable block example: a plate of 24 hours x 8 rows x 12 columns, then the steps (NumPy + SciPy batch 1)."""
     lines = ["import simplydata as sdata",
              'block = sdata.number_block(of_shape=(24, 8, 12), filled_with=0.5, directions_named=["hour", "row", "column"])']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+_SEA = ('block = sdata.number_block(sdata.make_random_numbers(of_shape=(36, 4, 5), average=12, standard_deviation=2, '
+        'with_seed=1), directions_named=["time", "latitude", "longitude"], with_labels={"time": dates, '
+        '"latitude": [62, 61, 60, 59], "longitude": [1, 2, 3, 4, 5]})')
+
+
+def _seax(body: str) -> str:
+    """A runnable example on a block with dates: 36 months x 4 latitudes x 5 longitudes of made-up sea temperatures
+    (NumPy + SciPy batch 2)."""
+    lines = ["import simplydata as sdata", 'dates = sdata.make_run_of_dates("2010-01", how_many=36, every="month")',
+             _SEA]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -1303,6 +1325,43 @@ HELP_EXAMPLES = {
         a2, b2 = sdata.stretch_to_same_shape(a, b)
         print(a2)
         print(b2)"""),
+    # NumPy + SciPy phase, batch 2: files
+    "sdata.show_whats_inside": _seax('block.save("sst_monthly.nc")\nsdata.show_whats_inside("sst_monthly.nc")'),
+    "block.save": _seax('block.save("sst.nc")\nsst = sdata.number_block("sst.nc", values="values")\n'
+                      'print(sst.find_shape())'),
+    # labels, dates and places
+    "block.get_labels_of": _seax('times = block.get_labels_of("time")\ntimes.show()'),
+    "block.add_labels_to": _seax('block.add_labels_to("latitude", [60, 61, 62, 63])\n'
+                               'print(block.get_labels_of("latitude"))'),
+    "block.find_values_at": _seax("between = block.find_values_at(latitude=60.5, longitude=2.5)\n"
+                                "print(between.find_shape())"),
+    "block.get_numbers_nearest_to": _seax("station = block.get_numbers_nearest_to(latitude=60.4, longitude=5.3)\n"
+                                        "print(station.find_shape())"),
+    "block.turn_into_change_from_average": _seax('block.turn_into_change_from_average(in_each="month")\n'
+                                               'block.undo()\n'
+                                               'block.turn_into_change_from_average(in_each="month", '
+                                               'from_years=["2010", "2011"])'),
+    "block.smooth": _seax('block.smooth(over=["latitude", "longitude"], window=3)\nblock.undo()\n'
+                        'block.smooth(over="time", test_method="gaussian", width=2)'),
+    "block.change_size_to": _seax("block.change_size_to(latitude=8, longitude=10)\nprint(block.find_shape())"),
+    "grid.smooth": textwrap.dedent("""\
+        import simplydata as sdata
+        grid = sdata.make_random_numbers(rows=6, columns=8, average=20, standard_deviation=3, with_seed=1)
+        grid.smooth(window=3)
+        print(grid)"""),
+    # chances and random picks
+    "nums.make_random_picks": _nx("again = nums.make_random_picks(how_many=40, with_seed=1)\n"
+                                  "print(again.find_average())\n"
+                                  "dice = sdata.numbers([1, 2, 3]).make_random_picks(how_many=10, "
+                                  "with_chances=[0.5, 0.3, 0.2], with_seed=1)"),
+    "nums.take_log_odds": _nx("nums.take_log_odds()\nnums.show()", "[0.1, 0.5, 0.8]"),
+    "nums.turn_into_chances": _nx("nums.turn_into_chances()\nnums.show()", "[-2.2, 0, 1.386]"),
+    "sdata.count_ways_to_choose": textwrap.dedent("""\
+        import simplydata as sdata
+        print(sdata.count_ways_to_choose(3, out_of=10))"""),
+    "sdata.count_ways_to_order": textwrap.dedent("""\
+        import simplydata as sdata
+        print(sdata.count_ways_to_order(3, out_of=10))"""),
     "sdata.hide_stretching_notes": textwrap.dedent("""\
         import simplydata as sdata
         sdata.hide_stretching_notes()
@@ -3690,6 +3749,28 @@ LESSONS = [
                 ('chart.draw_heatmap()', "One square for each well."),
                 ('chart.save("lesson13_wells.png")', "Save it."),
             ]),
+            ("Sea temperatures by month: a block with dates, saved and read as a netCDF file.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('dates = sdata.make_run_of_dates("2010-01", how_many=36, every="month")', "36 months, one date each."),
+                ("temps = sdata.make_random_numbers(of_shape=(36, 4, 5), average=12, standard_deviation=2, "
+                 "with_seed=1)", "Made-up sea temperatures: 36 months x 4 latitudes x 5 longitudes."),
+                ('sst = sdata.number_block(temps, directions_named=["time", "latitude", "longitude"], '
+                 'with_labels={"time": dates, "latitude": [62, 61, 60, 59], "longitude": [1, 2, 3, 4, 5]})',
+                 "Name the directions and give them labels: dates, and degrees north and east."),
+                ('sst.save("lesson13_sst.nc")', "Save it as a netCDF file, the usual file of ocean and climate "
+                                               "grids."),
+                ('sdata.show_whats_inside("lesson13_sst.nc")', "See what the file holds, without reading the numbers."),
+                ('sst = sdata.number_block("lesson13_sst.nc", values="values")', "Read it back: one block for one "
+                                                                                 "variable of the file."),
+                ('usual = sst.find_average(in_each="month")', "12 maps: the usual temperature of each month, all "
+                                                              "years together."),
+                ("station = sst.get_numbers_nearest_to(latitude=60.4, longitude=2.2)", "The 36 months at the grid "
+                                                                                      "cell nearest a station."),
+                ('sst.turn_into_change_from_average(in_each="month")', "Each value minus the usual value of its "
+                                                                       "month: the anomalies."),
+                ("again = station.get_all_numbers().make_random_picks(how_many=36, with_seed=1)",
+                 "36 random picks from the station's months, each put back: a bootstrap sample."),
+            ]),
         ],
         notes=[
             "The words follow the table words, with numbers in place of rows: keep_first_numbers, "
@@ -3732,7 +3813,7 @@ LESSONS = [
         ],
         words=["sdata.numbers", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
                "nums.keep_each_number_that", "nums.find_average", "nums.find_standard_deviation", "nums.find_median",
-               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with"],
+               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks"],
     ),
     dict(
         title="Statistical tests: real difference, or chance?",

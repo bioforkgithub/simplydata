@@ -28,6 +28,8 @@ from .table import Table, table
 from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numbers
 from .numbers.blocks import (NumberBlock, hide_stretching_notes, number_block, show_stretching_notes, stack_up,
                              stretch_to_same_shape)  # NumPy + SciPy phase, batch 1
+from .numbers.numbers_2 import count_ways_to_choose, count_ways_to_order  # NumPy + SciPy phase, batch 2
+from .numbers.block_files import show_whats_inside  # NumPy + SciPy phase, batch 2
 from .words.layout import put_in_rows_and_columns, put_one_above_other, put_side_by_side
 from .words.stats import draw_all_pairs
 from .power import find_chance_of_finding, find_how_many_needed
@@ -88,7 +90,7 @@ def __getattr__(name):
 
 __all__ = [
     "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
-    "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "distribution", "draw_all_pairs",
+    "compare_counts", "compare_rates", "count_ways_to_choose", "count_ways_to_order", "compare_risks", "compare_to_truth", "distribution", "draw_all_pairs",
     "find_chance_of_finding", "find_how_many_needed", "find_inverse_fourier_transform", "find_where_biggest",
     "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "hide_stretching_notes",
     "make_design_table",
@@ -96,7 +98,7 @@ __all__ = [
     "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "numbers",
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
-    "show_packages_used", "show_stretching_notes", "show_today", "solve", "stack_up", "start_30_days",
+    "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve", "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]
 

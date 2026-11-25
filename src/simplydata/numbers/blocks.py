@@ -29,7 +29,7 @@ import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly, suggest
 from .._positions import read_positions
-from ._base import (HISTORY_LIMIT, BaseNumbers, amount, calculate, check_whole, is_number, note_empty, plain,
+from ._base import (HISTORY_LIMIT, BaseNumbers, amount, calculate, check_whole, is_number, note_empty, plain, say,
                     to_array)
 from ._directions import (SETTINGS, check_names, default_names, line_up, numpy_shape, plural, say_shape, say_size,
                           xarray_or_none)
@@ -37,6 +37,7 @@ from .maths import MathsWords
 from .more_number_words import MoreNumberWords
 from .picking import ReplacingWords
 from .summaries import SUMMARIES, _ordinal, _quiet
+from .numbers_2 import BlockLabelWords, ChanceWords, SmoothOverWords  # batch 2
 from ..table.summaries import _say_number
 
 PAGES_SHOWN = 3  # print(block) shows this many pages; block.show() shows them all
@@ -52,7 +53,8 @@ def _say_numpy_axis(axes) -> str:
     return str(axes[0]) if len(axes) == 1 else str(axes)
 
 
-class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
+class NumberBlock(BlockLabelWords, SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, MathsWords,
+                  BaseNumbers):
     """Numbers in any number of directions, each with a name. Make one with sdata.number_block(...)."""
 
     _is_simplydata_block = True
@@ -67,7 +69,10 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
               "repeat": "repeat_each_number", "tile": "repeat_whole_block", "concatenate": "add_numbers_from",
               "split": "split_into_pieces", "broadcast_to": "stretch_to", "take": "keep_by_position_in",
               "delete": "remove_by_position_in", "sel": "keep_where", "isel": "keep_by_position_in",
-              "mean": "find_average", "sum": "find_total"}
+              "mean": "find_average", "sum": "find_total",
+              # batch 2
+              "coords": "get_labels_of", "assign_coords": "add_labels_to", "interp": "find_values_at",
+              "to_netcdf": "save", "coarsen": "find_average", "resample": "find_average", "groupby": "find_average"}
 
     def __init__(self, values, names=None, named=None, labels=None):
         values = np.asarray(values)
@@ -797,12 +802,18 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         return self._change(f"reverse along {said}", new, labels=labels)
 
     @friendly
-    def rotate(self: _Same, by_quarter_turns=1, over=None) -> _Same:
+    def rotate(self: _Same, by_quarter_turns=1, over=None, by_degrees=None, test_method="linear") -> _Same:
         """Turn the block a quarter turn (or more) anticlockwise, as a picture (NumPy rot90). block.rotate(by_quarter_turns=1)
 
         It turns the last two directions (rows and columns), or the two named in over=["row", "column"];
-        by_quarter_turns=-1 turns clockwise.
+        by_quarter_turns=-1 turns clockwise. by_degrees=15 turns by any angle round the centre, keeping the size;
+        the corners that come from outside are empty, and test_method= "linear" (the default), "nearest" or "cubic"
+        fills in between the numbers (SciPy ndimage.rotate, reshape=False).
         """
+        if by_degrees is not None:
+            return self._rotate_by_degrees(by_degrees, over, test_method)
+        if test_method != "linear":
+            raise SimplydataError("test_method= goes with by_degrees=; a quarter turn moves the numbers as they are.")
         if not isinstance(by_quarter_turns, _nb.Integral) or isinstance(by_quarter_turns, bool):
             raise SimplydataError(f"by_quarter_turns= needs a whole number, such as 1 or -1.\nFor example:  "
                                   f"{self._name}.rotate(by_quarter_turns=1)")
@@ -842,6 +853,36 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
               f"{say_shape(new.shape, names)}; names and labels move with their numbers. "
               f"NumPy: np.rot90(block, k={by_quarter_turns}, axes={axes})")
         return self._change(f"rotate by {by_quarter_turns} quarter turns", new, names, named, labels)
+
+    def _rotate_by_degrees(self, by_degrees, over, test_method):
+        from scipy import ndimage
+
+        from .numbers_2 import ZOOM_ORDERS
+
+        if not is_number(by_degrees):
+            raise SimplydataError(f"by_degrees= needs a number: positive turns anticlockwise.\nFor example:  "
+                                  f"{self._name}.rotate(by_degrees=15)")
+        if test_method not in ZOOM_ORDERS:
+            raise choice_error("rotate", "test_method", test_method, list(ZOOM_ORDERS))
+        if self._values.ndim < 2:
+            raise SimplydataError("rotate() turns two directions, and this block has one.")
+        axes = (self._values.ndim - 2, self._values.ndim - 1) if over is None else tuple(self._axes("rotate", over))
+        if len(axes) != 2:
+            raise SimplydataError('over= names the two directions to turn, such as over=["row", "column"].')
+        values = self._values.astype(float)
+        if np.isnan(values).any():
+            raise SimplydataError("rotate(by_degrees=) needs a value at every place; fill the empty ones first.")
+        order = ZOOM_ORDERS[test_method]
+        turn = (axes[1], axes[0])  # as a picture: anticlockwise, the same as ndimage.rotate's own default (1, 0)
+        new = ndimage.rotate(values, float(by_degrees), axes=turn, reshape=False, order=order, mode="constant",
+                             cval=np.nan)
+        empty = int(np.isnan(new).sum())
+        print(f"Turned by {say(by_degrees)} degrees round the centre of {self._names[axes[0]]} and "
+              f"{self._names[axes[1]]}, by {test_method} filling in; the size and labels stay"
+              + (f", and {amount(empty)} in the corners came from outside, so they are empty" if empty else "")
+              + f". SciPy ndimage.rotate(block, {say(by_degrees)}, axes={turn}, reshape=False, order={order}, "
+              "cval=nan)")
+        return self._change(f"rotate by {say(by_degrees)} degrees", new)
 
     @friendly
     def move_round_by(self: _Same, steps=None, over=None) -> _Same:
@@ -1143,7 +1184,13 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         return [NumberBlock(np.asarray(p).copy(), names, named) for p in parts]
 
     # ------------------------------------------------------------------ summaries over directions
-    def _block_summary(self, step: str, func, over, in_each, only_show_new_shape, **more):
+    def _block_summary(self, step: str, func, over, in_each, only_show_new_shape, every=None, in_groups_of=None,
+                       **more):
+        from .numbers_2 import block_summary_by_time_or_groups, is_time_part
+
+        if every is not None or in_groups_of is not None or is_time_part(self, in_each):
+            return block_summary_by_time_or_groups(self, step, func, over, in_each, every, in_groups_of,
+                                                   only_show_new_shape, **more)
         what = f"the {_ordinal(more['q'])} percentile" if step == "percentile" else f"the {step.replace('_', ' ')}"
         np_name = {"average": "nanmean", "median": "nanmedian", "total": "nansum", "smallest": "nanmin",
                    "biggest": "nanmax", "standard_deviation": "nanstd(..., ddof=1)", "percentile": "nanpercentile"}[step]
@@ -1181,15 +1228,34 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         return NumberBlock(np.asarray(result), names, [self._named[i] for i in kept], labels)
 
     @friendly
-    def find_percentile(self, percent=None, over=None, in_each=None, only_show_new_shape=False):
+    def find_percentile(self, percent=None, over=None, in_each=None, only_show_new_shape=False, every=None,
+                        in_groups_of=None):
         """The number that this percent of the numbers are below, over some directions. block.find_percentile(90, over="hour")
 
-        NumPy nanpercentile (the usual "linear" method, as pandas and R). Empty values are skipped.
+        NumPy nanpercentile (the usual "linear" method, as pandas and R). Empty values are skipped. in_each="month",
+        every="month" and in_groups_of= work as in find_average.
         """
         if not is_number(percent) or not 0 <= percent <= 100:
             raise SimplydataError(".find_percentile() needs a number from 0 to 100." + self._example("find_percentile(90)"))
-        return self._block_summary("percentile", np.nanpercentile, over, in_each, only_show_new_shape,
-                                   q=float(percent))
+        return self._block_summary("percentile", np.nanpercentile, over, in_each, only_show_new_shape, every,
+                                   in_groups_of, q=float(percent))
+
+    @friendly
+    def save(self: _Same, file_name, time_step=None, bits=32) -> _Same:
+        """Save the block; the end of the file name decides the type. block.save("plate.csv")
+
+        .nc writes a netCDF-4 file (compressed), with the directions' names and labels and, for a block read from a
+        netCDF file, its variable name and units (xarray to_netcdf with the h5netcdf engine; simplydata[xarray]).
+        .csv, .xlsx, .parquet and the other table types write the block's long table (turn_into_table()).
+        """
+        from .block_files import NETCDF_ENDINGS, is_file_name, save_block
+
+        if is_file_name(file_name) and str(file_name).lower().endswith(NETCDF_ENDINGS):
+            if time_step is not None or bits != 32:
+                raise SimplydataError("time_step= and bits= go with a .wav file, not a .nc file.")
+            save_block(self, file_name)
+            return self
+        return BaseNumbers.save(self, file_name, time_step, bits)
 
     @friendly
     def turn_into_running_total(self: _Same, over=None) -> _Same:
@@ -1221,18 +1287,193 @@ def _again(shape, result_shape) -> list:
 def _summary_word(step: str):
     func, doc = SUMMARIES[step]
 
-    def word(self, over=None, in_each=None, only_show_new_shape=False):
-        return self._block_summary(step, func, over, in_each, only_show_new_shape)
+    def word(self, over=None, in_each=None, only_show_new_shape=False, every=None, in_groups_of=None):
+        return self._block_summary(step, func, over, in_each, only_show_new_shape, every, in_groups_of)
 
     word.__doc__ = (f"{doc.split(chr(10))[0]}\n\n        block.find_{step}(over=\"hour\")   over= the directions that go;"
                     f" in_each= the directions kept;\n        no option: one number for the whole block. "
-                    f"only_show_new_shape=True only says the shape.\n        ")
+                    f"only_show_new_shape=True only says the shape.\n"
+                    "        With dates as the labels of a direction: in_each=\"month\" gives one answer for each month of "
+                    "the year,\n        all years together (xarray groupby(\"time.month\"); also \"season\", \"year\", "
+                    "\"quarter\", \"day of year\", \"hour\"),\n        and every=\"month\" one for each calendar month "
+                    "(xarray resample; also \"hour\", \"day\", \"week\", \"quarter\", \"year\").\n"
+                    "        in_groups_of={\"latitude\": 4} gives one answer for each group of 4 next to each other (a "
+                    "coarser grid;\n        NumPy reshape, as xarray coarsen).\n        ")
     word.__name__ = word.__qualname__ = f"find_{step}"
     return friendly(word)
 
 
 for _step in ("average", "median", "total", "smallest", "biggest", "standard_deviation"):
     setattr(NumberBlock, f"find_{_step}", _summary_word(_step))
+
+
+class FileBlock(NumberBlock):
+    """A block whose numbers stay in their netCDF file until a word needs them (keep_on_disk=True).
+
+    Its shape, names and labels are known at once. keep_where, keep_by_position_in and get_numbers_nearest_to cut the
+    block in the file (xarray isel on the lazily opened variable), so only the part kept is read later. Any other word
+    reads the numbers (once, with a note) and the block then works as any other.
+    """
+
+    def __init__(self, lazy, names, labels, about, source):
+        object.__setattr__(self, "_lazy", lazy)
+        object.__setattr__(self, "_original_lazy", lazy)
+        object.__setattr__(self, "_loaded", None)
+        object.__setattr__(self, "_history", [])
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", [True] * len(names))
+        object.__setattr__(self, "_labels", dict(labels))
+        object.__setattr__(self, "_original_state", (list(names), [True] * len(names), dict(labels)))
+        object.__setattr__(self, "_about", about)
+        object.__setattr__(self, "_source", source)
+
+    # the numbers: read from the file the first time a word needs them
+    def _read(self, lazy):
+        print(f"Reading {say_shape(lazy.shape, self._names)} from {self._source.name} now (xarray load).")
+        return np.asarray(lazy.values)
+
+    @property
+    def _values(self):
+        loaded = object.__getattribute__(self, "_loaded")
+        if loaded is None:
+            loaded = self._read(object.__getattribute__(self, "_lazy"))
+            object.__setattr__(self, "_loaded", loaded)
+            object.__setattr__(self, "_lazy", None)
+        return loaded
+
+    @_values.setter
+    def _values(self, values):
+        object.__setattr__(self, "_loaded", np.asarray(values))
+        object.__setattr__(self, "_lazy", None)
+
+    @property
+    def _original(self):
+        return self._read(self._original_lazy)
+
+    def _on_disk(self) -> bool:
+        return object.__getattribute__(self, "_lazy") is not None
+
+    def _shape(self):
+        return tuple(self._lazy.shape) if self._on_disk() else self._values.shape
+
+    def _cut(self, what, axis, index):
+        """Cut the block in the file: xarray isel on the lazy variable (nothing is read); the labels go along."""
+        name = self._names[axis]
+        before = self._lazy
+        self._history.append((what, before, None, (self._names, self._named, self._labels)))
+        object.__setattr__(self, "_lazy", before.isel({before.dims[axis]: np.asarray(index)}))
+        labels = dict(self._labels)
+        if name in labels:
+            labels[name] = np.asarray(labels[name])[np.asarray(index)]
+        object.__setattr__(self, "_labels", labels)
+        return self
+
+    # words that work in the file
+    def __repr__(self):
+        if not self._on_disk():
+            return NumberBlock.__repr__(self)
+        return (f"simplydata number block: {say_shape(self._shape(), self._names)} (NumPy: array, PyTorch: tensor), "
+                f"still in {self._source.name}: the numbers are read when a word needs them")
+
+    @friendly
+    def find_shape(self):
+        """The size of each direction, in words and as NumPy's shape: (24, 8, 12). block.find_shape()"""
+        if not self._on_disk():
+            return NumberBlock.find_shape(self)
+        shape = self._shape()
+        print(f"{say_shape(shape, self._names)} (NumPy shape {numpy_shape(shape)}; still in the file).")
+        return tuple(int(n) for n in shape)
+
+    @friendly
+    def count_directions(self):
+        """How many directions the block has (NumPy ndim). block.count_directions()"""
+        n = len(self._names)
+        print(f"{n} direction{'' if n == 1 else 's'}: {', '.join(self._names)} (NumPy ndim {n}).")
+        return n
+
+    @friendly
+    def keep_by_position_in(self: _Same, direction=None, positions=None, to=None, step=None) -> _Same:
+        """Keep some positions along one direction, counting from 1, both ends included. block.keep_by_position_in("hour", [1, 3])"""
+        if not self._on_disk():
+            return NumberBlock.keep_by_position_in(self, direction, positions, to, step)
+        axis = self._axis("keep_by_position_in", direction, "direction")
+        name = self._names[axis]
+        total = self._shape()[axis]
+        picked = read_positions("keep_by_position_in", positions, to, step, total, noun=name, count_noun=plural(name),
+                                owner="The block has", example=f'{self._name}.keep_by_position_in("{name}", 1, to=2)',
+                                last_hint=f'{self._name}.keep_by_position_in("{name}", "last")', name=self._name)
+        index = picked.array()
+        self._cut(f"keep {picked.short_words()}", axis, index)
+        print(f"Kept {picked.words()} ({len(index)} of {say_size(total, name)}) in the file; the block is now "
+              f"{say_shape(self._shape(), self._names)}, not read yet. xarray isel({name}=positions)")
+        return self
+
+    @friendly
+    def keep_where(self: _Same, direction=None, is_between=None, is_one_of=None) -> _Same:
+        """Keep the part of a labelled direction whose labels pass (xarray sel). block.keep_where("east", is_between=[2, 5])"""
+        if not self._on_disk():
+            return NumberBlock.keep_where(self, direction, is_between, is_one_of)
+        axis, name, chosen, said, how = self._label_positions("keep_where", direction, is_between, is_one_of)
+        if chosen.size == 0:
+            raise SimplydataError(f"No {name} is {said}, so nothing would be left.")
+        total = self._shape()[axis]
+        self._cut(f"keep where {name} is {said}", axis, chosen)
+        print(f"Kept {chosen.size} of {say_size(total, name)} ({name} {said}) in the file; the block is now "
+              f"{say_shape(self._shape(), self._names)}, not read yet. Chosen by {how}.")
+        return self
+
+    @friendly
+    def get_numbers_nearest_to(self, within=None, **at):
+        """The numbers at the labels nearest to the ones you give; only those are read from the file. block.get_numbers_nearest_to(east=2.4, north=3.6)"""
+        if not self._on_disk():
+            return NumberBlock.get_numbers_nearest_to(self, within, **at)
+        import pandas as pd
+
+        part = FileBlock(self._lazy, self._names, self._labels, self._about, self._source)
+        for name, value in at.items():
+            if name not in self._labels:
+                break  # the word itself explains it below
+            axis = self._names.index(name)
+            labels = pd.Index(self._labels[name])
+            asked = [value] if np.ndim(value) == 0 else list(value)
+            if labels.dtype.kind == "M":
+                asked = pd.to_datetime(asked)
+            tolerance = None if within is None else (pd.Timedelta(within) if labels.dtype.kind == "M" else within)
+            try:
+                positions = labels.get_indexer(asked, method="nearest", tolerance=tolerance)
+            except (TypeError, ValueError):
+                break
+            if (positions < 0).any():
+                break
+            part._cut("nearest", axis, np.unique(positions))  # only the places near the ones asked are read below
+        return NumberBlock.get_numbers_nearest_to(part, within, **at)
+
+    @friendly
+    def undo(self: _Same) -> _Same:
+        """Take the last step back; the directions come back with the numbers. block.undo()"""
+        if self._history and type(self._history[-1][1]).__module__.split(".")[0] == "xarray":
+            what, before, _, (names, named, labels) = self._history.pop()
+            object.__setattr__(self, "_lazy", before)
+            object.__setattr__(self, "_loaded", None)
+            object.__setattr__(self, "_names", list(names))
+            object.__setattr__(self, "_named", list(named))
+            object.__setattr__(self, "_labels", dict(labels))
+            print(f"Undone: {what}")
+            return self
+        return NumberBlock.undo(self)
+
+    @friendly
+    def start_again(self: _Same) -> _Same:
+        """Go back to the block as it was at the start (still in the file). block.start_again()"""
+        names, named, labels = self._original_state
+        self._history.append(("start again", self._lazy if self._on_disk() else self._values, None,
+                              (self._names, self._named, self._labels)))
+        object.__setattr__(self, "_lazy", self._original_lazy)
+        object.__setattr__(self, "_loaded", None)
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", list(named))
+        object.__setattr__(self, "_labels", dict(labels))
+        return self
 
 
 # ====================================================================== making blocks
@@ -1288,8 +1529,20 @@ def _is_table(value) -> bool:
 
 @friendly
 def number_block(source=None, of_shape=None, filled_with=0, like=None, directions_named=None,
-                 values=None) -> NumberBlock:
-    """Make a block of numbers with any number of directions (NumPy's n-D array, PyTorch's tensor).
+                 values=None, keep_on_disk=False, empty_values=None, with_labels=None) -> NumberBlock:
+    block = _number_block(source, of_shape, filled_with, like, directions_named, values, keep_on_disk, empty_values)
+    if with_labels is not None:
+        if not isinstance(with_labels, dict) or not with_labels:
+            raise SimplydataError('with_labels= needs the labels of each direction in curly brackets, such as '
+                                  'with_labels={"time": dates}.')
+        for name, labels in with_labels.items():
+            block = block.add_labels_to(name, labels)
+        block._history.clear()  # the labels are part of the new block, not a step to undo
+        object.__setattr__(block, "_original_state", (list(block._names), list(block._named), dict(block._labels)))
+    return block
+
+
+number_block.__doc__ = """Make a block of numbers with any number of directions (NumPy's n-D array, PyTorch's tensor).
 
     sdata.number_block(of_shape=(24, 8, 12), filled_with=0, directions_named=["hour", "row", "column"])
     sdata.number_block([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])   from lists inside lists (2 pages x 2 rows x 2 columns)
@@ -1297,9 +1550,18 @@ def number_block(source=None, of_shape=None, filled_with=0, like=None, direction
     sdata.number_block(table, directions_named=["east", "north"], values="height")   from a long table: the
         directions' labels are the values of those columns
     sdata.number_block(like=plate, filled_with=1)              the shape and names of another block
+    sdata.number_block("sst.nc", values="sst")                 one variable of a netCDF file (values=["u", "v"] stacks
+        two as a new direction "variable"; "argo_*.nc" joins several files; keep_on_disk=True leaves the numbers in
+        the file until a word needs them; empty_values=[-999] makes those numbers empty). Needs simplydata[xarray].
+    with_labels={"time": dates} gives directions labels (block.add_labels_to does it later).
     Without names the directions are called row and column (the last two), page, book, then direction a, b ...
     filled_with=None makes every number empty.
     """
+
+
+def _number_block(source=None, of_shape=None, filled_with=0, like=None, directions_named=None,
+                  values=None, keep_on_disk=False, empty_values=None) -> NumberBlock:
+    """sdata.number_block() without with_labels= (its docstring is on number_block)."""
     sources = [x is not None for x in (source, of_shape, like)]
     if sum(sources) != 1:
         raise SimplydataError(f"sdata.number_block() needs your numbers, or of_shape=, or like= (one of them).\n"
@@ -1307,8 +1569,16 @@ def number_block(source=None, of_shape=None, filled_with=0, like=None, direction
     if filled_with is not None and not is_number(filled_with):
         raise SimplydataError(f"filled_with= needs a number, like filled_with=0 (or None for empty values).\n"
                               f"For example:  {_EXAMPLE}")
+    from .block_files import is_file_name, read_block
+
+    if source is not None and is_file_name(source):
+        return read_block(source, values, keep_on_disk, empty_values, directions_named)
+    if keep_on_disk is not False or empty_values is not None:
+        raise SimplydataError('keep_on_disk= and empty_values= go with a file, such as '
+                              'sdata.number_block("sst.nc", values="sst", keep_on_disk=True).')
     if values is not None and not _is_table(source):
-        raise SimplydataError("values= names the column of numbers when the block comes from a table.")
+        raise SimplydataError("values= names the column of numbers when the block comes from a table, or the variable "
+                              "when it comes from a file.")
     names = labels = None
     named = None
     if like is not None:

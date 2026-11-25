@@ -59,6 +59,13 @@ _SDATA = [
     ('sdata.table("lab.sqlite", table_name="samples")',
      "read_sql_table dbReadTable read_database read_feather read_ipc read_ndjson read_xml read_sas"),
     ("sdata.numbers(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+    ('sdata.number_block("sst.nc", values="sst")',
+     "open_dataset open_mfdataset open_dataarray Dataset nc_open ncvar_get rast read_stars ncread"),
+    ('sdata.show_whats_inside("sst.nc")', "ncdump ncinfo ncdisp"),
+    ('sdata.numbers("readings.txt", empty_values=[-999])', "genfromtxt loadtxt"),
+    ("sdata.count_ways_to_choose(3, out_of=10)", "comb binom nchoosek choose"),
+    ("sdata.count_ways_to_order(3, out_of=10)", "perm perms"),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25)
     ("sdata.number_block(of_shape=(24, 8, 12), filled_with=0)",
      "ndarray tensor zeros_like ones_like full_like empty_like empty DataArray"),
@@ -656,7 +663,11 @@ _NUMBERS = [
     ("nums.deconvolve_by([1, 2, 3])", "deconvolve deconv"),
     ("nums.change_time_step(to=0.01, time_step=0.005)", "resample resample_poly decimate downsample"),
     ("nums.start_chart()", "plot hist"),
-    ("nums.keep_random_numbers(3, with_seed=1)", "sample choice"),
+    ("nums.keep_random_numbers(3, with_seed=1)", "sample"),
+    # NumPy + SciPy phase, batch 2: NumPy's choice puts back by default, as make_random_picks does
+    ("nums.make_random_picks(how_many=40, with_seed=1)", "choice choices randsample datasample"),
+    ("nums.take_log_odds()", "logit qlogis"),
+    ("nums.turn_into_chances()", "expit sigmoid plogis logsig logistic"),
     ("nums.count_each()", "value_counts tabulate"),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): words on numbers, grids and blocks alike
     ("nums.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater less logical"),
@@ -704,6 +715,21 @@ _BLOCKS = [
     ("block.count_directions()", "ndim dim"),
     ("block.find_direction_names()", "dims dim_names"),
     ("block.find_shape()", "shape size_of"),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+    ('block.save("out.nc")', "to_netcdf"),
+    ('block.find_average(in_each="month") for all Januaries together, or block.find_average(every="month") for each '
+     'calendar month', "groupby resample climatology retime groupsummary"),
+    ('block.find_average(in_groups_of={"latitude": 4, "longitude": 4})', "coarsen block_reduce blockproc aggregate"),
+    ("block.find_values_at(latitude=60.5, longitude=5.25)",
+     "interp interpn map_coordinates RegularGridInterpolator interp2 interp3 extract"),
+    ("block.get_numbers_nearest_to(latitude=60.4, longitude=5.3)", "nearest knnsearch"),
+    ('block.turn_into_change_from_average(in_each="month")', "anomalies anomaly"),
+    ('block.smooth(over=["latitude", "longitude"], test_method="gaussian", width=2)',
+     "gaussian_filter uniform_filter median_filter convolve2d rolling focal imgaussfilt medfilt2 conv2"),
+    ("block.change_size_to(latitude=90, longitude=180)", "zoom imresize"),
+    ("block.rotate(by_degrees=15)", "imrotate"),
+    ('block.get_labels_of("time")', "coords indexes"),
+    ('block.add_labels_to("time", dates)', "assign_coords set_index"),
 ]
 
 

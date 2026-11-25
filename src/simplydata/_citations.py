@@ -14,7 +14,7 @@ Every entry is copied from the package's own request, never made up (checked 202
   xarray       "Citing xarray" in the xarray documentation (Hoyer and Hamman 2017, also cited by the NumPy brief)
   DuckDB       CITATION.cff in github.com/duckdb/duckdb ("please cite it", Raasveldt and Muehleisen) and their
                paper as duckdb.org/library gives it, with the ACM reference on its first page (checked 2026-11-25)
-A package that is not here (narwhals, rpy2, pyarrow, plotly ... ask for no paper) is listed with its name,
+A package that is not here (narwhals, rpy2, pyarrow, plotly, h5netcdf, h5py ... ask for no paper) is listed with its name,
 version and home page from its installed metadata (importlib.metadata), never with a made-up reference.
 
 Each entry: the import name -> (shown name, distribution name on PyPI, one-line reference, full reference,
@@ -238,4 +238,5 @@ CITATIONS = {
 # Packages that are used but ask for no paper: their import name -> (shown name, distribution name)
 NAMES = {"narwhals": ("narwhals", "narwhals"), "rpy2": ("rpy2", "rpy2"), "pyarrow": ("pyarrow", "pyarrow"),
          "openpyxl": ("openpyxl", "openpyxl"), "patsy": ("patsy", "patsy"), "pyreadstat": ("pyreadstat", "pyreadstat"),
-         "docx": ("python-docx", "python-docx"), "plotly": ("plotly", "plotly")}
+         "docx": ("python-docx", "python-docx"), "plotly": ("plotly", "plotly"),
+         "h5netcdf": ("h5netcdf", "h5netcdf"), "h5py": ("h5py", "h5py")}

@@ -5,6 +5,41 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: NumPy + SciPy phase, batch 2 (netCDF files, labels, dates and places; approved by Manish 2026-11-25)
+
+- netCDF files (P21, P22): `sdata.number_block("sst.nc", values="sst")` reads one variable as a block with its names,
+  labels and units (decision 2: one block per variable); `values=["u", "v"]` stacks variables as a new direction
+  "variable"; `"argo_*.nc"` joins several files by their labels; `keep_on_disk=True` leaves the numbers in the file
+  until a word needs them (`keep_where`, `keep_by_position_in` and `get_numbers_nearest_to` cut it there);
+  `empty_values=[-999]`; `with_labels={"time": dates}`. `block.save("out.nc")` writes netCDF-4, compressed.
+  `sdata.show_whats_inside("file")` shows the variables, sizes, units and labels of a .nc file (and the arrays of
+  .npz/.npy, the sheets of .xlsx) without reading the numbers. xarray with h5netcdf (and SciPy's engine for classic
+  netCDF-3) is the extra `simplydata[xarray]` (decision 3); without it, a plain error with the install line.
+- Privacy: the file words read and write files on this computer only. Web addresses and every `scheme://` path
+  (http, https, s3, OPeNDAP ...) are refused before anything is opened; xarray gets an absolute local path with the
+  engine named; `show_whats_inside` writes nothing. Tests run with the network blocked.
+- Dates, labels and places on blocks: `find_average(in_each="month")` (all Januaries together; also "season",
+  "year", "quarter", "day of year", "hour") and `find_average(every="month")` (each calendar month) on every block
+  summary (P26, xarray groupby and resample); `find_average(in_groups_of={"latitude": 4})` for a coarser grid (P46);
+  `block.find_values_at(latitude=60.5, longitude=5.25)` (P27, SciPy interpn as xarray interp);
+  `block.get_numbers_nearest_to(latitude=60.4, within=0.5)` (P28); `block.turn_into_change_from_average(
+  in_each="month", from_years=["1991", "2020"])` (P29; decision 8: the reference-period option was scored at build
+  time, `from_years=` 99.3 against `baseline=` 37.2, and `baseline=` is accepted as its other name);
+  `block.get_labels_of("time")` and `block.add_labels_to("time", dates)` (P47).
+- `smooth(over=[...])` on grids and blocks (P30): moving average, gaussian and median (SciPy ndimage filters with
+  axes=); `block.change_size_to(latitude=90)` (SciPy ndimage.zoom; number labels follow) and
+  `block.rotate(by_degrees=15)` (SciPy ndimage.rotate) (P32, block versions).
+- Numbers: `nums.make_random_picks(how_many=, putting_back=True, with_chances=, with_seed=)` (P10; decision 5:
+  chances must add up to 1), `nums.take_log_odds()` and `nums.turn_into_chances()` (P24, SciPy logit and expit),
+  `sdata.count_ways_to_choose(3, out_of=10)` and `sdata.count_ways_to_order(3, out_of=10)` (P23, exact),
+  `sdata.numbers("readings.txt", empty_values=[-999])` (P38), `sdata.make_random_numbers(of_shape=(24, 8, 12))`
+  (P39, a block).
+- Wiring: learn groups (3), help examples, a part of lesson 13, other names (numbers, blocks and sdata; NumPy's
+  `choice` now points to make_random_picks), underneath entries (`_underneath/numbers_2.py`), method basis, manual
+  library lines, h5netcdf and h5py in the extra and in CI, 22 real-data reliability cases
+  (`validation/cases_underneath_numbers_2.py`: El Nino, AirPassengers, iris, Michelson, Lake Huron) against xarray,
+  SciPy, NumPy and pandas and, where it has the calculation, base R. Tests: `tests/test_numbers_batch2_*.py`.
+
 ### Added: NumPy + SciPy phase, batch 1 (blocks of numbers, yes or no values, rounding and angles; approved by Manish 2026-11-25)
 
 - `sdata.number_block(...)`: numbers with any number of directions (NumPy's n-D array), from lists inside lists, a

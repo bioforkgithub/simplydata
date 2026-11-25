@@ -4685,3 +4685,63 @@ BASIS["block.change_shape_to"] = _b(
     "NumPy's own order, so the result equals reshape; a reshape that would mix directions is refused instead of "
     "scrambling them silently (NumPy brief D5).", (), "P4", "The sizes must multiply to the count of numbers.",
     "convention")
+
+# ---- NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["block.save"] = _b(
+    "A .nc file is written as netCDF-4 with the h5netcdf engine, every variable compressed (zlib, level 4), with the "
+    "directions' names and labels.",
+    "Another ending (.csv, .xlsx, .parquet ...) writes the block's long table instead.",
+    "netCDF-4 is the usual file of ocean and climate grids and keeps names, labels and units with the numbers; "
+    "compression loses nothing (the numbers come back exactly) and level 4 is the middle of zlib's range.", (), "P3",
+    "Web addresses are refused: the file is written on this computer only.", "convention")
+BASIS["sdata.number_block keep_on_disk="] = _b(
+    "Off: the numbers of a file are read at once. keep_on_disk=True leaves them in the file; keep_where, "
+    "keep_by_position_in and get_numbers_nearest_to cut it there (xarray isel), and any other word reads them once, "
+    "with a note.",
+    "keep_on_disk=True for a file bigger than memory; cut it before the word that reads it.",
+    "Reading at once is what a beginner expects (every word works at once); xarray's lazy opening is kept for big files "
+    "without needing dask.", (), "P5", "Several files (a pattern) are read at once; keep_on_disk= takes one file.",
+    "starting value")
+BASIS["block.find_values_at"] = _b(
+    "Straight lines between the neighbouring labels (test_method=\"linear\"), along each direction named; places "
+    "outside the labels are empty.",
+    "test_method=\"nearest\" or \"cubic\".",
+    "The same rule as table.find_values_at and xarray interp (SciPy interpn underneath), so the numbers agree with "
+    "both; nothing is extended beyond the data without being asked.", (), "P3",
+    "Text labels are refused; the labels must run steadily up or down.", "convention")
+BASIS["block.smooth"] = _b(
+    "A moving average of window=5 places along each direction named; the edges without a full window are empty "
+    "(ends=\"empty\"), as nums.smooth.",
+    "ends=\"mirror\"; test_method=\"gaussian\" (width=2) or \"median\".",
+    "The same starting values as nums.smooth (R stats::filter leaves the ends empty), so a block smoothed along one "
+    "direction gives what each list of numbers would give.", (), "P3",
+    "window= is odd, so it is centred; empty values are refused.", "convention")
+BASIS["grid.smooth"] = _b(
+    "Along the rows and the columns together (a picture blurred); the edges mirrored for \"gaussian\" and "
+    "\"median\" (SciPy mode \"reflect\"), the bell curve cut at 4 standard deviations.",
+    "over=\"row\" or \"column\" for one direction; window=, width=, ends=.",
+    "SciPy ndimage's own defaults, so the grid equals gaussian_filter and median_filter in scipy.ndimage.", (), "P3",
+    "Empty values are refused.", "convention")
+BASIS["block.change_size_to"] = _b(
+    "Straight lines between the numbers (SciPy ndimage.zoom, order 1); number labels are filled in the same way.",
+    "test_method=\"nearest\" (order 0) or \"cubic\" (order 3).",
+    "Linear filling in makes no new highs or lows (cubic can overshoot), so the new numbers stay within the old "
+    "ones.", (), "P5", "Empty values are refused; sizes are whole numbers.", "starting value")
+BASIS["block.rotate by_degrees="] = _b(
+    "The size and labels are kept (reshape=False) and the corners that come from outside are empty; straight lines "
+    "fill in between the numbers.",
+    "test_method=\"nearest\" or \"cubic\"; by_quarter_turns= for quarter turns without filling in.",
+    "An empty corner is honest about places with no data, where SciPy's default would put 0, a number that was never "
+    "measured.", (), "P4", "Empty values are refused.", "starting value")
+BASIS["nums.make_random_picks"] = _b(
+    "Each pick is put back (putting_back=True), each number equally likely; with_chances= must add up to 1.",
+    "putting_back=False; with_chances=[...]; with_seed= to repeat the picks.",
+    "Putting back is NumPy's choice default and what a bootstrap sample needs. Chances that do not add up to 1 are "
+    "refused rather than divided by their total, so no weight is changed silently (decision 5).", (), "P3",
+    "Without putting back, at most as many picks as numbers.", "convention")
+BASIS["nums.take_log_odds"] = _b(
+    "0, 1 and numbers outside 0 to 1 become empty, with a note.",
+    "replace_each_number_that first, to move 0 and 1 a little inside, if your field does that.",
+    "SciPy gives -inf and inf for 0 and 1; simplydata's rule for a sum with no answer is an empty value and a note, "
+    "never infinity (the same as take_log).", (), "P5", "The note counts the numbers that became empty.",
+    "starting value")
