@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-25. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**3667 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**5643 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2085,15 +2085,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528816076045 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735352558665 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542773356285 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193050216505 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.24287743992402 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215812448624 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208670457681 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549889273511 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246743648157 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512527898168353 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735989889494 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542773962694236 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193041043987 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877498857729 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215653903018 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208389114664 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549347997719 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543247262682918 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
 | own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
@@ -6975,6 +6975,2518 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | bmi | R | 9 | 9 | exact | pass |
 | hyp | R | 8 | 8 | exact | pass |
 | chl | R | 10 | 10 | exact | pass |
+
+### `sdata.run_sql`
+
+**mtcars saved as a CSV file and summed up by DuckDB: cars, average mpg and the most horsepower for each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: cars | DuckDB (the same SELECT on the same file) | 11 | 11 | relative 1e-12 | pass |
+| 4 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 4 cylinders: most hp | DuckDB (the same SELECT on the same file) | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: cars | DuckDB (the same SELECT on the same file) | 7 | 7 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 6 cylinders: most hp | DuckDB (the same SELECT on the same file) | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: cars | DuckDB (the same SELECT on the same file) | 14 | 14 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 15.1 | 15.1 | relative 1e-12 | pass |
+| 8 cylinders: most hp | DuckDB (the same SELECT on the same file) | 335 | 335 | relative 1e-12 | pass |
+| 4 cylinders: cars | R | 11 | 11 | relative 1e-12 | pass |
+| 6 cylinders: cars | R | 7 | 7 | relative 1e-12 | pass |
+| 8 cylinders: cars | R | 14 | 14 | relative 1e-12 | pass |
+| 4 cylinders: average mpg | R | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | R | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | R | 15.1 | 15.1 | relative 1e-12 | pass |
+| 4 cylinders: most hp | R | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: most hp | R | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: most hp | R | 335 | 335 | relative 1e-12 | pass |
+
+### `table.run_sql`
+
+**iris: the average sepal length and the flowers of each species, by SQL** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa: average sepal length | DuckDB (register, then the same SELECT) | 5.006 | 5.006 | relative 1e-12 | pass |
+| setosa: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: average sepal length | DuckDB (register, then the same SELECT) | 5.936 | 5.936 | relative 1e-12 | pass |
+| versicolor: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| virginica: average sepal length | DuckDB (register, then the same SELECT) | 6.588 | 6.588 | relative 1e-12 | pass |
+| virginica: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| setosa: average sepal length | R | 5.006 | 5.006 | relative 1e-12 | pass |
+| versicolor: average sepal length | R | 5.936 | 5.936 | relative 1e-12 | pass |
+| virginica: average sepal length | R | 6.588 | 6.588 | relative 1e-12 | pass |
+| setosa: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | R | 50 | 50 | relative 1e-12 | pass |
+
+**iris: the average sepal length and the flowers of each species, by SQL (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa: average sepal length | DuckDB (register, then the same SELECT) | 5.006 | 5.006 | relative 1e-12 | pass |
+| setosa: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: average sepal length | DuckDB (register, then the same SELECT) | 5.936 | 5.936 | relative 1e-12 | pass |
+| versicolor: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| virginica: average sepal length | DuckDB (register, then the same SELECT) | 6.588 | 6.588 | relative 1e-12 | pass |
+| virginica: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+
+### `table.add_column counted_in=`
+
+**AirPassengers: whole weeks from January 1949 to the start of each month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total weeks | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 44685 | 44685 | exact | pass |
+| February | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 4 | 4 | exact | pass |
+| last month | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 621 | 621 | exact | pass |
+| total weeks | R | 44685 | 44685 | exact | pass |
+| February | R | 4 | 4 | exact | pass |
+| last month | R | 621 | 621 | exact | pass |
+
+**AirPassengers: whole weeks from January 1949 to the start of each month (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total weeks | Polars (end - start).dt.total_days() // 7 | 44685 | 44685 | exact | pass |
+| February | Polars (end - start).dt.total_days() // 7 | 4 | 4 | exact | pass |
+| last month | Polars (end - start).dt.total_days() // 7 | 621 | 621 | exact | pass |
+
+### `table.add_group_column into_equal_groups=`
+
+**mtcars miles per gallon in four equal groups (quarters)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cars in quarter 1 | pandas qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 2 | pandas qcut(4) | 9 | 9 | exact | pass |
+| cars in quarter 3 | pandas qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 4 | pandas qcut(4) | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | pandas qcut(4) | 1303 | 1303 | exact | pass |
+| cars in quarter 1 | R | 8 | 8 | exact | pass |
+| cars in quarter 2 | R | 9 | 9 | exact | pass |
+| cars in quarter 3 | R | 8 | 8 | exact | pass |
+| cars in quarter 4 | R | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | R | 1303 | 1303 | exact | pass |
+
+**mtcars miles per gallon in four equal groups (quarters) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cars in quarter 1 | Polars qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 2 | Polars qcut(4) | 9 | 9 | exact | pass |
+| cars in quarter 3 | Polars qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 4 | Polars qcut(4) | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | Polars qcut(4) | 1303 | 1303 | exact | pass |
+
+### `table.add_missing_combinations_of`
+
+**mtcars: the one missing pair of cylinders and gears (8 cylinders, 4 gears) added as a row** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 33 | 33 | exact | pass |
+| empty mpg | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 1 | 1 | exact | pass |
+| row of the new pair | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 31 | 31 | exact | pass |
+| its cylinders | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 8 | 8 | exact | pass |
+| its gears | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 4 | 4 | exact | pass |
+| rows | R | 33 | 33 | exact | pass |
+| empty mpg | R | 1 | 1 | exact | pass |
+| row of the new pair | R | 31 | 31 | exact | pass |
+| its cylinders | R | 8 | 8 | exact | pass |
+| its gears | R | 4 | 4 | exact | pass |
+
+**mtcars: the one missing pair of cylinders and gears (8 cylinders, 4 gears) added as a row (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="cross"), join(how="anti"), concat, sort | 33 | 33 | exact | pass |
+| empty mpg | Polars join(how="cross"), join(how="anti"), concat, sort | 1 | 1 | exact | pass |
+| row of the new pair | Polars join(how="cross"), join(how="anti"), concat, sort | 31 | 31 | exact | pass |
+| its cylinders | Polars join(how="cross"), join(how="anti"), concat, sort | 8 | 8 | exact | pass |
+| its gears | Polars join(how="cross"), join(how="anti"), concat, sort | 4 | 4 | exact | pass |
+
+### `table.add_rank_column when_tied=`
+
+**mtcars: each car's place for fuel use within its number of cylinders, ties sharing the average place** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of places | pandas groupby().rank(method="average") | 199 | 199 | exact | pass |
+| Mazda RX4 | pandas groupby().rank(method="average") | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | pandas groupby().rank(method="average") | 2.5 | 2.5 | exact | pass |
+| sum of row x place | pandas groupby().rank(method="average") | 3436 | 3436 | exact | pass |
+| sum of places | R | 199 | 199 | exact | pass |
+| Mazda RX4 | R | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | R | 2.5 | 2.5 | exact | pass |
+| sum of row x place | R | 3436 | 3436 | exact | pass |
+
+**mtcars: each car's place for fuel use within its number of cylinders, ties sharing the average place (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of places | Polars rank("average").over() | 199 | 199 | exact | pass |
+| Mazda RX4 | Polars rank("average").over() | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | Polars rank("average").over() | 2.5 | 2.5 | exact | pass |
+| sum of row x place | Polars rank("average").over() | 3436 | 3436 | exact | pass |
+
+### `table.add_row_number_column`
+
+**mtcars: the cars numbered from the least powerful within each number of cylinders (ties keep the table's order)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest number | pandas sort_values (stable), groupby().cumcount() + 1 | 14 | 14 | exact | pass |
+| sum of row x number | pandas sort_values (stable), groupby().cumcount() + 1 | 3754 | 3754 | exact | pass |
+| biggest number | R | 14 | 14 | exact | pass |
+| sum of row x number | R | 3754 | 3754 | exact | pass |
+
+**mtcars: the cars numbered from the least powerful within each number of cylinders (ties keep the table's order) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest number | Polars int_range(1, len() + 1).over(order_by=) | 14 | 14 | exact | pass |
+| sum of row x number | Polars int_range(1, len() + 1).over(order_by=) | 3754 | 3754 | exact | pass |
+
+### `table.add_row_summary_column`
+
+**iris: the average of the four measurements of each flower** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas mean(axis=1) | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | pandas mean(axis=1) | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | pandas mean(axis=1) | 3.95 | 3.95 | relative 1e-12 | pass |
+| total | R | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | R | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | R | 3.95 | 3.95 | relative 1e-12 | pass |
+
+**iris: the average of the four measurements of each flower (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars mean_horizontal | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | Polars mean_horizontal | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | Polars mean_horizontal | 3.95 | 3.95 | relative 1e-12 | pass |
+
+### `table.add_running_column`
+
+**Seatbelts: drivers killed in Great Britain so far each year, month by month** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas sort_values (stable), groupby().cumsum() | 144099 | 144099 | exact | pass |
+| December 1969 | pandas sort_values (stable), groupby().cumsum() | 1402 | 1402 | exact | pass |
+| December 1984 | pandas sort_values (stable), groupby().cumsum() | 1228 | 1228 | exact | pass |
+| January 1970 | pandas sort_values (stable), groupby().cumsum() | 125 | 125 | exact | pass |
+| total | R | 144099 | 144099 | exact | pass |
+| December 1969 | R | 1402 | 1402 | exact | pass |
+| December 1984 | R | 1228 | 1228 | exact | pass |
+| January 1970 | R | 125 | 125 | exact | pass |
+
+**Seatbelts: drivers killed in Great Britain so far each year, month by month (a Polars table)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars cum_sum().over(order_by=) | 144099 | 144099 | exact | pass |
+| December 1969 | Polars cum_sum().over(order_by=) | 1402 | 1402 | exact | pass |
+| December 1984 | Polars cum_sum().over(order_by=) | 1228 | 1228 | exact | pass |
+| January 1970 | Polars cum_sum().over(order_by=) | 125 | 125 | exact | pass |
+
+### `table.add_zeros_in_front_of`
+
+**Seatbelts: the month of the year written with two digits (01 to 12)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells reading 01 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 09 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 10 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 12 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells two long | pandas astype(str).str.zfill(2) | 192 | 192 | exact | pass |
+| cells reading 01 | R | 16 | 16 | exact | pass |
+| cells reading 09 | R | 16 | 16 | exact | pass |
+| cells reading 10 | R | 16 | 16 | exact | pass |
+| cells reading 12 | R | 16 | 16 | exact | pass |
+| cells two long | R | 192 | 192 | exact | pass |
+
+**Seatbelts: the month of the year written with two digits (01 to 12) (a Polars table)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells reading 01 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 09 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 10 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 12 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells two long | Polars cast(pl.String).str.zfill(2) | 192 | 192 | exact | pass |
+
+### `table.change_column in_rows_where=`
+
+**warpbreaks: the tension written as "high breakage" in the rows with 40 breaks or more** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| high breakage | pandas loc[condition, column] = value | 9 | 9 | exact | pass |
+| L | pandas loc[condition, column] = value | 11 | 11 | exact | pass |
+| M | pandas loc[condition, column] = value | 17 | 17 | exact | pass |
+| H | pandas loc[condition, column] = value | 17 | 17 | exact | pass |
+| high breakage | R | 9 | 9 | exact | pass |
+| L | R | 11 | 11 | exact | pass |
+| M | R | 17 | 17 | exact | pass |
+| H | R | 17 | 17 | exact | pass |
+
+**warpbreaks: the tension written as "high breakage" in the rows with 40 breaks or more (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| high breakage | Polars when().then().otherwise() | 9 | 9 | exact | pass |
+| L | Polars when().then().otherwise() | 11 | 11 | exact | pass |
+| M | Polars when().then().otherwise() | 17 | 17 | exact | pass |
+| H | Polars when().then().otherwise() | 17 | 17 | exact | pass |
+
+### `table.change_time_zone_in`
+
+**AirPassengers: midnight at the start of each month on the Oslo clock, 1949-1960, on the UTC clock (Norway kept summer time in 1959 and 1960; the IANA time zone database)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 22:00 UTC (summer time) | pandas dt.tz_localize("Europe/Oslo").dt.tz_convert("UTC") | 12 | 12 | exact | pass |
+| months at 23:00 UTC | pandas dt.tz_localize("Europe/Oslo").dt.tz_convert("UTC") | 132 | 132 | exact | pass |
+| sum of row x hour | pandas dt.tz_localize("Europe/Oslo").dt.tz_convert("UTC") | 238530 | 238530 | exact | pass |
+| months at 22:00 UTC (summer time) | R | 12 | 12 | exact | pass |
+| months at 23:00 UTC | R | 132 | 132 | exact | pass |
+| sum of row x hour | R | 238530 | 238530 | exact | pass |
+
+**AirPassengers: midnight at the start of each month on the Oslo clock, 1949-1960, on the UTC clock (Norway kept summer time in 1959 and 1960; the IANA time zone database) (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 22:00 UTC (summer time) | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 6 | 6 | exact | pass |
+| months at 23:00 UTC | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 138 | 138 | exact | pass |
+| sum of row x hour | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 240075 | 240075 | exact | pass |
+
+### `table.round_dates_in`
+
+**AirPassengers: the first day of each month taken back to the Monday of its week** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| still the first of the month | pandas: the date minus its dt.dayofweek in days | 19 | 19 | exact | pass |
+| all Mondays | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 1: 1948-12-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| still the first of the month | R | 19 | 19 | exact | pass |
+| row 1: 1948-12-27 | R | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | R | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | R | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | R | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | R | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | R | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | R | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | R | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | R | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | R | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | R | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | R | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | R | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | R | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | R | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | R | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | R | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | R | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | R | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | R | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | R | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | R | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | R | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | R | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | R | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | R | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | R | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | R | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | R | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | R | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | R | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | R | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | R | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | R | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | R | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | R | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | R | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | R | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | R | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | R | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | R | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | R | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | R | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | R | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | R | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | R | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | R | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | R | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | R | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | R | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | R | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | R | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | R | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | R | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | R | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | R | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | R | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | R | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | R | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | R | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | R | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | R | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | R | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | R | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | R | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | R | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | R | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | R | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | R | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | R | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | R | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | R | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | R | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | R | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | R | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | R | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | R | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | R | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | R | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | R | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | R | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | R | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | R | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | R | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | R | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | R | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | R | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | R | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | R | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | R | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | R | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | R | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | R | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | R | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | R | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | R | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | R | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | R | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | R | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | R | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | R | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | R | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | R | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | R | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | R | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | R | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | R | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | R | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | R | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | R | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | R | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | R | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | R | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | R | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | R | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | R | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | R | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | R | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | R | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | R | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | R | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | R | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | R | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | R | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | R | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | R | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | R | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | R | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | R | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | R | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | R | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | R | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | R | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | R | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | R | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | R | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | R | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | R | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | R | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | R | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | R | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | R | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | R | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | R | 1 | 1 | exact | pass |
+
+**AirPassengers: the first day of each month taken back to the Monday of its week (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| still the first of the month | Polars dt.truncate("1w") | 19 | 19 | exact | pass |
+| all Mondays | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 1: 1948-12-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+
+### `table.round_dates_in to_the=`
+
+**ICU arrivals: 254 arrival times rounded to the nearest hour (59 are exactly half past, which go up)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of hours | pandas (time + 30 minutes).dt.floor("h") (half way up) | 3542 | 3542 | exact | pass |
+| next day | pandas (time + 30 minutes).dt.floor("h") (half way up) | 4 | 4 | exact | pass |
+| sum of row x hour | pandas (time + 30 minutes).dt.floor("h") (half way up) | 443501 | 443501 | exact | pass |
+| on the hour | pandas (time + 30 minutes).dt.floor("h") (half way up) | 1 | 1 | exact | pass |
+| sum of hours | R | 3542 | 3542 | exact | pass |
+| next day | R | 4 | 4 | exact | pass |
+| sum of row x hour | R | 443501 | 443501 | exact | pass |
+| on the hour | R | 1 | 1 | exact | pass |
+
+Note: R round.POSIXt(x, "hours") also sends a time exactly half way up.
+
+**ICU arrivals: 254 arrival times rounded to the nearest hour (59 are exactly half past, which go up) (a Polars table)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of hours | Polars dt.round("1h") | 3542 | 3542 | exact | pass |
+| next day | Polars dt.round("1h") | 4 | 4 | exact | pass |
+| sum of row x hour | Polars dt.round("1h") | 443501 | 443501 | exact | pass |
+| on the hour | Polars dt.round("1h") | 1 | 1 | exact | pass |
+
+### `table.turn_into_text written_like=`
+
+**AirPassengers: the 144 months written as day.month.year** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | pandas dt.strftime("%d.%m.%Y") | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| cells | R | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | R | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | R | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | R | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | R | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | R | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | R | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | R | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | R | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | R | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | R | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | R | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | R | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | R | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | R | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | R | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | R | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | R | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | R | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | R | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | R | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | R | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | R | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | R | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | R | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | R | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | R | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | R | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | R | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | R | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | R | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | R | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | R | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | R | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | R | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | R | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | R | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | R | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | R | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | R | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | R | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | R | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | R | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | R | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | R | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | R | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | R | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | R | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | R | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | R | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | R | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | R | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | R | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | R | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | R | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | R | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | R | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | R | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | R | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | R | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | R | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | R | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | R | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | R | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | R | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | R | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | R | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | R | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | R | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | R | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | R | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | R | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | R | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | R | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | R | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | R | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | R | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | R | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | R | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | R | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | R | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | R | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | R | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | R | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | R | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | R | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | R | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | R | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | R | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | R | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | R | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | R | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | R | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | R | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | R | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | R | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | R | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | R | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | R | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | R | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | R | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | R | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | R | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | R | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | R | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | R | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | R | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | R | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | R | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | R | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | R | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | R | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | R | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | R | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | R | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | R | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | R | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | R | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | R | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | R | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | R | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | R | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | R | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | R | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | R | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | R | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | R | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | R | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | R | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | R | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | R | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | R | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | R | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | R | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | R | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | R | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | R | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | R | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | R | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | R | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | R | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | R | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | R | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | R | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | R | 1 | 1 | exact | pass |
+
+**AirPassengers: the 144 months written as day.month.year (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | Polars dt.to_string("%d.%m.%Y") | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+
+### `table.turn_into_categories`
+
+**warpbreaks: tension put in the order high, medium, low, then sorted by it** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first tension is H | pandas Categorical(ordered=True), sort_values (stable) | 1 | 1 | exact | pass |
+| sum of row x breaks | pandas Categorical(ordered=True), sort_values (stable) | 46250 | 46250 | exact | pass |
+| first tension is H | R | 1 | 1 | exact | pass |
+| sum of row x breaks | R | 46250 | 46250 | exact | pass |
+
+**warpbreaks: tension put in the order high, medium, low, then sorted by it (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first tension is H | Polars pl.Enum, sort | 1 | 1 | exact | pass |
+| sum of row x breaks | Polars pl.Enum, sort | 46250 | 46250 | exact | pass |
+
+### `table.clean_column_names`
+
+**Hackshaw's passive smoking studies: "odds ratio 95 % CI low" and the other names made plain** (real data; data: passive smoking (metadat))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 4 | 4 | exact | pass |
+| column 1: study | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 2: odds_ratio | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| columns | R | 4 | 4 | exact | pass |
+| column 1: study | R | 1 | 1 | exact | pass |
+| column 2: odds_ratio | R | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | R | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | R | 1 | 1 | exact | pass |
+
+**Hackshaw's passive smoking studies: "odds ratio 95 % CI low" and the other names made plain (a Polars table)** (real data; data: passive smoking (metadat))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars rename (re.sub, unicodedata) | 4 | 4 | exact | pass |
+| column 1: study | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 2: odds_ratio | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+
+### `table.keep_first_rows for_each_group_in=`
+
+**mtcars: the two cars with the best fuel use for each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values (stable), groupby().head(2) | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| rows | R | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | R | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | R | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | R | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | R | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | R | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | R | 1 | 1 | exact | pass |
+
+**mtcars: the two cars with the best fuel use for each number of cylinders (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars sort, filter(int_range(len()).over() < 2) | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+
+### `table.keep_groups_where`
+
+**mtcars: only the numbers of cylinders whose cars average 19 mpg or more** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas groupby().filter() | 18 | 18 | relative 1e-12 | pass |
+| total mpg | pandas groupby().filter() | 431.5 | 431.5 | relative 1e-12 | pass |
+| rows | R | 18 | 18 | relative 1e-12 | pass |
+| total mpg | R | 431.5 | 431.5 | relative 1e-12 | pass |
+
+**mtcars: only the numbers of cylinders whose cars average 19 mpg or more (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars filter(mean().over() >= 19) | 18 | 18 | relative 1e-12 | pass |
+| total mpg | Polars filter(mean().over() >= 19) | 431.5 | 431.5 | relative 1e-12 | pass |
+
+### `table.remove_groups_where`
+
+**mtcars: the numbers of cylinders whose cars average under 19 mpg removed** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas groupby().filter() | 18 | 18 | relative 1e-12 | pass |
+| total mpg | pandas groupby().filter() | 431.5 | 431.5 | relative 1e-12 | pass |
+| rows | R | 18 | 18 | relative 1e-12 | pass |
+| total mpg | R | 431.5 | 431.5 | relative 1e-12 | pass |
+
+**mtcars: the numbers of cylinders whose cars average under 19 mpg removed (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars filter(~(mean().over() < 19)) | 18 | 18 | relative 1e-12 | pass |
+| total mpg | Polars filter(~(mean().over() < 19)) | 431.5 | 431.5 | relative 1e-12 | pass |
+
+### `table.keep_rows_found_in`
+
+**warpbreaks: the looms run at low or high tension (a list with a repeat)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas isin | 36 | 36 | exact | pass |
+| total breaks | pandas isin | 1045 | 1045 | exact | pass |
+| sum of row x breaks | pandas isin | 16616 | 16616 | exact | pass |
+| rows | R | 36 | 36 | exact | pass |
+| total breaks | R | 1045 | 1045 | exact | pass |
+| sum of row x breaks | R | 16616 | 16616 | exact | pass |
+
+**warpbreaks: the looms run at low or high tension (a list with a repeat) (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="semi") | 36 | 36 | exact | pass |
+| total breaks | Polars join(how="semi") | 1045 | 1045 | exact | pass |
+| sum of row x breaks | Polars join(how="semi") | 16616 | 16616 | exact | pass |
+
+### `table.remove_rows_found_in`
+
+**warpbreaks: the looms run at low tension removed** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas ~isin | 36 | 36 | exact | pass |
+| total breaks | pandas ~isin | 865 | 865 | exact | pass |
+| sum of row x breaks | pandas ~isin | 15626 | 15626 | exact | pass |
+| rows | R | 36 | 36 | exact | pass |
+| total breaks | R | 865 | 865 | exact | pass |
+| sum of row x breaks | R | 15626 | 15626 | exact | pass |
+
+**warpbreaks: the looms run at low tension removed (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="anti") | 36 | 36 | exact | pass |
+| total breaks | Polars join(how="anti") | 865 | 865 | exact | pass |
+| sum of row x breaks | Polars join(how="anti") | 15626 | 15626 | exact | pass |
+
+### `table.keep_rows_where capitals_matter=`
+
+**iris: the flowers whose species is SETOSA, capitals not mattering** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas str.lower() == | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | pandas str.lower() == | 250.3 | 250.3 | relative 1e-12 | pass |
+| rows | R | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | R | 250.3 | 250.3 | relative 1e-12 | pass |
+
+**iris: the flowers whose species is SETOSA, capitals not mattering (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars str.to_lowercase() == | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | Polars str.to_lowercase() == | 250.3 | 250.3 | relative 1e-12 | pass |
+
+### `table.make_one_table_for_each_group_in`
+
+**iris: one table for each of the three species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| tables | pandas groupby(sort=False) | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | pandas groupby(sort=False) | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | pandas groupby(sort=False) | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | pandas groupby(sort=False) | 277.6 | 277.6 | relative 1e-12 | pass |
+| tables | R | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | R | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | R | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | R | 277.6 | 277.6 | relative 1e-12 | pass |
+
+**iris: one table for each of the three species (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| tables | Polars partition_by(as_dict=True) | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | Polars partition_by(as_dict=True) | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | Polars partition_by(as_dict=True) | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | Polars partition_by(as_dict=True) | 277.6 | 277.6 | relative 1e-12 | pass |
+
+### `table.move_columns`
+
+**mtcars: horsepower and weight moved to the front** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas df[columns in the new order] | 12 | 12 | exact | pass |
+| column 1: hp | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 2: wt | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 3: model | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 4: mpg | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 5: cyl | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 6: disp | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 7: drat | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 8: qsec | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 9: vs | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 10: am | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 11: gear | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 12: carb | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+
+**mtcars: horsepower and weight moved to the front (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars select(columns in the new order) | 12 | 12 | exact | pass |
+| column 1: hp | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 2: wt | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 3: model | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 4: mpg | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 5: cyl | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 6: disp | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 7: drat | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 8: qsec | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 9: vs | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 10: am | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 11: gear | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 12: carb | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+
+### `table.rename_columns`
+
+**mtcars: mpg and hp given longer names** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas rename(columns=) | 12 | 12 | exact | pass |
+| total horsepower | pandas rename(columns=) | 4694 | 4694 | exact | pass |
+| column 1: model | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 2: miles_per_gallon | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 3: cyl | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 4: disp | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 5: horsepower | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 6: drat | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 7: wt | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 8: qsec | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 9: vs | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 10: am | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 11: gear | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 12: carb | pandas rename(columns=) | 1 | 1 | exact | pass |
+
+**mtcars: mpg and hp given longer names (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars rename | 12 | 12 | exact | pass |
+| total horsepower | Polars rename | 4694 | 4694 | exact | pass |
+| column 1: model | Polars rename | 1 | 1 | exact | pass |
+| column 2: miles_per_gallon | Polars rename | 1 | 1 | exact | pass |
+| column 3: cyl | Polars rename | 1 | 1 | exact | pass |
+| column 4: disp | Polars rename | 1 | 1 | exact | pass |
+| column 5: horsepower | Polars rename | 1 | 1 | exact | pass |
+| column 6: drat | Polars rename | 1 | 1 | exact | pass |
+| column 7: wt | Polars rename | 1 | 1 | exact | pass |
+| column 8: qsec | Polars rename | 1 | 1 | exact | pass |
+| column 9: vs | Polars rename | 1 | 1 | exact | pass |
+| column 10: am | Polars rename | 1 | 1 | exact | pass |
+| column 11: gear | Polars rename | 1 | 1 | exact | pass |
+| column 12: carb | Polars rename | 1 | 1 | exact | pass |
+
+### `table.count_columns`
+
+**the 12 columns of mtcars (the car names and 11 measurements)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Henderson & Velleman (1981): 11 variables, with the car names | 12 | 12 | within 0 (printed rounding) | pass |
+| columns | pandas shape[1] | 12 | 12 | exact | pass |
+
+**the 12 columns of mtcars (the car names and 11 measurements) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars width | 12 | 12 | exact | pass |
+
+### `table.remove_columns_that_are_all_empty`
+
+**NHANES: the 9 people without a body mass index; their bmi column, all empty, removed** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas dropna(axis=1, how="all") | 3 | 3 | exact | pass |
+| column 1: age | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| column 2: hyp | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| column 3: chl | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| columns | R | 3 | 3 | exact | pass |
+| column 1: age | R | 1 | 1 | exact | pass |
+| column 2: hyp | R | 1 | 1 | exact | pass |
+| column 3: chl | R | 1 | 1 | exact | pass |
+
+**NHANES: the 9 people without a body mass index; their bmi column, all empty, removed (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars select(columns with null_count() < height) | 3 | 3 | exact | pass |
+| column 1: age | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+| column 2: hyp | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+| column 3: chl | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+
+### `table.remove_rows_that_are_all_empty`
+
+**NHANES body mass index, hypertension and cholesterol: the 7 people with none of the three removed** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | pandas dropna(how="all") | 18 | 18 | exact | pass |
+| total cholesterol | pandas dropna(how="all") | 2871 | 2871 | exact | pass |
+| empty bmi left | pandas dropna(how="all") | 2 | 2 | exact | pass |
+| rows left | R | 18 | 18 | exact | pass |
+| total cholesterol | R | 2871 | 2871 | exact | pass |
+| empty bmi left | R | 2 | 2 | exact | pass |
+
+**NHANES body mass index, hypertension and cholesterol: the 7 people with none of the three removed (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | Polars filter(~all_horizontal(is_null())) | 18 | 18 | exact | pass |
+| total cholesterol | Polars filter(~all_horizontal(is_null())) | 2871 | 2871 | exact | pass |
+| empty bmi left | Polars filter(~all_horizontal(is_null())) | 2 | 2 | exact | pass |
+
+### `table.sort_by biggest_first=`
+
+**mtcars sorted by cylinders (fewest first), then by miles per gallon (most first)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values(ascending=[True, False], kind="stable") | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 3: Honda Civic | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 7: Merc 240D | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 9: Merc 230 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 16: Merc 280 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 17: Valiant | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 18: Merc 280C | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 29: Duster 360 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| rows | R | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | R | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | R | 1 | 1 | exact | pass |
+| row 3: Honda Civic | R | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | R | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | R | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | R | 1 | 1 | exact | pass |
+| row 7: Merc 240D | R | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | R | 1 | 1 | exact | pass |
+| row 9: Merc 230 | R | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | R | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | R | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | R | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | R | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | R | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | R | 1 | 1 | exact | pass |
+| row 16: Merc 280 | R | 1 | 1 | exact | pass |
+| row 17: Valiant | R | 1 | 1 | exact | pass |
+| row 18: Merc 280C | R | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | R | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | R | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | R | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | R | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | R | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | R | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | R | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | R | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | R | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | R | 1 | 1 | exact | pass |
+| row 29: Duster 360 | R | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | R | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | R | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | R | 1 | 1 | exact | pass |
+
+**mtcars sorted by cylinders (fewest first), then by miles per gallon (most first) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars sort(descending=[False, True], maintain_order=True) | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 3: Honda Civic | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 7: Merc 240D | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 9: Merc 230 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 16: Merc 280 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 17: Valiant | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 18: Merc 280C | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 29: Duster 360 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+
+### `table.split_into_rows`
+
+**mtcars: each word of a car's name on its own row** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas str.split, explode | 66 | 66 | relative 1e-12 | pass |
+| Merc | pandas str.split, explode | 7 | 7 | relative 1e-12 | pass |
+| total mpg | pandas str.split, explode | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 66 | 66 | relative 1e-12 | pass |
+| Merc | R | 7 | 7 | relative 1e-12 | pass |
+| total mpg | R | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | R | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | R | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | R | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | R | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | R | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | R | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | R | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | R | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | R | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | R | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | R | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | R | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | R | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | R | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | R | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | R | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | R | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | R | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | R | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | R | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | R | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | R | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | R | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | R | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | R | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | R | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | R | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | R | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | R | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | R | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | R | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | R | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | R | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | R | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | R | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | R | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | R | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | R | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | R | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | R | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | R | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | R | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | R | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | R | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | R | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | R | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | R | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | R | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | R | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | R | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | R | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | R | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | R | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | R | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | R | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | R | 1 | 1 | relative 1e-12 | pass |
+
+**mtcars: each word of a car's name on its own row (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars str.split, explode | 66 | 66 | relative 1e-12 | pass |
+| Merc | Polars str.split, explode | 7 | 7 | relative 1e-12 | pass |
+| total mpg | Polars str.split, explode | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+
+### `table.gather_into_rows starts_with=`
+
+**iris: the two sepal columns (names starting with "Sepal.") turned into rows** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas melt | 300 | 300 | relative 1e-12 | pass |
+| columns | pandas melt | 5 | 5 | relative 1e-12 | pass |
+| total cm | pandas melt | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | pandas melt | 150 | 150 | relative 1e-12 | pass |
+| row 151 | pandas melt | 3.5 | 3.5 | relative 1e-12 | pass |
+| rows | R | 300 | 300 | relative 1e-12 | pass |
+| total cm | R | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | R | 150 | 150 | relative 1e-12 | pass |
+| row 151 | R | 3.5 | 3.5 | relative 1e-12 | pass |
+
+**iris: the two sepal columns (names starting with "Sepal.") turned into rows (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars unpivot(on=cs.starts_with()) | 300 | 300 | relative 1e-12 | pass |
+| columns | Polars unpivot(on=cs.starts_with()) | 5 | 5 | relative 1e-12 | pass |
+| total cm | Polars unpivot(on=cs.starts_with()) | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | Polars unpivot(on=cs.starts_with()) | 150 | 150 | relative 1e-12 | pass |
+| row 151 | Polars unpivot(on=cs.starts_with()) | 3.5 | 3.5 | relative 1e-12 | pass |
+
+### `table.spread_into_columns show=`
+
+**warpbreaks: the total breaks for each wool (rows) and tension (columns)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas pivot_table(aggfunc="sum") | 4 | 4 | exact | pass |
+| wool A, tension L | pandas pivot_table(aggfunc="sum") | 401 | 401 | exact | pass |
+| wool A, tension M | pandas pivot_table(aggfunc="sum") | 216 | 216 | exact | pass |
+| wool A, tension H | pandas pivot_table(aggfunc="sum") | 221 | 221 | exact | pass |
+| wool B, tension L | pandas pivot_table(aggfunc="sum") | 254 | 254 | exact | pass |
+| wool B, tension M | pandas pivot_table(aggfunc="sum") | 259 | 259 | exact | pass |
+| wool B, tension H | pandas pivot_table(aggfunc="sum") | 169 | 169 | exact | pass |
+| wool A, tension L | R | 401 | 401 | exact | pass |
+| wool A, tension M | R | 216 | 216 | exact | pass |
+| wool A, tension H | R | 221 | 221 | exact | pass |
+| wool B, tension L | R | 254 | 254 | exact | pass |
+| wool B, tension M | R | 259 | 259 | exact | pass |
+| wool B, tension H | R | 169 | 169 | exact | pass |
+
+**warpbreaks: the total breaks for each wool (rows) and tension (columns) (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars pivot(aggregate_function="sum") | 4 | 4 | exact | pass |
+| wool A, tension L | Polars pivot(aggregate_function="sum") | 401 | 401 | exact | pass |
+| wool A, tension M | Polars pivot(aggregate_function="sum") | 216 | 216 | exact | pass |
+| wool A, tension H | Polars pivot(aggregate_function="sum") | 221 | 221 | exact | pass |
+| wool B, tension L | Polars pivot(aggregate_function="sum") | 254 | 254 | exact | pass |
+| wool B, tension M | Polars pivot(aggregate_function="sum") | 259 | 259 | exact | pass |
+| wool B, tension H | Polars pivot(aggregate_function="sum") | 169 | 169 | exact | pass |
+
+### `table.spread_into_yes_no_columns`
+
+**iris: a yes/no column for each species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas get_dummies(prefix_sep=": ") | 8 | 8 | exact | pass |
+| yes in Species: setosa | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| yes in Species: versicolor | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| yes in Species: virginica | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| row 51 is versicolor | pandas get_dummies(prefix_sep=": ") | 1 | 1 | exact | pass |
+| yes in Species: setosa | R | 50 | 50 | exact | pass |
+| yes in Species: versicolor | R | 50 | 50 | exact | pass |
+| yes in Species: virginica | R | 50 | 50 | exact | pass |
+| row 51 is versicolor | R | 1 | 1 | exact | pass |
+
+**iris: a yes/no column for each species (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars to_dummies(separator=": ") | 8 | 8 | exact | pass |
+| yes in Species: setosa | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| yes in Species: versicolor | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| yes in Species: virginica | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| row 51 is versicolor | Polars to_dummies(separator=": ") | 1 | 1 | exact | pass |
+
+### `table.join_with keep="every combination"`
+
+**mtcars: every car paired with both kinds of gearbox (64 rows)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge(how="cross") | 64 | 64 | relative 1e-12 | pass |
+| total mpg | pandas merge(how="cross") | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 64 | 64 | relative 1e-12 | pass |
+| total mpg | R | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | R | 1 | 1 | relative 1e-12 | pass |
+
+**mtcars: every car paired with both kinds of gearbox (64 rows) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="cross") | 64 | 64 | relative 1e-12 | pass |
+| total mpg | Polars join(how="cross") | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+
+### `table.join_with match=`
+
+**AirPassengers: each month joined to the start of its quarter (January, April, July, October) when that is at most 40 days before** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge_asof(direction="backward", tolerance=40 days) | 144 | 144 | exact | pass |
+| empty | pandas merge_asof(direction="backward", tolerance=40 days) | 48 | 48 | exact | pass |
+| total | pandas merge_asof(direction="backward", tolerance=40 days) | 27042 | 27042 | exact | pass |
+| February 1949 | pandas merge_asof(direction="backward", tolerance=40 days) | 112 | 112 | exact | pass |
+| sum of row x value | pandas merge_asof(direction="backward", tolerance=40 days) | 2401719 | 2401719 | exact | pass |
+| rows | R | 144 | 144 | exact | pass |
+| empty | R | 48 | 48 | exact | pass |
+| total | R | 27042 | 27042 | exact | pass |
+| February 1949 | R | 112 | 112 | exact | pass |
+| sum of row x value | R | 2401719 | 2401719 | exact | pass |
+
+**AirPassengers: each month joined to the start of its quarter (January, April, July, October) when that is at most 40 days before (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join_asof(strategy="backward", tolerance=40 days) | 144 | 144 | exact | pass |
+| empty | Polars join_asof(strategy="backward", tolerance=40 days) | 48 | 48 | exact | pass |
+| total | Polars join_asof(strategy="backward", tolerance=40 days) | 27042 | 27042 | exact | pass |
+| February 1949 | Polars join_asof(strategy="backward", tolerance=40 days) | 112 | 112 | exact | pass |
+| sum of row x value | Polars join_asof(strategy="backward", tolerance=40 days) | 2401719 | 2401719 | exact | pass |
+
+### `table.join_with using=`
+
+**iris joined to a table of the species' average petal length, named "kind" there** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge(left_on=, right_on=, validate="many_to_one") | 150 | 150 | relative 1e-12 | pass |
+| columns | pandas merge(left_on=, right_on=, validate="many_to_one") | 6 | 6 | relative 1e-12 | pass |
+| total | pandas merge(left_on=, right_on=, validate="many_to_one") | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | pandas merge(left_on=, right_on=, validate="many_to_one") | 5.552 | 5.552 | relative 1e-12 | pass |
+| column 1: Sepal.Length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 2: Sepal.Width | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 3: Petal.Length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 4: Petal.Width | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 5: Species | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 6: species_petal_length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 150 | 150 | relative 1e-12 | pass |
+| total | R | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | R | 5.552 | 5.552 | relative 1e-12 | pass |
+
+**iris joined to a table of the species' average petal length, named "kind" there (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(left_on=, right_on=, validate="m:1") | 150 | 150 | relative 1e-12 | pass |
+| columns | Polars join(left_on=, right_on=, validate="m:1") | 6 | 6 | relative 1e-12 | pass |
+| total | Polars join(left_on=, right_on=, validate="m:1") | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | Polars join(left_on=, right_on=, validate="m:1") | 5.552 | 5.552 | relative 1e-12 | pass |
+| column 1: Sepal.Length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 2: Sepal.Width | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 3: Petal.Length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 4: Petal.Width | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 5: Species | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 6: species_petal_length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+
+### `table.fill_empty_cells_from`
+
+**NHANES: the 9 empty body mass index cells filled with the average of the person's age group** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty left | pandas fillna from the other table's matching row (set_index, reindex) | 0 | 0 | relative 1e-12 | pass |
+| total | pandas fillna from the other table's matching row (set_index, reindex) | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | pandas fillna from the other table's matching row (set_index, reindex) | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | pandas fillna from the other table's matching row (set_index, reindex) | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+| empty left | R | 0 | 0 | relative 1e-12 | pass |
+| total | R | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | R | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | R | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+
+**NHANES: the 9 empty body mass index cells filled with the average of the person's age group (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty left | Polars join(how="left"), coalesce | 0 | 0 | relative 1e-12 | pass |
+| total | Polars join(how="left"), coalesce | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | Polars join(how="left"), coalesce | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | Polars join(how="left"), coalesce | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+
+### `table.find_summary_of show=`
+
+**NHANES body mass index by age group: the first and last filled values, the biggest and the smallest** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age group 1: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 20.4 | 20.4 | exact | pass |
+| age group 1: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.5 | 27.5 | exact | pass |
+| age group 2: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 22 | 22 | exact | pass |
+| age group 2: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.4 | 27.4 | exact | pass |
+| age group 3: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 21.7 | 21.7 | exact | pass |
+| age group 3: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 24.9 | 24.9 | exact | pass |
+| age group 1: first | R | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | R | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | R | 20.4 | 20.4 | exact | pass |
+| age group 1: last | R | 27.5 | 27.5 | exact | pass |
+| age group 2: first | R | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | R | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | R | 22 | 22 | exact | pass |
+| age group 2: last | R | 27.4 | 27.4 | exact | pass |
+| age group 3: first | R | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | R | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | R | 21.7 | 21.7 | exact | pass |
+| age group 3: last | R | 24.9 | 24.9 | exact | pass |
+
+**NHANES body mass index by age group: the first and last filled values, the biggest and the smallest (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age group 1: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 20.4 | 20.4 | exact | pass |
+| age group 1: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.5 | 27.5 | exact | pass |
+| age group 2: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 22 | 22 | exact | pass |
+| age group 2: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.4 | 27.4 | exact | pass |
+| age group 3: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 21.7 | 21.7 | exact | pass |
+| age group 3: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 24.9 | 24.9 | exact | pass |
+
+### `table.as_list`
+
+**mtcars given back as a list of 32 rows, one dict for each car** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas to_dict("records") | 32 | 32 | exact | pass |
+| keys in a row | pandas to_dict("records") | 12 | 12 | exact | pass |
+| total hp | pandas to_dict("records") | 4694 | 4694 | exact | pass |
+| total wt | pandas to_dict("records") | 102.952 | 102.952 | exact | pass |
+| row 1: Mazda RX4 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 2: Mazda RX4 Wag | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 3: Datsun 710 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 4: Hornet 4 Drive | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 5: Hornet Sportabout | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 6: Valiant | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 7: Duster 360 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 8: Merc 240D | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 9: Merc 230 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 10: Merc 280 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 11: Merc 280C | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 12: Merc 450SE | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 13: Merc 450SL | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 14: Merc 450SLC | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 15: Cadillac Fleetwood | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 16: Lincoln Continental | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 17: Chrysler Imperial | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 18: Fiat 128 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 19: Honda Civic | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 20: Toyota Corolla | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 21: Toyota Corona | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 22: Dodge Challenger | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 23: AMC Javelin | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 24: Camaro Z28 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 25: Pontiac Firebird | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 26: Fiat X1-9 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 27: Porsche 914-2 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 28: Lotus Europa | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 29: Ford Pantera L | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 30: Ferrari Dino | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 31: Maserati Bora | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 32: Volvo 142E | pandas to_dict("records") | 1 | 1 | exact | pass |
+
+**mtcars given back as a list of 32 rows, one dict for each car (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars to_dicts() | 32 | 32 | exact | pass |
+| keys in a row | Polars to_dicts() | 12 | 12 | exact | pass |
+| total hp | Polars to_dicts() | 4694 | 4694 | exact | pass |
+| total wt | Polars to_dicts() | 102.952 | 102.952 | exact | pass |
+| row 1: Mazda RX4 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 2: Mazda RX4 Wag | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 3: Datsun 710 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 4: Hornet 4 Drive | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 5: Hornet Sportabout | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 6: Valiant | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 7: Duster 360 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 8: Merc 240D | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 9: Merc 230 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 10: Merc 280 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 11: Merc 280C | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 12: Merc 450SE | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 13: Merc 450SL | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 14: Merc 450SLC | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 15: Cadillac Fleetwood | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 16: Lincoln Continental | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 17: Chrysler Imperial | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 18: Fiat 128 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 19: Honda Civic | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 20: Toyota Corolla | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 21: Toyota Corona | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 22: Dodge Challenger | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 23: AMC Javelin | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 24: Camaro Z28 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 25: Pontiac Firebird | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 26: Fiat X1-9 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 27: Porsche 914-2 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 28: Lotus Europa | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 29: Ford Pantera L | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 30: Ferrari Dino | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 31: Maserati Bora | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 32: Volvo 142E | Polars to_dicts() | 1 | 1 | exact | pass |
+
+### `table.check_if_same_as`
+
+**mtcars against itself, and against mtcars with the weights rounded to 1 decimal** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| same as itself | pandas equals | 1 | 1 | exact | pass |
+| same after rounding wt | pandas equals | 0 | 0 | exact | pass |
+| same as itself | R | 1 | 1 | exact | pass |
+| same after rounding wt | R | 0 | 0 | exact | pass |
+
+**mtcars against itself, and against mtcars with the weights rounded to 1 decimal (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| same as itself | Polars equals | 1 | 1 | exact | pass |
+| same after rounding wt | Polars equals | 0 | 0 | exact | pass |
+
+### `table.show_duplicate_rows`
+
+**iris: flower 143 repeats flower 102 exactly** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows that repeat | pandas duplicated(keep=False) | 2 | 2 | exact | pass |
+| different rows | pandas duplicated(keep=False) | 1 | 1 | exact | pass |
+| extra copies | pandas duplicated(keep=False) | 1 | 1 | exact | pass |
+| rows that repeat | R | 2 | 2 | exact | pass |
+| extra copies | R | 1 | 1 | exact | pass |
+| different rows | R | 1 | 1 | exact | pass |
+
+**iris: flower 143 repeats flower 102 exactly (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows that repeat | Polars is_duplicated() | 2 | 2 | exact | pass |
+| different rows | Polars is_duplicated() | 1 | 1 | exact | pass |
+| extra copies | Polars is_duplicated() | 1 | 1 | exact | pass |
+
+### `table.show_rows_with_empty_cells_in`
+
+**NHANES: the people with at least one empty cell** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows with an empty cell | pandas isna().any(axis=1) | 12 | 12 | exact | pass |
+| rows | pandas isna().any(axis=1) | 25 | 25 | exact | pass |
+| rows with an empty cell | R | 12 | 12 | exact | pass |
+| rows | R | 25 | 25 | exact | pass |
+
+**NHANES: the people with at least one empty cell (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows with an empty cell | Polars any_horizontal(is_null()) | 12 | 12 | exact | pass |
+| rows | Polars any_horizontal(is_null()) | 25 | 25 | exact | pass |
+
+### `table.count_rows with_totals=`
+
+**warpbreaks: looms for each wool and tension, with the totals** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas crosstab(margins=True, margins_name="(total)") | 5 | 5 | exact | pass |
+| A, L | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, M | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, H | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, (total) | pandas crosstab(margins=True, margins_name="(total)") | 27 | 27 | exact | pass |
+| B, L | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, M | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, H | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, (total) | pandas crosstab(margins=True, margins_name="(total)") | 27 | 27 | exact | pass |
+| (total), L | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), M | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), H | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), (total) | pandas crosstab(margins=True, margins_name="(total)") | 54 | 54 | exact | pass |
+| A, H | R | 9 | 9 | exact | pass |
+| A, L | R | 9 | 9 | exact | pass |
+| A, M | R | 9 | 9 | exact | pass |
+| A, (total) | R | 27 | 27 | exact | pass |
+| B, H | R | 9 | 9 | exact | pass |
+| B, L | R | 9 | 9 | exact | pass |
+| B, M | R | 9 | 9 | exact | pass |
+| B, (total) | R | 27 | 27 | exact | pass |
+| (total), H | R | 18 | 18 | exact | pass |
+| (total), L | R | 18 | 18 | exact | pass |
+| (total), M | R | 18 | 18 | exact | pass |
+| (total), (total) | R | 54 | 54 | exact | pass |
+
+Note: R addmargins() names its totals "Sum"; simplydata and pandas (margins_name) call them "(total)". The R names are changed to "(total)" before the numbers are compared.
+
+### `table.save in_table=`
+
+**mtcars saved twice into an SQLite file (two tables) and read back** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas to_sql, read_sql_query (sqlite3) | 32 | 32 | relative 1e-12 | pass |
+| columns | pandas to_sql, read_sql_query (sqlite3) | 12 | 12 | relative 1e-12 | pass |
+| total hp | pandas to_sql, read_sql_query (sqlite3) | 4694 | 4694 | relative 1e-12 | pass |
+| total wt | pandas to_sql, read_sql_query (sqlite3) | 102.952 | 102.952 | relative 1e-12 | pass |
+| row 3 | pandas to_sql, read_sql_query (sqlite3) | 1 | 1 | relative 1e-12 | pass |
+
+### `table.show_differences_from`
+
+**mtcars with horsepower capped at 200, against mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells that differ | pandas compare | 7 | 7 | exact | pass |
+| rows that differ | pandas compare | 7 | 7 | exact | pass |
+| cells that differ | R | 7 | 7 | exact | pass |
+| rows that differ | R | 7 | 7 | exact | pass |
 
 ### `get_numbers_drawn`
 
