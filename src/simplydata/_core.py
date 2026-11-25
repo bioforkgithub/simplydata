@@ -471,7 +471,7 @@ class BaseChart:
         return resolution
 
     def _check_pixels(self, resolution):
-        # a page of charts works out its own size unless page.set_size() was used
+        # a page of charts works out its own size unless charts.set_size() was used
         width, height = self._page_size() if hasattr(self, "_page_size") else (
             self._settings["width"], self._settings["height"])
         w, h = width * resolution, height * resolution

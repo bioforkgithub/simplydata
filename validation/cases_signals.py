@@ -538,10 +538,10 @@ def _cases(Case):
              note="simplydata runs R HoltWinters through forecast::forecast; the reference is HoltWinters' own "
                   "predict() in base R."),
         # ---- joining the dots
-        Case("table.values_at", "the yearly sunspot numbers between the years, by straight lines", SUNSPOTS,
+        Case("table.find_values_at", "the yearly sunspot numbers between the years, by straight lines", SUNSPOTS,
              "real data",
              ours=f"""
-                 found = {sun}.values_at("sunspots", at={{"year": [1700.5, 1850.25, 2007.9]}})
+                 found = {sun}.find_values_at("sunspots", at={{"year": [1700.5, 1850.25, 2007.9]}})
                  {{"1700.5": found.get_cell_at(row=1, column="sunspots"), "1850.25": found.get_cell_at(row=2, column="sunspots"),
                   "2007.9": found.get_cell_at(row=3, column="sunspots")}}
              """,

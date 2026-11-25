@@ -1339,7 +1339,7 @@ BASIS["sdata.solve"] = _b(
     "starting value")
 
 # ---- Values between points
-BASIS["table.values_at"] = _b(
+BASIS["table.find_values_at"] = _b(
     "Straight lines between the points (as R approx()); repeated places averaged; places outside the data left "
     "empty.",
     "joined_by=\"smooth curve\", \"curve without overshoot\", \"steps\", \"nearest\" and more; smoothness=; "
@@ -1348,10 +1348,10 @@ BASIS["table.values_at"] = _b(
     "(ties = mean, rule = 1).",
     (), "P3", "Too few points, and collinear points on a map, are refused; extension gets a note.", "convention")
 BASIS["table.make_map_of"] = _b(
-    "50 steps in each direction, joined as values_at (triangles for scattered points, bilinear on a full grid), "
+    "50 steps in each direction, joined as find_values_at (triangles for scattered points, bilinear on a full grid), "
     "places outside the points left empty.",
     "steps=, joined_by=, outside=.",
-    "The same rules as values_at; 50 steps is a starting value for a smooth-looking map.",
+    "The same rules as find_values_at; 50 steps is a starting value for a smooth-looking map.",
     (), "P5", "At most 1 000 000 places.", "starting value")
 
 # ---- Distributions
@@ -4645,3 +4645,43 @@ BASIS["draw_bars_3d"] = _b(
     "draw_heatmap() for the same numbers in two dimensions.",
     "Showing results: 3D bars hide each other and their heights are hard to read, so simplydata says so once.", (),
     "P5", "Each place (x and y) needs one row.", "starting value")
+
+# ---- NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25)
+BASIS["nums.turn_into_yes_or_no"] = _b(
+    "An empty number is no; the numbers themselves do not change (new yes or no values come back).",
+    "is_empty=True for yes where the numbers are empty; & | ~ to join tests.",
+    "As NumPy, where nan > 20 is False, so the answer matches the NumPy line; keeping the numbers lets the same "
+    "values make several tests.", (), "P3", "One condition at a time, as keep_each_number_that.", "convention")
+BASIS["nums.check_if_all_numbers"] = _b(
+    "Empty numbers are skipped, and the sentence says how many were skipped.",
+    "count_empty_numbers() and replace_each_number_that(is_empty=True, with_value=...) first, to decide them yourself.",
+    "The same rule as every simplydata summary (empty values are skipped, with a note); NumPy's np.all would say "
+    "False for any nan.", (), "P5", "One condition at a time.", "starting value")
+BASIS["nums.take_sin"] = _b(
+    "Angles in radians, as NumPy; degrees=True for degrees.",
+    "degrees=True; change_angles_to(\"degrees\") or (\"radians\") to change the numbers themselves.",
+    "Radians keep the printed NumPy line exactly the same as the word (owner decision 2026-11-25); the sentence "
+    "says which unit was used every time.", (), "P3", "degrees= is True or False.", "convention")
+BASIS["nums.find_where_biggest"] = _b(
+    "The position counted from 1 (NumPy's index plus 1); empty values skipped (np.nanargmax); on a tie, the first.",
+    "over= for one position along a direction of a grid or block.",
+    "Positions count from 1 everywhere in simplydata (approved 2026-11-14); the sentence gives the NumPy index too, "
+    "so the bridge to NumPy is exact.", (), "P5", "All-empty numbers are refused.", "convention")
+BASIS["block.find_average"] = _b(
+    "over= names the directions that go and in_each= the ones kept; empty values are skipped (np.nanmean).",
+    "over=[...] for several; no option for one number for the whole block.",
+    "Named directions remove NumPy's axis numbers and keepdims=True: the result keeps its names and lines up with "
+    "the block by name (NumPy brief D4, approved 2026-11-15).", (), "P5", "Unknown names are refused with the names "
+    "the block has.", "starting value")
+BASIS["block.keep_where"] = _b(
+    "The range is taken in either order, and turned round when the labels run downward (xarray sel).",
+    "is_one_of= for exact labels; keep_by_position_in for positions.",
+    "Many ocean and climate files store latitude from north to south; xarray then gives nothing for a range written "
+    "low to high, with no error. Turning it round removes that trap.", (), "P4",
+    "A direction without labels is refused, with the position word to use.", "starting value")
+BASIS["block.change_shape_to"] = _b(
+    "The numbers are read row by row (NumPy's C order), and one_row_per= must be the first direction.",
+    "move_direction() first, to put another direction first; fill=\"repeat\" for a new size (np.resize).",
+    "NumPy's own order, so the result equals reshape; a reshape that would mix directions is refused instead of "
+    "scrambling them silently (NumPy brief D5).", (), "P4", "The sizes must multiply to the count of numbers.",
+    "convention")

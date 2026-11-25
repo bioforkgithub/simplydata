@@ -126,6 +126,8 @@ def find_inverse_fourier_transform(table=None):
     _same_rows_as_made(info, frame)
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
                                                                                     dtype=float)
+    if info.get("zero_in_middle"):
+        z = fft.ifftshift(z)  # back to SciPy's own order before ifft
     values = fft.irfft(z, n=info["n"]) if info["show"] == "half" else fft.ifft(z).real
     nums = numbers(values)
     nums._time_step = info["time_step"]

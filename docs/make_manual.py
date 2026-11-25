@@ -92,6 +92,17 @@ GROUP_UNDERNEATH = {
     "Numbers: summaries": "NumPy (functions that skip empty values, such as nanmean)",
     "Grids of numbers": "NumPy (a two-dimensional array)",
     "Numbers: undo and finish": "simplydata itself: it keeps every version of the numbers",
+    # NumPy + SciPy phase, batch 1
+    "Numbers: yes or no": "NumPy (comparisons, logical_and, logical_or, logical_not, where, count_nonzero, any, all, "
+                          "array_equal, allclose)",
+    "Numbers: rounding, angles and positions": "NumPy (floor, ceil, trunc, sin, cos, tan, deg2rad, rad2deg, "
+                                               "nanargmax, nanargmin, unravel_index, ufunc.outer, kron)",
+    "Blocks of numbers": "NumPy (an array with any number of directions: shape, ndim, indexing, take, delete, and the "
+                         "nan summaries with axis=)",
+    "Blocks: shape and directions": "NumPy (reshape, expand_dims, squeeze, swapaxes, moveaxis, rot90, roll, insert, "
+                                    "repeat, tile, concatenate, array_split, unstack, stack)",
+    "Blocks: stretching": "NumPy (broadcast_shapes, broadcast_to, broadcast_arrays); xarray (broadcast) lines up named "
+                          "directions when simplydata[xarray] is installed",
     "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
                "the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and "
                "margins from python-control (step_info, stability_margins: simplydata[systems])",
@@ -335,7 +346,7 @@ UNDERNEATH = {
     "sdata.find_where_biggest": "SciPy (the same as find_smallest, on minus the formula)",
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
     # values between points
-    "table.values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
+    "table.find_values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
                        "smoothness=\"auto\" lets R smooth.spline choose the smoothness (needs R)",
     "table.make_map_of": "SciPy (interpolate: RegularGridInterpolator, griddata, RBFInterpolator)",
@@ -457,6 +468,14 @@ UNDERNEATH = {
     # numbers
     "sdata.make_random_numbers": "NumPy (random.default_rng)",
     "nums.find_percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
+    "sdata.number_block": "NumPy (asarray, full); pandas (reindex on every combination of the labels) for a table; "
+                          "an xarray DataArray brings its names and labels",
+    "block.keep_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels)",
+    "block.remove_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels), "
+                          "then NumPy delete",
+    "block.find_direction_names": "simplydata itself: the names are kept next to the NumPy array",
+    "sdata.hide_stretching_notes": "simplydata itself: a setting",
+    "sdata.show_stretching_notes": "simplydata itself: a setting",
     "nums.turn_into_table": "pandas",
     "nums.start_chart": "matplotlib and seaborn, from a pandas table with one column called value",
     "nums.save": "pandas (to_csv, to_excel ...)",
@@ -1189,7 +1208,7 @@ def _word_entry(key: str, aliases: dict) -> str:
     title = learn._call_form(key)
     out = [f"\\wordentry{{{esc(title)}}}{{{label(key)}}}"]
     if key in aliases:
-        start = {"table": "table", "numbers": "nums", "grid": "grid"}.get(learn._kind(key), "chart")
+        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
         other = ", ".join(code(f"{start}.{a}()") for a in aliases[key])
         out.append(f"\\wordfield{{Also written}}{{{other}}}")
     if key in learn.OPTIONS:
@@ -1367,7 +1386,7 @@ def _index(aliases: dict) -> str:
     entries = []
     for key in learn._all_keys():
         entries.append((learn._word(key).lower(), learn._call_form(key), key))
-        start = {"table": "table", "numbers": "nums", "grid": "grid"}.get(learn._kind(key), "chart")
+        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
         for alias in aliases.get(key, []):
             entries.append((alias.lower(), f"{start}.{alias}()", key))
     entries.sort(key=lambda e: (e[0].strip("="), e[1]))

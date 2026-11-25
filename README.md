@@ -316,6 +316,7 @@ pip install "simplydata[systems]" # adds python-control: rise time, settling tim
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
 pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
 pip install "simplydata[web]"     # adds plotly: charts as web pages (chart.save("marks.html")), no internet needed
+pip install "simplydata[xarray]"  # adds xarray: blocks of numbers line up by the names of their directions
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
@@ -341,6 +342,7 @@ Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if
 conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
 conda install -c conda-forge control                  # rise time, settling time and margins of systems
 conda install -c conda-forge python-duckdb            # SQL on a table or on files (run_sql)
+conda install -c conda-forge xarray                   # blocks of numbers line up by the names of their directions
 conda install -c conda-forge rpy2 r-base              # R and the bridge to it, for the methods only R has
 ```
 

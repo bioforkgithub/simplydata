@@ -9,5 +9,6 @@ sdata.show_lesson(13) teaches them.
 """
 
 from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numbers
+from .blocks import NumberBlock, number_block
 
-__all__ = ["NumberGrid", "Numbers", "make_random_numbers", "make_number_grid", "numbers"]
+__all__ = ["NumberBlock", "NumberGrid", "Numbers", "make_random_numbers", "make_number_grid", "number_block", "numbers"]

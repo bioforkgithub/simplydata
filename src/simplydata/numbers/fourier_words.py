@@ -31,13 +31,15 @@ def envelope_values(x, show, step):
 
 class FourierNumberWords:
     @friendly
-    def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None):
+    def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None, with_zero_in_middle=False):
         """The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
 
         nums.take_fourier_transform(time_step=0.005)
         Gives back a table: frequency, size, phase (degrees), real part, imaginary part. show="half" (0 up
         to the highest frequency the readings can show, SciPy rfft) or "all" (every frequency, negative
         ones too, SciPy fft). The sizes are R's Mod(fft(x)) and the phases Arg(fft(x)) in degrees.
+        with_zero_in_middle=True gives every frequency in order, the negative ones first and 0 in the middle (SciPy
+        fftshift); it implies show="all".
         sdata.find_inverse_fourier_transform(table) turns the table back into the numbers.
         """
         import pandas as pd
@@ -47,6 +49,10 @@ class FourierNumberWords:
 
         if show not in FOURIER_SHOWS:
             raise choice_error("take_fourier_transform", "show", show, list(FOURIER_SHOWS))
+        if not isinstance(with_zero_in_middle, bool):
+            raise SimplydataError("with_zero_in_middle= needs True or False (no quotes).")
+        if with_zero_in_middle and show == "half":
+            show = "all"  # the half spectrum has no negative frequencies to put before 0
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
             raise SimplydataError("take_fourier_transform() needs a value at every step; fill the empty ones first.")
@@ -57,13 +63,18 @@ class FourierNumberWords:
             z, freq = fft.rfft(x), fft.rfftfreq(n, d=step)
         else:
             z, freq = fft.fft(x), fft.fftfreq(n, d=step)
+        if with_zero_in_middle:
+            z, freq = fft.fftshift(z), fft.fftshift(freq)
         print(f"Fourier transform of {n} readings ({words}): {len(z)} frequencies from {freq.min():g} to "
               f"{freq.max():g}; the biggest size (after frequency 0) is at {freq[1:][np.argmax(np.abs(z[1:]))]:g}.")
-        print("Method: SciPy fft" + (".rfft" if show == "half" else ".fft") + ", as R Mod(fft(x)) and Arg(fft(x)).")
+        print("Method: SciPy fft" + (".rfft" if show == "half" else ".fft")
+              + (", then fft.fftshift (0 in the middle)" if with_zero_in_middle else "")
+              + ", as R Mod(fft(x)) and Arg(fft(x)).")
         table = Table(pd.DataFrame({"frequency": freq, "size": np.abs(z), "phase": np.degrees(np.angle(z)),
                                     "real part": z.real, "imaginary part": z.imag}))
         # the frequencies are kept too: find_inverse_fourier_transform checks the rows are still these
-        table._fourier = {"n": n, "show": show, "time_step": step, "frequency": freq.copy()}
+        table._fourier = {"n": n, "show": show, "time_step": step, "frequency": freq.copy(),
+                          "zero_in_middle": with_zero_in_middle}
         return table
 
     @friendly

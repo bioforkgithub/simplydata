@@ -11,6 +11,7 @@ Every entry is copied from the package's own request, never made up (checked 202
   Polars       the DOI badge of github.com/pola-rs/polars (Zenodo, "DOI Latest Release")
   scikit-learn https://scikit-learn.org/stable/about.html, "Citing scikit-learn" (Pedregosa et al. 2011)
   control      README of github.com/python-control/python-control (Fuller et al. 2021)
+  xarray       "Citing xarray" in the xarray documentation (Hoyer and Hamman 2017, also cited by the NumPy brief)
   DuckDB       CITATION.cff in github.com/duckdb/duckdb ("please cite it", Raasveldt and Muehleisen) and their
                paper as duckdb.org/library gives it, with the ACM reference on its first page (checked 2026-11-25)
 A package that is not here (narwhals, rpy2, pyarrow, plotly ... ask for no paper) is listed with its name,
@@ -196,6 +197,23 @@ CITATIONS = {
   pages = {4875--4881},
   year = {2021},
   organization = {IEEE}
+}""",
+    ),
+    "xarray": (
+        "xarray", "xarray",
+        "Hoyer and Hamman (2017), xarray: N-D labeled arrays and datasets in Python, J. Open Res. Softw. 5(1), 10, "
+        "doi:10.5334/jors.148",
+        "Hoyer, S. and Hamman, J. (2017). xarray: N-D labeled Arrays and Datasets in Python. Journal of Open Research "
+        "Software, 5(1), 10. doi:10.5334/jors.148.",
+        """@article{hoyer2017xarray,
+  title = {xarray: {N-D} labeled arrays and datasets in {Python}},
+  author = {Hoyer, Stephan and Hamman, Joseph},
+  journal = {Journal of Open Research Software},
+  volume = {5},
+  number = {1},
+  pages = {10},
+  year = {2017},
+  doi = {10.5334/jors.148}
 }""",
     ),
     "duckdb": (

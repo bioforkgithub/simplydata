@@ -118,7 +118,7 @@ class ReplacingWords:
     def replace_each_number_that(self, old=NOT_GIVEN, with_value=NOT_GIVEN, *, is_above=NOT_GIVEN, is_below=NOT_GIVEN,
                                  is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
                                  is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
-        """Replace a number, or every number that meets one condition; with_value=None makes them empty.
+        """Replace a number, or every number that meets one condition; with_value="empty" (or None) makes them empty.
 
         nums.replace_each_number_that(-999, with_value=None)   a code for "missing" becomes empty
         nums.replace_each_number_that(is_above=100, with_value=100)   every number above 100 becomes 100
@@ -147,6 +147,8 @@ class ReplacingWords:
                 ".replace_each_number_that() needs with_value=, the new number (None makes them empty)."
                 + f"\nFor example:  {example}"
             )
+        if isinstance(with_value, str) and with_value.strip().lower() == "empty":
+            with_value = None  # P37: "empty" says the same as None
         if with_value is not None and not is_number(with_value):
             raise SimplydataError(
                 f"with_value= needs a number, or None to make the numbers empty (you gave {with_value!r})."

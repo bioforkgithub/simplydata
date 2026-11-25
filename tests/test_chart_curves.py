@@ -1,7 +1,7 @@
 """Tests for the curve chart words: curve, fit_formula, fit_distribution, lines(joined_by=),
 smooth_line(test_method="spline") and qq_dots(distribution=).
 
-The drawn line data is checked against the formula, the fit engines and table.values_at
+The drawn line data is checked against the formula, the fit engines and table.find_values_at
 (whose numbers are checked against R in test_between.py); the printed fit values against
 R 4.6.2 (values written in below, with the R call that made them).
 """
@@ -199,7 +199,7 @@ def test_lines_joined_by_a_curve(how):
     line = curves[0]
     xs = np.asarray(line.get_xdata())
     table = Table(weather).keep_rows_where("city", is_equal_to=city)
-    expected = table.values_at("temperature", at={"month_number": list(xs)}, joined_by=how)
+    expected = table.find_values_at("temperature", at={"month_number": list(xs)}, joined_by=how)
     assert np.allclose(line.get_ydata(), expected._frame["temperature"].to_numpy())
     assert ax.get_legend() is not None
 

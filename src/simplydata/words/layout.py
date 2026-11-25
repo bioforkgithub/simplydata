@@ -298,7 +298,7 @@ class Page(ReadBackWords, WebWords, BaseChart):
         styles = {c._settings["style"] for c in self._charts}
         self._settings = {
             "style": styles.pop() if len(styles) == 1 else "paper",
-            "style_set": False,  # True after page.use_style(...): then every chart uses it
+            "style_set": False,  # True after charts.use_style(...): then every chart uses it
             "font_size": None,
             "grid": None,
             "title": None,
@@ -318,12 +318,12 @@ class Page(ReadBackWords, WebWords, BaseChart):
 
     @friendly
     def write_title_on_top(self: _Same, text) -> _Same:
-        """A title above the whole page. page.write_title_on_top("Marks in both classes")"""
+        """A title above the whole page. charts.write_title_on_top("Marks in both classes")"""
         return self._set(title=str(text))
 
     @friendly
     def say_what_it_shows(self) -> str:
-        """Say in words what each chart on the page shows. page.say_what_it_shows()
+        """Say in words what each chart on the page shows. charts.say_what_it_shows()
 
         The page title, how the charts are placed, then each chart (by its letter with with_letters=True) as
         chart.say_what_it_shows() says it. Read from the steps and from the charts as drawn: nothing is worked out.

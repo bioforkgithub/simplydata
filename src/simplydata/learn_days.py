@@ -435,8 +435,8 @@ UNITS = {
             marks = sdata.get_example("marks")
             a = sdata.chart(marks).draw_histogram(x="marks")
             b = sdata.chart(marks).draw_boxes(x="class", y="marks")
-            page = sdata.put_one_above_other(a, b)
-            page.save("two_charts.png")'''),
+            charts = sdata.put_one_above_other(a, b)
+            charts.save("two_charts.png")'''),
             "Each chart is made first; put_one_above_other puts them on one page.")],
     ),
     "lesson8": dict(
@@ -794,8 +794,8 @@ UNITS = {
         solutions=[(_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("school"))
-            page = table.check_model_of("passed", using=["hours", "sleep"], outcome="yes or no")
-            page.save("passed_checks.png")
+            charts = table.check_model_of("passed", using=["hours", "sleep"], outcome="yes or no")
+            charts.save("passed_checks.png")
             table.compare_models("passed", using=["hours"], against=["hours", "sleep"], outcome="yes or no")'''),
             "The first picture shows two bands, as every yes/no model does, and its smooth line stays close to 0. "
             "Sleep helps: chi-square = 11.0, p = 0.0009, and the AIC drops by 9.04.")],
@@ -906,7 +906,7 @@ UNITS = {
         more=_more("sdata.show_lesson(19), example 3: where a formula is smallest or biggest, and solving an equation "
                    "(sdata.find_where_smallest, sdata.find_where_biggest, sdata.solve)",
                    "sdata.show_lesson(20), example 3: values between the points you measured, and maps "
-                   "(values_at, make_map_of)"),
+                   "(find_values_at, make_map_of)"),
         recall=[
             ("How do you make a normal distribution with average 50 and standard deviation 10?",
              'sdata.distribution("normal", average=50, standard_deviation=10)'),
@@ -1086,8 +1086,8 @@ UNITS = {
             import simplydata as sdata
             table = sdata.table(sdata.get_example("school"))
             table.explain("marks", using=["hours", "breakfast"])
-            page = table.check_model_of("marks", using=["hours", "breakfast"])
-            page.save("marks_checks.png")
+            charts = table.check_model_of("marks", using=["hours", "breakfast"])
+            charts.save("marks_checks.png")
             chart = table.start_chart()
             chart.draw_dots(x="hours", y="marks")
             chart.fit_line()
@@ -1342,8 +1342,8 @@ UNITS = {
             (_code('''
             import simplydata as sdata
             table = sdata.table(sdata.get_example("school"))
-            page = table.check_model_of("marks", using=["hours", "breakfast"])
-            page.save("marks_checks.png")
+            charts = table.check_model_of("marks", using=["hours", "breakfast"])
+            charts.save("marks_checks.png")
             table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "breakfast", "sleep"])'''),
             "check_model_of, then compare_models: on the 161 rows with every value, sleep helps (p = 0.002).")],
     ),

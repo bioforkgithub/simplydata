@@ -13,7 +13,7 @@
 * "lowess": statsmodels lowess with R lowess()'s settings (3 robustness steps, delta 1 % of the range);
 * "loess": R stats::loess(degree = 2, span = smoothness=, normally 0.75) itself, with predict(se = TRUE) for its
   confidence band (interval=); not lowess: loess fits local curves (degree 2) without robustness steps;
-* "spline": SciPy make_smoothing_spline as table.values_at(smoothness=) (R smooth.spline);
+* "spline": SciPy make_smoothing_spline as table.find_values_at(smoothness=) (R smooth.spline);
 * "whittaker": scipy.signal.whittaker_henderson(lamb=, order=2);
 * "wiener": scipy.signal.wiener(mysize=window);
 * remove_trend: scipy.signal.detrend(type="linear" or "constant", bp=breaks).

@@ -1166,20 +1166,20 @@ ENTRIES += [
              "check that it is close to 0.",
     ),
     Entry(
-        word="table.values_at",
+        word="table.find_values_at",
         data="made-up",
         ours="""
             growth = {"year": [2000, 2002, 2002, 2004, 2000, 2002, 2004],
                       "country": ["A", "A", "A", "A", "B", "B", "B"], "population": [10, 11, 13, 14, 20, 22, 23]}
             table = sdata.table(growth)
-            table.values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
+            table.find_values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
         """,
         code={"pandas": """
             import numpy as np
             import pandas as pd
             df = pd.DataFrame({"year": [2000, 2002, 2002, 2004, 2000, 2002, 2004],
                                "country": ["A", "A", "A", "A", "B", "B", "B"], "population": [10, 11, 13, 14, 20, 22, 23]})
-            # values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
+            # find_values_at("population", at={"year": [1999, 2001, 2003]}, for_each_group_in="country")
             at, parts = np.array([1999, 2001, 2003]), []
             for country, rows in df.groupby("country"):
                 known = rows.groupby("year")["population"].mean()                     # (1)

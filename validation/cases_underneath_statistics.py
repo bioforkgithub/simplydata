@@ -414,10 +414,10 @@ def cases(Case):
                  list(mean = uniroot(function(x) sum(x - y), c(299, 301), tol = 1e-12)$root)
              """, r_tolerance=1e-12),
         # ---------------------------------------------------------------- values between points
-        Case("table.values_at", "Lake Huron: the level halfway between two years, and before the first year",
+        Case("table.find_values_at", "Lake Huron: the level halfway between two years, and before the first year",
              "Lake Huron", "real data",
              ours="""
-                 r = sdata.table(data).values_at("level", at={"year": [1874, 1900.5, 1950.25]})
+                 r = sdata.table(data).find_values_at("level", at={"year": [1874, 1900.5, 1950.25]})
                  c = r.get_column("level")
                  {"1900.5": c.get_number_at(2), "1950.25": c.get_number_at(3), "empty": c.count_empty_numbers()}
              """,

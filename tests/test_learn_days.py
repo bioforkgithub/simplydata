@@ -169,7 +169,7 @@ def test_no_day_holds_more_than_about_two_lessons(track, number):
 
 
 # Words of the parts left to the manual: the 30 days neither teach them nor ask about them.
-MANUAL_ONLY_WORDS = ("find_where_smallest", "find_where_biggest", "sdata.solve", "values_at", "make_map_of", "compare_risks",
+MANUAL_ONLY_WORDS = ("find_where_smallest", "find_where_biggest", "sdata.solve", "find_values_at", "make_map_of", "compare_risks",
                      "compare_to_truth", "agreement_between", "forecast", "spectrum", "add_filtered_column",
                      "check_steady", "sdata.system", "step_response", "with_feedback")
 

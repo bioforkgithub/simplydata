@@ -1,6 +1,6 @@
 """Values between known points: join the dots, then read values off the curve or surface.
 
-table.values_at("population", at={"year": [2001, 2003]}) estimates a column at places where
+table.find_values_at("population", at={"year": [2001, 2003]}) estimates a column at places where
 it was not measured, by joining the known points. The way they are joined is said in words
 (joined_by=) and printed with its maths name and its R function, so it can be checked there.
 
@@ -475,7 +475,7 @@ def _dates_from_days(days) -> np.ndarray:
 
 
 class BetweenWords:
-    """values_at() and make_map_of(): values between known points (see the module notes)."""
+    """find_values_at() and make_map_of(): values between known points (see the module notes)."""
 
     # ------------------------------------------------------------ helpers
     def _direction_values(self, step, name, example):
@@ -709,13 +709,13 @@ class BetweenWords:
         frame = nw.from_dict({s.name: s for s in series}, backend=backend)
         return self._new_table(frame)
 
-    # ------------------------------------------------------------ values_at
+    # ------------------------------------------------------------ find_values_at
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def values_at(self: _Same, column=None, at=None, joined_by="straight lines", smoothness=0, for_each_group_in=None,
+    def find_values_at(self: _Same, column=None, at=None, joined_by="straight lines", smoothness=0, for_each_group_in=None,
                   outside="empty") -> _Same:
         """Estimate a column at places between the known points, by joining the dots.
 
-        table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")   (with sdata.get_example("growth"))
+        table.find_values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")   (with sdata.get_example("growth"))
         at= names the column(s) that place the points and the places wanted. One column joins
         the points along a line; two or more (at={"east": [1.5, 2.5], "north": [3, 4.5]},
         sdata.get_example("island")) join them across a surface: the lists are read as pairs,
@@ -735,13 +735,13 @@ class BetweenWords:
         Rows with an empty cell are skipped. Gives back a new table: the at= columns, the
         for_each_group_in= columns and the estimated column.
         """
-        step = "values_at"
-        example = _example('table.values_at("population", at={"year": [2001, 2003]}, for_each_group_in="country")')
+        step = "find_values_at"
+        example = _example('table.find_values_at("population", at={"year": [2001, 2003]}, for_each_group_in="country")')
         if not isinstance(column, str):
-            raise SimplydataError(f"values_at() needs the column to estimate, in quotes.{example}")
+            raise SimplydataError(f"find_values_at() needs the column to estimate, in quotes.{example}")
         self._need_columns(column)
         if not isinstance(at, dict) or not at:
-            raise SimplydataError("values_at() needs at= with the column that places the points and the places "
+            raise SimplydataError("find_values_at() needs at= with the column that places the points and the places "
                                   f'wanted, such as at={{"year": [2001, 2003]}}.{example}')
         directions = list(at)
         if not all(isinstance(d, str) for d in directions):
@@ -762,7 +762,7 @@ class BetweenWords:
             lengths = ", ".join(f'{len(p)} for "{d}"' for d, p in zip(directions, places))
             raise SimplydataError(f"at= gives places as pairs, so each list needs the same length ({lengths}). "
                                   "For every combination of the values use table.make_map_of(...)."
-                                  + _example('table.values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]})',
+                                  + _example('table.find_values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]})',
                                              "island"))
         n = max(len(p) for p in places)
         at_places = np.column_stack([np.repeat(p, n) if len(p) == 1 else p for p in places])
@@ -801,7 +801,7 @@ class BetweenWords:
         table.make_map_of("height", across=["east", "north"], steps=100)   (with sdata.get_example("island"))
         The map runs from the smallest to the biggest known value of each across= column,
         with steps= places along each (a number, or one per column). The points are joined
-        as in table.values_at() (same joined_by= and smoothness=; smoothness="auto" needs R,
+        as in table.find_values_at() (same joined_by= and smoothness=; smoothness="auto" needs R,
         a number does not). Places outside the outline
         of the known points stay empty, with a note. Gives back a new long table: one row per
         place, with the across= columns and the estimated column.

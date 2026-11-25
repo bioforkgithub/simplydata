@@ -28,9 +28,11 @@ from .filter_words import FilterNumberWords
 from .fourier_words import FourierNumberWords
 from .peak_words import PeakNumberWords
 from .summaries import GridSummaryWords, SummaryWords
+from .more_number_words import MoreNumberWords, _short
+from ._base import NOT_GIVEN
 
 
-class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
+class Numbers(MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
               FourierNumberWords, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
@@ -68,6 +70,9 @@ class Numbers(PickingWords, MathsWords, SummaryWords, DistributionNumberWords, S
 
     def __repr__(self):
         body = np.array2string(self._values, separator=", ", threshold=60)
+        if self._values.dtype.kind == "b":
+            return (f"simplydata yes or no values: {amount(self._values.size, 'value')}, "
+                    f"{int(np.count_nonzero(self._values))} yes\n{body}")
         return f"simplydata numbers: {amount(self._values.size)}\n{body}"
 
 
@@ -80,7 +85,7 @@ _GRID_KEEP_NUMBERS = (
 )
 
 
-class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
+class NumberGrid(MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -90,7 +95,6 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
                   "shape": "find_shape", "row": "get_row", "column": "get_column", "numbers": "get_all_numbers",}
     # Names people may try on a grid -> the grid word (they never run).
     _HINTS = {"keep_rows": "keep_rows_by_position", "remove_rows": "remove_rows_by_position",
-              "keep_rows_where": "keep_rows_by_position", "remove_rows_where": "remove_rows_by_position",
               "keep_columns": "keep_columns_by_position", "remove_columns": "remove_columns_by_position",
               "where": "replace_each_number_that", "clip": "replace_each_number_that", "replace": "replace_each_number_that",
               "replace_values": "replace_each_number_that", "putmask": "replace_each_number_that", "delete": "remove_rows_by_position",
@@ -124,6 +128,9 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
     def __repr__(self):
         rows, columns = self._values.shape
         body = np.array2string(self._values, separator=", ", threshold=200)
+        if self._values.dtype.kind == "b":
+            return (f"simplydata grid of yes or no values: {amount(rows, 'row')}, {amount(columns, 'column')}, "
+                    f"{int(np.count_nonzero(self._values))} yes\n{body}")
         return f"simplydata number grid: {amount(rows, 'row')}, {amount(columns, 'column')}\n{body}"
 
     def __iter__(self):
@@ -283,6 +290,52 @@ class NumberGrid(ReplacingWords, GridSummaryWords, MathsWords, BaseNumbers):
         """
         picked = self._grid_picked("remove_columns_by_position", positions, to, step, conditions, 1)
         return self._grid_step("remove_columns_by_position", picked, 1, keep=False)
+
+    # ------------------------------------------------------------------ rows by a test on one column (P03)
+    def _rows_where(self, step, column, given, keep):
+        example = f"grid.{step}(column=3, is_above=0.5)"
+        columns = self._values.shape[1]
+        if not isinstance(column, (int, np.integer)) or isinstance(column, bool) or not 1 <= column <= columns:
+            raise SimplydataError(f"column= needs the position of the column, a whole number from 1 to {columns} "
+                                  f"(grid columns have no names).\nFor example:  {example}")
+        options = {_short(k): v for k, v in given.items()}
+        test, words = Numbers(self._values[:, int(column) - 1])._condition(step, options, ())
+        chosen = test if keep else np.logical_not(test)
+        new = self._values[chosen]
+        total = self._values.shape[0]
+        verb = "Kept" if keep else "Removed"
+        count = int(np.count_nonzero(test))
+        print(f"{verb} {count} of {amount(total, 'row')} (column {column} {words}); the grid is now "
+              f"{amount(new.shape[0], 'row')} by {amount(columns, 'column')}. "
+              f"NumPy: grid[{'' if keep else '~'}(grid[:, {int(column) - 1}] test)]")
+        return self._change(f"{'keep' if keep else 'remove'} rows where column {column} {words}", new)
+
+    @friendly
+    def keep_rows_where(self: _Same, column=None, *, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
+                        is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN,
+                        is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN) -> _Same:
+        """Keep the rows whose number in one column passes a test. grid.keep_rows_where(column=3, is_above=0.5)
+
+        column= is the position of the column, counting from 1; the tests are those of table.keep_rows_where.
+        NumPy: grid[grid[:, 2] > 0.5].
+        """
+        given = dict(is_above=is_above, is_below=is_below, is_at_least=is_at_least, is_at_most=is_at_most,
+                     is_equal_to=is_equal_to, is_not_equal_to=is_not_equal_to, is_between=is_between,
+                     is_one_of=is_one_of, is_empty=is_empty)
+        return self._rows_where("keep_rows_where", column, given, keep=True)
+
+    @friendly
+    def remove_rows_where(self: _Same, column=None, *, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
+                          is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN,
+                          is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN) -> _Same:
+        """Remove the rows whose number in one column passes a test. grid.remove_rows_where(column=1, is_empty=True)
+
+        column= is the position of the column, counting from 1. NumPy: grid[~(grid[:, 0] test)].
+        """
+        given = dict(is_above=is_above, is_below=is_below, is_at_least=is_at_least, is_at_most=is_at_most,
+                     is_equal_to=is_equal_to, is_not_equal_to=is_not_equal_to, is_between=is_between,
+                     is_one_of=is_one_of, is_empty=is_empty)
+        return self._rows_where("remove_rows_where", column, given, keep=False)
 
     # ------------------------------------------------------------------ changing the grid
     def replace_each_number_that(self, *args, **kwargs):

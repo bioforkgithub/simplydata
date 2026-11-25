@@ -51,10 +51,11 @@ MANUAL_PDF_NAME = make_manual.PDF.name  # links open the manual next to the dict
 
 # How each kind of word is written in front of the word, and the order of the senses of a headword.
 WRITTEN = {"sdata": "sdata", "table": "table", "chart": "chart", "option": "chart", "numbers": "nums",
-           "grid": "grid", "dist": "dist", "system": "system"}
-KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "dist", "system"]
+           "grid": "grid", "block": "block", "dist": "dist", "system": "system"}
+KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "block", "dist", "system"]
 KIND_NAME = {"sdata": "simplydata", "table": "table", "chart": "chart", "option": "option in a chart step",
-             "numbers": "numbers", "grid": "grid of numbers", "dist": "distribution", "system": "system"}
+             "numbers": "numbers", "grid": "grid of numbers", "block": "block of numbers", "dist": "distribution",
+             "system": "system"}
 MAX_OPTIONS = 8  # the main options: the first ones in the brackets, then "and N more"
 MAX_SEE_ALSO = 5
 

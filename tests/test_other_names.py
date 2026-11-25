@@ -9,16 +9,18 @@ import simplydata as sdata
 from simplydata._errors import MissingWordError, other_name_target
 from simplydata._other_names import OTHER_NAMES
 from simplydata.chart import Chart
+from simplydata.numbers.blocks import NumberBlock
 from simplydata.numbers.numbers import NumberGrid, Numbers
 from simplydata.table import Table
 
-OBJECTS = {"table": Table, "chart": Chart, "numbers": Numbers}
-PREFIX = {"table": "table", "chart": "chart", "numbers": "nums"}
+OBJECTS = {"table": Table, "chart": Chart, "numbers": Numbers, "block": NumberBlock}
+PREFIX = {"table": "table", "chart": "chart", "numbers": "nums", "block": "block"}
 
 
 def _target_exists(written: str) -> bool:
     word = other_name_target(written)
-    for prefix, owner in (("sdata.", sdata), ("table.", Table), ("chart.", Chart), ("nums.", Numbers)):
+    for prefix, owner in (("sdata.", sdata), ("table.", Table), ("chart.", Chart), ("nums.", Numbers),
+                          ("block.", NumberBlock)):
         if written.startswith(prefix):
             return word in owner.__dict__ or word in dir(owner) and not word.startswith("_")
     return False
@@ -49,8 +51,8 @@ def test_no_other_name_is_an_sdata_word():
     ("optimise", "find_where_smallest"), ("argmin", "find_where_smallest"), ("maximize", "find_where_biggest"),
     ("root", "solve"), ("fsolve", "solve"), ("brentq", "solve"), ("uniroot", "solve"),
     ("curve_fit", "fit_formula"), ("nls", "fit_formula"), ("polyfit", "fit_curve"), ("linregress", "fit_line"),
-    ("lm", "fit_line"), ("interpolate", "values_at"), ("interp", "values_at"), ("approx", "values_at"),
-    ("spline", "values_at"), ("griddata", "make_map_of"), ("pdf", "distribution"), ("dnorm", "distribution"),
+    ("lm", "fit_line"), ("interpolate", "find_values_at"), ("interp", "find_values_at"), ("approx", "find_values_at"),
+    ("spline", "find_values_at"), ("griddata", "make_map_of"), ("pdf", "distribution"), ("dnorm", "distribution"),
     ("cdf", "distribution"), ("pnorm", "distribution"), ("ppf", "distribution"), ("qnorm", "distribution"),
     ("quantile", "find_percentile"), ("rvs", "make_random_numbers"), ("rnorm", "make_random_numbers"), ("read_csv", "table"),
 ])
@@ -76,7 +78,7 @@ def test_distribution_pointers_name_the_distribution_words():
     ("pivot", "spread_into_columns"), ("melt", "gather_into_rows"), ("head", "show_first_rows"),
     ("tail", "show_last_rows"), ("iloc", "keep_rows_by_position"), ("filter", "keep_rows_where"), ("dropna", "remove_rows_with_empty_cells_in"),
     ("fillna", "fill_empty_cells_in"), ("sort_values", "sort_by"), ("mean", "find_average_of"), ("plot", "start_chart"),
-    ("curve_fit", "fit_formula"), ("polyfit", "fit_curve"), ("linregress", "fit_line"), ("interpolate", "values_at"),
+    ("curve_fit", "fit_formula"), ("polyfit", "fit_curve"), ("linregress", "fit_line"), ("interpolate", "find_values_at"),
     ("griddata", "make_map_of"), ("fitdistr", "fit_distribution_to"), ("to_csv", "save"), ("addWorksheet", "save"), ("ExcelWriter", "save"), ("value_counts", "count_each"),
     ("slice", "keep_rows_by_position"), ("take", "keep_rows_by_position"), ("gather_every", "keep_rows_by_position"),
     ("drop_index", "remove_rows_by_position"), ("at", "get_cell_at"), ("iat", "get_cell_at"), ("item", "get_cell_at"),
@@ -94,7 +96,7 @@ def test_table_other_names(name, word):
 
 
 def test_a_table_interpolate_points_to_both_words():
-    with pytest.raises(MissingWordError, match="values_at.*fill_empty_cells_in"):
+    with pytest.raises(MissingWordError, match="find_values_at.*fill_empty_cells_in"):
         sdata.table(sdata.get_example("growth")).interpolate()
 
 

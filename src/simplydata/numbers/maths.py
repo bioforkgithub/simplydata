@@ -43,12 +43,17 @@ class MathsWords:
         return self._sum_word("times", number)
 
     @friendly
-    def divide_by(self: _Same, number=None) -> _Same:
+    def divide_by(self: _Same, number=None, rounding_down=False) -> _Same:
         """Divide every number by a number. nums.divide_by(4)
 
         Dividing by 0 has no answer, so those values become empty and a note says how many.
-        For new numbers, write quarter = nums / 4 instead.
+        rounding_down=True keeps the whole part, rounded down, also for minus numbers: -7 divided by 2 gives -4
+        (NumPy floor_divide, Python's //). For new numbers, write quarter = nums / 4 instead.
         """
+        if rounding_down is True:
+            return self._floor_divide(number)
+        if rounding_down is not False:
+            raise SimplydataError("rounding_down= needs True or False (no quotes)." + self._example("divide_by(7, rounding_down=True)"))
         return self._sum_word("divide_by", number)
 
     @friendly

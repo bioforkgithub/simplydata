@@ -413,7 +413,7 @@ def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None,
     dash_column = dashed if isinstance(dashed, str) else None  # dashed="city": a dash pattern for each city
     table, n = _frame(ctx, measure=SHOW[show], size_role="y", x=x, y=y, colour=group, dashed=dash_column)
     if joined_by not in ("straight lines", "steps"):
-        # curves through the points: table/between.py, the engine of table.values_at()
+        # curves through the points: table/between.py, the engine of table.find_values_at()
         from .curves import draw_joined_lines, lines_colours
 
         colours = lines_colours(ctx, table, n["colour"], fixed)
@@ -1268,7 +1268,7 @@ class ChartWords:
         band; a line says which one was drawn.
         thickness=3 draws thicker lines (normal is 2, in points); transparency=0.5 makes
         them half see-through (0 is solid).
-        joined_by= says how the points are joined, as in table.values_at(): "straight lines"
+        joined_by= says how the points are joined, as in table.find_values_at(): "straight lines"
         (normal), "smooth curve" (natural cubic spline), "curve without overshoot" (PCHIP),
         "steps" (each value stays until the next point), "nearest"; experts: "akima",
         "makima", "not-a-knot", "periodic". Curves need numbers on x and y.

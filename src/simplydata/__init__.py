@@ -26,6 +26,8 @@ from .chart import Chart, chart
 from .data import get_example
 from .table import Table, table
 from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numbers
+from .numbers.blocks import (NumberBlock, hide_stretching_notes, number_block, show_stretching_notes, stack_up,
+                             stretch_to_same_shape)  # NumPy + SciPy phase, batch 1
 from .words.layout import put_in_rows_and_columns, put_one_above_other, put_side_by_side
 from .words.stats import draw_all_pairs
 from .power import find_chance_of_finding, find_how_many_needed
@@ -85,14 +87,17 @@ def __getattr__(name):
 
 
 __all__ = [
-    "Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
+    "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "distribution", "draw_all_pairs",
     "find_chance_of_finding", "find_how_many_needed", "find_inverse_fourier_transform", "find_where_biggest",
-    "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "make_design_table",
+    "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "hide_stretching_notes",
+    "make_design_table",
     "make_random_assignments", "make_random_numbers",
-    "make_run_of_dates", "make_wave", "make_window_shape", "number_grid", "numbers", "put_in_rows_and_columns",
+    "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "numbers",
+    "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
-    "show_packages_used", "show_today", "solve", "start_30_days", "system", "table", "__version__",
+    "show_packages_used", "show_stretching_notes", "show_today", "solve", "stack_up", "start_30_days",
+    "stretch_to_same_shape", "system", "table", "__version__",
 ]
 
 # Remember the packages that do the work behind each word (sdata.show_packages_used()), and print the short list

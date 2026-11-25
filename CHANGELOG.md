@@ -5,6 +5,56 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: NumPy + SciPy phase, batch 1 (blocks of numbers, yes or no values, rounding and angles; approved by Manish 2026-11-25)
+
+- `sdata.number_block(...)`: numbers with any number of directions (NumPy's n-D array), from lists inside lists, a
+  NumPy array, `of_shape=(24, 8, 12), filled_with=0`, `like=other`, a long table (`directions_named=["east",
+  "north"], values="height"`: the columns' values become each direction's labels) or an xarray DataArray (its names
+  and labels come too). Directions have names: `directions_named=[...]`, or row and column for the last two, then
+  page and book (decision 1 of the NumPy review), then direction a, b ... A block prints page by page: "page 1 of
+  24 (8 rows x 12 columns)", and every shape is said in words.
+- Block words: `find_shape`, `count_directions`, `find_direction_names`, `get_number_at(hour=1, row=2, column=3)`,
+  `get_all_numbers`, `turn_into_table` (one column per direction), summaries with `over=` (the directions that go)
+  and `in_each=` (the ones kept), `turn_into_running_total(over=)`, `keep_by_position_in` and
+  `remove_by_position_in`, `keep_where` and `remove_where` on labels (a range in either order, also when the labels
+  run downward), `change_shape_to(8, "rest")` and `change_shape_to(one_row_per="image")` (with `fill="repeat"`),
+  `add_direction`, `remove_directions_of_size_one`, `swap_directions`, `move_direction`, `reverse(over=)`,
+  `rotate(by_quarter_turns=)`, `move_round_by(3, over=)`, `insert_numbers(at_position=, over=)`,
+  `repeat_each_number`, `repeat_whole_block`, `add_numbers_from(other, over=)`, `split_into_pieces`,
+  `split_into_one_block_per`, and `sdata.stack_up([a, b, c], as_new_direction="image")`. The maths words take
+  `over=`: `plate.subtract(blank, over="row")`.
+- Stretching (NumPy's broadcasting) in plain words: blocks that name every direction line up by name (xarray when the
+  new extra `simplydata[xarray]` is installed, NumPy expand_dims and transpose otherwise, with a test that both
+  agree), others from the right as NumPy does; a clash says, in at most five lines, how the shapes line up and what
+  to write instead; words say which numbers were used again, symbols only when both sides stretch.
+  `block.show_how_it_lines_up_with(other)`, `only_show_new_shape=True` on every shape-changing word and summary,
+  `block.stretch_to(shape)`, `sdata.stretch_to_same_shape(a, b)`, `sdata.hide_stretching_notes()` and
+  `sdata.show_stretching_notes()`.
+- Yes or no values: `nums.turn_into_yes_or_no(is_above=20)` with `&`, `|` and `~`; `keep_numbers_where`,
+  `remove_numbers_where`, `replace_numbers_where(yes_no, with_value="empty")`; `count_numbers_that`,
+  `check_if_any_number`, `check_if_all_numbers` (with `over=` on grids and blocks); `check_if_same_as(other,
+  within=)`; `grid.keep_rows_where(column=3, is_above=0.5)` and `grid.remove_rows_where`.
+  `replace_each_number_that(..., with_value="empty")` works too.
+- Rounding and angles: `round_down()`, `round_up()`, `take_whole_part()`; `take_sin`, `take_cos`, `take_tan` (radians,
+  as NumPy; `degrees=True` for degrees); `change_angles_to("degrees")`; `divide_by(7, rounding_down=True)`.
+- `find_where_biggest()` and `find_where_smallest()` on numbers, grids and blocks: the position counted from 1 (with
+  the NumPy index in the sentence), `over=` for one position along a direction.
+- `make_pair_table_with(other, by_subtracting=True)`: every pair (NumPy outer; `as_blocks=True` for Kronecker).
+- `take_fourier_transform(with_zero_in_middle=True)`: frequency 0 in the middle (SciPy fftshift); the inverse
+  transform puts the order back.
+- Other tools' names point to the new words (reshape, squeeze, expand_dims, flip, roll, tile, broadcast_to,
+  broadcast_shapes, outer, floor, argmax, isclose, count_nonzero ...). Underneath entries, method basis, learn groups
+  and two new parts of the numbers lesson; 49 new real-data cases in the reliability study
+  (validation/cases_underneath_numbers_1.py: iris as a block, AirPassengers, Lake Huron, Michelson), each against
+  NumPy and base R.
+
+### Changed: NumPy + SciPy phase, batch 1
+
+- `table.values_at` is now `table.find_values_at` (decision 7: a verb, as `find_value_at`); the old name works for one
+  release with a note.
+- Lessons, help examples and the 30-day guide call a page of charts `charts` (`charts = sdata.put_side_by_side(a, b)`),
+  since "page" is now the name of a block's third direction.
+
 ### Added: charts phase, batch 1 (the priority-1 matplotlib and seaborn words; approved by Manish 2026-11-25)
 
 - Reading a chart back: `chart.get_text_drawn()` (a table of every piece of text: title, axis names, legend title and
