@@ -106,18 +106,21 @@ def assert_same_on_web(chart):
     assert sorted((int(p), part, t) for p, part, t in zip(web_text["panel"], web_text["part"], web_text["text"])) \
         == picture_text
     if not three_d and chart._settings.get("projection") != "polar":
-        columns = ["panel", "scale", "name", "kind", "flipped", "tick words"]
-        picture = scales[columns].astype(str).sort_values(columns).reset_index(drop=True)
-        on_web = scales_from_web(web)[columns].astype(str).sort_values(columns).reset_index(drop=True)
-        pd.testing.assert_frame_equal(on_web, picture)
-        for a, b in zip(scales_from_web(web).sort_values(["panel", "scale"])[["low", "high"]].to_numpy().ravel(),
-                        scales.sort_values(["panel", "scale"])[["low", "high"]].to_numpy().ravel()):
-            if isinstance(b, float) and math.isnan(b):
-                continue
-            if hasattr(b, "year"):
-                assert pd.Timestamp(a) == pd.Timestamp(b)
-            else:
-                assert float(a) == pytest.approx(float(b), rel=1e-9, abs=1e-12)
+        columns = ["panel", "scale", "name", "flipped", "tick words"]
+        picture = scales.sort_values(["panel", "scale"]).reset_index(drop=True)
+        on_web = scales_from_web(web).sort_values(["panel", "scale"]).reset_index(drop=True)
+        pd.testing.assert_frame_equal(on_web[columns].astype(str), picture[columns].astype(str))
+        for (_, a), (_, b) in zip(on_web.iterrows(), picture.iterrows()):
+            if isinstance(a["low"], float) and math.isnan(a["low"]) and str(a["scale"]).startswith("second"):
+                continue  # a second scale in other units: on the page it is its tick words at their places
+            assert a["kind"] == b["kind"], (a["scale"], a["kind"], b["kind"])
+            for end in ("low", "high"):
+                if isinstance(b[end], float) and math.isnan(b[end]):
+                    continue
+                if hasattr(b[end], "year"):
+                    assert pd.Timestamp(a[end]) == pd.Timestamp(b[end])
+                else:
+                    assert float(a[end]) == pytest.approx(float(b[end]), rel=1e-9, abs=1e-12)
     return web
 
 
@@ -398,6 +401,9 @@ def test_add_range_bar_x_puts_plotlys_range_slider_under_the_x_axis():
 ])
 def test_what_plotly_cannot_draw_is_refused_with_one_sentence(step, words, tmp_path):
     chart = sdata.chart(sdata.get_example("marks")).draw_dots(x="hours", y="marks")
+    if "broken" in words:  # a break that hides no value: bars from 0, all above 50
+        chart = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
+        step = lambda c: c.break_between_y(5, 50)  # noqa: E731
     if "logit" in words:
         chart = sdata.chart(pd.DataFrame({"share": [0.1, 0.5, 0.9], "y": [1, 2, 3]})).draw_dots(x="share", y="y")
     step(chart)

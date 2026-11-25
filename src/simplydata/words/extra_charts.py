@@ -61,12 +61,7 @@ def render_broken(chart, fig):
     for ax in (top, bottom):
         ctx = chart._draw_panel(fig, ax, axes=[top, bottom])
     below, above = bottom.get_ylim(), top.get_ylim()
-    if min(below) >= low:
-        raise SimplydataError(f".break_between_y({low:g}, {high:g}): nothing is drawn below {low:g}, so the lower part "
-                              "would be empty. Choose a lower first number.")
-    if max(above) <= high:
-        raise SimplydataError(f".break_between_y({low:g}, {high:g}): nothing is drawn above {high:g}, so the upper part "
-                              "would be empty. Choose a smaller second number.")
+    _check_break(bottom, low, high)
     bottom.set_ylim(min(below), low)
     top.set_ylim(high, max(above))
     top.spines["bottom"].set_visible(False)
@@ -80,6 +75,7 @@ def render_broken(chart, fig):
     slant = dict(marker=[(-1, -0.5), (1, 0.5)], markersize=12, linestyle="none",
                  color=matplotlib.rcParams["axes.edgecolor"], mec=matplotlib.rcParams["axes.edgecolor"], mew=1,
                  clip_on=False)
+    bottom.simplydata_break, top.simplydata_break = ("lower", low, high), ("upper", low, high)
     for ax, y in ((top, 0), (bottom, 1)):
         (mark,) = ax.plot([0, 1], [y, y], transform=ax.transAxes, **slant)
         mark.simplydata_decoration = True  # not data: get_numbers_drawn() leaves it out
@@ -87,6 +83,37 @@ def render_broken(chart, fig):
             f"the part from {low:g} to {high:g} is left out.")
     chart_note(line, lambda _count, line=line: line)
     return [top, bottom], ctx
+
+
+def drawn_values(ax) -> np.ndarray:
+    """The y values drawn on a panel, read back as get_numbers_drawn() reads them: the ends of bars, bands and
+    error bars, and the y of every other point."""
+    from .._numbers_drawn import numbers_of_panel
+
+    values = []
+    for row in numbers_of_panel(ax, 0)[0]:
+        for key in (("low", "high") if row["kind"] in ("bar", "band", "error bar", "stem", "rectangle") else ("y",)):
+            if np.isfinite(row[key]):
+                values.append(row[key])
+    return np.asarray(values, dtype=float)
+
+
+def _check_break(ax, low, high):
+    """break_between_y(low, high) leaves out the part of the y-axis from low to high, so it must leave out no
+    data, and each part must show some."""
+    values = drawn_values(ax)
+    inside = values[(values > low) & (values < high)]
+    if len(inside):
+        raise SimplydataError(
+            f".break_between_y({low:g}, {high:g}) would hide {len(inside)} drawn value{'s' if len(inside) != 1 else ''} "
+            f"between {low:g} and {high:g} (from {inside.min():g} to {inside.max():g}). Choose a break that no value "
+            "falls in, or leave the break out.")
+    if not (values <= low).any():
+        raise SimplydataError(f".break_between_y({low:g}, {high:g}): no drawn value is at or below {low:g}, so the "
+                              "lower part would be empty. Choose a higher first number.")
+    if not (values >= high).any():
+        raise SimplydataError(f".break_between_y({low:g}, {high:g}): no drawn value is at or above {high:g}, so the "
+                              "upper part would be empty. Choose a lower second number.")
 
 
 # ====================================================================== other scales

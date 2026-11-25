@@ -37,6 +37,7 @@ from ._errors import SimplydataError
 
 INSTALL = 'pip install "simplydata[web]"'
 PIXELS_PER_INCH = 96  # a web page's pixels: plotly sizes are in these
+WIDEST_PAGE = 1100  # pixels: a wider chart (a page of several) is drawn smaller, text and marks with it, to fit
 WEB_CONFIG = {
     "displaylogo": False,  # no plotly logo linking to plotly's website
     "showSendToCloud": False,
@@ -156,7 +157,9 @@ class _Page:
     def __init__(self, fig):
         self.fig = fig
         self.width, self.height = fig.bbox.width, fig.bbox.height  # display pixels at fig.dpi
-        self.scale = PIXELS_PER_INCH / fig.dpi
+        # the whole chart, text and marks too, is made smaller when it would be wider than a usual window
+        self.shrink = min(1.0, WIDEST_PAGE / (fig.get_figwidth() * PIXELS_PER_INCH))
+        self.scale = PIXELS_PER_INCH / fig.dpi * self.shrink
 
     def box(self, bbox):
         return (bbox.x0 / self.width, bbox.x1 / self.width, bbox.y0 / self.height, bbox.y1 / self.height)
@@ -167,9 +170,8 @@ class _Page:
     def px(self, display_pixels):
         return float(display_pixels) * self.scale
 
-    @staticmethod
-    def points(size):
-        return float(size) * PIXELS_PER_INCH / 72
+    def points(self, size):
+        return float(size) * PIXELS_PER_INCH / 72 * self.shrink
 
 
 def _clip(v):
@@ -309,8 +311,8 @@ class Translator:
         family = family if isinstance(family, str) else ", ".join(family)
         names = rcParams.get(f"font.{family}", []) if family in ("sans-serif", "serif", "monospace") else []
         self.layout.update(
-            width=round(self.fig.get_figwidth() * PIXELS_PER_INCH),
-            height=round(self.fig.get_figheight() * PIXELS_PER_INCH),
+            width=round(self.fig.get_figwidth() * PIXELS_PER_INCH * page.shrink),
+            height=round(self.fig.get_figheight() * PIXELS_PER_INCH * page.shrink),
             autosize=False,
             margin=dict(l=0, r=0, t=0, b=0, pad=0, autoexpand=False),
             paper_bgcolor="rgba(0,0,0,0)" if self.see_through else css(face),
@@ -324,6 +326,14 @@ class Translator:
                                  "title": dict(zip(("part", "panel"), self.title_part)) if self.title_part
                                  else None}},
         )
+        self.pointing.note()
+        if self.left_out:
+            from ._core import chart_note
+
+            kinds = ", ".join(sorted(set(self.left_out)))
+            line = (f"Note: the web page leaves out what it cannot draw from this chart ({kinds}); the picture "
+                    "(.png, .pdf) shows everything.")
+            chart_note(("web left out", line), lambda _n, line=line: line)
         if self.pointing.all_lines:
             self.layout["hovermode"] = "x unified"
         if (self.chart.__dict__.get("_settings") or {}).get("range_bar_x"):
@@ -344,7 +354,16 @@ class Translator:
             self._scene_layout(a, domain_x, domain_y)
             return
         main = self._main_of(a)
+        # A second axis (add_second_y, add_second_x: a column or formula=) is drawn over its panel: its own scale
+        # overlays the panel's axis and is anchored to the panel's other axis; its marks use the panel's other axis.
+        shared_letter = {"second y": "x", "second x": "y"}.get(a.role) if main is not None else None
+        if shared_letter == "x":
+            a.x, a.x_layout = main.x, main.x_layout
+        elif shared_letter == "y":
+            a.y, a.y_layout = main.y, main.y_layout
         for letter, axis, kind, read in (("x", ax.xaxis, a.x_kind, a.read_x), ("y", ax.yaxis, a.y_kind, a.read_y)):
+            if letter == shared_letter:
+                continue
             name = a.x_layout if letter == "x" else a.y_layout
             other = a.y if letter == "x" else a.x
             scale = axis.get_scale()
@@ -400,21 +419,39 @@ class Translator:
                 layout["side"] = "right"
             if not ax.axison:
                 layout["visible"] = False
-            if main is not None:  # a second axis drawn over its panel (add_second_y, add_second_x)
+            if main is not None:  # the second axis itself: over the panel's axis, on the far side
                 layout["overlaying"] = main.x if letter == "x" else main.y
-                shares = (a.role == "second y" and letter == "x") or (a.role == "second x" and letter == "y")
-                if shares:
-                    layout["matches"] = main.x if letter == "x" else main.y
-                    layout["visible"] = False
+                layout["anchor"] = main.y if letter == "x" else main.x
+                layout["side"] = "top" if letter == "x" else "right"
+                layout["visible"] = True
+                if second:  # its ticks are placed in the main axis's numbers: the same range and kind of scale
+                    under = self.layout[main.x_layout if letter == "x" else main.y_layout]
+                    layout["range"], layout["type"] = list(under["range"]), under["type"]
+                    # plotly draws an axis only for a mark on it: a mark with no points holds the scale
+                    holder = dict(type="scatter", x=[None], y=[None], mode="markers", hoverinfo="skip",
+                                  showlegend=False, name="", meta={"panel": a.panel, "kind": "second scale"})
+                    holder["xaxis"], holder["yaxis"] = (a.x, main.y) if letter == "x" else (main.x, a.y)
+                    self.traces.append(holder)
+            else:
+                shared = self._shared_with(a, letter)
+                if shared is not None:  # same_x / same_y panels zoom together, as matplotlib shares them
+                    layout["matches"] = shared.x if letter == "x" else shared.y
+                if hidden_name:
+                    layout["title"] = dict(text=hidden_name, font=dict(color="rgba(0,0,0,0)"))
             self.layout[name] = layout
-            self.meta_axes[(a.x if letter == "x" else a.y)] = {
-                "panel": a.panel, "role": a.role, "kind": kind, "scale": scale, "shown as": _shown_kind(a, axis, letter),
-                # a name matplotlib keeps but does not show (the inner charts of a split chart share the outer one's)
-                "name": hidden_name,
-                # a second scale in other units (add_second_x(formula=)): its own ends, in those units
-                "own range": [float(v) for v in (ax.get_xlim() if letter == "x" else ax.get_ylim())]
-                if second else None,
-                "flipped": bool(ax.xaxis_inverted() if letter == "x" else ax.yaxis_inverted())}
+            self.meta_axes[(a.x if letter == "x" else a.y)] = {"panel": a.panel, "role": a.role, "kind": kind}
+
+    def _shared_with(self, a, letter):
+        """An earlier panel whose x (or y) matplotlib shares with this one, or None."""
+        for b in self.axes:
+            if b is a:
+                return None
+            if b.kind != "flat" or b.role:
+                continue
+            group = a.ax.get_shared_x_axes() if letter == "x" else a.ax.get_shared_y_axes()
+            if group.joined(a.ax, b.ax):
+                return b
+        return None
 
     def _main_of(self, a):
         from ._numbers_drawn import main_of
@@ -474,7 +511,7 @@ class Translator:
                                           tickmode="array", tickvals=[float(v) for v, _ in ticks],
                                           ticktext=[w for _, w in ticks])
         elev, azim = math.radians(ax.elev), math.radians(ax.azim)
-        distance = 2.0
+        distance = 2.5  # far enough for the tick words and axis names to stay inside the scene
         scene["camera"] = dict(eye=dict(x=distance * math.cos(elev) * math.cos(azim),
                                         y=distance * math.cos(elev) * math.sin(azim),
                                         z=distance * math.sin(elev)))
@@ -662,11 +699,13 @@ class Translator:
         trace["y" if upright else "x"] = values
         faces = [css(_hex(p.get_facecolor())) for p in patches]
         edge = patches[0].get_edgecolor()
-        marker = dict(color=faces, line=dict(color=css(_hex(edge)), width=self.page.points(patches[0].get_linewidth())))
+        marker = dict(color=faces[0] if len(set(faces)) == 1 else faces, line=dict(color=css(_hex(edge)), width=self.page.points(patches[0].get_linewidth())))
         hatches = [p.get_hatch() or "" for p in patches]
         if any(hatches):
-            marker["pattern"] = dict(shape=[PATTERNS.get(h[:1], "") for h in hatches],
-                                     fgcolor=css(_hex(patches[0].get_edgecolor())), solidity=0.3)
+            shapes = [PATTERNS.get(h[:1], "") for h in hatches]
+            # one pattern for the whole set: plotly then shows it in the legend too
+            marker["pattern"] = dict(shape=shapes[0] if len(set(shapes)) == 1 else shapes,
+                                     fgcolor=_pattern(patches[0])["fgcolor"], solidity=0.3)
         trace["marker"] = marker
         lows = [r["low"] for r in rows]
         highs = [r["high"] for r in rows]
@@ -715,7 +754,8 @@ class Translator:
                      line=dict(color=css(_hex(edge)) if edge is not None and edge[3] > 0 else "rgba(0,0,0,0)",
                                width=self.page.points(np.ravel(coll.get_linewidths())[0])
                                if len(np.ravel(coll.get_linewidths())) else 0),
-                     hoverinfo="skip", meta=self._meta(a, layer, rows, sideways=sideways))
+                     hoverinfo="skip", meta=self._meta(a, layer, rows),
+                     orientation="h" if sideways else "v")  # a band along y (violins) lies sideways
         pattern = _pattern(coll)
         if pattern:  # an area with a pattern (hatched=True, black and white)
             trace["fillpattern"] = pattern
@@ -764,7 +804,7 @@ class Translator:
                     trace["fillpattern"] = pattern
             if kind_name == "contour":
                 level = pieces[next(iter(pieces))][0]["value"]
-                trace["text"] = [f"{level:.4g}" if x is not None else "" for x in xs[:-1]]
+                trace["text"] = [f"{level:.10g}" if x is not None else "" for x in xs[:-1]]
                 trace["hovertemplate"] = "height %{text}<extra></extra>"
             self._add(a, trace, rows[0]["series"])
 
@@ -1071,7 +1111,14 @@ class Translator:
             names = [t.get_text() for t in legend.get_texts()]
             title = legend.get_title().get_text() if legend.get_title().get_visible() else ""
             box = self.page.box(legend.get_window_extent())
-            self.layout[key] = dict(x=_clip(box[0]), y=_clip(box[3]), xanchor="left", yanchor="top",
+            # The legend sits where matplotlib put it, held at its corner nearest the edge of its panel, so a
+            # legend that is a little bigger on the web page grows away from that edge (inside, or outside)
+            area = owners[0].domain if len(owners) == 1 else (0.0, 1.0, 0.0, 1.0)
+            right = (box[0] + box[1]) / 2 > (area[0] + area[1]) / 2
+            top = (box[2] + box[3]) / 2 > (area[2] + area[3]) / 2
+            self.layout[key] = dict(x=_clip(box[1] if right else box[0]), y=_clip(box[3] if top else box[2]),
+                                    xanchor="right" if right else "left", yanchor="top" if top else "bottom",
+                                    itemwidth=30, tracegroupgap=0,
                                     bgcolor=css(_hex(legend.get_frame().get_facecolor()))
                                     if legend.get_frame_on() else "rgba(0,0,0,0)",
                                     bordercolor=css(_hex(legend.get_frame().get_edgecolor()))
@@ -1090,6 +1137,8 @@ class Translator:
                 trace = next((t for t in self.traces if t.get("name") == name and t.get("meta", {}).get("panel")
                               in panels and t["type"] not in ("pie",) and not t.get("showlegend")
                               and t.get("legend", key) == key), None)
+                if trace is None:  # seaborn's legends name no mark: the marks of the entry's colour are that group
+                    trace = self._marks_of_colour(handle, panels, name)
                 if trace is not None and name not in shown:
                     for t in self.traces:  # every mark of that group hides and shows together
                         if t.get("name") == name and t.get("meta", {}).get("panel") in panels and t["type"] != "pie":
@@ -1102,6 +1151,18 @@ class Translator:
             for t in self.traces:
                 if t["type"] == "pie" and t.get("meta", {}).get("panel") in panels and t.get("showlegend"):
                     t["legend"] = key
+
+    def _marks_of_colour(self, handle, panels, name):
+        """The bars or dots drawn in a legend entry's colour, named after the entry (or None)."""
+        colour = _first_rgba(handle.get_facecolor()) if hasattr(handle, "get_facecolor") else None
+        if colour is None or colour[3] == 0:
+            return None
+        wanted = css(_hex(colour))
+        found = [t for t in self.traces if t["type"] in ("bar", "scatter") and not t.get("name")
+                 and t.get("meta", {}).get("panel") in panels and _first_colour(t) == wanted]
+        for t in found:
+            t["name"] = name
+        return found[0] if found else None
 
     def _legend_only(self, a, key, name, handle, rank):
         """A legend entry with no mark of its own name (seaborn's legends): a mark that draws nothing, in the
@@ -1117,6 +1178,12 @@ class Translator:
             trace["mode"] = trace["mode"].strip("+") or "lines"
             trace["line"] = dict(color=css(handle.get_color()), dash=_dash(handle.get_linestyle()))
             trace["marker"] = dict(color=css(handle.get_markerfacecolor()), symbol=SYMBOLS.get(marker, "circle"))
+        elif hasattr(handle, "get_facecolor") and (handle.get_hatch() if hasattr(handle, "get_hatch") else None):
+            # a patterned entry: a bar that draws nothing, so the legend shows the colour and the pattern
+            colour = _first_rgba(handle.get_facecolor())
+            trace.update(type="bar", x=[None], y=[None],
+                         marker=dict(color=css(_hex(colour)), pattern=_pattern(handle),
+                                     line=dict(color=css(_hex(_first_rgba(handle.get_edgecolor()))), width=1)))
         elif hasattr(handle, "get_facecolor"):
             colour = _first_rgba(handle.get_facecolor())
             edge = _first_rgba(handle.get_edgecolor()) if hasattr(handle, "get_edgecolor") else None
@@ -1208,10 +1275,10 @@ class Translator:
         self.layout["annotations"].append(note)
 
     def layout_width(self):
-        return self.fig.get_figwidth() * PIXELS_PER_INCH
+        return self.fig.get_figwidth() * PIXELS_PER_INCH * self.page.shrink
 
     def layout_height(self):
-        return self.fig.get_figheight() * PIXELS_PER_INCH
+        return self.fig.get_figheight() * PIXELS_PER_INCH * self.page.shrink
 
 
 # ---------------------------------------------------------------- small helpers of the translator
@@ -1263,9 +1330,25 @@ def _pattern(artist):
     shape = PATTERNS.get((hatch or "")[:1], "")
     if not shape:
         return None
-    getter = getattr(artist, "get_hatchcolor", None) or getattr(artist, "get_edgecolor", None)
-    colour = _first_rgba(getter()) if getter is not None else None
-    return dict(shape=shape, fgcolor=css(_hex(colour)) if colour is not None else "black", solidity=0.3)
+    colour = None
+    for getter in ("get_hatchcolor", "get_edgecolor"):
+        if hasattr(artist, getter):
+            colour = _first_rgba(getattr(artist, getter)())
+            if colour is not None and colour[3] > 0:
+                break
+    if colour is None or colour[3] == 0:  # no colour of its own: black or white, whichever shows on the fill
+        from .words.second_cues import contrasting
+
+        colour = contrasting(_first_rgba(artist.get_facecolor()))
+    return dict(shape=shape, fgcolor=css(_hex(colour)), solidity=0.3)
+
+
+def _first_colour(trace) -> str:
+    marker = trace.get("marker") or {}
+    colour = marker.get("color") if trace["type"] == "bar" or trace.get("mode") == "markers" else None
+    if isinstance(colour, (list, tuple)):
+        colour = colour[0] if colour else None
+    return colour or ""
 
 
 def _number(v) -> str:
@@ -1331,9 +1414,33 @@ def colour_scale(mappable, low, high, steps=65):
     if not (np.isfinite(low) and np.isfinite(high)) or high <= low:
         colour = css(_hex(mappable.to_rgba(np.array([low]))[0])) if np.isfinite(low) else "rgba(0,0,0,0)"
         return [[0, colour], [1, colour]]
+    bands = _bands(mappable)
+    if bands is not None:  # a filled contour map or a colour scale cut into steps: one colour for each band
+        edges, colours = bands
+        scale = []
+        for i, colour in enumerate(colours):
+            start = 0.0 if i == 0 else min(max((edges[i] - low) / (high - low), 0.0), 1.0)
+            end = 1.0 if i == len(colours) - 1 else min(max((edges[i + 1] - low) / (high - low), 0.0), 1.0)
+            scale += [[start, css(_hex(colour))], [end, css(_hex(colour))]]
+        return scale
     values = np.linspace(low, high, steps)
     colours = mappable.to_rgba(values)
     return [[float(i / (steps - 1)), css(_hex(c))] for i, c in enumerate(colours)]
+
+
+def _bands(mappable):
+    """(edges, the colour of each band) of a filled contour set or a stepped colour scale (BoundaryNorm), as
+    matplotlib colours them; None for a smooth colour scale."""
+    from matplotlib.colors import BoundaryNorm
+
+    if getattr(mappable, "filled", False) and getattr(mappable, "levels", None) is not None:
+        edges = np.asarray(mappable.levels, dtype=float)
+        return edges, mappable.to_rgba(np.asarray(mappable.layers, dtype=float))
+    norm = getattr(mappable, "norm", None)
+    if isinstance(norm, BoundaryNorm):
+        edges = np.asarray(norm.boundaries, dtype=float)
+        return edges, mappable.to_rgba((edges[:-1] + edges[1:]) / 2)
+    return None
 
 
 # ---------------------------------------------------------------- show_when_pointing: the columns of each row
@@ -1353,43 +1460,77 @@ def _key(value):
     return str(value)
 
 
+SUMMARY_NOTE = ("Note: show_when_pointing() shows your columns only on marks that are single rows of the table (dots, "
+                "and lines with one row at each point). {words} {verb} summaries of several rows, so pointing at "
+                "them shows what they are, never one row's columns.")
+RAW_LINE_JOINS = ("straight lines", "steps")  # a curve through the points (joined_by="smooth curve") makes new points
+
+
+def raw_step(chart, step) -> bool:
+    """Whether every mark a step draws is one row of the table, decided from the step as written: dots drawn from
+    the rows themselves, and lines that have one row at each point (no average, total ... of several rows, no
+    curve through the points). Bars, error bars, bands, fitted lines, densities, histograms and hexagons are
+    summaries."""
+    import pandas as pd
+
+    kw = step.kwargs
+    if step.name == "dots":
+        return getattr(step.func, "__name__", "") == "_draw_dots"  # not draw_dots(show=...): averages
+    if step.name != "lines" or kw.get("joined_by", "straight lines") not in RAW_LINE_JOINS or kw.get("error"):
+        return False
+    data = chart.__dict__.get("_data")
+    columns = [kw.get(k) for k in ("x", "colour", "dashed")]
+    columns = [c for c in columns if isinstance(c, str) and data is not None and c in data.columns]
+    y = kw.get("y")
+    if data is None or not isinstance(y, str) or y not in data.columns or not columns:
+        return False
+    rows = data.dropna(subset=[y] + columns)
+    return bool(len(rows)) and not rows.duplicated(subset=columns).any()  # one row at each point of each line
+
+
 class _Pointing:
-    """chart.show_when_pointing("name", "marks"): the rows of the table a dot or a line point was drawn from are
-    found by their x and y (the columns of the step that drew them), and only the named columns are shown."""
+    """chart.show_when_pointing("name", "marks"). Only a mark that is one row of the table shows that row's named
+    columns: the step that drew the mark (each drawn matplotlib artist is tagged with its step while the chart is
+    drawn) must draw single rows (raw_step); the row is then found among that step's rows by its x, y (and group).
+    A summary (an average, a bar, a band, a fit ...) is never matched to a row by its value: it says what it is."""
 
     def __init__(self, chart):
         settings = chart.__dict__.get("_settings") or {}
         wanted = settings.get("pointing") or {}
+        self.chart = chart
         self.columns = list(wanted.get("columns") or [])
         self.all_lines = bool(wanted.get("all_lines"))
         self.data = chart.__dict__.get("_data")
-        self.pairs = []
-        if self.columns and self.data is not None:
-            from ._core import PHASES
-
-            for step in chart._steps:
-                x, y = step.kwargs.get("x"), step.kwargs.get("y")
-                if step.phase == PHASES["draw"] and isinstance(x, str) and isinstance(y, str) and \
-                        x in self.data.columns and y in self.data.columns and (x, y) not in self.pairs:
-                    self.pairs.append((x, y))
+        self.summaries: list = []
 
     def texts(self, a, rows, texts):
-        if not self.columns or not self.pairs:
+        if not self.columns or self.data is None or not rows:
             return texts
-        drawn = [(_key(_shown(r["x"], a.read_x, a.x_kind)), _key(_shown(r["y"], a.read_y, a.y_kind))) for r in rows]
-        best, best_found = None, 0
-        for x, y in self.pairs:
-            table = {}
-            for i, (xv, yv) in enumerate(zip(self.data[x], self.data[y])):
-                table.setdefault((_key(xv), _key(yv)), []).append(i)
-            found = sum(1 for d in drawn if d in table)
-            if found > best_found:
-                best, best_found = table, found
-        if best is None:
+        artist = rows[0].get("_artist")
+        step = getattr(artist, "simplydata_step", None)
+        if step is None or not raw_step(self.chart, step):
+            word = self.chart._public_name(step.name) if step is not None else "these marks"
+            if word not in self.summaries:
+                self.summaries.append(word)
+            show = (step.kwargs.get("show") if step is not None else None) or ""
+            what = (f"the {show} of several rows" if isinstance(show, str) and show and show != "count"
+                    else "a summary of several rows")
+            return [f"{t}<br>({what})" if t else f"({what})" for t in texts]
+        kw = step.kwargs
+        x, y, group = kw.get("x"), kw.get("y"), kw.get("colour")
+        if not (isinstance(x, str) and isinstance(y, str) and x in self.data.columns and y in self.data.columns):
             return texts
+        grouped = isinstance(group, str) and group in self.data.columns
+        names = _legend_names(a.ax) if grouped else {}
+        table: dict = {}
+        for i, (xv, yv, gv) in enumerate(zip(self.data[x], self.data[y],
+                                             self.data[group] if grouped else [None] * len(self.data))):
+            table.setdefault((_key(xv), _key(yv), _key(gv) if grouped else None), []).append(i)
         out = []
-        for text, d in zip(texts, drawn):
-            positions = best.get(d)
+        for text, r in zip(texts, rows):
+            g = _key(names.get(r["colour"])) if grouped else None
+            positions = table.get((_key(_shown(r["x"], a.read_x, a.x_kind)), _key(_shown(r["y"], a.read_y, a.y_kind)),
+                                   g))
             if positions:
                 i = positions.pop(0) if len(positions) > 1 else positions[0]
                 row = self.data.iloc[i]
@@ -1397,6 +1538,14 @@ class _Pointing:
                 text = f"{text}<br>{extra}" if text else extra
             out.append(text)
         return out
+
+    def note(self):
+        from ._core import chart_note
+
+        if self.summaries:
+            line = SUMMARY_NOTE.format(words=" and ".join(f"{w}()" for w in self.summaries),
+                                       verb="shows" if len(self.summaries) == 1 else "show")
+            chart_note(("pointing summaries", line), lambda _n, line=line: line)
 
 
 def _shown(value, read, kind):
@@ -1488,17 +1637,18 @@ def _animated(chart, go, see_through):
                      for value, traces, frame_layout in frames]
     milliseconds = int(seconds * 1000)
     layout = dict(layout)
-    layout["margin"] = dict(layout["margin"], b=round(0.18 * layout["height"]))
-    layout["height"] = round(layout["height"] * 1.18)
+    layout["margin"] = dict(layout["margin"], b=round(0.25 * layout["height"]))
+    layout["height"] = round(layout["height"] * 1.25)
+    # the Play and Pause buttons on the left, the slider beside them (not under them), its last value inside
     layout["updatemenus"] = [dict(type="buttons", direction="left", x=0, y=0, xanchor="left", yanchor="top",
-                                  pad=dict(t=40), showactive=False, buttons=[
+                                  pad=dict(t=45, l=4), showactive=False, buttons=[
                                       dict(label="Play", method="animate",
                                            args=[None, dict(frame=dict(duration=milliseconds, redraw=True),
                                                             fromcurrent=True, transition=dict(duration=0))]),
                                       dict(label="Pause", method="animate",
                                            args=[[None], dict(mode="immediate", frame=dict(duration=0),
                                                               transition=dict(duration=0))])])]
-    layout["sliders"] = [dict(active=0, x=0.15, len=0.85, y=0, yanchor="top", pad=dict(t=30),
+    layout["sliders"] = [dict(active=0, x=0.22, len=0.74, y=0, yanchor="top", pad=dict(t=30, r=10, l=0),
                               currentvalue=dict(prefix=f"{over}: "),
                               steps=[dict(label=str(value), method="animate",
                                           args=[[str(value)], dict(mode="immediate", frame=dict(duration=0,
@@ -1513,8 +1663,17 @@ def page_html(chart, see_through=False, full_html=True) -> str:
     """The web page: the plotly figure with plotly.js written inside it (no internet needed to open it, nothing
     fetched), a title, and the chart's description in words for screen readers."""
     figure = web_figure(chart, see_through)
-    page = figure.to_html(include_plotlyjs=True, include_mathjax=False, full_html=full_html, config=WEB_CONFIG,
-                          validate=True)
+    # The page fits the window: the chart keeps its shape (width to height) and is never wider than drawn, so a page
+    # of charts needs no sideways scrolling; plotly redraws it at the size of its box (responsive).
+    width, height = figure.layout.width, figure.layout.height
+    figure.update_layout(width=None, height=None, autosize=True)
+    page = figure.to_html(include_plotlyjs=True, include_mathjax=False, full_html=full_html,
+                          config=dict(WEB_CONFIG, responsive=True), validate=True, default_width="100%",
+                          default_height="100%")
+    box = f'<div style="height:100%; width:100%;">'
+    fitted = (f'<div class="simplydata-chart" style="width:100%; max-width:{width}px; '
+              f'aspect-ratio:{width} / {height}; margin:0 auto;">')
+    page = page.replace(box, fitted, 1)
     description = _description(chart)
     title = _title(figure)
     if full_html:
@@ -1587,13 +1746,16 @@ def show_page(chart):
         from IPython.display import HTML, display
 
         display(HTML(page_html(chart, full_html=False)))
+        _note_once("saved", SAVED_NOTE)  # the notebook keeps the page, with the numbers, in its file
         return chart
     text = page_html(chart)
     handle, name = tempfile.mkstemp(prefix="simplydata_chart_", suffix=".html", dir=WEB_PAGE_FOLDER["folder"])
     with open(handle, "w", encoding="utf-8") as file:
         file.write(text)
     path = Path(name)
-    print(f"The chart opens in your web browser from a file on this computer: {path}\n"
-          "It holds the numbers drawn; delete it when you no longer need it.")
+    print(f"The chart opens in your web browser from a file on this computer, in the folder for temporary files:\n"
+          f"    {path}\n"
+          "That file holds the numbers drawn and the columns shown when pointing, as the table does; share it as "
+          "you would share the table, and delete it when you no longer need it.")
     open_file_in_browser(path.resolve().as_uri())
     return chart

@@ -94,6 +94,28 @@ def chart_note(key, make, count=0):
     _NOTES["lines"][key] = ((old[0] if old else 0) + count, make)
 
 
+def _drawn_artists(ctx) -> set:
+    """The ids of everything drawn on the chart's panels so far (marks, lines, patches, collections)."""
+    found = set()
+    for ax in list(ctx.axes or []) + [ctx.ax]:
+        for each in [ax] + list(getattr(ax, "child_axes", [])):
+            found.update(id(a) for a in each.get_children())
+    return found
+
+
+def _tag_new_artists(ctx, before, step):
+    """Each artist a step drew remembers the step (simplydata_step): a web page then knows whether a mark is one
+    row of the table or a summary of several (show_when_pointing, simplydata._web.raw_step)."""
+    for ax in list(ctx.axes or []) + [ctx.ax]:
+        for each in [ax] + list(getattr(ax, "child_axes", [])):
+            for artist in each.get_children():
+                if id(artist) not in before and getattr(artist, "simplydata_step", None) is None:
+                    try:
+                        artist.simplydata_step = step
+                    except AttributeError:
+                        pass
+
+
 def _quoted(names):
     names = [f'"{n}"' for n in names]
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " or " + names[-1]
@@ -235,8 +257,10 @@ class BaseChart:
     # ------------------------------------------------------------------ drawing
     def _run(self, steps, ctx: Context):
         for step in sorted(steps, key=lambda s: (s.phase, s.order)):
+            before = _drawn_artists(ctx)
             try:
                 step.func(ctx, **step.kwargs)
+                _tag_new_artists(ctx, before, step)
             except SimplydataError as exc:
                 if exc.args and isinstance(exc.args[0], str):  # the words as they are written now
                     exc.args = (public_words(exc.args[0]), *exc.args[1:])

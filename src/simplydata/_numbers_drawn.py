@@ -608,6 +608,14 @@ def numbered_panels(fig) -> list:
     return [(ax, numbers.get(id(mains[id(ax)][0]), 0), mains[id(ax)][1], read[id(ax)]) for ax in axes]
 
 
+def _on_part(row, side, low, high) -> bool:
+    """Whether a row of a broken chart (break_between_y) is shown on this part: a bar or band by its high end."""
+    value = row["high"] if row["kind"] in ("bar", "band", "error bar", "stem", "rectangle") else row["y"]
+    if value is None or not np.isfinite(value):
+        return side == "lower"  # a mark with no height of its own (a line across) is read once, on the lower part
+    return value >= high if side == "upper" else value <= low
+
+
 def numbers_drawn(fig):
     """A pandas table of every number drawn on the figure (COLUMNS), panel by panel. On a date axis x (or y)
     is given as dates, on an axis of named groups as the group names. What is drawn on a second y-axis
@@ -616,9 +624,23 @@ def numbers_drawn(fig):
 
     rows = []
     last_layer = {}
-    for _ax, panel, _role, (found, (read_x, x_kind), (read_y, y_kind)) in numbered_panels(fig):
+    panels = numbered_panels(fig)
+    axes = [ax for ax, _, _, _ in panels]
+    for ax, panel, role, (found, (read_x, x_kind), (read_y, y_kind)) in panels:
         if not found or not panel:
             continue  # an empty frame (the base of a chart drawn in parts) is not a chart
+        if role in ("second y", "second x"):  # a second axis shares the other axis of its panel: read it there
+            main = main_of(ax, axes)[0]
+            if role == "second y":
+                read_x, x_kind = _axis_reader(main.xaxis)
+            else:
+                read_y, y_kind = _axis_reader(main.yaxis)
+        part = getattr(ax, "simplydata_break", None)
+        if part is not None:
+            # break_between_y: each point is read once, on the part of the chart that shows it (panel 1 is the upper
+            # part, panel 2 the lower), with the layer number of the step that drew it
+            side, low, high = part
+            found = [r for r in found if _on_part(r, side, low, high)]
         before = last_layer.get(panel, 0)
         for r in found:
             r["panel"] = panel

@@ -67,8 +67,9 @@ def test_break_between_y_is_the_gallery_layout_two_panels_sharing_x():
     hand_bottom.set_ylim(hand_bottom.get_ylim()[0], 5)
     hand_top.set_ylim(50, hand_top.get_ylim()[1])
     ours = numbers_drawn(fig)[["panel", "kind", "x", "y", "low", "high"]]
+    # each bar is read once, on the part that shows its top (the upper part, panel 1)
     theirs = numbers_drawn(by_hand)[["panel", "kind", "x", "y", "low", "high"]]
-    pd.testing.assert_frame_equal(ours, theirs)
+    pd.testing.assert_frame_equal(ours, theirs[theirs["panel"] == 1])
     assert "say in the caption" in out
     assert not (numbers_drawn(fig)["kind"] == "dot").any()  # the slanted break marks are not data
 
@@ -80,7 +81,7 @@ def test_break_between_y_checks_its_numbers():
     with pytest.raises(SimplydataError, match="two numbers"):
         chart.break_between_y("a", 5)
     chart.break_between_y(5, 500)
-    with pytest.raises(SimplydataError, match="nothing is drawn above 500"):
+    with pytest.raises(SimplydataError, match="would hide 3 drawn values between 5 and 500"):
         quiet(chart._render)
     with pytest.raises(SimplydataError, match="flat chart"):
         sdata.chart(example_frame("island")).draw_surface(x="east", y="north", z="height").break_between_y(1, 2)

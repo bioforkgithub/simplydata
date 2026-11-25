@@ -129,6 +129,26 @@ working for one release and prints a one-line note with its new name.
   `hovertemplate`, `rangeslider`, `hexbin`, `bar3d` ...) point to the simplydata words. `sdata.show_packages_used()`
   lists plotly when a web page was made.
 
+### Fixed: charts phase, batch 3 (after the independent review)
+
+- `show_when_pointing()` shows a row's columns only on marks that are single rows of the table (dots drawn from the
+  rows, and lines with one row at each point), decided from the step that drew the mark; averages, bars, error
+  bars, bands, fitted lines, histograms, densities and hexagons say what they are ("the average of several rows")
+  and are never matched to a row by their value. A note says so. Groups with the same x and y keep their own rows.
+- A second scale (`add_second_x` / `add_second_y`, with `formula=` or a column) is drawn on the web page: it
+  overlays its panel's axis on the far side, and its marks use the panel's other axis.
+- `break_between_y` refuses a break that would hide drawn values (it says how many, and their range) or leave a part
+  empty, checked on the drawn data; `get_numbers_drawn()` lists each point once, on the part that shows it (panel 1
+  the upper part, panel 2 the lower).
+- What a web page cannot draw is said in a note. Pages fit the window (no sideways scrolling; a chart wider than
+  1100 pixels is drawn smaller, text with it); legends are held at matplotlib's corner and show patterns;
+  contour maps get a banded colour bar; the animation's buttons sit beside the slider; 3D charts keep their tick
+  words inside the scene.
+- `show_in_web_page()` in a notebook says once that the page holds the numbers; from a script it says where the
+  temporary file is and that it holds the data.
+- `get_numbers_drawn()` reads a second y-axis's marks on its panel's x-axis (names of groups, not their places), and
+  `get_text_drawn()` lists no tick words of an axis that is not drawn.
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

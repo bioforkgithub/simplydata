@@ -131,6 +131,8 @@ def _where_of(text, ax) -> str:
 def _ticks(axis, ax) -> list:
     """The tick words drawn on an axis, big and small ticks (a log axis writes 30, 40 ... between 10 and 100),
     in order along the axis: inside the shown range, visible and not empty, as plain text."""
+    if (not ax.axison and getattr(ax, "name", "") != "3d") or not axis.get_visible():  # (3D axes draw their own)
+        return []  # an axis that is not drawn (hide_frame, the empty base of a chart drawn in parts) shows no words
     low, high = sorted(axis.get_view_interval())
     room = (high - low) * 1e-9
     words = []
