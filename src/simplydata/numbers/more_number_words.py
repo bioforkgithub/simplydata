@@ -312,8 +312,13 @@ class MoreNumberWords:
                   f"{'' if keep else f'; {n} left'}. NumPy: {self._name}[{'' if keep else '~'}yes_no]")
             return self._change(f"{'keep' if keep else 'remove'} numbers where yes", new)
         new = np.where(chosen, self._values, np.nan)
+        kind = {"b": "yes or no values", "i": "whole numbers", "u": "whole numbers"}.get(self._values.dtype.kind)
+        made_decimal = (f" The {kind} became decimal numbers (1 for yes, 0 for no)" if kind == "yes or no values" else
+                        f" The {kind} became decimal numbers" if kind else "")
+        made_decimal += ", because NumPy whole numbers cannot be empty." if kind else ""
         print(f"{'Kept' if keep else 'Removed'} {n if keep else total - n} of {amount(total)}; the others are now "
-              f"empty, so the shape stays. NumPy: np.where({'' if keep else '~'}yes_no, {self._name}, np.nan). "
+              f"empty, so the shape stays.{made_decimal} NumPy: np.where({'' if keep else '~'}yes_no, {self._name}, "
+              "np.nan). "
               f"As a list:  {self._name}.get_all_numbers().keep_numbers_where(yes_no.get_all_numbers())")
         return self._change(f"{'keep' if keep else 'remove'} numbers where yes", new)
 

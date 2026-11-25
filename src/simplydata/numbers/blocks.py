@@ -332,15 +332,33 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         return values, default_names(values.ndim), [False] * values.ndim
 
     def _lined_up(self, other, step: str, over=None):
+        """The two sides lined up, the other side's values, and the names that describe the other side in sentences
+        (for numbers without names of their own: the directions they line up with)."""
         b, b_names, b_named = self._other_parts(other, step)
         over_axes = self._axes(step, over) if over is not None else None
-        return line_up(self._values, self._names, self._named, b, b_names, b_named, over_axes=over_axes, step=step,
-                       owner=self._name), b, b_names
+        if over_axes is not None and np.ndim(b) and b_named and all(b_named):
+            # the other block names its directions: they go where over= puts the same names, never by position
+            wanted = [self._names[i] for i in over_axes]
+            if sorted(b_names) != sorted(wanted):
+                raise SimplydataError(
+                    f"over= says the other numbers run along {', '.join(wanted)}, but the other block's directions are "
+                    f"called {', '.join(b_names)}. Leave out over= to line them up by name, or rename them to match.")
+            if list(b_names) != wanted:
+                b = np.transpose(b, [list(b_names).index(n) for n in wanted])
+                b_names = wanted
+        lined = line_up(self._values, self._names, self._named, b, b_names, b_named, over_axes=over_axes, step=step,
+                        owner=self._name)
+        if np.ndim(b) and not (b_named and all(b_named)):
+            if over_axes is not None:
+                b_names = [self._names[i] for i in over_axes]
+            elif lined.how == "from the right" and np.ndim(b) <= len(lined.names):
+                b_names = list(lined.names[len(lined.names) - np.ndim(b):])
+        return lined, b, b_names
 
     def _used_again(self, lined, b, b_names, result_shape) -> list[str]:
         """The directions along which the other side's numbers were used again."""
         if lined.how == "by name":
-            return [say_size(int(s), n) for s, n in zip(result_shape, lined.names) if n not in b_names and s != 1]
+            return [say_size(int(s), n) for s, n in zip(result_shape, lined.names) if n not in lined.b_kept and s != 1]
         shape_b = np.shape(lined.b)
         offset = len(result_shape) - len(shape_b)
         return [say_size(int(s), n) for i, (s, n) in enumerate(zip(result_shape, lined.names))
@@ -370,7 +388,7 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         note_empty(n, why)
         if np.ndim(b):
             if lined.how == "by name":
-                mine_again = [n for n in lined.names if n not in self._names]
+                mine_again = [n for n in lined.names if n not in lined.a_kept]
             else:
                 mine_again = _again(self._values.shape, result.shape)
             theirs_again = self._used_again(lined, b, b_names, result.shape)
@@ -482,9 +500,14 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
                 elif size_a == size_b:
                     lines.append(f"  {name:<10} {size_a:>4} = {size_b}")
                     result.append((size_a, name))
+                elif 1 in (size_a, size_b):
+                    which = "the other" if size_b == 1 else "this block"
+                    lines.append(f"  {name:<10} {size_a:>4} and {size_b}   ({which} has 1: it is used again for each "
+                                 f"of the {say_size(max(size_a, size_b), name)})")
+                    result.append((max(size_a, size_b), name))
                 else:
                     lines.append(f"  {name:<10} {size_a:>4} against {size_b}   <- clash: the same name needs the "
-                                 "same size")
+                                 "same size, or 1")
                     result = None
                     break
             if result is None:
@@ -556,12 +579,15 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
                                           f"to {say_shape(target, t_names)}.")
                 new = np.broadcast_to(lined.b, target).copy()
                 call = f"np.broadcast_to(block, {numpy_shape(target)}) after lining up by name"
-                return self._stretched(new, t_names, t_named, call)
+                return self._stretched(new, t_names, t_named, call, dict(shape._labels))
         elif isinstance(shape, (tuple, list)) and shape and all(isinstance(n, _nb.Integral) and not isinstance(n, bool)
                                                                 and n >= 0 for n in shape):
             target = tuple(int(n) for n in shape)
-            t_names = default_names(len(target))[: len(target) - self._values.ndim] + list(self._names) \
-                if len(target) >= self._values.ndim else default_names(len(target))
+            if not any(self._named):
+                t_names = default_names(len(target))  # no names given: the names a block of that shape gets
+            else:
+                t_names = default_names(len(target))[: len(target) - self._values.ndim] + list(self._names) \
+                    if len(target) >= self._values.ndim else default_names(len(target))
             t_named = [False] * (len(target) - self._values.ndim) + list(self._named) \
                 if len(target) >= self._values.ndim else [False] * len(target)
         else:
@@ -573,13 +599,17 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
             raise SimplydataError(
                 f"{self._shape_words()} cannot be stretched to {say_shape(target, t_names)}: lined up from the right, "
                 "each size must be the same or 1 (NumPy np.broadcast_to raised \"shape mismatch\").") from None
-        return self._stretched(new, t_names, t_named, f"np.broadcast_to(block, {numpy_shape(target)})")
+        labels = {n: v for n, v in self._labels.items()
+                  if n in t_names and len(v) == target[list(t_names).index(n)]}
+        return self._stretched(new, t_names, t_named, f"np.broadcast_to(block, {numpy_shape(target)})", labels)
 
-    def _stretched(self, new, names, named, call):
+    def _stretched(self, new, names, named, call, labels):
         before = self._shape_words()
         after = say_shape(new.shape, names)
-        print(f"{before} -> {after}: the same numbers used again, nothing resized. NumPy: {call}")
-        return self._change(f"stretch to {after}", new, names, named, {})
+        lost = [n for n in self._labels if n not in labels]
+        print(f"{before} -> {after}: the same numbers used again, nothing resized. NumPy: {call}"
+              + (f" The labels of {', '.join(lost)} were left out (that direction was stretched)." if lost else ""))
+        return self._change(f"stretch to {after}", new, names, named, labels)
 
     # ------------------------------------------------------------------ the shape (B6: only_show_new_shape=)
     def _preview(self, new_shape, new_names, call) -> None:
@@ -782,12 +812,36 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
         if len(axes) != 2:
             raise SimplydataError('over= names the two directions to turn, such as over=["row", "column"].')
         new = np.rot90(self._values, k=int(by_quarter_turns), axes=axes).copy()
-        names = list(self._names)
+        i, j = axes
+        k = int(by_quarter_turns) % 4
+        names, named, labels = list(self._names), list(self._named), dict(self._labels)
+        old_i, old_j = self._labels.get(self._names[i]), self._labels.get(self._names[j])
+        for n in (self._names[i], self._names[j]):
+            labels.pop(n, None)
+
+        def flip(v):
+            return None if v is None else np.flip(v)
+
+        # the names and labels go with their numbers: np.rot90 with k=1 puts the old j direction (reversed) at i and
+        # the old i direction at j; k=3 puts old j at i and old i (reversed) at j; k=2 reverses both in place
+        if k in (1, 3) and (self._named[i] or self._named[j] or old_i is not None or old_j is not None):
+            names[i], names[j] = self._names[j], self._names[i]
+            named[i], named[j] = self._named[j], self._named[i]
+            new_i, new_j = (flip(old_j), old_i) if k == 1 else (old_j, flip(old_i))
+        elif k in (1, 3):  # directions without names are only places (row, column), as in a picture: they keep them
+            new_i, new_j = None, None
+        elif k == 2:
+            new_i, new_j = flip(old_i), flip(old_j)
+        else:
+            new_i, new_j = old_i, old_j
+        for n, v in ((names[i], new_i), (names[j], new_j)):
+            if v is not None:
+                labels[n] = v
         print(f"Turned {by_quarter_turns} quarter turn{'' if abs(by_quarter_turns) == 1 else 's'} "
               f"{'anticlockwise' if by_quarter_turns >= 0 else 'clockwise'}: {self._shape_words()} -> "
-              f"{say_shape(new.shape, names)}. NumPy: np.rot90(block, k={by_quarter_turns}, axes={axes})")
-        labels = {n: v for n, v in self._labels.items() if n not in (names[axes[0]], names[axes[1]])}
-        return self._change(f"rotate by {by_quarter_turns} quarter turns", new, names, self._named, labels)
+              f"{say_shape(new.shape, names)}; names and labels move with their numbers. "
+              f"NumPy: np.rot90(block, k={by_quarter_turns}, axes={axes})")
+        return self._change(f"rotate by {by_quarter_turns} quarter turns", new, names, named, labels)
 
     @friendly
     def move_round_by(self: _Same, steps=None, over=None) -> _Same:
@@ -893,11 +947,16 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
                 chosen = places.sel({name: slice(low, high)}).values
                 said = f"between {low} and {high}"
             else:
-                try:
-                    chosen = places.sel({name: list(is_one_of)}).values
-                except KeyError as error:
-                    raise SimplydataError(f"{name} has no label {error.args[0]!r}.") from None
-                said = "one of " + ", ".join(str(x) for x in is_one_of)
+                wanted = self._one_of_list(step, name, is_one_of)
+                missing = []
+                for value in wanted:
+                    try:
+                        places.sel({name: [value]})
+                    except KeyError:
+                        missing.append(value)
+                self._refuse_missing(name, missing)
+                chosen = places.sel({name: wanted}).values  # in the order given
+                said = "one of " + ", ".join(str(x) for x in wanted)
             return axis, name, np.asarray(chosen, dtype=int), said, "xarray sel"
         if labels.dtype.kind not in "iuf":
             raise SimplydataError(f'Choosing by date or text labels needs xarray: pip install "simplydata[xarray]".')
@@ -906,9 +965,25 @@ class NumberBlock(MoreNumberWords, ReplacingWords, MathsWords, BaseNumbers):
             chosen = np.flatnonzero(np.logical_and(labels >= low, labels <= high))
             said = f"between {low} and {high}"
         else:
-            chosen = np.flatnonzero(np.isin(labels, list(is_one_of)))
-            said = "one of " + ", ".join(str(x) for x in is_one_of)
+            wanted = self._one_of_list(step, name, is_one_of)
+            found = [np.flatnonzero(np.equal(labels, value)) for value in wanted]
+            self._refuse_missing(name, [v for v, f in zip(wanted, found) if f.size == 0])
+            chosen = np.concatenate(found)  # in the order given, as xarray sel
+            said = "one of " + ", ".join(str(x) for x in wanted)
         return axis, name, chosen, said, "NumPy flatnonzero on the labels"
+
+    def _one_of_list(self, step, name, value):
+        if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or not value:
+            raise SimplydataError(f'is_one_of= needs a list of labels in square brackets.\nFor example:  '
+                                  f'{self._name}.{step}("{name}", is_one_of=[0, 10])')
+        return list(value)
+
+    @staticmethod
+    def _refuse_missing(name, missing):
+        if missing:
+            listed = ", ".join(repr(v) for v in missing)
+            raise SimplydataError(f"{name} has no label {listed}, so {'it' if len(missing) == 1 else 'they'} cannot be "
+                                  f"kept or removed. Check the labels with the block's table (turn_into_table()).")
 
     def _two_bounds(self, step, name, value):
         if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or len(value) != 2:
@@ -1185,6 +1260,12 @@ def _from_table(table, directions, values):
     missing = [c for c in [*names, values] if c not in frame.columns]
     if missing:
         raise SimplydataError(f'The table has no column called "{missing[0]}".\nFor example:  {example}')
+    no_place = int(frame[names].isna().any(axis=1).sum())
+    if no_place:
+        print(f"Note: {no_place} row{'s' if no_place != 1 else ''} with an empty {' or '.join(names)} cell "
+              f"{'were' if no_place != 1 else 'was'} left out: {'they have' if no_place != 1 else 'it has'} no place in "
+              "the block.")
+        frame = frame.dropna(subset=names)
     keyed = frame.set_index(names)[values]
     if keyed.index.duplicated().any():
         raise SimplydataError(f"Some rows have the same {', '.join(names)}, so one place would hold two numbers. "
@@ -1288,10 +1369,19 @@ def stack_up(blocks=None, as_new_direction=None, only_show_new_shape=False) -> N
     named = list(first._named) if _is_block(first) else [False] * arrays[0].ndim
     if as_new_direction in names:
         raise SimplydataError(f'The blocks already have a direction called "{as_new_direction}".')
-    for block, arr in zip(blocks, arrays):
+    turned = []
+    for index, (block, arr) in enumerate(zip(blocks, arrays)):
         if _is_block(block) and all(block._named) and all(named) and block._names != names:
             if sorted(block._names) != sorted(names):
-                raise SimplydataError("The blocks have different direction names, so they cannot be stacked.")
+                raise SimplydataError(
+                    f"The blocks have different direction names ({', '.join(names)} against "
+                    f"{', '.join(block._names)}), so they cannot be stacked.")
+            # the same names in another order: put the directions in the first block's order (lined up by name)
+            arrays[index] = np.transpose(arr, [block._names.index(n) for n in names])
+            turned.append(index + 1)
+    if turned:
+        print(f"Block{'s' if len(turned) > 1 else ''} {', '.join(map(str, turned))} named the directions in another "
+              f"order; lined up by name first ({', '.join(names)}; NumPy transpose).")
     shapes = {a.shape for a in arrays}
     if len(shapes) != 1:
         raise SimplydataError("Every block needs the same shape to be stacked: " + "; ".join(

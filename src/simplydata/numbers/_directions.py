@@ -52,8 +52,8 @@ def plural(name: str) -> str:
 
 
 def say_size(n: int, name: str) -> str:
-    """24 pages, 1 row, 5 in direction a."""
-    if name.startswith("direction "):
+    """24 pages, 1 row, 5 in direction a, 4 in y (a one-letter name is not made plural)."""
+    if name.startswith("direction ") or len(name) == 1:
         return f"{n} in {name}"
     return f"{n} {name if n == 1 else plural(name)}"
 
@@ -62,7 +62,8 @@ def say_shape(shape, names) -> str:
     """24 pages x 8 rows x 12 columns (a block with no directions: one number)."""
     if len(shape) == 0:
         return "one number"
-    return " x ".join(say_size(int(n), name) for n, name in zip(shape, names))
+    between = " by " if "x" in names else " x "  # a direction called x would read "1 in x x 4 in y"
+    return between.join(say_size(int(n), name) for n, name in zip(shape, names))
 
 
 def numpy_shape(shape) -> str:
@@ -114,6 +115,8 @@ class LinedUp:
         self.named = named
         self.how = how  # "by name" or "from the right"
         self.numpy_call = numpy_call  # what NumPy (or xarray) did to line them up, for the sentence
+        self.a_kept = list(names)  # by name: the names each side really spans (a direction of size 1 that is
+        self.b_kept = list(names)  # used again along the other's size is not one of them)
 
 
 def clash_message(a_shape, a_names, b_shape, b_names, step, owner="block", by_name=False) -> SimplydataError:
@@ -122,9 +125,10 @@ def clash_message(a_shape, a_names, b_shape, b_names, step, owner="block", by_na
     first = f"Cannot combine {say_shape(a_shape, a_names)} with {say_shape(b_shape, b_names)}."
     if by_name:
         sizes = dict(zip(a_names, a_shape))
-        bad = next((n for n, s in zip(b_names, b_shape) if n in sizes and sizes[n] != s), None)
+        bad = next((n for n, s in zip(b_names, b_shape) if n in sizes and sizes[n] != s and 1 not in (s, sizes[n])),
+                   None)
         lines = [first, f"Directions line up by name: {bad} is {sizes.get(bad)} in one and "
-                        f"{dict(zip(b_names, b_shape)).get(bad)} in the other (each name needs the same size)."]
+                        f"{dict(zip(b_names, b_shape)).get(bad)} in the other (each name needs the same size, or 1)."]
         lines.append(f"See how they line up:  {owner}.show_how_it_lines_up_with(other)")
         return SimplydataError("\n".join(lines))
     width = max(len(a_shape), len(b_shape))
@@ -198,13 +202,28 @@ def line_up(a, a_names, a_named, b, b_names, b_named, *, over_axes=None, step="a
 
 
 def _line_up_by_name(a, a_names, b, b_names, step, owner) -> LinedUp:
-    """P05: line up by name. Each name must have the same size on both sides; a name only one side has is used again
-    along it. The result keeps a's order, with b's other names in front (as NumPy puts new directions in front)."""
+    """P05: line up by name. Each name must have the same size on both sides, or size 1 on one of them; a name only one
+    side has, or has with size 1, is used again along the other's size. The result keeps a's order, with b's other
+    names in front (as NumPy puts new directions in front). Both paths (xarray and NumPy) first take away a direction
+    of size 1 that meets a bigger one (np.squeeze), so they agree: xarray itself refuses two sizes for one name."""
     sizes_a = dict(zip(a_names, a.shape))
-    for name, size in zip(b_names, b.shape):
+    sizes_b = dict(zip(b_names, b.shape))
+    squeeze_a, squeeze_b = [], []
+    for name, size in sizes_b.items():
         if name in sizes_a and sizes_a[name] != size:
-            raise clash_message(a.shape, a_names, b.shape, b_names, step, owner, by_name=True)
+            if size == 1:
+                squeeze_b.append(list(b_names).index(name))
+            elif sizes_a[name] == 1:
+                squeeze_a.append(list(a_names).index(name))
+            else:
+                raise clash_message(a.shape, a_names, b.shape, b_names, step, owner, by_name=True)
     order = [n for n in b_names if n not in sizes_a] + list(a_names)
+    if squeeze_a:
+        a = np.squeeze(a, axis=tuple(squeeze_a))
+        a_names = [n for i, n in enumerate(a_names) if i not in squeeze_a]
+    if squeeze_b:
+        b = np.squeeze(b, axis=tuple(squeeze_b))
+        b_names = [n for i, n in enumerate(b_names) if i not in squeeze_b]
     xr = xarray_or_none() if UNDERNEATH["named"] == "auto" else None
     if xr is not None:
         # xarray lines up by name itself (xr.broadcast), then the directions are put in the result's order
@@ -216,7 +235,9 @@ def _line_up_by_name(a, a_names, b, b_names, step, owner) -> LinedUp:
         a2 = _to_order(a, a_names, order)
         b2 = _to_order(b, b_names, order)
         call = "np.expand_dims and np.transpose, chosen from the direction names"
-    return LinedUp(a2, b2, order, [True] * len(order), "by name", call)
+    lined = LinedUp(a2, b2, order, [True] * len(order), "by name", call)
+    lined.a_kept, lined.b_kept = list(a_names), list(b_names)
+    return lined
 
 
 def _to_order(values, names, order):

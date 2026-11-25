@@ -66,7 +66,8 @@ class FourierNumberWords:
         if with_zero_in_middle:
             z, freq = fft.fftshift(z), fft.fftshift(freq)
         print(f"Fourier transform of {n} readings ({words}): {len(z)} frequencies from {freq.min():g} to "
-              f"{freq.max():g}; the biggest size (after frequency 0) is at {freq[1:][np.argmax(np.abs(z[1:]))]:g}.")
+              f"{freq.max():g}; the biggest size (after frequency 0) is at "
+              f"{freq[freq != 0][np.argmax(np.abs(z[freq != 0]))]:g}.")
         print("Method: SciPy fft" + (".rfft" if show == "half" else ".fft")
               + (", then fft.fftshift (0 in the middle)" if with_zero_in_middle else "")
               + ", as R Mod(fft(x)) and Arg(fft(x)).")
