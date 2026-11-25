@@ -59,6 +59,7 @@ _OPTIONS_FOR = {
     "empty_values": ("csv", "tsv", "excel", "word"),
     "skip_rows": ("csv", "tsv", "excel", "word"),
     "table_number": ("word",),
+    "read_as_text": ("csv", "tsv", "excel", "word"),
 }
 
 READING_OPTIONS = tuple(_OPTIONS_FOR)
@@ -93,8 +94,43 @@ def _missing_file_error(path: Path) -> SimplydataError:
 
 
 # ---------------------------------------------------------------- reading options
+# read_as_text= also takes pandas' dtype={"sample": str} and Polars' schema_overrides={"sample": pl.String} when every
+# type in it is a text type; these are the ways of writing "text" that are accepted
+_TEXT_TYPES = ("str", "string", "text", "object", "utf8", "character")
+
+
+def _is_text_type(value) -> bool:
+    if value is str:
+        return True
+    name = getattr(value, "__name__", None) or str(value)
+    return name.strip().lower().replace("pl.", "") in _TEXT_TYPES
+
+
+def _read_as_text_names(value) -> list:
+    """read_as_text= as a list of column names (one name, a list, or a {name: str} mapping from pandas or Polars)."""
+    example = 'For example:  sdata.table("lab.csv", read_as_text=["sample_id"])'
+    if isinstance(value, dict):
+        not_text = [str(k) for k, v in value.items() if not _is_text_type(v)]
+        if not_text:
+            raise SimplydataError(
+                "read_as_text= keeps columns as text, exactly as typed. Other kinds are set after reading: "
+                "table.turn_into_numbers(...) or table.turn_into_dates(...).\n"
+                f"Not text here: {', '.join(not_text)}.\n{example}"
+            )
+        value = list(value)
+    if isinstance(value, str):
+        value = [value]
+    if (not isinstance(value, (list, tuple)) or not value
+            or not all(isinstance(v, str) and v.strip() for v in value)):
+        raise SimplydataError(
+            "read_as_text= is a list of the column names to keep as text, so that 007 stays 007 and 3-12 "
+            f"stays 3-12.\n{example}"
+        )
+    return list(dict.fromkeys(value))
+
+
 def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empty_values=None,
-                    skip_rows=None, encoding=None, table_number=None) -> dict:
+                    skip_rows=None, encoding=None, table_number=None, read_as_text=None) -> dict:
     """Check the reading options at once and give back only the ones that were given.
 
     sdata.table(...) and sdata.chart(...) pass their options through here, so every
@@ -164,6 +200,8 @@ def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empt
                 'or "all" to stack them.\nFor example:  sdata.table("report.docx", table_number=2)'
             )
         options["table_number"] = table_number if table_number == "all" else int(table_number)
+    if read_as_text is not None:
+        options["read_as_text"] = _read_as_text_names(read_as_text)
     return options
 
 
@@ -287,6 +325,27 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
 def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False, options=None):
     """Read one file (a path, or the bytes of a downloaded file)."""
     options = options or {}
+    found = _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options)
+    if "read_as_text" in options:
+        _check_read_as_text(found, options["read_as_text"], label)
+    return found
+
+
+def _check_read_as_text(found, names, label) -> None:
+    """Every column named in read_as_text= must be in the file (pandas and Polars pass over a missing one)."""
+    columns = [str(c) for c in found.columns]
+    missing = [n for n in names if n not in columns]
+    if not missing:
+        return
+    lines = [f'read_as_text= names "{missing[0]}", but "{label}" has no column called that.']
+    guess = suggest(missing[0], columns, n=1)
+    if guess:
+        lines.append(f'Did you mean "{guess[0]}"?')
+    lines.append("Its columns: " + ", ".join(columns))
+    raise SimplydataError("\n".join(lines))
+
+
+def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     _check_options_fit(kind, options, label)
 
     asked = fast
@@ -316,6 +375,8 @@ def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False
                     extra["null_values"] = options["empty_values"]
                 if "skip_rows" in options:
                     extra["skip_rows"] = options["skip_rows"]
+                if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})
+                    extra["schema_overrides"] = {name: pl.String for name in options["read_as_text"]}
                 fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
             return fast_table if keep_fast else fast_table.to_pandas()
 
@@ -344,6 +405,8 @@ def _pandas_text_options(options: dict) -> dict:
         extra["na_values"] = options["empty_values"]
     if "skip_rows" in options:
         extra["skiprows"] = options["skip_rows"]
+    if "read_as_text" in options:  # pandas read_csv(dtype={"sample_id": str}); empty cells stay empty
+        extra["dtype"] = {name: str for name in options["read_as_text"]}
     return extra
 
 

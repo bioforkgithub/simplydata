@@ -56,22 +56,27 @@ GROUPS = [
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
                                 "table.get_row", "table.get_cell_at"]),
     ("Choose columns", ["table.keep_columns", "table.remove_columns", "table.keep_columns_by_position",
-                        "table.remove_columns_by_position", "table.rename_column"]),
+                        "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names"]),
     ("Choose rows", ["table.keep_rows_where", "table.remove_rows_where", "table.keep_first_rows",
                      "table.keep_last_rows", "table.keep_rows_by_position", "table.remove_rows_by_position",
                      "table.reverse_rows", "table.keep_random_rows", "table.remove_duplicate_rows",
                      "table.repeat_each_row_by", "table.keep_biggest_rows", "table.keep_smallest_rows", "table.show_rows_with_outliers",
-                     "table.remove_rows_with_outliers"]),
+                     "table.remove_rows_with_outliers", "table.show_duplicate_rows", "table.keep_groups_where",
+                     "table.remove_groups_where"]),
     ("Empty cells", ["table.count_empty_cells_in", "table.remove_rows_with_empty_cells_in",
-                     "table.fill_empty_cells_in", "table.add_is_empty_column"]),
+                     "table.fill_empty_cells_in", "table.add_is_empty_column", "table.remove_rows_that_are_all_empty",
+                     "table.remove_columns_that_are_all_empty"]),
     ("Fix columns", ["table.turn_into_numbers", "table.turn_into_text", "table.turn_into_dates",
                      "table.turn_into_lowercase", "table.turn_into_uppercase", "table.remove_extra_spaces_in",
-                     "table.replace_values_in", "table.round_numbers_in", "table.change_column"]),
+                     "table.replace_values_in", "table.round_numbers_in", "table.change_column",
+                     "table.turn_into_categories"]),
     ("Sort and new columns", ["table.sort_by", "table.add_column", "table.add_group_column",
-                              "table.add_rank_column", "table.add_z_score_column"]),
+                              "table.add_rank_column", "table.add_z_score_column", "table.add_row_summary_column",
+                              "table.add_row_number_column"]),
     ("Dates and text", ["table.add_column_with_part_of_date", "table.add_column_with_part_of_text", "table.split_column",
-                        "table.replace_text_in"]),
-    ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column"]),
+                        "table.replace_text_in", "table.split_into_rows"]),
+    ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column",
+                       "table.add_running_column"]),
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
                    "table.find_total_of", "table.find_smallest_of", "table.find_biggest_of",
                    "table.find_standard_deviation_of", "table.find_summary_of", "table.find_percent_of_rows_where",
@@ -142,7 +147,8 @@ GROUPS = [
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
     ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.gather_into_rows",
-                             "table.spread_into_columns", "table.swap_rows_and_columns"]),
+                             "table.spread_into_columns", "table.swap_rows_and_columns", "table.keep_rows_found_in",
+                             "table.remove_rows_found_in"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
                          "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
@@ -499,12 +505,15 @@ HELP_EXAMPLES = {
     "table.remove_columns_by_position": _tx("marks", "table.remove_columns_by_position(1)\n"
                                                      "print(table.get_column_names())"),
     "table.rename_column": _tx("marks", 'table.rename_column("marks", to="score")\ntable.show_first_rows()'),
+    "table.clean_column_names": _tx("fjord_stations", "table.clean_column_names()\ntable.show_first_rows()"),
     # choose rows
     "table.keep_rows_where": _tx("marks", 'table.keep_rows_where("marks", is_above=50)\n'
                                     'table.keep_rows_where("subject", is_one_of=["Maths", "Science"])\n'
                                     "table.keep_rows_where(\"hours > 5 and class != 'C'\")\ntable.show_first_rows()"),
     "table.remove_rows_where": _tx("marks", 'table.remove_rows_where("subject", is_equal_to="English")\ntable.show_first_rows()'),
-    "table.keep_first_rows": _tx("marks", "table.keep_first_rows(10)\nprint(table)"),
+    "table.keep_first_rows": _tx("marks", "table.keep_first_rows(10)\nprint(table)\ntable.undo()\n"
+                                          'table.sort_by("marks", biggest_first=True)\n'
+                                          'table.keep_first_rows(2, for_each_group_in="subject")\ntable.show()'),
     "table.keep_last_rows": _tx("marks", "table.keep_last_rows(10)\nprint(table)"),
     "table.keep_rows_by_position": _tx("marks", "table.show_last_rows(3)\n"
                                                 "table.keep_rows_by_position(10, to=20)\n"
@@ -513,7 +522,19 @@ HELP_EXAMPLES = {
                                                   "table.remove_rows_by_position(1, step=2)\ntable.count_rows()"),
     "table.reverse_rows": _tx("marks", "table.reverse_rows()\ntable.show_first_rows(3)"),
     "table.keep_random_rows": _tx("marks", "table.keep_random_rows(10, with_seed=1)\nprint(table)"),
-    "table.remove_duplicate_rows": _tx("marks", 'table.remove_duplicate_rows(columns=["name"])\nprint(table)'),
+    "table.remove_duplicate_rows": _tx("marks", 'table.remove_duplicate_rows(columns=["name"])\nprint(table)\n'
+                                                'table.undo()\n'
+                                                'table.remove_duplicate_rows(columns=["name"], keep="last")\nprint(table)'),
+    "table.show_duplicate_rows": _tx("fjord_lab", "table.remove_rows_that_are_all_empty()\n"
+                                                  "table.show_duplicate_rows()\n"
+                                                  'table.show_duplicate_rows(columns=["sample_id", "gene"])\n'
+                                                  "table.remove_duplicate_rows()"),
+    "table.keep_groups_where": _tx("school", 'table.keep_groups_where("average(marks) >= 50", '
+                                             'for_each_group_in="school")\n'
+                                             'table.find_average_of("marks", for_each_group_in="school")'),
+    "table.remove_groups_where": _tx("school", 'table.remove_groups_where("average(marks) < 50", '
+                                               'for_each_group_in="school")\n'
+                                               'table.count_rows(for_each_group_in="school")'),
     "table.repeat_each_row_by": "\n".join(['import simplydata as sdata',
                                            'table = sdata.table({"answer": ["yes", "no"], "count": [12, 5]})',
                                            'table.repeat_each_row_by("count")', 'print(table)']),
@@ -529,6 +550,11 @@ HELP_EXAMPLES = {
     "table.fill_empty_cells_in": _tx("shop", 'table.fill_empty_cells_in("customers", with_the="median")\n'
                                           'table.fill_empty_cells_in("sales", with_the="line between neighbours", '
                                           'sorted_by="date", for_each_group_in="shop")\ntable.count_empty_cells_in()'),
+    "table.remove_rows_that_are_all_empty": _tx("fjord_lab", "table.count_rows()\n"
+                                                         "table.remove_rows_that_are_all_empty()\n"
+                                                         "table.count_empty_cells_in()"),
+    "table.remove_columns_that_are_all_empty": _tx("fjord_lab", "table.remove_columns_that_are_all_empty()\n"
+                                                            "print(table.get_column_names())"),
     "table.add_is_empty_column": _tx("shop", 'table.add_is_empty_column("sales_was_empty", from_column="sales")\n'
                                              'table.fill_empty_cells_in("sales", with_the="line between neighbours", '
                                              'sorted_by="date", for_each_group_in="shop")\n'
@@ -545,7 +571,12 @@ HELP_EXAMPLES = {
                                          'table.replace_values_in("marks", is_above=90, with_value=90)\n'
                                          'table.find_biggest_of("marks")'),
     "table.round_numbers_in": _tx("marks", 'table.round_numbers_in("hours", 0)\ntable.show_first_rows()'),
-    "table.change_column": _tx("marks", 'table.change_column("marks", "marks / 10")\ntable.show_first_rows()'),
+    "table.change_column": _tx("marks", 'table.change_column("marks", "marks / 10")\ntable.show_first_rows()\n'
+                                         'table.change_column("class", value="A or B", in_rows_where="class != \'C\'")\n'
+                                         'table.count_each("class")'),
+    "table.turn_into_categories": _tx("clinic", 'table.turn_into_categories("nurse_rating", in_order=["mild", '
+                                                '"moderate", "severe"])\n'
+                                                'table.find_average_of("pain_week_0", for_each_group_in="nurse_rating")'),
     # sort and new columns
     "table.sort_by": _tx("marks", 'table.sort_by("marks", biggest_first=True)\ntable.show_first_rows()'),
     "table.add_column": _tx("marks", 'table.add_column("study_and_marks", by_adding=["hours", "marks"])\n'
@@ -553,6 +584,13 @@ HELP_EXAMPLES = {
     "table.add_group_column": _tx("marks", 'table.add_group_column("grade", from_column="marks", '
                                            'cut_at=[40, 60, 80], names=["D", "C", "B", "A"])\n'
                                            'table.count_each("grade")'),
+    "table.add_row_summary_column": _tx("clinic", 'table.add_row_summary_column("pain_average", '
+                                                  'columns=["pain_week_0", "pain_week_4", "pain_week_8"], '
+                                                  'show="average")\n'
+                                                  'table.keep_columns("patient", "pain_week_0", "pain_week_4", '
+                                                  '"pain_week_8", "pain_average")\ntable.show_first_rows()'),
+    "table.add_row_number_column": _tx("river", 'table.add_row_number_column("day_number", for_each_group_in="station", '
+                                                'sorted_by="date")\ntable.show_last_rows(3)'),
     "table.add_z_score_column": _tx("marks", 'table.add_z_score_column("marks_z", from_column="marks", '
                                              'for_each_group_in="subject")\ntable.show_first_rows()'),
     "table.find_interval_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
@@ -567,11 +605,16 @@ HELP_EXAMPLES = {
                                                'first_characters=1)\ntable.show_first_rows()'),
     "table.split_column": _tx("fruit", 'table.split_column("shop", separator=" ", into=["shop_kind", "shop_word"])\n'
                                        "table.show_first_rows()"),
+    "table.split_into_rows": _tx("fjord_samples", 'table.split_into_rows("crew", separator=";")\n'
+                                                  'table.count_each("crew")'),
     "table.replace_text_in": _tx("fruit", 'table.replace_text_in("shop", " shop", with_value="")\ntable.count_each("shop")'),
     # row after row
     "table.add_rolling_column": _tx("weather", 'table.add_rolling_column("rain_3_months", from_column="rain", window=3, '
                                                'show="total", for_each_group_in="city", sorted_by="month_number")\n'
                                                "table.show_first_rows()"),
+    "table.add_running_column": _tx("shop", 'table.add_running_column("sales_so_far", from_column="sales", '
+                                            'show="total", for_each_group_in="shop", sorted_by="date")\n'
+                                            "table.show_first_rows()"),
     "table.add_previous_value_column": _tx("weather", 'table.add_previous_value_column("last_month", '
                                                       'from_column="temperature", for_each_group_in="city", '
                                                       'sorted_by="month_number")\ntable.show_first_rows()'),
@@ -728,14 +771,26 @@ HELP_EXAMPLES = {
     # combine and reshape
     "table.join_with": _tx("marks", 'ages = {"name": ["Asha", "Ben"], "age": [12, 13]}\n'
                                     'table.join_with(ages, using="name", keep="all rows from this table")\n'
-                                    "table.show_first_rows()"),
+                                    "table.show_first_rows()\ntable.undo()\n"
+                                    'students = {"student": ["Asha", "Zoe"], "age": [12, 11]}\n'
+                                    'table.join_with(students, using={"name": "student"}, keep="all rows from both", '
+                                    'check_that="each row has one match", with_match_column=True)\n'
+                                    'table.count_each("found in")'),
+    "table.keep_rows_found_in": _tx("marks", 'table.keep_rows_found_in({"name": ["Asha", "Ben"]}, using="name")\n'
+                                             'table.count_each("name")'),
+    "table.remove_rows_found_in": _tx("marks", 'table.remove_rows_found_in({"name": ["Asha", "Ben"]}, using="name")\n'
+                                               "table.count_rows()"),
     "table.add_rows_from": _tx("marks", 'table.add_rows_from(sdata.get_example("marks"))\nprint(table)'),
     "table.gather_into_rows": _tx("weather", 'table.keep_columns("month", "city", "temperature", "rain")\n'
                                                    'table.gather_into_rows(["temperature", "rain"])\n'
                                                    "table.show_first_rows()"),
     "table.spread_into_columns": _tx("weather", 'table.keep_columns("month", "city", "temperature")\n'
                                                 'table.spread_into_columns(names_from="city", '
-                                                'values_from="temperature")\ntable.show_first_rows()'),
+                                                'values_from="temperature")\ntable.show_first_rows()\n'
+                                                'fruit = sdata.get_example("fruit")\n'
+                                                'fruit.keep_columns("day", "fruit", "count")\n'
+                                                'fruit.spread_into_columns(names_from="fruit", values_from="count", '
+                                                'show="total")\nfruit.show()'),
     "table.swap_rows_and_columns": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
                                                 'table.keep_columns("name", "hours", "marks")\n'
                                                 "table.swap_rows_and_columns()\nprint(table)"),
@@ -1711,6 +1766,7 @@ COAST_LESSON = "A coastal station: currents, neighbours and storms"  # S3c-3
 PLANNING_LESSON = "Planning an experiment and a survey"  # S3d-1
 CAUSE_LESSON = "Cause and effect from observational data"  # S3d-2
 BAYES_LESSON = "Bayesian answers: how likely, given the data and the prior"  # S3d-3
+FJORD_LESSON = "Tables: a messy file from a fjord cruise"  # tables phase, batch 1
 GENES_LINE = ('genes = ["blaTEM", "blaCTXM", "blaOXA48", "blaNDM", "sul1", "sul2", "tetA", "tetM", "qnrS", "ermB", "aadA", "mphA", "vanA", "mcr1"]')
 COMBINE_CALL = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
                 'out_of=["vaccinated", "unvaccinated"])')
@@ -5960,6 +6016,164 @@ LESSONS = [
         ],
         words=["table.compare_averages_of", "table.compare_before_and_after", "table.explain",
                "table.check_model_of", "table.find_correlation_between", "table.compare_counts_of"],
+    ),
+    dict(
+        title=FJORD_LESSON,
+        learn=[
+            "how to read sample IDs such as 007 exactly as they were typed",
+            "how to tidy a lab file: column names, empty rows and columns, rows pasted twice",
+            "how to find the rows that are, or are not, in another table, and how to join two tables safely",
+            "how to work group by group: the first rows, row numbers, running totals and whole groups",
+        ],
+        parts=[
+            ("A lab sends its qPCR results as a file. Read it so that the sample IDs stay as they were typed.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('sdata.get_example("fjord_lab").save("fjord_lab.csv")',
+                 "Save the practice lab table as a file, as the lab would send it."),
+                ('lab = sdata.table("fjord_lab.csv")', "Read the file."),
+                ("lab.show_first_rows(3)", 'The IDs "001", "002" ... were read as numbers: 1, 2, 3. The zeros are '
+                                           "gone, and no later step can bring them back."),
+                ('lab = sdata.table("fjord_lab.csv", read_as_text=["sample_id", "lab_code"])',
+                 "Read it again, keeping sample_id and lab_code as text, exactly as typed."),
+                ("lab.show_first_rows(3)", 'Now "001" stays "001", and a lab code such as 3-12 stays text.'),
+            ]),
+            ("Spreadsheets leave empty rows, empty columns and rows pasted twice. Look first, then tidy.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('lab = sdata.table(sdata.get_example("fjord_lab"))', "The lab's results again, as a practice table."),
+                ("lab.remove_rows_that_are_all_empty()", "Remove the rows in which every cell is empty. A row with "
+                                                         "one empty cell stays."),
+                ("lab.remove_columns_that_are_all_empty()", "Remove the column nobody filled in."),
+                ("lab.show_duplicate_rows()", "Look at the rows that repeat, each with its row number: every copy "
+                                              "is shown, the first one too."),
+                ("lab.remove_duplicate_rows()", "Remove the repeats: the first copy of each stays."),
+                ("lab.show_steps()", "Every step is listed, and undo() takes the last one back."),
+            ]),
+            ("The stations table has column names as a spreadsheet writes them: capitals, spaces and signs.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('stations = sdata.table(sdata.get_example("fjord_stations"))', "The eight stations of the cruise."),
+                ("stations.clean_column_names()", 'Plain names: "Distance to outfall (km)" becomes '
+                                                  "distance_to_outfall_km. One line per change is printed."),
+                ("stations.show()", "The same table with names you can type without quotes in a formula."),
+            ]),
+            ("Which samples have a lab result? The lab writes 007, the samples table 7: make them the same kind "
+             "first.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('samples = sdata.table(sdata.get_example("fjord_samples"))', "The 60 water samples."),
+                ('lab = sdata.table(sdata.get_example("fjord_lab"))', "The lab's results."),
+                ('lab.turn_into_numbers("sample_id")', '"007" becomes 7, as in the samples table.'),
+                ('samples.remove_rows_found_in(lab, using="sample_id")', "Remove every sample that the lab table "
+                                                                         "has: what is left has no lab result."),
+                ("samples.show()", "Sample 23 was lost in transport, as its note says."),
+                ("samples.undo()", "Back to all 60 samples."),
+                ('lab.remove_rows_found_in(samples, using="sample_id")', "The other way round: remove the lab rows "
+                                                                         "whose sample is in the samples table."),
+                ("lab.show()", "Left: the 2 empty rows, and 141, which is sample 41 typed with one 1 too many."),
+                ("lab.undo()", "Back to every lab row."),
+                ('samples.keep_rows_found_in(lab, using="sample_id")', "The opposite: only the samples with a lab "
+                                                                       "result. No column comes in, and no row "
+                                                                       "is repeated."),
+            ]),
+            ("Join the samples with their station: where each station is and how far from the outfall. "
+             "with_match_column=True shows which rows found no partner.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('samples = sdata.table(sdata.get_example("fjord_samples"))', "The 60 water samples."),
+                ('stations = sdata.table(sdata.get_example("fjord_stations"))', "The stations."),
+                ("stations.clean_column_names()", "Station becomes station, as in the samples table."),
+                ('samples.join_with(stations, using="station", keep="all rows from this table", '
+                 'check_that="each row has one match", with_match_column=True)',
+                 'Bring in the station columns, keeping every sample. check_that= stops the join if a station '
+                 'appeared twice in the stations table; the new column "found in" says where each row was found.'),
+                ('samples.count_each("found in")', 'Some samples found no station: their names were typed with a '
+                                                   'space at the end ("St.3 ") or in other capitals ("st.3").'),
+                ('samples.keep_rows_where("found in", is_equal_to="this table only")', "Look at them."),
+                ("samples.show()", "Fix the names (remove_extra_spaces_in, replace_values_in), then join again."),
+            ]),
+            ("Work group by group: number the samples of each station, keep the first of each, and keep only the "
+             "genes the lab found often.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('samples = sdata.table(sdata.get_example("fjord_samples"))', "The 60 water samples."),
+                ('samples.add_row_number_column("number_at_station", for_each_group_in="station", '
+                 'sorted_by="sampled_local")', "1, 2, 3 ... for the samples of each station, in the order they "
+                                               "were taken."),
+                ('samples.add_running_column("samples_so_far", from_column="sample_id", show="count", '
+                 'sorted_by="sampled_local")', "A running count: how many samples had been taken by then."),
+                ('samples.keep_first_rows(1, for_each_group_in="depth_m")', "The first sample at each depth."),
+                ("samples.show()", "One row for each depth: 1, 10 and 30 m."),
+                ('lab = sdata.table(sdata.get_example("fjord_lab"))', "The lab's results."),
+                ("lab.remove_rows_that_are_all_empty()", "Tidy first: no empty rows ..."),
+                ("lab.remove_duplicate_rows()", "... and no rows pasted twice."),
+                ('lab.turn_into_numbers("copies_per_ml")', '"<LOD" and "n.d." are not numbers, so those cells '
+                                                           "become empty, and simplydata says how many."),
+                ('lab.keep_groups_where("count(copies_per_ml) >= 40", for_each_group_in="gene")',
+                 "Keep the genes measured above the limit in at least 40 samples: whole groups go or stay. "
+                 "blaOXA-48, found in only a few samples, goes."),
+                ('lab.find_median_of("copies_per_ml", for_each_group_in="gene")', "The median copies per ml of "
+                                                                                  "each gene that is left."),
+            ]),
+        ],
+        notes=[
+            'read_as_text= matters because the loss is silent: once "007" is read as 7, no step can know it had '
+            "zeros. Spreadsheets do worse: they turn gene names such as SEPT2 and MARCH1 into dates, and a study of "
+            "published supplementary files found it in about one in five papers with gene lists (Ziemann, Eren "
+            "and El-Osta 2016, Genome Biology 17, 177). Read IDs and codes as text, and save as CSV, not Excel.",
+            "remove_rows_that_are_all_empty() removes a row only when every cell is empty; "
+            "remove_rows_with_empty_cells_in() removes a row for a single empty cell. They are different jobs.",
+            'show_duplicate_rows(columns=["sample_id", "gene"]) looks for rows that repeat in those columns only; '
+            'remove_duplicate_rows(keep="last") keeps the last copy instead of the first, keep="none" removes them all.',
+            "keep_rows_found_in and remove_rows_found_in never add a column and never repeat a row (semi and anti "
+            "joins). join_with brings the columns in, and repeats a row when its key appears more than once in "
+            "the other table: check_that= stops that before it happens.",
+            'using={"sample_id": "sample"} pairs two columns with different names (this table\'s first). '
+            'keep="all rows from the other table" keeps every row of the other table.',
+            "When several rows would fill one cell, spread_into_columns stops and asks; show=\"total\" (or "
+            "\"average\", \"count\" ...) says how to combine them.",
+            'change_column(..., in_rows_where="depth_m == 30") changes only the rows that meet the condition; the '
+            "other rows keep their value. replace_values_in and fill_empty_cells_in take in_rows_where= too.",
+            "Across the columns of one row: add_row_summary_column(\"pain_average\", columns=[...], show=\"average\"). "
+            "In order: turn_into_categories(\"nurse_rating\", in_order=[\"mild\", \"moderate\", \"severe\"]). "
+            "Lists in a cell: split_into_rows(\"crew\", separator=\";\").",
+        ],
+        task=[
+            'In the tidied lab table, look for rows that repeat in sample_id and gene only '
+            '(show_duplicate_rows(columns=[...])).',
+            'Fix the station names of the samples (remove_extra_spaces_in, then replace_values_in("station", '
+            '"st.3", with_value="St.3")) and join the stations again: how many rows find no station now?',
+            "Split the crew of each sample into rows, one person each, and count how many samples each person "
+            "took.",
+        ],
+        solutions=[
+            (_sx("""\
+                import simplydata as sdata
+                lab = sdata.table(sdata.get_example("fjord_lab"))
+                lab.remove_rows_that_are_all_empty()
+                lab.remove_duplicate_rows()
+                lab.show_duplicate_rows(columns=["sample_id", "gene"])"""),
+             "After the exact repeats are gone, each sample and gene appears once, so no row repeats."),
+            (_sx("""\
+                import simplydata as sdata
+                samples = sdata.table(sdata.get_example("fjord_samples"))
+                stations = sdata.table(sdata.get_example("fjord_stations"))
+                stations.clean_column_names()
+                samples.remove_extra_spaces_in("station")
+                samples.replace_values_in("station", "st.3", with_value="St.3")
+                samples.join_with(stations, using="station", keep="all rows from this table", with_match_column=True)
+                samples.count_each("found in")"""),
+             "One sample still finds no station: its name looks like Råvika but is typed with other characters "
+             "(an a and a ring), which no space or capital explains."),
+            (_sx("""\
+                import simplydata as sdata
+                samples = sdata.table(sdata.get_example("fjord_samples"))
+                samples.split_into_rows("crew", separator=";")
+                samples.count_each("crew")"""),
+             "Each sample now has one row per person who took it, so count_each counts the samples of each person."),
+        ],
+        words=["sdata.table", "table.remove_rows_that_are_all_empty", "table.remove_columns_that_are_all_empty",
+               "table.show_duplicate_rows", "table.remove_duplicate_rows", "table.clean_column_names",
+               "table.turn_into_numbers", "table.remove_rows_found_in", "table.keep_rows_found_in", "table.join_with",
+               "table.count_each", "table.add_row_number_column", "table.add_running_column", "table.keep_first_rows",
+               "table.keep_groups_where", "table.find_median_of", "table.split_into_rows",
+               "table.add_row_summary_column", "table.turn_into_categories", "table.spread_into_columns",
+               "table.change_column"],
     ),
 ]
 

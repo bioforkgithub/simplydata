@@ -84,9 +84,40 @@ MAX_FORMULA_LENGTH = 500
 KEEP_CHOICES = {
     "matching rows": "inner",
     "all rows from this table": "left",
+    "all rows from the other table": "right",
     "all rows from both": "full",
 }
 JOIN_SUFFIX = "_other"
+# pandas merge(how=) and Polars join(how=) values: how= runs as keep= with a note once
+HOW_TO_KEEP = {"inner": "matching rows", "left": "all rows from this table", "right": "all rows from the other table",
+               "outer": "all rows from both", "full": "all rows from both"}
+# join_with(check_that=): the pandas merge(validate=) and Polars join(validate=) value of each check
+CHECK_THAT = {
+    "each row has one match": ("many_to_one", "m:1"),
+    "each key appears once in both": ("one_to_one", "1:1"),
+    "each key appears once here": ("one_to_many", "1:m"),
+}
+MATCH_COLUMN = "found in"  # join_with(with_match_column=True)
+_PAIRED = 'using={"name": "student"}: this table\'s column, then the other table\'s column'
+_CHECKS = 'check_that="each row has one match" (or "each key appears once in both", "each key appears once here")'
+JOIN_POINTERS = {"left_on": _PAIRED, "right_on": _PAIRED, "validate": _CHECKS, "relationship": _CHECKS,
+                 "indicator": 'with_match_column=True, which adds a column "found in"'}
+# spread_into_columns(show=): the house measure names, and the narwhals pivot(aggregate_function=) of each
+SPREAD_SHOWS = {"average": "mean", "total": "sum", "median": "median", "smallest": "min", "biggest": "max",
+                "count": "len"}
+# pandas aggfunc= and Polars aggregate_function= values, run as show= with a note once
+SPREAD_OTHER_SHOWS = {"mean": "average", "sum": "total", "min": "smallest", "max": "biggest", "len": "count",
+                      "size": "count", "length": "count"}
+
+
+def _value_note(key: str, text: str) -> None:
+    """One line, once per session, when a value from another tool runs as the simplydata value."""
+    from .._errors import _NOTED
+
+    if key in _NOTED:
+        return
+    _NOTED.add(key)
+    print(text)
 
 
 def _formula_error(problem: str) -> SimplydataError:
@@ -992,6 +1023,7 @@ class ColumnWords:
         times=None,
         divide_by=None,
         value=None,
+        in_rows_where=None,
     ) -> _Same:
         """Change the values of a column in place, with the same ways as add_column().
 
@@ -999,11 +1031,22 @@ class ColumnWords:
           table.change_column("marks", "marks / 10")              (with sdata.get_example("marks"))
           table.change_column("marks", from_column="marks", plus=5)
           table.change_column("marks", "marks - average(marks)", for_each_group_in="class")
+        in_rows_where= changes only the rows that meet a written condition (the keep_rows_where
+        conditions); the other rows keep their value. As pandas df.loc[df["marks"] >= 50, "passed"] = "yes",
+        the one safe way in pandas, and Polars pl.when(...).then(...).otherwise(pl.col("passed")):
+          table.change_column("passed", value="yes", in_rows_where="marks >= 50")   (with sdata.get_example("school"))
+        A row whose condition cannot be checked (an empty cell) keeps its value too, and a note says so.
         """
         example = 'For example: table.change_column("marks", "marks / 10")   (with sdata.get_example("marks"))'
         if not isinstance(column, str):
             raise SimplydataError(f".change_column() needs the name of the column to change first.\n{example}")
         self._need_columns(column)
+        if in_rows_where is not None:
+            return self._only_in_rows("change_column", column, in_rows_where, lambda: self.change_column(
+                column, formula, by_adding=by_adding, by_subtracting=by_subtracting, by_multiplying=by_multiplying,
+                by_dividing=by_dividing, by_joining_text=by_joining_text, separator=separator, by_running=by_running,
+                for_each_group_in=for_each_group_in, from_column=from_column, plus=plus, minus=minus, times=times,
+                divide_by=divide_by, value=value))
         frame, words = self._work_out(
             "change_column", column, formula, by_adding, by_subtracting, by_multiplying, by_dividing,
             by_joining_text, separator, by_running, for_each_group_in, from_column, plus, minus, times, divide_by, value)
@@ -1550,10 +1593,10 @@ class ColumnWords:
         if isinstance(window, str):
             text = window.strip().lower()
             if text == "all":
-                # accepted, not taught: running values get their own word (add_running_column) later
+                # accepted, not taught: running values have their own word, add_running_column
                 kind = "all"
-                print('Note: window="all" (from the first row up to each row, as pandas expanding()) works for now, '
-                      "but it is planned as its own word, add_running_column, in a later version.")
+                print('Note: window="all" (from the first row up to each row, as pandas expanding()) works, but '
+                      "running values have their own word: add_running_column(name, from_column=, show=).")
             else:
                 from .. import _dates
 
@@ -1688,64 +1731,171 @@ class ColumnWords:
             name, keys, order, make, f'add change column "{name}" = change in {from_column} from {back}{unit}{group}')
 
     # ------------------------------------------------------------------ combining tables
-    @friendly(others={"on": "using", "by": "using"})
-    def join_with(self: _Same, other=None, using=None, keep="matching rows") -> _Same:
-        """Bring in the columns of another table, matching rows on a column such as a name.
+    def _matched_other(self, other, using, step, example):
+        """The other table in this table's engine, its key columns renamed to this table's names.
 
-        keep= says which rows stay:
-          "matching rows"             only rows found in both tables (the normal choice)
-          "all rows from this table"  every row of this table; no match gives empty cells
-          "all rows from both"        every row of both tables
-        other can be a simplydata table, a pandas or Polars table, or a file name. A column
-        found in both tables (other than using=) gets "_other" added to the other table's copy.
-        The rows keep the order of this table, each followed by its matches in the order of the other
-        table; with "all rows from both" the rows are sorted by using= instead. That is the order of pandas
-        merge(), and Polars tables are joined in the same order (join(maintain_order="left_right")).
-        table.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")   (with sdata.get_example("marks"))
-        on= (pandas merge) and by= (R merge, dplyr joins) work too, with a note once: they are using= here.
-        """
-        step = "join_with"
-        self._check_choice(step, "keep", keep, list(KEEP_CHOICES))
+        using= is a column name, a list of them, or {this table's column: the other table's column} when the names
+        differ (pandas merge(left_on=, right_on=)). Gives (other frame, this table's key names, the keys in words)."""
         right = self._other_frame(other, step)
         if using is None:
             shared = [str(c) for c in self._columns if c in right.columns]
             hint = (f"\nColumns in both tables: {', '.join(shared)}" if shared
                     else "\nThe two tables have no column with the same name.")
             raise SimplydataError(
-                f'join_with() needs using= to say which column to match rows on, '
-                f'for example table.join_with(other, using="name").{hint}'
+                f"{step}() needs using= to say which column to match rows on, for example {example}.{hint}\n"
+                'When the names differ, pair them: using={"name": "student"} (this table\'s column, then the '
+                "other table's)."
             )
-        keys = _as_list(using)
+        if isinstance(using, dict):
+            if not using or not all(isinstance(k, str) and isinstance(v, str) for k, v in using.items()):
+                raise SimplydataError('using= pairs this table\'s column with the other table\'s, both in quotes: '
+                                      'using={"name": "student"}.')
+            keys, other_keys = list(using), list(using.values())
+        else:
+            keys = _as_list(using)
+            if not keys or not all(isinstance(k, str) for k in keys):
+                raise SimplydataError(f"using= should be a column name or a list of them, for example {example}.")
+            other_keys = list(keys)
         self._need_columns(*keys)
-        for k in keys:
-            if k not in right.columns:
-                lines = [f'The other table has no column "{k}".']
-                guess = suggest(k, right.columns, n=1)
+        for k, o in zip(keys, other_keys):
+            if o not in right.columns:
+                lines = [f'The other table has no column "{o}".']
+                guess = suggest(o, right.columns, n=1)
                 if guess:
                     lines.append(f'Did you mean "{guess[0]}"?')
                 lines.append("Its columns: " + ", ".join(map(str, right.columns)))
+                if k == o:
+                    lines.append('When the other table names it differently, pair the names: using={"' + k
+                                 + '": "its name there"}.')
                 raise SimplydataError("\n".join(lines))
-            left_text, right_text = self._frame.schema[k] == nw.String, right.schema[k] == nw.String
+            left_text, right_text = self._frame.schema[k] == nw.String, right.schema[o] == nw.String
             if left_text != right_text:
+                there = "" if k == o else f' ("{o}" there)'
                 raise SimplydataError(
                     f'Column "{k}" holds {"text" if left_text else "numbers"} in this table but '
-                    f'{"text" if right_text else "numbers"} in the other table, so no rows can match.'
+                    f'{"text" if right_text else "numbers"} in the other table{there}, so no rows can match.\n'
+                    'Make them the same kind first: turn_into_numbers() on the table that holds text ("007" '
+                    "becomes 7), or turn_into_text() on the one that holds numbers."
                 )
-        how = KEEP_CHOICES[keep]
-        right_keys = right.select(keys).unique()
-        polars = self._frame.implementation.is_polars() and right.implementation.is_polars()
+            here, there = self._frame.schema[k], right.schema[o]
+            if right.implementation.is_polars() and here != there and here.is_numeric() and there.is_numeric():
+                # Polars joins keys of one kind only (pandas merge matches 7 and 7.0 itself): whole numbers kept as
+                # decimals (7.0, as turn_into_numbers leaves them next to an empty cell) are matched as whole numbers
+                whole = right.filter(~nw.col(o).is_null() & (nw.col(o) != nw.col(o).round(0))).is_empty()
+                if not (here.is_float() or whole):
+                    raise SimplydataError(f'Column "{k}" holds whole numbers in this table, but the other table has '
+                                          f'numbers with decimals in "{o}", so they cannot be matched.')
+                right = right.with_columns(nw.col(o).cast(here))
+        rename = {o: k for k, o in zip(keys, other_keys) if o != k}
+        if rename:
+            clash = [k for k in rename.values() if k in right.columns and k not in rename]
+            if clash:
+                raise SimplydataError(f'The other table already has a column "{clash[0]}" that is not the one to '
+                                      "match on. Rename it there first (rename_column).")
+            right = right.rename(rename)
+        said = ", ".join(k if k == o else f"{k} = {o}" for k, o in zip(keys, other_keys))
+        return right, keys, said
+
+    def _check_join(self, right, keys, check_that, said):
+        """check_that=: pandas merge(validate=) or Polars join(validate=) on the key columns; their refusal in words."""
+        pandas_way, polars_way = CHECK_THAT[check_that]
+        here, there = self._frame.select(keys), right.select(keys)
         try:
-            matched = len(self._frame.join(right_keys, on=keys, how="semi"))
-            if polars:
+            if here.implementation.is_polars():
+                here.to_native().join(there.to_native(), on=keys, how="left", validate=polars_way)
+            else:
+                here.to_native().merge(there.to_native(), on=keys, how="left", validate=pandas_way)
+        except Exception:  # noqa: BLE001 - the parent's refusal, said in words below
+            sides = []
+            if check_that in ("each row has one match", "each key appears once in both"):
+                sides.append(("the other table", there))
+            if check_that in ("each key appears once here", "each key appears once in both"):
+                sides.append(("this table", here))
+            for side, frame in sides:
+                repeated = frame.filter(frame.is_duplicated()).unique(maintain_order=True)
+                if len(repeated):
+                    shown = "; ".join(", ".join(_plain(v) for v in row) for row in repeated.head(5).iter_rows())
+                    more = " ..." if len(repeated) > 5 else ""
+                    raise SimplydataError(
+                        f'check_that="{check_that}" failed: {len(repeated)} value{"s" if len(repeated) != 1 else ""} '
+                        f"of {said} appear more than once in {side}: {shown}{more}.\n"
+                        "Joining would repeat rows. Remove the repeats first (remove_duplicate_rows, or "
+                        "show_duplicate_rows to look at them), or match on more columns."
+                    ) from None
+            raise
+
+    @friendly(others={"on": "using", "by": "using", "how": "keep"}, pointers=JOIN_POINTERS)
+    def join_with(self: _Same, other=None, using=None, keep="matching rows", check_that=None,
+                  with_match_column=False) -> _Same:
+        """Bring in the columns of another table, matching rows on a column such as a name.
+
+        keep= says which rows stay:
+          "matching rows"                  only rows found in both tables (the normal choice)
+          "all rows from this table"       every row of this table; no match gives empty cells
+          "all rows from the other table"  every row of the other table, in its order
+          "all rows from both"             every row of both tables
+        other can be a simplydata table, a pandas or Polars table, or a file name. A column
+        found in both tables (other than using=) gets "_other" added to the other table's copy.
+        The rows keep the order of this table, each followed by its matches in the order of the other
+        table; with "all rows from both" the rows are sorted by using= instead. That is the order of pandas
+        merge(), and Polars tables are joined in the same order (join(maintain_order="left_right")).
+        table.join_with({"name": ["Asha", "Ben"], "age": [12, 13]}, using="name")   (with sdata.get_example("marks"))
+        When the two tables name the column differently, pair the names, this table's first:
+          table.join_with({"student": ["Asha"], "age": [12]}, using={"name": "student"})
+        check_that= stops the join before rows are repeated by mistake (pandas merge(validate=)):
+          "each row has one match"         a key appears at most once in the other table (validate="many_to_one")
+          "each key appears once in both"  at most once in each table (validate="one_to_one")
+          "each key appears once here"     at most once in this table (validate="one_to_many")
+        with_match_column=True adds a column "found in" that says, for each row, "both", "this table
+        only" or "other table only" (pandas merge(indicator=True)), so rows without a match are easy to find.
+        on= (pandas merge) and by= (R merge, dplyr joins) work too, with a note once: they are using= here;
+        how="left" (and inner, right, outer) runs as the keep= value with a note once.
+        """
+        step = "join_with"
+        if isinstance(keep, str) and keep not in KEEP_CHOICES and keep.strip().lower() in HOW_TO_KEEP:
+            new = HOW_TO_KEEP[keep.strip().lower()]
+            _value_note(f"join how={keep}", f'Note: how="{keep}" is keep="{new}" in simplydata.')
+            keep = new
+        self._check_choice(step, "keep", keep, list(KEEP_CHOICES))
+        if check_that is not None:
+            self._check_choice(step, "check_that", check_that, list(CHECK_THAT))
+        if not isinstance(with_match_column, bool):
+            raise SimplydataError("with_match_column= should be True or False.")
+        right, keys, said = self._matched_other(other, using, step, 'table.join_with(other, using="name")')
+        if with_match_column and MATCH_COLUMN in self._columns:
+            raise SimplydataError(f'The table already has a column "{MATCH_COLUMN}". Rename it first (rename_column), '
+                                  "then join with with_match_column=True.")
+        if check_that is not None:
+            self._check_join(right, keys, check_that, said)
+        how = KEEP_CHOICES[keep]
+        left = self._frame
+        here, there = "_simplydata_here_", "_simplydata_there_"
+        if with_match_column:  # a mark on each side; after the join an empty mark says the row had no partner
+            left = left.with_columns(nw.lit(True).alias(here))
+            right = right.with_columns(nw.lit(True).alias(there))
+        right_keys = right.select(keys).unique()
+        polars = left.implementation.is_polars() and right.implementation.is_polars()
+        try:
+            matched = len(left.join(right_keys, on=keys, how="semi"))
+            if how == "right":  # pandas merge(how="right"); Polars join(how="right"), in pandas' column order
+                if polars:
+                    native = left.to_native().join(right.to_native(), on=keys, how="right", suffix=JOIN_SUFFIX,
+                                                   maintain_order="right_left")
+                else:
+                    native = left.to_native().merge(right.to_native(), on=keys, how="right",
+                                                    suffixes=("", JOIN_SUFFIX))
+                frame = nw.from_native(native, eager_only=True)
+                frame = frame.select([*left.columns, *[c for c in frame.columns if c not in left.columns]])
+            elif polars:
                 # Polars keeps no row order in a join unless asked (maintain_order, Polars 1.17): asked for the
                 # order pandas merge gives, this table's rows in order, each with its matches in the other's order
-                native = self._frame.to_native().join(right.to_native(), on=keys, how=how, suffix=JOIN_SUFFIX,
-                                                      maintain_order="left_right")
+                native = left.to_native().join(right.to_native(), on=keys, how=how, suffix=JOIN_SUFFIX,
+                                               maintain_order="left_right")
                 frame = nw.from_native(native, eager_only=True)
             else:
-                frame = self._frame.join(right, on=keys, how=how, suffix=JOIN_SUFFIX)
+                frame = left.join(right, on=keys, how=how, suffix=JOIN_SUFFIX)
         except Exception as e:  # for example whole numbers in one table and decimals in the other
-            raise SimplydataError(f"The tables could not be joined on {', '.join(keys)}: {e}") from None
+            raise SimplydataError(f"The tables could not be joined on {said}: {e}") from None
         if how == "full":
             frame = frame.with_columns(
                 [nw.coalesce(nw.col(k), nw.col(k + JOIN_SUFFIX)).alias(k) for k in keys]
@@ -1754,10 +1904,25 @@ class ColumnWords:
                 frame = nw.from_native(frame.to_native().sort(keys, nulls_last=True, maintain_order=True),
                                        eager_only=True)
         print(f"{matched} of {len(self._frame)} rows in this table found a match in the other table.")
+        if how == "right":
+            found = len(right.join(self._frame.select(keys).unique(), on=keys, how="semi"))
+            print(f"{found} of {len(right)} rows in the other table found a match in this table.")
         if len(right_keys) < len(right):
-            print(f"Note: some {', '.join(keys)} values appear more than once in the other table, "
+            print(f"Note: some {said} values appear more than once in the other table, "
                   "so some rows of this table now appear more than once.")
-        return self._change(f"join with another table using {', '.join(keys)} (keep {keep})", frame)
+        what = f"join with another table using {said} (keep {keep})"
+        if with_match_column:
+            a, b = nw.col(here).is_null(), nw.col(there).is_null()
+            found_in = (nw.when(~a & ~b).then(nw.lit("both"))
+                        .otherwise(nw.when(~a).then(nw.lit("this table only")).otherwise(nw.lit("other table only"))))
+            frame = frame.with_columns(found_in.alias(MATCH_COLUMN)).drop([here, there])
+            counts = {v: int((frame[MATCH_COLUMN] == v).sum()) for v in ("both", "this table only", "other table only")}
+            print(f'The column "{MATCH_COLUMN}" says where each row was found: '
+                  + ", ".join(f"{v} {_rows_word(n)}" for v, n in counts.items() if n) + ".")
+            what += ', with a column "found in"'
+        if check_that is not None:
+            what += f" (checked: {check_that})"
+        return self._change(what, frame)
 
     @friendly
     def add_rows_from(self: _Same, other=None) -> _Same:
@@ -1831,8 +1996,8 @@ class ColumnWords:
             raise SimplydataError(f"Those columns could not be turned into rows: {e}") from None
         return self._change(f"turn columns {', '.join(cols)} into rows", frame)
 
-    @friendly
-    def spread_into_columns(self: _Same, names_from=None, values_from=None) -> _Same:
+    @friendly(others={"aggfunc": "show", "aggregate_function": "show", "values_fn": "show"})
+    def spread_into_columns(self: _Same, names_from=None, values_from=None, show=None) -> _Same:
         """Turn rows into columns: each different value in names_from= becomes a new column, filled from values_from=.
 
         This makes a "wide" table, the opposite of gather_into_rows(). All the other
@@ -1840,6 +2005,12 @@ class ColumnWords:
         column differs between rows that would merge (hours in the marks table), a note says so
         and how to keep only the columns you need. As pandas df.pivot() and Polars df.pivot().
         table.spread_into_columns(names_from="city", values_from="temperature")   (with sdata.get_example("weather"))
+        When several rows would fill the same cell (the fruit table sells apples on Monday in two
+        shops), simplydata stops and names them, and nothing is averaged without your word. show=
+        says how to combine them: "average", "total", "median", "smallest", "biggest" or "count"
+        (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)):
+          table.spread_into_columns(names_from="fruit", values_from="count", show="total")
+        A pair that never appears stays an empty cell, for every show=.
         How it differs from swap_rows_and_columns: swap flips the whole table; spread turns one
         column's values into new columns. For a table of name, subject and marks:
           table.spread_into_columns(names_from="subject", values_from="marks")   one row per name, a column per subject
@@ -1854,27 +2025,60 @@ class ColumnWords:
         self._need_columns(names_from, values_from)
         if names_from == values_from:
             raise SimplydataError("names_from= and values_from= need two different columns.")
+        if isinstance(show, str) and show not in SPREAD_SHOWS and show.strip().lower() in SPREAD_OTHER_SHOWS:
+            new = SPREAD_OTHER_SHOWS[show.strip().lower()]
+            _value_note(f"spread show={show}", f'Note: "{show}" is show="{new}" in simplydata.')
+            show = new
+        if show is not None:
+            self._check_choice("spread_into_columns", "show", show, list(SPREAD_SHOWS))
+            if show != "count":
+                self._need_numbers(values_from, step="spread_into_columns")
         index = [c for c in self._columns if c not in (names_from, values_from)]
         if not index:
             raise SimplydataError("There is no other column left to say which row is which. Keep at least one more column.")
-        if self._frame.select([*index, names_from]).is_duplicated().any():
+        repeated = self._frame.select([*index, names_from]).is_duplicated()
+        if show is None and repeated.any():
+            pairs = self._frame.select([*index, names_from]).filter(repeated).unique(maintain_order=True)
+            first = ", ".join(f"{c} {_plain(v)}" for c, v in zip(pairs.columns, next(pairs.iter_rows())))
             raise SimplydataError(
                 f"Some rows have the same {names_from} and the same {', '.join(map(str, index))}, so simplydata "
-                f"does not know which {values_from} to put in the new column.\n"
-                "Make one row for each of them first, for example with an average:\n"
+                f"does not know which {values_from} to put in the new column: {len(pairs)} "
+                f"{'combination appears' if len(pairs) == 1 else 'combinations appear'} more than once, for example "
+                f"{first}.\n"
+                "Say how to combine them with show=, for example:\n"
+                f'  table.spread_into_columns(names_from="{names_from}", values_from="{values_from}", show="average")\n'
+                '(or "total", "median", "smallest", "biggest", "count"); or make one row for each of them first:\n'
                 f'  table.find_average_of("{values_from}", for_each_group_in=["{index[0]}", "{names_from}"])\n'
                 "or remove the columns you do not need first."
             )
         # keep the rows in the order they first appear (pandas would sort them otherwise)
         order = "_simplydata_order_"
-        frame = self._frame.with_row_index(order).with_columns(nw.col(order).min().over(*index))
-        frame = frame.pivot(on=names_from, index=[order, *index], values=values_from)
+        ordered = self._frame.with_row_index(order).with_columns(nw.col(order).min().over(*index))
+        if show is None:
+            frame = ordered.pivot(on=names_from, index=[order, *index], values=values_from)
+        else:  # pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)
+            frame = ordered.pivot(on=names_from, index=[order, *index], values=values_from,
+                                  aggregate_function=SPREAD_SHOWS[show])
+            if frame.implementation.is_polars():  # Polars gives 0 for a total or count of no rows; pandas an empty cell
+                rows = ordered.pivot(on=names_from, index=[order, *index], values=values_from, aggregate_function="len")
+                new = [c for c in frame.columns if c not in (order, *index)]
+                rows = rows.select([order, *[nw.col(c).alias(f"{c}_simplydata_rows_") for c in new]])
+                frame = frame.join(rows, on=order, how="left")
+                frame = frame.with_columns([nw.when(nw.col(f"{c}_simplydata_rows_") > 0).then(nw.col(c)).alias(c)
+                                            for c in new]).drop([f"{c}_simplydata_rows_" for c in new])
         frame = frame.sort(order).drop(order)
         frame = frame.rename({c: str(c) for c in frame.columns if not isinstance(c, str)})
         if frame.implementation.is_pandas_like():  # remove the leftover name pandas puts on the columns
             frame = nw.from_native(frame.to_native().rename_axis(columns=None), eager_only=True)
-        self._staircase_note(frame, index, names_from, values_from)
-        return self._change(f"turn rows into columns ({names_from} becomes columns, filled from {values_from})", frame)
+        if show is None:
+            self._staircase_note(frame, index, names_from, values_from)
+        else:
+            n = int(repeated.sum())
+            print(f"Each new cell is the {show} of {values_from} for its {names_from} and "
+                  f"{', '.join(map(str, index))}" + (f"; {n} rows shared a cell with another row." if n else "."))
+        said = f", the {show} of each" if show is not None else ""
+        return self._change(f"turn rows into columns ({names_from} becomes columns, filled from {values_from}{said})",
+                            frame)
 
     def _staircase_note(self, wide, index, names_from, values_from):
         """spread_into_columns() left empty cells because another column differs between rows that would

@@ -16,7 +16,9 @@ In short:
 ## Practice tables (`src/simplydata/data/`): all made up (MIT)
 
 marks, weather, fruit, growth, sensor, visitors, river, shop, school, meadow, trial, clinic, island, toxicity,
-culture, admissions, resistome, stations, rain, many_tests, course_feedback, deaths_by_age, and the eight below.
+culture, admissions, resistome, stations, rain, many_tests, course_feedback, deaths_by_age, the four fjord tables
+(fjord_samples, fjord_lab, fjord_stations, fjord_logger: one made-up cruise, messy on purpose, drawn with a fixed seed
+by [`docs/make_fjord_tables.py`](docs/make_fjord_tables.py); no real data in them), and the eight below.
 
 Eight tables copy the columns of a real study, so that the lessons can ask the real question, but every value was
 drawn with a fixed seed by [`docs/make_practice_tables.py`](docs/make_practice_tables.py) (and

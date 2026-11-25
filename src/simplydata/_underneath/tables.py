@@ -1972,3 +1972,516 @@ ENTRIES += [
                "can take back. In pandas or Polars you keep the first table yourself (start = df.copy()) and go "
                "back to it."),
 ]
+
+
+# ---------------------------------------------------------------- tables phase, batch 1 (approved by Manish 2026-11-25)
+ENTRIES += [
+    Entry(
+        word="table.keep_rows_found_in",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.keep_rows_found_in({"name": ["Asha", "Ben", "Asha"]}, using="name")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                other = pd.DataFrame({"name": ["Asha", "Ben", "Asha"]})
+                # keep_rows_found_in(other, using="name")
+                df[df["name"].isin(other["name"])]                                   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                other = pl.DataFrame({"name": ["Asha", "Ben", "Asha"]})
+                # keep_rows_found_in(other, using="name")
+                df.join(other.unique(), on="name", how="semi", maintain_order="left")  # (1)
+            """,
+        },
+        compare="table",
+        choices=("a semi join: no column comes in from the other table and no row is repeated, however often a name "
+                 "appears there; the rows keep their order, and an empty key is never found.",),
+        also="using= also pairs columns with different names, using={\"sample_id\": \"sample\"}. " + SAID,
+    ),
+    Entry(
+        word="table.remove_rows_found_in",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.remove_rows_found_in({"name": ["Asha", "Ben"]}, using="name")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                other = pd.DataFrame({"name": ["Asha", "Ben"]})
+                # remove_rows_found_in(other, using="name")
+                df[~df["name"].isin(other["name"])]                                  # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                other = pl.DataFrame({"name": ["Asha", "Ben"]})
+                # remove_rows_found_in(other, using="name")
+                df.join(other, on="name", how="anti", maintain_order="left")         # (1)
+            """,
+        },
+        compare="table",
+        choices=("an anti join: the rows whose name is not in the other table stay, in their order; a row with an "
+                 "empty key is never found, so it stays.",),
+        also=SAID,
+    ),
+    Entry(
+        word="table.clean_column_names",
+        data="fjord_stations",
+        ours="""
+            table = sdata.get_example("fjord_stations")
+            table.clean_column_names()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_stations.csv")
+                # clean_column_names()
+                names = (df.columns.str.replace("%", "_percent_").str.normalize("NFKD")
+                         .str.encode("ascii", "ignore").str.decode("ascii")
+                         .str.replace(r"[^0-9A-Za-z]+", "_", regex=True)
+                         .str.strip("_").str.lower())                                 # (1)
+                df.set_axis(names, axis=1)
+            """,
+            "Polars": """
+                import polars as pl, re, unicodedata
+                df = pl.read_csv("fjord_stations.csv")
+                # clean_column_names()
+                ascii_ = [unicodedata.normalize("NFKD", c).encode("ascii", "ignore").decode() for c in df.columns]
+                df.rename({c: re.sub(r"[^0-9A-Za-z]+", "_", a).strip("_").lower()
+                           for c, a in zip(df.columns, ascii_)})                     # (1)
+            """,
+        },
+        compare="table",
+        choices=("the rule of R janitor::clean_names(): % becomes percent and # number, letters such as ø and é "
+                 "become plain letters, every run of other signs one \"_\", small letters; a name that starts with a "
+                 "digit gets an x in front and a repeated name _2. Unlike janitor, pH becomes ph, not p_h.",),
+        also="simplydata also prints each change, old -> new. " + SAID,
+    ),
+    Entry(
+        word="table.remove_rows_that_are_all_empty",
+        data="fjord_lab",
+        ours="""
+            table = sdata.get_example("fjord_lab")
+            table.remove_rows_that_are_all_empty()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_lab.csv", dtype={"sample_id": str})
+                # remove_rows_that_are_all_empty()
+                df.dropna(how="all")                                                 # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_lab.csv", schema_overrides={"sample_id": pl.String})
+                # remove_rows_that_are_all_empty()
+                df.filter(~pl.all_horizontal(pl.all().is_null()))                    # (1)
+            """,
+        },
+        compare="table",
+        choices=("a row goes only when every cell is empty; an empty cell is a missing value or text of only spaces "
+                 "(pandas and Polars count \"   \" as filled).",),
+        also="remove_rows_with_empty_cells_in() is the word that removes a row for one empty cell. " + SAID,
+    ),
+    Entry(
+        word="table.remove_columns_that_are_all_empty",
+        data="fjord_lab",
+        ours="""
+            table = sdata.get_example("fjord_lab")
+            table.remove_columns_that_are_all_empty()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_lab.csv", dtype={"sample_id": str})
+                # remove_columns_that_are_all_empty()
+                df.dropna(axis=1, how="all")                                         # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_lab.csv", schema_overrides={"sample_id": pl.String})
+                # remove_columns_that_are_all_empty()
+                df.select([c for c in df.columns if df[c].null_count() < df.height])  # (1)
+            """,
+        },
+        compare="table",
+        choices=("a column goes only when every cell is empty (a missing value or text of only spaces); a table "
+                 "whose every cell is empty is refused rather than left with no columns.",),
+        also="simplydata also names the columns it removed. " + SAID,
+    ),
+    Entry(
+        word="table.show_duplicate_rows",
+        data="fjord_lab",
+        ours="""
+            table = sdata.get_example("fjord_lab")
+            table.remove_rows_that_are_all_empty()
+            table.show_duplicate_rows()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_lab.csv", dtype={"sample_id": str}).dropna(how="all")
+                # show_duplicate_rows()
+                repeats = df[df.duplicated(keep=False)]                              # (1)
+                n, kinds = len(repeats), len(repeats.drop_duplicates())
+                print(f"{n} rows repeat another row: {kinds} different rows are there more than once "
+                      f"({n - kinds} extra copies).")
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_lab.csv", schema_overrides={"sample_id": pl.String})
+                df = df.filter(~pl.all_horizontal(pl.all().is_null()))
+                # show_duplicate_rows()
+                repeats = df.filter(df.is_duplicated())                              # (1)
+                n, kinds = repeats.height, repeats.unique().height
+                print(f"{n} rows repeat another row: {kinds} different rows are there more than once "
+                      f"({n - kinds} extra copies).")
+            """,
+        },
+        compare="printed",
+        choices=("every copy is shown, the first one too (keep=False), each with its row number counted from 1, and "
+                 "two empty cells count as the same; the table does not change.",),
+        also="simplydata also prints the rows themselves and the remove_duplicate_rows() line that would remove them.",
+    ),
+    Entry(
+        word="table.add_row_summary_column",
+        data="clinic",
+        ours="""
+            table = sdata.get_example("clinic")
+            table.add_row_summary_column("pain_average", columns=["pain_week_0", "pain_week_4", "pain_week_8"],
+                                         show="average")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("clinic.csv")
+                weeks = ["pain_week_0", "pain_week_4", "pain_week_8"]
+                # add_row_summary_column("pain_average", columns=weeks, show="average")
+                df.assign(pain_average=df[weeks].mean(axis=1))                      # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("clinic.csv")
+                weeks = ["pain_week_0", "pain_week_4", "pain_week_8"]
+                # add_row_summary_column("pain_average", columns=weeks, show="average")
+                df.with_columns(pl.mean_horizontal(weeks).alias("pain_average"))     # (1)
+            """,
+        },
+        compare="table",
+        choices=("empty cells are left out of each row's summary, as pandas (skipna) and Polars do; a row with every "
+                 "cell empty gets an empty cell, also for show=\"total\" (pandas sum(min_count=1); Polars "
+                 "sum_horizontal alone would give 0).",),
+        also="show= also gives the total, median, smallest, biggest, standard deviation or count of each row. " + SAID,
+    ),
+    Entry(
+        word="table.turn_into_categories",
+        data="clinic",
+        ours="""
+            table = sdata.get_example("clinic")
+            table.turn_into_categories("nurse_rating", in_order=["mild", "moderate", "severe"])
+            table.sort_by("nurse_rating")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("clinic.csv")
+                # turn_into_categories("nurse_rating", in_order=["mild", "moderate", "severe"])
+                df["nurse_rating"] = pd.Categorical(df["nurse_rating"], ordered=True,
+                                                    categories=["mild", "moderate", "severe"])   # (1)
+                df.sort_values("nurse_rating", kind="stable")
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("clinic.csv")
+                # turn_into_categories("nurse_rating", in_order=["mild", "moderate", "severe"])
+                order = pl.Enum(["mild", "moderate", "severe"])
+                df = df.with_columns(pl.col("nurse_rating").cast(order))             # (1)
+                df.with_row_index().sort("nurse_rating", "index").drop("index")
+            """,
+        },
+        compare="table",
+        choices=("a value that is not in in_order= stops the word with its name (pandas Categorical would turn it "
+                 "into an empty cell without a word; Polars Enum refuses it too); without in_order= the order is the "
+                 "one in which the values first appear.",),
+        also="simplydata also says the order in a sentence and names the listed values the column does not hold yet. "
+             + SAID,
+    ),
+    Entry(
+        word="table.split_into_rows",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.keep_columns("sample_id", "station", "crew")
+            table.split_into_rows("crew", separator=";")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv")[["sample_id", "station", "crew"]]
+                # split_into_rows("crew", separator=";")
+                df.assign(crew=df["crew"].str.split(";")).explode("crew", ignore_index=True)   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv").select("sample_id", "station", "crew")
+                # split_into_rows("crew", separator=";")
+                df.with_columns(pl.col("crew").str.split(";")).explode("crew")       # (1)
+            """,
+        },
+        compare="table",
+        choices=("the separator is plain text, not a pattern; a cell without it stays one row, and an empty cell "
+                 "stays one row with an empty cell.",),
+        also="A column that already holds lists is split without separator=, and a note says when new cells start "
+             "or end with a space. " + SAID,
+    ),
+    Entry(
+        word="table.add_running_column",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.add_running_column("sales_so_far", from_column="sales", show="total",
+                                     for_each_group_in="shop", sorted_by="date")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("shop.csv", parse_dates=["date"])
+                # add_running_column("sales_so_far", from_column="sales", show="total", ...)
+                ordered = df.sort_values("date", kind="stable")                      # (1)
+                so_far = ordered.groupby("shop", dropna=False)["sales"].cumsum()     # (2)
+                df.assign(sales_so_far=so_far.sort_index())
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("shop.csv", try_parse_dates=True)
+                # add_running_column("sales_so_far", from_column="sales", show="total", ...)
+                so_far = pl.col("sales").cum_sum().over("shop", order_by="date")     # (1) (2)
+                df.with_columns(so_far.alias("sales_so_far"))
+            """,
+        },
+        compare="table",
+        choices=("the sum follows sorted_by= (here the date) while the rows keep their place in the table;",
+                 "an empty cell stays empty and is left out of the rows after it (for show=\"average\" too, whose "
+                 "pandas expanding().mean() would carry the average on).",),
+        also="show= also gives the running average, smallest, biggest, count or product. " + SAID,
+    ),
+    Entry(
+        word="table.add_row_number_column",
+        data="river",
+        ours="""
+            table = sdata.get_example("river")
+            table.add_row_number_column("day_number", for_each_group_in="station", sorted_by="date")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("river.csv", parse_dates=["date"])
+                # add_row_number_column("day_number", for_each_group_in="station", sorted_by="date")
+                ordered = df.sort_values("date", kind="stable")
+                number = ordered.groupby("station", dropna=False).cumcount() + 1     # (1)
+                df.assign(day_number=number.sort_index())
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("river.csv", try_parse_dates=True)
+                # add_row_number_column("day_number", for_each_group_in="station", sorted_by="date")
+                number = pl.int_range(1, pl.len() + 1).over("station", order_by="date")   # (1)
+                df.with_columns(number.alias("day_number"))
+            """,
+        },
+        compare="table",
+        choices=("numbers start at 1, as table.show() counts (pandas cumcount() starts at 0), in the order of "
+                 "sorted_by=, while the rows keep their place.",),
+        also=SAID,
+    ),
+    Entry(
+        word="table.keep_groups_where",
+        data="school",
+        ours="""
+            table = sdata.get_example("school")
+            table.keep_groups_where("average(marks) >= 50", for_each_group_in="school")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("school.csv")
+                # keep_groups_where("average(marks) >= 50", for_each_group_in="school")
+                df.groupby("school").filter(lambda group: group["marks"].mean() >= 50)   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("school.csv")
+                # keep_groups_where("average(marks) >= 50", for_each_group_in="school")
+                df.filter(pl.col("marks").mean().over("school") >= 50)               # (1)
+            """,
+        },
+        compare="table",
+        choices=("whole groups stay or go, in their places; empty cells are left out of each summary, and a group "
+                 "whose summary cannot be worked out (every cell empty) is left out.",),
+        also="count() alone counts the rows of each group, and the condition can join summaries with and / or. "
+             "simplydata also says how many groups and rows stayed. " + SAID,
+    ),
+    Entry(
+        word="table.remove_groups_where",
+        data="school",
+        ours="""
+            table = sdata.get_example("school")
+            table.remove_groups_where("average(marks) < 50", for_each_group_in="school")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("school.csv")
+                # remove_groups_where("average(marks) < 50", for_each_group_in="school")
+                df.groupby("school").filter(lambda group: not group["marks"].mean() < 50)   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("school.csv")
+                # remove_groups_where("average(marks) < 50", for_each_group_in="school")
+                df.filter(~(pl.col("marks").mean().over("school") < 50))             # (1)
+            """,
+        },
+        compare="table",
+        choices=("whole groups go, the others stay in their places; a group whose summary cannot be worked out is "
+                 "never removed.",),
+        also=SAID,
+    ),
+    # options of existing words
+    Entry(
+        word="table.join_with",
+        option="using=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.join_with({"student": ["Asha", "Ben"], "age": [12, 13]}, using={"name": "student"},
+                            check_that="each row has one match")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                ages = pd.DataFrame({"student": ["Asha", "Ben"], "age": [12, 13]})
+                # join_with(ages, using={"name": "student"}, check_that="each row has one match")
+                joined = df.merge(ages, left_on="name", right_on="student",
+                                  validate="many_to_one")                            # (1)
+                joined.drop(columns="student")                                       # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                ages = pl.DataFrame({"student": ["Asha", "Ben"], "age": [12, 13]})
+                # join_with(ages, using={"name": "student"}, check_that="each row has one match")
+                df.join(ages, left_on="name", right_on="student", validate="m:1",
+                        maintain_order="left_right")                                 # (1) (2)
+            """,
+        },
+        compare="table",
+        choices=("check_that= runs pandas' and Polars' own validate= and, when a key repeats, says which values "
+                 "repeat and in which table, before anything is joined;",
+                 "the key keeps this table's name only (pandas keeps both columns; Polars drops the other's).",),
+        also="keep=\"all rows from the other table\" is the right join, and with_match_column=True adds a column "
+             "\"found in\" (pandas merge(indicator=True)). " + SAID,
+    ),
+    Entry(
+        word="table.spread_into_columns",
+        option="show=",
+        data="fruit",
+        ours="""
+            table = sdata.get_example("fruit")
+            table.keep_columns("day", "fruit", "count")
+            table.spread_into_columns(names_from="fruit", values_from="count", show="total")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fruit.csv")
+                # spread_into_columns(names_from="fruit", values_from="count", show="total")
+                wide = df.pivot_table(index="day", columns="fruit", values="count", aggfunc="sum")
+                wide = wide.loc[df["day"].unique(), df["fruit"].unique()]              # (1)
+                wide.reset_index().rename_axis(columns=None)                           # (2)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fruit.csv")
+                # spread_into_columns(names_from="fruit", values_from="count", show="total")
+                wide = df.pivot(on="fruit", index="day", values="count", aggregate_function="sum")   # (1)
+                pairs = df.pivot(on="fruit", index="day", values="count", aggregate_function="len")
+                wide.with_columns(pl.when(pairs[c] > 0).then(pl.col(c)).alias(c)
+                                  for c in wide.columns[1:])                           # (2)
+            """,
+        },
+        compare="table",
+        choices=("rows and new columns stay in the order they first appear (pandas pivot_table sorts them);",
+                 "a day and fruit that never appear together stay an empty cell for every show= (Polars gives 0 for "
+                 "a total or count of no rows).",),
+        also="Without show= simplydata stops when two rows would fill one cell, names them and suggests show=, so "
+             "nothing is combined without your word. " + SAID,
+    ),
+    Entry(
+        word="table.change_column",
+        option="in_rows_where=",
+        data="school",
+        ours="""
+            table = sdata.get_example("school")
+            table.change_column("passed", value="yes", in_rows_where="marks >= 45")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("school.csv")
+                # change_column("passed", value="yes", in_rows_where="marks >= 45")
+                df.loc[df["marks"] >= 45, "passed"] = "yes"                          # (1)
+                df
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("school.csv")
+                # change_column("passed", value="yes", in_rows_where="marks >= 45")
+                df.with_columns(pl.when(pl.col("marks") >= 45).then(pl.lit("yes"))
+                                .otherwise(pl.col("passed")).alias("passed"))        # (1)
+            """,
+        },
+        compare="table",
+        choices=("the condition is read on the values before the change, and a row it cannot check (an empty cell) "
+                 "keeps its value, with a note.",),
+        also="replace_values_in and fill_empty_cells_in take in_rows_where= too. simplydata also says how many cells "
+             "changed. " + SAID,
+    ),
+    Entry(
+        word="table.keep_first_rows",
+        option="for_each_group_in=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.sort_by("marks", biggest_first=True)
+            table.keep_first_rows(2, for_each_group_in="subject")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv").sort_values("marks", ascending=False, kind="stable")
+                # keep_first_rows(2, for_each_group_in="subject")
+                df.groupby("subject", sort=False, dropna=False).head(2)              # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv").sort("marks", descending=True, maintain_order=True)
+                # keep_first_rows(2, for_each_group_in="subject")
+                df.filter(pl.int_range(pl.len()).over("subject") < 2)                # (1)
+            """,
+        },
+        compare="table",
+        choices=("the rows keep their order in the table (Polars group_by().head() would put each group's rows "
+                 "together), and an empty group cell is a group of its own.",),
+        also="keep_last_rows and keep_rows_by_position take for_each_group_in= too. " + SAID,
+    ),
+]

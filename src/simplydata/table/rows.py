@@ -464,6 +464,51 @@ class RowWords:
                 cond, words = col != value, f"is not {_say(value)}"
         return cond.fill_null(False) & ~empty, words
 
+    def _only_in_rows(self, step: str, column: str, condition, run):
+        """in_rows_where=: run the step, then keep its new values only in the rows where the condition is surely
+        true (pandas df.loc[mask, column] = new, Polars pl.when(mask).then(new).otherwise(column)); every other
+        row keeps its value. The condition is read before the step, on the values as they were."""
+        import contextlib
+        import io
+
+        example = _example(f'table.{step}(..., in_rows_where="marks >= 50")', "school")
+        if not isinstance(condition, str) or not condition.strip():
+            raise SimplydataError('in_rows_where= takes a written condition in quotes, like in_rows_where="marks >= 50".'
+                                  + example)
+        reader = _ConditionReader(condition, self._frame, where="in_rows_where=")
+        true, false = reader.read()
+        try:
+            mask = self._frame.select(true.fill_null(False).alias("_simplydata_in_"))["_simplydata_in_"]
+        except Exception as error:  # noqa: BLE001 - shown to the user in plain words
+            raise _condition_error(f'simplydata could not check the condition "{condition}" '
+                                   f"({type(error).__name__}).") from None
+        before = self._frame
+        with contextlib.redirect_stdout(io.StringIO()):  # the step's own count is of every row; ours follows
+            run()
+        what, _ = self._history.pop()
+        after = self._frame
+        object.__setattr__(self, "_frame", before)
+        old_kind, new_kind = _kind(before.schema[column]), _kind(after.schema[column])
+        if old_kind != new_kind:
+            raise SimplydataError(
+                f'"{column}" holds {old_kind} values, but the new values are {new_kind}, and with in_rows_where= the '
+                f"other rows keep their {old_kind} values: one column cannot hold both. Give a {old_kind} value, or "
+                f"change the whole column first (turn_into_text, turn_into_numbers)." + example)
+        old, inside = "_simplydata_old_", "_simplydata_in_"
+        frame = after.with_columns(before[column].alias(old), mask.alias(inside))
+        frame = frame.with_columns(nw.when(nw.col(inside)).then(nw.col(column)).otherwise(nw.col(old)).alias(column))
+        a, b = nw.col(column), nw.col(old)
+        same = (a == b).fill_null(False) | (a.is_null() & b.is_null())
+        changed = _count_in(frame, nw.col(inside) & ~same)
+        frame = frame.drop([old, inside])
+        n = int(mask.sum())
+        print(f'Changed {_cells(changed)} in "{column}", only in the {_rows(n)} where {condition}; the other '
+              f"{_rows(len(before) - n)} keep their value.")
+        unknown, note = empty_cells_note(before, true, false, reader.used)
+        if unknown:
+            print(note[:-1] + ", so those rows keep their value.")
+        return self._change(f"{what}, only in rows where {condition}", frame)
+
     def _filter(self, what: str, keep_expr, kept_word: bool = True, note: str = ""):
         before = len(self._frame)
         new = self._frame.filter(keep_expr)
@@ -848,26 +893,72 @@ class RowWords:
         cond, words, note = self._where("remove_rows_where", column, options, extra)
         return self._filter(f"remove rows where {words}", ~cond, kept_word=False, note=note)
 
-    @friendly
-    def keep_first_rows(self: _Same, n=5) -> _Same:
-        """Keep only the first rows.
+    def _place_in_group(self, keys, from_end=False):
+        """Each row's place inside its group, counting from 0 (from the last row with from_end=True): pandas
+        groupby(keys, sort=False, dropna=False).cumcount(), Polars pl.int_range(pl.len()).over(keys). An empty
+        cell in a group column is a group of its own, as in both packages."""
+        native = self._frame.to_native()
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            place = pl.int_range(pl.len())
+            if from_end:
+                place = place.reverse()
+            values = native.select(place.over(keys).alias("place"))["place"].to_numpy()
+        else:
+            values = native.groupby(keys, sort=False, dropna=False).cumcount(ascending=not from_end).to_numpy()
+        return nw.new_series("_simplydata_place_", values, nw.Int64, backend=self._frame.implementation)
+
+    def _keep_in_each_group(self, step, keys, keep, what):
+        """Keep the rows whose place in their group passes keep(place); say how many groups and rows."""
+        place = self._place_in_group(keys, from_end=step == "keep_last_rows")
+        new = self._frame.with_columns(place).filter(keep(nw.col("_simplydata_place_"))).drop("_simplydata_place_")
+        groups = len(self._frame.select(keys).unique())
+        label = ", ".join(f'"{k}"' for k in keys)
+        print(f"Kept {what} of each group of {label}: {len(new)} of {_rows(len(self._frame))} "
+              f"({groups} group{'s' if groups != 1 else ''}).")
+        return new
+
+    @friendly(others={"how_many": "n"})
+    def keep_first_rows(self: _Same, n=5, for_each_group_in=None) -> _Same:
+        """Keep only the first rows, of the whole table or of each group.
 
         table.keep_first_rows(10)   (with sdata.get_example("marks"))
+        for_each_group_in= keeps the first rows of each group, in the order the rows are in now, so
+        after sort_by it keeps the best of each group (pandas groupby().head(), Polars group_by().head()):
+          table.sort_by("marks", biggest_first=True)
+          table.keep_first_rows(2, for_each_group_in="subject")   the two best marks in each subject
+        The rows keep their order in the table.
         """
-        n = _check_count("keep_first_rows", n, "table.keep_first_rows(10)")
+        example = "table.keep_first_rows(10)"
+        n = _check_count("keep_first_rows", n, example)
+        keys = self._for_each("keep_first_rows", for_each_group_in, None,
+                              'table.keep_first_rows(2, for_each_group_in="subject")')
         before = len(self._frame)
+        if keys:
+            new = self._keep_in_each_group("keep_first_rows", keys, lambda place: place < n, f"the first {_rows(n)}")
+            return self._change(f"keep the first {_rows(n)} of each group of {', '.join(keys)}", new)
         new = self._frame.head(n)
         print(f"Kept {len(new)} of {_rows(before)}.")
         return self._change(f"keep the first {_rows(n)}", new)
 
-    @friendly
-    def keep_last_rows(self: _Same, n=5) -> _Same:
-        """Keep only the last rows.
+    @friendly(others={"how_many": "n"})
+    def keep_last_rows(self: _Same, n=5, for_each_group_in=None) -> _Same:
+        """Keep only the last rows, of the whole table or of each group.
 
         table.keep_last_rows(10)   (with sdata.get_example("marks"))
+        for_each_group_in= keeps the last rows of each group (pandas groupby().tail(), Polars
+        group_by().tail()); the rows keep their order in the table:
+          table.keep_last_rows(1, for_each_group_in="name")   each child's last row
         """
-        n = _check_count("keep_last_rows", n, "table.keep_last_rows(10)")
+        example = "table.keep_last_rows(10)"
+        n = _check_count("keep_last_rows", n, example)
+        keys = self._for_each("keep_last_rows", for_each_group_in, None,
+                              'table.keep_last_rows(1, for_each_group_in="name")')
         before = len(self._frame)
+        if keys:
+            new = self._keep_in_each_group("keep_last_rows", keys, lambda place: place < n, f"the last {_rows(n)}")
+            return self._change(f"keep the last {_rows(n)} of each group of {', '.join(keys)}", new)
         new = self._frame.tail(n)
         print(f"Kept {len(new)} of {_rows(before)}.")
         return self._change(f"keep the last {_rows(n)}", new)
@@ -977,11 +1068,19 @@ class RowWords:
         return self._change(what + said_seed, new)
 
     @friendly(others={"subset": "columns"})  # pandas drop_duplicates(subset=)
-    def remove_duplicate_rows(self: _Same, columns=None) -> _Same:
+    def remove_duplicate_rows(self: _Same, columns=None, keep="first") -> _Same:
         """Remove rows that repeat an earlier row, or that repeat it in the columns you name.
 
         table.remove_duplicate_rows(columns=["name"])   (with sdata.get_example("marks"))
+        keep= says which copy stays: "first" (the normal choice), "last", or "none" (every row that
+        repeats goes, the first copy too), as pandas drop_duplicates(keep=) and Polars unique(keep=):
+          table.remove_duplicate_rows(columns=["name"], keep="last")
+        Look at the repeats first with show_duplicate_rows().
         """
+        if keep is False:  # pandas drop_duplicates(keep=False)
+            raise SimplydataError("keep=False is how pandas writes keep=\"none\" (every copy goes). "
+                                  'Write table.remove_duplicate_rows(keep="none").')
+        self._check_choice("remove_duplicate_rows", "keep", keep, ["first", "last", "none"])
         if columns is None:
             subset, what = None, "remove duplicate rows"
         else:
@@ -994,10 +1093,14 @@ class RowWords:
             self._need_columns(*subset)
             what = "remove rows that repeat " + ", ".join(subset)
         before = len(self._frame)
-        new = self._frame.unique(subset=subset, keep="first", maintain_order=True)
-        print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left.")
+        new = self._frame.unique(subset=subset, keep=keep, maintain_order=True)
+        print(f"Removed {before - len(new)} of {_rows(before)}. {_rows(len(new))} left."
+              + {"first": "", "last": " The last copy of each stayed.",
+                 "none": " Every row that repeats was removed, the first copy too."}[keep])
         if subset is None and len(new) == before:
             self._near_duplicates_note()
+        if keep != "first":
+            what += f" (keep {keep})"
         return self._change(what, new)
 
     def _near_duplicates_note(self):
@@ -1088,7 +1191,8 @@ class RowWords:
         return self._filter(what, ~any_empty.fill_null(False), kept_word=False)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
-    def fill_empty_cells_in(self: _Same, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None) -> _Same:
+    def fill_empty_cells_in(self: _Same, column=None, with_value=None, with_the=None, sorted_by=None, for_each_group_in=None,
+                            in_rows_where=None) -> _Same:
         """Fill the empty cells of a column with a value, or with the average, median, value above or value below.
 
         table.fill_empty_cells_in("customers", with_the="median")   (with sdata.get_example("shop"))
@@ -1102,9 +1206,16 @@ class RowWords:
         cells instead (a natural cubic spline, as R zoo::na.spline(method = "natural")), and
         with_the="curve without overshoot" on a smooth curve that never goes above or below
         its neighbours (PCHIP); both take sorted_by= and for_each_group_in= the same way.
+        in_rows_where= fills only the empty cells of the rows that meet a written condition (the
+        average or median is still that of the whole column):
+          table.fill_empty_cells_in("customers", with_value=0, in_rows_where="shop == 'Northgate'")
         """
         example = 'table.fill_empty_cells_in("marks", with_the="average")'
         self._need_one_column("fill_empty_cells_in", column, example)
+        if in_rows_where is not None:
+            return self._only_in_rows("fill_empty_cells_in", column, in_rows_where, lambda: self.fill_empty_cells_in(
+                column, with_value=with_value, with_the=with_the, sorted_by=sorted_by,
+                for_each_group_in=for_each_group_in))
         if (with_value is None) == (with_the is None):
             raise SimplydataError(
                 ".fill_empty_cells_in() needs exactly one of with_value= or with_the=."
@@ -1370,7 +1481,8 @@ class RowWords:
     def replace_values_in(self: _Same, column=None, old=_NOT_GIVEN, with_value=_NOT_GIVEN, *, is_above=_NOT_GIVEN,
                           is_below=_NOT_GIVEN, is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN,
                           is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN,
-                          starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN) -> _Same:
+                          starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN,
+                          in_rows_where=None) -> _Same:
         """Replace a value (or a list of values) in a column; with_value=None makes those cells empty.
 
         table.replace_values_in("subject", "Maths", with_value="Math")   (with sdata.get_example("marks"))
@@ -1382,12 +1494,20 @@ class RowWords:
         is_at_most, is_equal_to, is_not_equal_to, is_between, is_one_of, contains, starts_with, ends_with,
         is_after, is_before.
         Empty cells never match (fill them with fill_empty_cells_in).
+        in_rows_where= replaces only in the rows that meet a written condition on other columns:
+          table.replace_values_in("subject", "Maths", with_value="Math", in_rows_where="class == 'A'")
         """
         example = 'table.replace_values_in("subject", "Maths", with_value="Math")'
         self._need_one_column("replace_values_in", column, example)
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
                        not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, after=is_after, before=is_before)
+        if in_rows_where is not None:
+            given = {f"is_{k}" if k not in ("contains", "starts_with", "ends_with") else k: v
+                     for k, v in options.items() if v is not _NOT_GIVEN}
+            given.update({k: v for k, v in (("old", old), ("with_value", with_value)) if v is not _NOT_GIVEN})
+            return self._only_in_rows("replace_values_in", column, in_rows_where,
+                                      lambda: self.replace_values_in(column, **given))
         if any(v is not _NOT_GIVEN for v in options.values()):
             return self._replace_where(column, old, with_value, options)
         if isinstance(old, dict):

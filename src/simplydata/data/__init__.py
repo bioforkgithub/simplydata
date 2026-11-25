@@ -21,7 +21,11 @@ from .._errors import SimplydataError, suggest
 # name -> (what it is, what each column means)
 # Columns read as dates (the files keep them as year-month-day text).
 DATE_COLUMNS = {"shop": ["date"], "visitors": ["month"], "river": ["date"],
-                "admissions": ["admitted", "discharged", "first_esbl"]}
+                "admissions": ["admitted", "discharged", "first_esbl"],
+                "fjord_samples": ["sampled_local"], "fjord_logger": ["time_utc"]}
+# Columns kept as text, exactly as typed in the file (as sdata.table(..., read_as_text=[...]) keeps them): the lab's
+# zero-padded sample IDs ("007") would otherwise become numbers (7).
+TEXT_COLUMNS = {"fjord_lab": ["sample_id", "lab_code"]}
 EXAMPLES = {
     "marks": (
         "Test marks of 18 made-up children in three classes.",
@@ -430,6 +434,56 @@ EXAMPLES = {
             "auc": "area under the blood-level curve (the amount of drug that reached the blood)",
         },
     ),
+    # Tables phase (batch 1): one made-up sampling cruise, messy on purpose (docs/make_fjord_tables.py)
+    "fjord_samples": (
+        "MADE-UP DATA: 60 water samples from a made-up fjord cruise, 12 to 14 May 2026, at eight stations. Messy on "
+        "purpose, as typed on board: some station names have a space at the end or other capitals, and one "
+        "looks like Råvika but is typed with other characters.",
+        {
+            "sample_id": "the sample, 1 to 60 (stored as a number; the lab writes 007)",
+            "station": "St.1 to St.8 and Råvika (St.1 is next to a sewage outfall, St.8 farthest out)",
+            "sampled_local": "date and time the sample was taken, in local time (UTC+2)",
+            "depth_m": "depth in metres: 1, 10 or 30",
+            "salinity": "salt in the water (practical salinity units)",
+            "crew": "who took the sample: initials separated by ;",
+            "notes": "a note from the crew; empty in most rows",
+        },
+    ),
+    "fjord_lab": (
+        "MADE-UP DATA: qPCR results for the fjord samples: one row per sample and resistance gene, as the lab sent "
+        "them. Messy on purpose: zero-padded sample IDs (007), one sample with no result, one ID "
+        "mistyped (141), copies written as text (<LOD, n.d.), 6 rows pasted twice, and 2 empty rows and an empty column "
+        "left by the spreadsheet.",
+        {
+            "sample_id": "the sample, written as text with zeros in front: 001 to 060",
+            "lab_code": "the lab's plate and well, such as 3-12 or 2/4 (a spreadsheet would turn these into dates)",
+            "gene": "sul1, tetM, blaOXA-48 or intI1",
+            "copies_per_ml": "gene copies per ml of water, as text: a number, <LOD (below the limit of detection) "
+                             "or n.d. (not detected)",
+            "ct": "the qPCR cycle threshold (lower means more copies); empty when not detected",
+            "checked_by": "meant for the lab's initials; never filled in",
+        },
+    ),
+    "fjord_stations": (
+        "MADE-UP DATA: the eight stations of the fjord cruise. The column names are written as a spreadsheet "
+        "writes them, with spaces, capitals, brackets and degree signs.",
+        {
+            "Station": "St.1 to St.8 and Råvika",
+            "Fjord": "Inner fjord, Middle fjord or Outer fjord",
+            "Latitude (°N)": "latitude in degrees north",
+            "Longitude (°E)": "longitude in degrees east",
+            "Distance to outfall (km)": "distance from the sewage outfall in km",
+        },
+    ),
+    "fjord_logger": (
+        "MADE-UP DATA: a logger 10 m deep at St.4 during the fjord cruise: temperature and oxygen every 10 minutes, "
+        "in UTC (the samples are in local time).",
+        {
+            "time_utc": "date and time in UTC, every 10 minutes from 2026-05-12 00:00 to 2026-05-14 23:50",
+            "temperature": "water temperature in °C",
+            "oxygen": "dissolved oxygen in mg/L",
+        },
+    ),
     "deaths_by_age": (
         "MADE-UP DATA: deaths and person-years in six age bands of four made-up counties, for standardised rates. "
         "Eastmere has many old people, Northvale few, so their crude death rates mislead. Invented for practice; "
@@ -477,8 +531,9 @@ def get_example(name: str | None = None, from_r_package: str | None = None) -> T
     trial, clinic, island, toxicity, culture, admissions, resistome, stations, rain, sea_levels (yearly highest sea
     levels), and, for combining studies, bcg and passive_smoking, for hidden factors, ability_tests, for q-values,
     many_tests, for planning and surveys, sampled_schools and course_feedback (answers on a scale), and, for cause
-    and effect, job_training, job_search, drug_levels and deaths_by_age. Seven of them copy the columns of a real
-    study; simplydata was tested on the real data (DATA_LICENSES.md).
+    and effect, job_training, job_search, drug_levels and deaths_by_age, and, messy on purpose for cleaning,
+    fjord_samples, fjord_lab, fjord_stations and fjord_logger (one made-up fjord cruise). Seven of them copy the
+    columns of a real study; simplydata was tested on the real data (DATA_LICENSES.md).
     "shop" has empty cells and a column of dates to practise with; "school" has empty cells too.
     It gives back a simplydata table, ready for every table word: sdata.get_example("marks").count_rows().
     (Up to simplydata 0.2.x it gave back a pandas table; sdata.table(sdata.get_example("marks")) still works.)
@@ -506,7 +561,8 @@ def get_example(name: str | None = None, from_r_package: str | None = None) -> T
         lines.append("Tables you can use: " + ", ".join(EXAMPLES))
         raise SimplydataError("\n".join(lines))
     with (files(__name__) / f"{key}.csv").open("r", encoding="utf-8") as fh:
-        frame = pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(key, False))
+        text = {name: str for name in TEXT_COLUMNS.get(key, [])}
+        frame = pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(key, False), dtype=text or None)
     from ..table.table import table
 
     return table(frame)

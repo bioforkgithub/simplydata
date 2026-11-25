@@ -222,7 +222,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty-six short lessons, from your first chart and table to models, survival, meta-analysis and
+There are thirty-seven short lessons, from your first chart and table to models, survival, meta-analysis and
 Bayesian answers; [the lessons one by one](docs/what_simplydata_handles.md#the-lessons-one-by-one). Each lesson has
 an example you can run, says what every line does, explains the idea behind it (average or median, standard
 deviation or standard error, p-values) and ends with a small task to try yourself.
@@ -265,7 +265,7 @@ the manual for each lesson and word, and the answers at the back.
 ### Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty-six lessons with the real charts and output they make, every word explained (its options,
+all thirty-seven lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -416,7 +416,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 508 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 525 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

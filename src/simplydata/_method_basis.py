@@ -4243,3 +4243,127 @@ BASIS["sdata.get_example from_r_package="] = _b(
     "is downloaded or installed, so data never leave the computer (simplydata's privacy promise).", (), "P5",
     "A missing package or dataset is refused with the nearest name and the install line (never run by simplydata).",
     "starting value")
+
+# ---- 2026-11-25 (PR tables-1): tables phase, batch 1 (approved by Manish 2026-11-25)
+BASIS["table.keep_rows_found_in"] = _b(
+    "A semi join: the rows whose key is in the other table stay, in their order; no column comes in and no row is "
+    "repeated (pandas isin, Polars join(how=\"semi\")).",
+    "join_with() to bring the other table's columns in; remove_rows_found_in() for the rows that are not there.",
+    "Data preparation: learners who only want to keep the matching rows reach for a join and get repeated rows when "
+    "a key appears twice; a word that cannot repeat a row keeps the count of rows honest.", (), "P4",
+    "Keys of different kinds (text and numbers) are refused with the step that fixes them; an empty key is never "
+    "found, and a note says how many rows had one.", "convention")
+BASIS["table.remove_rows_found_in"] = _b(
+    "An anti join: the rows whose key is not in the other table stay, in their order (pandas ~isin, Polars "
+    "join(how=\"anti\")).",
+    "keep_rows_found_in() for the opposite.",
+    "Data preparation: finding what one table lacks (samples with no lab result) is the usual check before a join.",
+    (), "P4", "Keys of different kinds are refused; a row with an empty key is never found, so it stays, and a note "
+    "says so.", "convention")
+BASIS["table.clean_column_names"] = _b(
+    "R janitor::clean_names(): % becomes percent and # number, letters become plain ASCII, every run of other "
+    "signs one \"_\", small letters, an x before a leading digit, _2 for a repeated name; pH becomes ph (janitor "
+    "would split the capital: p_h).",
+    "rename_column() for one name of your own.",
+    "Data preparation: a fixed published rule (the janitor package, widely used in R) gives the same names every "
+    "time and on every computer; not splitting capitals inside a word keeps unit and chemistry names (pH, OD600) "
+    "readable.", (), "P3", "Each change is printed, old -> new; nothing changes when the names are already clean.",
+    "convention")
+BASIS["table.remove_rows_that_are_all_empty"] = _b(
+    "A row goes only when every cell is empty; an empty cell is a missing value or text of only spaces (pandas "
+    "dropna(how=\"all\"), Polars all_horizontal(is_null)).",
+    "remove_rows_with_empty_cells_in() removes a row for one empty cell.",
+    "Data preparation: spreadsheet exports leave blank rows between blocks of data; text of only spaces looks empty "
+    "in a spreadsheet, so it counts as empty here as everywhere in simplydata (pandas and Polars count it as "
+    "filled).", (), "P5", "The sentence says how many rows went.", "convention")
+BASIS["table.remove_columns_that_are_all_empty"] = _b(
+    "A column goes only when every cell is empty (a missing value or text of only spaces).",
+    "remove_columns() to remove columns by name.",
+    "Data preparation: a column nobody filled in carries no information; the same definition of an empty cell as "
+    "everywhere in simplydata.", (), "P5",
+    "A table whose every cell is empty is refused; the sentence names the columns that went.", "convention")
+BASIS["table.show_duplicate_rows"] = _b(
+    "Every copy is shown, the first one too (pandas duplicated(keep=False), Polars is_duplicated()), with its row "
+    "number counted from 1; two empty cells count as the same; the table does not change.",
+    "columns= to compare only some columns; remove_duplicate_rows(keep=) to remove them.",
+    "Data preparation: looking at the repeats before removing them shows whether they are true repeats (pasted "
+    "twice) or different measurements that share a key.", (), "P5",
+    "The sentence says how many rows repeat and how many extra copies there are.", "convention")
+BASIS["table.add_row_summary_column"] = _b(
+    "Empty cells are left out of each row's summary (pandas skipna, Polars *_horizontal); a row with every cell "
+    "empty gets an empty cell, also for the total (pandas sum(min_count=1)).",
+    "show= \"average\", \"total\", \"median\", \"smallest\", \"biggest\", \"standard deviation\" or \"count\".",
+    "Data preparation: an all-empty row has no total, so 0 (Polars' own sum_horizontal) would invent a value; "
+    "pandas and Polars both skip single empty cells.", (), "P4",
+    "Only number columns (any column for count); the sentence says how many rows had an empty cell.", "convention")
+BASIS["table.turn_into_categories"] = _b(
+    "The values in the order of in_order= (pandas Categorical(ordered=True), Polars Enum); a value not in the list "
+    "stops the word with its name; without in_order= the order in which the values first appear.",
+    "in_order= for your own order.",
+    "Data preparation: pandas Categorical turns a value it does not know into an empty cell without a word, which "
+    "hides typing mistakes (\"Severe\" for \"severe\"); Polars Enum refuses it, and simplydata does the same on both "
+    "engines.", (), "P4", "Text columns only; values of only spaces become empty cells, with a note.", "convention")
+BASIS["table.split_into_rows"] = _b(
+    "The separator is plain text, not a pattern; a cell without it stays one row and an empty cell one empty row "
+    "(pandas str.split + explode, Polars str.split + explode).",
+    "split_column() to split into columns instead; a column of lists needs no separator=.",
+    "Data preparation: one value per cell is what counts, joins and charts need (tidy data); a plain-text separator "
+    "cannot be misread as a pattern (\";\" and \"|\" mean other things in patterns).", (), "P5",
+    "A note says when new cells start or end with a space.", "convention")
+BASIS["table.add_running_column"] = _b(
+    "The running summary follows sorted_by= while the rows keep their place; an empty cell stays empty and is left "
+    "out of the rows after it (pandas cumsum, Polars cum_sum).",
+    "show= \"total\", \"average\", \"smallest\", \"biggest\", \"count\" or \"product\"; for_each_group_in=.",
+    "Data preparation: pandas' expanding().mean() would carry the average on through an empty cell while its cumsum "
+    "leaves the cell empty; simplydata treats every show= the same way.", (), "P5",
+    "Number columns only (any column for count).", "convention")
+BASIS["table.add_row_number_column"] = _b(
+    "Numbers start at 1, as table.show() counts, in the order of sorted_by=, while the rows keep their place (pandas "
+    "cumcount() + 1, Polars int_range(1, len + 1).over()).",
+    "for_each_group_in= to start again in each group.",
+    "Learners count from 1, and every position word of simplydata counts from 1.", (), "P5", "", "convention")
+BASIS["table.keep_groups_where"] = _b(
+    "Whole groups stay or go, in their places; empty cells are left out of each summary; a group whose summary "
+    "cannot be worked out is left out (pandas groupby().filter(), Polars filter(... .over())).",
+    "count() for the rows of a group; summaries joined with and / or.",
+    "Data preparation: a condition on single rows is refused here (keep_rows_where is the word for it), so a "
+    "group condition cannot be confused with a row condition.", (), "P4",
+    "The sentence says how many groups and rows stayed.", "convention")
+BASIS["table.remove_groups_where"] = _b(
+    "Whole groups go, the others stay in their places; a group whose summary cannot be worked out is never "
+    "removed.",
+    "keep_groups_where() for the opposite.",
+    "The same rule as keep_groups_where, turned round: a group is removed only when the condition is surely true.",
+    (), "P4", "The sentence says how many groups and rows went.", "convention")
+BASIS["table.join_with using="] = _b(
+    "using={\"name\": \"student\"} pairs this table's column with the other table's; the key keeps this table's name "
+    "only; check_that= runs pandas' and Polars' own validate= before anything is joined.",
+    "check_that= \"each row has one match\", \"each key appears once in both\" or \"each key appears once here\"; "
+    "keep=\"all rows from the other table\"; with_match_column=True.",
+    "Data preparation: a key that repeats by mistake multiplies rows without a word; a check that names the "
+    "repeated values stops it before the table changes.", (), "P4",
+    "A failed check names the repeated values and the table they are in; keys of different kinds are refused.",
+    "convention")
+BASIS["table.spread_into_columns show="] = _b(
+    "Rows and new columns stay in the order they first appear; a pair that never appears stays an empty cell for "
+    "every show= (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)).",
+    "show= \"average\", \"total\", \"median\", \"smallest\", \"biggest\" or \"count\".",
+    "Data preparation: Polars gives 0 for a total of no rows, which reads as a measurement; an empty cell keeps "
+    "\"not measured\" apart from \"measured zero\".", (), "P4",
+    "Without show=, repeated pairs stop the word with their names, so nothing is combined without your word.",
+    "convention")
+BASIS["table.change_column in_rows_where="] = _b(
+    "The condition is read on the values before the change; a row it cannot check (an empty cell) keeps its value "
+    "(pandas df.loc[mask, column] = value, Polars when/then/otherwise).",
+    "replace_values_in(in_rows_where=) and fill_empty_cells_in(in_rows_where=) work the same way.",
+    "Data preparation: pandas' chained assignment can fail without a word; one written condition, the same as "
+    "keep_rows_where's, avoids it.", (), "P5",
+    "A new value of another kind than the column is refused; a note says how many rows could not be checked.",
+    "convention")
+BASIS["table.keep_first_rows for_each_group_in="] = _b(
+    "The first rows of each group in the table's present order; the rows keep their places (pandas "
+    "groupby().head(), Polars int_range().over()); an empty group cell is a group of its own.",
+    "sort_by() first to choose which rows come first; keep_last_rows and keep_rows_by_position take "
+    "for_each_group_in= too.",
+    "Polars group_by().head() would put each group's rows together; keeping the order makes the result easy to "
+    "check against the table.", (), "P5", "", "convention")

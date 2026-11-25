@@ -129,7 +129,7 @@ def test_rolling_time_window_matches_r(engine, capsys):
 def test_rolling_all_and_centre_match_r(engine, capsys):
     t = station_a(engine)
     t.add_rolling_column("mean_so_far", from_column="nitrate", window="all", sorted_by="date")
-    assert "planned as its own word, add_running_column" in capsys.readouterr().out
+    assert "running values have their own word: add_running_column" in capsys.readouterr().out
     # R: (cumsum(y) / seq_along(y))[c(1, 10, 100)]
     assert col(t, "mean_so_far")[[0, 9, 99]] == pytest.approx([3.15, 3.188, 3.2654], rel=1e-12)
     t.add_rolling_column("max_so_far", from_column="nitrate", window="all", show="biggest", sorted_by="date")

@@ -21,6 +21,7 @@ from .lines_more import LinesMoreWords
 from .meta_words import MetaWords
 from .model_tools import ModelToolWords
 from .models import ModelWords
+from .more_table_words import MoreTableWords
 from .more_tests import MoreTestWords
 from .patterns import PatternWords
 from .places import PlaceWords
@@ -42,13 +43,19 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, BaseTable):
+            CausalWords, SurveyWords, MoreTableWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 
-@friendly(renamed={"big_data": "fast"})
+# pandas read_csv(dtype=), Polars read_csv(schema_overrides=), R readr col_types= and read.csv colClasses=: each
+# runs as read_as_text= when every type in it is text (a note once); other types are refused with the words to use
+_READ_AS_TEXT_OTHERS = {"dtype": "read_as_text", "dtypes": "read_as_text", "schema_overrides": "read_as_text",
+                        "col_types": "read_as_text", "colClasses": "read_as_text"}
+
+
+@friendly(renamed={"big_data": "fast"}, others=_READ_AS_TEXT_OTHERS)
 def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mark=None, thousands_mark=None,
-          empty_values=None, skip_rows=None, encoding=None, table_number=None) -> Table:
+          empty_values=None, skip_rows=None, encoding=None, table_number=None, read_as_text=None) -> Table:
     """Start a table.
 
     sdata.table(sdata.get_example("marks"))         a practice table
@@ -85,6 +92,14 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     skip_rows=2              skip lines above the column names
     encoding="latin-1"       for text files not saved as UTF-8
     table_number=2           which table in a Word file ("all" stacks them)
+    read_as_text=["sample_id"] keep these columns as text, exactly as typed
+
+    read_as_text= stops a reader from changing what was typed: sample IDs such as 007 stay 007
+    (not 7), and lab codes such as 3-12 or 2/4 stay text. Without it, a column that looks like
+    numbers is read as numbers, and the zeros in front are lost before any later step can save
+    them. As pandas read_csv(dtype={"sample_id": str}) and Polars read_csv(schema_overrides=
+    {"sample_id": pl.String}); for CSV, TSV, Excel and Word files.
+    sdata.table("fjord_lab.csv", read_as_text=["sample_id"])
     """
     if not isinstance(fast, bool):
         raise SimplydataError("fast= should be True or False.")
@@ -92,5 +107,5 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
         raise SimplydataError('sdata.table() needs some data, for example sdata.table(sdata.get_example("marks")).')
     reading = reading_options(separator=separator, decimal_mark=decimal_mark, thousands_mark=thousands_mark,
                               empty_values=empty_values, skip_rows=skip_rows, encoding=encoding,
-                              table_number=table_number)
+                              table_number=table_number, read_as_text=read_as_text)
     return Table(data, sheet=sheet, fast=fast, _reading=reading)

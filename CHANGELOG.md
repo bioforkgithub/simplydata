@@ -5,6 +5,42 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: tables phase, batch 1 (the 15 jobs a messy table needs most; approved by Manish 2026-11-25)
+
+- `sdata.table("lab.csv", read_as_text=["sample_id"])` keeps columns as text, exactly as typed: 007 stays 007 and a
+  lab code such as 3-12 stays text (pandas `read_csv(dtype=)`, Polars `schema_overrides=`). pandas' `dtype=` and
+  Polars' `schema_overrides=` (and R's `col_types=`, `colClasses=`) run as `read_as_text=` with a note once when
+  every type in them is text.
+- `join_with`: `using={"name": "student"}` pairs differently named columns; `keep="all rows from the other table"`
+  (the right join); `check_that="each row has one match"` (or "each key appears once in both", "each key appears
+  once here") runs pandas' and Polars' own `validate=` and names the repeated keys before anything is joined;
+  `with_match_column=True` adds a column "found in" ("both", "this table only", "other table only").
+  `how="left"` and friends run as `keep=` with a note once; `left_on=`, `right_on=`, `validate=` and `indicator=`
+  point to the simplydata way and never run.
+- `table.keep_rows_found_in(other, using=)` and `table.remove_rows_found_in(other, using=)`: semi and anti joins.
+- `table.clean_column_names()`: "Max Temp (°C)" becomes max_temp_c (the R janitor rule; pH becomes ph).
+- `table.remove_rows_that_are_all_empty()` and `table.remove_columns_that_are_all_empty()`.
+- `table.show_duplicate_rows(columns=)` shows every copy with its row number; `remove_duplicate_rows(keep="last")`
+  and `keep="none"`.
+- `table.add_row_summary_column(name, columns=, show=)`: the average (total, median, ...) across the columns of
+  each row.
+- `spread_into_columns(..., show="total")` combines rows that would fill the same cell; without `show=` the word
+  stops and names the repeated pairs. A pair that never appears stays an empty cell.
+- `keep_first_rows`, `keep_last_rows` and `keep_rows_by_position` take `for_each_group_in=`.
+- `table.turn_into_categories(column, in_order=[...])`: sorting, group summaries and charts follow the order; a
+  value not in the list stops the word with its name.
+- `change_column(..., in_rows_where="marks >= 50")`, and `in_rows_where=` on `replace_values_in` and
+  `fill_empty_cells_in`: only the rows that meet the condition change.
+- `table.keep_groups_where("average(marks) >= 50", for_each_group_in=)` and `remove_groups_where`.
+- `table.add_running_column(name, from_column=, show="total")` and `table.add_row_number_column(name,
+  for_each_group_in=, sorted_by=)`.
+- `table.split_into_rows("genes", separator=";")`.
+- New practice tables from one made-up fjord cruise, messy on purpose: `fjord_samples`, `fjord_lab`,
+  `fjord_stations`, `fjord_logger` (docs/make_fjord_tables.py), and lesson 37, "Tables: a messy file from a fjord
+  cruise". Each new word has a "same underneath" entry (pandas and Polars) and its basis in
+  docs/how_simplydata_chooses.md; other names from pandas, Polars and R (semi_join, explode, cumsum, rowMeans,
+  factor, clean_names ...) point to the new words.
+
 ### Changed: a front door for new users
 
 - New motto: "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain

@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from .._typing import _Same
 
+import narwhals as nw
+
 from .._errors import SimplydataError, friendly, option_error
 from .._positions import read_positions
 from .columns import _plain_cell
@@ -80,6 +82,30 @@ class PositionWords:
             after_hint="to turn the table upside down use table.reverse_rows()", other_hint=self._row_hint,
         )
 
+    def _keep_positions_in_groups(self, positions, to, step_size, for_each):
+        """keep_rows_by_position(..., for_each_group_in=): the positions counted inside each group."""
+        word = "keep_rows_by_position"
+        example = 'table.keep_rows_by_position([1, 3], for_each_group_in="name")   (with sdata.get_example("marks"))'
+        keys = self._for_each(word, for_each, None, 'table.keep_rows_by_position([1, 3], for_each_group_in="name")')
+        given = positions if isinstance(positions, (list, tuple)) else [positions]
+        if any(isinstance(p, str) and p.strip().lower() == "last" for p in given):
+            raise SimplydataError('"last" differs from group to group. For the last row of each group write '
+                                  'table.keep_last_rows(1, for_each_group_in="name"); to="last" goes to the end of '
+                                  "each group.\nFor example:  " + example)
+        place = self._place_in_group(keys)
+        largest = int(place.max()) + 1 if len(place) else 0
+        picked = read_positions(
+            word, positions, to, step_size, largest, noun="row", count_noun="rows", owner="The biggest group has",
+            example=example, last_hint='table.keep_last_rows(3, for_each_group_in="name")', other_hint=self._row_hint,
+        )
+        wanted = [int(i) for i in (picked.indices if isinstance(picked.indices, range) else picked.array())]
+        new = self._frame.with_columns(place).filter(nw.col(place.name).is_in(wanted)).drop(place.name)
+        groups = len(self._frame.select(keys).unique())
+        label = ", ".join(f'"{k}"' for k in keys)
+        print(f"Kept {picked.words()} of each group of {label} ({len(new)} of {_rows(len(self._frame))}; "
+              f"{groups} group{'s' if groups != 1 else ''}).")
+        return self._change(f"keep {picked.short_words()} of each group of {', '.join(keys)}", new)
+
     def _columns_picked(self, step: str, positions, to, step_size, example: str):
         return read_positions(
             step, positions, to, step_size, len(self._columns), noun="column", count_noun="columns",
@@ -89,16 +115,23 @@ class PositionWords:
 
     # ================================================================== rows by position
     @friendly
-    def keep_rows_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
+    def keep_rows_by_position(self: _Same, positions=None, to=None, step=None, for_each_group_in=None,
+                              **conditions) -> _Same:
         """Keep rows by their position, counting from 1: a run, every n-th row, or a list.
 
         table.keep_rows_by_position(10, to=20)   (with sdata.get_example("marks"))
         Both ends are included, so rows 10 to 20 are 11 rows. to="last" goes to the end;
         step=10 keeps every 10th row (1, 11, 21 ...); a list such as [1, 5, 9] keeps those rows
         in that order. The numbers are the ones table.show() prints, as pandas df.iloc[9:20].
+        for_each_group_in= counts the positions inside each group instead, so [1, 3] keeps the first
+        and third row of every group; the rows keep their order in the table (pandas
+        groupby().nth([0, 2]), Polars filter(pl.int_range(pl.len()).over(...).is_in([0, 2]))):
+          table.keep_rows_by_position([1, 3], for_each_group_in="name")
         """
         example = 'table.keep_rows_by_position(10, to=20)   (with sdata.get_example("marks"))'
         self._no_conditions("keep_rows_by_position", positions, conditions)
+        if for_each_group_in is not None:
+            return self._keep_positions_in_groups(positions, to, step, for_each_group_in)
         picked = self._rows_picked("keep_rows_by_position", positions, to, step, example)
         total = len(self._frame)
         if isinstance(picked.indices, range):
