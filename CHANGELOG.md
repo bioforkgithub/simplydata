@@ -15,6 +15,9 @@ working for one release and prints a one-line note with its new name.
   `get_numbers_drawn()` does; pages of charts have them too.
 - `get_numbers_drawn()` gives each drawn point its `colour` ("#0072b2") and, when a named colour has exactly that
   code, its `colour name` ("blue").
+- `chart.get_size()` gives the size `chart.save()` writes at 300 dots per inch (read from the picture itself): exactly the size `set_size` asked for, or without it the page trimmed to what is drawn.
+- `with_one_legend=True` stops with a message naming the chart that differs unless every chart shows the same legend (name, groups in the same order, colours, kind of mark, shapes, dashes and patterns).
+- In black and white the greys stay between about 25 % and 75 % with black edges; patterns are drawn in black or white, whichever shows; boxes, violins and density curves get patterns or dashes too, box medians are white with a black rim, heat maps, contour maps and surfaces use greys (a two-sided scale prints a note), and a page in black and white gets the patterns.
 - `chart.undo()`: takes the last word back (a layer, a title, the style, the size), as `table.undo()` does.
 - `chart.put_legend_inside("top left")` (or "top right", "bottom left", "bottom right", "top", "bottom", "left",
   "right", "middle", "best").
@@ -51,6 +54,8 @@ working for one release and prints a one-line note with its new name.
   iris): the numbers matplotlib turned the names into are read, and given back as the names.
 - `get_numbers_drawn()` on a surface gives each drawn grid point once (kind "surface"), with its height in `value`,
   instead of every corner of every piece.
+- `get_numbers_drawn()`: 3D dots coloured by a number keep each dot's colour (matplotlib sorts the drawn colours by depth); colours that cannot be matched to the points are left empty, never guessed.
+- `get_scales_drawn()` gives the `middle=` asked for on every colour scale, names heat-map axes as groups, and gives log-axis tick words as shown ("10²", with the small ticks 30, 40 ...); `get_text_drawn()` reads a page title once. `.eps` notes every see-through part (seaborn's bands too), not only `transparency=`.
 - `get_numbers_drawn()`: what is drawn on a second y-axis belongs to the panel it is on (panel 1 of a single
   chart), its layers after the panel's own, as the docstring always said.
 

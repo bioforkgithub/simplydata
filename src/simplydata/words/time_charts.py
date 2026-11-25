@@ -169,7 +169,9 @@ def _draw_spectrum(ctx, frame, column, group, log_scale, peaks):
 
 def _draw_spectrum_over_time(ctx, times, frequencies, decibels):
     ax = ctx.ax
-    mesh = ax.pcolormesh(times, frequencies, decibels, shading="nearest", cmap="viridis")
+    from .second_cues import colour_map
+
+    mesh = ax.pcolormesh(times, frequencies, decibels, shading="nearest", cmap=colour_map(ctx))
     bar = ctx.fig.colorbar(mesh, ax=ax)
     bar.set_label("power (decibels)")
     ax.set_xlabel("time")

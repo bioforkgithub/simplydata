@@ -54,6 +54,25 @@ def _number_text(v) -> str:
     return f"{v:g}"
 
 
+_SUPERSCRIPTS = str.maketrans("0123456789-+.", "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺·")
+
+
+def plain_text(words: str) -> str:
+    """matplotlib's maths text as it is shown: "$\\mathdefault{10^{2}}$" is "10²", "$\\mathdefault{3\\times10^{1}}$"
+    is "3×10¹"; other text is kept."""
+    import re
+
+    if "$" not in words:
+        return words
+    text = words.replace("$", "")
+    while "\\mathdefault{" in text:
+        text = re.sub(r"\\mathdefault\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}", r"\1", text)
+    text = text.replace("\\times", "×").replace("\\cdot", "·").replace("\\minus", "−").replace("\\,", " ")
+    text = re.sub(r"\^\{([^{}]*)\}", lambda m: m.group(1).translate(_SUPERSCRIPTS), text)
+    text = re.sub(r"\^(\S)", lambda m: m.group(1).translate(_SUPERSCRIPTS), text)
+    return text.replace("{", "").replace("}", "").replace("\\", "")
+
+
 def _visible_text(artist) -> str:
     if artist is None or not artist.get_visible():
         return ""
@@ -110,14 +129,17 @@ def _where_of(text, ax) -> str:
 
 
 def _ticks(axis, ax) -> list:
-    """The tick words drawn on an axis: inside the shown range, visible and not empty."""
+    """The tick words drawn on an axis, big and small ticks (a log axis writes 30, 40 ... between 10 and 100),
+    in order along the axis: inside the shown range, visible and not empty, as plain text."""
     low, high = sorted(axis.get_view_interval())
     room = (high - low) * 1e-9
     words = []
-    for loc, label in zip(axis.get_majorticklocs(), axis.get_majorticklabels()):
-        if low - room <= loc <= high + room and label.get_visible() and label.get_text():
-            words.append((loc, label.get_text()))
-    return words
+    for locs, labels in ((axis.get_majorticklocs(), axis.get_majorticklabels()),
+                         (axis.get_minorticklocs(), axis.get_minorticklabels())):
+        for loc, label in zip(locs, labels):
+            if low - room <= loc <= high + room and label.get_visible() and label.get_text():
+                words.append((loc, plain_text(label.get_text())))
+    return sorted(words, key=lambda pair: pair[0])
 
 
 def text_drawn(fig):
@@ -141,7 +163,10 @@ def text_drawn(fig):
                 rows.append((panel, getattr(artist, "simplydata_part", "") or part, artist.get_text(), ""))
         for legend in figure.legends:
             _legend_rows(rows, legend, panel, _OUTSIDE_WORDS.get(legend._loc, _PLACE_WORDS.get(legend._loc, "")))
+        own = {id(getattr(figure, a, None)) for a in ("_suptitle", "_supxlabel", "_supylabel")}
         for text in list(figure.texts) + [a for a in figure.artists if hasattr(a, "get_text")]:
+            if id(text) in own:  # the title and shared axis names, read above
+                continue
             if _visible_text(text):
                 rows.append((panel, getattr(text, "simplydata_part", "") or "note", text.get_text(),
                              getattr(text, "simplydata_where", "") or ""))
@@ -251,17 +276,40 @@ def _axis_row(panel, scale, ax, axis, name, which):
         low_v, high_v = low, high
     else:
         low_v, high_v = read(low), read(high)
+    if kind == "number" and _named_ticks(axis, ticks):  # a heat map: rows and columns of named groups
+        shown = "groups"
+        return dict(panel=panel, scale=scale, name=name, low=low_v, high=high_v, kind=shown, flipped=flipped,
+                    ticks=", ".join(words for _, words in ticks),
+                    **{"tick words": ", ".join(words for _, words in ticks), "shared with": "", "colours": "",
+                       "middle": math.nan})
     return dict(panel=panel, scale=scale, name=name, low=low_v, high=high_v, kind=shown, flipped=flipped,
                 ticks=", ".join(_number_text(read(float(loc))) for loc, _ in ticks),
                 **{"tick words": ", ".join(words for _, words in ticks), "shared with": "", "colours": "",
                    "middle": math.nan})
 
 
+def _named_ticks(axis, ticks) -> bool:
+    """Whether the axis is numbered but writes names in the middle of each cell (seaborn's heat maps: names at
+    0.5, 1.5 ...): its ticks are groups."""
+    from matplotlib.ticker import FixedLocator
+
+    if not ticks or not isinstance(axis.get_major_locator(), FixedLocator) or axis.get_scale() != "linear":
+        return False
+    if any(abs(loc - round(loc - 0.5) - 0.5) > 1e-9 for loc, _ in ticks):
+        return False
+    for _, words in ticks:
+        try:
+            float(words.replace("−", "-"))
+        except ValueError:
+            return True
+    return False
+
+
 def _norm_kind(norm) -> tuple[str, float]:
     from matplotlib import colors as mcolors
 
-    middle = math.nan
-    if isinstance(norm, (mcolors.TwoSlopeNorm, mcolors.CenteredNorm)):
+    middle = float(getattr(norm, "simplydata_middle", math.nan))  # use_colour_scale(middle=): what was asked
+    if math.isnan(middle) and isinstance(norm, (mcolors.TwoSlopeNorm, mcolors.CenteredNorm)):
         middle = float(norm.vcenter)
     if isinstance(norm, mcolors.BoundaryNorm):
         return "steps", middle

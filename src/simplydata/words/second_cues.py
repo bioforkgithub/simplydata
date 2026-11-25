@@ -50,15 +50,29 @@ def check_switch(word, option, value):
         raise SimplydataError(f".{word}() needs {option}=True or {option}=False, not {value!r}.")
 
 
-def _pattern_colour():
-    return mpl.rcParams["text.color"]
+# Dashes for lines of each group (matplotlib dash patterns: on, off ... in points)
+DASHES = [(None, None), (6, 3), (1.5, 2), (6, 2, 1.5, 2), (10, 3), (3, 3, 1, 3, 1, 3)]
+
+
+def lightness(colour) -> float:
+    """How light a colour looks (0 black, 1 white), with a see-through colour mixed with the white behind it."""
+    from matplotlib.colors import to_rgba
+
+    r, g, b, a = to_rgba(colour)
+    seen = 0.299 * r + 0.587 * g + 0.114 * b
+    return a * seen + (1 - a)
+
+
+def contrasting(colour) -> str:
+    """Black on a light fill, white on a dark one: a pattern or a line that shows on it."""
+    return "white" if lightness(colour) < 0.5 else "black"
 
 
 def hatch(patch, pattern):
-    """Fill a bar, a slice or an area with a pattern, drawn in the text colour so it shows on any fill."""
+    """Fill a bar, a slice or an area with a pattern, in black or white, whichever shows on its fill."""
     patch.set_hatch(pattern)
-    if hasattr(patch, "set_hatchcolor"):  # matplotlib 3.11 and later; before it the pattern is black anyway
-        patch.set_hatchcolor(_pattern_colour())
+    if hasattr(patch, "set_hatchcolor"):  # matplotlib 3.11 and later; before it the pattern is black
+        patch.set_hatchcolor(contrasting(_face(patch)))
 
 
 def _same_colour(a, b) -> bool:
@@ -90,6 +104,87 @@ def _legend_patterns(ax, groups):
             if _same_colour(_face(handle), colour):
                 hatch(handle, pattern)
                 break
+
+
+def _filled(artist) -> bool:
+    """A drawn fill (a bar, a box, a violin, a slice, an area), not a legend's stand-in or an empty outline."""
+    from matplotlib.collections import PolyCollection
+    from matplotlib.patches import Patch
+
+    if not artist.get_visible() or not isinstance(artist, (Patch, PolyCollection)):
+        return False
+    face = _face(artist)
+    if len(face) < 4 or face[3] == 0:
+        return False
+    if hasattr(artist, "get_width") and hasattr(artist, "get_height") and \
+            artist.get_width() == 0 and artist.get_height() == 0:
+        return False
+    return True
+
+
+def _colour_key(colour):
+    from matplotlib.colors import to_hex
+
+    return to_hex(colour, keep_alpha=False)
+
+
+def patterns_by_colour(ax, before):
+    """Black and white: each fill colour drawn since `before` (one per group, in drawing order) gets its own
+    pattern, with a black edge; the legend's boxes get the pattern of their colour."""
+    new = [a for a in list(ax.patches) + list(ax.collections) if a not in before and _filled(a)]
+    order = []
+    for artist in new:
+        key = _colour_key(_face(artist))
+        if key not in order:
+            order.append(key)
+    for artist in new:
+        hatch(artist, HATCHES[order.index(_colour_key(_face(artist))) % len(HATCHES)])
+        artist.set_edgecolor("black")
+    _legend_patterns(ax, [(key, HATCHES[i % len(HATCHES)]) for i, key in enumerate(order)])
+    legend = ax.get_legend()
+    for handle in getattr(legend, "legend_handles", []) if legend is not None else []:
+        if handle is not None and hasattr(handle, "set_hatch") and handle.get_hatch():
+            handle.set_edgecolor("black")
+
+
+def dashes_by_colour(ax, before):
+    """Black and white: each line colour drawn since `before` (one per group) gets its own dashes; the legend's
+    lines too."""
+    new = [line for line in ax.get_lines() if line not in before and line.get_visible()]
+    order = []
+    for line in new:
+        key = _colour_key(line.get_color())
+        if key not in order:
+            order.append(key)
+    if len(order) < 2:
+        return
+
+    def dash(line, i):
+        line.set_dashes(DASHES[i % len(DASHES)]) if i % len(DASHES) else line.set_linestyle("-")
+
+    for line in new:
+        dash(line, order.index(_colour_key(line.get_color())))
+    legend = ax.get_legend()
+    for handle in getattr(legend, "legend_handles", []) if legend is not None else []:
+        if handle is not None and hasattr(handle, "get_color"):
+            key = _colour_key(handle.get_color())
+            if key in order:
+                dash(handle, order.index(key))
+
+
+def colour_map(ctx, default="viridis"):
+    """The colour map of a chart: greys in black and white, else the usual one."""
+    return "Greys" if in_black_and_white(ctx) else default
+
+
+def no_middle_in_grey(word):
+    """A note once: a two-sided scale (middle=) cannot show which side a value is on in greys."""
+    from .._core import chart_note
+
+    line = (f"Note: in black and white the colours of .{word}() run in greys from low to high, so they cannot show "
+            "which side of the middle a value is on. Write the numbers on the cells (draw_heatmap(with_numbers=True)) "
+            "or draw height lines (draw_contour(filled=False)) to show it.")
+    chart_note(line, lambda _count, line=line: line)
 
 
 def hatch_bars(ax, before):
@@ -147,13 +242,16 @@ def make_hollow(ax, before):
     import numpy as np
 
     for coll in [c for c in ax.collections if c not in before and c.__class__.__name__ == "PathCollection"]:
-        if coll.get_array() is not None:
+        mapped = coll.get_array() is not None
+        if mapped:
             coll.update_scalarmappable()
         faces = np.asarray(coll.get_facecolors(), dtype=float)
         if len(faces):
             coll.set_edgecolors(faces)
             coll.set_facecolors("none")
             coll.set_linewidths(1.5)
+            if mapped:  # the colours are fixed on the outlines now (the colour bar keeps the scale)
+                coll.set_array(None)
     legend = ax.get_legend()
     for handle in getattr(legend, "legend_handles", []) if legend is not None else []:
         if handle is None:

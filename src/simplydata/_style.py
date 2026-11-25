@@ -76,12 +76,16 @@ STYLES = {
             color=["#56B4E9", "#E69F00", "#009E73", "#F0E442", "#CC79A7", "#D55E00", "#0072B2", "#FFFFFF"]
         ),
     },
-    # For print in black and white (charts phase, batch 1): greys that differ in lightness, and each group also
-    # gets its own pattern, dashes or dot shape (simplydata.words.second_cues); colour maps run in greys
+    # For print in black and white (charts phase, batch 1): greys between about 25 % and 75 % lightness, so that
+    # no fill is black and no line nearly white, with black edges round fills. The groups also differ in a second
+    # way, set while drawing (simplydata.words.second_cues): patterns in black or white (whichever shows) on bars,
+    # boxes, violins, areas and pies, dashes on lines and density curves, shapes on dots; colour maps (heat maps,
+    # contour maps, surfaces) run in greys
     "black and white": {
         "axes.prop_cycle": matplotlib.cycler(
-            color=["#000000", "#8c8c8c", "#d0d0d0", "#4d4d4d", "#b0b0b0", "#262626", "#6e6e6e", "#e6e6e6"]
+            color=["#404040", "#bfbfbf", "#808080", "#5a5a5a", "#a6a6a6", "#737373"]
         ),
+        "patch.edgecolor": "black",
         "image.cmap": "Greys",
         "hatch.linewidth": 0.8,
     },

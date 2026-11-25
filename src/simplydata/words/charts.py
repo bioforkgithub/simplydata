@@ -348,6 +348,7 @@ def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=N
                       measure=how, size_role="y", x=x, y=y, colour=group)
     ax = ctx.ax
     before = list(ax.containers)
+    drawn_before = set(ax.patches) | set(ax.collections)
 
     if stacked:
         cols = [n["x"], n["colour"]]
@@ -389,8 +390,10 @@ def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=N
                 kw["capsize"] = 0.1
                 kw["err_kws"] = {"linewidth": 1.3}
             sns.barplot(**kw)
-    if hatched or cues.in_black_and_white(ctx):  # a pattern for each group (charts phase, batch 1)
+    if hatched:  # a pattern for each group (charts phase, batch 1)
         cues.hatch_bars(ax, before)
+    elif cues.in_black_and_white(ctx):
+        cues.patterns_by_colour(ax, drawn_before)
     _remember(ctx, "bars", table, n, sideways=sideways)
 
 
@@ -657,9 +660,14 @@ def _draw_histogram(ctx, x, bins, colour, show="count", stacked=False, steps=Fal
     if thickness is not None:
         kw["linewidth"] = thickness
     before = list(ctx.ax.containers)
+    drawn_before = set(ctx.ax.patches) | set(ctx.ax.collections)
     sns.histplot(**_seaborn_colours(kw, table, n, ctx, fixed))
-    if (hatched or cues.in_black_and_white(ctx)) and not steps:  # a pattern for each group (charts phase, batch 1)
+    if hatched and not steps:  # a pattern for each group (charts phase, batch 1)
         cues.hatch_bars(ctx.ax, before)
+    elif cues.in_black_and_white(ctx) and not steps:
+        cues.patterns_by_colour(ctx.ax, drawn_before)
+    elif cues.in_black_and_white(ctx):
+        cues.dashes_by_colour(ctx.ax, [])
     ctx.ax.set_ylabel(("cumulative " if cumulative else "") + show)
     _remember(ctx, "histogram", table, n)
 
@@ -676,6 +684,11 @@ def _draw_boxes(ctx, x, y, colour, violins, transparency=None, thickness=None):
         kw["linewidth"] = thickness
     ax = ctx.ax
     before = set(ax.patches) | set(ax.collections)
+    if cues.in_black_and_white(ctx) and not violins:  # a white median with a black rim shows on any grey
+        from matplotlib import patheffects
+
+        kw["medianprops"] = dict(color="white", linewidth=1.8,
+                                 path_effects=[patheffects.withStroke(linewidth=3.6, foreground="black")])
     if violins:
         # cut=0: a violin stops at the smallest and largest value, so it never shows
         # values that are impossible (such as marks below 0)
@@ -684,6 +697,8 @@ def _draw_boxes(ctx, x, y, colour, violins, transparency=None, thickness=None):
         with _quiet():
             sns.boxplot(**kw)
     faces_see_through([a for a in list(ax.patches) + list(ax.collections) if a not in before], transparency)
+    if cues.in_black_and_white(ctx):  # each group its own pattern (charts phase, batch 1)
+        cues.patterns_by_colour(ax, before)
     ctx.store["boxes_drawn"] = True  # dots drawn on top then get a colour that stands out
     _remember(ctx, "violins" if violins else "boxes", table, n)
 
@@ -735,7 +750,10 @@ def _draw_density(ctx, x, colour, transparency=None, thickness=None):
         kw["alpha"] = opacity(transparency)
     if thickness is not None:
         kw["linewidth"] = thickness
+    before = list(ctx.ax.get_lines())
     sns.kdeplot(**_seaborn_colours(kw, table, n, ctx, fixed))
+    if cues.in_black_and_white(ctx):  # each group its own dashes (charts phase, batch 1)
+        cues.dashes_by_colour(ctx.ax, before)
     _remember(ctx, "density", table, n)
 
 
@@ -802,12 +820,14 @@ def _draw_heatmap(ctx, x, y, value, numbers, cluster, transparency=None):
         wide = wide.iloc[row_order, col_order]
         trees = (row_tree, col_tree)
     lo, hi = np.nanmin(wide.to_numpy(dtype=float)), np.nanmax(wide.to_numpy(dtype=float))
-    kw = dict(ax=ax, cbar=False, cmap="viridis")
+    kw = dict(ax=ax, cbar=False, cmap=cues.colour_map(ctx))
     extend = "neither"
     if scales.wanted(ctx.settings):  # chart.use_colour_scale(...)
         cmap, norm, extend, _ = scales.scale_for(ctx, wide.to_numpy(dtype=float), "draw_heatmap",
                                                  diverge_at_zero=True)
         kw.update(cmap=cmap, norm=norm)
+    elif lo < 0 < hi and cues.in_black_and_white(ctx):
+        cues.no_middle_in_grey("draw_heatmap")
     elif lo < 0 < hi:  # values on both sides of 0: 0 is white, below is blue, above is red
         kw.update(cmap="RdBu_r", center=0)
     if transparency is not None:
@@ -849,6 +869,10 @@ def _draw_pie(ctx, labels, values, transparency=None, hatched=False):
     faces_see_through([p for p in ax.patches if p not in before], transparency)
     if hatched or cues.in_black_and_white(ctx):  # a pattern for each slice (charts phase, batch 1)
         cues.hatch_slices([p for p in ax.patches if p not in before])
+    if cues.in_black_and_white(ctx):
+        for p in ax.patches:
+            if p not in before:
+                p.set_edgecolor("black")
     ax.grid(False)
     ctx.store["pie_sizes"] = sizes
     ctx.last = dict(kind="pie", table=table, x=n["labels"], y=n["values"], colour=None)
@@ -959,7 +983,7 @@ def _draw_contour(ctx, x, y, z, filled, transparency=None, thickness=None):
     table, n = frame_for(ctx.data, x=x, y=y, z=z)
     gx, gy, gz = _to_grid(table, n["x"], n["y"], n["z"], "draw_contour")
     ax = ctx.ax
-    kw = dict(levels=10, cmap="viridis")
+    kw = dict(levels=10, cmap=cues.colour_map(ctx))
     if scales.wanted(ctx.settings):  # chart.use_colour_scale(...)
         cmap, norm, extend, levels = scales.scale_for(ctx, gz, "draw_contour")
         kw = dict(cmap=cmap, norm=norm, levels=10 if levels is None else levels)
@@ -984,7 +1008,7 @@ def _draw_surface(ctx, x, y, z, transparency=None):
     table, n = frame_for(ctx.data, x=x, y=y, z=z)
     gx, gy, gz = _to_grid(table, n["x"], n["y"], n["z"], "draw_surface")
     ax = ctx.ax
-    kw = dict(cmap="viridis", vmin=np.nanmin(gz), vmax=np.nanmax(gz))
+    kw = dict(cmap=cues.colour_map(ctx), vmin=np.nanmin(gz), vmax=np.nanmax(gz))
     extend = "neither"
     if scales.wanted(ctx.settings):  # chart.use_colour_scale(...)
         cmap, norm, extend, _ = scales.scale_for(ctx, gz, "draw_surface")
@@ -1008,7 +1032,7 @@ def _draw_dots_3d(ctx, x, y, z, colour, transparency=None):
     if g is not None and _is_number_column(table[g]) and (
             table[g].nunique() > 8 or scales.wanted(ctx.settings)):
         # a number column with many values (or a use_colour_scale): a colour scale, not separate groups
-        kw = dict(cmap="viridis")
+        kw = dict(cmap=cues.colour_map(ctx))
         extend = "neither"
         if scales.wanted(ctx.settings):
             cmap, norm, extend, _ = scales.scale_for(ctx, table[g], "draw_dots_3d")

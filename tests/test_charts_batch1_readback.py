@@ -29,11 +29,16 @@ def _rows(table, column, value):
 
 # ---------------------------------------------------------------- the two reader fixes
 def test_lines_at_named_x_positions_are_read(capsys):
-    """Error bars on dots at named groups used to stop get_numbers_drawn (the names could not become numbers)."""
+    """Error bars on dots at named groups used to stop get_numbers_drawn (the names could not become numbers).
+    The bars read back are each class's average plus and minus its standard error (pandas, from the file)."""
+    df = example_frame("marks")
     chart = sdata.chart(sdata.get_example("marks")).draw_dots(x="class", y="marks").draw_error_bars("standard error")
-    drawn = chart.get_numbers_drawn()
-    assert set(drawn.get_column("x")) <= {"A", "B", "C"}
-    assert drawn.count_rows() > 0
+    bars = _rows(chart.get_numbers_drawn(), "kind", "error bar")
+    groups = df.groupby("class", sort=False)["marks"]
+    average, error = groups.mean(), groups.sem()
+    assert list(bars.get_column("x")) == ["A", "B", "C"]
+    assert list(bars.get_column("low")) == pytest.approx(list(average - error), rel=1e-9)
+    assert list(bars.get_column("high")) == pytest.approx(list(average + error), rel=1e-9)
 
 
 def test_a_surface_is_read_as_its_grid_of_points(capsys):
@@ -190,22 +195,18 @@ def test_shared_ranges_on_split_charts(capsys):
 
 
 # ---------------------------------------------------------------- get_size
-def test_get_size_is_the_figure_size(capsys):
+def test_get_size_is_the_set_size(capsys):
     chart = sdata.chart(sdata.get_example("marks")).draw_dots(x="hours", y="marks")
     chart.set_size(width=17, height=12, unit="cm")
-    assert chart.get_size(unit="cm") == pytest.approx((17, 12))
-    assert "The chart is 17 x 12 cm." in capsys.readouterr().out
-    fig = plt.figure(figsize=(17 / 2.54, 12 / 2.54))
-    width, height = fig.get_size_inches()
-    assert chart.get_size() == pytest.approx((width, height), abs=1e-4)
-    assert chart.get_size(unit="pixels") == pytest.approx((width * 300, height * 300), abs=1e-2)
-    exact = sdata.chart(sdata.get_example("marks")).set_size(width=800, height=600, unit="pixels")
-    assert exact.get_size(unit="pixels") == (800, 600)
+    # matplotlib writes whole pixels: 17 cm at 300 dots per inch is 2007.87, so 2007 pixels
+    assert chart.get_size(unit="pixels") == (int(17 / 2.54 * 300), int(12 / 2.54 * 300))
+    assert chart.get_size(unit="cm") == pytest.approx((17, 12), abs=0.01)
+    assert "The chart is" in capsys.readouterr().out
 
 
-def test_get_size_of_a_page(capsys):
+def test_get_size_of_a_page(tmp_path, capsys):
     a = sdata.chart(sdata.get_example("marks")).draw_dots(x="hours", y="marks")
     b = sdata.chart(sdata.get_example("marks")).draw_bars(x="class", y="marks")
-    page = sdata.put_side_by_side(a, b)
-    assert page.get_size() == pytest.approx((12, 4.5))
-    assert "The page is 12 x 4.5 inches." in capsys.readouterr().out
+    page = sdata.put_side_by_side(a, b).set_size(width=12, height=4.5)
+    assert page.get_size() == pytest.approx((12, 4.5), abs=0.01)
+    assert "The page is" in capsys.readouterr().out

@@ -70,7 +70,7 @@ def test_put_legend_inside_takes_the_place_of_put_legend_at_bottom(capsys):
 
 def test_with_one_legend_shows_each_group_once(capsys):
     a = _marks().draw_dots(x="hours", y="marks", colour="class")
-    b = _marks().draw_bars(x="subject", y="marks", colour="class")
+    b = _marks().draw_dots(x="height", y="marks", colour="class")
     page = sdata.put_side_by_side(a, b, with_one_legend=True)
     fig = page._render()
     assert len(fig.legends) == 1

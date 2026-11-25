@@ -383,9 +383,10 @@ class BaseChart:
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
         resolution = self._save_resolution(fmt, quality, resolution, dpi)
-        if fmt == "eps" and self._uses_transparency():
-            print("Note: an .eps file cannot hold see-through colours, so the marks drawn with transparency= are "
-                  "saved solid. Save as .pdf or .svg to keep them see-through.")
+        if fmt == "eps" and self._draws_see_through():
+            print("Note: an .eps file cannot hold see-through colours, so the see-through parts of this chart "
+                  "(bands, shading, marks drawn with transparency=) are saved solid. Save as .pdf or .svg to keep "
+                  "them see-through.")
         s = self._settings
         self._see_through = see_through
         if not s.get("size_set"):
@@ -431,10 +432,51 @@ class BaseChart:
                 "Choose a smaller chart.set_size() or a lower resolution=."
             )
 
-    def _uses_transparency(self) -> bool:
-        """Whether a step of the chart (or of a chart on the page) was given transparency=."""
-        charts = getattr(self, "_charts", None) or [self]
-        return any(step.kwargs.get("transparency") not in (None, 0) for chart in charts for step in chart._steps)
+    def _draws_see_through(self) -> bool:
+        """Whether anything drawn on the chart's panels is partly see-through (a band, shading, a mark drawn with
+        transparency=): read from the drawn artists' colours and alpha (grid lines and words left out)."""
+        import numpy as np
+
+        from ._numbers_drawn import _all_axes
+
+        def partly(colours) -> bool:
+            try:
+                array = np.asarray(colours, dtype=float).reshape(-1, 4)
+            except (TypeError, ValueError):
+                return False
+            return bool(((array[:, 3] > 0) & (array[:, 3] < 1)).any())
+
+        for ax in _all_axes(self._render()):
+            for artist in list(ax.collections) + list(ax.patches) + list(ax.lines) + list(ax.images):
+                if not artist.get_visible():
+                    continue
+                alpha = artist.get_alpha()
+                if alpha is not None and 0 < np.min(alpha) < 1:
+                    return True
+                for getter in ("get_facecolor", "get_edgecolor", "get_color"):
+                    if hasattr(artist, getter) and partly(getattr(artist, getter)()):
+                        return True
+        return False
+
+    def _saved_pixels(self, resolution=300) -> tuple[int, int]:
+        """The width and height in pixels of the picture chart.save("x.png") writes at this resolution: the same
+        drawing written to memory (without set_size, matplotlib trims the page to what is drawn)."""
+        import struct
+
+        buffer = io.BytesIO()
+        s = self._settings
+        before = (s.get("width"), s.get("height"))
+        if s.get("size_set") and s.get("pixels"):
+            s["width"], s["height"] = s["pixels"][0] / resolution, s["pixels"][1] / resolution
+            self._cache = None
+        try:
+            self._save_now(buffer, "png", resolution, exact=bool(s.get("size_set")))
+        finally:
+            if s.get("size_set") and s.get("pixels"):
+                s["width"], s["height"] = before
+                self._cache = None
+        width, height = struct.unpack(">II", buffer.getvalue()[16:24])  # the PNG header
+        return width, height
 
     def _save_now(self, path, fmt, resolution, exact=False):
         if fmt == "gif":
@@ -447,7 +489,7 @@ class BaseChart:
         if exact:
             extra["bbox_inches"] = fig.bbox_inches  # the whole page, exactly the size asked for
         with _style.context(self._settings):
-            fig.savefig(path, dpi=resolution, **extra)
+            fig.savefig(path, dpi=resolution, format={"jpg": "jpeg", "tif": "tiff"}.get(fmt, fmt), **extra)
         return self
 
     def _save_animation(self, path, resolution=100):

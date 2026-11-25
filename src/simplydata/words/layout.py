@@ -345,9 +345,15 @@ class Page(ReadBackWords, BaseChart):
                 look = dict(chart._settings)
                 if s["style_set"]:
                     look["style"] = s["style"]
+                own_style = chart._settings.get("style")
+                chart._settings["style"] = look["style"]  # the page's style is drawn as the chart's own (patterns)
+                try:
+                    with _style.context(look):
+                        cell.set_facecolor(matplotlib.rcParams["figure.facecolor"])
+                        drawn = _draw_chart(chart, cell)
+                finally:
+                    chart._settings["style"] = own_style
                 with _style.context(look):
-                    cell.set_facecolor(matplotlib.rcParams["figure.facecolor"])
-                    drawn = _draw_chart(chart, cell)
                     if self._letters and drawn:  # A, B, C ... at the top left, as in papers
                         _put_letter(cell, drawn, _letter(number))
                     panels.extend(ax for ax in drawn if ax.name == "rectilinear")
@@ -356,7 +362,7 @@ class Page(ReadBackWords, BaseChart):
             if self._same_y:
                 _share(panels, "y")
             if self._one_legend:
-                _one_legend(fig)
+                _one_legend(fig, [cell[0] for cell in self._cells])
             if s["title"]:
                 fig.suptitle(s["title"], fontweight="bold", fontsize=matplotlib.rcParams["axes.titlesize"] * 1.15)
         return fig  # not cached: the charts on the page may still change
@@ -368,35 +374,76 @@ class Page(ReadBackWords, BaseChart):
         return f"<simplydata page: {len(self._charts)} charts, {self._how}>"
 
 
-def _one_legend(fig):
-    """with_one_legend=True: the legend entries of every chart on the page (matplotlib Figure.legend), each group
-    once, at the right of the page; the charts' own legends are taken away."""
-    from matplotlib.patches import Rectangle
+def _handle_look(handle) -> tuple:
+    """What a legend entry shows: the kind of mark, its colours, line style, dot shape and pattern."""
+    from matplotlib.colors import to_hex
 
+    def hexed(colour):
+        try:
+            import numpy as np
+
+            array = np.asarray(colour, dtype=float)
+            if array.ndim == 2:
+                array = array[0] if len(array) else None
+            return "" if array is None else to_hex(array, keep_alpha=True)
+        except (TypeError, ValueError):
+            return str(colour)
+
+    if handle is None:
+        return ("none",)
+    if hasattr(handle, "get_marker") and hasattr(handle, "get_linestyle"):  # a line, or a dot drawn as a line
+        return ("line", hexed(handle.get_color()), str(handle.get_linestyle()), str(handle.get_marker()),
+                hexed(handle.get_markerfacecolor()), hexed(handle.get_markeredgecolor()))
+    if hasattr(handle, "get_paths") and hasattr(handle, "get_offsets"):  # a dot (scatter)
+        paths = handle.get_paths()
+        shape = tuple(map(tuple, paths[0].vertices.round(3))) if len(paths) else ()
+        return ("dot", hexed(handle.get_facecolors()), hexed(handle.get_edgecolors()), shape,
+                str(handle.get_hatch()))
+    return ("box", hexed(handle.get_facecolor()), str(getattr(handle, "get_hatch", lambda: None)()),
+            str(getattr(handle, "get_linestyle", lambda: None)()))
+
+
+def _one_legend(fig, charts):
+    """with_one_legend=True: one legend for the page (matplotlib Figure.legend) at its right; the charts' own
+    legends are taken away. Only when every chart with a legend shows the same one: the same name, the same
+    groups in the same order, drawn the same way (colour, shape, dashes, pattern). Otherwise it stops and says
+    which chart differs, so a shared legend can never be wrong for one of the charts."""
     from .._numbers_drawn import _all_axes
 
-    handles, labels, title = [], [], ""
-
-    def take(found_h, found_l, legend_title=""):
-        nonlocal title
-        title = title or legend_title
-        for h, label in zip(found_h, found_l):
-            if label and not label.startswith("_") and not label.endswith(":") and label not in labels:
-                handles.append(h if h is not None else Rectangle((0, 0), 1, 1, visible=False))
-                labels.append(label)
-
-    for sub in fig.subfigs:
-        for legend in list(sub.legends):
-            take(legend.legend_handles, [t.get_text() for t in legend.get_texts()], legend.get_title().get_text())
+    found = []
+    for number, sub in enumerate(fig.subfigs, start=1):
+        legends = list(sub.legends) + [ax.get_legend() for ax in _all_axes(sub) if ax.get_legend() is not None]
+        handles, labels, title = [], [], ""
+        for legend in legends:
+            title = title or legend.get_title().get_text()
+            for h, text in zip(legend.legend_handles, legend.get_texts()):
+                label = text.get_text()
+                if label.endswith(":") and not title:  # "class:" in front of a one-row legend is its name
+                    title = label[:-1]
+                elif label and not label.startswith("_") and label not in labels:
+                    handles.append(h)
+                    labels.append(label)
+        if labels:
+            found.append((number, title, labels, [_handle_look(h) for h in handles], handles, legends))
+    if not found:
+        return
+    first = found[0]
+    for number, title, labels, looks, _, _ in found[1:]:
+        if title != first[1]:
+            what = f'another legend name ("{title}" against "{first[1]}")'
+        elif labels != first[2]:
+            what = f"other groups ({', '.join(labels)} against {', '.join(first[2])})"
+        elif looks != first[3]:
+            what = "its groups drawn another way (colour, kind of mark, shape, dashes or pattern)"
+        else:
+            continue
+        raise SimplydataError(
+            f"with_one_legend=True needs the same legend on every chart, but chart {number} shows {what} "
+            f"than chart {first[0]}.\nLeave out with_one_legend=True to keep each chart's own legend.")
+    for *_, legends in found:
+        for legend in legends:
             legend.remove()
-        for ax in _all_axes(sub):
-            legend = ax.get_legend()
-            if legend is not None:
-                take(legend.legend_handles, [t.get_text() for t in legend.get_texts()],
-                     legend.get_title().get_text())
-                legend.remove()
-    if handles:
-        fig.legend(handles, labels, loc="outside center right", title=title or None)
+    fig.legend(first[4], first[2], loc="outside center right", title=first[1] or None)
 
 
 def _share(axes, which):

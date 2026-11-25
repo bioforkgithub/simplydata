@@ -67,16 +67,20 @@ ENTRIES = [
             chart.get_size(unit="cm")
         """,
         code={"matplotlib": """
+            import io
             import matplotlib.pyplot as plt
+            from PIL import Image
             fig = plt.figure(figsize=(17 / 2.54, 12 / 2.54))
-            # get_size(unit="cm")
-            width, height = fig.get_size_inches()
-            (round(width * 2.54, 4), round(height * 2.54, 4))
+            # get_size(unit="cm"): the picture savefig writes at 300 dots per inch
+            buffer = io.BytesIO()
+            fig.savefig(buffer, format="png", dpi=300)
+            width, height = Image.open(buffer).size
+            (round(width / 300 * 2.54, 4), round(height / 300 * 2.54, 4))
         """},
         compare="value",
         tolerance=1e-9,
-        also="simplydata also gives the size in inches, mm or pixels (at the save resolution of 300 dots per "
-             "inch, or the pixels set_size asked for), and the size of a whole page of charts.",
+        also="simplydata also gives the size in inches, mm or pixels, and the size of a whole page of charts; "
+             "without set_size it is the size of the page trimmed to what is drawn, as chart.save() writes it.",
     ),
     Entry(word="undo", ours="""
             chart = sdata.chart(sdata.get_example("marks"))

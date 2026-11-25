@@ -83,24 +83,18 @@ class ReadBackWords:
 
     @friendly
     def get_size(self, unit="inches") -> tuple[float, float]:
-        """The size of the chart as (width, height). chart.get_size(unit="cm")
+        """The size of the saved chart as (width, height). chart.get_size(unit="cm")
 
-        unit= is "inches" (normal, as set_size), "cm", "mm" or "pixels". In pixels it is the size of a saved
-        picture at the normal resolution (300 dots per inch), or exactly the pixels set_size(unit="pixels")
-        asked for. For a page of charts it is the size of the page.
+        unit= is "inches" (normal, as set_size), "cm", "mm" or "pixels". It is the size chart.save() writes at
+        its normal resolution (300 dots per inch): exactly the size set_size() asked for, or, without set_size,
+        the page trimmed to what is drawn. For a page of charts it is the size of the page.
         """
         unit = check_unit(unit, "get_size")
-        fig, look = self._drawn_figure()
-        width, height = (float(v) for v in fig.get_size_inches())
-        pixels = self._settings.get("pixels")
-        if unit == "pixels":
-            width, height = pixels if pixels else (width * SAVE_RESOLUTION, height * SAVE_RESOLUTION)
-        else:
-            width, height = width * PER_INCH[unit], height * PER_INCH[unit]
+        width, height = self._saved_pixels(SAVE_RESOLUTION)  # what save() writes, read from the picture itself
+        if unit != "pixels":
+            width, height = width / SAVE_RESOLUTION * PER_INCH[unit], height / SAVE_RESOLUTION * PER_INCH[unit]
         width, height = round(float(width), 4), round(float(height), 4)
-        short = {"inches": "inches", "cm": "cm", "mm": "mm", "pixels": "pixels"}[unit]
-        at = " (saved at 300 dots per inch)" if unit == "pixels" and not pixels else ""
-        print(f"The {self._what_it_is()} is {width:g} x {height:g} {short}{at}.")
+        print(f"The {self._what_it_is()} is {width:g} x {height:g} {unit} (saved at {SAVE_RESOLUTION} dots per inch).")
         return width, height
 
     @friendly

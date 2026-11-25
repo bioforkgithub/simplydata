@@ -121,7 +121,9 @@ def _each_colour(colours, n) -> list:
         return [""] * n
     if len(array) == n:
         return [colour_code(c) for c in array]
-    return [colour_code(array[0])] * n
+    if len(array) == 1:
+        return [colour_code(array[0])] * n
+    return [""] * n  # colours that cannot be matched to the points: none rather than a wrong one
 
 
 def _mapped(coll):
@@ -465,7 +467,7 @@ def _numbers_of_3d(ax, panel, name_of):
         if dots is not None:
             layer += 1
             xs, ys, zs = (np.ma.filled(np.ma.asarray(v, dtype=float), np.nan).ravel() for v in dots)
-            colours = _each_colour(_mapped(coll).get_facecolors(), len(xs))
+            colours = _colours_3d(coll, len(xs))
             for x, y, z, colour in zip(xs, ys, zs, colours):
                 rows.add(panel, layer, "dot", name_of(coll), x=x, y=y, value=z, colour=colour)
         elif faces is not None:
@@ -477,6 +479,19 @@ def _numbers_of_3d(ax, panel, name_of):
             for x, y, z in corners:
                 rows.add(panel, layer, "surface", name_of(coll), x=x, y=y, value=z)
     return rows.rows
+
+
+def _colours_3d(coll, n) -> list:
+    """The colour of each 3D dot in the order of the data. matplotlib sorts the colours it draws by depth, so they
+    are read from what it keeps in the data's order: the numbers coloured through the colour map
+    (ScalarMappable.to_rgba of the array), or the colours given (_facecolor3d)."""
+    values = coll.get_array()
+    if values is not None:
+        values = np.ma.asarray(values, dtype=float).ravel()
+        if len(values) == n:
+            return [colour_code(c) for c in coll.to_rgba(values, alpha=coll.get_alpha())]
+        return [""] * n
+    return _each_colour(getattr(coll, "_facecolor3d", None), n)
 
 
 def _all_axes(fig) -> list:
