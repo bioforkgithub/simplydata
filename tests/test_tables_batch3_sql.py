@@ -72,19 +72,70 @@ def test_table_run_sql_matches_duckdb(engine, duckdb, capsys):
     assert not river._history
 
 
-def test_table_run_sql_without_duckdb_uses_polars_sql(engine, monkeypatch, capsys):
+def _without_duckdb(monkeypatch):
+    """As if DuckDB were not installed: importing it fails and importlib finds no such module."""
+    import builtins
     import importlib.util
 
-    real = importlib.util.find_spec
-    monkeypatch.setattr(importlib.util, "find_spec", lambda name, *a: None if name == "duckdb" else real(name, *a))
-    answer = build(raw("river"), engine).run_sql(QUERY)
-    expected = pl.SQLContext(data=pl.from_pandas(raw("river"))).execute(QUERY, eager=True).to_pandas()
-    same(plain(answer), expected)
-    assert "Polars SQL (DuckDB is not installed)" in capsys.readouterr().out
-    with pytest.raises(SimplydataError, match="only reads"):
-        build(raw("river"), engine).run_sql("DROP TABLE data")
-    with pytest.raises(SimplydataError, match="web or cloud address"):
-        build(raw("river"), engine).run_sql("SELECT * FROM read_csv('https://example.invalid/x.csv')")
+    found = importlib.util.find_spec
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name, *a: None if name == "duckdb" else found(name, *a))
+    real = builtins.__import__
+
+    def importing(name, *args, **kwargs):
+        if name == "duckdb":
+            raise ImportError("no duckdb")
+        return real(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", importing)
+
+
+def test_table_run_sql_without_duckdb_stops_and_never_uses_polars_sql(engine, monkeypatch):
+    """Review fix: there is no Polars SQL stand-in (its read_csv / read_parquet table functions open any file)."""
+    river = build(raw("river"), engine)
+    used = []
+    monkeypatch.setattr(pl, "SQLContext", lambda *a, **k: used.append(a))
+    _without_duckdb(monkeypatch)
+    for query in (QUERY, "SELECT * FROM read_csv('secret.csv')"):
+        with pytest.raises(SimplydataError, match=r'(?s)needs DuckDB.*pip install "simplydata\[sql\]".*conda install'):
+            river.run_sql(query)
+    assert not used
+
+
+def test_a_table_query_cannot_read_local_files_on_either_engine(engine, duckdb, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "d").mkdir()
+    raw("marks").to_csv("d/secret.csv", index=False)
+    river = build(raw("river"), engine)
+    for query in ("SELECT * FROM read_csv('d/secret.csv')", "SELECT * FROM read_parquet('d/*.csv')",
+                  "SELECT * FROM 'd/secret.csv'", "SELECT * FROM read_blob('d/*')"):
+        with pytest.raises(SimplydataError, match="could not run the query"):
+            river.run_sql(query)
+
+
+@pytest.mark.parametrize("address", ["adl://account/x.csv", "abfs://box/x.csv", "abfss://box/x.csv",
+                                     "gcs://bucket/x.csv", "r2://bucket/x.csv", "ftp://host/x.csv",
+                                     "s3a://bucket/x", "webdav://host/x", "my-store+v2://x"])
+def test_any_scheme_address_is_refused_but_file(address, duckdb, engine):
+    from simplydata import _sql
+
+    with pytest.raises(SimplydataError, match="remote address"):
+        _sql.refuse_remote(f"SELECT * FROM '{address}'")
+    with pytest.raises(SimplydataError, match="remote address"):
+        build(raw("river"), engine).run_sql(f"SELECT * FROM data, read_csv('{address}')")
+    _sql.refuse_remote("SELECT * FROM 'file:///home/me/river.csv'")  # a file on this computer is no address
+    _sql.refuse_remote("SELECT * FROM 'C:/data/river.csv'")
+
+
+def test_the_statement_check_uses_duckdbs_parser(engine, duckdb):
+    """Review fix: a ; inside quoted text is fine; a second statement is still refused, however it is hidden."""
+    t = build({"a": [1.0, 2.0], "s": ["x;y", "z"]}, engine)
+    answer = t.run_sql("SELECT * FROM data WHERE s = 'x;y'")
+    assert plain(answer)["s"].tolist() == ["x;y"]
+    assert len(t.run_sql("select * from data limit 1;")) == 1
+    for smuggled in ("SELECT * FROM data WHERE s = 'x;y'; DROP TABLE data", "SELECT 1; INSTALL httpfs",
+                     "SELECT 1 /* ; */ ; ATTACH 'x.duckdb'"):
+        with pytest.raises(SimplydataError, match="one query at a time"):
+            t.run_sql(smuggled)
 
 
 def test_run_sql_needs_a_query_and_explains_duckdb_errors(duckdb):
@@ -110,16 +161,7 @@ def test_sdata_run_sql_on_files(duckdb, tmp_path, monkeypatch, capsys):
 
 
 def test_missing_duckdb_says_how_to_install_it(monkeypatch):
-    import builtins
-
-    real = builtins.__import__
-
-    def without_duckdb(name, *args, **kwargs):
-        if name == "duckdb":
-            raise ImportError("no duckdb")
-        return real(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", without_duckdb)
+    _without_duckdb(monkeypatch)
     with pytest.raises(SimplydataError, match=r'pip install "simplydata\[sql\]"'):
         sdata.run_sql("SELECT 1")
 
@@ -229,6 +271,24 @@ def test_database_options_are_checked(tmp_path, monkeypatch):
         marks.save("x.sqlite", if_exists="replace")
     marks.save("one.db", in_table="only")
     assert len(sdata.table("one.db")) == 54  # one table: no table_name= needed
+
+
+@pytest.mark.parametrize("ending", ["duckdb", "sqlite"])
+def test_a_table_name_in_other_capitals_is_refused_not_replaced(ending, engine, tmp_path, monkeypatch, capsys):
+    """Review fix: DuckDB and SQLite take "River" as "river"; saving it must never replace that table silently."""
+    if ending == "duckdb":
+        pytest.importorskip("duckdb")
+    monkeypatch.chdir(tmp_path)
+    name = f"r.{ending}"
+    build(raw("river"), engine).save(name, in_table="river")
+    with pytest.raises(SimplydataError, match=rf'(?s)already has a table "river".*in_table="river"'):
+        build({"z": [0]}, engine).save(name, in_table="River")
+    back = sdata.table(name, table_name="river")
+    assert len(back) == len(raw("river")) and "z" not in back.get_column_names()  # nothing was replaced
+    capsys.readouterr()
+    build(raw("marks"), engine).save(name, in_table="river")  # the exact name: replaced, and said
+    assert 'Replaced the table "river"' in capsys.readouterr().out
+    assert len(sdata.table(name, table_name="river")) == 54
 
 
 def test_duckdb_files(engine, duckdb, tmp_path, monkeypatch, capsys):

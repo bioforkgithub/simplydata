@@ -5,13 +5,15 @@ table.run_sql, sdata.run_sql and the .duckdb files of sdata.table / table.save o
   * no extension is installed or loaded on its own (DuckDB's autoinstall_known_extensions and
     autoload_known_extensions are off, community extensions are not allowed), so httpfs, the extension that reads
     web and cloud addresses, never comes in; and the settings are locked, so a query cannot switch them back on;
-  * a query or file name with a web or cloud address in it (http://, https://, s3://, gs:// ...) is refused before
-    DuckDB sees it;
+  * a query or file name with an address of any kind in it (anything written scheme://: http://, https://, s3://,
+    gs://, adl://, abfs:// ..., all but file://) is refused before DuckDB sees it;
   * a query may only read: one SELECT (or WITH ... SELECT). INSTALL, LOAD, ATTACH, COPY, SET, CREATE ... are
     refused, so a query never writes a file or changes a setting;
   * a query on a table (table.run_sql) cannot open files at all (enable_external_access is off).
 
-DuckDB is an optional extra: pip install "simplydata[sql]". Nothing here reaches the network (tests/test_privacy.py,
+DuckDB is an optional extra: pip install "simplydata[sql]". Both run_sql words need it; there is no other SQL engine
+(Polars SQL was left out on purpose: its read_csv and read_parquet table functions can open any file). Nothing here
+reaches the network (tests/test_privacy.py,
 tests/test_tables_batch3_sql.py).
 """
 
@@ -26,8 +28,8 @@ if TYPE_CHECKING:
     from .table import Table
 
 INSTALL_SQL = 'pip install "simplydata[sql]"   (or: conda install -c conda-forge python-duckdb)'
-# web and cloud addresses DuckDB (with httpfs and friends) or Polars could otherwise read
-_REMOTE = re.compile(r"\b(?:https?|s3a?|s3n|gcs|gs|r2|az|azure|abfss?|hf|ftp|sftp|ssh)://", re.IGNORECASE)
+# any address written scheme:// (web, cloud, remote file systems: http, s3, gs, adl, abfs, hf ...), except file://
+_REMOTE = re.compile(r"(?<![A-Za-z0-9+.-])(?!file://)[A-Za-z][A-Za-z0-9+.-]*://", re.IGNORECASE)
 # a query only reads: the DuckDB statement types that do
 _READING_STATEMENTS = ("SELECT",)
 
@@ -37,8 +39,8 @@ def refuse_remote(text, what="The query") -> None:
     found = _REMOTE.search(str(text))
     if found:
         raise SimplydataError(
-            f'{what} names a web or cloud address ("{found.group(0)}..."). simplydata never reads data from the '
-            "internet in SQL, so that your data and your queries stay on this computer.\n"
+            f'{what} names a web, cloud or other remote address ("{found.group(0)}..."). simplydata never reads '
+            "data from the internet in SQL, so that your data and your queries stay on this computer.\n"
             "Download the file yourself, then use its name on this computer, for example "
             "sdata.run_sql(\"SELECT * FROM 'river.parquet'\")."
         )

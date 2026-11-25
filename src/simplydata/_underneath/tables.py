@@ -2651,9 +2651,9 @@ ENTRIES += [
         compare="table",
         choices=("DuckDB runs with no extensions loaded or installed on their own and no access to files or the web, "
                  "the settings locked, and only one SELECT is run: a query can never fetch, install or write anything;",
-                 "inside the query the table is called data; a Polars table comes back as Polars (.pl()), and without "
-                 "DuckDB, Polars SQL runs the query (pl.SQLContext).",),
-        also="simplydata also says which engine ran and the size of the answer; the table itself does not change.",
+                 "inside the query the table is called data, and a Polars table comes back as Polars (.pl()); without "
+                 "DuckDB the word stops with the install line (no other SQL engine is used).",),
+        also="simplydata also says the size of the answer; the table itself does not change.",
     ),
     Entry(
         word="sdata.run_sql",
@@ -2869,8 +2869,9 @@ ENTRIES += [
             """,
         },
         compare="table",
-        choices=("both tables are sorted by the date first, as merge_asof and join_asof need, and the rows go back to "
-                 "this table's order afterwards;",
+        choices=("both tables are sorted stably by the date first, as merge_asof and join_asof need, and the rows go "
+                 "back to this table's order afterwards; a pandas table runs through Polars join_asof too, so ties, "
+                 "repeated dates and empty keys are handled by one rule on both engines;",
                  "\"nearest before\" takes the last row at or before each date (backward), \"nearest after\" the first "
                  "at or after (forward), \"nearest\" either; within= is the furthest it looks (tolerance), and "
                  "keep=\"matching rows\" leaves out the rows with nothing near enough.",),

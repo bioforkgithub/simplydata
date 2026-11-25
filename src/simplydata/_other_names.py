@@ -124,7 +124,7 @@ _TABLE = [
      "merge_asof join_asof rolling_join"),
     ('table.join_with(other_table, keep="every combination")', "cross_join"),
     ('table.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station")',
-     "sql sqldf SQLContext duckdb"),
+     "sql sqldf duckdb"),
     ('table.make_one_table_for_each_group_in("station")', "partition_by group_split split"),
     ("table.as_list()", "to_dict to_dicts to_records iterrows itertuples iter_rows"),
     ('table.save("results.sqlite", in_table="river")', "to_sql dbWriteTable write_database"),

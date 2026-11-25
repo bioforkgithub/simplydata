@@ -108,6 +108,20 @@ def test_open_high_low_close_by_month(engine):
         assert list(got[ours].round(9)) == list(expected[theirs].round(9))
 
 
+def test_first_and_last_keep_the_columns_own_kind(engine):
+    """Review fix: a whole number above 2**53 stays exact (no conversion to decimals), on both engines."""
+    big = 2 ** 60 + 1
+    data = pd.DataFrame({"g": ["a", "a", "b", "c"], "x": pd.array([big, 3, big + 2, None], dtype="Int64")})
+    t = make_table(data, fast=True) if engine == "polars" else make_table(data)
+    rows = t.find_summary_of("x", for_each_group_in="g", show=["first", "last"]).as_list()
+    assert [(r["first"], r["last"]) for r in rows] == [(big, 3), (big + 2, big + 2), (None, None)]
+    assert all(isinstance(r["first"], int) for r in rows[:2])
+    whole = build({"x": [big, 5]}, engine).find_summary_of("x", show=["first", "last"]).as_list()[0]
+    assert (whole["first"], whole["last"]) == (big, 5)
+    decimals = build({"x": [0.5, None, 2.5]}, engine).find_summary_of("x", show=["first", "last"]).as_list()[0]
+    assert (decimals["first"], decimals["last"]) == (0.5, 2.5)
+
+
 # ---------------------------------------------------------------- P43 sort_by(biggest_first=[...])
 def test_sort_by_with_a_direction_for_each_column(engine, capsys):
     t = example("marks", engine)
@@ -324,6 +338,62 @@ def test_join_nearest_is_checked(engine):
     holes = build({"date": pd.to_datetime(["2024-01-02", None]), "x": [1, 2]}, engine)
     with pytest.raises(SimplydataError, match="empty \"date\""):
         holes.join_with(_rain(), using="date", match="nearest")
+
+
+def _nearest_both(left, right, **options):
+    """The join on a pandas and on a Polars table, as plain rows."""
+    out = []
+    for engine in ENGINES:
+        t = build(left, engine)
+        t.join_with(build(right, engine), **options)
+        out.append([{k: (None if v is None or v != v else v) for k, v in row.items()} for row in t.as_list()])
+    return out
+
+
+def _plain_join_asof(left, right, on, strategy, by=None, **extra):
+    """Plain Polars join_asof after a stable sort, the rows back in this table's order."""
+    joined = (pl.from_pandas(pd.DataFrame(left)).with_row_index("i").sort(on, maintain_order=True)
+              .join_asof(pl.from_pandas(pd.DataFrame(right)).sort(on, maintain_order=True), on=on, by=by,
+                         strategy=strategy, **extra).sort("i").drop("i"))
+    return joined.to_dicts()
+
+
+@pytest.mark.parametrize("match, strategy", [("nearest before", "backward"), ("nearest after", "forward"),
+                                             ("nearest", "nearest")])
+def test_nearest_joins_agree_on_repeats_ties_and_empty_keys(match, strategy):
+    """Review fix: one rule on both engines (Polars join_asof after a stable sort), never pandas merge_asof's."""
+    left = {"t": [1, 5, 10, 5], "x": ["p", "q", "r", "s"]}
+    right = {"t": [3, 7, 7, 3], "v": ["a", "b", "c", "d"]}
+    on_pandas, on_polars = _nearest_both(left, right, using="t", match=match, keep="all rows from this table")
+    assert on_pandas == on_polars
+    expected = _plain_join_asof(left, right, "t", strategy)
+    assert [r["v"] for r in on_pandas] == [r["v"] for r in expected]
+    # the tie (5 is as near to 3 as to 7) and the repeated keys are broken as Polars does, on both engines
+    assert on_pandas[1]["v"] == {"backward": "d", "forward": "b", "nearest": expected[1]["v"]}[strategy]
+    # empty exact-match keys never pair
+    left2 = {"s": ["A", None, "B"], "t": [5, 5, 1]}
+    right2 = {"s": ["A", None, "B"], "t": [4, 4, 0], "v": [1, 2, 3]}
+    on_pandas, on_polars = _nearest_both(left2, right2, using=["s", "t"], match=match,
+                                         keep="all rows from this table")
+    assert on_pandas == on_polars
+    assert on_pandas[1]["v"] is None
+    if strategy != "forward":
+        assert on_pandas[0]["v"] == 1 and on_pandas[2]["v"] == 3
+
+
+def test_nearest_joins_take_whole_numbers_and_decimals():
+    left, right = {"t": [2, 4]}, {"t": [1.0, 3.5], "v": [1, 2]}
+    on_pandas, on_polars = _nearest_both(left, right, using="t", match="nearest before")
+    assert on_pandas == on_polars == [{"t": 2, "v": 1, "t_other": 1.0}, {"t": 4, "v": 2, "t_other": 3.5}]
+    on_pandas, on_polars = _nearest_both(right, left, using="t", match="nearest after",
+                                         keep="all rows from this table")
+    assert on_pandas == on_polars and [r["t_other"] for r in on_pandas] == [2, 4]
+
+
+def test_nearest_join_keeps_the_pandas_table_pandas():
+    t = build({"t": [1, 2]}, "pandas")
+    t.join_with({"t": [1], "v": [5]}, using="t", match="nearest before", keep="all rows from this table")
+    assert isinstance(t._done(), pd.DataFrame)
 
 
 def test_join_every_combination(engine, capsys):

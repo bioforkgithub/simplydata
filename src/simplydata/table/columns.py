@@ -1939,8 +1939,12 @@ class ColumnWords:
         it looks. The last using= column is matched to the nearest value and the others exactly
         (using=["station", "date"]); the other table's date comes in as "date_other". keep="matching
         rows" leaves out rows with nothing near enough; keep="all rows from this table" keeps them
-        with empty cells (pandas merge_asof(direction="backward", tolerance=pd.Timedelta("2 days")),
-        Polars join_asof(strategy="backward", tolerance="2d"); both tables are sorted by the date first):
+        with empty cells. Both pandas and Polars tables run through Polars join_asof(strategy="backward",
+        tolerance="2d"), so they give the same rows; both tables are sorted by the date first, keeping
+        the order of rows with the same date. When the other table has several rows with the same
+        date, "nearest before" takes the last of them and "nearest after" the first; with "nearest",
+        a date as far before as after goes to the later one (Polars' rules). An empty value in an
+        exact using= column never matches, as in every join; whole numbers and decimals match:
           river.join_with(rain, using="date", match="nearest before", within="2 days")
         keep="every combination" pairs every row with every row, without using= (a cross join:
         pandas merge(how="cross"), Polars join(how="cross")).

@@ -422,6 +422,7 @@ class BaseTable:
             try:
                 there = [row[0] for row in con.execute(
                     "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'").fetchall()]
+                _same_but_capitals(path, in_table, there)
                 con.register("_simplydata_table_", pandas_table)
                 con.execute(f"CREATE OR REPLACE TABLE {_sql.quoted(in_table)} AS SELECT * FROM _simplydata_table_")
             finally:
@@ -429,14 +430,16 @@ class BaseTable:
         else:
             import sqlite3
 
+            con = sqlite3.connect(path)
             try:
-                con = sqlite3.connect(path)
-                there = [row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+                try:
+                    there = [row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+                except sqlite3.DatabaseError as problem:
+                    raise SimplydataError(f'"{path.name}" exists but is not an SQLite database ({problem}), so '
+                                          "simplydata cannot add a table to it. Save to a new file name.") from None
+                _same_but_capitals(path, in_table, there)
                 pandas_table.to_sql(in_table, con, if_exists="replace", index=False)  # pandas to_sql
                 con.commit()
-            except sqlite3.DatabaseError as problem:
-                raise SimplydataError(f'"{path.name}" exists but is not an SQLite database ({problem}), so '
-                                      "simplydata cannot add a table to it. Save to a new file name.") from None
             finally:
                 con.close()
         if in_table in there:
@@ -658,6 +661,17 @@ class BaseTable:
         guesses = suggest(name, self._word_names())
         hint = f"table.{guesses[0]}(...)" if guesses else 'a step such as table.rename_column("old", to="new")'
         raise SimplydataError(f"Steps are written with brackets, not with =.\nInstead of table.{name} = ..., write {hint}")
+
+
+def _same_but_capitals(path, in_table, there) -> None:
+    """SQLite and DuckDB take "River" and "river" as the same table: replacing it under other capitals is refused,
+    so that a table is never replaced without the note that says so."""
+    found = [name for name in there if name.lower() == in_table.lower() and name != in_table]
+    if found:
+        raise SimplydataError(
+            f'"{path.name}" already has a table "{found[0]}", and the database counts "{in_table}" as the same name '
+            f"(capital letters do not matter in table names).\nTo replace that table:  "
+            f'table.save("{path.name}", in_table="{found[0]}"); or choose another name.')
 
 
 def _independent_native(native):

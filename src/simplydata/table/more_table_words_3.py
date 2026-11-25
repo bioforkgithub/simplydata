@@ -69,6 +69,37 @@ def _within_limit(within, numbers: bool, example: str):
     return datetime.timedelta(**{found.group(2) + "s": float(found.group(1))})
 
 
+def _common_kind(pl, here, there, key):
+    """One Polars kind for a key in both tables: decimals when either holds decimals, a time when either holds a
+    time (both in UTC when both say a time zone), or the kind they share. Other mixes are refused."""
+    def temporal(t):
+        return t == pl.Date or isinstance(t, pl.Datetime)
+
+    if here == there:
+        return here
+    if here.is_numeric() and there.is_numeric():
+        return pl.Float64 if (here.is_float() or there.is_float()) else pl.Int64
+    if temporal(here) and temporal(there):
+        zones = {t.time_zone if isinstance(t, pl.Datetime) else None for t in (here, there)}
+        if len(zones) > 1 and None in zones:
+            raise SimplydataError(f'"{key}" has a time zone in one table and none in the other, so the times cannot be '
+                                  "matched. Give both the same time zone first.")
+        return pl.Datetime("us", "UTC" if zones - {None} else None)
+    raise SimplydataError(f'"{key}" holds {here} values in this table and {there} values in the other table, so no '
+                          "rows can match. Make them the same kind first (turn_into_numbers, turn_into_text or "
+                          "turn_into_dates).")
+
+
+def _as_kind(pl, name, kind_now, kind):
+    """The column as the common kind (Polars cast; a time with a zone is changed to UTC first)."""
+    col = pl.col(name)
+    if kind_now == kind:
+        return col
+    if isinstance(kind, pl.Datetime) and kind.time_zone == "UTC" and isinstance(kind_now, pl.Datetime):
+        return col.dt.convert_time_zone("UTC").cast(kind)
+    return col.cast(kind)
+
+
 def _cell(value):
     """A cell as Python gives it, with an empty cell as None (bookkeeping for the printed tables)."""
     if value is None:
@@ -327,62 +358,30 @@ class MoreTableWordsThree:
 
         table.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station")   (with sdata.get_example("river"))
         Inside the query the table is called data; a column with spaces goes in double quotes
-        ("max temp"). The table itself does not change. The query runs in DuckDB (pip install
-        "simplydata[sql]"): DuckDB con.register("data", df) and con.sql(query).df(), or .pl() for a
-        Polars table. Without DuckDB, Polars SQL runs it (pl.SQLContext(data=df).execute(query)),
-        and the sentence says which one ran. The query may only read (one SELECT); it can never
-        read a web address, install anything or write a file, so the data stay on this computer.
+        ("max temp"). The table itself does not change. The query runs in DuckDB, an optional extra
+        (pip install "simplydata[sql]", or conda install -c conda-forge python-duckdb): DuckDB
+        con.register("data", df) and con.sql(query).df(), or .pl() for a Polars table. The query may
+        only read (one SELECT); it can never open a file or a web address, install anything or
+        write a file, so the data stay on this computer.
         Files, without a table first: sdata.run_sql("SELECT ... FROM 'river.csv'").
         """
-        import importlib.util
-
         from .. import _sql
 
         example = 'table.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station")'
         polars = self._frame.implementation.is_polars()
         native = self._frame.to_native()
-        if importlib.util.find_spec("duckdb") is not None:
-            con = _sql.connect("table.run_sql()")
-            try:
-                _sql.check_query(con, query, example)
-                con.register("data", native)  # DuckDB con.register("data", df)
-                answer = _sql.run(con, query, example, polars)  # con.sql(query).df() / .pl()
-            finally:
-                con.close()
-            engine = "DuckDB"
-        else:
-            answer = self._run_polars_sql(query, example, native)
-            engine = "Polars SQL (DuckDB is not installed)"
+        con = _sql.connect("table.run_sql()")  # a plain error with the install line when DuckDB is missing
+        try:
+            _sql.check_query(con, query, example)
+            con.register("data", native)  # DuckDB con.register("data", df)
+            answer = _sql.run(con, query, example, polars)  # con.sql(query).df() / .pl()
+        finally:
+            con.close()
         result = self._new_table(nw.from_native(answer, eager_only=True))
         rows, cols = result._frame.shape
-        print(f"Ran the query with {engine} on this table (called data in the query): {_rows(rows)}, "
+        print(f"Ran the query with DuckDB on this table (called data in the query): {_rows(rows)}, "
               f"{cols} column{'s' if cols != 1 else ''}.")
         return result
-
-    @staticmethod
-    def _run_polars_sql(query, example, native):
-        """table.run_sql without DuckDB: Polars SQLContext(data=df).execute(query) (D2 of the tables proposal)."""
-        from .. import _sql
-
-        if not isinstance(query, str) or not query.strip():
-            raise SimplydataError(f"run_sql() needs the query as text in quotes.\nFor example:  {example}")
-        _sql.refuse_remote(query)
-        if not re.match(r"\s*(?:\(\s*)*(?:select|with)\b", query, flags=re.IGNORECASE) or ";" in query.strip()[:-1]:
-            raise SimplydataError("run_sql() only reads: the query must be one SELECT (or WITH ... SELECT).\n"
-                                  f"For example:  {example}")
-        try:
-            import polars as pl
-        except ImportError:
-            raise SimplydataError(f"table.run_sql() needs DuckDB, an optional extra.\nInstall it with:  "
-                                  f"{_sql.INSTALL_SQL}") from None
-        is_pandas = type(native).__module__.split(".")[0] == "pandas"
-        frame = pl.from_pandas(native) if is_pandas else native
-        try:
-            answer = pl.SQLContext(data=frame).execute(query, eager=True)  # Polars SQLContext
-        except Exception as problem:  # noqa: BLE001 - Polars' own message, given back plainly
-            first = (str(problem).strip().splitlines() or [""])[0]
-            raise SimplydataError(f"Polars SQL could not run the query: {first}\nFor example:  {example}") from None
-        return answer.to_pandas() if is_pandas else answer
 
     # ================================================================== one table for each group
     @friendly(others={"by": "column", "for_each_group_in": "column"})
@@ -454,7 +453,11 @@ class MoreTableWordsThree:
         return self._change("join with another table (keep every combination)", frame)
 
     def _join_nearest(self, other, using, keep, match, within, check_that, with_match_column):
-        """join_with(match="nearest before", within="2 days"): pandas merge_asof, Polars join_asof."""
+        """join_with(match="nearest before", within="2 days"): Polars join_asof, for pandas and Polars tables alike.
+
+        A pandas table goes through Polars and comes back as pandas (as show_differences_from goes through pandas
+        compare), so both engines give the same rows: pandas merge_asof breaks ties and pairs empty keys in other
+        ways. Both tables are sorted stably by the key first, and the rows go back to this table's order."""
         step = "join_with"
         example = _example('river.join_with(rain, using="date", match="nearest before", within="2 days")')
         if match not in MATCH_CHOICES:
@@ -466,12 +469,17 @@ class MoreTableWordsThree:
         if check_that is not None or with_match_column:
             raise SimplydataError(f'match="{match}" finds one row for each row, so check_that= and '
                                   "with_match_column= are not needed with it." + example)
-        right, keys, said = self._matched_other(other, using, step, 'table.join_with(other, using="date")')
+        try:
+            import polars as pl
+        except ImportError:
+            raise SimplydataError(f'match="{match}" needs Polars, the fast engine.\n'
+                                  "Install it with:  pip install simplydata[fast]") from None
+        right, keys, said = self._nearest_other(other, using, step)
         on, by = keys[-1], keys[:-1]
         kind_here, kind_there = self._frame.schema[on], right.schema[on]
-        dates = kind_here in (nw.Date, nw.Datetime) or isinstance(kind_here, nw.Datetime)
-        numbers = kind_here.is_numeric()
-        if not (dates or numbers) or (dates and not (kind_there == nw.Date or isinstance(kind_there, nw.Datetime))):
+        numbers = kind_here.is_numeric() and kind_there.is_numeric()
+        dates = all(k == nw.Date or isinstance(k, nw.Datetime) for k in (kind_here, kind_there))
+        if not (dates or numbers):
             raise SimplydataError(f'match="{match}" looks for the nearest value, so "{on}" must hold dates or numbers '
                                   "in both tables (turn_into_dates makes text into dates)." + example)
         tolerance = None if within is None else _within_limit(within, numbers, example)
@@ -486,38 +494,36 @@ class MoreTableWordsThree:
         other_on = f"{on}{JOIN_SUFFIX}"
         if other_on in self._columns:
             raise SimplydataError(f'The table already has a column "{other_on}". Rename it first (rename_column).')
-        right = right.with_columns(nw.col(on).alias(other_on), nw.lit(True).alias(mark))
-        left = self._frame.with_row_index(index)
-        polars = left.implementation.is_polars()
-        direction = MATCH_CHOICES[match]
+        pandas_table = not self._frame.implementation.is_polars()
+        here = pl.from_pandas(self._frame.to_pandas()) if pandas_table else self._frame.to_native()
+        there = right.to_native() if right.implementation.is_polars() else pl.from_pandas(right.to_pandas())
+        # the keys as one kind in both tables (whole numbers and decimals as decimals; dates and times as times), in
+        # helper columns, so the columns themselves keep their kind
+        key_names = [f"_simplydata_key_{i}_" for i in range(len(keys))]
+        here_keys, there_keys = [], []
+        for name, key in zip(key_names, keys):
+            kind = _common_kind(pl, here.schema[key], there.schema[key], key)
+            here_keys.append(_as_kind(pl, key, here.schema[key], kind).alias(name))
+            there_keys.append(_as_kind(pl, key, there.schema[key], kind).alias(name))
+        here = here.with_row_index(index).with_columns(here_keys)
+        there = there.with_columns(pl.col(on).alias(other_on), pl.lit(True).alias(mark), *there_keys).drop(keys)
+        if by:  # an empty key never matches, as in every simplydata join
+            there = there.filter(pl.all_horizontal(pl.col(key_names[:-1]).is_not_null()))
         try:
-            if polars:
-                import warnings
+            import warnings
 
-                # Polars join_asof(on=, by=, strategy="backward", tolerance=timedelta(days=2)), both sorted by on (the
-                # sort is done here, so Polars' note that it cannot check it with by= is not shown)
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", message="Sortedness of columns cannot be checked")
-                    native = left.to_native().sort(on).join_asof(right.to_native().sort(on), on=on, by=by or None,
-                                                                 strategy=direction, tolerance=tolerance,
-                                                                 suffix=JOIN_SUFFIX)
-            else:
-                import pandas as pd
-
-                here, there = left.to_native().sort_values(on, kind="stable"), right.to_native().sort_values(on)
-                if dates and there[on].dtype != here[on].dtype:
-                    there = there.astype({on: here[on].dtype, other_on: here[on].dtype})
-                # pandas merge_asof(on=, by=, direction="backward", tolerance=pd.Timedelta("2 days")), both sorted
-                native = pd.merge_asof(here, there, on=on, by=by or None, direction=direction,
-                                       tolerance=None if tolerance is None else
-                                       (tolerance if numbers else pd.Timedelta(tolerance)),
-                                       suffixes=("", JOIN_SUFFIX))
-        except SimplydataError:
-            raise
+            # Polars join_asof(on=, by=, strategy="backward", tolerance=timedelta(days=2)), both sorted stably by the
+            # key (the sort is done here, so the Polars note that it cannot check it with by= is not shown)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="Sortedness of columns cannot be checked")
+                joined = here.sort(key_names[-1], maintain_order=True).join_asof(
+                    there.sort(key_names[-1], maintain_order=True), on=key_names[-1], by=key_names[:-1] or None,
+                    strategy=MATCH_CHOICES[match], tolerance=tolerance, suffix=JOIN_SUFFIX)
         except Exception as problem:  # noqa: BLE001 - the parent's own message, given back plainly
             first = (str(problem).strip().splitlines() or [""])[0]
             raise SimplydataError(f"The tables could not be joined on the nearest {on}: {first}") from None
-        frame = nw.from_native(native, eager_only=True).sort(index)
+        joined = joined.sort(index).drop([c for c in joined.columns if c.startswith("_simplydata_key_")])
+        frame = nw.from_native(joined.to_pandas() if pandas_table else joined, eager_only=True)
         found = nw.col(mark).fill_null(False)
         matched = self._count_rows_where(frame, found)
         limit = "" if within is None else f" within {within}"
@@ -533,6 +539,31 @@ class MoreTableWordsThree:
         frame = frame.drop([index, mark])
         what = f"join with another table using the {match} {said}{limit} (keep {keep})"
         return self._change(what, frame)
+
+    def _nearest_other(self, other, using, step):
+        """The other table, its key columns named as here: (other frame, this table's key names, the keys in words).
+        As _matched_other, but whole numbers and decimals are left for _common_kind to bring together."""
+        right = self._other_frame(other, step)
+        example = _example('table.join_with(other, using="date", match="nearest before")')
+        if isinstance(using, dict) and using and all(isinstance(k, str) and isinstance(v, str)
+                                                     for k, v in using.items()):
+            keys, other_keys = list(using), list(using.values())
+        else:
+            keys = [using] if isinstance(using, str) else _as_list([using]) if using is not None else []
+            if not keys or not all(isinstance(k, str) for k in keys):
+                raise SimplydataError("using= names the column to match on (the last one is matched to the nearest "
+                                      "value, the others exactly)." + example)
+            other_keys = list(keys)
+        self._need_columns(*keys)
+        for o in other_keys:
+            if o not in right.columns:
+                raise SimplydataError(f'The other table has no column "{o}". Its columns: '
+                                      + ", ".join(map(str, right.columns)))
+        rename = {o: k for k, o in zip(keys, other_keys) if o != k}
+        if rename:
+            right = right.rename(rename)
+        said = ", ".join(k if k == o else f"{k} = {o}" for k, o in zip(keys, other_keys))
+        return right, keys, said
 
     @staticmethod
     def _count_rows_where(frame, expr) -> int:

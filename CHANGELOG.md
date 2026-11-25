@@ -64,10 +64,11 @@ working for one release and prints a one-line note with its new name.
   `table.save("results.sqlite", in_table="river")`, which replaces that table and keeps the others (the mirror of
   `in_sheet=`).
 - `table.run_sql("SELECT ... FROM data ...")` and `sdata.run_sql("SELECT ... FROM 'river/*.parquet' ...")`: SQL
-  through DuckDB, a new optional extra (`pip install "simplydata[sql]"`); without DuckDB the table word runs Polars
-  SQL. For sensitive data, DuckDB is opened with no extensions installed or loaded on their own (so it cannot read
-  web or cloud addresses), its settings locked and only one SELECT allowed; a query naming https://, s3:// and the
-  like is refused before DuckDB sees it, and a query on a table cannot open files.
+  through DuckDB, a new optional extra (`pip install "simplydata[sql]"`); without DuckDB both words stop with the
+  install line. For sensitive data, DuckDB is opened with no extensions installed or loaded on their own (so it
+  cannot read web or cloud addresses), its settings locked and only one SELECT allowed (checked by DuckDB's own
+  parser); a query naming any scheme:// address but file:// (https://, s3://, adl:// ...) is refused before DuckDB
+  sees it, and a query on a table cannot open files.
 - `tables = table.make_one_table_for_each_group_in("station")`: one table for each group, `tables["Station A"]`.
 - Formula functions `length(name)` and `count_text(genes, ";")` (pandas `str.len`, `str.count`; Polars
   `len_chars`, `count_matches`); `length()` works in conditions too.

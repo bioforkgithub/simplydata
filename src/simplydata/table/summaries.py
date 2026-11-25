@@ -1839,9 +1839,11 @@ class SummaryWords:
                     else:
                         data[name].append(own_values.get((key, name)))
         result = nw.from_dict(data, backend=self._frame.implementation)
-        float_names = [n for n in out_names if _is_array_measure(n) or n in FIRST_LAST]
+        float_names = [n for n in out_names if _is_array_measure(n)]
         if float_names:
             result = result.with_columns(nw.col(n).cast(nw.Float64) for n in float_names)
+        if ends:  # first and last keep the column's own kind (a whole number above 2**53 stays exact)
+            result = self._ends_in_own_kind(result, data, columns, ends)
         result = result.with_columns(nw.col(n).cast(nw.Int64) for n in ("count", "empty cells") if n in out_names)
         table = self._new_table(result)
         self._note_empty(frame, columns)
@@ -1865,6 +1867,31 @@ class SummaryWords:
                       f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
         return table
+
+    def _ends_in_own_kind(self, result, data, columns, ends):
+        """The "first" and "last" columns built in the summarised column's own kind: Polars pl.Series(dtype=), pandas
+        the same numpy kind, or its nullable twin (Int64 for int64) when a group has no value. Several columns of
+        different kinds become decimals."""
+        native = self._frame.to_native()
+        kinds = {native.schema[c] if self._frame.implementation.is_polars() else native[c].dtype for c in columns}
+        values = {end: [None if isinstance(v, float) and math.isnan(v) else v for v in data[end]] for end in ends}
+        if len(kinds) != 1:
+            return result.with_columns(nw.col(end).cast(nw.Float64) for end in ends)
+        kind = next(iter(kinds))
+        out = result.to_native()
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            out = out.with_columns(pl.Series(end, values[end], dtype=kind) for end in ends)
+        else:
+            import pandas as pd
+
+            for end in ends:
+                target, name = kind, str(kind)
+                if any(v is None for v in values[end]) and name.startswith(("int", "uint")):  # numpy int64 -> Int64
+                    target = "UInt" + name[4:] if name.startswith("uint") else "Int" + name[3:]
+                out[end] = pd.Series(pd.array(values[end], dtype=target), index=out.index)
+        return nw.from_native(out, eager_only=True)
 
     @staticmethod
     def _first_and_last(frame, groups, column, ends) -> dict:

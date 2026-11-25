@@ -4399,10 +4399,12 @@ BASIS["table.check_if_same_as"] = _b(
     "text; the sentence names the first difference.", (), "P4", "", "convention")
 BASIS["table.run_sql"] = _b(
     "DuckDB, with the table called data; no extensions loaded or installed on their own, no files, the settings "
-    "locked, and one SELECT only. Without DuckDB, Polars SQL.",
+    "locked, and one SELECT only. Without DuckDB the word stops with the install line.",
     "sdata.run_sql() for queries on files; the table words for the same jobs without SQL.",
-    "Privacy: simplydata is used on sensitive data, so a query must never fetch from or send to the web, install "
-    "anything or write a file; DuckDB's own settings and a check of the statement type enforce it.", (), "P4",
+    "Privacy: simplydata is used on sensitive data, so a query must never fetch from or send to the web, open a "
+    "file, install anything or write a file; DuckDB's own settings and its own parser's statement type enforce it. "
+    "Polars SQL is not used as a stand-in: its read_csv and read_parquet table functions can open any file.", (),
+    "P4",
     "A query with a web or cloud address, more than one statement, or anything but a SELECT is refused before it "
     "runs.", "convention")
 BASIS["sdata.run_sql"] = _b(
