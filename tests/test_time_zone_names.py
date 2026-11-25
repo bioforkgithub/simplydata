@@ -9,6 +9,7 @@ standard time zone rules, not from either engine).
 """
 
 import datetime as dt
+from pathlib import Path
 
 import narwhals as nw
 import pandas as pd
@@ -245,6 +246,33 @@ def test_oslo_before_1970_is_the_same_moment_on_both_engines(capsys):
         assert as_polars(t).schema["t"] == pl.Datetime("us", "Europe/Oslo")
         t.change_time_zone_in("t", to="UTC")
         assert as_polars(t)["t"].to_list() == expected, engine
+
+
+def test_one_set_of_zone_rules_whatever_the_computer_has(tmp_path):
+    """pandas reads a zone through Python's zoneinfo (the computer's copy of the time zone data), Polars through its
+    own copy; Debian and Ubuntu, for one, keep Norway's summer time of 1959 to 1965, which the main data leaves out.
+    simplydata reads every clock through Polars on both engines (simplydata._zone_clock), so the words above agree
+    whatever copy the computer has. Here the computer's "Europe/Oslo" is made to follow other rules (India's, +05:30)
+    for a second test run: every Oslo word must still be the same on both engines."""
+    import os
+    import shutil
+    import subprocess
+    import sys
+    from importlib import resources
+
+    tzdata = pytest.importorskip("tzdata")
+    (tmp_path / "Europe").mkdir()
+    with resources.as_file(resources.files(tzdata) / "zoneinfo" / "Asia" / "Kolkata") as kolkata:
+        shutil.copyfile(kolkata, tmp_path / "Europe" / "Oslo")
+    env = dict(os.environ, PYTHONTZPATH=str(tmp_path))
+    check = "import pandas as pd; print(pd.Timestamp('2024-07-01').tz_localize('Europe/Oslo').utcoffset())"
+    assert subprocess.run([sys.executable, "-c", check], env=env, capture_output=True, text=True,
+                          check=True).stdout.strip() == "5:30:00", "the other rules are in place"
+    run = subprocess.run([sys.executable, "-m", "pytest", __file__, "-q", "-p", "no:cacheprovider",
+                          "-k", "Oslo and (both_engines or kind_and_description or saved_and_read or text_files)"],
+                         env=env, capture_output=True, text=True, cwd=str(Path(__file__).parents[1]))
+    assert run.returncode == 0, run.stdout[-3000:] + run.stderr[-2000:]
+    assert " passed" in run.stdout and " failed" not in run.stdout
 
 
 @pytest.mark.parametrize("zone", ZONES)

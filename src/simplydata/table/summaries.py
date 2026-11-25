@@ -47,6 +47,7 @@ import math
 import narwhals as nw
 import numpy as np
 
+from .. import _zone_clock
 from .._errors import SimplydataError, choice_error, friendly
 from .._stats import _plain_name
 from .conditions import _empty_in
@@ -135,17 +136,30 @@ def _truncated(frame, column, code):
 
     A pandas column with a time zone is truncated by Polars dt.truncate and comes back as pandas: narwhals
     truncates pandas months, quarters and years on the UTC clock (through NumPy datetime64), so 1 July 00:00
-    in Oslo (30 June 22:00 UTC) fell in June, while Polars uses the column's own clock.
+    in Oslo (30 June 22:00 UTC) fell in June, while Polars uses the column's own clock. A column with a time zone
+    is truncated by Polars on both engines (code "1w" too: the Monday of the week), so its local clock follows the
+    main world time zone data (IANA), the same on every computer (simplydata._zone_clock).
     """
     dtype = frame.schema[column]
-    if frame.implementation.is_polars() or not (dtype == nw.Datetime and dtype.time_zone):
+    if not (dtype == nw.Datetime and dtype.time_zone):
         return nw.col(column).dt.truncate(code)
     import polars as pl
 
     native = frame[column].to_native()
+    if frame.implementation.is_polars():
+        return nw.from_native(native.dt.truncate(code), series_only=True).alias(column)
     start = pl.from_pandas(native).dt.truncate(code).to_pandas().astype(native.dtype)
     start.index = native.index
     return nw.from_native(start, series_only=True).alias(column)
+
+
+def _on_one_clock(frame, position, column):
+    """frame.rows(), with the cells of column (at position) read on Polars' clock when it has a time zone, so the
+    column names of a cross table are the same on both engines (simplydata._zone_clock)."""
+    rows = frame.rows()
+    if not _zone_clock.on_pandas_with_zone(frame, [column]):
+        return rows
+    return [(*r[:position], v, *r[position + 1:]) for r, v in zip(rows, _zone_clock.values(frame, column))]
 
 
 def _plain(value):
@@ -720,7 +734,10 @@ class SummaryWords:
             )
         frame = nw.maybe_reset_index(frame)
         for g in dates:
-            if name == "week":
+            if name == "week" and schema[g] == nw.Datetime and schema[g].time_zone:
+                # the Monday on the column's own clock: Polars dt.truncate("1w") on both engines (_zone_clock)
+                frame = frame.with_columns(_truncated(frame, g, "1w"))
+            elif name == "week":
                 values = [None if _missing(v) else _week_start(v) for v in frame[g].to_list()]
                 frame = frame.with_columns(
                     nw.new_series(g, values, schema[g], backend=frame.implementation))
@@ -740,7 +757,7 @@ class SummaryWords:
         rows with an empty group or across= value stay in the table (as "(empty)") and so count in the totals;
         pandas leaves them out of the table and its margins."""
         long = frame.group_by([*groups, across], drop_null_keys=False).agg(expr.alias("__value"))
-        rows = long.select(*groups, across, "__value").rows()
+        rows = _on_one_clock(long.select(*groups, across, "__value"), len(groups), across)
         row_keys = sorted({_key(r[:-2]) for r in rows}, key=lambda k: tuple(_order(v) for v in k))
         col_keys = sorted({_key(r[-2:-1])[0] for r in rows}, key=_order)
         cells = {(_key(r[:-2]), _key(r[-2:-1])[0]): _plain(r[-1]) for r in rows}
@@ -759,8 +776,9 @@ class SummaryWords:
                                       f'table.replace_values_in("{across}", "{TOTAL}", with_value="total (typed)").')
             by_row = {_key(r[:-1]): _plain(r[-1]) for r in frame.group_by(groups, drop_null_keys=False)
                       .agg(expr.alias("__value")).select(*groups, "__value").rows()}
-            by_column = {_key(r[:1])[0]: _plain(r[1]) for r in frame.group_by([across], drop_null_keys=False)
-                         .agg(expr.alias("__value")).select(across, "__value").rows()}
+            by_column = {_key(r[:1])[0]: _plain(r[1]) for r in _on_one_clock(
+                frame.group_by([across], drop_null_keys=False).agg(expr.alias("__value")).select(across, "__value"),
+                0, across)}
             everything = _plain(frame.select(expr.alias("__value")).item())
             data[TOTAL] = [by_row.get(k, fill) for k in row_keys]
             for i, g in enumerate(groups):  # the total row: "(total)" in the first group column, text from here on
@@ -1078,7 +1096,9 @@ class SummaryWords:
         across= gives a cross table, one column per subject:
         table.find_average_of("marks", for_each_group_in="class", across="subject")
         every= groups a date column in for_each_group_in= into "hour", "day", "week", "month",
-        "quarter" or "year" periods:
+        "quarter" or "year" periods (a date with a time zone on its own clock, read by Polars on both
+        engines: local clock times before 1970 follow the main world time-zone data (IANA), the same on
+        every computer):
         table.turn_into_dates("year")
         table.find_average_of("population", for_each_group_in="year", every="year")   (with sdata.get_example("growth"))
         interval=95 adds the 95 % confidence interval of each average (the t interval, as R

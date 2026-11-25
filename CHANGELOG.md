@@ -16,6 +16,15 @@ working for one release and prints a one-line note with its new name.
 
 ### Fixed
 
+- One set of time zone rules on every computer (decided by Manish 2026-11-26). pandas reads the clock of a column
+  with a time zone through the computer's copy of the world time zone data, Polars through its own; the copies can
+  differ before 1970 (Debian and Ubuntu keep Norway's summer time of 1959 to 1965, the main IANA data does not), so
+  on Linux 1 July 1959 00:00 in Oslo was month 7 on a pandas table and month 6 on a Polars table. Every date step on
+  a column with a time zone now reads and writes its clock through Polars on both engines: the parts of a date,
+  `turn_into_text`, `add_column(plus=, minus=, by_subtracting=, counted_in=)`, joined text, `every=`, cross-table
+  column names, `keep_rows_where` on dates, `change_time_zone_in(recorded_in=)`, `describe_columns`,
+  `add_missing_dates`, `round_dates_in` and Excel and Stata files. Local clock times before 1970 follow the main
+  world time-zone data (IANA), the same on every computer; the moments themselves never change.
 - Time zone names with `_`, `-`, `+` or digits (`America/New_York`, `America/Port-au-Prince`, `Etc/GMT+5`,
   `America/Argentina/Buenos_Aires`) on a pandas table. narwhals (2.27 to 2.29) reads the kind of a pandas column from
   its written dtype with a pattern that takes only letters and `/` in the zone, so such a column was `Unknown`: every

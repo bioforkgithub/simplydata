@@ -21,6 +21,7 @@ from pathlib import Path
 
 import narwhals as nw
 
+from .. import _zone_clock
 from .._data import load_native
 from .._errors import (MissingWordError, SimplydataError, choice_error, column_error, friendly, missing_word_error,
                        old_word, other_name_error, suggest)
@@ -309,8 +310,10 @@ class BaseTable:
         for it, so the times are written with their UTC offset (2024-07-01 23:45:00-04:00, on both
         engines) and sdata.table() reads them back as the same moments on the UTC clock; a note
         names the zone, to put back with table.change_time_zone_in("t", to="America/New_York").
-        Excel and Stata have no time zones, so the clock times of the zone are saved (pandas
-        dt.tz_localize(None)), with a note naming the zone.
+        Excel and Stata have no time zones, so the clock times of the zone are saved (Polars
+        dt.replace_time_zone(None), on both engines), with a note naming the zone. Polars reads the
+        clock of a time zone for every date word, on both engines: local clock times before 1970 follow
+        the main world time-zone data (IANA), the same on every computer.
 
         More file types: .csv.gz and .tsv.gz (compressed), .feather (Arrow), .jsonl
         (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas.
@@ -384,7 +387,9 @@ class BaseTable:
             print(f"Note: {NO_ZONE_TYPES[kind]} has no time zones, so {names} {verb} saved in {file_name} as clock "
                   f"times on the {zones} clock, without the zone name. To save UTC times instead, first write "
                   f'table.change_time_zone_in("{first}", to="UTC").')
-            return self._frame.with_columns(*(nw.col(name).dt.replace_time_zone(None) for name in zoned))
+            # the clock times of the zone, read by Polars on both engines (simplydata._zone_clock)
+            return _zone_clock.with_columns(self._frame, [nw.col(name).dt.replace_time_zone(None) for name in zoned],
+                                            list(zoned))
         import polars as pl
 
         frame = self._frame
