@@ -1,0 +1,2 @@
+Split "crew" at ";" into rows: 60 rows became 111 rows.
+How many rows have each "crew" (5 different values): KL 26, AH 22, TO 22, IB 21, MS 20.

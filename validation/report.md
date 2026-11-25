@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-24. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-25. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**3494 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**3667 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
 
 ## Setup
 
@@ -2085,15 +2085,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512527657149384 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735982118138 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542773983455036 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279192908549017 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877279441826 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215830587586 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208525265036 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549598534707 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246986127361 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528816076045 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735352558665 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542773356285 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193050216505 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.24287743992402 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215812448624 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208670457681 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549889273511 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246743648157 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
 | own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
@@ -7452,6 +7452,179 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.swap_rows_and_columns` | pandas | polars | table | relative 1e-09 | pass |
 | `table.swap_rows_and_columns` | Polars | polars | table | relative 1e-09 | pass |
 | `table.start_again` | - | - | none | relative 0 | pass |
+| `table.keep_rows_found_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.clean_column_names` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.clean_column_names` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.clean_column_names` | pandas | polars | table | relative 1e-09 | pass |
+| `table.clean_column_names` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | Polars | polars | table | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | Polars | pandas | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | Polars | polars | printed | relative 1e-09 | pass |
+| `table.add_row_summary_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | Polars | polars | table | relative 1e-09 | pass |
+| `table.split_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.split_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.split_into_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.split_into_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_running_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_running_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_running_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_running_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with using=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with using=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with using=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with using=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.count_columns` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.count_columns` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.count_columns` | pandas | polars | value | relative 1e-09 | pass |
+| `table.count_columns` | Polars | polars | value | relative 1e-09 | pass |
+| `table.rename_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.rename_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.rename_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.rename_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | pandas | polars | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.count_rows with_totals=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.count_rows with_totals=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | Polars | polars | table | relative 1e-09 | pass |
+| `table.move_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.move_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.move_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.move_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | Polars | pandas | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | Polars | polars | printed | relative 1e-09 | pass |
+| `table.show_differences_from` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_differences_from` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.check_if_same_as` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | pandas | polars | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | Polars | polars | value | relative 1e-09 | pass |
+| `table.run_sql` | DuckDB | pandas | table | relative 1e-09 | pass |
+| `table.run_sql` | DuckDB | polars | table | relative 1e-09 | pass |
+| `sdata.run_sql` | DuckDB | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.as_list` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.as_list` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.as_list` | pandas | polars | value | relative 1e-09 | pass |
+| `table.as_list` | Polars | polars | value | relative 1e-09 | pass |
+| `table.find_summary_of show=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with match=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with match=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with match=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with match=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.save in_table=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.save in_table=` | pandas | polars | table | relative 1e-09 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_percentile` | NumPy | pandas | value | relative 1e-12 | pass |
@@ -8221,6 +8394,49 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.gather_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
 - `table.spread_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
 - `table.swap_rows_and_columns` (1): the first column (here "name") names the new columns, because it holds text with no repeat and no empty cell, and the old column names go in a first column called "column"; pandas' plain .T and Polars' transpose() would number the columns instead.
+- `table.keep_rows_found_in` (1): a semi join: no column comes in from the other table and no row is repeated, however often a name appears there; the rows keep their order, and an empty key is never found.
+- `table.remove_rows_found_in` (1): an anti join: the rows whose name is not in the other table stay, in their order; a row with an empty key is never found, so it stays.
+- `table.clean_column_names` (1): the rule of R janitor::clean_names(): % becomes percent and # number, letters such as ø and é become plain letters, every run of other signs one "_", small letters; a name that starts with a digit gets an x in front and a repeated name _2. Unlike janitor, pH becomes ph, not p_h.
+- `table.remove_rows_that_are_all_empty` (1): a row goes only when every cell is empty; an empty cell is a missing value or text of only spaces (pandas and Polars count "   " as filled).
+- `table.remove_columns_that_are_all_empty` (1): a column goes only when every cell is empty (a missing value or text of only spaces); a table whose every cell is empty is refused rather than left with no columns.
+- `table.show_duplicate_rows` (1): every copy is shown, the first one too (keep=False), each with its row number counted from 1, and two empty cells count as the same; the table does not change.
+- `table.add_row_summary_column` (1): empty cells are left out of each row's summary, as pandas (skipna) and Polars do; a row with every cell empty gets an empty cell, also for show="total" (pandas sum(min_count=1); Polars sum_horizontal alone would give 0).
+- `table.turn_into_categories` (1): a value that is not in in_order= stops the word with its name (pandas Categorical would turn it into an empty cell without a word; Polars Enum refuses it too); without in_order= the order is the one in which the values first appear.
+- `table.split_into_rows` (1): the separator is plain text, not a pattern; a cell without it stays one row, and an empty cell stays one row with an empty cell.
+- `table.add_running_column` (1): the sum follows sorted_by= (here the date) while the rows keep their place in the table;
+- `table.add_running_column` (2): an empty cell stays empty and is left out of the rows after it (for show="average" too, whose pandas expanding().mean() would carry the average on).
+- `table.add_row_number_column` (1): numbers start at 1, as table.show() counts (pandas cumcount() starts at 0), in the order of sorted_by=, while the rows keep their place.
+- `table.keep_groups_where` (1): whole groups stay or go, in their places; empty cells are left out of each summary, and a group whose summary cannot be worked out (every cell empty) is left out.
+- `table.remove_groups_where` (1): whole groups go, the others stay in their places; a group whose summary cannot be worked out is never removed.
+- `table.join_with using=` (1): check_that= runs pandas' and Polars' own validate= and, when a key repeats, says which values repeat and in which table, before anything is joined;
+- `table.join_with using=` (2): the key keeps this table's name only (pandas keeps both columns; Polars drops the other's).
+- `table.spread_into_columns show=` (1): rows and new columns stay in the order they first appear (pandas pivot_table sorts them);
+- `table.spread_into_columns show=` (2): a day and fruit that never appear together stay an empty cell for every show= (Polars gives 0 for a total or count of no rows).
+- `table.change_column in_rows_where=` (1): the condition is read on the values before the change, and a row it cannot check (an empty cell) keeps its value, with a note.
+- `table.keep_first_rows for_each_group_in=` (1): the rows keep their order in the table (Polars group_by().head() would put each group's rows together), and an empty group cell is a group of its own.
+- `table.add_missing_combinations_of` (1): the rows come out sorted by the key columns, and every row already there stays as it is: a combination that is there twice keeps both rows (pandas' reindex would refuse it), and a row with an empty key stays, at the end.
+- `table.change_time_zone_in` (1): a clock time that never happened (the hour skipped when summer time starts) or happened twice (when it ends) becomes an empty cell, with a note, instead of stopping the whole column (the pandas and Polars default) or being moved without a word.
+- `table.spread_into_yes_no_columns` (1): the new columns are True/False, A to Z, after the others, and the column itself stays; empty cells get a column of their own called "fruit: (empty)" on both engines (pandas dummy_na=True names it "fruit: nan", Polars "fruit: null").
+- `table.fill_empty_cells_from` (1): only empty cells take a value (text of only spaces counts as empty); a filled cell never changes, and a key that is in the other table twice stops the word with its name, so it is never unclear which row fills.
+- `table.count_rows with_totals=` (1): each total is worked out from the rows themselves, as pandas margins=True does (for an average, the average of all the rows, not of the cells); Polars has no margins, so simplydata works out each total with group_by().agg() on both engines. The total row and column are called "(total)"; rows with an empty key stay, as "(empty)", and count in the totals (pandas leaves them out; this table has none).
+- `table.add_group_column into_equal_groups=` (1): the groups are numbered 1 (the smallest values) to 4, counted from 1 as everywhere in simplydata (pandas labels=False counts from 0), or named with names=; the cut points are printed.
+- `table.turn_into_text written_like=` (1): the example date is turned into the % codes by a fixed table of its parts (a four-digit year, the number above 12 as the day, month and weekday names); an example whose day is 12 or less is refused, because then the day cannot be told from the month.
+- `table.add_column counted_in=` (1): whole units, counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars total_hours(); pandas gives 1.98 until it is truncated).
+- `table.round_dates_in to_the=` (1): a time exactly half way goes up (10:30 becomes 11:00), as Polars dt.round() does; pandas dt.round() would send it to the even hour (10:00), so the two engines would differ.
+- `table.add_zeros_in_front_of` (1): zeros go in front until the text has to_length= characters; a longer text is never cut, a minus or plus sign stays in front, and an empty cell stays empty (str.zfill in pandas and Polars).
+- `table.show_rows_with_empty_cells_in` (1): a row is shown when any of its cells (or of the columns= named) is empty, with its row number counted from 1; text of only spaces counts as empty too, and the table does not change.
+- `table.show_differences_from` (1): rows are compared in order (row 3 with row 3), and two empty cells count as the same (pandas compare); tables with other columns or another number of rows are not compared cell by cell, and simplydata says how they differ. Polars tables go through pandas compare.
+- `table.check_if_same_as` (1): the same means the same columns in the same order, the same rows, the same values and the same kinds (pandas and Polars equals); two empty cells count as the same.
+- `table.run_sql` (1): DuckDB runs with no extensions loaded or installed on their own and no access to files or the web, the settings locked, and only one SELECT is run: a query can never fetch, install or write anything;
+- `table.run_sql` (2): inside the query the table is called data, and a Polars table comes back as Polars (.pl()); without DuckDB the word stops with the install line (no other SQL engine is used).
+- `sdata.run_sql` (1): DuckDB reads the files on this computer, with no extensions loaded or installed on their own (so no web or cloud address can be read), the settings locked, and only one SELECT is run; an address such as https:// or s3:// is refused before DuckDB sees it.
+- `table.make_one_table_for_each_group_in` (1): the groups come in the order they are first seen and the rows keep their order; rows with an empty cell in the column make a group of their own (dropna=False), and with one column each table is found by the value itself: tables["Station B"].
+- `table.find_summary_of show=` (1): "first" and "last" are the first and last filled value in the order of the rows (pandas groupby first() and last() skip empty cells; Polars drop_nulls() then first() and last()): sort first with sort_by for another order.
+- `table.sort_by biggest_first=` (1): a list gives each column its own direction, one True or False for each; pandas' ascending= is the opposite (ascending=[True, False]), Polars' descending= the same; rows that tie keep their order.
+- `table.gather_into_rows starts_with=` (1): starts_with=, ends_with= and matches_pattern= choose the columns by their names exactly as keep_columns does (capital letters matter), in table order; one way at a time.
+- `table.join_with match=` (1): both tables are sorted stably by the date first, as merge_asof and join_asof need, and the rows go back to this table's order afterwards; a pandas table runs through Polars join_asof too, so ties, repeated dates and empty keys are handled by one rule on both engines;
+- `table.join_with match=` (2): "nearest before" takes the last row at or before each date (backward), "nearest after" the first at or after (forward), "nearest" either; within= is the furthest it looks (tolerance), and keep="matching rows" leaves out the rows with nothing near enough.
+- `table.save in_table=` (1): in_table= replaces that one table and keeps the other tables of the file (if_exists="replace"), with no row labels (index=False); a .duckdb file is written by DuckDB, with no extensions.
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).

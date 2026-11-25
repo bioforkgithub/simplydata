@@ -1,0 +1,21 @@
+Removed 2 of 244 rows: every cell in them was empty. 242 rows left.
+Removed 1 column in which every cell is empty: "checked_by".
+12 rows repeat another row: 6 different rows are there more than once (6 extra copies).
+    sample_id lab_code       gene copies_per_ml     ct
+18        005      1-5       tetM           320  30.07
+19        005      1-5  blaOXA-48            30  33.97
+91        024     1-24  blaOXA-48          n.d.    NaN
+92        024     1-24      intI1          n.d.    NaN
+151       039     2/15  blaOXA-48          n.d.    NaN
+181       005      1-5       tetM           320  30.07
+182       005      1-5  blaOXA-48            30  33.97
+183       024     1-24  blaOXA-48          n.d.    NaN
+184       024     1-24      intI1          n.d.    NaN
+185       039     2/15  blaOXA-48          n.d.    NaN
+186       052      3-4       sul1           850  28.67
+207       052      3-4       sul1           850  28.67
+table.remove_duplicate_rows() keeps the first copy of each; keep="last" keeps the last.
+Removed 6 of 242 rows. 236 rows left.
+1. remove rows that are all empty (2)
+2. remove columns that are all empty (checked_by)
+3. remove duplicate rows

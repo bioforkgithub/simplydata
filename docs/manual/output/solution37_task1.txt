@@ -1,0 +1,3 @@
+Removed 2 of 244 rows: every cell in them was empty. 242 rows left.
+Removed 6 of 242 rows. 236 rows left.
+0 rows repeat another row in sample_id, gene, so there is nothing to remove.
