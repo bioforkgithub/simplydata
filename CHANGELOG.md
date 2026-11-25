@@ -5,6 +5,21 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
+
+- Polars and pyarrow are now installed with simplydata (`polars>=1.37,<3`, `pyarrow>=19,<27`), because several
+  table words run on Polars for every table so that pandas and Polars tables give one answer (`round_dates_in`,
+  `matches_pattern=` on rows, `replace_text_in(capitals_matter=False)`, `join_with(match="nearest before")`).
+  `pip install "simplydata[fast]"` still works and adds nothing more. The messages that asked to install
+  `simplydata[fast]` are gone.
+
+### Fixed
+
+- `sdata.table(..., fast=True)`: a blank line in a CSV or TSV file is now skipped, as without `fast=True`. Polars
+  made it a row of empty cells, the same row as a line of empty fields (`,,`), which both engines keep; Polars
+  cannot tell the two apart, so a file with a row of only empty cells is read by pandas (`skip_blank_lines`) and
+  then handed to Polars.
+
 ### Added: tables phase, batch 2 (ranks 16-30 of the tables proposal; approved by Manish 2026-11-25)
 
 - `sdata.table(..., columns=[...], column_names=[...], skip_lines_starting_with="#")`: read only some columns (in the

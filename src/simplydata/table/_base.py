@@ -144,12 +144,8 @@ class BaseTable:
         if _frame is None:
             native = load_native(data, sheet=sheet, fast=fast, options=_reading)
             if fast and type(native).__module__.split(".")[0] == "pandas":
-                try:
-                    import polars as pl
-                except ImportError:
-                    raise SimplydataError(
-                        "fast=True needs the fast engine.\nInstall it with:  pip install simplydata[fast]"
-                    ) from None
+                import polars as pl
+
                 native = pl.from_pandas(native)
             if native is data:  # the user's own pandas or Polars table: later changes to it must not reach this one
                 native = _independent_native(native)
@@ -259,16 +255,8 @@ class BaseTable:
     def as_polars(self):
         """Give back the table as a plain Polars table, for other Python tools. df = table.as_polars()
 
-        Needs Polars (pip install simplydata[fast]). simplydata words never need it. It is a copy, as as_pandas().
+        It is a copy, as as_pandas().
         """
-        try:
-            import polars  # noqa: F401
-        except ImportError:
-            raise SimplydataError(
-                "as_polars() needs Polars, the fast engine.\n"
-                "Install it with:  pip install simplydata[fast]\n"
-                "Or use table.as_pandas() to get a pandas table instead."
-            ) from None
         return _independent_native(self._frame.to_polars())
 
     def _done(self):
@@ -313,7 +301,7 @@ class BaseTable:
         data are read by name, each on its own: simplydata says which columns differ and prints a line
         to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
 
-        More file types: .csv.gz and .tsv.gz (compressed), .feather (Arrow; needs pyarrow), .jsonl
+        More file types: .csv.gz and .tsv.gz (compressed), .feather (Arrow), .jsonl
         (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas.
         A database file (.sqlite, .db, .duckdb) holds tables by name, so it needs in_table=, the
         mirror of in_sheet=: table.save("results.sqlite", in_table="river") replaces that table
@@ -370,11 +358,6 @@ class BaseTable:
             if kind in ("csv.gz", "tsv.gz"):  # pandas to_csv: the .gz ending compresses it (gzip)
                 pandas_table.to_csv(path, sep="\t" if kind == "tsv.gz" else ",", index=False)
             elif kind == "feather":
-                try:
-                    import pyarrow  # noqa: F401
-                except ImportError:
-                    raise SimplydataError("Saving Feather (Arrow) files needs pyarrow.\n"
-                                          "Install it with:  pip install simplydata[fast]") from None
                 pandas_table.to_feather(path)  # pandas to_feather
             elif kind == "jsonl":
                 pandas_table.to_json(path, orient="records", lines=True)  # pandas to_json(lines=True)

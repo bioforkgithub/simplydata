@@ -453,3 +453,34 @@ def test_show_big_table(capsys):
 def test_example_table_shows(capsys):
     show(sdata.table(sdata.get_example("marks")), rows=2)
     assert "Showing 2 of 54 rows" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- blank lines: the same table on both engines
+@pytest.mark.parametrize("text, rows", [
+    ("a,b,c\n1,2,3\n\n7,8,9\n", [[1, 2, 3], [7, 8, 9]]),                            # a blank line is skipped
+    ("a,b,c\n1,2,3\n7,8,9\n\n\n", [[1, 2, 3], [7, 8, 9]]),                           # blank lines at the end too
+    ("a,b,c\n1,2,3\n,,\n7,8,9\n", [[1, 2, 3], [None, None, None], [7, 8, 9]]),       # a row of empty fields stays
+    ("a,b,c\n1,2,3\n\n,,\n7,8,9\n", [[1, 2, 3], [None, None, None], [7, 8, 9]]),     # both in one file
+    ("a,b\r\n1,2\r\n\r\n3,4\r\n", [[1, 2], [3, 4]]),                                 # Windows line ends
+])
+def test_blank_lines_are_skipped_on_both_engines(tmp_path, text, rows):
+    path = tmp_path / "blank.csv"
+    path.write_bytes(text.encode("utf-8"))
+    on_pandas = sdata.table(path).as_pandas()
+    on_polars = sdata.table(path, fast=True)
+    assert on_polars._engine == "Polars"
+    on_polars = on_polars.as_pandas()
+    pd.testing.assert_frame_equal(on_polars, on_pandas)
+    got = on_pandas.astype(object).where(on_pandas.notna(), None).values.tolist()
+    assert got == rows
+    # pandas read_csv itself: blank lines skipped (skip_blank_lines=True), a line of empty fields kept
+    assert len(on_pandas) == len(pd.read_csv(path))
+
+
+def test_blank_lines_with_note_lines_and_skip_rows(tmp_path):
+    path = tmp_path / "logger.csv"
+    path.write_text("# logger v1\na,b,c\n1,2,3\n#note\n4,5,6\n\n7,8,9\n", encoding="utf-8")
+    on_pandas = sdata.table(path, skip_lines_starting_with="#").as_pandas()
+    on_polars = sdata.table(path, skip_lines_starting_with="#", fast=True).as_pandas()
+    pd.testing.assert_frame_equal(on_polars, on_pandas)
+    assert on_pandas.values.tolist() == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]

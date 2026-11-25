@@ -12,7 +12,6 @@ from __future__ import annotations
 import codecs
 import csv
 import glob
-import inspect
 import io
 import keyword
 import os
@@ -49,7 +48,7 @@ _READERS = {
     ".tsv.gz": "tsv",
     ".txt.gz": "csv",
     ".zip": "csv",      # one CSV file inside: pandas read_csv(compression="zip")
-    ".feather": "feather",  # pandas read_feather (pyarrow, in simplydata[fast])
+    ".feather": "feather",  # pandas read_feather (pyarrow)
     ".arrow": "feather",
     ".jsonl": "jsonl",  # pandas read_json(lines=True)
     ".ndjson": "jsonl",
@@ -531,46 +530,41 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     polars_can = ("thousands_mark" not in options and _compression(label) is None
                   and str(options.get("encoding", "utf-8")).lower().replace("_", "-") in ("utf-8", "utf8"))
     if fast and kind in ("csv", "tsv", "parquet") and polars_can:
-        try:
-            import polars as pl
-        except ImportError:
-            if asked:
-                raise SimplydataError(
-                    "fast=True needs the fast engine.\n"
-                    "Install it with:  pip install simplydata[fast]"
-                ) from None
+        import polars as pl
+
+        if not asked:
+            print("This file is large, so simplydata is using its fast mode.")
+        if kind == "parquet":  # Polars read_parquet(columns=[...])
+            fast_table = pl.read_parquet(_rewind(source), columns=options.get("columns"))
         else:
-            if not asked:
-                print("This file is large, so simplydata is using its fast mode.")
-            if kind == "parquet":  # Polars read_parquet(columns=[...])
-                fast_table = pl.read_parquet(_rewind(source), columns=options.get("columns"))
-            else:
-                sep = _separator_for(source, kind, label, options)
-                extra = {}
-                if options.get("decimal_mark") == ",":
-                    extra["decimal_comma"] = True
-                if "empty_values" in options:
-                    extra["null_values"] = options["empty_values"]
+            sep = _separator_for(source, kind, label, options)
+            extra = {}
+            if options.get("decimal_mark") == ",":
+                extra["decimal_comma"] = True
+            if "empty_values" in options:
+                extra["null_values"] = options["empty_values"]
+            if "skip_rows" in options:
+                extra["skip_rows"] = options["skip_rows"]
+            if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})
+                extra["schema_overrides"] = {name: pl.String for name in options["read_as_text"]}
+            if "column_names" in options:  # Polars read_csv(has_header=False, new_columns=[...])
+                extra["has_header"] = False
+                extra["new_columns"] = options["column_names"]
+            elif "columns" in options:  # Polars read_csv(columns=[...])
+                extra["columns"] = options["columns"]
+            if "skip_lines_starting_with" in options:  # Polars read_csv(comment_prefix="#")
+                extra["comment_prefix"] = options["skip_lines_starting_with"]
                 if "skip_rows" in options:
-                    extra["skip_rows"] = options["skip_rows"]
-                if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})
-                    extra["schema_overrides"] = {name: pl.String for name in options["read_as_text"]}
-                if "column_names" in options:  # Polars read_csv(has_header=False, new_columns=[...])
-                    extra["has_header"] = False
-                    extra["new_columns"] = options["column_names"]
-                elif "columns" in options:  # Polars read_csv(columns=[...])
-                    extra["columns"] = options["columns"]
-                if "skip_lines_starting_with" in options:  # Polars read_csv(comment_prefix="#")
-                    extra["comment_prefix"] = options["skip_lines_starting_with"]
-                    if "skip_rows" in options:
-                        # Polars skip_rows= counts the rows left after the note lines are taken out; pandas
-                        # skiprows= counts the lines as they are in the file. Polars skip_lines= counts those too.
-                        if "skip_lines" not in inspect.signature(pl.read_csv).parameters:
-                            raise SimplydataError(
-                                "skip_rows= and skip_lines_starting_with= together need a newer fast engine (Polars "
-                                "with skip_lines=). Leave out fast=True, or update Polars.")
-                        extra["skip_lines"] = extra.pop("skip_rows")
-                fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
+                    # Polars skip_rows= counts the rows left after the note lines are taken out; pandas
+                    # skiprows= counts the lines as they are in the file. Polars skip_lines= counts those too.
+                    extra["skip_lines"] = extra.pop("skip_rows")
+            fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
+        # A blank line: pandas read_csv skips it (skip_blank_lines=True), Polars read_csv makes it a row of empty
+        # cells, the same row as a line of empty fields (",,"), which both keep. Polars has no option to skip blank
+        # lines and its result cannot tell the two apart, so a file with a row of only empty cells is read by
+        # pandas instead (as for thousands_mark= above): one answer on both engines, nothing guessed.
+        if kind == "parquet" or not fast_table.height or not fast_table.width or not fast_table.select(
+                pl.all_horizontal(pl.all().is_null()).any()).item():
             return fast_table if keep_fast else fast_table.to_pandas()
 
     if kind in ("csv", "tsv"):
@@ -597,11 +591,6 @@ _MORE_KINDS = ("feather", "jsonl", "xml", "sas", "sqlite", "duckdb")
 def _read_more(source, kind, label, options):
     """Feather, JSON lines, XML, SAS and database files, each read by pandas (or DuckDB) itself."""
     if kind == "feather":
-        try:
-            import pyarrow  # noqa: F401
-        except ImportError:
-            raise SimplydataError("Reading Feather (Arrow) files needs pyarrow.\n"
-                                  "Install it with:  pip install simplydata[fast]") from None
         return pd.read_feather(_rewind(source))  # pandas read_feather
     if kind == "jsonl":
         return pd.read_json(_rewind(source), lines=True)  # pandas read_json(lines=True): one row per line

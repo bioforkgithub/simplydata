@@ -237,12 +237,8 @@ class MoreTableWords2:
         # one parent for both engines: Polars dt.round / dt.truncate / dt.offset_by. pandas dt.round sends half way to
         # the even hour and refuses the repeated hour of the autumn change ("Cannot infer dst time"), so a pandas
         # table is rounded by Polars too, and comes back as pandas
-        try:
-            import polars as pl
-        except ImportError:
-            raise SimplydataError("round_dates_in() uses the fast engine (Polars) for every table, so that summer-time "
-                                  "changes are rounded the same way everywhere.\n"
-                                  "Install it with:  pip install simplydata[fast]") from None
+        import polars as pl
+
         native = self._frame[column].to_native()
         polars = self._frame.implementation.is_polars()
         values = native if polars else pl.from_pandas(native)

@@ -62,19 +62,11 @@ def test_as_pandas_and_as_polars(gappy):
     assert isinstance(fast.as_pandas(), pd.DataFrame) and isinstance(fast.as_polars(), pl.DataFrame)
 
 
-def test_as_polars_without_polars_is_explained(gappy, monkeypatch):
-    import builtins
+def test_as_polars_gives_a_polars_table(gappy):
+    # Polars is installed with simplydata (since the tables phase), so as_polars() always works
+    import polars as pl
 
-    real_import = builtins.__import__
-
-    def no_polars(name, *args, **kwargs):
-        if name == "polars":
-            raise ImportError
-        return real_import(name, *args, **kwargs)
-
-    monkeypatch.setattr(builtins, "__import__", no_polars)
-    with pytest.raises(SimplydataError, match=r"pip install simplydata\[fast\]"):
-        sdata.table(gappy).as_polars()
+    assert isinstance(sdata.table(gappy).as_polars(), pl.DataFrame)
 
 
 def test_unknown_word_is_still_an_error(gappy):

@@ -186,10 +186,10 @@ it says what to install, as the note in the quick start does; see [Using the wor
 
 ## What simplydata handles
 
-**424 words (commands) in 48 groups, with 383 different options, on top of 15 Python packages (8 installed always, 7 with an extra; patsy comes with statsmodels) and
+**424 words (commands) in 48 groups, with 383 different options, on top of 15 Python packages (10 installed always, 5 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 3494 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
-method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
+method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
 `[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
 
 **Simple words for data science in Python.** One small vocabulary: you can start in a day, and the 30-day guide
@@ -310,8 +310,7 @@ Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so i
 **pip** (needs Python 3.11 or newer):
 
 ```
-pip install simplydata
-pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
+pip install simplydata            # with pandas, Polars, NumPy, SciPy, statsmodels, matplotlib and seaborn
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
@@ -338,7 +337,6 @@ micromamba create -n simplydata -c conda-forge simplydata   # the same with micr
 Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if you use those):
 
 ```
-conda install -c conda-forge polars pyarrow           # Polars, the fast engine for big data
 conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
 conda install -c conda-forge control                  # rise time, settling time and margins of systems
 conda install -c conda-forge python-duckdb            # SQL on a table or on files (run_sql)

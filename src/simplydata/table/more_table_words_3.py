@@ -469,11 +469,8 @@ class MoreTableWordsThree:
         if check_that is not None or with_match_column:
             raise SimplydataError(f'match="{match}" finds one row for each row, so check_that= and '
                                   "with_match_column= are not needed with it." + example)
-        try:
-            import polars as pl
-        except ImportError:
-            raise SimplydataError(f'match="{match}" needs Polars, the fast engine.\n'
-                                  "Install it with:  pip install simplydata[fast]") from None
+        import polars as pl
+
         right, keys, said = self._nearest_other(other, using, step)
         on, by = keys[-1], keys[:-1]
         kind_here, kind_there = self._frame.schema[on], right.schema[on]

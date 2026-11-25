@@ -40,6 +40,10 @@ Every dependency in `pyproject.toml` has a range such as `pandas>=2.2,<4`.
 - The **upper bound** is the next major release, which nobody has tested yet. It keeps an
   untested release from reaching users by itself.
 - `tests/test_dependency_ranges.py` fails if a dependency has no lower or no upper bound.
+- Polars and pyarrow are required (since the tables phase, 2026-11-25), because several table
+  words run on Polars for every table so that pandas and Polars tables give one answer. The
+  `[fast]` extra is kept empty, like `[stats]`, so old install lines still work. A conda-forge
+  recipe must list `polars` and `pyarrow` under `run` with the same ranges.
 
 ## The warning issues
 

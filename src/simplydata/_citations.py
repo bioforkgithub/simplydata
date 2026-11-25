@@ -11,6 +11,8 @@ Every entry is copied from the package's own request, never made up (checked 202
   Polars       the DOI badge of github.com/pola-rs/polars (Zenodo, "DOI Latest Release")
   scikit-learn https://scikit-learn.org/stable/about.html, "Citing scikit-learn" (Pedregosa et al. 2011)
   control      README of github.com/python-control/python-control (Fuller et al. 2021)
+  DuckDB       CITATION.cff in github.com/duckdb/duckdb ("please cite it", Raasveldt and Muehleisen) and their
+               paper as duckdb.org/library gives it, with the ACM reference on its first page (checked 2026-11-25)
 A package that is not here (narwhals, rpy2, pyarrow ... ask for no paper) is listed with its name,
 version and home page from its installed metadata (importlib.metadata), never with a made-up reference.
 
@@ -196,9 +198,26 @@ CITATIONS = {
   organization = {IEEE}
 }""",
     ),
+    "duckdb": (
+        "DuckDB", "duckdb",
+        "Raasveldt and M\u00fchleisen (2019), DuckDB: an Embeddable Analytical Database, SIGMOD '19, "
+        "doi:10.1145/3299869.3320212",
+        "Raasveldt, M. and M\u00fchleisen, H. (2019). DuckDB: an Embeddable Analytical Database. In 2019 "
+        "International Conference on Management of Data (SIGMOD '19), Amsterdam, Netherlands. ACM, New York, NY, USA. "
+        "doi:10.1145/3299869.3320212.",
+        """@inproceedings{raasveldt2019duckdb,
+  title = {{DuckDB}: an Embeddable Analytical Database},
+  author = {Raasveldt, Mark and M{\\"u}hleisen, Hannes},
+  booktitle = {Proceedings of the 2019 International Conference on Management of Data (SIGMOD '19)},
+  publisher = {ACM},
+  address = {New York, NY, USA},
+  year = {2019},
+  doi = {10.1145/3299869.3320212}
+}""",
+    ),
 }
 
 # Packages that are used but ask for no paper: their import name -> (shown name, distribution name)
 NAMES = {"narwhals": ("narwhals", "narwhals"), "rpy2": ("rpy2", "rpy2"), "pyarrow": ("pyarrow", "pyarrow"),
          "openpyxl": ("openpyxl", "openpyxl"), "patsy": ("patsy", "patsy"), "pyreadstat": ("pyreadstat", "pyreadstat"),
-         "docx": ("python-docx", "python-docx"), "duckdb": ("DuckDB", "duckdb")}
+         "docx": ("python-docx", "python-docx")}

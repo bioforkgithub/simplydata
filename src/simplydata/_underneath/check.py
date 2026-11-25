@@ -110,10 +110,6 @@ def run_ours(entry: Entry, engine: str = "pandas"):
 def engines(entry: Entry) -> list[str]:
     """Table words run on a pandas and on a Polars table; other words on pandas."""
     if entry.word.startswith("table."):
-        try:
-            import polars  # noqa: F401
-        except ImportError:  # pragma: no cover - Polars is a dependency
-            return ["pandas"]
         return ["pandas", "polars"]
     return ["pandas"]
 

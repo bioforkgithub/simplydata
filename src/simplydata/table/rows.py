@@ -345,11 +345,8 @@ def pattern_matches(frame, column, pattern, any_case, step) -> "nw.Expr":
     example = _example(f'table.{step}("name", matches_pattern="^A")')
     if not isinstance(pattern, str) or not pattern:
         raise SimplydataError("matches_pattern= needs a regular expression in quotes." + example)
-    try:
-        import polars as pl
-    except ImportError:
-        raise SimplydataError("matches_pattern= on rows uses the fast engine (Polars) for every table, so that a "
-                              "pattern means the same everywhere.\nInstall it with:  pip install simplydata[fast]") from None
+    import polars as pl
+
     values = _text_values(frame, column)
     try:
         found = pl.Series(values, dtype=pl.String).str.contains(("(?i)" if any_case else "") + pattern).to_list()

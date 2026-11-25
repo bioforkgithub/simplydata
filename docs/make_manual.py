@@ -517,8 +517,7 @@ will get.
 
 \section*{Install}
 \begin{lstlisting}[style=plain]
-pip install simplydata
-pip install simplydata[fast]      # adds Polars, the fast engine for big data
+pip install simplydata            # with pandas, Polars, NumPy, SciPy, statsmodels, matplotlib and seaborn
 \end{lstlisting}
 
 \section*{Where to type the code}

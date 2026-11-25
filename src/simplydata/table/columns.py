@@ -1733,12 +1733,8 @@ class ColumnWords:
         the column takes the new values (narwhals replace_strict). Gives (found, new) as expressions."""
         from .rows import _found_among, _text_values
 
-        try:
-            import polars as pl
-        except ImportError:
-            raise SimplydataError("capitals_matter=False in replace_text_in uses the fast engine (Polars) for every "
-                                  "table, so that it is one rule everywhere.\nInstall it with:  pip install "
-                                  "simplydata[fast]") from None
+        import polars as pl
+
         values = _text_values(self._frame, column)
         try:
             changed = pl.Series(values, dtype=pl.String).str.replace_all("(?i)" + pattern,

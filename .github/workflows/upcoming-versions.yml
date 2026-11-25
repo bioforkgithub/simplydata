@@ -31,7 +31,7 @@ jobs:
         # the next major releases before simplydata allows them.
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,systems,fast,files]"
+          python -m pip install -e ".[test,systems,files]"
           python -m pip install --pre --upgrade pandas numpy scipy statsmodels matplotlib seaborn polars
       - name: Record the versions
         run: |

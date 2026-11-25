@@ -23,8 +23,8 @@ Python packages:
 | Package | What simplydata does with it | Needs |
 |---|---|---|
 | pandas | the tables behind `sdata.table`: reading files, choosing rows and columns, cleaning, grouping, joining and reshaping (`keep_rows_where`, `fill_empty_cells_in`, `join_with`, `gather_into_rows`); `table.as_pandas()` hands the table back | built in |
-| Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()` | [fast] |
-| pyarrow | Parquet files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | [fast] |
+| Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()`; some table words run on Polars for every table, so that pandas and Polars tables give one answer | built in |
+| pyarrow | Parquet and Feather files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | built in |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
 | NumPy | the number words: `sdata.numbers`, `sdata.number_grid`, maths in words (`take_log`, `turn_into_running_total`), random numbers, `nums.as_numpy()` | built in |
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |

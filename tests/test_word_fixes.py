@@ -286,15 +286,16 @@ def test_chart_show_keeps_a_window_that_stays_open_in_interactive_mode(monkeypat
 def test_pyproject_asks_for_the_polars_that_rounds_halves_to_even():
     # Polars rounds a float halfway to the even neighbour from 1.29 (RoundMode, pola-rs/polars#22248); 1.28.1 gave
     # 2.5 -> 3, 0.125 -> 0.13 and 2.675 -> 2.68. maintain_order= of join (item 1) is there from 1.17
+    # Polars is required since the tables phase (2026-11-25): it is in dependencies, and [fast] is kept empty
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-    wanted = project["optional-dependencies"]
-    for extra in ("fast", "test"):
-        polars = [d for d in wanted[extra] if d.startswith("polars")]
-        # the lower bound is 1.29 or newer (the oldest-versions check sets it); the upper bound is the supported
-        # range (MAINTAINING.md)
-        assert len(polars) == 1 and polars[0].startswith("polars>="), extra
-        lower = tuple(int(n) for n in polars[0].split(",")[0][len("polars>="):].split(".")[:2])
-        assert lower >= (1, 29), extra
+    polars = [d for d in project["dependencies"] if d.startswith("polars")]
+    # the lower bound is 1.29 or newer (the oldest-versions check sets it); the upper bound is the supported
+    # range (MAINTAINING.md)
+    assert len(polars) == 1 and polars[0].startswith("polars>=")
+    lower = tuple(int(n) for n in polars[0].split(",")[0][len("polars>="):].split(".")[:2])
+    assert lower >= (1, 29)
+    assert project["optional-dependencies"]["fast"] == []  # pip install "simplydata[fast]" still works
+    assert any(d.startswith("pyarrow>=") for d in project["dependencies"])
 
 
 @pytest.mark.parametrize("places", [0, 1, 2])
