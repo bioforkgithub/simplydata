@@ -260,3 +260,78 @@ def test_saved_and_read_back_keeps_the_zone(zone, kind, tmp_path, capsys):
     assert_same(*results)
     if kind == "parquet":
         assert results[0].schema["t"] == pl.Datetime("us", zone)
+
+
+# ---------------------------------------------------------------- files without a place for the zone name
+@pytest.mark.parametrize("zone", ZONES)
+@pytest.mark.parametrize("kind", ["csv", "tsv", "csv.gz", "tsv.gz"])
+def test_text_files_keep_the_moments_on_both_engines(zone, kind, tmp_path, capsys):
+    data = sample(zone)
+    results, files = [], []
+    for engine in ENGINES:
+        path = tmp_path / f"{engine}.{kind}"
+        build(data, engine).save(str(path))
+        assert f"the zone name {zone} is not stored" in capsys.readouterr().out
+        results.append(as_polars(sdata.table(str(path))).select("t", "u"))
+        assert 'Read "t", "u" in' in capsys.readouterr().out
+        if not kind.endswith(".gz"):
+            files.append(path.read_text(encoding="utf-8").replace("\t", ","))
+    assert_same(*results)
+    for got in results:  # the same moments as the table saved, now on the UTC clock
+        assert got.schema["t"] == pl.Datetime("us", "UTC")
+        expected = pl.from_pandas(data["t"].dt.tz_convert("UTC")).to_list()
+        assert got["t"].to_list() == expected
+    if files:  # one text on both engines (the zone-free "naive" column aside)
+        assert [line.split(",")[:2] for line in files[0].splitlines()] == \
+               [line.split(",")[:2] for line in files[1].splitlines()]
+
+
+def test_csv_text_and_moments_by_hand(engine, tmp_path, capsys):
+    t = build({"t": zoned("America/New_York", ["1959-07-01 00:00", "2024-01-15 12:30", None]), "v": [1, 2, 3]},
+              engine)
+    path = tmp_path / "times.csv"
+    t.save(str(path))
+    assert path.read_text(encoding="utf-8").splitlines() == ["t,v", "1959-07-01 00:00:00-04:00,1",
+                                                             "2024-01-15 12:30:00-05:00,2", ",3"]
+    back = sdata.table(str(path), fast=engine == "polars")
+    got = as_polars(back)["t"].to_list()
+    assert [v.isoformat() if v else None for v in got] == ["1959-07-01T04:00:00+00:00", "2024-01-15T17:30:00+00:00",
+                                                           None]
+    back.change_time_zone_in("t", to="America/New_York")
+    assert as_polars(back)["t"].to_list()[0].isoformat() == "1959-07-01T00:00:00-04:00"
+
+
+def test_text_that_only_looks_like_times_stays_text(engine, tmp_path, capsys):
+    path = tmp_path / "mixed.csv"
+    path.write_text("a,b,c\n2024-01-15 12:30:00-05:00,2024-01-15 12:30:00,2024-01-15 12:30:00+01:00\n"
+                    "not a time,2024-01-16 08:00:00,2024-01-16 08:00:00Z\n", encoding="utf-8")
+    got = as_polars(sdata.table(str(path), fast=engine == "polars"))
+    assert got.schema["a"] == pl.String and got.schema["b"] == pl.String
+    assert got.schema["c"] == pl.Datetime("us", "UTC")
+    assert [v.isoformat() for v in got["c"].to_list()] == ["2024-01-15T11:30:00+00:00", "2024-01-16T08:00:00+00:00"]
+    kept = as_polars(sdata.table(str(path), read_as_text=["c"]))
+    assert kept.schema["c"] == pl.String
+
+
+@pytest.mark.parametrize("kind", ["xlsx", "dta"])
+def test_excel_and_stata_get_the_clock_times_with_a_note(engine, kind, tmp_path, capsys):
+    t = build({"t": zoned("America/New_York", ["2024-01-15 12:30", "2024-07-01 23:45", None]), "v": [1, 2, 3]},
+              engine)
+    path = tmp_path / f"times.{kind}"
+    t.save(str(path))
+    said = capsys.readouterr().out
+    assert "has no time zones" in said and "on the America/New_York clock" in said
+    assert 'table.change_time_zone_in("t", to="UTC")' in said
+    got = as_polars(sdata.table(str(path)))["t"].to_list()
+    assert got[:2] == [dt.datetime(2024, 1, 15, 12, 30), dt.datetime(2024, 7, 1, 23, 45)] and got[2] is None
+    assert as_polars(t)["t"].dtype == pl.Datetime("us", "America/New_York")  # the table itself keeps its zone
+
+
+def test_excel_sheet_gets_the_clock_times(engine, tmp_path, capsys):
+    t = build({"t": zoned("Etc/GMT+5", ["2024-07-01 23:45"])}, engine)
+    path = tmp_path / "book.xlsx"
+    t.save(str(path), in_sheet="times")
+    t.save(str(path), in_sheet="again")
+    assert "on the Etc/GMT+5 clock" in capsys.readouterr().out
+    got = as_polars(sdata.table(str(path), sheet="again"))["t"].to_list()
+    assert got == [dt.datetime(2024, 7, 1, 23, 45)]

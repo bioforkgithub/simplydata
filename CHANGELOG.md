@@ -31,6 +31,13 @@ working for one release and prints a one-line note with its new name.
   given there is now read on the column's clock (pandas `Timestamp.tz_localize`); one that never happens or happens
   twice there stops with a message.
 - `round_dates_in`: on a pandas table the sentence counted empty cells as changed.
+- `table.save()` with a column that has a time zone: a .csv, .tsv, .csv.gz or .tsv.gz file gets the times with
+  their UTC offset in one layout on both engines (`2024-07-01 23:45:00-04:00`; Polars wrote
+  `2024-07-01T23:45:00.000000-0400`), and `sdata.table()` now reads a column of such times back as the same
+  moments on the UTC clock (pandas `to_datetime(format="ISO8601", utc=True)`); a note names the zone that a text
+  file cannot keep. Excel (.xlsx, also `in_sheet=`) and Stata (.dta) have no time zones, and pandas stopped with
+  its own error: the clock times of the zone are now saved (pandas `dt.tz_localize(None)`), with a note naming
+  the zone and how to save UTC times instead.
 - `sdata.table(..., fast=True)`: a blank line in a CSV or TSV file is now skipped, as without `fast=True`. Polars
   made it a row of empty cells, the same row as a line of empty fields (`,,`), which both engines keep; Polars
   cannot tell the two apart, so a file with a row of only empty cells is read by pandas (`skip_blank_lines`) and
