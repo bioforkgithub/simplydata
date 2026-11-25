@@ -256,7 +256,7 @@ One or two lessons a day for 20 days, with review days on days 7 and 14: a table
 \tick & \hyperref[day:python:19]{19} & Survival curves & 18 & \pageref*{day:python:19}\\[0.25em]
 \tick & \hyperref[day:python:20]{20} & Time series: dates, time windows, smoothing and trend & 23, 25 & \pageref*{day:python:20}\\[0.25em]
 \tick & \hyperref[day:python:21]{21} & Review, and the question of your project & review & \pageref*{day:python:21}\\[0.25em]
-\tick & \hyperref[day:python:22]{22} & Project: clean & project & \pageref*{day:python:22}\\[0.25em]
+\tick & \hyperref[day:python:22]{22} & Project: clean, after a messy lab file & project & \pageref*{day:python:22}\\[0.25em]
 \tick & \hyperref[day:python:23]{23} & Project: explore & project & \pageref*{day:python:23}\\[0.25em]
 \tick & \hyperref[day:python:24]{24} & Project: figures & project & \pageref*{day:python:24}\\[0.25em]
 \tick & \hyperref[day:python:25]{25} & Project: tests & project & \pageref*{day:python:25}\\[0.25em]
@@ -851,8 +851,8 @@ chart.save("good_marks.png")
 {\small Worked answers: \hyperref[answers:python:21]{page~\pageref*{answers:python:21}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(21)}.}
 \end{tryit}
 
-\daystart{22}{Project: clean}{Python track}{day:python:22}
-\goal{Clean your raw file into a tidy table, with every step written down. About an hour.}
+\daystart{22}{Project: clean, after a messy lab file}{Python track}{day:python:22}
+\goal{Tidy a lab file that is messy on purpose, then clean your raw file into a tidy table, with every step written down. About an hour.}
 \begin{warmup}
 \begin{enumerate}
   \item Which word fits a formula of your own, such as growth? \fromday{17}\writeline
@@ -864,15 +864,17 @@ chart.save("good_marks.png")
 \end{warmup}
 \begin{todo}
 \begin{itemize}
+  \item Work through \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(37)}: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(37,\allowbreak{} solutions=True)}.
   \item Project day 2: clean. Go column by column through what \code{describe\_\allowbreak{}columns} showed you.
   \item Fix text with spaces or mixed capitals, numbers stored as text, odd codes such as -999, and decide what to do with empty cells (remove, fill, or keep and let the tests skip them).
   \item Save the clean table under a new name, and keep the \code{show\_\allowbreak{}steps()}.
 \end{itemize}
-\field{In the manual}{lesson~11, \manualpage{lesson:11}{67}{chapter.II.11}.}
-\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.count-empty-cells-in}{390}{section*.161}; \kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}extra\_\allowbreak{}spaces\_\allowbreak{}in()}~\manualpage{word:table.remove-extra-spaces-in}{404}{section*.175}; \kind{table}\,\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}~\manualpage{word:table.replace-values-in}{404}{section*.176}; \kind{table}\,\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.fill-empty-cells-in}{392}{section*.163}.}
+\field{In the manual}{lesson~37, \manualpage{lesson:37}{211}{chapter.II.37}; lesson~11, \manualpage{lesson:11}{67}{chapter.II.11}.}
+\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}~\manualpage{word:table.remove-rows-that-are-all-empty}{395}{section*.165}; \kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}~\manualpage{word:table.remove-duplicate-rows}{381}{section*.151}; \kind{table}\,\code{table.\allowbreak{}clean\_\allowbreak{}column\_\allowbreak{}names()}~\manualpage{word:table.clean-column-names}{369}{section*.139}; \kind{table}\,\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}~\manualpage{word:table.keep-rows-found-in}{691}{section*.378}; \kind{table}\,\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.count-empty-cells-in}{390}{section*.161}; \kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}extra\_\allowbreak{}spaces\_\allowbreak{}in()}~\manualpage{word:table.remove-extra-spaces-in}{404}{section*.175}; \kind{table}\,\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}~\manualpage{word:table.replace-values-in}{404}{section*.176}; \kind{table}\,\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.fill-empty-cells-in}{392}{section*.163}.}
 \end{todo}
 \begin{tryit}
 \begin{enumerate}
+  \item Fjord lab file: save the \code{\textquotedbl{}fjord\_\allowbreak{}lab\textquotedbl{}} practice table as \code{fjord\_\allowbreak{}lab}.csv, read it back with \code{sample\_\allowbreak{}id} and \code{lab\_\allowbreak{}code} as text, remove the empty rows and the rows pasted twice, and count the rows of each gene.
   \item Clean your table and save it as a new file. Write one line for each decision you made about empty cells.
 \end{enumerate}
 {\small Worked answers: \hyperref[answers:python:22]{page~\pageref*{answers:python:22}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(22)}.}
@@ -882,10 +884,10 @@ chart.save("good_marks.png")
 \goal{Explore your clean table with summaries and charts before any test. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{22}\writeline
   \item Which word draws a line with a dot at each point? \fromday{6}\writeline
   \item Which word draws a line across at y = 50, with a label? \fromday{9}\writeline
   \item Which word sets the size of a figure in cm? \fromday{11}\writeline
-  \item Which \code{outcome=} explains a count, such as the days a pupil was absent? \fromday{15}\writeline
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\writeline
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\writeline
   \item Which word asks whether adding a column helps a model? \fromday{16}\writeline
@@ -911,10 +913,10 @@ chart.save("good_marks.png")
 \goal{Make the main figure of your project, ready for a journal. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item Which \code{outcome=} explains a count, such as the days a pupil was absent? \fromday{15}\writeline
   \item Which word lists the rows that pull a model the most? \fromday{16}\writeline
   \item Which word fits a distribution to a column? \fromday{18}\writeline
   \item Which word smooths a column with a moving average over its neighbours in time? \fromday{20}\writeline
-  \item Which word explains the risk from several columns at once (a Cox model)? \fromday{19}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:24]{page~\pageref*{answers:python:24}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(24)}.}
 \end{warmup}
@@ -937,10 +939,11 @@ chart.save("good_marks.png")
 \goal{Choose and run the test that answers your question, with its effect size. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item Which word explains the risk from several columns at once (a Cox model)? \fromday{19}\writeline
   \item A few values are much bigger than the rest. Which word helps? \fromday{9}\writeline
   \item How do you save a picture sharp enough for a journal? \fromday{11}\writeline
-  \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{15}\writeline
-  \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{16}\writeline
+  \item Which word removes only the rows in which every cell is empty? \fromday{22}\writeline
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{22}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:25]{page~\pageref*{answers:python:25}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(25)}.}
 \end{warmup}
@@ -963,10 +966,10 @@ chart.save("good_marks.png")
 \goal{Check your answer with a model of several columns, or a fitted line or formula. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{15}\writeline
+  \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{16}\writeline
   \item Why does \code{window=\textquotedbl{}7 days\textquotedbl{}} still work when days are missing? \fromday{20}\writeline
   \item Which word shows the numbers on the y-axis as percents? \fromday{9}\writeline
-  \item Which word writes a note with an arrow on the chart? \fromday{11}\writeline
-  \item What does a mixed model give each school? \fromday{16}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:26]{page~\pageref*{answers:python:26}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(26)}.}
 \end{warmup}
@@ -989,10 +992,10 @@ chart.save("good_marks.png")
 \goal{Write the results, the methods and the figure caption of your project from the printed answers. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item Which word writes a note with an arrow on the chart? \fromday{11}\writeline
+  \item Which words show the rows pasted twice, and then remove the extra copies? \fromday{22}\writeline
+  \item What does a mixed model give each school? \fromday{16}\writeline
   \item Which word finds the readings higher than both neighbours? \fromday{20}\writeline
-  \item Which word tests whether the counts of categories differ between groups? \fromday{8}\writeline
-  \item Which word gives the average of a column for each group? \fromday{3}\writeline
-  \item The same children were measured twice. Which word compares the two? \fromday{10}\writeline
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\writeline
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\writeline
 \end{enumerate}
@@ -1019,15 +1022,15 @@ chart.save("good_marks.png")
 \begin{warmup}
 \begin{enumerate}
   \item Which word makes a run of dates, one for every day of March 2026? \fromday{20}\writeline
+  \item Which word turns column names such as \code{\textquotedbl{}Distance to outfall (km)\textquotedbl{}} into names you can type? \fromday{22}\writeline
+  \item Which word tests whether the counts of categories differ between groups? \fromday{8}\writeline
+  \item Which word gives the average of a column for each group? \fromday{3}\writeline
+  \item The same children were measured twice. Which word compares the two? \fromday{10}\writeline
   \item Each child is in the marks table three times. Why can a test not count the 54 rows as 54 children? \fromday{4}\writeline
   \item How do you fill the empty marks with the median? \fromday{5}\writeline
   \item Which word lists every change you made to a table, for your methods? \fromday{12}\writeline
   \item Which word gives the middle value of numbers? \fromday{13}\writeline
   \item Which word lists the practice tables? \fromday{1}\writeline
-  \item How do you look at the first 5 rows of a table? \fromday{2}\writeline
-  \item Which word fits a straight line on a table? \fromday{17}\writeline
-  \item How do you give each class its own colour in a bar chart? \fromday{6}\writeline
-  \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{18}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:28]{page~\pageref*{answers:python:28}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(28)}.}
 \end{warmup}
@@ -1052,20 +1055,20 @@ chart.save("good_marks.png")
 \goal{Answer questions on the whole course and write a whole analysis from memory. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item How do you look at the first 5 rows of a table? \fromday{2}\writeline
+  \item Which word fits a straight line on a table? \fromday{17}\writeline
+  \item How do you give each class its own colour in a bar chart? \fromday{6}\writeline
+  \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{18}\writeline
   \item Which word draws survival curves? \fromday{19}\writeline
-  \item Which word explains marks from hours, sleep and breakfast together? \fromday{15}\writeline
   \item Which option makes a bar show the median instead of the average? \fromday{9}\writeline
+  \item Which word explains marks from hours, sleep and breakfast together? \fromday{15}\writeline
   \item Which word draws one small chart for each class? \fromday{11}\writeline
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{16}\writeline
-  \item Which word tells whether two columns go up and down together? \fromday{3}\writeline
-  \item Which word shows the rows with outliers? \fromday{8}\writeline
-  \item Which word compares one average with a number you choose? \fromday{10}\writeline
   \item How do you start a chart of a table called marks? \fromday{1}\writeline
-  \item Which word describes each column: its kind, empty cells and numbers? \fromday{2}\writeline
+  \item Which word tells whether two columns go up and down together? \fromday{3}\writeline
   \item Which word says which pairs of groups differ? \fromday{4}\writeline
   \item Which word turns a column of text such as \code{\textquotedbl{}144\textquotedbl{}} into numbers? \fromday{5}\writeline
-  \item Which word moves the legend below the chart? \fromday{6}\writeline
-  \item How do you give the panels of a figure the letters A and B? \fromday{12}\writeline
+  \item Which word shows the rows with outliers? \fromday{8}\writeline
   \item Which word adds a column that says how many standard deviations each value lies above or below the average of its group? \fromday{3}\writeline
   \item Which option adds a 95 \% confidence interval to \code{find\_\allowbreak{}average\_\allowbreak{}of} or \code{find\_\allowbreak{}median\_\allowbreak{}of}? \fromday{4}\writeline
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{4}\writeline
@@ -1073,6 +1076,7 @@ chart.save("good_marks.png")
   \item Which word asks whether adding a column helps a model? \fromday{16}\writeline
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\writeline
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\writeline
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{22}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:29]{page~\pageref*{answers:python:29}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(29)}.}
 \end{warmup}
@@ -1095,9 +1099,9 @@ chart.save("good_marks.png")
 \goal{See what simplydata does underneath by writing the same analysis in pandas, SciPy and matplotlib. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{22}\writeline
   \item Which word adds the days that are missing from a daily table? \fromday{20}\writeline
   \item Which word tests whether survival differs between groups? \fromday{19}\writeline
-  \item Which word gives the chance of a value above 80? \fromday{18}\writeline
   \item Which word asks whether adding a column helps a model? \fromday{16}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:python:30]{page~\pageref*{answers:python:30}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(30)}.}
@@ -1149,7 +1153,7 @@ Just enough Python first, with a real table on day 2 and a first test on day 6, 
 \tick & \hyperref[day:beginner:23]{23} & Distributions and chances & 20 & \pageref*{day:beginner:23}\\[0.25em]
 \tick & \hyperref[day:beginner:24]{24} & Survival curves & 18 & \pageref*{day:beginner:24}\\[0.25em]
 \tick & \hyperref[day:beginner:25]{25} & Time series: dates, time windows, smoothing and trend & 23, 25 & \pageref*{day:beginner:25}\\[0.25em]
-\tick & \hyperref[day:beginner:26]{26} & Small project: look, clean and sum up & project & \pageref*{day:beginner:26}\\[0.25em]
+\tick & \hyperref[day:beginner:26]{26} & Small project: a messy lab file, then look, clean and sum up & project & \pageref*{day:beginner:26}\\[0.25em]
 \tick & \hyperref[day:beginner:27]{27} & Small project: test, figure and results & project & \pageref*{day:beginner:27}\\[0.25em]
 \tick & \hyperref[day:beginner:28]{28} & Review of the whole course & review & \pageref*{day:beginner:28}\\[0.25em]
 \tick & \hyperref[day:beginner:29]{29} & Final test from memory & final test & \pageref*{day:beginner:29}\\[0.25em]
@@ -1883,8 +1887,8 @@ nums.find_avrage()
 {\small Worked answers: \hyperref[answers:beginner:25]{page~\pageref*{answers:beginner:25}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(25)}.}
 \end{tryit}
 
-\daystart{26}{Small project: look, clean and sum up}{Beginner track}{day:beginner:26}
-\goal{Choose a question and a file, then look at it, clean it and sum it up. About an hour.}
+\daystart{26}{Small project: a messy lab file, then look, clean and sum up}{Beginner track}{day:beginner:26}
+\goal{Tidy a lab file that is messy on purpose, then choose a question and a file, look at it, clean it and sum it up. About an hour.}
 \begin{warmup}
 \begin{enumerate}
   \item Which word adds the days that are missing from a daily table? \fromday{25}\writeline
@@ -1896,14 +1900,16 @@ nums.find_avrage()
 \end{warmup}
 \begin{todo}
 \begin{itemize}
+  \item Work through \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(37)}: type each example yourself (do not copy and paste), run it and read what each line does. Then do the lesson's tasks and check them with \code{sdata.\allowbreak{}show\_\allowbreak{}lesson(37,\allowbreak{} solutions=True)}.
   \item Your small project, day 1. Choose data of your own (a file from school, work or a public data set), or use the \code{\textquotedbl{}school\textquotedbl{}} practice table.
   \item Write your question in one sentence. Open the file, look at it, clean what needs cleaning and make two summaries.
 \end{itemize}
-\field{In the manual}{lesson~9, \manualpage{lesson:9}{58}{chapter.II.9}; lesson~11, \manualpage{lesson:11}{67}{chapter.II.11}; lesson~12, \manualpage{lesson:12}{74}{chapter.II.12}.}
-\field{Words to look up}{\kind{sdata}\,\code{sdata.\allowbreak{}table()}~\manualpage{word:sdata.table}{353}{section*.121}; \kind{table}\,\code{table.\allowbreak{}describe\_\allowbreak{}columns()}~\manualpage{word:table.describe-columns}{358}{section*.126}; \kind{table}\,\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.count-empty-cells-in}{390}{section*.161}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of()}~\manualpage{word:table.find-summary-of}{445}{section*.211}.}
+\field{In the manual}{lesson~37, \manualpage{lesson:37}{211}{chapter.II.37}; lesson~9, \manualpage{lesson:9}{58}{chapter.II.9}; lesson~11, \manualpage{lesson:11}{67}{chapter.II.11}; lesson~12, \manualpage{lesson:12}{74}{chapter.II.12}.}
+\field{Words to look up}{\kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}~\manualpage{word:table.remove-rows-that-are-all-empty}{395}{section*.165}; \kind{table}\,\code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}~\manualpage{word:table.remove-duplicate-rows}{381}{section*.151}; \kind{table}\,\code{table.\allowbreak{}clean\_\allowbreak{}column\_\allowbreak{}names()}~\manualpage{word:table.clean-column-names}{369}{section*.139}; \kind{table}\,\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}~\manualpage{word:table.keep-rows-found-in}{691}{section*.378}; \kind{sdata}\,\code{sdata.\allowbreak{}table()}~\manualpage{word:sdata.table}{353}{section*.121}; \kind{table}\,\code{table.\allowbreak{}describe\_\allowbreak{}columns()}~\manualpage{word:table.describe-columns}{358}{section*.126}; \kind{table}\,\code{table.\allowbreak{}count\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}~\manualpage{word:table.count-empty-cells-in}{390}{section*.161}; \kind{table}\,\code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of()}~\manualpage{word:table.find-summary-of}{445}{section*.211}.}
 \end{todo}
 \begin{tryit}
 \begin{enumerate}
+  \item Fjord lab file: save the \code{\textquotedbl{}fjord\_\allowbreak{}lab\textquotedbl{}} practice table as \code{fjord\_\allowbreak{}lab}.csv, read it back with \code{sample\_\allowbreak{}id} and \code{lab\_\allowbreak{}code} as text, remove the empty rows and the rows pasted twice, and count the rows of each gene.
   \item Write your question. Open your file, describe its columns, deal with the empty cells and make two summaries for each group.
 \end{enumerate}
 {\small Worked answers: \hyperref[answers:beginner:26]{page~\pageref*{answers:beginner:26}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(26)}.}
@@ -1913,10 +1919,10 @@ nums.find_avrage()
 \goal{Finish your project with a test, a figure and two sentences of results. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{26}\writeline
   \item Which word draws one dot for each row, x against y? \fromday{9}\writeline
   \item How do you get the number in row 1, column 2 of a grid? \fromday{16}\writeline
   \item Which word gives the chance of a value above 80? \fromday{23}\writeline
-  \item Which word draws a line across at y = 50, with a label? \fromday{11}\writeline
   \item Which word asks whether adding a column helps a model? \fromday{20}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:beginner:27]{page~\pageref*{answers:beginner:27}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(27)}.}
@@ -1939,6 +1945,7 @@ nums.find_avrage()
 \goal{Remember words from every week without looking, and use them together in one program. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item Which word draws a line across at y = 50, with a label? \fromday{11}\writeline
   \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{18}\writeline
   \item Which word fits a formula of your own, such as growth? \fromday{22}\writeline
   \item Which word tests whether survival differs between groups? \fromday{24}\writeline
@@ -1946,9 +1953,8 @@ nums.find_avrage()
   \item Which word writes a note with an arrow on the chart? \fromday{13}\writeline
   \item Which word smooths a column with a moving average over its neighbours in time? \fromday{25}\writeline
   \item Which word draws a line with a dot at each point? \fromday{9}\writeline
-  \item A few values are much bigger than the rest. Which word helps? \fromday{11}\writeline
   \item Which word fits a distribution to a column? \fromday{23}\writeline
-  \item What does \code{print(age)} do? \fromday{1}\writeline
+  \item Which word removes only the rows in which every cell is empty? \fromday{26}\writeline
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{25}\writeline
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{25}\writeline
 \end{enumerate}
@@ -1972,11 +1978,15 @@ nums.find_avrage()
 \goal{Answer questions on the whole course and write a whole analysis from memory. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item A few values are much bigger than the rest. Which word helps? \fromday{11}\writeline
   \item Which word shows the numbers on the y-axis as percents? \fromday{11}\writeline
   \item Which word explains the risk from several columns at once (a Cox model)? \fromday{24}\writeline
   \item Why does \code{window=\textquotedbl{}7 days\textquotedbl{}} still work when days are missing? \fromday{25}\writeline
   \item Which word finds the readings higher than both neighbours? \fromday{25}\writeline
   \item Which word makes a run of dates, one for every day of March 2026? \fromday{25}\writeline
+  \item Which words show the rows pasted twice, and then remove the extra copies? \fromday{26}\writeline
+  \item Which word turns column names such as \code{\textquotedbl{}Distance to outfall (km)\textquotedbl{}} into names you can type? \fromday{26}\writeline
+  \item What does \code{print(age)} do? \fromday{1}\writeline
   \item Which word joins two tables on a column they share? \fromday{5}\writeline
   \item Each child is in the marks table three times. Why can a test not count the 54 rows as 54 children? \fromday{6}\writeline
   \item How do you write a list of the numbers 3, 5 and 2? \fromday{2}\writeline
@@ -1986,8 +1996,6 @@ nums.find_avrage()
   \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{19}\writeline
   \item Which word shows the rows with outliers? \fromday{10}\writeline
   \item Which word adds the values a model predicts as a new column? \fromday{17}\writeline
-  \item Which word draws four pictures to check a model from \code{explain()}? \fromday{20}\writeline
-  \item Which word lists the practice tables? \fromday{4}\writeline
   \item Which word adds a column that says how many standard deviations each value lies above or below the average of its group? \fromday{5}\writeline
   \item Which option adds a 95 \% confidence interval to \code{find\_\allowbreak{}average\_\allowbreak{}of} or \code{find\_\allowbreak{}median\_\allowbreak{}of}? \fromday{6}\writeline
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{6}\writeline
@@ -1995,6 +2003,7 @@ nums.find_avrage()
   \item Which word asks whether adding a column helps a model? \fromday{20}\writeline
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{25}\writeline
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{25}\writeline
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{26}\writeline
 \end{enumerate}
 {\small Answers: \hyperref[answers:beginner:29]{page~\pageref*{answers:beginner:29}}, or \code{sdata.\allowbreak{}show\_\allowbreak{}answers(29)}.}
 \end{warmup}
@@ -2017,8 +2026,8 @@ nums.find_avrage()
 \goal{Look back over the course, do your hardest day again, and take a first look at pandas. About an hour.}
 \begin{warmup}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{26}\writeline
   \item Which word adds the days that are missing from a daily table? \fromday{25}\writeline
-  \item Which word draws survival curves? \fromday{24}\writeline
   \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{23}\writeline
   \item How do you make simplydata numbers from a list? \fromday{16}\writeline
 \end{enumerate}
@@ -2521,14 +2530,25 @@ table.describe_columns()
 \end{lstlisting}
 \begin{answerbox}The first line only makes a raw file to practise on; with your own data, start at the second line. The school table has 180 rows and 9 columns; sleep has 19 empty cells.\end{answerbox}
 {\small\hyperref[day:python:21]{Back to day 21}}
-\answerday{22}{Project: clean}{answers:python:22}
+\answerday{22}{Project: clean, after a messy lab file}{answers:python:22}
 \begin{enumerate}
   \item Which word fits a formula of your own, such as growth? \fromday{17}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}formula(\textquotedbl{}population = a * exp(b * (year - 2000))\textquotedbl{})}
   \item Which word tests whether survival differs between groups? \fromday{19}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}treatment\textquotedbl{})}
   \item Which word gives the average mark of each class? \fromday{1}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
   \item Which word lists every step you did to a table? \fromday{2}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}steps()}
 \end{enumerate}
-\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Clean your table and save it as a new file. Write one line for each decision you made about empty cells.\par
+\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Fjord lab file: save the \code{\textquotedbl{}fjord\_\allowbreak{}lab\textquotedbl{}} practice table as \code{fjord\_\allowbreak{}lab}.csv, read it back with \code{sample\_\allowbreak{}id} and \code{lab\_\allowbreak{}code} as text, remove the empty rows and the rows pasted twice, and count the rows of each gene.\par
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.get_example("fjord_lab").save("fjord_lab.csv")
+lab = sdata.table("fjord_lab.csv", read_as_text=["sample_id", "lab_code"])
+lab.remove_rows_that_are_all_empty()
+lab.show_duplicate_rows()
+lab.remove_duplicate_rows()
+lab.count_each("gene")
+\end{lstlisting}
+\begin{answerbox}Look before you remove: \code{show\_\allowbreak{}duplicate\_\allowbreak{}rows} lists every copy, and the IDs keep their zeros because they were read as text.\end{answerbox}
+\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 2.} Clean your table and save it as a new file. Write one line for each decision you made about empty cells.\par
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
@@ -2542,10 +2562,10 @@ table.show_steps()
 {\small\hyperref[day:python:22]{Back to day 22}}
 \answerday{23}{Project: explore}{answers:python:23}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{22}\\ $\rightarrow$ \code{sdata.\allowbreak{}table(\textquotedbl{}fjord\_\allowbreak{}lab.\allowbreak{}csv\textquotedbl{},\allowbreak{} read\_\allowbreak{}as\_\allowbreak{}text=[\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{}])}
   \item Which word draws a line with a dot at each point? \fromday{6}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} with\_\allowbreak{}dots=True)}
   \item Which word draws a line across at y = 50, with a label? \fromday{9}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(50,\allowbreak{} labelled=\textquotedbl{}pass mark\textquotedbl{})}
   \item Which word sets the size of a figure in cm? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}set\_\allowbreak{}size(width=17,\allowbreak{} height=8,\allowbreak{} unit=\textquotedbl{}cm\textquotedbl{})}
-  \item Which \code{outcome=} explains a count, such as the days a pupil was absent? \fromday{15}\\ $\rightarrow$ \code{outcome=\textquotedbl{}counts\textquotedbl{}} (Poisson regression)
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column(\textquotedbl{}week\_\allowbreak{}level\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} window=\textquotedbl{}7 days\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word asks whether adding a column helps a model? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
@@ -2566,10 +2586,10 @@ sdata.draw_all_pairs(table, colour="breakfast").save("pairs.png")
 {\small\hyperref[day:python:23]{Back to day 23}}
 \answerday{24}{Project: figures}{answers:python:24}
 \begin{enumerate}
+  \item Which \code{outcome=} explains a count, such as the days a pupil was absent? \fromday{15}\\ $\rightarrow$ \code{outcome=\textquotedbl{}counts\textquotedbl{}} (Poisson regression)
   \item Which word lists the rows that pull a model the most? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which word fits a distribution to a column? \fromday{18}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to(\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{},\allowbreak{} \textquotedbl{}negative binomial\textquotedbl{})}
   \item Which word smooths a column with a moving average over its neighbours in time? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column(\textquotedbl{}nitrate\_\allowbreak{}smoothed\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} window=31,\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
-  \item Which word explains the risk from several columns at once (a Cox model)? \fromday{19}\\ $\rightarrow$ \code{table.\allowbreak{}explain\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} using=[\textquotedbl{}treatment\textquotedbl{},\allowbreak{} \textquotedbl{}age\textquotedbl{}])}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Make your main figure with two panels and save it ready for a journal.\par
 \begin{lstlisting}[style=py]
@@ -2593,10 +2613,11 @@ figure.save("figure1.tif", resolution=600)
 {\small\hyperref[day:python:24]{Back to day 24}}
 \answerday{25}{Project: tests}{answers:python:25}
 \begin{enumerate}
+  \item Which word explains the risk from several columns at once (a Cox model)? \fromday{19}\\ $\rightarrow$ \code{table.\allowbreak{}explain\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} using=[\textquotedbl{}treatment\textquotedbl{},\allowbreak{} \textquotedbl{}age\textquotedbl{}])}
   \item A few values are much bigger than the rest. Which word helps? \fromday{9}\\ $\rightarrow$ \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}
   \item How do you save a picture sharp enough for a journal? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}save(\textquotedbl{}figure.\allowbreak{}tif\textquotedbl{},\allowbreak{} resolution=600)}, or save it as \code{.\allowbreak{}pdf}
-  \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{15}\\ $\rightarrow$ When yes is common, the odds ratio lies further from 1 than the risk ratio; \code{show=\textquotedbl{}risk ratios\textquotedbl{}} gives the risks.
-  \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{16}\\ $\rightarrow$ \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model, as in \code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{})}
+  \item Which word removes only the rows in which every cell is empty? \fromday{22}\\ $\rightarrow$ \code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{22}\\ $\rightarrow$ \code{samples.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in(lab,\allowbreak{} using=\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{})}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Run the test that answers your question. Write down the test's name, the effect size and the p-value.\par
 \begin{lstlisting}[style=py]
@@ -2610,10 +2631,10 @@ table.find_correlation_between("sleep", "marks")
 {\small\hyperref[day:python:25]{Back to day 25}}
 \answerday{26}{Project: models and fits}{answers:python:26}
 \begin{enumerate}
+  \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{15}\\ $\rightarrow$ When yes is common, the odds ratio lies further from 1 than the risk ratio; \code{show=\textquotedbl{}risk ratios\textquotedbl{}} gives the risks.
+  \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{16}\\ $\rightarrow$ \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model, as in \code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{})}
   \item Why does \code{window=\textquotedbl{}7 days\textquotedbl{}} still work when days are missing? \fromday{20}\\ $\rightarrow$ It counts days of time, not rows: a window holds whatever readings fall in those 7 days.
   \item Which word shows the numbers on the y-axis as percents? \fromday{9}\\ $\rightarrow$ \code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}y\_\allowbreak{}as(\textquotedbl{}percent\textquotedbl{})}
-  \item Which word writes a note with an arrow on the chart? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}write\_\allowbreak{}note(\textquotedbl{}X marks the spot\textquotedbl{},\allowbreak{} x=10,\allowbreak{} y=4,\allowbreak{} with\_\allowbreak{}arrow=True)}
-  \item What does a mixed model give each school? \fromday{16}\\ $\rightarrow$ Its own starting level (a random intercept), so the pupils of one school are not counted as if they were independent.
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Explain your main column from two or three others, and say in one sentence what changed compared with the single test.\par
 \begin{lstlisting}[style=py]
@@ -2626,10 +2647,10 @@ table.fit_line(x="sleep", y="marks")
 {\small\hyperref[day:python:26]{Back to day 26}}
 \answerday{27}{Project: results text}{answers:python:27}
 \begin{enumerate}
+  \item Which word writes a note with an arrow on the chart? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}write\_\allowbreak{}note(\textquotedbl{}X marks the spot\textquotedbl{},\allowbreak{} x=10,\allowbreak{} y=4,\allowbreak{} with\_\allowbreak{}arrow=True)}
+  \item Which words show the rows pasted twice, and then remove the extra copies? \fromday{22}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}duplicate\_\allowbreak{}rows()}, then \code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}
+  \item What does a mixed model give each school? \fromday{16}\\ $\rightarrow$ Its own starting level (a random intercept), so the pupils of one school are not counted as if they were independent.
   \item Which word finds the readings higher than both neighbours? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} is\_\allowbreak{}at\_\allowbreak{}least=1)}
-  \item Which word tests whether the counts of categories differ between groups? \fromday{8}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}of(\textquotedbl{}result\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
-  \item Which word gives the average of a column for each group? \fromday{3}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
-  \item The same children were measured twice. Which word compares the two? \fromday{10}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after(\textquotedbl{}before\textquotedbl{},\allowbreak{} \textquotedbl{}after\textquotedbl{})}: the paired test.
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column(\textquotedbl{}week\_\allowbreak{}level\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} window=\textquotedbl{}7 days\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
 \end{enumerate}
@@ -2639,15 +2660,15 @@ table.fit_line(x="sleep", y="marks")
 \answerday{28}{Review, and finish your project}{answers:python:28}
 \begin{enumerate}
   \item Which word makes a run of dates, one for every day of March 2026? \fromday{20}\\ $\rightarrow$ \code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates(\textquotedbl{}2026-03-01\textquotedbl{},\allowbreak{} to=\textquotedbl{}2026-03-31\textquotedbl{},\allowbreak{} every=\textquotedbl{}day\textquotedbl{})}
+  \item Which word turns column names such as \code{\textquotedbl{}Distance to outfall (km)\textquotedbl{}} into names you can type? \fromday{22}\\ $\rightarrow$ \code{table.\allowbreak{}clean\_\allowbreak{}column\_\allowbreak{}names()}
+  \item Which word tests whether the counts of categories differ between groups? \fromday{8}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}of(\textquotedbl{}result\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
+  \item Which word gives the average of a column for each group? \fromday{3}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
+  \item The same children were measured twice. Which word compares the two? \fromday{10}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}before\_\allowbreak{}and\_\allowbreak{}after(\textquotedbl{}before\textquotedbl{},\allowbreak{} \textquotedbl{}after\textquotedbl{})}: the paired test.
   \item Each child is in the marks table three times. Why can a test not count the 54 rows as 54 children? \fromday{4}\\ $\rightarrow$ The three marks of one child are alike, so the rows are not independent: the test would be too sure. Use one value per child, or compare the subjects within each child.
   \item How do you fill the empty marks with the median? \fromday{5}\\ $\rightarrow$ \code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in(\textquotedbl{}marks\textquotedbl{},\allowbreak{} with\_\allowbreak{}the=\textquotedbl{}median\textquotedbl{})}
   \item Which word lists every change you made to a table, for your methods? \fromday{12}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}steps()}
   \item Which word gives the middle value of numbers? \fromday{13}\\ $\rightarrow$ \code{nums.\allowbreak{}find\_\allowbreak{}median()}
   \item Which word lists the practice tables? \fromday{1}\\ $\rightarrow$ \code{sdata.\allowbreak{}get\_\allowbreak{}example()}; \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})} gets one of them.
-  \item How do you look at the first 5 rows of a table? \fromday{2}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
-  \item Which word fits a straight line on a table? \fromday{17}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}line(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}
-  \item How do you give each class its own colour in a bar chart? \fromday{6}\\ $\rightarrow$ \code{colour=\textquotedbl{}class\textquotedbl{}} inside the chart step: \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}subject\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}
-  \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{18}\\ $\rightarrow$ \code{sdata.\allowbreak{}distribution(\textquotedbl{}normal\textquotedbl{},\allowbreak{} average=50,\allowbreak{} standard\_\allowbreak{}deviation=10)}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Without looking back: which word fits a formula of your own, and which gives the chance of a value above a number? Use both: in the growth table, fit the formula \code{\textquotedbl{}forest = a + b * (year - 2000)\textquotedbl{}} for each country, and find the share of marks above 70 when they are normal with average 50 and standard deviation 10.\par
 \begin{lstlisting}[style=py]
@@ -2674,20 +2695,20 @@ table.show_steps()
 {\small\hyperref[day:python:28]{Back to day 28}}
 \answerday{29}{Final test from memory}{answers:python:29}
 \begin{enumerate}
+  \item How do you look at the first 5 rows of a table? \fromday{2}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}first\_\allowbreak{}rows(5)}
+  \item Which word fits a straight line on a table? \fromday{17}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}line(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}
+  \item How do you give each class its own colour in a bar chart? \fromday{6}\\ $\rightarrow$ \code{colour=\textquotedbl{}class\textquotedbl{}} inside the chart step: \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}subject\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}
+  \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{18}\\ $\rightarrow$ \code{sdata.\allowbreak{}distribution(\textquotedbl{}normal\textquotedbl{},\allowbreak{} average=50,\allowbreak{} standard\_\allowbreak{}deviation=10)}
   \item Which word draws survival curves? \fromday{19}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} colour=\textquotedbl{}treatment\textquotedbl{})}
-  \item Which word explains marks from hours, sleep and breakfast together? \fromday{15}\\ $\rightarrow$ \code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}sleep\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which option makes a bar show the median instead of the average? \fromday{9}\\ $\rightarrow$ \code{show=\textquotedbl{}median\textquotedbl{}}
+  \item Which word explains marks from hours, sleep and breakfast together? \fromday{15}\\ $\rightarrow$ \code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}sleep\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which word draws one small chart for each class? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in(\textquotedbl{}class\textquotedbl{})}
   \item Which word draws four pictures to check a model from \code{explain()}? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}check\_\allowbreak{}model\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
-  \item Which word tells whether two columns go up and down together? \fromday{3}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between(\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{})}
-  \item Which word shows the rows with outliers? \fromday{8}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
-  \item Which word compares one average with a number you choose? \fromday{10}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}average\_\allowbreak{}to(\textquotedbl{}marks\textquotedbl{},\allowbreak{} 60)}
   \item How do you start a chart of a table called marks? \fromday{1}\\ $\rightarrow$ chart = \code{sdata.\allowbreak{}chart(marks)}
-  \item Which word describes each column: its kind, empty cells and numbers? \fromday{2}\\ $\rightarrow$ \code{table.\allowbreak{}describe\_\allowbreak{}columns()}
+  \item Which word tells whether two columns go up and down together? \fromday{3}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between(\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{})}
   \item Which word says which pairs of groups differ? \fromday{4}\\ $\rightarrow$ \code{children.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of(\textquotedbl{}average of marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
   \item Which word turns a column of text such as \code{\textquotedbl{}144\textquotedbl{}} into numbers? \fromday{5}\\ $\rightarrow$ \code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers(\textquotedbl{}height\textquotedbl{})}
-  \item Which word moves the legend below the chart? \fromday{6}\\ $\rightarrow$ \code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}
-  \item How do you give the panels of a figure the letters A and B? \fromday{12}\\ $\rightarrow$ \code{with\_\allowbreak{}letters=True} in \code{sdata.\allowbreak{}put\_\allowbreak{}in\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns(.\allowbreak{}.\allowbreak{}.\allowbreak{})} or \code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side(.\allowbreak{}.\allowbreak{}.\allowbreak{})}
+  \item Which word shows the rows with outliers? \fromday{8}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
   \item Which word adds a column that says how many standard deviations each value lies above or below the average of its group? \fromday{3}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}z\_\allowbreak{}score\_\allowbreak{}column(\textquotedbl{}marks\_\allowbreak{}z\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{})}
   \item Which option adds a 95 \% confidence interval to \code{find\_\allowbreak{}average\_\allowbreak{}of} or \code{find\_\allowbreak{}median\_\allowbreak{}of}? \fromday{4}\\ $\rightarrow$ \code{interval=95}, as in \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}passed\textquotedbl{},\allowbreak{} interval=95)}
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{4}\\ $\rightarrow$ \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, as in \code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}passed\textquotedbl{},\allowbreak{} p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{})}: how often shuffled labels give a difference as big as the real one.
@@ -2695,6 +2716,7 @@ table.show_steps()
   \item Which word asks whether adding a column helps a model? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column(\textquotedbl{}week\_\allowbreak{}level\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} window=\textquotedbl{}7 days\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{22}\\ $\rightarrow$ \code{samples.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in(lab,\allowbreak{} using=\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{})}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} From memory, in an empty file: open the \code{\textquotedbl{}marks\textquotedbl{}} table, remove the rows with empty cells, give the average marks for each class, test the difference on one average mark per child, and save a two-panel figure (boxes, and dots of hours against marks with a fitted line) as a PDF.\par
 \begin{lstlisting}[style=py]
@@ -2725,9 +2747,9 @@ table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "b
 {\small\hyperref[day:python:29]{Back to day 29}}
 \answerday{30}{The same work in pandas and matplotlib}{answers:python:30}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{22}\\ $\rightarrow$ \code{sdata.\allowbreak{}table(\textquotedbl{}fjord\_\allowbreak{}lab.\allowbreak{}csv\textquotedbl{},\allowbreak{} read\_\allowbreak{}as\_\allowbreak{}text=[\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{}])}
   \item Which word adds the days that are missing from a daily table? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates(\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}day\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}station\textquotedbl{})}
   \item Which word tests whether survival differs between groups? \fromday{19}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}treatment\textquotedbl{})}
-  \item Which word gives the chance of a value above 80? \fromday{18}\\ $\rightarrow$ \code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value(is\_\allowbreak{}above=80)}
   \item Which word asks whether adding a column helps a model? \fromday{16}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} In simplydata: keep the maths marks of classes A and B of the marks table (one row per child), give the average marks of each class, test the difference and draw it as bars.\par
@@ -3289,14 +3311,25 @@ table.find_trend_of("level", sorted_by="date", for_each_group_in="station")
 \end{lstlisting}
 \begin{answerbox}\code{find\_\allowbreak{}trend\_\allowbreak{}of} prints Sen's slope (per day and per year) and the Mann-Kendall p-value for each station.\end{answerbox}
 {\small\hyperref[day:beginner:25]{Back to day 25}}
-\answerday{26}{Small project: look, clean and sum up}{answers:beginner:26}
+\answerday{26}{Small project: a messy lab file, then look, clean and sum up}{answers:beginner:26}
 \begin{enumerate}
   \item Which word adds the days that are missing from a daily table? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates(\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}day\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}station\textquotedbl{})}
   \item How do you save a picture sharp enough for a journal? \fromday{13}\\ $\rightarrow$ \code{chart.\allowbreak{}save(\textquotedbl{}figure.\allowbreak{}tif\textquotedbl{},\allowbreak{} resolution=600)}, or save it as \code{.\allowbreak{}pdf}
   \item Which word makes all the text on a chart bigger or smaller? \fromday{4}\\ $\rightarrow$ \code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size(14)}
   \item A word for one axis ends in ...? \fromday{12}\\ $\rightarrow$ \_x or \_y: \code{label\_\allowbreak{}y}, \code{set\_\allowbreak{}range\_\allowbreak{}x}, \code{use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y}.
 \end{enumerate}
-\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Write your question. Open your file, describe its columns, deal with the empty cells and make two summaries for each group.\par
+\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Fjord lab file: save the \code{\textquotedbl{}fjord\_\allowbreak{}lab\textquotedbl{}} practice table as \code{fjord\_\allowbreak{}lab}.csv, read it back with \code{sample\_\allowbreak{}id} and \code{lab\_\allowbreak{}code} as text, remove the empty rows and the rows pasted twice, and count the rows of each gene.\par
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.get_example("fjord_lab").save("fjord_lab.csv")
+lab = sdata.table("fjord_lab.csv", read_as_text=["sample_id", "lab_code"])
+lab.remove_rows_that_are_all_empty()
+lab.show_duplicate_rows()
+lab.remove_duplicate_rows()
+lab.count_each("gene")
+\end{lstlisting}
+\begin{answerbox}Look before you remove: \code{show\_\allowbreak{}duplicate\_\allowbreak{}rows} lists every copy, and the IDs keep their zeros because they were read as text.\end{answerbox}
+\par\noindent{\sffamily\small\bfseries\color{tryframe}Task 2.} Write your question. Open your file, describe its columns, deal with the empty cells and make two summaries for each group.\par
 \begin{lstlisting}[style=py]
 import simplydata as sdata
 table = sdata.table(sdata.get_example("school"))
@@ -3310,10 +3343,10 @@ table.find_summary_of("sleep", for_each_group_in="breakfast", show=["average", "
 {\small\hyperref[day:beginner:26]{Back to day 26}}
 \answerday{27}{Small project: test, figure and results}{answers:beginner:27}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{26}\\ $\rightarrow$ \code{sdata.\allowbreak{}table(\textquotedbl{}fjord\_\allowbreak{}lab.\allowbreak{}csv\textquotedbl{},\allowbreak{} read\_\allowbreak{}as\_\allowbreak{}text=[\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{}])}
   \item Which word draws one dot for each row, x against y? \fromday{9}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}
   \item How do you get the number in row 1, column 2 of a grid? \fromday{16}\\ $\rightarrow$ \code{grid.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at(row=1,\allowbreak{} column=2)}
   \item Which word gives the chance of a value above 80? \fromday{23}\\ $\rightarrow$ \code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value(is\_\allowbreak{}above=80)}
-  \item Which word draws a line across at y = 50, with a label? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(50,\allowbreak{} labelled=\textquotedbl{}pass mark\textquotedbl{})}
   \item Which word asks whether adding a column helps a model? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} Test your question, draw one figure and save it, and write two sentences of results.\par
@@ -3331,6 +3364,7 @@ chart.save("breakfast.png")
 {\small\hyperref[day:beginner:27]{Back to day 27}}
 \answerday{28}{Review of the whole course}{answers:beginner:28}
 \begin{enumerate}
+  \item Which word draws a line across at y = 50, with a label? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(50,\allowbreak{} labelled=\textquotedbl{}pass mark\textquotedbl{})}
   \item Yes is common in your data. Why is the odds ratio not the change in risk? \fromday{18}\\ $\rightarrow$ When yes is common, the odds ratio lies further from 1 than the risk ratio; \code{show=\textquotedbl{}risk ratios\textquotedbl{}} gives the risks.
   \item Which word fits a formula of your own, such as growth? \fromday{22}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}formula(\textquotedbl{}population = a * exp(b * (year - 2000))\textquotedbl{})}
   \item Which word tests whether survival differs between groups? \fromday{24}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}treatment\textquotedbl{})}
@@ -3338,9 +3372,8 @@ chart.save("breakfast.png")
   \item Which word writes a note with an arrow on the chart? \fromday{13}\\ $\rightarrow$ \code{chart.\allowbreak{}write\_\allowbreak{}note(\textquotedbl{}X marks the spot\textquotedbl{},\allowbreak{} x=10,\allowbreak{} y=4,\allowbreak{} with\_\allowbreak{}arrow=True)}
   \item Which word smooths a column with a moving average over its neighbours in time? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column(\textquotedbl{}nitrate\_\allowbreak{}smoothed\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} window=31,\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word draws a line with a dot at each point? \fromday{9}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} with\_\allowbreak{}dots=True)}
-  \item A few values are much bigger than the rest. Which word helps? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}
   \item Which word fits a distribution to a column? \fromday{23}\\ $\rightarrow$ \code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to(\textquotedbl{}days\_\allowbreak{}absent\textquotedbl{},\allowbreak{} \textquotedbl{}negative binomial\textquotedbl{})}
-  \item What does \code{print(age)} do? \fromday{1}\\ $\rightarrow$ It shows the value of age on the screen.
+  \item Which word removes only the rows in which every cell is empty? \fromday{26}\\ $\rightarrow$ \code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column(\textquotedbl{}week\_\allowbreak{}level\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} window=\textquotedbl{}7 days\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
 \end{enumerate}
@@ -3359,11 +3392,15 @@ chart.save("sleep.png")
 {\small\hyperref[day:beginner:28]{Back to day 28}}
 \answerday{29}{Final test from memory}{answers:beginner:29}
 \begin{enumerate}
+  \item A few values are much bigger than the rest. Which word helps? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}
   \item Which word shows the numbers on the y-axis as percents? \fromday{11}\\ $\rightarrow$ \code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}y\_\allowbreak{}as(\textquotedbl{}percent\textquotedbl{})}
   \item Which word explains the risk from several columns at once (a Cox model)? \fromday{24}\\ $\rightarrow$ \code{table.\allowbreak{}explain\_\allowbreak{}survival(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} using=[\textquotedbl{}treatment\textquotedbl{},\allowbreak{} \textquotedbl{}age\textquotedbl{}])}
   \item Why does \code{window=\textquotedbl{}7 days\textquotedbl{}} still work when days are missing? \fromday{25}\\ $\rightarrow$ It counts days of time, not rows: a window holds whatever readings fall in those 7 days.
   \item Which word finds the readings higher than both neighbours? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} is\_\allowbreak{}at\_\allowbreak{}least=1)}
   \item Which word makes a run of dates, one for every day of March 2026? \fromday{25}\\ $\rightarrow$ \code{sdata.\allowbreak{}make\_\allowbreak{}run\_\allowbreak{}of\_\allowbreak{}dates(\textquotedbl{}2026-03-01\textquotedbl{},\allowbreak{} to=\textquotedbl{}2026-03-31\textquotedbl{},\allowbreak{} every=\textquotedbl{}day\textquotedbl{})}
+  \item Which words show the rows pasted twice, and then remove the extra copies? \fromday{26}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}duplicate\_\allowbreak{}rows()}, then \code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}
+  \item Which word turns column names such as \code{\textquotedbl{}Distance to outfall (km)\textquotedbl{}} into names you can type? \fromday{26}\\ $\rightarrow$ \code{table.\allowbreak{}clean\_\allowbreak{}column\_\allowbreak{}names()}
+  \item What does \code{print(age)} do? \fromday{1}\\ $\rightarrow$ It shows the value of age on the screen.
   \item Which word joins two tables on a column they share? \fromday{5}\\ $\rightarrow$ \code{table.\allowbreak{}join\_\allowbreak{}with(ages,\allowbreak{} using=\textquotedbl{}name\textquotedbl{})}
   \item Each child is in the marks table three times. Why can a test not count the 54 rows as 54 children? \fromday{6}\\ $\rightarrow$ The three marks of one child are alike, so the rows are not independent: the test would be too sure. Use one value per child, or compare the subjects within each child.
   \item How do you write a list of the numbers 3, 5 and 2? \fromday{2}\\ $\rightarrow$ [3, 5, 2]: square brackets, commas between.
@@ -3373,8 +3410,6 @@ chart.save("sleep.png")
   \item Pupils of one school are alike in ways the columns do not show. Which option of explain allows for that? \fromday{19}\\ $\rightarrow$ \code{grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{}}: a mixed model, as in \code{table.\allowbreak{}explain(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} grouped\_\allowbreak{}by=\textquotedbl{}school\textquotedbl{})}
   \item Which word shows the rows with outliers? \fromday{10}\\ $\rightarrow$ \code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers(\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{})}
   \item Which word adds the values a model predicts as a new column? \fromday{17}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}predicted\_\allowbreak{}column(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
-  \item Which word draws four pictures to check a model from \code{explain()}? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}check\_\allowbreak{}model\_\allowbreak{}of(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
-  \item Which word lists the practice tables? \fromday{4}\\ $\rightarrow$ \code{sdata.\allowbreak{}get\_\allowbreak{}example()}; \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})} gets one of them.
   \item Which word adds a column that says how many standard deviations each value lies above or below the average of its group? \fromday{5}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}z\_\allowbreak{}score\_\allowbreak{}column(\textquotedbl{}marks\_\allowbreak{}z\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}marks\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}subject\textquotedbl{})}
   \item Which option adds a 95 \% confidence interval to \code{find\_\allowbreak{}average\_\allowbreak{}of} or \code{find\_\allowbreak{}median\_\allowbreak{}of}? \fromday{6}\\ $\rightarrow$ \code{interval=95}, as in \code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}passed\textquotedbl{},\allowbreak{} interval=95)}
   \item Which option gets the p-value by shuffling the group labels, and what does that p-value count? \fromday{6}\\ $\rightarrow$ \code{p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{}}, as in \code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of(\textquotedbl{}sleep\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}passed\textquotedbl{},\allowbreak{} p\_\allowbreak{}value\_\allowbreak{}by=\textquotedbl{}shuffling\textquotedbl{})}: how often shuffled labels give a difference as big as the real one.
@@ -3382,6 +3417,7 @@ chart.save("sleep.png")
   \item Which word asks whether adding a column helps a model? \fromday{20}\\ $\rightarrow$ \code{table.\allowbreak{}compare\_\allowbreak{}models(\textquotedbl{}marks\textquotedbl{},\allowbreak{} using=[\textquotedbl{}hours\textquotedbl{}],\allowbreak{} against=[\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}breakfast\textquotedbl{}])}
   \item Which word adds a column with the average of the last 7 days of time (not the last 7 rows)? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column(\textquotedbl{}week\_\allowbreak{}level\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} window=\textquotedbl{}7 days\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
   \item Which word tests whether a series has a real trend (Mann-Kendall) and gives its slope? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}find\_\allowbreak{}trend\_\allowbreak{}of(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{})}
+  \item Which word keeps only the samples that have a row in the lab table, without bringing in its columns? \fromday{26}\\ $\rightarrow$ \code{samples.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in(lab,\allowbreak{} using=\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{})}
 \end{enumerate}
 \par\noindent{\sffamily\small\bfseries\color{tryframe}Task 1.} From memory, in an empty file: open the \code{\textquotedbl{}marks\textquotedbl{}} table, remove the rows with empty cells, give the average marks for each class, test the difference on one average mark per child, and save a two-panel figure (boxes, and dots of hours against marks with a fitted line) as a PDF.\par
 \begin{lstlisting}[style=py]
@@ -3412,8 +3448,8 @@ table.compare_models("marks", using=["hours", "breakfast"], against=["hours", "b
 {\small\hyperref[day:beginner:29]{Back to day 29}}
 \answerday{30}{A look back}{answers:beginner:30}
 \begin{enumerate}
+  \item How do you read a file so that sample IDs such as \code{\textquotedbl{}007\textquotedbl{}} keep their zeros? \fromday{26}\\ $\rightarrow$ \code{sdata.\allowbreak{}table(\textquotedbl{}fjord\_\allowbreak{}lab.\allowbreak{}csv\textquotedbl{},\allowbreak{} read\_\allowbreak{}as\_\allowbreak{}text=[\textquotedbl{}sample\_\allowbreak{}id\textquotedbl{}])}
   \item Which word adds the days that are missing from a daily table? \fromday{25}\\ $\rightarrow$ \code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates(\textquotedbl{}date\textquotedbl{},\allowbreak{} every=\textquotedbl{}day\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}station\textquotedbl{})}
-  \item Which word draws survival curves? \fromday{24}\\ $\rightarrow$ \code{chart.\allowbreak{}draw\_\allowbreak{}survival\_\allowbreak{}curves(time=\textquotedbl{}days\textquotedbl{},\allowbreak{} event=\textquotedbl{}died\textquotedbl{},\allowbreak{} colour=\textquotedbl{}treatment\textquotedbl{})}
   \item How do you make a normal distribution with average 50 and standard deviation 10? \fromday{23}\\ $\rightarrow$ \code{sdata.\allowbreak{}distribution(\textquotedbl{}normal\textquotedbl{},\allowbreak{} average=50,\allowbreak{} standard\_\allowbreak{}deviation=10)}
   \item How do you make simplydata numbers from a list? \fromday{16}\\ $\rightarrow$ nums = \code{sdata.\allowbreak{}numbers([12,\allowbreak{} 15,\allowbreak{} 9,\allowbreak{} 20,\allowbreak{} 14])}
 \end{enumerate}
