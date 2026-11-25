@@ -392,16 +392,32 @@ class TextWords:
         return self._replace("names_on_dots", "text", _names_on_dots, column=column, colour=colour)
 
     @friendly
-    def use_font_size(self: _Same, size) -> _Same:
-        """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)"""
-        if isinstance(size, bool) or not isinstance(size, numbers.Real) or size <= 0:
-            raise SimplydataError(
-                f".use_font_size() needs a number bigger than 0, not {size!r}. For example chart.use_font_size(14).")
-        if not 4 <= size <= 60:
-            raise SimplydataError(
-                f"Font size {size} is very {'small' if size < 4 else 'big'}. "
-                "Try a number between 8 and 24, for example chart.use_font_size(14).")
-        return self._set(font_size=float(size))
+    def use_font_size(self: _Same, size=None, title=None, ticks=None) -> _Same:
+        """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)
+
+        title=16 sets the size of the title and ticks=10 the numbers and names along the axes,
+        whatever the size of the rest: chart.use_font_size(12, title=16, ticks=10). Each size you
+        give replaces the one given before.
+        """
+        if size is None and title is None and ticks is None:
+            raise SimplydataError(".use_font_size() needs a size, for example chart.use_font_size(14) or "
+                                  "chart.use_font_size(title=16).")
+        sizes = {}
+        for name, value, key in (("size", size, "font_size"), ("title", title, "title_size"),
+                                 ("ticks", ticks, "ticks_size")):
+            if value is None:
+                continue
+            option = "" if name == "size" else f" for {name}="
+            if isinstance(value, bool) or not isinstance(value, numbers.Real) or value <= 0:
+                raise SimplydataError(
+                    f".use_font_size() needs a number bigger than 0{option}, not {value!r}. "
+                    "For example chart.use_font_size(14).")
+            if not 4 <= value <= 60:
+                raise SimplydataError(
+                    f"Font size {value}{option} is very {'small' if value < 4 else 'big'}. "
+                    "Try a number between 8 and 24, for example chart.use_font_size(14).")
+            sizes[key] = float(value)
+        return self._set(**sizes)
 
     @friendly
     def use_font(self: _Same, name) -> _Same:

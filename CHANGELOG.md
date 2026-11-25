@@ -5,6 +5,30 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: charts phase, batch 2 (priority-2 matplotlib and seaborn words; approved by Manish 2026-11-25)
+
+- New chart words: `draw_wind_rose(direction=, speed=, every=30)` (NumPy histogram2d counts as bars round a
+  compass), `draw_rug_lines(x=)` (seaborn rugplot), `draw_arrow(start=, end=)`, `put_chart_inside(other_chart,
+  where=, size=)`, `add_second_x(...)` (a column, or `formula=` for the same places in other units), `hide_frame()`,
+  `hide_ticks_x()` / `_y()`, `show_small_ticks_x()` / `_y()`, `use_true_shape()`, `make_square()`,
+  `put_colour_bar_at_bottom()` / `_at_top()` / `_at_left()`, `hide_colour_bar()`, `put_ticks_colour_bar(...)`, the
+  3D words `draw_lines_3d()`, `label_z()`, `set_range_z()`, `put_ticks_z()`, `look_from(height=, around=)`
+  (`view_from` works too), and `say_what_it_shows()`, which prints and gives back what a chart shows, read from the
+  drawn figure only (`describe` points to it).
+- New options: `y=` on `draw_histogram` and `draw_density` (two-way), `in_halves=True` on `draw_violins`,
+  `show=` and `error=` on `draw_dots` (one dot per group, seaborn pointplot), `stacked="percent"` on `draw_bars` and
+  `draw_area`, `hole=` on `draw_pie`, `as_wires=` and `with_height_lines=` on `draw_surface`, `between=` on
+  `draw_line_at_y` and `draw_line_at_x`, `title=` and `ticks=` on `use_font_size`, `per_row=` on
+  `put_legend_at_bottom` and `put_legend_at_top`, and `formula=` on `add_second_y` (the way back by SciPy brentq).
+- One option, one meaning: `value=` and `z=` are the same option on `draw_heatmap`, `draw_contour` and
+  `draw_surface`; `x=` and `y=` mean `labels=` and `values=` on `draw_pie`.
+
+### Changed
+
+- `draw_histogram(steps=True)` is now `draw_histogram(drawn_as="outline")`; `steps=True` works for one release with
+  a note.
+- The other name `windrose` now points to `draw_wind_rose` (it pointed to `draw_polar`).
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

@@ -4527,3 +4527,67 @@ BASIS["table.save in_table="] = _b(
     "in_sheet= for Excel; sdata.table(table_name=) to read it back.",
     "Data preparation: mirrors in_sheet=, so several tables go into one file and saving again never removes the "
     "others.", (), "P4", "A database file without in_table= is refused with an example.", "convention")
+
+# ---------------------------------------------------------------- charts phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["draw_wind_rose"] = _b(
+    "A compass (north at the top, clockwise); bars every 30 degrees centred on their direction, counted by NumPy "
+    "histogram2d; about five speed bands at round numbers (matplotlib MaxNLocator), stacked slowest first.",
+    "every= for the width of the bars; without speed= one count per direction.",
+    "Showing results: wind and current roses are read as compasses; a bar centred on north holds the winds from "
+    "345 to 15 degrees, as in meteorology.", (), "P5", "every= must go into 360 evenly; directions are degrees.",
+    "convention")
+BASIS["draw_arrow"] = _b(
+    "A plain arrow 1.5 points wide from start to end, in the text colour; words from labelled= centred on the "
+    "start.",
+    "colour=, thickness=, labelled=.",
+    "Showing results: an arrow that starts and ends exactly at the places given points at what it means to.",
+    (), "P5", "start= and end= must be two different [x, y] places.", "starting value")
+BASIS["put_chart_inside"] = _b(
+    "The other chart in the top-left corner, 0.4 of this chart's size, 0.03 in from the edges, with small text.",
+    "where= another corner; size= from 0.1 to 0.6.",
+    "Showing results: a small overview or close-up in a corner keeps the main chart readable.", (), "P5",
+    "Only a flat chart with one panel goes inside; a chart cannot go inside itself.", "starting value")
+BASIS["draw_histogram y="] = _b(
+    "10 bins along each axis, coloured with viridis as heatmaps are, with a colour bar named after what is counted.",
+    "with_bins= one number; show=\"percent\" or \"density\"; use_colour_scale().",
+    "Showing results: viridis is readable in grey and by readers with colour blindness.", (), "P5",
+    "stacked=, cumulative=, bin_width= and drawn_as= do not go with y=.", "starting value")
+BASIS["draw_violins in_halves="] = _b(
+    "seaborn violinplot(split=True): the two groups of colour= as the two halves, cut at the smallest and largest "
+    "value, with a small gap.",
+    "in_halves=False for two whole violins side by side.",
+    "Showing results: two halves put two shapes face to face, so they are easy to compare.", (), "P5",
+    "Needs colour= a column.", "convention")
+BASIS["draw_dots show="] = _b(
+    "seaborn pointplot with no line between the dots; caps on error bars; colour groups side by side.",
+    "show= as on bars; error=\"standard deviation\", \"standard error\" or \"confidence interval\".",
+    "Showing results: a line between groups would suggest a trend that groups do not have; side by side, error "
+    "bars do not cover each other.", (), "P5", "show=\"count\" is refused (use draw_count_bars).", "starting value")
+BASIS["draw_bars stacked="] = _b(
+    "stacked=\"percent\": each stack's values as a percent of its total (pandas div and sum), with the axis named "
+    "\"percent of\" the column.",
+    "stacked=True for the values themselves; also on draw_area.",
+    "Showing results: shares are compared better when every stack has the same height.", (), "P5",
+    "Needs colour= a column to stack.", "convention")
+BASIS["draw_pie hole="] = _b(
+    "A ring whose width is 1 - hole of the radius (matplotlib wedgeprops width), the percents in the middle of "
+    "the ring.",
+    "No hole for a full pie.",
+    "Showing results: percents inside the ring stay readable whatever the hole.", (), "P5",
+    "hole= between 0 and 0.9.", "starting value")
+BASIS["draw_surface with_height_lines="] = _b(
+    "Ten height lines on the floor of the box (at the lowest height), in the surface's colours (matplotlib "
+    "contour with zdir=\"z\").",
+    "as_wires=True for a wire frame instead of a filled surface.",
+    "Showing results: lines on the floor show the shape without hiding any part of the surface.", (), "P5", "",
+    "starting value")
+BASIS["draw_line_at_y between="] = _b(
+    "From the low to the high value only (matplotlib hlines), grey, dashed and 1.5 points wide as the full line.",
+    "between= on draw_line_at_x too (vlines).",
+    "Showing results: a target that holds for part of the range is drawn only there.", (), "P5",
+    "The low end must come first.", "convention")
+BASIS["use_font_size title="] = _b(
+    "title= and ticks= replace only those sizes; the other sizes follow the first number as before.",
+    "use_font_size(12) alone scales every size together.",
+    "Showing results: journals often ask for one size for tick words and another for titles.", (), "P5",
+    "Sizes from 4 to 60.", "convention")

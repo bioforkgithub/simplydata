@@ -13,6 +13,7 @@ from .words.curves import CurveWords
 from .words.interaction_charts import InteractionChartWords
 from .words.layout import LayoutWords
 from .words.look import LookWords
+from .words.more_charts import MoreChartWords
 from .words.place_charts import PlaceChartWords
 from .words.stats import StatsWords
 from .words.survival import SurvivalChartWords
@@ -22,7 +23,7 @@ from .words.time_charts import TimeChartWords
 
 class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords,
             CommunityChartWords, PlaceChartWords, AnswerChartWords, TimeChartWords, TextWords,
-            AxesWords, LookWords, LayoutWords, BaseChart):
+            AxesWords, LookWords, LayoutWords, MoreChartWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 
 

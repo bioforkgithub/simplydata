@@ -259,7 +259,7 @@ def chart_facts(ax) -> dict:
         "segments": [(_sized(np.concatenate(c.get_segments()) if c.get_segments() else []),
                       list(np.asarray(c.get_linewidths(), dtype=float)))
                      for c in ax.collections if c.__class__.__name__ == "LineCollection"],
-        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible()],
+        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible() and _is_panel(a)],
         "colour_bars": [(a.get_ylabel() or a.get_xlabel(),
                          tuple(map(float, a.get_ylim() if a.get_ylabel() or not a.get_xlabel() else a.get_xlim())))
                         for a in (fig.axes if fig is not None else []) if a.get_label() == "<colorbar>"],
@@ -411,8 +411,14 @@ def _panels(ax) -> list:
     for a in root.axes:
         if a.get_label() != "<colorbar>" and a.get_visible():
             found.append(a)
-            found += [c for c in getattr(a, "child_axes", []) if c.get_visible() and c not in found]
+            found += [c for c in getattr(a, "child_axes", []) if c.get_visible() and c not in found and _is_panel(c)]
     return found
+
+
+def _is_panel(ax) -> bool:
+    """A second scale drawn with secondary_xaxis / secondary_yaxis (add_second_x(formula=)) is a child of the axes
+    but not a panel: it has no title and no marks of its own."""
+    return ax.__class__.__name__ != "SecondaryAxis"
 
 
 def _text_place(t) -> tuple:
