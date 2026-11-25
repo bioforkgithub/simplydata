@@ -28,23 +28,25 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
     "Framework :: Matplotlib",
 ]
+# Supported version ranges (MAINTAINING.md): the lower bound is the oldest release CI tests
+# (.github/workflows/oldest-versions.yml), the upper bound the next untested major release.
 dependencies = [
-    "matplotlib>=3.7",
-    "seaborn>=0.13",
-    "pandas>=2.0",
-    "numpy>=1.24",
-    "scipy>=1.16",
-    "statsmodels>=0.14",
-    "openpyxl>=3.1",
-    "narwhals>=2.0",
+    "matplotlib>=3.10,<4",
+    "seaborn>=0.13.2,<0.14",
+    "pandas>=3.0.6,<4",
+    "numpy>=2.0,<3",
+    "scipy>=1.17,<2",
+    "statsmodels>=0.15,<0.16",
+    "openpyxl>=3.1.5,<4",
+    "narwhals>=2.27.1,<3",
 ]
 
 [project.optional-dependencies]
-fast = ["polars>=1.29", "pyarrow>=14"]
-files = ["python-docx>=1.1", "pyreadstat>=1.2"]
+fast = ["polars>=1.37,<3", "pyarrow>=19,<27"]
+files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
-systems = ["control>=0.10.1"]  # python-control: rise time, settling time, overshoot and margins of systems
-r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
+systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
+r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg
 # (explain(for_percentile=)); stats::loess and car come with R or are listed already. All are on CRAN and conda-forge.
@@ -84,7 +86,7 @@ r = ["rpy2>=3.5"]  # the bridge to R for the methods only R gives (R itself: htt
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7", "polars>=1.29", "pyarrow>=14", "statsmodels>=0.14", "jedi>=0.19"]
+test = ["pytest>=7,<10", "polars>=1.37,<3", "pyarrow>=19,<27", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"

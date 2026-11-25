@@ -368,6 +368,9 @@ data" at the top of this page means the promises below, and automatic tests chec
   scans the source for network code and for R code that names a network, install or file-writing function
   (simplydata also refuses to run such R code), and the whole test suite runs with Python's network connections
   blocked.
+- **The maintenance automation stays on GitHub.** Dependabot, the weekly version checks and their warning issues
+  run only on GitHub's servers, on simplydata's own code and public test data; none of it is in the installed
+  package. See [MAINTAINING.md](https://github.com/bioforkgithub/simplydata/blob/main/MAINTAINING.md).
 
 The packages underneath keep their own caches, such as matplotlib's list of fonts; these hold no data. To report a
 security or privacy problem, see [SECURITY.md](https://github.com/bioforkgithub/simplydata/blob/main/SECURITY.md).

@@ -103,7 +103,7 @@ POLARS_HALVES_TO_EVEN = (1, 29)  # Polars rounds a float exactly halfway to the 
 
 def _need_polars_rounding_halves_to_even():
     """round_numbers_in on a Polars table: Polars before 1.29 rounded halves away from zero (2.5 to 3), so the
-    same step would give other numbers than on a pandas table (2.5 to 2). pyproject asks for polars>=1.29; this
+    same step would give other numbers than on a pandas table (2.5 to 2). pyproject asks for polars>=1.37; this
     stops an older Polars that is already installed from giving those other numbers without a word."""
     import polars as pl
 

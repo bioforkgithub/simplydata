@@ -1,0 +1,37 @@
+name: oldest-versions
+
+# Installs the OLDEST release that pyproject.toml allows for every direct dependency (uv's lowest-direct
+# resolution) and runs the tests without R. It checks the lower bounds of the supported version ranges
+# (MAINTAINING.md). Not one of the required checks for main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  oldest-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install the oldest allowed versions (no R, no rpy2)
+        run: uv pip install --system --resolution lowest-direct -e ".[test,systems,fast,files]"
+      - name: Show the versions installed
+        run: |
+          echo '### Oldest allowed versions' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          uv pip list --system | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|narwhals|openpyxl|polars|pyarrow|python-docx|pyreadstat|control|pytest) ' | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Run tests
+        run: python -m pytest -q
+        env:
+          MPLBACKEND: Agg
+          SIMPLYDATA_NO_R: "1"
+          SIMPLYDATA_REQUIRE_CONTROL: "1"
