@@ -14,6 +14,8 @@ venv/
 # the manual: its PDF and the figures it is built from are kept on GitHub
 !docs/manual/**/*.pdf
 !docs/manual/**/*.png
+# the cheat sheet (docs/make_cheat_sheet.py)
+!docs/simplydata_cheat_sheet.pdf
 
 # Private notes, never pushed
 PLAN_PRIVATE.md

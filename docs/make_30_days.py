@@ -63,8 +63,9 @@ sdata.show_today()                            # every day: the day to do next
 sdata.show_answers()                          # the answers to the warm-up and the task
 \end{lstlisting}
 This guide is the paper version, to keep next to the manual (\href{@MANUAL@}{@MANUALCODE@}): every
-page number is a link that opens the manual at that page. Each day has three parts and takes about
-an hour:
+page number is a link that opens the manual at that page. Keep the
+\href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet} at hand too: every command on one set of learning cards. Each day has three
+parts and takes about an hour:
 \begin{enumerate}[leftmargin=1.6em]
   \item \textbf{Warm-up, 5 minutes.} A few questions about words from earlier days. Answer them
     \emph{from memory}, on the lines, before you look anything up. Then check the answers at the
