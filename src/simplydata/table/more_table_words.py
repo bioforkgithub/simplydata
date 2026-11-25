@@ -416,7 +416,7 @@ class MoreTableWords:
             import polars as pl
 
             if not holds_lists:
-                native = native.with_columns(pl.col(column).str.split(separator, literal=True))
+                native = native.with_columns(pl.col(column).str.split(separator))
             native = native.explode(column)
         else:
             if not holds_lists:

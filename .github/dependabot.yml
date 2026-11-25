@@ -8,7 +8,7 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    versioning-strategy: widen
+    versioning-strategy: auto  # for a library, auto widens the range (dependabot has no "widen" value)
     groups:
       python-minor-and-patch:
         update-types: [minor, patch]

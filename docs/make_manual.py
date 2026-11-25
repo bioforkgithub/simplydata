@@ -47,6 +47,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import warnings
 from pathlib import Path
 
@@ -660,7 +661,7 @@ _UNICODE = {
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
     "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
-    "š": r"\v{s}",
+    "š": r"\v{s}", "å": r"\aa{}", "Å": r"\AA{}", "ø": r"\o{}", "æ": r"\ae{}",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",
@@ -1428,6 +1429,9 @@ def _last_frame(gif: Path, png: Path) -> None:
 
 
 def _clean_output(text: str) -> str:
+    # NFC: a letter typed as two code points (a + combining ring, as in the messy fjord practice tables) is printed as
+    # the one letter it looks like; pdflatex has no glyph for a combining mark on its own
+    text = unicodedata.normalize("NFC", text)
     lines = [line.rstrip().replace("\t", "    ") for line in text.strip("\n").splitlines()]
     if len(lines) > MAX_OUTPUT_LINES:
         cut = len(lines) - (MAX_OUTPUT_LINES - 2)

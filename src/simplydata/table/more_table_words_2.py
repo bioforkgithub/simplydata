@@ -382,7 +382,7 @@ class MoreTableWords2:
                 found = native[column].to_dummies(separator=": ", drop_nulls=not n_empty)
                 found = found.rename({f"{column}: null": label} if n_empty else {})
             else:  # Polars str.split(";") and list.contains(value) for each value
-                pieces = native[column].str.split(separator, literal=True)
+                pieces = native[column].str.split(separator)
                 values = sorted(v for v in pieces.explode().drop_nulls().unique().to_list() if v != "")
                 found = pl.DataFrame({f"{column}: {v}": pieces.list.contains(v).fill_null(False) for v in values})
                 if n_empty:

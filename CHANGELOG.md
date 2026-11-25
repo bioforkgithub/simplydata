@@ -7,11 +7,12 @@ working for one release and prints a one-line note with its new name.
 
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
-- Polars and pyarrow are now installed with simplydata (`polars>=1.37,<3`, `pyarrow>=19,<27`), because several
+- Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several
   table words run on Polars for every table so that pandas and Polars tables give one answer (`round_dates_in`,
   `matches_pattern=` on rows, `replace_text_in(capitals_matter=False)`, `join_with(match="nearest before")`).
   `pip install "simplydata[fast]"` still works and adds nothing more. The messages that asked to install
-  `simplydata[fast]` are gone.
+  `simplydata[fast]` are gone. The lowest Polars is now 1.43.2: older ones stop with a panic in
+  `turn_into_dates(written_like=)` for written-out month names.
 
 ### Fixed
 
