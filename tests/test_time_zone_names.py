@@ -236,6 +236,17 @@ def test_every_date_word_is_the_same_on_both_engines(zone, word, capsys):
     assert_same(pandas_result, polars_result)
 
 
+def test_oslo_before_1970_is_the_same_moment_on_both_engines(capsys):
+    """Oslo in 1959: the moment is the one the pandas column holds, on both engines."""
+    data = pd.DataFrame({"t": zoned("Europe/Oslo", ["1959-07-01 00:00", "1965-01-15 12:00"])})
+    expected = pl.from_pandas(data["t"].dt.tz_convert("UTC")).to_list()
+    for engine in ENGINES:
+        t = build(data, engine)
+        assert as_polars(t).schema["t"] == pl.Datetime("us", "Europe/Oslo")
+        t.change_time_zone_in("t", to="UTC")
+        assert as_polars(t)["t"].to_list() == expected, engine
+
+
 @pytest.mark.parametrize("zone", ZONES)
 def test_column_kind_and_description_are_the_same(zone, capsys):
     data = sample(zone)
