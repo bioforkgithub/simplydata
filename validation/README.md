@@ -49,12 +49,12 @@ with Python 3.11 to 3.13 for every change.
    a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
    difference*, with its reason, and counted apart from the passes and the failures.
 
-2. **The same underneath** (`src/simplydata/_underneath/`). For 402 of simplydata's 402 words (517
+2. **The same underneath** (`src/simplydata/_underneath/`). For 431 of simplydata's 431 words (563
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 358 of the 517 run on made-up
+   it says it makes; they are not checks against an independent answer, and 404 of the 563 run on made-up
    practice tables (all practice tables are made up; 159 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
