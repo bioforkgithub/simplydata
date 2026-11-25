@@ -621,6 +621,7 @@ class AxesWords:
                     f"how_many= in .{step}() should be a whole number from 2 to 50, such as how_many=5, "
                     f"not {how_many!r}.")
             parsed = parse_every(step, every) if every is not None else None
+            self._remember_for_undo(step)
             self._steps = [s for s in self._steps if s.name != step]  # replaces put_ticks_x(0, 10, 20)
             return self._replace(f"{step}_spacing", "axes", _tick_spacing, axis_name=axis, every=parsed,
                                  how_many=None if how_many is None else int(how_many), whole_numbers=whole_numbers)
@@ -643,6 +644,7 @@ class AxesWords:
                     f".{step}() got {len(values)} ticks but {len(labels)} labels. "
                     "Give one label for each tick.\n"
                     f'For example: chart.{step}(0, 50, 100, labels=["low", "mid", "high"])')
+        self._remember_for_undo(step)
         self._steps = [s for s in self._steps if s.name != f"{step}_spacing"]
         return self._replace(step, "axes", _ticks, axis=axis, values=list(values), labels=labels)
 

@@ -257,8 +257,8 @@ def _renamed_value(old: str, new: tuple, value):
 GROUP_COLOUR_WORDS = frozenset({
     "draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
     "draw_count_bars", "draw_all_dots", "draw_density", "draw_polar", "draw_band", "draw_cumulative_share",
-    "draw_survival_curves", "draw_risk_curves", "draw_richness_curves", "draw_interaction_lines", "sticks",
-    "trade_off_curve", "draw_all_pairs",
+    "draw_survival_curves", "draw_risk_curves", "draw_richness_curves", "draw_interaction_lines", "draw_sticks",
+    "draw_trade_off_curve", "draw_all_pairs",
 })
 
 

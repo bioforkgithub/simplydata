@@ -64,8 +64,8 @@ except ImportError:  # pragma: no cover
 _CHART_KINDS = {
     "bars", "lines", "dots", "area", "histogram", "boxes", "violins", "heatmap", "pie",
     "polar", "contour", "surface", "dots_3d", "density", "count_bars", "all_dots",
-    "qq_dots", "cumulative_share", "sticks", "autocorrelation_bars", "cross_correlation_bars", "lag_dots",
-    "trend_and_season", "spectrum", "spectrum_over_time",
+    "qq_dots", "cumulative_share", "draw_sticks", "draw_autocorrelation_bars", "draw_cross_correlation_bars", "draw_lag_dots",
+    "draw_trend_and_season", "spectrum", "draw_spectrum_over_time",
 }
 _EXAMPLE = {
     "dots": 'chart.draw_dots(x="hours", y="marks")',

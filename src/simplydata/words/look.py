@@ -13,6 +13,41 @@ from .._style import STYLES
 from .._units import PER_INCH, SCREEN_RESOLUTION, check_number, check_unit
 from ._colour_scale import check_options, check_used, resolve_map
 from .charts import set_order
+from .second_cues import style_name
+
+# Named colour sets for use_colours (charts phase, batch 1): the colour-blind safe set is simplydata's own
+# (Okabe-Ito, the default); any other name is a seaborn palette or a matplotlib colour map
+COLOUR_BLIND_SAFE = {"colour-blind safe", "colour blind safe", "color-blind safe", "color blind safe",
+                     "colourblind safe", "colorblind safe", "okabe-ito", "okabe ito"}
+
+
+def colour_set(name, how_many=None) -> list:
+    """The colours of a named set ("Set2", "colour-blind safe") or how_many colours taken evenly from a colour
+    scale ("viridis"), as seaborn.color_palette(name, n_colors=) gives them."""
+    import seaborn as sns
+    from matplotlib import colormaps
+
+    from .._style import COLOURS
+
+    plain = name.strip()
+    if plain.lower() in COLOUR_BLIND_SAFE:
+        found = list(COLOURS)
+        if how_many is not None:
+            found = [found[i % len(found)] for i in range(how_many)]
+        return found
+    known = {n.lower(): n for n in list(colormaps) + list(sns.palettes.SEABORN_PALETTES)}
+    plain = known.get(plain.lower(), plain)
+    try:
+        colours = sns.color_palette(plain, n_colors=how_many)
+    except (ValueError, KeyError):
+        lines = [f'.use_colours() does not know the colour or colour set "{name}".']
+        guess = suggest(name.lower(), sorted(known), n=3)
+        if guess:
+            lines.append("Did you mean " + " or ".join(f'"{known[g]}"' for g in guess) + "?")
+        lines.append('Use colours ("blue", "#0072B2"), a named set ("Set2", "tab10", "Dark2", "colour-blind safe") '
+                     'or a colour scale with how_many=, such as chart.use_colours("viridis", how_many=5).')
+        raise SimplydataError("\n".join(lines)) from None
+    return [mcolors.to_hex(c) for c in colours]
 
 # Colour names we suggest from when a name is misspelt ("bleu" -> "blue").
 _COLOUR_NAMES = sorted(mcolors.CSS4_COLORS)
@@ -177,8 +212,11 @@ class LookWords:
     def use_style(self: _Same, name) -> _Same:
         """The overall look. chart.use_style("school")
 
-        "paper" (default), "school", "presentation" or "dark".
+        "paper" (default), "school", "presentation", "dark" or "black and white": greys instead of colours,
+        for print, and each group also gets its own pattern (bars, areas, pies), dashes (lines) or shape
+        (dots). "greyscale" and "grayscale" mean "black and white" too.
         """
+        name = style_name(name)
         self._check_choice("use_style", "name", name, list(STYLES))
         return self._set(style=name)
 
@@ -211,12 +249,25 @@ class LookWords:
     use_color = use_colour  # American spelling, same word
 
     @friendly
-    def use_colours(self: _Same, *names) -> _Same:
-        """Your own colours for the groups, in order. chart.use_colours("blue", "orange", "green")"""
+    def use_colours(self: _Same, *names, how_many=None) -> _Same:
+        """Your own colours for the groups, in order. chart.use_colours("blue", "orange", "green")
+
+        Or a named set of colours: chart.use_colours("Set2"), "tab10", "Dark2", "Paired", seaborn's "deep",
+        "muted" and "colorblind", or "colour-blind safe" (Okabe-Ito, simplydata's own colours).
+        With a colour scale and how_many=, the colours are taken evenly from it:
+        chart.use_colours("viridis", how_many=5).
+        """
         if len(names) == 1 and is_listlike(names[0]):
             names = tuple(names[0])
         if not names:
             raise SimplydataError('.use_colours() needs at least one colour, for example chart.use_colours("blue", "orange").')
+        if how_many is not None and (isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1):
+            raise SimplydataError(f"how_many= should be a whole number such as 5, not {how_many!r}.")
+        if len(names) == 1 and isinstance(names[0], str) and not mcolors.is_color_like(names[0]):
+            return self._set(colours=colour_set(names[0], how_many))
+        if how_many is not None:
+            raise SimplydataError('how_many= takes colours from a named set or a colour scale, for example '
+                                  'chart.use_colours("viridis", how_many=5); with your own colours, list them all.')
         return self._set(colours=[check_colour(n, "use_colours") for n in names])
 
     use_colors = use_colours  # American spelling, same word
@@ -324,6 +375,7 @@ class LookWords:
 
         A legend only appears when colour= (or shape=) makes groups.
         """
+        self._remember_for_undo("show_legend")
         self._steps = [s for s in self._steps if s.name != "legend"]
         self._cache = None
         return self

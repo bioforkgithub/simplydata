@@ -99,7 +99,14 @@ def _quoted(names):
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " or " + names[-1]
 
 
-SAVE_FORMATS = ("png", "pdf", "svg", "jpg", "jpeg", "tif", "tiff", "gif")
+SAVE_FORMATS = ("png", "pdf", "svg", "eps", "jpg", "jpeg", "tif", "tiff", "gif")
+
+# The word that changes each setting, for the line chart.undo() prints (charts phase, batch 1)
+_SETTING_WORDS = {"style": "use_style", "width": "set_size", "height": "set_size", "pixels": "set_size",
+                  "size_set": "set_size", "colour": "use_colour", "colours": "use_colours",
+                  "colour_scale": "use_colour_scale", "grid": "show_grid", "font_size": "use_font_size",
+                  "font_name": "use_font", "legend_title": "label_legend", "split": "draw_one_chart_for_each_group_in",
+                  "animate": "animate", "shapes": "use_shapes", "title": "write_title_on_top"}
 
 
 @dataclass
@@ -154,6 +161,12 @@ class BaseChart:
         "color_scale": "use_color_scale", "all_points": "draw_all_dots",
         "colour_bar_label": "label_colour_bar", "color_bar_label": "label_colour_bar",
         "one_per": "draw_one_chart_for_each_group_in",
+        # charts phase, batch 1 (decision D11, approved by Manish 2026-11-25): every chart type starts with draw_
+        "sticks": "draw_sticks", "spectrum": "draw_spectrum", "spectrum_over_time": "draw_spectrum_over_time",
+        "lag_dots": "draw_lag_dots", "peak_dots": "draw_peak_dots", "difference_dots": "draw_difference_dots",
+        "forecast": "draw_forecast", "trend_and_season": "draw_trend_and_season",
+        "autocorrelation_bars": "draw_autocorrelation_bars", "cross_correlation_bars": "draw_cross_correlation_bars",
+        "trade_off_curve": "draw_trade_off_curve", "forest_plot": "draw_forest_plot",
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False):
@@ -169,19 +182,43 @@ class BaseChart:
             "projection": None,  # "polar" or "3d" for charts that need special axes
         }
         self._cache: Figure | None = None
+        self._history: list = []  # chart.undo(): the steps and settings before each word
 
     # ------------------------------------------------------------------ recording
+    def _remember_for_undo(self, what: str):
+        """Keep the steps and settings as they are before a word changes them, for chart.undo().
+
+        A word that changes several things (a setting and a step) is one step back: everything changed while
+        one word runs (the outermost word the user called) shares one memory."""
+        from ._cite import _frames
+
+        history = self.__dict__.get("_history")
+        if history is None:  # a page of charts, or a chart made before undo existed
+            history = []
+            object.__setattr__(self, "_history", history)
+        frames = _frames()
+        word_running = frames[0] if frames else None
+        if word_running is not None and history and history[-1][0] is word_running:
+            return
+        settings = {k: (dict(v) if isinstance(v, dict) else list(v) if isinstance(v, list) else v)
+                    for k, v in self._settings.items()}
+        history.append((word_running, what, list(self._steps), settings))
+
     def _add(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):
+        self._remember_for_undo(self._public_name(name))
         self._steps.append(Step(name, PHASES[phase], func, kwargs, scope, len(self._steps)))
         self._cache = None
         return self
 
     def _replace(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):
         """Like _add, but a step with this name replaces an earlier one (e.g. write_title_on_top)."""
+        self._remember_for_undo(self._public_name(name))
         self._steps = [s for s in self._steps if s.name != name]
         return self._add(name, phase, func, scope, **kwargs)
 
     def _set(self, **settings):
+        words = [_SETTING_WORDS[k] for k in settings if k in _SETTING_WORDS]
+        self._remember_for_undo(words[0] if words else "a setting")
         self._settings.update(settings)
         self._cache = None
         return self
@@ -324,13 +361,17 @@ class BaseChart:
         return list(grid.flat), ctx
 
     # ------------------------------------------------------------------ output
-    def save(self, file_name, quality: str = "normal", resolution=None, dpi=None):
+    def save(self, file_name, quality: str = "normal", resolution=None, dpi=None, see_through=False):
         """Save the chart. chart.save("marks.png") or chart.save("marks.tif", resolution=600)
 
-        The end of the file name decides the format: "marks.png", "marks.pdf".
+        The end of the file name decides the format: "marks.png", "marks.pdf", "marks.svg", "marks.eps".
         resolution= is the sharpness in dots per inch (dpi); normally 300.
+        see_through=True saves the page with no background (the marks keep their colours), for a logo or a slide
+        of another colour. Text in a .pdf, .svg or .eps file stays real text that editors and journals can read.
         """
         self._check_choice("save", "quality", quality, ("normal", "high"))
+        if not isinstance(see_through, bool):
+            raise SimplydataError(f".save() needs see_through=True or see_through=False, not {see_through!r}.")
         path = Path(file_name)
         fmt = path.suffix.lower().lstrip(".")
         if not fmt:
@@ -342,7 +383,11 @@ class BaseChart:
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
         resolution = self._save_resolution(fmt, quality, resolution, dpi)
+        if fmt == "eps" and self._uses_transparency():
+            print("Note: an .eps file cannot hold see-through colours, so the marks drawn with transparency= are "
+                  "saved solid. Save as .pdf or .svg to keep them see-through.")
         s = self._settings
+        self._see_through = see_through
         if not s.get("size_set"):
             return self._save_now(path, fmt, resolution)
         # chart.set_size() was used: the file is exactly that size (no trimming of the edges)
@@ -386,12 +431,19 @@ class BaseChart:
                 "Choose a smaller chart.set_size() or a lower resolution=."
             )
 
+    def _uses_transparency(self) -> bool:
+        """Whether a step of the chart (or of a chart on the page) was given transparency=."""
+        charts = getattr(self, "_charts", None) or [self]
+        return any(step.kwargs.get("transparency") not in (None, 0) for chart in charts for step in chart._steps)
+
     def _save_now(self, path, fmt, resolution, exact=False):
         if fmt == "gif":
             return self._save_animation(path, resolution)
         fig = self._render()
         # .tif files are compressed without losing anything (LZW), as journals ask
         extra = {"pil_kwargs": {"compression": "tiff_lzw"}} if fmt in ("tif", "tiff") else {}
+        if self.__dict__.get("_see_through"):
+            extra["transparent"] = True  # chart.save(..., see_through=True): no page or panel background
         if exact:
             extra["bbox_inches"] = fig.bbox_inches  # the whole page, exactly the size asked for
         with _style.context(self._settings):

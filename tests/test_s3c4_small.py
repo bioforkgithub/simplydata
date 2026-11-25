@@ -371,7 +371,7 @@ def test_seasonal_order_automatic_points_to_order():
 
 def test_chart_forecast_takes_the_automatic_order(needs_r):
     chart = sdata.chart(r_table("air_passengers.csv", parse_dates=["month"]))
-    chart.forecast(x="month", y="passengers", test_method="arima", order="automatic", repeats_every=12)
+    chart.draw_forecast(x="month", y="passengers", test_method="arima", order="automatic", repeats_every=12)
     import matplotlib.pyplot as plt
 
     plt.close("all")

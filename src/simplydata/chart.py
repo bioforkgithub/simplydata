@@ -12,8 +12,11 @@ from .words.community_charts import CommunityChartWords
 from .words.curves import CurveWords
 from .words.interaction_charts import InteractionChartWords
 from .words.layout import LayoutWords
+from .words.letters_and_legends import LetterLegendWords
 from .words.look import LookWords
 from .words.place_charts import PlaceChartWords
+from .words.read_back import ReadBackWords
+from .words.second_cues import SecondCueWords
 from .words.stats import StatsWords
 from .words.survival import SurvivalChartWords
 from .words.text import TextWords
@@ -22,7 +25,7 @@ from .words.time_charts import TimeChartWords
 
 class Chart(ChartWords, StatsWords, CurveWords, InteractionChartWords, SurvivalChartWords, AgreementChartWords,
             CommunityChartWords, PlaceChartWords, AnswerChartWords, TimeChartWords, TextWords,
-            AxesWords, LookWords, LayoutWords, BaseChart):
+            AxesWords, LookWords, LayoutWords, ReadBackWords, SecondCueWords, LetterLegendWords, BaseChart):
     """A chart. Make one with sdata.chart(...), then add steps: chart.draw_bars(...), chart.write_title_on_top(...)."""
 
 

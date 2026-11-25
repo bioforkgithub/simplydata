@@ -260,7 +260,7 @@ def cases(Case):
                  list(`power at 1 / 12 per month` = 2 * s$spec[16])
              """, r_tolerance=1e-9,
              note="192 months: frequency 16 / 192 is once a year."),
-        Case("spectrum", "the drawn periodogram of the Lake Huron level is SciPy's", "Lake Huron", "real data",
+        Case("draw_spectrum", "the drawn periodogram of the Lake Huron level is SciPy's", "Lake Huron", "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).spectrum("level", sorted_by="year")
              """, """
@@ -273,7 +273,7 @@ def cases(Case):
                                            scaling="density")
                  {"points": len(f) - 1, "first power drawn": p[1], "labels": 3}
              """, parent_label="SciPy signal.periodogram", parent_tolerance=1e-9),
-        Case("spectrum_over_time", "the drivers killed or seriously injured: spectrum over time in pieces of 48 months",
+        Case("draw_spectrum_over_time", "the drivers killed or seriously injured: spectrum over time in pieces of 48 months",
              "Seatbelts", "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).spectrum_over_time("drivers", window=48)
@@ -656,22 +656,22 @@ def cases(Case):
                  {"frequencies": len(w), "first gain (decibels)": 20 * np.log10(abs(h[0]))}
              """, parent_label="SciPy signal.freqresp", parent_tolerance=1e-12),
         # ---- the other chart words
-        Case("autocorrelation_bars", "the drawn sticks for the Lake Huron level are statsmodels' acf", "Lake Huron",
+        Case("draw_autocorrelation_bars", "the drawn sticks for the Lake Huron level are statsmodels' acf", "Lake Huron",
              "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).autocorrelation_bars("level", sorted_by="year")
              """, """
                  sticks = drawn.keep_rows_where("kind", is_equal_to="dot")   # one dot on the top of each stick
-                 {"sticks": sticks.count_rows(), "1 year back": sticks.get_cell_at(row=1, column="y")}
+                 {"draw_sticks": sticks.count_rows(), "1 year back": sticks.get_cell_at(row=1, column="y")}
              """),
              parent="""
                  from statsmodels.tsa.stattools import acf
-                 {"sticks": 19, "1 year back": acf(data["level"], nlags=19, adjusted=False, fft=False)[1]}
+                 {"draw_sticks": 19, "1 year back": acf(data["level"], nlags=19, adjusted=False, fft=False)[1]}
              """, parent_label="statsmodels acf", parent_tolerance=1e-12,
              r="""
                  list(`1 year back` = stats::acf(level, plot = FALSE)$acf[2])
              """, r_tolerance=1e-12),
-        Case("cross_correlation_bars", "drivers killed or injured and front-seat passengers: the drawn shift 0",
+        Case("draw_cross_correlation_bars", "drivers killed or injured and front-seat passengers: the drawn shift 0",
              "Seatbelts", "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).cross_correlation_bars("drivers", "DriversKilled", sorted_by="month",
@@ -682,14 +682,14 @@ def cases(Case):
                  shift_0 = sticks.keep_rows_where("x", is_equal_to=0).get_cell_at(row=1, column="y")
                  sticks.undo()
                  shift_1 = sticks.keep_rows_where("x", is_equal_to=1).get_cell_at(row=1, column="y")
-                 {"sticks": count, "shift 0": shift_0, "shift 1": shift_1}
+                 {"draw_sticks": count, "shift 0": shift_0, "shift 1": shift_1}
              """),
              r="""
                  r <- stats::ccf(drivers, DriversKilled, lag.max = 12, plot = FALSE)
                  list(sticks = 25, `shift 0` = r$acf[13], `shift 1` = r$acf[12])
              """, r_tolerance=1e-12,
              note="A stick at shift s pairs the first column at month t with the second at month t + s: R's lag -s."),
-        Case("lag_dots", "the Lake Huron level against the year before", "Lake Huron", "real data",
+        Case("draw_lag_dots", "the Lake Huron level against the year before", "Lake Huron", "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).lag_dots("level", sorted_by="year")
              """, """
@@ -700,7 +700,7 @@ def cases(Case):
              parent="""
                  {"dots": len(data) - 1, "first dot x": data["level"].iloc[0], "first dot y": data["level"].iloc[1]}
              """, parent_label="pandas shift(1)", parent_tolerance=0.0),
-        Case("peak_dots", "the drivers killed or seriously injured: a dot on each peak at least 6 months apart",
+        Case("draw_peak_dots", "the drivers killed or seriously injured: a dot on each peak at least 6 months apart",
              "Seatbelts", "real data",
              ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="month", y="drivers").peak_dots(apart=6)
@@ -715,7 +715,7 @@ def cases(Case):
                  p, _ = signal.find_peaks(y, distance=6)
                  {"dots": len(p), "first dot (month)": data["month"].iloc[p[0]], "highest": y[p].max()}
              """, parent_label="SciPy find_peaks(distance=6)", parent_tolerance=0.0),
-        Case("forecast", "the drawn forecast of the air passengers is R's", "AirPassengers", "real data",
+        Case("draw_forecast", "the drawn forecast of the air passengers is R's", "AirPassengers", "real data",
              ours_r=("forecast",),
              ours=_join(AIR, _ours_drawn("""
                  chart = t.start_chart().draw_lines(x="month", y="passengers").forecast(steps_ahead=12,
@@ -730,7 +730,7 @@ def cases(Case):
                  f <- forecast::forecast(stats::HoltWinters(stats::ts(passengers, frequency = 12)), h = 12, level = 95)
                  list(`months drawn` = 12, `January 1961` = f$mean[1], `December 1961` = f$mean[12])
              """, r_packages=("forecast",), r_tolerance=1e-9),
-            Case("trend_and_season", "the air passengers in four panels: the drawn trend is R stl()'s trend",
+            Case("draw_trend_and_season", "the air passengers in four panels: the drawn trend is R stl()'s trend",
              "AirPassengers", "real data",
              ours=_join(AIR, _ours_drawn("""
                  chart = t.start_chart().trend_and_season(x="month", y="passengers", repeats_every="year")

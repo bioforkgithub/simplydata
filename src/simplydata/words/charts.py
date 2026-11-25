@@ -21,6 +21,7 @@ from .._data import frame_for, is_listlike
 from .._errors import SimplydataError, column_error, friendly, suggest
 from .._stats import SHOW, check_error, check_show, error_code, say_error
 from . import _colour_scale as scales
+from . import second_cues as cues  # patterns, hollow dots, dashes and shapes (charts phase, batch 1)
 from ._helpers import (check, check_thickness, check_transparency, colour_role, default_colour,
                        faces_see_through, opacity, palette_for, single_list)
 
@@ -340,12 +341,13 @@ def _draw_empty_cells(ctx, columns):
 
 
 # ---------------------------------------------------------------- bars
-def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=None):
+def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=None, hatched=False):
     group, fixed = colour_role(ctx.data, colour)
     how = SHOW[show]
     table, n = _frame(ctx, on_x="y" if sideways else "x", on_y="x" if sideways else "y",
                       measure=how, size_role="y", x=x, y=y, colour=group)
     ax = ctx.ax
+    before = list(ax.containers)
 
     if stacked:
         cols = [n["x"], n["colour"]]
@@ -387,14 +389,17 @@ def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=N
                 kw["capsize"] = 0.1
                 kw["err_kws"] = {"linewidth": 1.3}
             sns.barplot(**kw)
+    if hatched or cues.in_black_and_white(ctx):  # a pattern for each group (charts phase, batch 1)
+        cues.hatch_bars(ax, before)
     _remember(ctx, "bars", table, n, sideways=sideways)
 
 
 # ---------------------------------------------------------------- lines
 def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None, thickness=None,
-                joined_by="straight lines"):
+                joined_by="straight lines", dotted=False):
     group, fixed = colour_role(ctx.data, colour)
-    table, n = _frame(ctx, measure=SHOW[show], size_role="y", x=x, y=y, colour=group)
+    dash_column = dashed if isinstance(dashed, str) else None  # dashed="city": a dash pattern for each city
+    table, n = _frame(ctx, measure=SHOW[show], size_role="y", x=x, y=y, colour=group, dashed=dash_column)
     if joined_by not in ("straight lines", "steps"):
         # curves through the points: table/between.py, the engine of table.values_at()
         from .curves import draw_joined_lines, lines_colours
@@ -412,8 +417,18 @@ def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None,
         kw["color"] = default_colour(ctx.settings, fixed)
     if dots:
         kw["marker"] = "o"
-    if dashed:
+    if n["dashed"]:
+        kw["style"] = n["dashed"]  # seaborn's style= with dashes=True: one dash pattern for each group
+        if n["dashed"] == n["colour"] and "hue_order" in kw:
+            kw["style_order"] = kw["hue_order"]
+    elif dashed is True:
         kw["linestyle"] = "--"
+    elif dotted:
+        kw["linestyle"] = ":"
+    elif n["colour"] and cues.in_black_and_white(ctx):  # black and white: each group its own dashes
+        kw["style"] = n["colour"]
+        if "hue_order" in kw:
+            kw["style_order"] = kw["hue_order"]
     if transparency is not None:
         kw["alpha"] = opacity(transparency)
     if thickness is not None:
@@ -425,7 +440,7 @@ def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None,
 
 
 # ---------------------------------------------------------------- dots
-def _draw_dots(ctx, x, y, colour, size, shape, transparency=None):
+def _draw_dots(ctx, x, y, colour, size, shape, transparency=None, hollow=False):
     group, fixed = colour_role(ctx.data, colour)
     size_col = size if not isinstance(size, (int, float)) else None
     table, n = _frame(ctx, x=x, y=y, colour=group, size=size_col, shape=shape)
@@ -447,7 +462,20 @@ def _draw_dots(ctx, x, y, colour, size, shape, transparency=None):
         kw["s"] = size ** 2
     if transparency is not None:
         kw["alpha"] = opacity(transparency)
+    # shapes: use_shapes() and the style "black and white" (charts phase, batch 1)
+    shaped = n["shape"] or (n["colour"] if not by_number else None)
+    if shaped and (n["shape"] or ctx.settings.get("shapes") or cues.in_black_and_white(ctx)):
+        if not n["shape"]:
+            kw["style"] = shaped
+            if "hue_order" in kw:
+                kw["style_order"] = kw["hue_order"]
+        kw["markers"] = cues.markers_for(ctx.settings, table[shaped].nunique()) or True
+    elif ctx.settings.get("shapes"):
+        kw["marker"] = cues.shape_codes(ctx.settings["shapes"])[0]
+    before = list(ctx.ax.collections)
     sns.scatterplot(**kw)
+    if hollow:
+        cues.make_hollow(ctx.ax, before)
     if by_number:
         from matplotlib.cm import ScalarMappable
 
@@ -557,10 +585,11 @@ def _to_grid(table, x, y, z, word):
 
 
 # ---------------------------------------------------------------- area
-def _draw_area(ctx, x, y, colour, stacked, transparency=None, thickness=None):
+def _draw_area(ctx, x, y, colour, stacked, transparency=None, thickness=None, hatched=False):
     group, fixed = colour_role(ctx.data, colour)
     table, n = _frame(ctx, measure="mean", size_role="y", x=x, y=y, colour=group)
     ax = ctx.ax
+    before = list(ax.collections)
     keys = [n["x"]] + ([n["colour"]] if n["colour"] else [])
     # several values at the same x are averaged (like .draw_lines())
     mean = table.groupby(keys, sort=False)[n["y"]].mean()
@@ -584,6 +613,12 @@ def _draw_area(ctx, x, y, colour, stacked, transparency=None, thickness=None):
             ax.plot(xs, ys, color=c, label=str(col) if n["colour"] else None, linewidth=thickness)
     if n["colour"]:
         ax.legend(title=n["colour"])
+    if hatched or cues.in_black_and_white(ctx):  # a pattern for each area (charts phase, batch 1)
+        patterns = cues.hatch_collections(ax, before)
+        if n["colour"] and stacked:
+            cues._legend_patterns(ax, patterns)
+        elif n["colour"]:
+            cues.area_legend_with_patterns(ax, patterns, n["colour"])
     ax.set_xlabel(n["x"])
     ax.set_ylabel(n["y"])
     ctx.store["area_table"] = wide  # the heights drawn, one column per group
@@ -595,7 +630,7 @@ HISTOGRAM_SHOW = ("count", "percent", "density")
 
 
 def _draw_histogram(ctx, x, bins, colour, show="count", stacked=False, steps=False, cumulative=False,
-                    bin_width=None, transparency=None, thickness=None):
+                    bin_width=None, transparency=None, thickness=None, hatched=False):
     group, fixed = colour_role(ctx.data, colour)
     table, n = _frame(ctx, x=x, colour=group)
     kw = dict(data=table, x=n["x"], **_hue(table, n), ax=ctx.ax, stat=show, cumulative=cumulative)
@@ -621,7 +656,10 @@ def _draw_histogram(ctx, x, bins, colour, show="count", stacked=False, steps=Fal
         kw["alpha"] = opacity(transparency)
     if thickness is not None:
         kw["linewidth"] = thickness
+    before = list(ctx.ax.containers)
     sns.histplot(**_seaborn_colours(kw, table, n, ctx, fixed))
+    if (hatched or cues.in_black_and_white(ctx)) and not steps:  # a pattern for each group (charts phase, batch 1)
+        cues.hatch_bars(ctx.ax, before)
     ctx.ax.set_ylabel(("cumulative " if cumulative else "") + show)
     _remember(ctx, "histogram", table, n)
 
@@ -792,7 +830,7 @@ def _draw_heatmap(ctx, x, y, value, numbers, cluster, transparency=None):
 
 
 # ---------------------------------------------------------------- pie
-def _draw_pie(ctx, labels, values, transparency=None):
+def _draw_pie(ctx, labels, values, transparency=None, hatched=False):
     table, n = _frame(ctx, on_x=None, on_y=None, colour=labels, labels=labels, values=values)
     if n["values"] is None:
         sizes = table[n["labels"]].value_counts(sort=False, dropna=True)
@@ -809,6 +847,8 @@ def _draw_pie(ctx, labels, values, transparency=None):
            colors=palette_for(table, n["labels"], ctx.settings), autopct="%1.0f%%",
            startangle=90, counterclock=False, wedgeprops=dict(edgecolor="white", linewidth=1.5))
     faces_see_through([p for p in ax.patches if p not in before], transparency)
+    if hatched or cues.in_black_and_white(ctx):  # a pattern for each slice (charts phase, batch 1)
+        cues.hatch_slices([p for p in ax.patches if p not in before])
     ax.grid(False)
     ctx.store["pie_sizes"] = sizes
     ctx.last = dict(kind="pie", table=table, x=n["labels"], y=n["values"], colour=None)
@@ -1085,7 +1125,7 @@ class ChartWords:
 
     @friendly
     def draw_bars(self: _Same, x=None, y=None, colour=None, show="average", error=None,
-                  stacked=False, sideways=False, transparency=None) -> _Same:
+                  stacked=False, sideways=False, transparency=None, hatched=False) -> _Same:
         """Bars. chart.draw_bars(x="name", y="marks") (with sdata.get_example("marks"))
 
         colour="class" gives each group its own colour, or colour="blue" one colour.
@@ -1095,8 +1135,11 @@ class ChartWords:
         bars (with show="average"); a line says which one was drawn.
         stacked=True puts groups on top of each other; sideways=True lays bars down.
         transparency=0.5 makes them half see-through (0 is solid).
+        hatched=True fills each group's bars with its own pattern (lines, crosses, dots ...), so the groups
+        differ without colour too: for print in black and white and for readers who do not see some colours.
         """
         transparency = check_transparency("draw_bars", transparency)
+        cues.check_switch("draw_bars", "hatched", hatched)
         show = check_show("draw_bars", show)
         check_error("draw_bars", error, show)
         error = error_code("draw_bars", error)
@@ -1118,15 +1161,17 @@ class ChartWords:
         if error:
             say_error(error)
         return self._add("bars", "draw", _draw_bars, x=x, y=y, colour=colour, show=show,
-                         error=error, stacked=stacked, sideways=sideways, transparency=transparency)
+                         error=error, stacked=stacked, sideways=sideways, transparency=transparency, hatched=hatched)
 
     @friendly(renamed={"dots": "with_dots"})
     def draw_lines(self: _Same, x=None, y=None, colour=None, show="average", error=None, with_dots=False, dashed=False,
-                   thickness=None, transparency=None, joined_by="straight lines") -> _Same:
+                   thickness=None, transparency=None, joined_by="straight lines", dotted=False) -> _Same:
         """Lines. chart.draw_lines(x="month", y="temperature", colour="city") (with sdata.get_example("weather"))
 
         colour="city" draws one line per group. with_dots=True marks each point.
-        dashed=True draws a dashed line. show= works as in bars (not "count").
+        dashed=True draws a dashed line; dashed="city" gives each city its own dash pattern (with
+        colour="city" too, the lines differ in colour and dashes). dotted=True draws a dotted line.
+        show= works as in bars (not "count").
         error="standard deviation", "standard error" or "confidence interval" adds a shaded
         band; a line says which one was drawn.
         thickness=3 draws thicker lines (normal is 2, in points); transparency=0.5 makes
@@ -1150,7 +1195,16 @@ class ChartWords:
         if x is None or y is None:
             raise SimplydataError('.draw_lines() needs x= and y=, for example chart.draw_lines(x="month", y="temperature").')
         group, _ = colour_role(self._data, colour)
-        check(self._data, x=x, y=y, colour=group)
+        cues.check_switch("draw_lines", "dotted", dotted)
+        if not isinstance(dashed, (bool, str)):
+            raise SimplydataError(
+                f'dashed= in .draw_lines() should be True, False or a column, such as dashed="city", not {dashed!r}.')
+        if dotted and dashed is not False:
+            raise SimplydataError(".draw_lines() draws a line dashed or dotted, not both. Choose dashed= or dotted=.")
+        if isinstance(dashed, str) and joined_by not in ("straight lines", "steps"):
+            raise SimplydataError(f'dashed="{dashed}" gives each group its own dashes on straight lines; with '
+                                  f'joined_by="{joined_by}" use dashed=True instead.')
+        check(self._data, x=x, y=y, colour=group, dashed=dashed if isinstance(dashed, str) else None)
         self._need_axes("draw_lines")
         if error and joined_by not in ("straight lines", "steps"):
             raise SimplydataError(f'error= draws a band around straight lines; with joined_by="{joined_by}" leave '
@@ -1159,19 +1213,23 @@ class ChartWords:
             say_error(error, "Shaded band")
         return self._add("lines", "draw", _draw_lines, x=x, y=y, colour=colour, show=show,
                          error=error, dots=with_dots, dashed=dashed, transparency=transparency,
-                         thickness=thickness, joined_by=joined_by)
+                         thickness=thickness, joined_by=joined_by, dotted=dotted)
 
     @friendly
-    def draw_dots(self: _Same, x=None, y=None, colour=None, size=None, shape=None, transparency=None) -> _Same:
+    def draw_dots(self: _Same, x=None, y=None, colour=None, size=None, shape=None, transparency=None,
+                  hollow=False) -> _Same:
         """Dots (a scatter chart). chart.draw_dots(x="hours", y="marks") (with sdata.get_example("marks"))
 
         colour="class" colours dots by group. size="height" makes dots bigger for bigger
         values, or size=10 makes all dots that big. shape="subject" gives each group a shape.
         transparency=0.5 makes dots half see-through, so dots on top of each other show.
+        hollow=True draws only the outline of each dot, in its colour, so dots on top of each other show
+        and groups differ in print. chart.use_shapes("circle", "square") chooses the shapes.
         With colour= a number column and chart.use_colour_scale(...), dots get a smooth colour
         scale and a colour bar.
         """
         transparency = check_transparency("draw_dots", transparency)
+        cues.check_switch("draw_dots", "hollow", hollow)
         x, y = single_list(x, y)
         if x is None or y is None:
             raise SimplydataError('.draw_dots() needs x= and y=, for example chart.draw_dots(x="hours", y="marks").')
@@ -1180,7 +1238,7 @@ class ChartWords:
         check(self._data, x=x, y=y, colour=group, size=size_col, shape=shape)
         self._need_axes("draw_dots")
         return self._add("dots", "draw", _draw_dots, x=x, y=y, colour=colour, size=size, shape=shape,
-                         transparency=transparency)
+                         transparency=transparency, hollow=hollow)
 
 
     @staticmethod
@@ -1190,18 +1248,19 @@ class ChartWords:
                 raise SimplydataError(f"{option}= in .{word}() should be True or False, not {value!r}.")
 
     @friendly
-    def draw_area(self: _Same, x=None, y=None, colour=None, stacked=False, transparency=None, thickness=None) -> _Same:
+    def draw_area(self: _Same, x=None, y=None, colour=None, stacked=False, transparency=None, thickness=None,
+                  hatched=False) -> _Same:
         """A line with the space under it coloured in.
         chart.draw_area(x="year", y="population", colour="country") (with sdata.get_example("growth"))
 
         colour="country" gives each group its own area; stacked=True piles the groups on top
         of each other, so the top edge shows the total.
         transparency=0.3 sets how see-through the coloured space is (0 is solid);
-        thickness=3 makes its top line thicker.
+        thickness=3 makes its top line thicker. hatched=True fills each area with its own pattern.
         """
         transparency = check_transparency("draw_area", transparency)
         thickness = check_thickness("draw_area", thickness)
-        self._yes_no("draw_area", stacked=stacked)
+        self._yes_no("draw_area", stacked=stacked, hatched=hatched)
         x, y = single_list(x, y)
         if x is None or y is None:
             raise SimplydataError('.draw_area() needs x= and y=, for example chart.draw_area(x="year", y="population").')
@@ -1212,11 +1271,11 @@ class ChartWords:
         _check_numbers(self._data, "draw_area", y=y)
         self._need_axes("draw_area")
         return self._add("area", "draw", _draw_area, x=x, y=y, colour=colour, stacked=stacked,
-                         transparency=transparency, thickness=thickness)
+                         transparency=transparency, thickness=thickness, hatched=hatched)
 
     @friendly(renamed={"bins": "with_bins"})
     def draw_histogram(self: _Same, x=None, with_bins=None, colour=None, show="count", stacked=False, steps=False,
-                       cumulative=False, bin_width=None, transparency=None, thickness=None) -> _Same:
+                       cumulative=False, bin_width=None, transparency=None, thickness=None, hatched=False) -> _Same:
         """Bars that count how many values fall in each range. chart.draw_histogram(x="marks", with_bins=10)
         (with sdata.get_example("marks"))
 
@@ -1230,11 +1289,15 @@ class ChartWords:
         steps=True draws only the outline, as steps; cumulative=True adds up from the left,
         so each bar counts the values up to its right edge.
         transparency=0.5 makes the bars half see-through; thickness= sets the outline width.
+        hatched=True fills each group's bars with its own pattern.
         """
         transparency = check_transparency("draw_histogram", transparency)
         thickness = check_thickness("draw_histogram", thickness)
         self._check_choice("draw_histogram", "show", show, HISTOGRAM_SHOW)
-        self._yes_no("draw_histogram", stacked=stacked, steps=steps, cumulative=cumulative)
+        self._yes_no("draw_histogram", stacked=stacked, steps=steps, cumulative=cumulative, hatched=hatched)
+        if hatched and steps:
+            raise SimplydataError(".draw_histogram() fills the bars with patterns with hatched=True, but steps=True "
+                                  "draws only their outline. Choose one.")
         if x is None:
             raise SimplydataError('.draw_histogram() needs x=, for example chart.draw_histogram(x="marks").')
         if with_bins is not None and bin_width is not None:
@@ -1271,7 +1334,7 @@ class ChartWords:
         return self._add("histogram", "draw", _draw_histogram, x=x, bins=with_bins, colour=colour, show=show,
                          stacked=stacked, steps=steps, cumulative=cumulative,
                          bin_width=None if bin_width is None else float(bin_width),
-                         transparency=transparency, thickness=thickness)
+                         transparency=transparency, thickness=thickness, hatched=hatched)
 
     def _boxes_or_violins(self, word, x, y, colour, transparency=None, thickness=None):
         said = self._public_name(word)  # the step keeps its inner name; messages use the word as written
@@ -1422,20 +1485,23 @@ class ChartWords:
         return self._add("empty_cells", "draw", _draw_empty_cells, columns=columns)
 
     @friendly
-    def draw_pie(self: _Same, labels=None, values=None, transparency=None) -> _Same:
+    def draw_pie(self: _Same, labels=None, values=None, transparency=None, hatched=False) -> _Same:
         """A circle cut into slices, one slice per group. chart.draw_pie(labels="fruit", values="count")
         (with sdata.get_example("fruit"))
 
         Without values= each slice shows how many rows have that label.
         transparency=0.3 makes the slices a little see-through (0 is solid).
+        hatched=True fills each slice with its own pattern.
         """
         transparency = check_transparency("draw_pie", transparency)
+        cues.check_switch("draw_pie", "hatched", hatched)
         if labels is None:
             raise SimplydataError('.draw_pie() needs labels=, for example chart.draw_pie(labels="fruit", values="count").')
         check(self._data, labels=labels, values=values)
         _check_numbers(self._data, "draw_pie", values=values)
         self._need_axes("draw_pie")
-        return self._add("pie", "draw", _draw_pie, labels=labels, values=values, transparency=transparency)
+        return self._add("pie", "draw", _draw_pie, labels=labels, values=values, transparency=transparency,
+                         hatched=hatched)
 
     @friendly
     def draw_polar(self: _Same, angle=None, distance=None, colour=None, degrees=True, transparency=None, full_turn=None) -> _Same:

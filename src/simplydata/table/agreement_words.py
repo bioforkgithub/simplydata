@@ -343,7 +343,7 @@ class AgreementWords:
         plus and minus 1.96 standard deviations), each with its interval (R
         BlandAltmanLeh::bland.altman.stats(), simplydata[r]), and Lin's concordance correlation (R
         DescTools::CCC()). Whether the limits are close enough is a question for the field, not
-        for statistics. chart.difference_dots(first=..., second=...) draws it. Gives back a one-row
+        for statistics. chart.draw_difference_dots(first=..., second=...) draws it. Gives back a one-row
         table.
         """
         from .._r import r_call

@@ -1154,7 +1154,7 @@ BASIS["table.compare_accuracy"] = _b(
     "DeLong's method compares correlated ROC curves without assuming a shape (DeLong, DeLong & Clarke-Pearson "
     "1988).",
     ("delong1988",), "P2", "Exactly two number columns.")
-BASIS["trade_off_curve"] = _b(
+BASIS["draw_trade_off_curve"] = _b(
     "Higher scores count as positive; the AUC with DeLong's 95 % interval in the legend; the best cut-off by "
     "Youden's index marked with a dot.",
     "positive_when=\"lower\"; several scores, or colour= groups.",
@@ -1189,7 +1189,7 @@ BASIS["table.limits_of_agreement"] = _b(
     "1986); the intervals of the limits are their approximate ones (Bland & Altman 1999), which are a little too "
     "narrow in small samples, where exact intervals exist (Carkeet 2015).",
     ("bland1986", "bland1999", "carkeet2015", "lin1989"), "P1", "Needs R; both columns must hold numbers.")
-BASIS["difference_dots"] = _b(
+BASIS["draw_difference_dots"] = _b(
     "The Bland-Altman picture: differences against averages, with the limits (n - 1 standard deviation) and their "
     "95 % intervals shaded.",
     "There is no option for the limits.",
@@ -2058,7 +2058,7 @@ BASIS["table.combine_studies using="] = _b(
     "Knapp & Hartung 2003 give the test for meta-regression; Thompson & Higgins 2002 warn that few studies make "
     "chance links likely and that the link is between studies, not within them.",
     ("knapp2003", "thompson2002"), "P2", "Number columns only; fewer than 10 studies per column get a note.")
-BASIS["forest_plot"] = _b(
+BASIS["draw_forest_plot"] = _b(
     "Ratios on a log scale with the line of no effect at 1, other effects on a plain scale with the line at 0; "
     "on combine_studies results, squares sized by weight, diamonds for the combined effects and a line for the "
     "prediction interval.",
@@ -2318,28 +2318,28 @@ BASIS["nums.find_autocorrelation"] = _b(
     "As table.find_autocorrelation_of: 10 x log10(n) rows back, the white-noise band, Ljung-Box.",
     "show=, band=, rows_back=.", "As table.find_autocorrelation_of.", ("bartlett1946", "ljung1978"), "P3",
     "As table.find_autocorrelation_of.", "convention")
-BASIS["autocorrelation_bars"] = _b(
+BASIS["draw_autocorrelation_bars"] = _b(
     "As table.find_autocorrelation_of, drawn with the dashed white-noise band of R plot(acf()).",
     "show=, band=\"bartlett\", rows_back=.", "As table.find_autocorrelation_of.", ("bartlett1946",), "P3",
     "As table.find_autocorrelation_of.", "convention")
-BASIS["cross_correlation_bars"] = _b(
+BASIS["draw_cross_correlation_bars"] = _b(
     "The cross-correlation of two columns (as R ccf(), with the lag sign turned round) for 10 rows back each way, "
     "with the band +-1.96 / sqrt(n).",
     "rows_back=. table.find_correlation_between(rows_back=) uses R's 10 x log10(n) instead.",
     "These are R ccf()'s band and a fixed starting number of lags; the printout says a correlation does not show "
     "that one thing causes the other.",
     (), "P5", "Exactly two columns, filled and evenly spaced.", "starting value")
-BASIS["trend_and_season"] = _b(
+BASIS["draw_trend_and_season"] = _b(
     "STL as table.add_trend_and_season.", "test_method=, repeats_every=.", "As table.add_trend_and_season (Cleveland "
     "et al. 1990).", ("cleveland1990",), "P5", "As table.add_trend_and_season.", "starting value")
-BASIS["forecast"] = _b(
+BASIS["draw_forecast"] = _b(
     "Holt-Winters exponential smoothing as table.forecast, 12 steps ahead, the 95 % interval as a band.",
     "As table.forecast.", "As table.forecast.", ("winters1960", "fpp3"), "P3", "As table.forecast.", "convention")
-BASIS["spectrum"] = _b(
+BASIS["draw_spectrum"] = _b(
     "The periodogram as table.find_spectrum_of, on a log scale, the 3 strongest peaks labelled.",
     "test_method=\"welch\", show=, log_scale=False.", "As table.find_spectrum_of (Welch 1967 for the averaged form).",
     ("welch1967",), "P3", "As table.find_spectrum_of.", "convention")
-BASIS["spectrum_over_time"] = _b(
+BASIS["draw_spectrum_over_time"] = _b(
     "Pieces of 256 readings with a Hann window and half overlap (SciPy spectrogram), in decibels.",
     "window=, window_shape=.",
     "SciPy's spectrogram with its usual window; 256 is a starting value that trades time against frequency detail.",
@@ -2355,7 +2355,7 @@ BASIS["nums.remove_each_frequency_that"] = _b(
 BASIS["nums.find_each_peak_that"] = _b(
     "Every local maximum, as table.find_each_peak_that.", "As table.find_each_peak_that.",
     "As table.find_each_peak_that.", (), "P3", "", "convention")
-BASIS["peak_dots"] = _b(
+BASIS["draw_peak_dots"] = _b(
     "Every local maximum marked, as table.find_each_peak_that.", "is_at_least=, apart=, stands_out_by=, dips=.",
     "As table.find_each_peak_that.", (), "P3", "", "convention")
 BASIS["table.compare_each_pair_of matched_by="] = _b(
@@ -3686,7 +3686,7 @@ BASIS["system.table"] = _b(
     "form=\"state space\" (SciPy tf2ss, as R control::tf2ss) or \"poles and zeros\".",
     "Highest power first is how SciPy, R control and MATLAB write the coefficients; padding puts the top and bottom "
     "of each power on one row.", (), "P3", "", "convention")
-BASIS["lag_dots"] = _b(
+BASIS["draw_lag_dots"] = _b(
     "Each value against the value rows_back=1 earlier, in the order of sorted_by=, with a dashed 1:1 line from the "
     "smallest to the biggest value.",
     "rows_back= a number or a list (one colour each), transparency=.",
@@ -3749,7 +3749,7 @@ BASIS["draw_map_of_empty_cells"] = _b(
     "columns= for some columns only.",
     "Showing results: the same rule for an empty cell as the table words; the Okabe-Ito vermilion stands out for "
     "readers with colour blindness.", (), "P5", "", "convention")
-BASIS["sticks"] = _b(
+BASIS["draw_sticks"] = _b(
     "A stick 1.5 points wide from 0 to each value with a small dot on top, and a thin line at 0.",
     "colour= for groups, thickness=.",
     "Showing results: a stick from 0 shows each value at its own place without joining places that are apart.",
@@ -4227,7 +4227,7 @@ BASIS["table.find_correlation_between allowing_for=, show=\"result table\""] = _
     "nothing is worked out again. The partial correlation is the correlation of what is left of the two columns "
     "after the third is taken out (Fisher 1915 for the distribution of r).", ("fisher1915",), "P3",
     "Exactly two columns and one to allow for; sides=, p_value_by= and interval_by= are refused.", "convention")
-BASIS["trade_off_curve get_numbers_drawn()"] = _b(
+BASIS["draw_trade_off_curve get_numbers_drawn()"] = _b(
     "The row of the marked dot holds the best cut-off by Youden's index in its value column (R pROC::coords(roc, "
     "\"best\", best.method = \"youden\") threshold), the sensitivity there as y and the false alarms (1 - "
     "specificity) as x, as drawn.",

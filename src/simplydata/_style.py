@@ -33,6 +33,11 @@ _BASE = {
     "lines.linewidth": 2.0,
     "lines.markersize": 7,
     "image.cmap": "viridis",
+    # Fonts kept as real text in saved files (decision D6, 2026-11-25): TrueType (Type 42) inside .pdf and .eps,
+    # which journal checkers accept (they refuse matplotlib's own Type 3), and text that stays text in .svg
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+    "svg.fonttype": "none",
 }
 
 STYLES = {
@@ -70,6 +75,15 @@ STYLES = {
         "axes.prop_cycle": matplotlib.cycler(
             color=["#56B4E9", "#E69F00", "#009E73", "#F0E442", "#CC79A7", "#D55E00", "#0072B2", "#FFFFFF"]
         ),
+    },
+    # For print in black and white (charts phase, batch 1): greys that differ in lightness, and each group also
+    # gets its own pattern, dashes or dot shape (simplydata.words.second_cues); colour maps run in greys
+    "black and white": {
+        "axes.prop_cycle": matplotlib.cycler(
+            color=["#000000", "#8c8c8c", "#d0d0d0", "#4d4d4d", "#b0b0b0", "#262626", "#6e6e6e", "#e6e6e6"]
+        ),
+        "image.cmap": "Greys",
+        "hatch.linewidth": 0.8,
     },
 }
 

@@ -108,6 +108,16 @@ UNDERNEATH = {
     "sdata.get_example": "pandas (read_csv of a small file inside simplydata), as a simplydata table",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
+    # charts phase, batch 1
+    "get_text_drawn": "matplotlib (the drawn Text artists: Axes.get_title, get_xlabel, get_ylabel, Figure.get_suptitle, "
+                      "the legend's texts, Axes.texts, the tick labels, the colour bar's label)",
+    "get_scales_drawn": "matplotlib (Axes.get_xlim, get_xscale, xaxis_inverted, the major ticks and their labels; the "
+                        "colour map and norm of a colour scale)",
+    "get_size": "matplotlib (Figure.get_size_inches)",
+    "undo": "simplydata itself: a chart is a list of steps, drawn only when it is shown or saved",
+    "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
+    "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
+    "use_shapes": "seaborn (scatterplot style= and markers=)",
     "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
                          "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types
@@ -137,10 +147,10 @@ UNDERNEATH = {
                    "test_method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
                    "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "draw_density": "seaborn (kdeplot)",
-    "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
-    "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
+    "draw_trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
+    "draw_difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
                        "BlandAltmanLeh::bland.altman.stats for the limits and their intervals (simplydata[r])",
-    "forest_plot": "matplotlib (errorbar), from the interval columns of a result table; on combine_studies' result "
+    "draw_forest_plot": "matplotlib (errorbar), from the interval columns of a result table; on combine_studies' result "
                    "squares (scatter), diamonds (fill) and the prediction interval (plot)",
     "draw_qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
@@ -330,15 +340,15 @@ UNDERNEATH = {
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
                                  "phase margins (simplydata[systems])",
-    "sticks": "matplotlib (vlines and plot)",
-    "autocorrelation_bars": "statsmodels (as table.find_autocorrelation_of), drawn with matplotlib",
-    "cross_correlation_bars": "statsmodels (as table.find_correlation_between with rows_back=), drawn with matplotlib",
-    "lag_dots": "pandas (shift), drawn with matplotlib",
-    "trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
-    "forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
-    "spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
-    "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
-    "peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
+    "draw_sticks": "matplotlib (vlines and plot)",
+    "draw_autocorrelation_bars": "statsmodels (as table.find_autocorrelation_of), drawn with matplotlib",
+    "draw_cross_correlation_bars": "statsmodels (as table.find_correlation_between with rows_back=), drawn with matplotlib",
+    "draw_lag_dots": "pandas (shift), drawn with matplotlib",
+    "draw_trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
+    "draw_forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
+    "draw_spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
+    "draw_spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
+    "draw_peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
     "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima, forecast::auto.arima "
                       "for order=\"automatic\"; forecast::forecast and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",

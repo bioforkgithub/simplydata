@@ -223,19 +223,19 @@ def cases(Case):
             {"empty cells": cells.get_column("value").find_total(), "rows": cells.count_rows() / 4,
              "bmi empty": float(f["ticks"][0][1].split()[1])}
         """, facts="the names under the x-axis"),
-        _pair(Case, "sticks", "Lake Huron: the level of each year as a stick", "Lake Huron", """
+        _pair(Case, "draw_sticks", "Lake Huron: the level of each year as a stick", "Lake Huron", """
             chart = sdata.chart(data).sticks(x="year", y="level")
         """, """
             fig, ax = plt.subplots()
             ax.vlines(data["year"], 0, data["level"], linewidth=1.5)
         """, """
-            {"sticks": f["segments"][0][0][0] / 2, "last height": float(f["segments"][0][0][1][-1, 1]),
+            {"draw_sticks": f["segments"][0][0][0] / 2, "last height": float(f["segments"][0][0][1][-1, 1]),
              "width": f["segments"][0][1][0]}
         """, "matplotlib vlines", r="""
             list(sticks = length(level), `last height` = level[length(level)])
         """, tolerance=1e-12, r_tolerance=1e-12, ours_read="""
             sticks = drawn.keep_rows_where("kind", is_equal_to="segment")
-            {"sticks": sticks.count_rows(), "last height": sticks.get_cell_at(row=sticks.count_rows(), column="high"),
+            {"draw_sticks": sticks.count_rows(), "last height": sticks.get_cell_at(row=sticks.count_rows(), column="high"),
              "width": f["segments"][0][1][0]}
         """, facts="the width of the sticks"),
         _pair(Case, "draw_error_bars", "Fisher's iris: sepal length of each species with its standard deviation",
@@ -680,7 +680,7 @@ def cases(Case):
             {"box from x": f["insets"][0][1][8][0], "box to x": f["insets"][0][1][8][1],
              "dots in view": inside.count_rows(), "box width (share of the chart)": f["insets"][0][0][2]}
         """, facts="the place or the ends of the axes of a zoom box"),
-        Case("forest_plot", "warpbreaks: Tukey's differences between the three tensions, as a forest plot",
+        Case("draw_forest_plot", "warpbreaks: Tukey's differences between the three tensions, as a forest plot",
              "warpbreaks", "real data",
              ours=_ours_drawn("""
                  pairs = sdata.table(data).compare_each_pair_of("breaks", for_each_group_in="tension",

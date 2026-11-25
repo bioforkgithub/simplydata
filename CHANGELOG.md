@@ -5,6 +5,55 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: charts phase, batch 1 (the priority-1 matplotlib and seaborn words; approved by Manish 2026-11-25)
+
+- Reading a chart back: `chart.get_text_drawn()` (a table of every piece of text: title, axis names, legend title and
+  entries, notes, captions, panel letters, tick words, numbers on bars, names next to dots, with where each legend or
+  note is), `chart.get_scales_drawn()` (a table of every scale: x, y, second y, z and colour, with its name, range,
+  kind, whether it is flipped, its ticks and tick words, the panels sharing its range, and a colour scale's map and
+  middle) and `chart.get_size(unit="cm")` (the pair of `set_size`). All three read what matplotlib drew, as
+  `get_numbers_drawn()` does; pages of charts have them too.
+- `get_numbers_drawn()` gives each drawn point its `colour` ("#0072b2") and, when a named colour has exactly that
+  code, its `colour name` ("blue").
+- `chart.undo()`: takes the last word back (a layer, a title, the style, the size), as `table.undo()` does.
+- `chart.put_legend_inside("top left")` (or "top right", "bottom left", "bottom right", "top", "bottom", "left",
+  "right", "middle", "best").
+- `sdata.put_in_rows_and_columns([[a, a], [b, c]], widths=[2, 1], heights=[2, 1])`: rows given as lists, a chart
+  named in several places spans them, `None` leaves a place empty; `widths=` and `heights=` also work on a plain
+  grid. `with_one_legend=True` on `put_side_by_side`, `put_one_above_other` and `put_in_rows_and_columns`: one
+  legend for the whole page.
+- `chart.write_letter("B")`: a panel letter on a chart that is not on a page.
+- `write_note(..., where="top left")` (a fixed place in the plot), `with_box=True` (a frame round the note) and
+  `with_curved_arrow=True`.
+- Second cues besides colour: `hatched=True` on `draw_bars`, `draw_histogram`, `draw_area` and `draw_pie` (each group
+  its own pattern, in the legend too), `hollow=True` on `draw_dots`, `dashed="city"` (each group its own dashes) and
+  `dotted=True` on `draw_lines`, and `chart.use_shapes("circle", "square", "triangle")`.
+- `use_style("black and white")`: greys, with patterns, dashes and shapes for the groups; "greyscale" and
+  "grayscale" mean the same.
+- `use_colours("Set2")`, `use_colours("colour-blind safe")` and `use_colours("viridis", how_many=5)`: named colour
+  sets (seaborn's `color_palette`).
+- `save("logo.png", see_through=True)`: no background. `.eps` files can be saved (see-through marks are saved solid,
+  with a note).
+- Other names point to the new words: `get_title`, `get_xlim`, `get_size_inches`, `move_legend`, `tag_levels` ...
+
+### Changed: charts phase, batch 1
+
+- Text in saved `.pdf`, `.eps` and `.svg` files stays real text: fonts are kept as TrueType (Type 42) in PDF and
+  PostScript, which journal checkers accept, and as text in SVG (decision D6). Files get a little bigger.
+- Every chart type starts with `draw_` (decision D11): `draw_sticks`, `draw_spectrum`, `draw_spectrum_over_time`,
+  `draw_lag_dots`, `draw_peak_dots`, `draw_difference_dots`, `draw_forecast`, `draw_trend_and_season`,
+  `draw_autocorrelation_bars`, `draw_cross_correlation_bars`, `draw_trade_off_curve` and `draw_forest_plot`. The old
+  names still work for one release, with a note.
+
+### Fixed: charts phase, batch 1
+
+- `get_numbers_drawn()` no longer stops on lines drawn at named x positions (error bars on dots at groups, as on
+  iris): the numbers matplotlib turned the names into are read, and given back as the names.
+- `get_numbers_drawn()` on a surface gives each drawn grid point once (kind "surface"), with its height in `value`,
+  instead of every corner of every piece.
+- `get_numbers_drawn()`: what is drawn on a second y-axis belongs to the panel it is on (panel 1 of a single
+  chart), its layers after the panel's own, as the docstring always said.
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

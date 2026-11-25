@@ -19,12 +19,14 @@ import numbers
 import matplotlib
 import pandas as pd
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
 
 from .. import _style
 from .._core import PHASES, BaseChart, Context, chart_notes
 from .._data import is_listlike
 from .._errors import SimplydataError, column_error, friendly, option_error, renamed_note
 from .look import LookWords
+from .read_back import ReadBackWords
 
 # Inset positions inside the main plot: [left, bottom, width, height] as parts of the plot.
 _ZOOM_PLACES = {
@@ -273,14 +275,23 @@ class LayoutWords:
 
 
 # ---------------------------------------------------------------- pages of several charts
-class Page(BaseChart):
+class Page(ReadBackWords, BaseChart):
     """Several charts on one page. Make one with sdata.put_side_by_side, sdata.put_one_above_other or sdata.put_in_rows_and_columns."""
 
-    def __init__(self, charts, rows, columns, same_x=False, same_y=False, how="grid", letters=False):
+    def __init__(self, charts, rows, columns, same_x=False, same_y=False, how="grid", letters=False, cells=None,
+                 widths=None, heights=None, one_legend=False):
         self._charts = list(charts)
         self._letters = letters
         self._rows, self._columns, self._how = rows, columns, how
         self._same_x, self._same_y = same_x, same_y
+        # charts phase, batch 1: where each chart goes, [(chart, first row, last row + 1, first column, last
+        # column + 1)] (a chart can span cells), the relative widths of the columns and heights of the rows, and
+        # one legend for the whole page
+        if cells is None:
+            cells = [(chart, i // columns, i // columns + 1, i % columns, i % columns + 1)
+                     for i, chart in enumerate(self._charts)]
+        self._cells = cells
+        self._widths, self._heights, self._one_legend = widths, heights, one_legend
         self._data = pd.DataFrame()
         self._steps = []
         styles = {c._settings["style"] for c in self._charts}
@@ -324,9 +335,13 @@ class Page(BaseChart):
             for chart in self._charts:
                 chart._left_out_rows()
             fig = Figure(figsize=self._page_size(), layout="constrained")
-            cells = fig.subfigures(self._rows, self._columns, squeeze=False)
+            # each chart gets its own sub-figure on a grid (Figure.subfigures does the same for equal cells); a
+            # chart in several cells spans them (GridSpec slices), widths= and heights= are the grid's ratios
+            grid = GridSpec(self._rows, self._columns, figure=fig, width_ratios=self._widths,
+                            height_ratios=self._heights, left=0, right=1, bottom=0, top=1)
             panels = []
-            for number, (chart, cell) in enumerate(zip(self._charts, cells.flat)):
+            for number, (chart, r0, r1, c0, c1) in enumerate(self._cells):
+                cell = fig.add_subfigure(grid[r0:r1, c0:c1])
                 look = dict(chart._settings)
                 if s["style_set"]:
                     look["style"] = s["style"]
@@ -340,6 +355,8 @@ class Page(BaseChart):
                 _share(panels, "x")
             if self._same_y:
                 _share(panels, "y")
+            if self._one_legend:
+                _one_legend(fig)
             if s["title"]:
                 fig.suptitle(s["title"], fontweight="bold", fontsize=matplotlib.rcParams["axes.titlesize"] * 1.15)
         return fig  # not cached: the charts on the page may still change
@@ -349,6 +366,37 @@ class Page(BaseChart):
 
     def __repr__(self):
         return f"<simplydata page: {len(self._charts)} charts, {self._how}>"
+
+
+def _one_legend(fig):
+    """with_one_legend=True: the legend entries of every chart on the page (matplotlib Figure.legend), each group
+    once, at the right of the page; the charts' own legends are taken away."""
+    from matplotlib.patches import Rectangle
+
+    from .._numbers_drawn import _all_axes
+
+    handles, labels, title = [], [], ""
+
+    def take(found_h, found_l, legend_title=""):
+        nonlocal title
+        title = title or legend_title
+        for h, label in zip(found_h, found_l):
+            if label and not label.startswith("_") and not label.endswith(":") and label not in labels:
+                handles.append(h if h is not None else Rectangle((0, 0), 1, 1, visible=False))
+                labels.append(label)
+
+    for sub in fig.subfigs:
+        for legend in list(sub.legends):
+            take(legend.legend_handles, [t.get_text() for t in legend.get_texts()], legend.get_title().get_text())
+            legend.remove()
+        for ax in _all_axes(sub):
+            legend = ax.get_legend()
+            if legend is not None:
+                take(legend.legend_handles, [t.get_text() for t in legend.get_texts()],
+                     legend.get_title().get_text())
+                legend.remove()
+    if handles:
+        fig.legend(handles, labels, loc="outside center right", title=title or None)
 
 
 def _share(axes, which):
@@ -370,15 +418,16 @@ def _put_letter(cell, panels, letter):
     """
     size = matplotlib.rcParams["axes.titlesize"] * 1.2
     if len(panels) == 1:
-        panels[0].set_title(letter, loc="left", fontweight="bold", fontsize=size)
+        panels[0].set_title(letter, loc="left", fontweight="bold", fontsize=size).simplydata_part = "panel letter"
         return
     sup = getattr(cell, "_suptitle", None)
     if sup is not None and sup.get_visible() and sup.get_text():  # write_title_on_top of the chart: same line
         x, y = sup.get_position()
-        cell.text(0.01, y, letter, ha="left", va=sup.get_va(), fontweight="bold", fontsize=size,
-                  transform=cell.transSubfigure)
+        written = cell.text(0.01, y, letter, ha="left", va=sup.get_va(), fontweight="bold", fontsize=size,
+                            transform=cell.transSubfigure)
     else:
-        cell.suptitle(letter, x=0.01, ha="left", fontweight="bold", fontsize=size)
+        written = cell.suptitle(letter, x=0.01, ha="left", fontweight="bold", fontsize=size)
+    written.simplydata_part = "panel letter"
 
 
 def _letter(number):
@@ -409,47 +458,121 @@ def _page_charts(step, charts):
     return charts
 
 
-def _check_page_options(step, same_x, same_y, letters=False):
+def _check_page_options(step, same_x, same_y, letters=False, one_legend=False):
     _check_bool(step, "same_x", same_x)
     _check_bool(step, "same_y", same_y)
     _check_bool(step, "letters", letters)
+    _check_bool(step, "with_one_legend", one_legend)
 
 
 @friendly(renamed={"letters": "with_letters"})
-def put_side_by_side(*charts, same_x=False, same_y=False, with_letters=False):
+def put_side_by_side(*charts, same_x=False, same_y=False, with_letters=False, with_one_legend=False):
     """Charts next to each other. sdata.put_side_by_side(a, b).save("both.png")
 
     same_y=True gives them all the same y range, so heights can be compared.
     with_letters=True writes A, B, C ... at the top left of each chart, as in papers.
+    with_one_legend=True shows one legend for the whole page, when the charts have the same groups.
     """
     charts = _page_charts("put_side_by_side", charts)
-    _check_page_options("put_side_by_side", same_x, same_y, with_letters)
-    return Page(charts, 1, len(charts), same_x, same_y, how="side by side", letters=with_letters)
+    _check_page_options("put_side_by_side", same_x, same_y, with_letters, with_one_legend)
+    return Page(charts, 1, len(charts), same_x, same_y, how="side by side", letters=with_letters,
+                one_legend=with_one_legend)
 
 
 @friendly(renamed={"letters": "with_letters"})
-def put_one_above_other(*charts, same_x=False, same_y=False, with_letters=False):
+def put_one_above_other(*charts, same_x=False, same_y=False, with_letters=False, with_one_legend=False):
     """Charts on top of each other. sdata.put_one_above_other(a, b).save("both.png")
 
     same_x=True gives them all the same x range, which suits time series.
     with_letters=True writes A, B, C ... at the top left of each chart, as in papers.
+    with_one_legend=True shows one legend for the whole page, when the charts have the same groups.
     """
     charts = _page_charts("put_one_above_other", charts)
-    _check_page_options("put_one_above_other", same_x, same_y, with_letters)
-    return Page(charts, len(charts), 1, same_x, same_y, how="one above the other", letters=with_letters)
+    _check_page_options("put_one_above_other", same_x, same_y, with_letters, with_one_legend)
+    return Page(charts, len(charts), 1, same_x, same_y, how="one above the other", letters=with_letters,
+                one_legend=with_one_legend)
+
+
+def _is_layout(charts) -> bool:
+    """put_in_rows_and_columns([[a, a], [b, c]]): a list of rows, each a list of charts."""
+    rows = charts[0] if len(charts) == 1 and isinstance(charts[0], (list, tuple)) else charts
+    return bool(rows) and all(isinstance(row, (list, tuple)) for row in rows)
+
+
+def _cells_of(rows):
+    """The cells of each chart in a list of rows: [(chart, first row, last row + 1, first column, last column + 1)]
+    in the order the charts first appear. A chart in several cells spans them; None leaves a cell empty."""
+    example = "for example sdata.put_in_rows_and_columns([[a, a], [b, c]])"
+    rows = [list(row) for row in rows]
+    columns = len(rows[0])
+    if not columns or any(len(row) != columns for row in rows):
+        raise SimplydataError(f"Each row needs the same number of places (use None for an empty place), {example}.")
+    places = {}
+    for r, row in enumerate(rows):
+        for c, chart in enumerate(row):
+            if chart is None:
+                continue
+            _page_charts("put_in_rows_and_columns", (chart,))
+            places.setdefault(id(chart), (chart, []))[1].append((r, c))
+    if not places:
+        raise SimplydataError(f"sdata.put_in_rows_and_columns() needs some charts in the rows, {example}.")
+    cells = []
+    for chart, spots in places.values():
+        found_rows = sorted({r for r, _ in spots})
+        found_columns = sorted({c for _, c in spots})
+        r0, r1, c0, c1 = found_rows[0], found_rows[-1] + 1, found_columns[0], found_columns[-1] + 1
+        if len(spots) != (r1 - r0) * (c1 - c0):
+            raise SimplydataError(
+                "A chart that spans several places needs a full rectangle of them (side by side, or one under "
+                f"the other, or both), {example}: chart a fills the whole first row.")
+        cells.append((chart, r0, r1, c0, c1))
+    return cells, len(rows), columns
+
+
+def _check_ratios(name, values, count, what):
+    if values is None:
+        return None
+    if isinstance(values, (str, bytes)) or not is_listlike(values) or len(values) != count:
+        raise SimplydataError(f"{name}= needs one number for each {what} ({count}), for example "
+                              f"{name}=[{', '.join(['2'] + ['1'] * (count - 1))}].")
+    for v in values:
+        if isinstance(v, bool) or not isinstance(v, numbers.Real) or not v > 0:
+            raise SimplydataError(f"{name}= needs numbers bigger than 0, not {v!r}.")
+    return [float(v) for v in values]
 
 
 @friendly(renamed={"columns": "per_row", "letters": "with_letters"})
-def put_in_rows_and_columns(*charts, per_row=2, same_x=False, same_y=False, with_letters=False):
+def put_in_rows_and_columns(*charts, per_row=None, same_x=False, same_y=False, with_letters=False, widths=None,
+                            heights=None, with_one_legend=False):
     """Charts in rows and columns. sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
 
-    per_row=2 puts 2 charts in each row.
+    per_row=2 (normal) puts 2 charts in each row.
+    Or give the rows as lists: sdata.put_in_rows_and_columns([[a, a], [b, c]]) puts chart a across the
+    whole first row and b and c under it; a chart named in several places spans them, and None leaves a
+    place empty.
+    widths=[2, 1] makes the first column twice as wide as the second; heights=[2, 1] does the same for rows.
     with_letters=True writes A, B, C ... at the top left of each chart, as figures in papers do.
+    with_one_legend=True shows one legend for the whole page, when the charts have the same groups.
     """
+    _check_page_options("put_in_rows_and_columns", same_x, same_y, with_letters, with_one_legend)
+    if _is_layout(charts):
+        if per_row is not None:
+            raise SimplydataError("The rows you give already say how many charts go in each row; leave out "
+                                  "per_row=, for example sdata.put_in_rows_and_columns([[a, a], [b, c]]).")
+        rows = charts[0] if len(charts) == 1 and isinstance(charts[0], (list, tuple)) and \
+            all(isinstance(r, (list, tuple)) for r in charts[0]) else charts
+        cells, n_rows, n_columns = _cells_of(rows)
+        return Page([cell[0] for cell in cells], n_rows, n_columns, same_x, same_y,
+                    how=f"{n_rows} rows and {n_columns} columns", letters=with_letters, cells=cells,
+                    widths=_check_ratios("widths", widths, n_columns, "column"),
+                    heights=_check_ratios("heights", heights, n_rows, "row"), one_legend=with_one_legend)
     charts = _page_charts("grid", charts)
+    per_row = 2 if per_row is None else per_row
     if isinstance(per_row, bool) or not isinstance(per_row, int) or per_row < 1:
         raise SimplydataError(f"per_row= should be a whole number such as 2 or 3, not {per_row!r}.")
-    _check_page_options("grid", same_x, same_y, with_letters)
     columns = min(per_row, len(charts))
-    return Page(charts, math.ceil(len(charts) / columns), columns, same_x, same_y,
-                how=f"grid of {columns} columns", letters=with_letters)
+    rows = math.ceil(len(charts) / columns)
+    return Page(charts, rows, columns, same_x, same_y,
+                how=f"grid of {columns} columns", letters=with_letters,
+                widths=_check_ratios("widths", widths, columns, "column"),
+                heights=_check_ratios("heights", heights, rows, "row"), one_legend=with_one_legend)

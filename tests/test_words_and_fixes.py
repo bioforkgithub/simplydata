@@ -242,7 +242,8 @@ def test_numbers_drawn_gives_the_dots_and_the_fitted_line(capsys):
     marks = example_frame("marks")
     chart = sdata.chart(marks).draw_dots(x="hours", y="marks").fit_line()
     drawn = chart.get_numbers_drawn()
-    assert drawn.get_column_names() == ["panel", "layer", "kind", "series", "x", "y", "low", "high", "value"]
+    assert drawn.get_column_names() == ["panel", "layer", "kind", "series", "x", "y", "low", "high", "value",
+                                        "colour", "colour name"]
     out = capsys.readouterr().out
     assert out.startswith("Read ") and "1 group of dots" in out and "1 line" in out
     dots = sdata.table(drawn).keep_rows_where("kind", is_equal_to="dot")
@@ -308,7 +309,7 @@ def test_numbers_drawn_on_a_page_and_on_parts(capsys):
 def test_numbers_drawn_of_a_forecast_has_its_band(needs_r, capsys):
     visitors = example_frame("visitors")
     chart = sdata.chart(visitors).draw_lines(x="month", y="visitors", colour="museum")
-    drawn = chart.forecast(steps_ahead=12, repeats_every="year").get_numbers_drawn()
+    drawn = chart.draw_forecast(steps_ahead=12, repeats_every="year").get_numbers_drawn()
     assert "band" in set(drawn.get_column("kind"))
     capsys.readouterr()
 

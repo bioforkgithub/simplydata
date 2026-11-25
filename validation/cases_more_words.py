@@ -112,7 +112,7 @@ def _cases(Case):
                  {"partial r": r, "t": t, "p": 2 * stats.t.sf(abs(t), n - 3), "rows": n}
              """, parent_label="residuals of statsmodels OLS, SciPy pearsonr (the definition)", parent_tolerance=1e-9,
              note="simplydata gives back R ppcor's own numbers; the residual route is the definition, as a check."),
-        Case("trade_off_curve", "aSAH, s100b for a poor outcome: the best cut-off from chart.get_numbers_drawn()",
+        Case("draw_trade_off_curve", "aSAH, s100b for a poor outcome: the best cut-off from chart.get_numbers_drawn()",
              "aSAH (pROC)", "real data", option="get_numbers_drawn()", ours_r=("pROC",),
              ours="""
                  chart = sdata.chart(data).trade_off_curve(score="s100b", truth="outcome", positive="Poor")

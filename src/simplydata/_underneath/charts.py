@@ -80,15 +80,15 @@ ENTRIES = [
              + LOOK,
     ),
     Entry(
-        word="trade_off_curve",
+        word="draw_trade_off_curve",
         data="clinic",
         ours="""
             chart = sdata.chart(sdata.get_example("clinic"))
-            chart.trade_off_curve(score="crp", truth="infected")
+            chart.draw_trade_off_curve(score="crp", truth="infected")
         """,
         code={
             "R": """
-                # trade_off_curve(score="crp", truth="infected")
+                # draw_trade_off_curve(score="crp", truth="infected")
                 # infected (1 = yes, 0 = no) and crp: two columns of sdata.get_example("clinic")
                 r <- pROC::roc(infected, crp, levels = c(0, 1),
                                direction = "<", quiet = TRUE)      # (1)
@@ -1560,18 +1560,18 @@ ENTRIES += [
         also="columns= shows only some columns; thin gaps in the background colour separate the strips. " + LOOK,
     ),
     Entry(
-        word="sticks",
+        word="draw_sticks",
         data="weather",
         ours="""
             chart = sdata.chart(sdata.get_example("weather"))
-            chart.sticks(x="month_number", y="rain", colour="city")
+            chart.draw_sticks(x="month_number", y="rain", colour="city")
         """,
         code={"matplotlib": """
             import pandas as pd
             import matplotlib.pyplot as plt
             df = pd.read_csv("weather.csv")
             fig, ax = plt.subplots()
-            # sticks(x="month_number", y="rain", colour="city")
+            # draw_sticks(x="month_number", y="rain", colour="city")
             colours = ["#0072B2", "#E69F00", "#009E73"]
             for (city, rows), c in zip(df.groupby("city", sort=False), colours):
                 ax.vlines(rows["month_number"], 0, rows["rain"], color=c, linewidth=1.5, zorder=2)  # (1)
@@ -2428,12 +2428,12 @@ ENTRIES += [
              "and legend. Its smaller tick labels are not compared. " + LOOK,
     ),
     Entry(
-        word="forest_plot",
+        word="draw_forest_plot",
         data="made-up",
         ours="""
             results = sdata.chart({"study": ["A", "B", "C"], "odds ratio": [0.8, 1.5, 1.1],
                                    "odds ratio 95 % CI low": [0.5, 1.1, 0.7], "odds ratio 95 % CI high": [1.3, 2.0, 1.7]})
-            results.forest_plot(x="odds ratio", y="study")
+            results.draw_forest_plot(x="odds ratio", y="study")
         """,
         code={"matplotlib": """
             import matplotlib.pyplot as plt
@@ -2441,7 +2441,7 @@ ENTRIES += [
             df = {"study": ["A", "B", "C"], "odds ratio": np.array([0.8, 1.5, 1.1]),
                   "low": np.array([0.5, 1.1, 0.7]), "high": np.array([1.3, 2.0, 1.7])}
             fig, ax = plt.subplots()
-            # forest_plot(x="odds ratio", y="study")
+            # draw_forest_plot(x="odds ratio", y="study")
             where = np.arange(3)[::-1]                                       # (1)
             est = df["odds ratio"]
             ax.errorbar(est, where, xerr=[est - df["low"], df["high"] - est], fmt="o", capsize=3,

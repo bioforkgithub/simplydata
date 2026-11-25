@@ -213,18 +213,18 @@ ENTRIES = [
              "says the strength in words.",
     ),
     Entry(
-        word="trade_off_curve",
+        word="draw_trade_off_curve",
         option="get_numbers_drawn()",
         data="clinic",
         ours="""
             chart = sdata.chart(sdata.get_example("clinic"))
-            chart.trade_off_curve(score="crp", truth="infected")
+            chart.draw_trade_off_curve(score="crp", truth="infected")
             drawn = chart.get_numbers_drawn()
             drawn.keep_rows_where("kind", is_equal_to="dot")
         """,
         code={
             "R": """
-                # trade_off_curve(score="crp", truth="infected"), then get_numbers_drawn():
+                # draw_trade_off_curve(score="crp", truth="infected"), then get_numbers_drawn():
                 # the marked dot's row
                 r <- pROC::roc(infected, crp, levels = c(0, 1),
                                direction = "<", quiet = TRUE)

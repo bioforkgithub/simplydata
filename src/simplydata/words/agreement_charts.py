@@ -58,7 +58,7 @@ def _roc_points(truth01, score, direction, level=0.95):
 def _truth01(values, truth, positive):
     from ..table.risk_words import _event_value
 
-    has, _ = _event_value("trade_off_curve", truth, list(values), positive, what="has it")
+    has, _ = _event_value("draw_trade_off_curve", truth, list(values), positive, what="has it")
     return np.array([v == has for v in values], dtype=float)
 
 
@@ -105,7 +105,7 @@ def _draw_trade_off(ctx, scores, truth, group, fixed, positive, positive_when, t
         ax.set_ylabel("Found (sensitivity): share with it that test positive")
     ax.legend(loc="lower right", fontsize="small")
     ctx.store.setdefault("trade_off", {})[id(ax)] = curves
-    _remember(ctx, "trade_off_curve", rows, {"x": None, "y": None, "colour": group})
+    _remember(ctx, "draw_trade_off_curve", rows, {"x": None, "y": None, "colour": group})
 
 
 # ---------------------------------------------------------------- difference_dots
@@ -139,7 +139,7 @@ def _draw_difference_dots(ctx, first, second, transparency=None):
     ctx.ax.set_xlabel(f"Average of {x} and {y}")
     ctx.ax.set_ylabel(f"{x} minus {y}")
     ctx.ax.set_title("")
-    _remember(ctx, "difference_dots", rows, {"x": x, "y": y, "colour": None})
+    _remember(ctx, "draw_difference_dots", rows, {"x": x, "y": y, "colour": None})
 
 
 # ---------------------------------------------------------------- forest_plot
@@ -224,7 +224,7 @@ def _draw_forest(ctx, x, y, low, high, level, line_at, ratios, colour=None, thic
     if ax.get_xlabel() == "":
         meaning = "" if line_given else ", no effect"
         ax.set_xlabel(f"{x}, with its {level} confidence interval (the line: {line_at:g}{meaning})")
-    _remember(ctx, "forest_plot", rows, {"x": x, "y": y, "colour": None})
+    _remember(ctx, "draw_forest_plot", rows, {"x": x, "y": y, "colour": None})
 
 
 def _plain_log_axis(ax):
@@ -268,10 +268,10 @@ def _draw_funnel(ctx, x, y, centre, on_log, ratios, colour=None):
 
 class AgreementChartWords:
     @friendly
-    def trade_off_curve(self: _Same, score=None, truth=None, positive=None, colour=None, positive_when="higher",
+    def draw_trade_off_curve(self: _Same, score=None, truth=None, positive=None, colour=None, positive_when="higher",
                         transparency=None, thickness=None) -> _Same:
         """How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).
-        chart.trade_off_curve(score="crp", truth="infected") (with sdata.get_example("clinic"))
+        chart.draw_trade_off_curve(score="crp", truth="infected") (with sdata.get_example("clinic"))
 
         Each possible cut-off of the score gives a point: along, the share of those without it
         who test positive anyway (false alarms, 1 - specificity); up, the share of those with it
@@ -289,37 +289,37 @@ class AgreementChartWords:
         """
         from .._r import need_r
 
-        example = 'chart.trade_off_curve(score="crp", truth="infected")'
+        example = 'chart.draw_trade_off_curve(score="crp", truth="infected")'
         scores = [score] if isinstance(score, str) else list(score) if isinstance(score, (list, tuple)) else []
         if not scores or not all(isinstance(s, str) for s in scores):
-            raise SimplydataError(f".trade_off_curve() needs score= as a column of numbers in quotes (or a list of "
+            raise SimplydataError(f".draw_trade_off_curve() needs score= as a column of numbers in quotes (or a list of "
                                   f"them).\nFor example {example} (with sdata.get_example(\"clinic\")).")
         if not isinstance(truth, str):
-            raise SimplydataError(f".trade_off_curve() needs truth= as the column with the real answer.\n"
+            raise SimplydataError(f".draw_trade_off_curve() needs truth= as the column with the real answer.\n"
                                   f"For example {example}.")
         if positive_when not in WHEN:
             raise SimplydataError('positive_when= is "higher" (higher scores count as positive) or "lower".')
         group, fixed = colour_role(self._data, colour)
         if group is not None and len(scores) > 1:
             raise SimplydataError("Give several scores or colour= for groups, not both.")
-        transparency = check_transparency("trade_off_curve", transparency)
-        thickness = check_thickness("trade_off_curve", thickness)
+        transparency = check_transparency("draw_trade_off_curve", transparency)
+        thickness = check_thickness("draw_trade_off_curve", thickness)
         for s in scores:
             check(self._data, x=s, y=truth, colour=group)
             if not pd.api.types.is_numeric_dtype(self._data[s]):
-                raise SimplydataError(f'.trade_off_curve() needs score= as a column of numbers; "{s}" is not.')
+                raise SimplydataError(f'.draw_trade_off_curve() needs score= as a column of numbers; "{s}" is not.')
         _truth01(self._data[truth].dropna().tolist(), truth, positive)  # say what is wrong on the user's line
         need_r(("pROC",), "The trade-off (ROC) curve (R pROC)",
                "Python's stack (SciPy, statsmodels) has no ROC analysis with DeLong's interval")
-        self._need_axes("trade_off_curve")
-        return self._add("trade_off_curve", "draw", _draw_trade_off, scores=scores, truth=truth, group=group,
+        self._need_axes("draw_trade_off_curve")
+        return self._add("draw_trade_off_curve", "draw", _draw_trade_off, scores=scores, truth=truth, group=group,
                          fixed=fixed, positive=positive, positive_when=positive_when, transparency=transparency,
                          thickness=thickness)
 
     @friendly(renamed={"x": "first", "y": "second"})
-    def difference_dots(self: _Same, first=None, second=None, transparency=None) -> _Same:
+    def draw_difference_dots(self: _Same, first=None, second=None, transparency=None) -> _Same:
         """Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).
-        chart.difference_dots(first="device_a", second="device_b") (with sdata.get_example("clinic"))
+        chart.draw_difference_dots(first="device_a", second="device_b") (with sdata.get_example("clinic"))
 
         One dot per row: along, the average of the two measurements; up, first minus second. The
         names are those of table.limits_of_agreement(first, second). The solid
@@ -332,30 +332,30 @@ class AgreementChartWords:
         """
         from .._r import need_r
 
-        example = 'chart.difference_dots(first="device_a", second="device_b")'
+        example = 'chart.draw_difference_dots(first="device_a", second="device_b")'
         x, y = first, second
         for option, value in (("first", x), ("second", y)):
             if not isinstance(value, str):
-                raise SimplydataError(f".difference_dots() needs {option}= as a column of numbers in quotes.\n"
+                raise SimplydataError(f".draw_difference_dots() needs {option}= as a column of numbers in quotes.\n"
                                       f"For example {example} (with sdata.get_example(\"clinic\")).")
         if x == y:
-            raise SimplydataError(f".difference_dots() needs two different columns.\nFor example {example}.")
+            raise SimplydataError(f".draw_difference_dots() needs two different columns.\nFor example {example}.")
         check(self._data, x=x, y=y)
         for c in (x, y):
             if not pd.api.types.is_numeric_dtype(self._data[c]):
-                raise SimplydataError(f'.difference_dots() needs columns of numbers; "{c}" is not.')
-        transparency = check_transparency("difference_dots", transparency)
+                raise SimplydataError(f'.draw_difference_dots() needs columns of numbers; "{c}" is not.')
+        transparency = check_transparency("draw_difference_dots", transparency)
         need_r(("BlandAltmanLeh",), "The limits of agreement (R BlandAltmanLeh)",
                "statsmodels mean_diff_plot draws limits from the standard deviation with n in the divisor, which "
                "differ a little from R's")
-        self._need_axes("difference_dots")
-        return self._add("difference_dots", "draw", _draw_difference_dots, first=x, second=y,
+        self._need_axes("draw_difference_dots")
+        return self._add("draw_difference_dots", "draw", _draw_difference_dots, first=x, second=y,
                          transparency=transparency)
 
     @friendly(renamed={"ratios": "log_scale"})
-    def forest_plot(self: _Same, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None, size=None) -> _Same:
+    def draw_forest_plot(self: _Same, x="estimate", y=None, line_at=None, log_scale=None, colour=None, thickness=None, size=None) -> _Same:
         """Many results with their intervals, one line each (a forest plot).
-        chart.forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair_of's)
+        chart.draw_forest_plot(x="difference", y="group 1")   (on a result table, such as compare_each_pair_of's)
 
         Draws each row's x as a dot and its interval as a line, from a result table with the
         columns "<x> 95 % CI low" and "<x> 95 % CI high" (any level). y names the rows. Ratios
@@ -364,17 +364,17 @@ class AgreementChartWords:
         line_at= choose. When the table holds intervals of more than one level (such as 95 % and
         90 %), the first is drawn and a note names the rows left out. The first row is at the top.
         On the result of table.combine_studies (it has a "row kind" column) the studies are squares, the
-        combined effects diamonds and the prediction interval a thin line: chart.forest_plot(x="estimate",
+        combined effects diamonds and the prediction interval a thin line: chart.draw_forest_plot(x="estimate",
         y="study", size="weight %") sizes each square by the study's weight (size= as on draw_dots).
         """
-        example = 'chart.forest_plot(x="estimate", y="measure")'
+        example = 'chart.draw_forest_plot(x="estimate", y="measure")'
         if not isinstance(x, str) or not isinstance(y, str):
-            raise SimplydataError(f".forest_plot() needs x= (the estimate column) and y= (the column naming the rows)."
+            raise SimplydataError(f".draw_forest_plot() needs x= (the estimate column) and y= (the column naming the rows)."
                                   f"\nFor example {example} (on a result table).")
         check(self._data, x=x, y=y)
         found = _interval_columns(list(self._data.columns), x)
         if found is None:
-            raise SimplydataError(f'.forest_plot() needs the columns "{x} 95 % CI low" and "{x} 95 % CI high" (any '
+            raise SimplydataError(f'.draw_forest_plot() needs the columns "{x} 95 % CI low" and "{x} 95 % CI high" (any '
                                   "level) next to the estimate, as in the result tables of compare_risks, "
                                   "compare_each_pair and others.")
         low, high, level = found
@@ -390,7 +390,7 @@ class AgreementChartWords:
         if size is not None:
             check(self._data, size=size)
             if not pd.api.types.is_numeric_dtype(self._data[size]):
-                raise SimplydataError(f'.forest_plot() needs numbers for size= (such as size="weight %"); "{size}" '
+                raise SimplydataError(f'.draw_forest_plot() needs numbers for size= (such as size="weight %"); "{size}" '
                                       "holds words or other things.")
         ratios = log_scale
         if ratios is None:
@@ -413,9 +413,9 @@ class AgreementChartWords:
             line_at = 1.0 if ratios else 0.0
         if isinstance(line_at, bool) or not isinstance(line_at, (int, float)):
             raise SimplydataError("line_at= needs a number, such as line_at=0 or line_at=1.")
-        thickness = check_thickness("forest_plot", thickness)
-        self._need_axes("forest_plot")
-        return self._add("forest_plot", "draw", _draw_forest, x=x, y=y, low=low, high=high, level=level,
+        thickness = check_thickness("draw_forest_plot", thickness)
+        self._need_axes("draw_forest_plot")
+        return self._add("draw_forest_plot", "draw", _draw_forest, x=x, y=y, low=low, high=high, level=level,
                          line_at=float(line_at), ratios=ratios, colour=colour, thickness=thickness,
                          others=others, line_given=line_given, size=size)
 

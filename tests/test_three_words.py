@@ -137,7 +137,7 @@ def test_partial_correlation_result_table_still_refuses_other_options(capsys):
 def test_trade_off_curve_gives_the_best_cut_off_as_a_number(needs_r, capsys):
     asah = sdata.get_example("aSAH", from_r_package="pROC")
     chart = sdata.chart(asah)
-    chart.trade_off_curve(score="s100b", truth="outcome", positive="Poor")
+    chart.draw_trade_off_curve(score="s100b", truth="outcome", positive="Poor")
     best = chart.get_numbers_drawn().keep_rows_where("kind", is_equal_to="dot")
     assert len(best) == 1
     assert best.get_cell_at(row=1, column="value") == pytest.approx(ASAH_BEST["threshold"], rel=1e-12)
@@ -157,7 +157,7 @@ def test_trade_off_curve_cut_off_matches_proc_run_now(needs_r, capsys):
 
     asah = sdata.get_example("aSAH", from_r_package="pROC")
     chart = sdata.chart(asah)
-    chart.trade_off_curve(score="s100b", truth="outcome", positive="Poor")
+    chart.draw_trade_off_curve(score="s100b", truth="outcome", positive="Poor")
     best = chart.get_numbers_drawn().keep_rows_where("kind", is_equal_to="dot")
     truth = np.array([v == "Poor" for v in asah.get_column("outcome")], dtype=float)
     r = r_call("r <- pROC::roc(truth, score, levels = c(0, 1), direction = '<', quiet = TRUE); "
