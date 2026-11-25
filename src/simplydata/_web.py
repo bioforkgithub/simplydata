@@ -284,6 +284,7 @@ class Translator:
         self.left_out: list = []
         self.title_part = None
         self.meta_legends: dict = {}
+        self.extra_right = 0.0  # web pixels added on the right for a legend moved outside its chart
         last_layer: dict = {}
         for number, (ax, panel, role, (rows, _, _)) in enumerate(numbered_panels(fig), start=1):
             axes = _Axes(ax, number, panel, role, rows, self.page)
@@ -310,11 +311,12 @@ class Translator:
         family = rcParams["font.family"]
         family = family if isinstance(family, str) else ", ".join(family)
         names = rcParams.get(f"font.{family}", []) if family in ("sans-serif", "serif", "monospace") else []
+        extra = math.ceil(self.extra_right) if self.extra_right > 0 else 0
         self.layout.update(
-            width=round(self.fig.get_figwidth() * PIXELS_PER_INCH * page.shrink),
+            width=round(self.fig.get_figwidth() * PIXELS_PER_INCH * page.shrink) + extra,
             height=round(self.fig.get_figheight() * PIXELS_PER_INCH * page.shrink),
             autosize=False,
-            margin=dict(l=0, r=0, t=0, b=0, pad=0, autoexpand=False),
+            margin=dict(l=0, r=extra, t=0, b=0, pad=0, autoexpand=False),
             paper_bgcolor="rgba(0,0,0,0)" if self.see_through else css(face),
             plot_bgcolor="rgba(0,0,0,0)" if self.see_through else css(plot_face),
             font=dict(family=", ".join(list(names)[:3] + [family]), size=page.points(rcParams["font.size"]),
@@ -399,13 +401,24 @@ class Translator:
             if label.get_visible() and label.get_text():
                 layout["title"] = dict(text=label.get_text(), font=_font(label, page))
             hidden_name = label.get_text() if not label.get_visible() else ""
-            grid = [g for g in axis.get_gridlines() if g.get_visible()]
-            if grid:
-                layout.update(showgrid=True, gridcolor=css(grid[0].get_color()),
-                              gridwidth=page.points(grid[0].get_linewidth()))
+            grid_at, grid_line = _grid_lines(axis, low, high)
+            # plotly draws a grid line at every tick word; matplotlib only where its grid lines are (the big ticks:
+            # a log axis also writes some small ticks, 20, 30 ..., with no grid line), so where they differ the grid
+            # lines are drawn as lines of their own at matplotlib's places
+            if grid_line is not None and ax.axison and axis.get_visible():  # a hidden axis draws no grid lines
+                grid_style = dict(color=css(grid_line.get_color()), width=page.points(grid_line.get_linewidth()))
+                if set(grid_at) == {float(loc) for loc, _ in ticks}:
+                    layout.update(showgrid=True, gridcolor=grid_style["color"], gridwidth=grid_style["width"])
+                else:
+                    for place in grid_at:
+                        value = read(place) if kind == "date" else float(place)  # a shape on a log axis: data
+                        across = (dict(xref=f"{other} domain", x0=0, x1=1, yref=a.y, y0=value, y1=value)
+                                  if letter == "y" else
+                                  dict(yref=f"{other} domain", y0=0, y1=1, xref=a.x, x0=value, x1=value))
+                        self.layout["shapes"].append(dict(type="line", layer="below", line=grid_style, **across))
             minor = [m for m in axis.get_minorticklocs() if min(low, high) <= m <= max(low, high)]
             if minor and axis.get_minor_ticks() and axis.get_minor_ticks()[0].tick1line.get_visible():
-                layout["minor"] = dict(ticks="outside",
+                layout["minor"] = dict(ticks="outside", showgrid=False,
                                        tickvals=[read(m) if kind == "date" else float(m) for m in minor])
             side_spines = ("bottom", "top") if letter == "x" else ("left", "right")
             spines = [ax.spines[s] for s in side_spines if s in ax.spines]
@@ -533,7 +546,9 @@ class Translator:
         layers: dict = {}
         for row in a.rows:
             layers.setdefault(row["layer"], []).append(row)
-        for layer, rows in layers.items():
+        # plotly draws marks in the order they are given: give them in matplotlib's drawing order (zorder), so a
+        # violin's box stays on top of its body as in the picture (sorted() keeps the order of equal zorders)
+        for layer, rows in sorted(layers.items(), key=lambda item: _zorder(item[1][0]["_artist"])):
             kind = rows[0]["kind"]
             make = getattr(self, "_" + kind.replace(" ", "_"), None)
             if a.kind == "polar":
@@ -1116,8 +1131,16 @@ class Translator:
             area = owners[0].domain if len(owners) == 1 else (0.0, 1.0, 0.0, 1.0)
             right = (box[0] + box[1]) / 2 > (area[0] + area[1]) / 2
             top = (box[2] + box[3]) / 2 > (area[2] + area[3]) / 2
-            self.layout[key] = dict(x=_clip(box[1] if right else box[0]), y=_clip(box[3] if top else box[2]),
-                                    xanchor="right" if right else "left", yanchor="top" if top else "bottom",
+            place = dict(x=_clip(box[1] if right else box[0]), y=_clip(box[3] if top else box[2]),
+                         xanchor="right" if right else "left", yanchor="top" if top else "bottom")
+            if len(owners) == 1 and legend is owners[0].ax.get_legend() and _legend_crowds_marks(legend, owners[0].ax):
+                # matplotlib's legend only just misses the marks: on the page, where it can be a little bigger, it
+                # goes outside the chart, at the top on the right, and the page is made wider for it if need be
+                place = dict(x=area[1] + 0.01, y=area[3], xanchor="left", yanchor="top")
+                needed = self.page.px(legend.get_window_extent().width) * 1.15 + 10
+                room = (1 - area[1] - 0.01) * self.layout_width()
+                self.extra_right = max(self.extra_right, needed - room)
+            self.layout[key] = dict(**place,
                                     itemwidth=30, tracegroupgap=0,
                                     bgcolor=css(_hex(legend.get_frame().get_facecolor()))
                                     if legend.get_frame_on() else "rgba(0,0,0,0)",
@@ -1286,6 +1309,82 @@ def _subfigures(fig):
     for sub in getattr(fig, "subfigs", []):
         yield sub
         yield from _subfigures(sub)
+
+
+def _zorder(artist) -> float:
+    try:
+        return float(artist.get_zorder())
+    except (AttributeError, TypeError, ValueError):
+        return 0.0
+
+
+def _grid_lines(axis, low, high):
+    """Where matplotlib drew grid lines along an axis (big ticks and small ticks whose grid line is shown, inside the
+    range shown), and one of those lines for its colour and width (None: no grid lines)."""
+    room = abs(high - low) * 1e-9
+    places, first = [], None
+    for locs, ticks in ((axis.get_majorticklocs(), axis.get_major_ticks()),
+                        (axis.get_minorticklocs(), axis.get_minor_ticks())):
+        for loc, tick in zip(locs, ticks):
+            if tick.gridline.get_visible() and min(low, high) - room <= loc <= max(low, high) + room:
+                places.append(float(loc))
+                first = first or tick.gridline
+    return sorted(set(places)), first
+
+
+def _legend_crowds_marks(legend, ax, grow=0.3) -> bool:
+    """True when a legend inside a chart covers a mark, or comes within `grow` of its own width and height of one on
+    the sides away from its corner. A web page writes the legend in the page's own pixels, so beside a chart drawn a
+    little smaller (a narrow window) it is a little bigger than in the picture: a legend that only just misses the
+    marks in the picture would cover them on the page."""
+    box, area = legend.get_window_extent(), ax.get_window_extent()  # the figure is drawn: its own renderer
+    if not (area.x0 <= (box.x0 + box.x1) / 2 <= area.x1 and area.y0 <= (box.y0 + box.y1) / 2 <= area.y1):
+        return False  # a legend outside the chart covers nothing
+    right = (box.x0 + box.x1) / 2 > (area.x0 + area.x1) / 2
+    top = (box.y0 + box.y1) / 2 > (area.y0 + area.y1) / 2
+    width, height = box.width * grow, box.height * grow
+    x0, x1 = (box.x0 - width, box.x1) if right else (box.x0, box.x1 + width)
+    y0, y1 = (box.y0 - height, box.y1) if top else (box.y0, box.y1 + height)
+
+    def inside(points):
+        points = np.asarray(points, dtype=float).reshape(-1, 2)
+        points = points[np.all(np.isfinite(points), axis=1)]
+        return bool(np.any((points[:, 0] >= x0) & (points[:, 0] <= x1) & (points[:, 1] >= y0) & (points[:, 1] <= y1)))
+
+    def along(points):  # points along each straight piece, so a line passing under the legend counts
+        points = np.asarray(points, dtype=float).reshape(-1, 2)
+        points = points[np.all(np.isfinite(points), axis=1)]  # a step line to the edge (draw_cumulative_share)
+        if len(points) < 2:
+            return points
+        steps = np.linspace(0, 1, 25)[:, None, None]
+        return (points[:-1] + steps * (points[1:] - points[:-1])).reshape(-1, 2)
+
+    for line in ax.get_lines():
+        if not line.get_visible() or _is_line_across(line) or not len(line.get_xydata()):
+            continue
+        points = line.get_transform().transform(np.asarray(line.get_xydata(), dtype=float))
+        if inside(points if str(line.get_linestyle()).strip().lower() in ("none", "") else along(points)):
+            return True  # a line, or the markers alone (the caps of error bars: nothing is drawn between them)
+    for coll in ax.collections:
+        if not coll.get_visible():
+            continue
+        if hasattr(coll, "get_segments"):  # error bars, sticks, rug lines
+            if any(inside(along(coll.get_transform().transform(np.asarray(s, dtype=float))))
+                   for s in coll.get_segments() if len(s)):
+                return True
+        elif coll.__class__.__name__ == "PathCollection" and len(coll.get_offsets()):  # dots
+            if inside(coll.get_offset_transform().transform(np.asarray(coll.get_offsets(), dtype=float))):
+                return True
+    for patch in ax.patches:  # bars
+        if patch.get_visible() and patch.__class__.__name__ == "Rectangle":
+            b = patch.get_window_extent()
+            if b.x0 < x1 and b.x1 > x0 and b.y0 < y1 and b.y1 > y0:
+                return True
+    return False
+
+
+def _is_line_across(line) -> bool:
+    return line.__class__.__name__ in ("AxLine", "_AxLine")
 
 
 def _dash(style) -> str:

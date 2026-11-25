@@ -277,8 +277,10 @@ def _band_rows(rows, panel, layer, coll, series):
         if n < 1 or len(v) != 2 * n + 3:
             continue
         first, second = v[1:n + 1], v[n + 2:2 * n + 2][::-1]
+        if sideways:  # fill_betweenx (violins): each point is (x, y), the position is y and the band runs along x
+            first, second = first[:, ::-1], second[:, ::-1]
         for (t, a), (_, b) in zip(first, second):
-            if sideways:  # fill_betweenx (violins): the position is y, the band runs along x
+            if sideways:
                 rows.add(panel, layer, "band", series, y=t, low=min(a, b), high=max(a, b), colour=colour,
                          artist=coll, piece=piece, code="sideways")
             else:

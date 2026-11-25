@@ -148,6 +148,20 @@ working for one release and prints a one-line note with its new name.
   temporary file is and that it holds the data.
 - `get_numbers_drawn()` reads a second y-axis's marks on its panel's x-axis (names of groups, not their places), and
   `get_text_drawn()` lists no tick words of an axis that is not drawn.
+- Found by the reliability study of the charts phase: `get_numbers_drawn()` read a band drawn sideways
+  (`fill_betweenx`: violins, the density curve on the right of `draw_side_histograms`) with x and y swapped, so the
+  web page left the violin bodies out. Each row is now its place on y and its ends along x.
+- Web pages: a log axis draws grid lines only where the picture does (at its big ticks, not at the small ticks it
+  writes words at); a legend that only just misses a mark in the picture goes outside the chart on the right, the
+  page made wider for it, so it covers nothing in a narrow window; marks are given to plotly in matplotlib's
+  drawing order, so a violin's box shows over its body.
+
+### Added: the reliability study of the charts phase
+
+- `validation/cases_underneath_charts_2.py`: 56 cases on real data (mtcars, iris, warpbreaks, Seatbelts, Lake Huron,
+  birthwt, airquality, the Stanford heart transplant data) for the new chart words and options of batches 1 to 3,
+  each against the same chart drawn with matplotlib, seaborn or pandas and, where it is plain base R, against R;
+  the web-page words are checked on the plotly figure's own data.
 
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
