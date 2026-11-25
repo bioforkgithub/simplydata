@@ -29,7 +29,10 @@ HISTORY_LIMIT = 30  # how many steps undo() can take back
 SHOW_LIMIT = 1000  # table.show() with no rows= shows at most this many rows
 REPR_WHOLE_LIMIT = 10_000  # a Polars table up to this size is shown whole in notebooks
 REPR_ENDS = 30  # a bigger one shows this many rows from the start and the end
-SAVE_TYPES = ("csv", "tsv", "xlsx", "parquet", "json")
+SAVE_TYPES = ("csv", "tsv", "xlsx", "parquet", "json",
+              # tables phase, batch 3 (P38): each written by pandas itself (DuckDB for .duckdb)
+              "csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html", "sqlite", "db", "duckdb")
+DATABASE_TYPES = ("sqlite", "db", "duckdb")  # these hold tables by name: save(..., in_table="river")
 
 
 def show(native):
@@ -279,8 +282,9 @@ class BaseTable:
 
         return chart(self)
 
-    @friendly(others={"sheet_name": "in_sheet", "sheetName": "in_sheet"})
-    def save(self: _Same, file_name, in_sheet=None) -> _Same:
+    @friendly(others={"sheet_name": "in_sheet", "sheetName": "in_sheet", "name": "in_table"},
+              pointers={"if_exists": 'in_table="river", which replaces that table and keeps the others'})
+    def save(self: _Same, file_name, in_sheet=None, in_table=None) -> _Same:
         """Save the table; the end of the file name decides the type. table.save("clean.xlsx")
 
         File types: .xlsx (Excel), .csv, .tsv, .parquet and .json. Without in_sheet=, saving to an
@@ -308,15 +312,29 @@ class BaseTable:
         sheet="all" stacks the sheets only when they have the same columns. Sheets that hold different
         data are read by name, each on its own: simplydata says which columns differ and prints a line
         to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
+
+        More file types: .csv.gz and .tsv.gz (compressed), .feather (Arrow; needs pyarrow), .jsonl
+        (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas.
+        A database file (.sqlite, .db, .duckdb) holds tables by name, so it needs in_table=, the
+        mirror of in_sheet=: table.save("results.sqlite", in_table="river") replaces that table
+        and keeps the others (pandas to_sql(if_exists="replace"); DuckDB CREATE OR REPLACE TABLE).
+        Read it back with sdata.table("results.sqlite", table_name="river").
         """
+        from .._data import _file_suffix
+
         path = Path(file_name)
-        kind = path.suffix.lower().lstrip(".")
+        kind = _file_suffix(path.name).lstrip(".")
         if not kind:
             raise SimplydataError(
                 f'Add a file type to the name, for example "{path.name}.xlsx" or "{path.name}.csv".'
             )
         if kind not in SAVE_TYPES:
             raise choice_error("save", "file type", kind, SAVE_TYPES)
+        if in_table is not None or kind in DATABASE_TYPES:  # tables phase, batch 3 (P38)
+            if in_sheet is not None:
+                raise SimplydataError("in_sheet= is for Excel files and in_table= for databases; give one of them.")
+            self._save_in_table(path, kind, in_table)
+            return self
         if in_sheet is not None and kind != "xlsx":
             raise SimplydataError(
                 f"in_sheet= saves the table as one sheet of an Excel file. Only .xlsx files have sheets; "
@@ -333,6 +351,8 @@ class BaseTable:
             self._frame.write_csv(str(path))
         elif kind == "parquet":
             self._frame.write_parquet(str(path))
+        elif kind in ("csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html"):  # tables phase, batch 3 (P38)
+            self._save_more(path, kind)
         else:
             pandas_table = self._frame.to_pandas()
             if kind == "tsv":
@@ -342,6 +362,85 @@ class BaseTable:
             else:
                 pandas_table.to_json(path, orient="records", indent=2)
         return self
+
+    def _save_more(self, path, kind):
+        """The file types of the tables phase (P38), each written by pandas itself."""
+        pandas_table = self._frame.to_pandas()
+        try:
+            if kind in ("csv.gz", "tsv.gz"):  # pandas to_csv: the .gz ending compresses it (gzip)
+                pandas_table.to_csv(path, sep="\t" if kind == "tsv.gz" else ",", index=False)
+            elif kind == "feather":
+                try:
+                    import pyarrow  # noqa: F401
+                except ImportError:
+                    raise SimplydataError("Saving Feather (Arrow) files needs pyarrow.\n"
+                                          "Install it with:  pip install simplydata[fast]") from None
+                pandas_table.to_feather(path)  # pandas to_feather
+            elif kind == "jsonl":
+                pandas_table.to_json(path, orient="records", lines=True)  # pandas to_json(lines=True)
+            elif kind == "dta":
+                import warnings
+
+                with warnings.catch_warnings(record=True) as said:
+                    warnings.simplefilter("always")
+                    pandas_table.to_stata(path, write_index=False)  # pandas to_stata
+                renamed = [line.strip() for w in said for line in str(w.message).splitlines() if "->" in line]
+                if renamed:  # pandas' InvalidColumnName warning, said plainly
+                    print("Note: Stata does not allow some of the column names, so pandas changed them in the file: "
+                          + "; ".join(" ".join(line.split()) for line in renamed) + ".")
+            else:
+                pandas_table.to_html(path, index=False)  # pandas to_html
+        except SimplydataError:
+            raise
+        except (ValueError, TypeError) as problem:  # Stata's rules on names and kinds, said plainly
+            first = (str(problem).strip().splitlines() or [""])[0]
+            raise SimplydataError(f'The table could not be saved as "{path.name}": {first}') from None
+
+    def _save_in_table(self, path, kind, in_table):
+        """table.save("x.sqlite", in_table="river"): one table of a database file; the other tables are kept.
+
+        SQLite: Python's sqlite3 and pandas to_sql(if_exists="replace"). DuckDB: CREATE OR REPLACE TABLE from the
+        table, in a connection with no extensions and no other files (simplydata._sql)."""
+        example = f'table.save("{path.name}", in_table="river")'
+        if kind not in DATABASE_TYPES:
+            raise SimplydataError(f"in_table= saves the table as one table of a database file (.sqlite, .db or "
+                                  f".duckdb); a .{kind} file holds one table.\nFor example:  "
+                                  f'table.save("{path.stem}.sqlite", in_table={in_table!r}), or '
+                                  f'table.save("{path.name}") without in_table=.')
+        if in_table is None:
+            raise SimplydataError(f'"{path.name}" is a database, which holds tables by name. Say which with '
+                                  f"in_table=.\nFor example:  {example}")
+        if not isinstance(in_table, str) or not in_table.strip():
+            raise SimplydataError(f"in_table= is the name of a table, in quotes.\nFor example:  {example}")
+        if path.parent and not path.parent.exists():
+            raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
+        pandas_table = self._frame.to_pandas()
+        if kind == "duckdb":
+            from .. import _sql
+
+            con = _sql.connect(f'Saving "{path.name}"', database=str(path))
+            try:
+                there = [row[0] for row in con.execute(
+                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'").fetchall()]
+                con.register("_simplydata_table_", pandas_table)
+                con.execute(f"CREATE OR REPLACE TABLE {_sql.quoted(in_table)} AS SELECT * FROM _simplydata_table_")
+            finally:
+                con.close()
+        else:
+            import sqlite3
+
+            try:
+                con = sqlite3.connect(path)
+                there = [row[0] for row in con.execute("SELECT name FROM sqlite_master WHERE type = 'table'")]
+                pandas_table.to_sql(in_table, con, if_exists="replace", index=False)  # pandas to_sql
+                con.commit()
+            except sqlite3.DatabaseError as problem:
+                raise SimplydataError(f'"{path.name}" exists but is not an SQLite database ({problem}), so '
+                                      "simplydata cannot add a table to it. Save to a new file name.") from None
+            finally:
+                con.close()
+        if in_table in there:
+            print(f'Replaced the table "{in_table}" in {path.name}; the other tables are kept.')
 
     def _save_in_sheet(self, path, in_sheet):
         """table.save("x.xlsx", in_sheet=...): pandas ExcelWriter with openpyxl, adding to the file if it exists.

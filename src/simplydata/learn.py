@@ -54,9 +54,11 @@ GROUPS = [
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
-                                "table.get_row", "table.get_cell_at"]),
+                                "table.get_row", "table.get_cell_at", "table.show_differences_from",
+                                "table.check_if_same_as"]),
     ("Choose columns", ["table.keep_columns", "table.remove_columns", "table.keep_columns_by_position",
-                        "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names"]),
+                        "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names",
+                        "table.move_columns"]),
     ("Choose rows", ["table.keep_rows_where", "table.remove_rows_where", "table.keep_first_rows",
                      "table.keep_last_rows", "table.keep_rows_by_position", "table.remove_rows_by_position",
                      "table.reverse_rows", "table.keep_random_rows", "table.remove_duplicate_rows",
@@ -65,7 +67,7 @@ GROUPS = [
                      "table.remove_groups_where"]),
     ("Empty cells", ["table.count_empty_cells_in", "table.remove_rows_with_empty_cells_in",
                      "table.fill_empty_cells_in", "table.add_is_empty_column", "table.remove_rows_that_are_all_empty",
-                     "table.remove_columns_that_are_all_empty"]),
+                     "table.remove_columns_that_are_all_empty", "table.show_rows_with_empty_cells_in"]),
     ("Fix columns", ["table.turn_into_numbers", "table.turn_into_text", "table.turn_into_dates",
                      "table.turn_into_lowercase", "table.turn_into_uppercase", "table.remove_extra_spaces_in",
                      "table.replace_values_in", "table.round_numbers_in", "table.change_column",
@@ -74,7 +76,7 @@ GROUPS = [
                               "table.add_rank_column", "table.add_z_score_column", "table.add_row_summary_column",
                               "table.add_row_number_column"]),
     ("Dates and text", ["table.add_column_with_part_of_date", "table.add_column_with_part_of_text", "table.split_column",
-                        "table.replace_text_in", "table.split_into_rows"]),
+                        "table.replace_text_in", "table.split_into_rows", "table.add_zeros_in_front_of"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column",
                        "table.add_running_column"]),
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
@@ -148,9 +150,11 @@ GROUPS = [
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
     ("Join and reshape", ["table.join_with", "table.add_rows_from", "table.gather_into_rows",
                              "table.spread_into_columns", "table.swap_rows_and_columns", "table.keep_rows_found_in",
-                             "table.remove_rows_found_in"]),
+                             "table.remove_rows_found_in", "table.make_one_table_for_each_group_in",
+                             "table.run_sql", "sdata.run_sql"]),
     ("Undo and finish", ["table.undo", "table.show_steps", "table.start_again", "table.save",
-                         "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars"]),
+                         "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars",
+                         "table.as_list"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
     ("Numbers: make and look", ["sdata.numbers", "sdata.make_random_numbers", "nums.show", "nums.show_first_numbers",
                                 "nums.show_last_numbers", "nums.get_number_at", "nums.count",
@@ -776,6 +780,33 @@ HELP_EXAMPLES = {
                                     'table.join_with(students, using={"name": "student"}, keep="all rows from both", '
                                     'check_that="each row has one match", with_match_column=True)\n'
                                     'table.count_each("found in")'),
+    # tables phase, batch 3 (approved by Manish 2026-11-25)
+    "table.add_zeros_in_front_of": _tx("fjord_samples", 'table.turn_into_text("sample_id")\n'
+                                                        'table.add_zeros_in_front_of("sample_id", to_length=3)\n'
+                                                        "table.show_first_rows(3)"),
+    "table.move_columns": _tx("marks", 'table.move_columns("marks", to="start")\n'
+                                       'table.move_columns("height", after="name")\n'
+                                       "table.show_first_rows(3)"),
+    "table.show_rows_with_empty_cells_in": _tx("shop", "table.show_rows_with_empty_cells_in()\n"
+                                                       'table.show_rows_with_empty_cells_in(columns=["sales"])'),
+    "table.show_differences_from": _tx("marks", 'table.show_differences_from(sdata.get_example("marks"))\n'
+                                                'table.replace_values_in("marks", is_above=90, with_value=90)\n'
+                                                'table.show_differences_from(sdata.get_example("marks"))'),
+    "table.check_if_same_as": _tx("marks", 'table.check_if_same_as(sdata.get_example("marks"))\n'
+                                           'table.round_numbers_in("hours", 0)\n'
+                                           'table.check_if_same_as(sdata.get_example("marks"))'),
+    "table.run_sql": _tx("river", 'table.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station")\n'
+                                  'table.run_sql("SELECT * FROM data WHERE nitrate > 4.5 ORDER BY nitrate DESC LIMIT 5")'),
+    "sdata.run_sql": "\n".join([
+        "import simplydata as sdata",
+        'sdata.get_example("river").save("river.csv")',
+        "sdata.run_sql(\"SELECT station, avg(nitrate) AS nitrate FROM 'river.csv' GROUP BY station\")",
+        "sdata.run_sql(\"SELECT * FROM 'river.csv' WHERE level > 3 ORDER BY level DESC LIMIT 5\")",
+    ]),
+    "table.make_one_table_for_each_group_in": _tx("river", 'tables = table.make_one_table_for_each_group_in("station")\n'
+                                                           'tables["Station A"].find_average_of("nitrate")\n'
+                                                           'tables["Station B"].find_average_of("nitrate")'),
+    "table.as_list": _tx("marks", "rows = table.as_list()\nprint(rows[0])\nprint(rows[0][\"marks\"])"),
     "table.keep_rows_found_in": _tx("marks", 'table.keep_rows_found_in({"name": ["Asha", "Ben"]}, using="name")\n'
                                              'table.count_each("name")'),
     "table.remove_rows_found_in": _tx("marks", 'table.remove_rows_found_in({"name": ["Asha", "Ben"]}, using="name")\n'

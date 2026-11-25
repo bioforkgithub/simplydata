@@ -41,6 +41,41 @@ working for one release and prints a one-line note with its new name.
   docs/how_simplydata_chooses.md; other names from pandas, Polars and R (semi_join, explode, cumsum, rowMeans,
   factor, clean_names ...) point to the new words.
 
+### Added: tables phase, batch 3 (ranks 31-44 of the proposal; approved by Manish 2026-11-25)
+
+- `table.add_zeros_in_front_of("sample_id", to_length=3)`: "7" becomes "007" (pandas and Polars `str.zfill`);
+  longer texts are never cut.
+- `find_summary_of(show=["first", "last"])`: the first and last filled value in the order of the rows; with
+  `every="month"`, `show=["first", "biggest", "smallest", "last"]` gives open, high, low and close.
+- `sort_by("class", "marks", biggest_first=[False, True])`: a direction for each column. Polars' `descending=`
+  runs as `biggest_first=`; pandas' `ascending=` (the opposite) points and never runs.
+- `gather_into_rows(starts_with="pain_week_", ...)`, and `ends_with=`, `matches_pattern=`: the columns chosen by
+  their names, as in `keep_columns`.
+- `table.move_columns("marks", to="start")` (or `to="end"`, `after="name"`).
+- `table.show_rows_with_empty_cells_in(columns=)`: the rows with a hole, with their row numbers.
+- `join_with(rain, using="date", match="nearest before", within="2 days")` (pandas `merge_asof`, Polars
+  `join_asof`; also "nearest after" and "nearest"), and `join_with(other, keep="every combination")` (a cross
+  join).
+- `table.show_differences_from(other)` (pandas `compare`) and `table.check_if_same_as(other)` (pandas and Polars
+  `equals`, kinds too).
+- File types by name: read .csv.gz, .tsv.gz, .zip (one CSV inside), .feather and .arrow, .jsonl and .ndjson, .xml,
+  .sas7bdat, and the databases .sqlite, .db and .duckdb (`sdata.table("lab.sqlite", table_name="samples")`); save
+  .csv.gz, .tsv.gz, .feather, .jsonl, .dta and .html, and one table of a database file with
+  `table.save("results.sqlite", in_table="river")`, which replaces that table and keeps the others (the mirror of
+  `in_sheet=`).
+- `table.run_sql("SELECT ... FROM data ...")` and `sdata.run_sql("SELECT ... FROM 'river/*.parquet' ...")`: SQL
+  through DuckDB, a new optional extra (`pip install "simplydata[sql]"`); without DuckDB the table word runs Polars
+  SQL. For sensitive data, DuckDB is opened with no extensions installed or loaded on their own (so it cannot read
+  web or cloud addresses), its settings locked and only one SELECT allowed; a query naming https://, s3:// and the
+  like is refused before DuckDB sees it, and a query on a table cannot open files.
+- `tables = table.make_one_table_for_each_group_in("station")`: one table for each group, `tables["Station A"]`.
+- Formula functions `length(name)` and `count_text(genes, ";")` (pandas `str.len`, `str.count`; Polars
+  `len_chars`, `count_matches`); `length()` works in conditions too.
+- `table.as_list()`: one dict per row, for plain Python.
+- Each new word and option has a "same underneath" entry (pandas and Polars, or DuckDB, sqlite3) and its basis;
+  other names (zfill, relocate, compare, equals, merge_asof, cross_join, partition_by, to_dicts, to_sql, sqldf ...)
+  point to them.
+
 ### Changed: a front door for new users
 
 - New motto: "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain

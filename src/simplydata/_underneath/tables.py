@@ -2485,3 +2485,461 @@ ENTRIES += [
         also="keep_last_rows and keep_rows_by_position take for_each_group_in= too. " + SAID,
     ),
 ]
+
+
+# ---------------------------------------------------------------- tables phase, batch 3 (approved by Manish 2026-11-25)
+ENTRIES += [
+    Entry(
+        word="table.add_zeros_in_front_of",
+        data="fjord_samples",
+        ours="""
+            table = sdata.get_example("fjord_samples")
+            table.keep_columns("sample_id", "station")
+            table.turn_into_text("sample_id")
+            table.add_zeros_in_front_of("sample_id", to_length=3)
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("fjord_samples.csv")[["sample_id", "station"]]
+                # add_zeros_in_front_of("sample_id", to_length=3)
+                df["sample_id"] = df["sample_id"].astype(str).str.zfill(3)          # (1)
+                df
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("fjord_samples.csv").select("sample_id", "station")
+                # add_zeros_in_front_of("sample_id", to_length=3)
+                df.with_columns(pl.col("sample_id").cast(pl.String).str.zfill(3))     # (1)
+            """,
+        },
+        compare="table",
+        choices=("zeros go in front until the text has to_length= characters; a longer text is never cut, a minus or "
+                 "plus sign stays in front, and an empty cell stays empty (str.zfill in pandas and Polars).",),
+        also="simplydata also says how many values changed and how many were already longer. " + SAID,
+    ),
+    Entry(
+        word="table.move_columns",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.move_columns("marks", "hours", to="start")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # move_columns("marks", "hours", to="start")
+                moved = ["marks", "hours"]
+                df[moved + [c for c in df.columns if c not in moved]]
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # move_columns("marks", "hours", to="start")
+                moved = ["marks", "hours"]
+                df.select(moved + [c for c in df.columns if c not in moved])
+            """,
+        },
+        compare="table",
+        also="to=\"end\" puts them last and after=\"name\" just after that column; the other columns keep their order. "
+             + SAID,
+    ),
+    Entry(
+        word="table.show_rows_with_empty_cells_in",
+        data="shop",
+        ours="""
+            table = sdata.get_example("shop")
+            table.show_rows_with_empty_cells_in()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("shop.csv")
+                # show_rows_with_empty_cells_in()
+                holes = df[df.isna().any(axis=1)]                                    # (1)
+                print(f"{len(holes)} rows of {len(df)} have an empty cell:")
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("shop.csv")
+                # show_rows_with_empty_cells_in()
+                holes = df.filter(pl.any_horizontal(pl.all().is_null()))              # (1)
+                print(f"{holes.height} rows of {df.height} have an empty cell:")
+            """,
+        },
+        compare="printed",
+        choices=("a row is shown when any of its cells (or of the columns= named) is empty, with its row number counted "
+                 "from 1; text of only spaces counts as empty too, and the table does not change.",),
+        also="simplydata also prints the rows themselves and the remove_rows_with_empty_cells_in() line that would "
+             "remove them.",
+    ),
+    Entry(
+        word="table.show_differences_from",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.replace_values_in("marks", is_above=90, with_value=90)
+            table.show_differences_from(sdata.get_example("marks"))
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                original = pd.read_csv("marks.csv")
+                df = original.copy()
+                df.loc[df["marks"] > 90, "marks"] = 90
+                # show_differences_from(original)
+                cells = df.compare(original, result_names=("this", "other"))         # (1)
+                n = int(cells.xs("this", axis=1, level=1).notna().sum().sum())
+                print(f"{n} cells differ, in {len(cells)} rows (rows counted from 1; empty cells shown as None):")
+            """,
+        },
+        compare="printed",
+        choices=("rows are compared in order (row 3 with row 3), and two empty cells count as the same (pandas "
+                 "compare); tables with other columns or another number of rows are not compared cell by cell, and "
+                 "simplydata says how they differ. Polars tables go through pandas compare.",),
+        also="simplydata also shows the differing cells as row, column, this, other, with rows counted from 1.",
+    ),
+    Entry(
+        word="table.check_if_same_as",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.round_numbers_in("hours", 0)
+            table.check_if_same_as(sdata.get_example("marks"))
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                original = pd.read_csv("marks.csv")
+                df = original.round({"hours": 0})
+                # check_if_same_as(original)
+                df.equals(original)                                                  # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                original = pl.read_csv("marks.csv")
+                df = original.with_columns(pl.col("hours").round(0))
+                # check_if_same_as(original)
+                df.equals(original)                                                  # (1)
+            """,
+        },
+        compare="value",
+        choices=("the same means the same columns in the same order, the same rows, the same values and the same kinds "
+                 "(pandas and Polars equals); two empty cells count as the same.",),
+        also="simplydata also names the first difference: a column, a row and the two values, or the kinds.",
+    ),
+    Entry(
+        word="table.run_sql",
+        data="river",
+        ours="""
+            table = sdata.get_example("river")
+            table.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station ORDER BY station")
+        """,
+        code={
+            "DuckDB": """
+                import duckdb
+                import pandas as pd
+                df = pd.read_csv("river.csv")
+                # run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station ORDER BY station")
+                con = duckdb.connect(config={"autoload_known_extensions": False,
+                                             "enable_external_access": False})       # (1)
+                con.register("data", df)                                             # (2)
+                con.sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station ORDER BY station").df()
+            """,
+        },
+        compare="table",
+        choices=("DuckDB runs with no extensions loaded or installed on their own and no access to files or the web, "
+                 "the settings locked, and only one SELECT is run: a query can never fetch, install or write anything;",
+                 "inside the query the table is called data; a Polars table comes back as Polars (.pl()), and without "
+                 "DuckDB, Polars SQL runs the query (pl.SQLContext).",),
+        also="simplydata also says which engine ran and the size of the answer; the table itself does not change.",
+    ),
+    Entry(
+        word="sdata.run_sql",
+        data="river",
+        ours="""
+            import os
+            import tempfile
+            with tempfile.TemporaryDirectory() as folder:
+                river = os.path.join(folder, "river.csv").replace(os.sep, "/")
+                sdata.get_example("river").save(river)
+                answer = sdata.run_sql(f"SELECT station, max(level) AS level FROM '{river}' GROUP BY station "
+                                       "ORDER BY station")
+            answer
+        """,
+        code={
+            "DuckDB": """
+                import duckdb
+                # run_sql("SELECT station, max(level) AS level FROM 'river.csv' GROUP BY station ORDER BY station")
+                con = duckdb.connect(config={"autoload_known_extensions": False,
+                                             "autoinstall_known_extensions": False})  # (1)
+                con.sql("SELECT station, max(level) AS level FROM 'river.csv' GROUP BY station "
+                        "ORDER BY station").df()
+            """,
+        },
+        compare="table",
+        choices=("DuckDB reads the files on this computer, with no extensions loaded or installed on their own (so no "
+                 "web or cloud address can be read), the settings locked, and only one SELECT is run; an address "
+                 "such as https:// or s3:// is refused before DuckDB sees it.",),
+        also="The file is read by DuckDB itself: only the rows and columns the query needs. The test saves the "
+             "practice table in a folder that is deleted afterwards.",
+    ),
+    Entry(
+        word="table.make_one_table_for_each_group_in",
+        data="river",
+        ours="""
+            table = sdata.get_example("river")
+            tables = table.make_one_table_for_each_group_in("station")
+            tables["Station B"]
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("river.csv", parse_dates=["date"])
+                # make_one_table_for_each_group_in("station")
+                tables = {name: part for name, part in df.groupby("station", sort=False, dropna=False)}  # (1)
+                tables["Station B"]
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("river.csv", try_parse_dates=True)
+                # make_one_table_for_each_group_in("station")
+                tables = df.partition_by("station", maintain_order=True, as_dict=True)  # (1)
+                tables[("Station B",)]
+            """,
+        },
+        compare="table",
+        choices=("the groups come in the order they are first seen and the rows keep their order; rows with an empty "
+                 "cell in the column make a group of their own (dropna=False), and with one column each table is "
+                 "found by the value itself: tables[\"Station B\"].",),
+        also="simplydata also says how many tables there are, their sizes and how to get one.",
+    ),
+    Entry(
+        word="table.as_list",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.as_list()
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # as_list()
+                df.to_dict("records")
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # as_list()
+                df.to_dicts()
+            """,
+        },
+        compare="value",
+        also="It is a copy: changing the list does not change the table.",
+    ),
+    # options of existing words
+    Entry(
+        word="table.find_summary_of",
+        option="show=",
+        data="river",
+        ours="""
+            table = sdata.get_example("river")
+            table.find_summary_of("level", show=["first", "biggest", "smallest", "last"], for_each_group_in="station")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("river.csv")
+                # find_summary_of("level", show=["first", "biggest", "smallest", "last"], for_each_group_in="station")
+                found = df.groupby("station")["level"].agg(["first", "max", "min", "last"])   # (1)
+                found = found.rename(columns={"max": "biggest", "min": "smallest"}).reset_index()
+                found.insert(0, "column", "level")
+                found
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("river.csv")
+                # find_summary_of("level", show=["first", "biggest", "smallest", "last"], for_each_group_in="station")
+                level = pl.col("level").drop_nulls()
+                df.group_by("station", maintain_order=True).agg(
+                    pl.lit("level").alias("column"), level.first().alias("first"),
+                    level.max().alias("biggest"), level.min().alias("smallest"),
+                    level.last().alias("last")).select("column", "station", "first", "biggest", "smallest", "last")  # (1)
+            """,
+        },
+        compare="table",
+        choices=("\"first\" and \"last\" are the first and last filled value in the order of the rows (pandas "
+                 "groupby first() and last() skip empty cells; Polars drop_nulls() then first() and last()): sort "
+                 "first with sort_by for another order.",),
+        also="With every=\"month\" the same four give each month's open, high, low and close (pandas resample().ohlc()).",
+    ),
+    Entry(
+        word="table.sort_by",
+        option="biggest_first=",
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.sort_by("class", "marks", biggest_first=[False, True])
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                # sort_by("class", "marks", biggest_first=[False, True])
+                df.sort_values(["class", "marks"], ascending=[True, False], kind="stable")   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv")
+                # sort_by("class", "marks", biggest_first=[False, True])
+                df.sort(["class", "marks"], descending=[False, True], maintain_order=True)   # (1)
+            """,
+        },
+        compare="table",
+        choices=("a list gives each column its own direction, one True or False for each; pandas' ascending= is the "
+                 "opposite (ascending=[True, False]), Polars' descending= the same; rows that tie keep their order.",),
+        also=SAID,
+    ),
+    Entry(
+        word="table.gather_into_rows",
+        option="starts_with=",
+        data="clinic",
+        ours="""
+            table = sdata.get_example("clinic")
+            table.keep_columns("patient", "pain_week_0", "pain_week_4", "pain_week_8")
+            table.gather_into_rows(starts_with="pain_week_", names_to="week", values_to="pain")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("clinic.csv")[["patient", "pain_week_0", "pain_week_4", "pain_week_8"]]
+                # gather_into_rows(starts_with="pain_week_", names_to="week", values_to="pain")
+                weeks = [c for c in df.columns if c.startswith("pain_week_")]        # (1)
+                df.melt(id_vars=["patient"], value_vars=weeks, var_name="week", value_name="pain")
+            """,
+            "Polars": """
+                import polars as pl
+                import polars.selectors as cs
+                df = pl.read_csv("clinic.csv").select("patient", "pain_week_0", "pain_week_4", "pain_week_8")
+                # gather_into_rows(starts_with="pain_week_", names_to="week", values_to="pain")
+                df.unpivot(on=cs.starts_with("pain_week_"), index="patient",
+                           variable_name="week", value_name="pain")                  # (1)
+            """,
+        },
+        compare="table",
+        choices=("starts_with=, ends_with= and matches_pattern= choose the columns by their names exactly as "
+                 "keep_columns does (capital letters matter), in table order; one way at a time.",),
+        also=SAID,
+    ),
+    Entry(
+        word="table.join_with",
+        option="match=",
+        data="river",
+        ours="""
+            table = sdata.get_example("river")
+            rain = sdata.table({"date": ["2024-01-01", "2024-01-08", "2024-01-15"], "rain_mm": [12.0, 3.5, 20.1]})
+            rain.turn_into_dates("date")
+            table.join_with(rain, using="date", match="nearest before", within="3 days",
+                            keep="all rows from this table")
+            table.keep_columns("date", "station", "rain_mm")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("river.csv", parse_dates=["date"])[["date", "station"]]
+                rain = pd.DataFrame({"date": pd.to_datetime(["2024-01-01", "2024-01-08", "2024-01-15"]),
+                                     "rain_mm": [12.0, 3.5, 20.1]})
+                # join_with(rain, using="date", match="nearest before", within="3 days")
+                df = df.reset_index().sort_values("date", kind="stable")             # (1)
+                joined = pd.merge_asof(df, rain, on="date", direction="backward",
+                                       tolerance=pd.Timedelta(days=3))               # (2)
+                joined.sort_values("index").drop(columns="index")
+            """,
+            "Polars": """
+                import datetime
+                import polars as pl
+                df = pl.read_csv("river.csv", try_parse_dates=True).select("date", "station").with_row_index()
+                rain = pl.DataFrame({"date": [datetime.date(2024, 1, d) for d in (1, 8, 15)], "rain_mm": [12.0, 3.5, 20.1]})
+                # join_with(rain, using="date", match="nearest before", within="3 days")
+                joined = df.sort("date").join_asof(rain.sort("date"), on="date", strategy="backward",
+                                                   tolerance=datetime.timedelta(days=3))  # (1) (2)
+                joined.sort("index").drop("index")
+            """,
+        },
+        compare="table",
+        choices=("both tables are sorted by the date first, as merge_asof and join_asof need, and the rows go back to "
+                 "this table's order afterwards;",
+                 "\"nearest before\" takes the last row at or before each date (backward), \"nearest after\" the first "
+                 "at or after (forward), \"nearest\" either; within= is the furthest it looks (tolerance), and "
+                 "keep=\"matching rows\" leaves out the rows with nothing near enough.",),
+        also="simplydata also brings the other table's date in as \"date_other\" and says how many rows found a match. "
+             + SAID,
+    ),
+    Entry(
+        word="table.join_with",
+        option='keep="every combination"',
+        data="marks",
+        ours="""
+            table = sdata.get_example("marks")
+            table.keep_columns("name", "subject")
+            table.join_with({"term": ["autumn", "spring"]}, keep="every combination")
+        """,
+        code={
+            "pandas": """
+                import pandas as pd
+                df = pd.read_csv("marks.csv")[["name", "subject"]]
+                terms = pd.DataFrame({"term": ["autumn", "spring"]})
+                # join_with(terms, keep="every combination")
+                df.merge(terms, how="cross")
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("marks.csv").select("name", "subject")
+                terms = pl.DataFrame({"term": ["autumn", "spring"]})
+                # join_with(terms, keep="every combination")
+                df.join(terms, how="cross")
+            """,
+        },
+        compare="table",
+        also="simplydata also says how many rows came out: 54 x 2 = 108. " + SAID,
+    ),
+    Entry(
+        word="table.save",
+        option="in_table=",
+        data="marks",
+        ours="""
+            import os
+            import tempfile
+            table = sdata.get_example("marks")
+            with tempfile.TemporaryDirectory() as folder:
+                results = os.path.join(folder, "results.sqlite")
+                table.save(results, in_table="marks")
+                table.save(results, in_table="marks_again")
+                back = sdata.table(results, table_name="marks_again")
+            back
+        """,
+        code={
+            "pandas": """
+                import os
+                import sqlite3
+                import tempfile
+                import pandas as pd
+                df = pd.read_csv("marks.csv")
+                with tempfile.TemporaryDirectory() as folder:
+                    con = sqlite3.connect(os.path.join(folder, "results.sqlite"))
+                    # save as results.sqlite with in_table="marks_again"
+                    df.to_sql("marks_again", con, if_exists="replace", index=False)  # (1)
+                    back = pd.read_sql_query('SELECT * FROM "marks_again"', con)
+                    con.close()
+                back
+            """,
+        },
+        compare="table",
+        choices=("in_table= replaces that one table and keeps the other tables of the file (if_exists=\"replace\"), "
+                 "with no row labels (index=False); a .duckdb file is written by DuckDB, with no extensions.",),
+        also="simplydata says when it replaced a table. Read it back with sdata.table(\"results.sqlite\", "
+             "table_name=\"marks_again\"). The test writes in a folder that is deleted afterwards.",
+    ),
+]
