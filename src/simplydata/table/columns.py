@@ -2014,7 +2014,7 @@ class ColumnWords:
         (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)):
           table.spread_into_columns(names_from="fruit", values_from="count", show="total")
         A pair that never appears stays an empty cell, for every show=. Rows with an empty cell in
-        names_from go into a column called "empty", and a note says how many.
+        names_from go into a column called "(empty)" (as in the cross tables of across=), and a note says how many.
         How it differs from swap_rows_and_columns: swap flips the whole table; spread turns one
         column's values into new columns. For a table of name, subject and marks:
           table.spread_into_columns(names_from="subject", values_from="marks")   one row per name, a column per subject
@@ -2055,21 +2055,21 @@ class ColumnWords:
                 f'  table.find_average_of("{values_from}", for_each_group_in=["{index[0]}", "{names_from}"])\n'
                 "or remove the columns you do not need first."
             )
-        # an empty cell in names_from makes a column called "empty" on both engines (pandas would say "nan", Polars
-        # "null"); a real value "empty" is refused rather than mixed with it
+        # an empty cell in names_from makes a column called "(empty)" on both engines (pandas would say "nan", Polars
+        # "null"); a real value "(empty)" is refused rather than mixed with it
         source, empty_names = self._frame, int(self._frame[names_from].null_count())
         if empty_names:
-            if self._frame.schema[names_from] == nw.String and (self._frame[names_from] == "empty").any():
+            if self._frame.schema[names_from] == nw.String and (self._frame[names_from] == "(empty)").any():
                 raise SimplydataError(
-                    f'"{names_from}" has empty cells and also the value "empty", so the column made from the empty '
-                    'cells cannot be called "empty". Fill the empty cells first, for example:\n'
+                    f'"{names_from}" has empty cells and also the value "(empty)", so the column made from the empty '
+                    'cells cannot be called "(empty)". Fill the empty cells first, for example:\n'
                     f'  table.fill_empty_cells_in("{names_from}", with_value="no {names_from}")\n'
                     "then spread_into_columns again.")
             name = nw.col(names_from)
-            source = source.with_columns(nw.when(name.is_null()).then(nw.lit("empty"))
+            source = source.with_columns(nw.when(name.is_null()).then(nw.lit("(empty)"))
                                          .otherwise(name.cast(nw.String)).alias(names_from))
             print(f'{_rows_word(empty_names)} had an empty cell in "{names_from}"; '
-                  f'{"its" if empty_names == 1 else "their"} values went into a column called "empty".')
+                  f'{"its" if empty_names == 1 else "their"} values went into a column called "(empty)".')
         # keep the rows in the order they first appear (pandas would sort them otherwise)
         order = "_simplydata_order_"
         ordered = source.with_row_index(order).with_columns(nw.col(order).min().over(*index))
