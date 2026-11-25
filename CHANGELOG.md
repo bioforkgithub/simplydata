@@ -41,6 +41,9 @@ working for one release and prints a one-line note with its new name.
 
 ### Changed: charts phase, batch 1
 
+- matplotlib 3.11 or newer is needed (`matplotlib>=3.11,<4`; it was `>=3.10`): patterns are drawn in white on dark
+  fills with matplotlib's `set_hatchcolor`, which 3.10 does not have (there a pattern always takes the edge
+  colour, so in black and white, with black edges, it could not be seen on dark greys).
 - Text in saved `.pdf`, `.eps` and `.svg` files stays real text: fonts are kept as TrueType (Type 42) in PDF and
   PostScript, which journal checkers accept, and as text in SVG (decision D6). Files get a little bigger.
 - Every chart type starts with `draw_` (decision D11): `draw_sticks`, `draw_spectrum`, `draw_spectrum_over_time`,

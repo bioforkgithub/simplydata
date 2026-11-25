@@ -99,9 +99,8 @@ def test_black_and_white_greys_are_readable_and_patterns_show(capsys):
     assert all(0.24 <= _lightness(p.get_facecolor()) <= 0.76 for p in bars)
     assert {to_hex(p.get_edgecolor()) for p in bars} == {"#000000"}
     for p in bars:  # the pattern is white on dark grey, black on light grey
-        if hasattr(p, "get_hatchcolor"):
-            expected = "#ffffff" if _lightness(p.get_facecolor()) < 0.5 else "#000000"
-            assert to_hex(p.get_hatchcolor()) == expected
+        expected = "#ffffff" if _lightness(p.get_facecolor()) < 0.5 else "#000000"
+        assert to_hex(p.get_hatchcolor()) == expected  # stays after the black edge is set (matplotlib >= 3.11)
     assert len({p.get_hatch() for p in bars}) == 3
     lines = sdata.chart(sdata.get_example("weather")).draw_lines(x="month", y="temperature", colour="city")
     lines.use_style("black and white")

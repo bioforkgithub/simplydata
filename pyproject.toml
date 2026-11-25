@@ -31,7 +31,9 @@ classifiers = [
 # Supported version ranges (MAINTAINING.md): the lower bound is the oldest release CI tests
 # (.github/workflows/oldest-versions.yml), the upper bound the next untested major release.
 dependencies = [
-    "matplotlib>=3.10,<4",
+    # Lower bound 3.11 (charts phase, 2026-11-25): set_hatchcolor, so a pattern on a dark fill is drawn in white;
+    # in 3.10 a pattern always takes the edge colour, so black-and-white charts (black edges) hid it on dark greys.
+    "matplotlib>=3.11,<4",
     "seaborn>=0.13.2,<0.14",
     "pandas>=3.0.6,<4",
     "numpy>=2.0,<3",

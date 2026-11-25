@@ -71,8 +71,7 @@ def contrasting(colour) -> str:
 def hatch(patch, pattern):
     """Fill a bar, a slice or an area with a pattern, in black or white, whichever shows on its fill."""
     patch.set_hatch(pattern)
-    if hasattr(patch, "set_hatchcolor"):  # matplotlib 3.11 and later; before it the pattern is black
-        patch.set_hatchcolor(contrasting(_face(patch)))
+    patch.set_hatchcolor(contrasting(_face(patch)))  # matplotlib 3.11 (the lower bound in pyproject.toml)
 
 
 def _same_colour(a, b) -> bool:
