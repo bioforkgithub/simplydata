@@ -1177,8 +1177,7 @@ class NumberBlock(BlockLabelWords, SmoothOverWords, ChanceWords, MoreNumberWords
         axis = self._axis("split_into_one_block_per", direction, "direction")
         names = [n for i, n in enumerate(self._names) if i != axis]
         named = [r for i, r in enumerate(self._named) if i != axis]
-        parts = np.unstack(self._values, axis=axis) if hasattr(np, "unstack") else \
-            [np.take(self._values, i, axis=axis) for i in range(self._values.shape[axis])]
+        parts = np.unstack(self._values, axis=axis)
         print(f"{len(parts)} blocks of {say_shape(self._values.shape[:axis] + self._values.shape[axis + 1:], names)}, "
               f"one for each {self._names[axis]}. NumPy: np.unstack(block, axis={axis})")
         return [NumberBlock(np.asarray(p).copy(), names, named) for p in parts]
