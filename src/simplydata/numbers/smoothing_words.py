@@ -19,13 +19,15 @@ class SmoothingNumberWords:
         nums.smooth(test_method="median", window=5)
         The numbers are taken in order, one step apart. test_method= "moving average" (the average of the
         window= readings centred on each; weights=[1, 2, 1] for a weighted average; ends= "empty" (as R
-        stats::filter), "shorter windows" or "mirror"), "median" (removes single spikes; R runmed() itself,
-        ends= "tukey" (R's default), "keep" or "constant"; needs simplydata[r]), "savitzky-golay" (a
-        of_degree=2 curve fitted in each window; keeps peak heights; R signal::sgolayfilt), "exponential"
-        (newest_weight=0.3: each value = 0.3 x the reading + 0.7 x the value before; alpha=, span=,
+        stats::filter), "shorter windows", "mirror" (d c b | a b c d) or "reflect" (the end reading repeated,
+        d c b a | a b c d): SciPy's modes of those names, as in grid.smooth), "median" (removes single spikes;
+        R runmed() itself, ends= "tukey" (R's default), "keep" or "constant"; needs simplydata[r]),
+        "savitzky-golay" (a of_degree=2 curve fitted in each window; keeps peak heights; R signal::sgolayfilt),
+        "exponential" (newest_weight=0.3: each value = 0.3 x the reading + 0.7 x the value before; alpha=, span=,
         half_life= or com= instead), "gaussian" (weights from a bell curve with a standard deviation of
-        width=2 readings), "lowess" (smoothness= the share of readings in each local fit, 2/3), "spline"
-        (smoothness="auto" or R's lambda=), "whittaker" (smoothness=100; bigger is smoother) or "wiener".
+        width=2 readings; ends= "reflect", SciPy's default, or "mirror"), "lowess" (smoothness= the share of
+        readings in each local fit, 2/3), "spline" (smoothness="auto" or R's lambda=), "whittaker"
+        (smoothness=100; bigger is smoother) or "wiener".
         Undo with nums.undo().
         """
         got = _smoothing.smooth(np.asarray(self._values, dtype=float).ravel(), test_method, window, ends,

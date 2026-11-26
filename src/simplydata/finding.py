@@ -318,6 +318,8 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     if not isinstance(search, str) or search.strip().lower() not in SEARCHES:
         raise choice_error(step, "search", search, SEARCHES)
     search = search.strip().lower()
+    if hasattr(formula, "_formula_text"):  # a formula made with sdata.formula()
+        formula = formula._formula_text()
     if not isinstance(formula, str):
         raise SimplydataError(f"{step}() needs a formula in quotes, for example {example}.")
     goal_formula = read_formula(formula, known=known)
@@ -860,7 +862,7 @@ def _solve_one_range(text, name, gap, low, high, chosen):
 
 
 @friendly(renamed={"method": "test_method"})
-def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False):
+def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False):
     """Find the values that make an equation true.
 
     sdata.solve("x**3 - 2*x = 5", between=[0, 3])   (x = 2.09455)
@@ -874,13 +876,24 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     known= fixes some names (a dict, or a one-row result table from table.fit_formula).
     Gives back a table with one row per solution: each name, "left minus right" at the
     solution (the check: close to 0) and the method. fast=True gives a Polars table.
+    exactly=True gives the exact solutions from SymPy solve (simplydata[exact]): sdata.solve("x**2 = 2",
+    exactly=True) prints x = -sqrt(2) or x = sqrt(2); the table has each decimal and its exact form.
     """
+    if not isinstance(exactly, bool):
+        raise SimplydataError("exactly= should be True or False.")
     if isinstance(equations, str):
         texts = [equations]
     elif isinstance(equations, (list, tuple)) and equations:
         texts = list(equations)
     else:
         raise SimplydataError(f"solve() needs an equation in quotes, for example {_solve_example()}.")
+    if exactly:
+        if between is not None or start is not None or test_method is not None:
+            raise SimplydataError("exactly=True finds every solution SymPy can write down, so it takes no between=, "
+                                  "start= or test_method=. Leave them out, or leave out exactly=True.")
+        from ._formula import solve_exactly
+
+        return solve_exactly(texts, known, fast)
     formulas = [_read_solve_equation(t, known) for t in texts]
     names: list[str] = []
     for f in formulas:

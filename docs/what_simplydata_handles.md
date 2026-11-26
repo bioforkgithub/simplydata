@@ -34,7 +34,9 @@ Python packages:
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
 | DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
-| xarray | lines up blocks of numbers by the names of their directions (`plate - blank`) and chooses by labels (`block.keep_where`); without it NumPy does the same job | [xarray] |
+| xarray, h5netcdf, h5py | xarray lines up blocks of numbers by the names of their directions (`plate - blank`) and chooses by labels (`block.keep_where`); without it NumPy does the same job. h5netcdf and h5py read and write netCDF-4 files (`sdata.number_block("sst.nc")`, `block.save("out.nc")`, `sdata.show_whats_inside`) | [xarray] |
+| SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `nums.show_as_fraction()` | [exact] |
+| plotly | web pages of charts: `chart.save("marks.html")` and `chart.show_in_web_page()` (the picture is drawn by matplotlib and copied into plotly) | [web] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
 | rpy2 | the bridge to R: runs the R package itself and brings the answer back | [r] |
 
@@ -88,6 +90,7 @@ so you never need them:
 | ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
 | gsignal, pracma, control | the filter, envelope, peak and system answers that `frequency_filter`, `find_envelope`, `find_each_peak_that` and the `system` words are checked against (Octave-style `butter` and `hilbert`, `findpeaks`, and transfer functions) |
+| Matrix | the matrix exponential (`Matrix::expm`) that `grid.take_matrix_exp()` is checked against |
 | AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](../DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for

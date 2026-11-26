@@ -5,6 +5,42 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: `ends="mirror"` now means SciPy's "mirror" everywhere (numbers phase)
+
+- `nums.smooth(ends="mirror")`, and with it `table.add_smoothed_column(ends="mirror")` and
+  `chart.draw_smooth_line(ends="mirror")`, now use SciPy mode "mirror": the readings are mirrored about the end
+  reading, which is not repeated (d c b | a b c d). Before this change they used SciPy mode "reflect", which repeats
+  the end reading (d c b a | a b c d), so the first and last few smoothed values change. `grid.smooth` and
+  `block.smooth` already meant "mirror" this way; now all the smoothing words agree.
+- `ends="reflect"` is a separate option on all of them and means SciPy mode "reflect". To get the old numbers of
+  `ends="mirror"`, write `ends="reflect"`.
+- `test_method="gaussian"` on numbers takes `ends="reflect"` (its default, SciPy's own, so the default numbers do not
+  change) or `ends="mirror"`. Before, its only choice was called "mirror" but was SciPy "reflect".
+- Tests compare both options with SciPy and R (`stats::filter` on the padded readings), and two new reliability cases
+  check them on the Lake Huron levels.
+
+### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
+
+- Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
+  `f.make_simpler()`, `f.turn_into_sum()`, `f.turn_into_product()`, `f.find_slope_formula()`, `f.find_area_formula()`,
+  `f.find_value_at(x=2)`, `f.put_in(x="y + 1")`, `f.show_as_latex()`, `f.find_limit_as("x", goes_to=0)`,
+  `f.find_taylor_series(around=0, up_to_power=4)` and `f.undo()`; `sdata.solve("x**2 = 2", exactly=True)`;
+  `nums.show_as_fraction()`. The text is checked with Python's ast before SymPy reads it, and every letter stays a
+  letter (E, I, N and beta too). A formula is accepted by `find_where_smallest`, `find_where_biggest` and
+  `find_area_under`. Without SymPy these words say how to install it.
+- Areas and paths over time (SciPy integrate): `sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])`
+  (quad; `test_method="gauss"`; `exactly=True`), `sdata.find_volume_under(...)` (dblquad, tplquad, nquad),
+  `sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start=, between=, known=, time_step=, stop_when=)`
+  (solve_ivp with R deSolve's tolerances; `exactly=True` with SymPy dsolve) and `nums.turn_into_running_area()`.
+- Numbers: `take_cube_root()` (also on grids), `find_coherence_with(other)`, `take_cosine_transform()`.
+- Grids: `get_numbers_at_pairs(rows=, columns=)`, `get_numbers_from_each_row_at(columns=)`,
+  `find_each_patch_that(is_above=, touching=)`, `change_size_to(rows=, columns=)`, `rotate(by_degrees=)`,
+  `take_matrix_exp()` and `find_null_space()`.
+- Tables: `find_nearest_rows_to(point, how_many=, within=)`, `find_distances_to_rows_of(other, using=)` and
+  `find_fence_around(x=, y=)` (SciPy spatial).
+- Other names from SymPy, SciPy, MATLAB and R point to the new words; lessons 13 and 19 have new parts; SymPy is
+  cited (Meurer et al. 2017).
+
 ### Added: NumPy + SciPy phase, batch 2 (netCDF files, labels, dates and places; approved by Manish 2026-11-25)
 
 - netCDF files (P21, P22): `sdata.number_block("sst.nc", values="sst")` reads one variable as a block with its names,

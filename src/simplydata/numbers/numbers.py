@@ -31,11 +31,12 @@ from .summaries import GridSummaryWords, SummaryWords
 from .more_number_words import MoreNumberWords, _short
 from .numbers_2 import ChanceWords, RandomPickWords, SmoothOverWords  # NumPy + SciPy phase, batch 2
 from ._base import NOT_GIVEN
+from .numbers_3 import GridWords3, NumberWords3, SharedWords3
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
-              FourierNumberWords, BaseNumbers):
+              FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
     """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
 
     _is_simplydata_numbers = True
@@ -87,7 +88,7 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 BaseNumbers):
+                 GridWords3, SharedWords3, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -101,7 +102,16 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
               "where": "replace_each_number_that", "clip": "replace_each_number_that", "replace": "replace_each_number_that",
               "replace_values": "replace_each_number_that", "putmask": "replace_each_number_that", "delete": "remove_rows_by_position",
               "take": "keep_rows_by_position", "slice": "keep_rows_by_position",
-              "keep_first_rows": "keep_rows_by_position", "keep_last_rows": "keep_rows_by_position"}
+              "keep_first_rows": "keep_rows_by_position", "keep_last_rows": "keep_rows_by_position",
+              # numbers phase, batch 3: NumPy, SciPy, MATLAB and R names of the new grid words
+              "take_along_axis": "get_numbers_from_each_row_at", "sub2ind": "get_numbers_at_pairs",
+              "label": "find_each_patch_that", "sum_labels": "find_each_patch_that",
+              "center_of_mass": "find_each_patch_that", "find_objects": "find_each_patch_that",
+              "regionprops": "find_each_patch_that", "bwlabel": "find_each_patch_that",
+              "bwconncomp": "find_each_patch_that", "clump": "find_each_patch_that", "zoom": "change_size_to",
+              "resize": "change_size_to", "imresize": "change_size_to", "imrotate": "rotate",
+              "expm": "take_matrix_exp", "matrix_exp": "take_matrix_exp", "null_space": "find_null_space",
+              "null": "find_null_space"}
     # Words that cannot work on a grid, with the reason and what to write instead.
     _POINTERS = {"keep_each_number_that": _GRID_KEEP_NUMBERS, "remove_each_number_that": _GRID_KEEP_NUMBERS,
                  "keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}

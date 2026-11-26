@@ -155,9 +155,10 @@ DATASETS = {d.name: d for d in [
     Dataset("made-up", "", "small made-up tables for edge cases (empty cells, no rows left, an exact line)",
             "simplydata's validation/cases.py.", "Same as simplydata (see LICENSE).", ""),
     Dataset("closed form (no data)", "",
-            "no data: systems, waves and window shapes made from a formula, checked against the answer worked out "
-            "by hand from the same formula",
-            "The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py.",
+            "no data: systems, waves and window shapes made from a formula, and formulas, areas, volumes and paths "
+            "over time (numbers phase, batch 3), checked against the answer worked out by hand from the same formula",
+            "The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py and "
+            "cases_underneath_numbers_3.py.",
             "No data, so no licence; the worked answers are the same as simplydata's (see LICENSE).", ""),
 ]}
 

@@ -12,6 +12,7 @@ Every entry is copied from the package's own request, never made up (checked 202
   scikit-learn https://scikit-learn.org/stable/about.html, "Citing scikit-learn" (Pedregosa et al. 2011)
   control      README of github.com/python-control/python-control (Fuller et al. 2021)
   xarray       "Citing xarray" in the xarray documentation (Hoyer and Hamman 2017, also cited by the NumPy brief)
+  SymPy        CITATION.cff in github.com/sympy/sympy, its preferred-citation (Meurer et al. 2017; checked 2026-11-25)
   DuckDB       CITATION.cff in github.com/duckdb/duckdb ("please cite it", Raasveldt and Muehleisen) and their
                paper as duckdb.org/library gives it, with the ACM reference on its first page (checked 2026-11-25)
 A package that is not here (narwhals, rpy2, pyarrow, plotly, h5netcdf, h5py ... ask for no paper) is listed with its name,
@@ -231,6 +232,30 @@ CITATIONS = {
   address = {New York, NY, USA},
   year = {2019},
   doi = {10.1145/3299869.3320212}
+}""",
+    ),
+    "sympy": (
+        "SymPy", "sympy",
+        "Meurer et al. (2017), SymPy: symbolic computing in Python, PeerJ Computer Science 3, e103, "
+        "doi:10.7717/peerj-cs.103",
+        "Meurer, A., Smith, C. P., Paprocki, M., Čertík, O., Kirpichev, S. B., Rocklin, M., Kumar, A., "
+        "Ivanov, S., Moore, J. K., Singh, S., Rathnayake, T., Vig, S., Granger, B. E., Muller, R. P., Bonazzi, F., "
+        "Gupta, H., Vats, S., Johansson, F., Pedregosa, F., Curry, M. J., Terrel, A. R., Roučka, Š., "
+        "Saboo, A., Fernando, I., Kulal, S., Cimrman, R. and Scopatz, A. (2017). SymPy: symbolic computing in Python. "
+        "PeerJ Computer Science, 3, e103. doi:10.7717/peerj-cs.103.",
+        """@article{10.7717/peerj-cs.103,
+  title = {SymPy: symbolic computing in Python},
+  author = {Meurer, Aaron and Smith, Christopher P. and Paprocki, Mateusz and {\\v{C}}ert{\\'i}k, Ond{\\v{r}}ej and
+            Kirpichev, Sergey B. and Rocklin, Matthew and Kumar, Amit and Ivanov, Sergiu and Moore, Jason K. and
+            Singh, Sartaj and Rathnayake, Thilina and Vig, Sean and Granger, Brian E. and Muller, Richard P. and
+            Bonazzi, Francesco and Gupta, Harsh and Vats, Shivam and Johansson, Fredrik and Pedregosa, Fabian and
+            Curry, Matthew J. and Terrel, Andy R. and Rou{\\v{c}}ka, {\\v{S}}t{\\v{e}}p{\\'a}n and Saboo, Ashutosh and
+            Fernando, Isuru and Kulal, Sumith and Cimrman, Robert and Scopatz, Anthony},
+  journal = {PeerJ Computer Science},
+  volume = {3},
+  pages = {e103},
+  year = {2017},
+  doi = {10.7717/peerj-cs.103}
 }""",
     ),
 }

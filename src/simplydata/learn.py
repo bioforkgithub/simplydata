@@ -122,6 +122,13 @@ GROUPS = [
                 # S3a-2 (lines and curves): core, then "more"
                 "table.fit_dose_response", "table.find_best_power_of"]),
     ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
+    # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
+    # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
+    ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
+                                    "f.find_slope_formula", "f.find_area_formula", "f.find_value_at", "f.put_in",
+                                    "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo"]),
+    ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
+                                   "nums.turn_into_running_area"]),
     ("Values between points", ["table.find_values_at", "table.make_map_of"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
     ("Distributions", ["sdata.distribution", "table.fit_distribution_to", "table.compare_distributions_for",
@@ -134,7 +141,8 @@ GROUPS = [
                 # S3a-3 (checking and comparing): "more"
                 "table.find_columns_that_predict", "table.find_group_levels_of"]),
     ("Patterns across columns", ["table.add_principal_components", "table.find_principal_components_of",
-                                 "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
+                                 "table.add_clusters", "table.find_distances_between_rows",
+                                 "table.find_distances_to_rows_of", "table.add_nmds",
                                  "table.compare_profiles_of",
                                  # S3c-1 (communities and resistomes): core, then "more"
                                  "table.add_diversity_columns", "table.add_log_ratio_columns",
@@ -145,7 +153,9 @@ GROUPS = [
                                  "table.find_hidden_factors_behind", "table.check_hidden_factors"]),
     # S3c-3: directions, places and extremes (core, then "more")
     ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
-                                         "table.find_variogram_of"]),
+                                         "table.find_variogram_of",
+                                         # numbers phase, batch 3: nearest rows and the fence around points
+                                         "table.find_nearest_rows_to", "table.find_fence_around"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -164,7 +174,9 @@ GROUPS = [
                             "table.find_spectrum_of", "nums.find_spectrum", "draw_spectrum", "draw_spectrum_over_time",
                             "nums.keep_each_frequency_that", "nums.remove_each_frequency_that", "table.add_filtered_column",
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
-                            "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform"]),
+                            "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform",
+                            # numbers phase, batch 3
+                            "nums.find_coherence_with", "nums.take_cosine_transform"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
@@ -182,7 +194,9 @@ GROUPS = [
                                 "nums.count_empty_numbers"]),
     ("Numbers: maths in words", ["nums.add", "nums.subtract", "nums.times", "nums.divide_by", "nums.raise_to_power",
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
-                                 "nums.take_exp", "nums.turn_into_running_total"]),
+                                 "nums.take_exp", "nums.turn_into_running_total",
+                                 # numbers phase, batch 3
+                                 "nums.take_cube_root", "nums.show_as_fraction"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
@@ -196,6 +210,10 @@ GROUPS = [
                           "grid.get_row", "grid.get_column", "grid.get_all_numbers", "grid.keep_rows_by_position",
                           "grid.keep_columns_by_position", "grid.remove_rows_by_position",
                           "grid.remove_columns_by_position", "grid.replace_each_number_that", "grid.swap_rows_and_columns"]),
+    # numbers phase, batch 3 (approved by Manish 2026-11-25)
+    ("Grids: pairs, patches and matrices", ["grid.get_numbers_at_pairs", "grid.get_numbers_from_each_row_at",
+                                            "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
+                                            "grid.take_matrix_exp", "grid.find_null_space"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -1522,6 +1540,65 @@ HELP_EXAMPLES.update({
 })
 
 
+def _fx(body: str, formula: str = "(x + 2)**2 - 4") -> str:
+    """A runnable formula example: make a formula (needs simplydata[exact], SymPy), then the steps."""
+    lines = ["import simplydata as sdata", f'f = sdata.formula("{formula}")']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _lines(*lines: str) -> str:
+    return "\n".join(["import simplydata as sdata", *lines])
+
+
+# numbers phase, batch 3 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "sdata.formula": _lines('f = sdata.formula("(x + 2)**2 - 4")', "print(f)"),
+    "f.make_simpler": _fx("f.make_simpler()", "(x**2 - 1) / (x - 1)"),
+    "f.turn_into_sum": _fx("f.turn_into_sum()"),
+    "f.turn_into_product": _fx("f.turn_into_product()", "x**2 + 4*x"),
+    "f.find_slope_formula": _fx("slope = f.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
+    "f.find_area_formula": _fx("area = f.find_area_formula()", "x**3 - 2*x"),
+    "f.find_value_at": _fx("f.find_value_at(x=2)\nf.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
+    "f.put_in": _fx('f.put_in(x="y + 1")', "x**2"),
+    "f.show_as_latex": _fx("f.show_as_latex()", "x**3 - 2*x"),
+    "f.find_limit_as": _fx('f.find_limit_as("x", goes_to=0)', "sin(x) / x"),
+    "f.find_taylor_series": _fx("f.find_taylor_series(around=0, up_to_power=4)", "exp(x)"),
+    "f.undo": _fx("f.turn_into_sum()\nf.undo()"),
+    "sdata.find_area_under": _lines('sdata.find_area_under("x**2", between=[0, 3])',
+                                    'sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])'),
+    "sdata.find_volume_under": _lines('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})'),
+    "sdata.find_path_over_time": _lines(
+        'growth = sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, between=[0, 50], '
+        'known={"r": 0.3, "K": 1000}, time_step=0.5)', "growth.show_last_rows(3)"),
+    "nums.turn_into_running_area": _nx("nums.turn_into_running_area(time_step=60)\nnums.show()", "[2, 4, 4, 3, 1]"),
+    "nums.take_cube_root": _nx("nums.take_cube_root()\nnums.show()", "[27, -8, 1000]"),
+    "nums.show_as_fraction": _nx("nums.show_as_fraction()", "[0.5, 0.25, 0.3333333333333333, 1.75]"),
+    "nums.find_coherence_with": _lines('nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=500)',
+                                       'other = sdata.make_wave("square", frequency=5, time_step=0.01, how_many=500)',
+                                       "together = nums.find_coherence_with(other, time_step=0.01)",
+                                       "together.show_first_rows(5)"),
+    "nums.take_cosine_transform": _nx("nums.take_cosine_transform()\nnums.show()", "[1, 2, 3, 4]"),
+    "grid.get_numbers_at_pairs": _gx("grid.get_numbers_at_pairs(rows=[1, 2], columns=[3, 3])"),
+    "grid.get_numbers_from_each_row_at": _gx("grid.get_numbers_from_each_row_at(columns=[2, 1])"),
+    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)"),
+    "grid.change_size_to": _gx("grid.change_size_to(rows=4, columns=6)\nprint(grid)"),
+    "grid.rotate": _gx("grid.rotate(by_degrees=15)\nprint(grid)"),
+    "grid.take_matrix_exp": _lines("grid = sdata.number_grid([[0, 1], [-1, 0]])", "grid.take_matrix_exp()",
+                                   "print(grid)"),
+    "grid.find_null_space": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])",
+                                   "directions = grid.find_null_space()", "print(directions)"),
+    "table.find_nearest_rows_to": _tx("stations", 'nearest = table.find_nearest_rows_to({"east": 4000, "north": 1000}, '
+                                                  "how_many=3)\nprint(nearest)"),
+    "table.find_distances_to_rows_of": _tx("stations", 'other = sdata.table(sdata.get_example("stations"))\n'
+                                                       "table.keep_first_rows(3)\nother.keep_last_rows(2)\n"
+                                                       'table.find_distances_to_rows_of(other, using=["east", "north"], '
+                                                       'names="station")'),
+    "table.find_fence_around": _tx("stations", 'corners = table.find_fence_around(x="east", y="north")\n'
+                                               "print(corners)"),
+})
+
+
 # ---------------------------------------------------------------- finding words
 def _ps():
     import simplydata  # late import: simplydata imports this file
@@ -1555,7 +1632,7 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
 
 
 def _block_class():
@@ -1576,11 +1653,18 @@ def _system_class():
     return System
 
 
+def _formula_class():
+    from ._formula import Formula
+
+    return Formula
+
+
 def _classes():
     """(class, kind) for every object with steps."""
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
             (_grid_class(), "grid"), (_block_class(), "block"), (_distribution_class(), "dist"),
-            (_system_class(), "system")]
+            (_system_class(), "system"),
+            (_formula_class(), "formula")]
 
 
 def _kind(key: str) -> str:
@@ -1663,8 +1747,10 @@ def _prefixes(key: str) -> str:
 
 
 def _find_call(text: str, prefix_word: str,
-               prefixes: str = "chart|charts|sdata|page|table|nums|grid|block|dist|system") -> str | None:
+               prefixes: str = "chart|charts|sdata|page|table|nums|grid|block|dist|system|f") -> str | None:
     """Find the first call like chart.draw_bars(...) in text, brackets and quotes included."""
+    # "f" (a formula) only as a whole name: not the f at the end of "pdf." or "self."
+    prefixes = "|".join(r"(?<![\w.])f" if p == "f" else p for p in prefixes.split("|"))
     m = re.search(rf"(?:{prefixes})\.{re.escape(prefix_word)}\(", text)
     if not m:
         return None
@@ -1741,6 +1827,7 @@ def show_all_words() -> None:
           "dist.find_chance_that_value(is_above=2).")
     print('System words are steps on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then '
           "system.step_response().")
+    print('Formula words are steps on a formula: f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum().')
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1758,7 +1845,7 @@ def show_all_words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "nums.", "grid.", "block.", "dist.", "system.", "."):
+    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "nums.", "grid.", "block.", "dist.", "system.", "f.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -1827,7 +1914,7 @@ def _lookup_all(word) -> list[str]:
 # so it narrows nothing.
 _TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
                 "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
-                "system": {"system"}}
+                "system": {"system"}, "f": {"formula"}}
 
 
 def _old_names(word) -> list[tuple[str, str, str]]:
@@ -3771,6 +3858,20 @@ LESSONS = [
                 ("again = station.get_all_numbers().make_random_picks(how_many=36, with_seed=1)",
                  "36 random picks from the station's months, each put back: a bootstrap sample."),
             ]),
+            ("More with a grid: numbers at pairs of places, patches of high values, and a finer grid.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ("grid = sdata.number_grid([[1, 8, 9, 2], [0, 7, 1, 1], [6, 0, 0, 9]])",
+                 "A grid of 3 rows and 4 columns, like readings on a small map."),
+                ("grid.get_numbers_at_pairs(rows=[1, 2, 3], columns=[2, 2, 4])",
+                 "Three numbers, one at each pair of a row and a column: (1, 2), (2, 2) and (3, 4) give 8, 7 and "
+                 "9. Not the rectangle of those rows and columns: the sentence says which words give that."),
+                ("grid.find_each_patch_that(is_above=5)",
+                 "The cells above 5 that touch by a side form patches: 3 patches here. The table gives the cells, "
+                 "total, average and centre of each (SciPy ndimage.label underneath)."),
+                ("grid.change_size_to(rows=6, columns=8)",
+                 "Twice as many rows and columns, filled in with straight lines between neighbouring cells "
+                 "(SciPy ndimage.zoom)."),
+            ]),
         ],
         notes=[
             "The words follow the table words, with numbers in place of rows: keep_first_numbers, "
@@ -3813,7 +3914,8 @@ LESSONS = [
         ],
         words=["sdata.numbers", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
                "nums.keep_each_number_that", "nums.find_average", "nums.find_standard_deviation", "nums.find_median",
-               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks"],
+               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks",
+               "grid.get_numbers_at_pairs", "grid.find_each_patch_that", "grid.change_size_to"],
     ),
     dict(
         title="Statistical tests: real difference, or chance?",
@@ -4581,6 +4683,29 @@ LESSONS = [
                  "The same data with another growth curve (one change in the call). Compare the levels the two "
                  "curves give."),
             ]),
+            ("Exact answers with a formula (needs the extra simplydata[exact], SymPy: "
+             "pip install \"simplydata[exact]\"). The letters stay letters, so the answers are formulas.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('f = sdata.formula("(x + 2)**2 - 4")', "A formula with the letter x."),
+                ("f.turn_into_sum()", "Multiply out the brackets: x**2 + 4*x."),
+                ("f.turn_into_product()", "Write it as a product: x*(x + 4). f.undo() would take it back."),
+                ("slope = f.find_slope_formula()", "The formula of its slope (the derivative): 2*x + 4."),
+                ("f.find_value_at(x=3)", "Its value at x = 3: 21."),
+                ('sdata.solve("x**2 = 2", exactly=True)',
+                 "The exact solutions, -sqrt(2) and sqrt(2), with their decimals in the table."),
+            ]),
+            ("Areas and paths over time: the area under a curve, and the values over time from how fast they "
+             "change.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])',
+                 "The area under the bell curve from 0 to infinity: 0.886227, half the square root of pi "
+                 "(SciPy integrate.quad, as R integrate())."),
+                ('growth = sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, '
+                 'between=[0, 50], known={"r": 0.3, "K": 1000}, time_step=0.5, stop_when="N >= 900")',
+                 "Logistic growth from 10 cells, at rate 0.3 towards 1000: the table holds N every half hour. "
+                 "stop_when= stops when N reaches 900, at t = 22.64 (SciPy integrate.solve_ivp)."),
+                ("growth.show_last_rows(3)", "The last times before it stopped."),
+            ]),
             ("If you have R: a dose-response curve. A toxicity test grows seedlings at eight concentrations. "
              "fit_dose_response finds the dose that halves the effect (the ED50, or EC50) with its 95 % "
              "interval, from the fitted curve, not from the raw averages.", [
@@ -4662,6 +4787,8 @@ LESSONS = [
         ],
         words=["table.fit_line", "table.fit_curve", "table.fit_formula", "fit_line", "fit_curve", "fit_formula",
                "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+               "sdata.formula", "f.turn_into_sum", "f.turn_into_product", "f.find_slope_formula", "f.find_value_at",
+               "sdata.find_area_under", "sdata.find_path_over_time",
                "table.fit_dose_response", "fit_dose_response"],
         needs_r=needs_r_text("Only the last example part and the fourth task (fit_dose_response, R drc)",
                              packages=("drc",)),

@@ -1,7 +1,8 @@
 """Smoothing a series, and taking away its trend. Every number comes from a package:
 
 * "moving average" (and weights=): scipy.ndimage.convolve1d with the weights scaled to add up to 1,
-  ends "empty" (as R stats::filter(x, w, sides = 2)) or "mirror" (SciPy mode "reflect");
+  ends "empty" (as R stats::filter(x, w, sides = 2)), "mirror" (SciPy mode "mirror": d c b | a b c d) or
+  "reflect" (SciPy mode "reflect": the edge reading is repeated, d c b a | a b c d);
   ends="shorter windows" averages what is there (pandas rolling(center=True, min_periods=1), as R
   zoo::rollapply(partial = TRUE)); plain averages only;
 * "median": R stats::runmed(x, k, endrule =) itself (SciPy's median filters pad the ends with zeros or
@@ -9,7 +10,8 @@
 * "savitzky-golay": scipy.signal.savgol_filter(mode="interp") = R signal::sgolayfilt;
 * "exponential": pandas ewm(alpha=, adjust=False).mean() = R stats::filter(a * x, 1 - a, method =
   "recursive", init = x[1]);
-* "gaussian": scipy.ndimage.gaussian_filter1d(sigma=width, truncate=4, mode="reflect");
+* "gaussian": scipy.ndimage.gaussian_filter1d(sigma=width, truncate=4, mode=ends), ends "reflect" (SciPy's own
+  default) or "mirror";
 * "lowess": statsmodels lowess with R lowess()'s settings (3 robustness steps, delta 1 % of the range);
 * "loess": R stats::loess(degree = 2, span = smoothness=, normally 0.75) itself, with predict(se = TRUE) for its
   confidence band (interval=); not lowess: loess fits local curves (degree 2) without robustness steps;
@@ -35,8 +37,14 @@ ALIASES = {"moving_average": "moving average", "mean": "moving average", "averag
            "savgol": "savitzky-golay", "savitzky golay": "savitzky-golay", "sgolay": "savitzky-golay",
            "ewm": "exponential", "ewma": "exponential", "exponential smoothing": "exponential",
            "gauss": "gaussian", "local regression": "loess", "smoothing spline": "spline", "whittaker-henderson": "whittaker"}
-ENDS = {"moving average": ("empty", "shorter windows", "mirror"), "median": ("tukey", "keep", "constant"),
-        "savitzky-golay": ("fitted curve",), "gaussian": ("mirror",)}
+# ends="mirror" and ends="reflect" are SciPy's modes of those names, here and in smooth(over=) on grids and blocks:
+# "reflect" repeats the edge reading (d c b a | a b c d), "mirror" does not (d c b | a b c d).
+ENDS = {"moving average": ("empty", "shorter windows", "mirror", "reflect"), "median": ("tukey", "keep", "constant"),
+        "savitzky-golay": ("fitted curve",), "gaussian": ("reflect", "mirror")}
+END_WORDS = {"reflect": "at the ends the readings are mirrored with the end reading repeated (SciPy mode \"reflect\")",
+             "mirror": "at the ends the readings are mirrored about the end reading (SciPy mode \"mirror\")"}
+R_PADDING = {"reflect": "x padded with rev(x[1:h]) and rev(x[(n - h + 1):n])",
+             "mirror": "x padded with rev(x[2:(h + 1)]) and rev(x[(n - h):(n - 1)])"}
 WINDOW_METHODS = ("moving average", "median", "savitzky-golay", "wiener")
 OPTIONS = {"moving average": {"weights"}, "savitzky-golay": {"of_degree"},
            "exponential": {"newest_weight", "alpha", "span", "half_life", "com"}, "gaussian": {"width"},
@@ -145,14 +153,15 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
                                 f"zoo::rollapply(x, {k}, mean, partial = TRUE)")
         from scipy import ndimage
 
-        out = ndimage.convolve1d(x, w, mode="reflect")
+        out = ndimage.convolve1d(x, w, mode="reflect" if ends == "empty" else ends)
         if ends == "empty":
             half = k // 2
             out[:half] = np.nan
             out[n - half:] = np.nan
             return SmoothResult(out, how + f"; the first and last {half} readings have no full window, so they are empty",
                                 f"stats::filter(x, {w_r}, sides = 2)")
-        return SmoothResult(out, how + "; at the ends the readings are mirrored", f"filter of the mirrored readings ({w_r})")
+        return SmoothResult(out, how + "; " + END_WORDS[ends],
+                            f"stats::filter of {R_PADDING[ends]} (h = {k // 2}), weights {w_r}")
 
     if method == "median":
         k = _odd_window(window, step_name, method)
@@ -196,11 +205,12 @@ def smooth(values, method="moving average", window=5, ends=None, times=None, ste
         width = _opt(options, "width", 2)
         if isinstance(width, bool) or not isinstance(width, (int, float, np.integer, np.floating)) or width <= 0:
             raise SimplydataError("width= needs a number of readings above 0 (the bell curve's standard deviation).")
-        out = ndimage.gaussian_filter1d(x, sigma=float(width), truncate=4.0, mode="reflect")
+        out = ndimage.gaussian_filter1d(x, sigma=float(width), truncate=4.0, mode=ends)
         radius = int(4.0 * float(width) + 0.5)
         return SmoothResult(out, f"weights from a bell curve with a standard deviation of {_g(width)} readings, cut "
-                                 f"{radius} readings each side; at the ends the readings are mirrored",
-                            "SciPy ndimage.gaussian_filter1d (in R: dnorm weights on the mirrored readings)")
+                                 f"{radius} readings each side; {END_WORDS[ends]}",
+                            f"SciPy ndimage.gaussian_filter1d(mode=\"{ends}\") (in R: dnorm weights on "
+                            f"{R_PADDING[ends]}, h = {radius})")
 
     if method == "loess":
         return _loess(x, times, _opt(options, "smoothness", None), _opt(options, "interval", None))

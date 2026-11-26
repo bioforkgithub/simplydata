@@ -562,6 +562,39 @@ UNDERNEATH = {
     "table.use_survey_design": "R survey (svydesign, degf; then svymean, svytotal, svyquantile, svyciprop, svyby, "
                                "svyglm, svyttest, svychisq; needs R)",
     "draw_answer_bars": "pandas (value_counts), drawn with matplotlib (barh)",
+    # numbers phase, batch 3 (each also has a tested entry in simplydata._underneath)
+    "sdata.formula": "SymPy (parse_expr, with each letter a Symbol; simplydata[exact]); the text checked with Python's "
+                     "ast first",
+    "f.make_simpler": "SymPy (simplify)",
+    "f.turn_into_sum": "SymPy (expand)",
+    "f.turn_into_product": "SymPy (factor)",
+    "f.find_slope_formula": "SymPy (diff)",
+    "f.find_area_formula": "SymPy (integrate)",
+    "f.find_value_at": "SymPy (subs and evalf; lambdify with NumPy and SciPy for many values)",
+    "f.put_in": "SymPy (subs)",
+    "f.show_as_latex": "SymPy (latex)",
+    "f.find_limit_as": "SymPy (limit, from both sides)",
+    "f.find_taylor_series": "SymPy (series, removeO)",
+    "f.undo": "simplydata itself: a formula keeps its earlier forms",
+    "sdata.find_area_under": "SciPy (integrate.quad, QUADPACK; fixed_quad for test_method=\"gauss\"); SymPy integrate "
+                             "for exactly=True",
+    "sdata.find_volume_under": "SciPy (integrate.dblquad, tplquad, nquad)",
+    "sdata.find_path_over_time": "SciPy (integrate.solve_ivp); SymPy dsolve for exactly=True",
+    "nums.turn_into_running_area": "SciPy (integrate.cumulative_trapezoid, cumulative_simpson)",
+    "nums.take_cube_root": "NumPy (cbrt)",
+    "nums.show_as_fraction": "SymPy (nsimplify with rational=True)",
+    "nums.find_coherence_with": "SciPy (signal.coherence, Welch's method)",
+    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal)",
+    "grid.get_numbers_at_pairs": "NumPy (indexing with two lists of positions)",
+    "grid.get_numbers_from_each_row_at": "NumPy (take_along_axis)",
+    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass)",
+    "grid.change_size_to": "SciPy (ndimage.zoom)",
+    "grid.rotate": "SciPy (ndimage.rotate)",
+    "grid.take_matrix_exp": "SciPy (linalg.expm)",
+    "grid.find_null_space": "SciPy (linalg.null_space)",
+    "table.find_nearest_rows_to": "SciPy (spatial.KDTree: query, query_ball_point; spatial.distance.cdist)",
+    "table.find_distances_to_rows_of": "SciPy (spatial.distance.cdist)",
+    "table.find_fence_around": "SciPy (spatial.ConvexHull, Qhull)",
 }
 
 # ---------------------------------------------------------------- hand-written text
@@ -754,7 +787,8 @@ FAMILY_TITLES = {
                              "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
-                                "and on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}."),
+                                "on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}, "
+                                "and on formulas, \\code{f = sdata.formula(\"(x + 2)**2 - 4\")}."),
     "help": ("Help words", "Words that teach simplydata."),
 }
 

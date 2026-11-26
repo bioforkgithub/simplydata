@@ -40,6 +40,14 @@ ALLOWED = {
                                         "kept, decided 2026-11-14)",
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
+    # numbers phase, batch 3: the user's own formula handed to SymPy lambdify, with lgamma pointed at SciPy gammaln
+    # (the function itself, as R lgamma and fit_formula); nothing is computed by simplydata
+    "_formula.py::Formula.find_value_at": "SymPy lambdify told to use scipy.special.gammaln for the formula's lgamma "
+                                          "(a name mapping, as table/columns.py offers digamma)",
+    # charts phase, batch 3: a second axis given as the user's own formula, inverted by SciPy's brentq on the drawn
+    # range (the same glue as finding.py; the module docstring of words/more_charts.py says so)
+    "words/more_charts.py::_second_scale.inverse": "the user's own formula for a second axis turned round with "
+                                                   "scipy.optimize.brentq on the drawn range (glue, as finding.py)",
     "table/columns.py": "digamma offered as a formula function users can type",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",

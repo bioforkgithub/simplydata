@@ -22,12 +22,12 @@ jobs:
           python-version: "3.11"
       - uses: astral-sh/setup-uv@v6
       - name: Install the oldest allowed versions (no R, no rpy2)
-        run: uv pip install --system --resolution lowest-direct -e ".[test,systems,files,sql,web,xarray]"
+        run: uv pip install --system --resolution lowest-direct -e ".[test,systems,files,sql,web,xarray,exact]"
       - name: Show the versions installed
         run: |
           echo '### Oldest allowed versions' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          uv pip list --system | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|narwhals|openpyxl|polars|pyarrow|python-docx|pyreadstat|control|plotly|xarray|h5netcdf|h5py|pytest) ' | tee -a "$GITHUB_STEP_SUMMARY"
+          uv pip list --system | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|narwhals|openpyxl|polars|pyarrow|python-docx|pyreadstat|control|plotly|xarray|h5netcdf|h5py|sympy|pytest) ' | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Run tests
         run: python -m pytest -q
@@ -36,3 +36,4 @@ jobs:
           SIMPLYDATA_NO_R: "1"
           SIMPLYDATA_REQUIRE_CONTROL: "1"
           SIMPLYDATA_REQUIRE_PLOTLY: "1"
+          SIMPLYDATA_REQUIRE_SYMPY: "1"

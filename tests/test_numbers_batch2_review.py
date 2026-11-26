@@ -174,6 +174,32 @@ def test_smooth_ends_use_scipys_modes(ends):
     np.testing.assert_allclose(g.as_numpy(), ndimage.gaussian_filter(values, 1, mode=ends), rtol=1e-12)
 
 
+@pytest.mark.parametrize("ends", ["mirror", "reflect"])
+def test_ends_mean_the_same_scipy_mode_on_numbers_tables_grids_and_blocks(ends):
+    # ends="mirror" is SciPy "mirror" and ends="reflect" SciPy "reflect" everywhere (2026-11-26). Before, nums.smooth
+    # and table.add_smoothed_column turned "mirror" into SciPy "reflect", so the "mirror" case fails on that mapping.
+    row = np.array([1.0, 2, 3, 10, 5, 4, 8])
+    expected = ndimage.convolve1d(row, np.ones(3) / 3, mode=ends)
+    nums = sdata.numbers(row.tolist())
+    nums.smooth(window=3, ends=ends)
+    np.testing.assert_allclose(nums.as_numpy(), expected, rtol=1e-12)
+    table = sdata.table(pd.DataFrame({"t": range(7), "v": row}))
+    table.add_smoothed_column("s", from_column="v", window=3, ends=ends)
+    np.testing.assert_allclose(table.as_pandas()["s"].to_numpy(), expected, rtol=1e-12)
+    grid = sdata.number_grid([row.tolist()] * 2)
+    grid.smooth(over="column", window=3, ends=ends)
+    np.testing.assert_allclose(grid.as_numpy()[0], expected, rtol=1e-12)
+    block = sdata.number_block([[row.tolist()]] * 2, directions_named=["page", "row", "column"])
+    block.smooth(over="column", window=3, ends=ends)
+    np.testing.assert_allclose(block.as_numpy()[0, 0], expected, rtol=1e-12)
+    if ends == "mirror":  # 1 2 3 ... mirrored about the end reading: (2 + 1 + 2) / 3
+        assert nums.as_numpy()[0] == pytest.approx(5 / 3, rel=1e-12)
+    gauss = sdata.numbers(row.tolist())
+    gauss.smooth(test_method="gaussian", width=1, ends=ends)
+    np.testing.assert_allclose(gauss.as_numpy(), ndimage.gaussian_filter1d(row, 1, truncate=4.0, mode=ends),
+                               rtol=1e-12)
+
+
 # ---------------------------------------------------------------------- 8. time-zone dates stay dates
 def test_time_zone_dates_are_kept_as_dates_in_utc(xr, capsys):
     local = pd.Series(pd.date_range("2024-01-01", periods=48, freq="h", tz="Europe/Oslo"))

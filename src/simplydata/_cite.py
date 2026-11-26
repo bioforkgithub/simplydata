@@ -52,7 +52,7 @@ SIMPLYDATA_YEAR = "2026"
 # Python packages whose work can be behind a word (the import name)
 WORK_PACKAGES = ("pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "patsy", "matplotlib", "seaborn",
                  "lifelines", "control", "pyreadstat", "docx", "openpyxl", "pyarrow", "duckdb", "plotly", "xarray",
-                 "h5netcdf", "h5py")
+                 "h5netcdf", "h5py", "sympy")
 # R's own packages: they are cited as R itself (citation("stats") gives R's reference)
 R_BASE = {"base", "stats", "utils", "methods", "graphics", "grDevices", "splines", "grid", "tools", "parallel",
           "stats4", "tcltk", "datasets", "compiler"}

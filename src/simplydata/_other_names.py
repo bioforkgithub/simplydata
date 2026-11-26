@@ -58,6 +58,23 @@ _SDATA = [
      "sql read_sql sqldf dbGetQuery duckdb query"),
     ('sdata.table("lab.sqlite", table_name="samples")',
      "read_sql_table dbReadTable read_database read_feather read_ipc read_ndjson read_xml read_sas"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25): exact maths (SymPy), areas and paths over time
+    ('sdata.formula("(x + 2)**2 - 4")', "symbols Symbol sympify parse_expr syms sym"),
+    ('sdata.formula("(x + 2)**2 - 4"), then f.make_simpler(), f.turn_into_sum() or f.turn_into_product()',
+     "simplify expand factor factorise factorize"),
+    ('sdata.formula("x**3 - 2*x"), then f.find_slope_formula() or f.find_area_formula()',
+     "diff Derivative Integral deriv derivative"),
+    ('sdata.formula("x**3 - 2*x"), then f.find_value_at(x=2) or f.put_in(x="y + 1")',
+     "subs evalf lambdify matlabFunction substitute"),
+    ('sdata.formula("x**3 - 2*x"), then f.show_as_latex()', "latex"),
+    ('sdata.formula("sin(x) / x"), then f.find_limit_as("x", goes_to=0) or f.find_taylor_series(around=0)',
+     "limit series taylor"),
+    ('sdata.solve("x**2 = 2", exactly=True)', "solveset linsolve"),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])',
+     "quad integrate integral quad_vec fixed_quad romberg"),
+    ('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})', "dblquad tplquad nquad integral2 integral3"),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3})',
+     "solve_ivp odeint ode dsolve lsoda ode45 ode15s ode23"),
     ("sdata.numbers(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
     # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
     ('sdata.number_block("sst.nc", values="sst")',
@@ -503,6 +520,11 @@ _TABLE = [
     ('table.check_model_of("marks", using=["hours"], test_method="bayesian") (show="prior check" for the prior)',
      "pp_check ppc posterior_predictive_check prior_predictive_check ppc_dens_overlay rhat r_hat ess "
      "effective_sample_size"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25): nearest rows, distances to another table, the fence
+    ('table.find_nearest_rows_to({"east": 4000, "north": 1000}, how_many=3)',
+     "KDTree cKDTree query_ball_point NearestNeighbors knnsearch rangesearch nn2 get.knnx nearest_neighbours"),
+    ('table.find_distances_to_rows_of(other, using=["east", "north"])', "cdist pdist2"),
+    ('table.find_fence_around(x="east", y="north")', "ConvexHull convex_hull chull convhull"),
 ]
 
 # chart.<name>
@@ -689,6 +711,12 @@ _NUMBERS = [
     ('nums.change_angles_to("degrees")', "deg2rad rad2deg degrees radians"),
     ("nums.divide_by(7, rounding_down=True)", "floor_divide floordiv"),
     ("nums.take_fourier_transform(with_zero_in_middle=True)", "fftshift ifftshift"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25); the grid words' other names are in NumberGrid._HINTS
+    ("nums.turn_into_running_area(time_step=60)", "cumulative_trapezoid cumtrapz cumulative_simpson"),
+    ("nums.take_cube_root()", "cbrt nthroot"),
+    ("nums.find_coherence_with(other, time_step=0.01)", "coherence csd mscohere"),
+    ("nums.take_cosine_transform()", "dct dst"),
+    ("nums.show_as_fraction()", "nsimplify Rational rat as_fraction"),
 ]
 
 # block.<name> (blocks of numbers, NumPy + SciPy phase batch 1). The words of numbers above work on blocks too.

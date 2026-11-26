@@ -186,8 +186,8 @@ it says what to install, as the note in the quick start does; see [Using the wor
 
 ## What simplydata handles
 
-**424 words (commands) in 48 groups, with 383 different options, on top of 15 Python packages (10 installed always, 5 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 3494 reliability checks.** Every word hands the work to
+**424 words (commands) in 48 groups, with 383 different options, on top of 20 Python packages (10 installed always, 10 with an extra; patsy comes with statsmodels) and
+87 R packages that it runs (plus R's own `stats`, and 16 more used only to check its answers), checked by 3494 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
 `[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -317,6 +317,7 @@ pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (inst
 pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
 pip install "simplydata[web]"     # adds plotly: charts as web pages (chart.save("marks.html")), no internet needed
 pip install "simplydata[xarray]"  # adds xarray: blocks of numbers line up by the names of their directions
+pip install "simplydata[exact]"   # adds SymPy: exact maths with sdata.formula(...), solve(exactly=True), fractions
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
@@ -422,7 +423,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 546 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 602 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
