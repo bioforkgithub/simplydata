@@ -263,7 +263,7 @@ def sort_key(word: str) -> tuple:
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
-    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|dist)\.(\w+)\(", written):
+    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|block|dist)\.(\w+)\(", written):
         base = f"{m.group(1)}.{m.group(2)}"
         end = make_manual._balanced(written, m.end() - 1, "(", ")")
         name = base
@@ -273,6 +273,8 @@ def _calls(written: str) -> list[str]:
                 raise ValueError(f"Say what {base}(...).{chained.group(1)} is in docs/make_dictionary.py")
             name = f"dist.{chained.group(1)}"
         key = learn._lookup(name)
+        if key is None and name.startswith("block."):  # the words of grids and numbers work on blocks too
+            key = learn._lookup("grid." + m.group(2)) or learn._lookup("nums." + m.group(2))
         if key is None:
             raise ValueError(f"{name} in simplydata/_other_names.py is not a word")
         found.append(key)
