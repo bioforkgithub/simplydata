@@ -229,13 +229,13 @@ def cases(Case):
             fig, ax = plt.subplots()
             ax.vlines(data["year"], 0, data["level"], linewidth=1.5)
         """, """
-            {"draw_sticks": f["segments"][0][0][0] / 2, "last height": float(f["segments"][0][0][1][-1, 1]),
+            {"sticks": f["segments"][0][0][0] / 2, "last height": float(f["segments"][0][0][1][-1, 1]),
              "width": f["segments"][0][1][0]}
         """, "matplotlib vlines", r="""
             list(sticks = length(level), `last height` = level[length(level)])
         """, tolerance=1e-12, r_tolerance=1e-12, ours_read="""
             sticks = drawn.keep_rows_where("kind", is_equal_to="segment")
-            {"draw_sticks": sticks.count_rows(), "last height": sticks.get_cell_at(row=sticks.count_rows(), column="high"),
+            {"sticks": sticks.count_rows(), "last height": sticks.get_cell_at(row=sticks.count_rows(), column="high"),
              "width": f["segments"][0][1][0]}
         """, facts="the width of the sticks"),
         _pair(Case, "draw_error_bars", "Fisher's iris: sepal length of each species with its standard deviation",

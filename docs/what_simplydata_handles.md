@@ -11,9 +11,9 @@ Approximate: the names counted on 2026-11-21, the code per task on 2026-11-23.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 807 names: 424 commands and 383 options, about 92 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 1023 names: 569 commands and 454 options, about 92 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 3471 lines and 3096 function calls in the 533 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1422 lines and 1442 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 4360 lines and 3865 function calls in the 704 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1871 lines and 1961 calls (median 2 lines a task), about 57 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](how_simplydata_chooses.md) (you can also choose the method you want) |
 
 ## Packages underneath
@@ -38,6 +38,7 @@ Python packages:
 | SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `nums.show_as_fraction()` | [exact] |
 | plotly | web pages of charts: `chart.save("marks.html")` and `chart.show_in_web_page()` (the picture is drawn by matplotlib and copied into plotly) | [web] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
+| plotly | web pages you can point at: `chart.save("chart.html")` and `chart.show_in_web_page()` copy what matplotlib drew into a plotly figure, with plotly.js written inside the page, so it opens with no internet | [web] |
 | rpy2 | the bridge to R: runs the R package itself and brings the answer back | [r] |
 
 R packages that simplydata runs, where Python has no method of its own or none that gives R's answer (all need `[r]` and R):

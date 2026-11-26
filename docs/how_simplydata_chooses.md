@@ -5,7 +5,7 @@ averages, Holm's method when you adjust many p-values, REML and Hartung-Knapp in
 studies. This document answers the question a reviewer asks first: *how does simplydata know which method is
 right, and what logic does it use?*
 
-The answer is five principles, applied in order, and one entry for each of the 586 choices simplydata
+The answer is five principles, applied in order, and one entry for each of the 602 choices simplydata
 makes. Each entry gives the default, the alternatives (and the option that asks for them), why simplydata
 chose it, the published evidence, and what simplydata checks in your data before it uses the method.
 
@@ -26,9 +26,9 @@ chose it, the published evidence, and what simplydata checks in your data before
   checks in your data, and when it refuses or warns and says what to use instead.
 - **References**: short citations; the full list with links is at the end.
 
-The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 586 defaults, 151 rest on
-published guidelines or method comparisons, 343 follow the convention of the package named so that
-results match it, and 92 are simplydata's own starting values, marked as such, each changed with the
+The basis of each default is one of three kinds. *published*: published guideline or method comparison; *convention*: the package named does this, so that results agree with it; studies may prefer another method, and when they do the entry says so (and names the option, if there is one); *starting value*: simplydata's own starting value: no published rule fixes it; change it with the option named. Of the 602 defaults, 151 rest on
+published guidelines or method comparisons, 352 follow the convention of the package named so that
+results match it, and 99 are simplydata's own starting values, marked as such, each changed with the
 option named.
 
 Every reference was checked before it was cited: each DOI was looked up in Crossref
@@ -483,8 +483,8 @@ a word that chooses a method has no entry, or when this file is out of date.
 
 | Word or option | Default | Alternatives | Why | References |
 |---|---|---|---|---|
-| `table.values_at()` | Straight lines between the points (as R approx()); repeated places averaged; places outside the data left empty. | joined_by="smooth curve", "curve without overshoot", "steps", "nearest" and more; smoothness=; outside="extend". | **P3.** Straight lines invent the least; the other ways are one option away. These are R approx()'s defaults (ties = mean, rule = 1). *Basis: convention.* **Checks:** Too few points, and collinear points on a map, are refused; extension gets a note. |  |
-| `table.make_map_of()` | 50 steps in each direction, joined as values_at (triangles for scattered points, bilinear on a full grid), places outside the points left empty. | steps=, joined_by=, outside=. | **P5.** The same rules as values_at; 50 steps is a starting value for a smooth-looking map. *Basis: starting value.* **Checks:** At most 1 000 000 places. |  |
+| `table.find_values_at()` | Straight lines between the points (as R approx()); repeated places averaged; places outside the data left empty. | joined_by="smooth curve", "curve without overshoot", "steps", "nearest" and more; smoothness=; outside="extend". | **P3.** Straight lines invent the least; the other ways are one option away. These are R approx()'s defaults (ties = mean, rule = 1). *Basis: convention.* **Checks:** Too few points, and collinear points on a map, are refused; extension gets a note. |  |
+| `table.make_map_of()` | 50 steps in each direction, joined as find_values_at (triangles for scattered points, bilinear on a full grid), places outside the points left empty. | steps=, joined_by=, outside=. | **P5.** The same rules as find_values_at; 50 steps is a starting value for a smooth-looking map. *Basis: starting value.* **Checks:** At most 1 000 000 places. |  |
 
 ## Distributions
 
@@ -873,6 +873,57 @@ a word that chooses a method has no entry, or when this file is out of date.
 | `nums.start_chart()` | The numbers become a table with one column called "value" (a grid: columns "1", "2" ... and rows numbered from 1). | turn_into_table(name=) first, then sdata.chart(), for another column name. | **P5.** The chart words name columns, so the numbers need a column name; the same as turn_into_table(). *Basis: starting value.* |  |
 | `nums.save()` | One column called "value", without row numbers. | turn_into_table(name=), then the table's own save word, for another name; .wav with time_step= and bits=. | **P5.** A file without pandas' row labels reads back as it was with pandas read_csv or R read.csv; simplydata's own reader needs separator="," for a file of one column (a current limitation). *Basis: convention.* **Checks:** time_step= and bits= only go with a .wav file. |  |
 | `nums.as_numpy()` | A copy of the numbers as they are now. | None. | **P5.** A copy means changing the array never changes the simplydata numbers or their steps. *Basis: convention.* |  |
+
+## Numbers: yes or no
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.turn_into_yes_or_no()` | An empty number is no; the numbers themselves do not change (new yes or no values come back). | is_empty=True for yes where the numbers are empty; & \| ~ to join tests. | **P3.** As NumPy, where nan > 20 is False, so the answer matches the NumPy line; keeping the numbers lets the same values make several tests. *Basis: convention.* **Checks:** One condition at a time, as keep_each_number_that. |  |
+| `nums.check_if_all_numbers()` | Empty numbers are skipped, and the sentence says how many were skipped. | count_empty_numbers() and replace_each_number_that(is_empty=True, with_value=...) first, to decide them yourself. | **P5.** The same rule as every simplydata summary (empty values are skipped, with a note); NumPy's np.all would say False for any nan. *Basis: starting value.* **Checks:** One condition at a time. |  |
+
+## Numbers: rounding, angles and positions
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.take_sin()` | Angles in radians, as NumPy; degrees=True for degrees. | degrees=True; change_angles_to("degrees") or ("radians") to change the numbers themselves. | **P3.** Radians keep the printed NumPy line exactly the same as the word (owner decision 2026-11-25); the sentence says which unit was used every time. *Basis: convention.* **Checks:** degrees= is True or False. |  |
+| `nums.find_where_biggest()` | The position counted from 1 (NumPy's index plus 1); empty values skipped (np.nanargmax); on a tie, the first. | over= for one position along a direction of a grid or block. | **P5.** Positions count from 1 everywhere in simplydata (approved 2026-11-14); the sentence gives the NumPy index too, so the bridge to NumPy is exact. *Basis: convention.* **Checks:** All-empty numbers are refused. |  |
+
+## Blocks of numbers
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `sdata.number_block()` `keep_on_disk=` | Off: the numbers of a file are read at once. keep_on_disk=True leaves them in the file; keep_where, keep_by_position_in and get_numbers_nearest_to cut it there (xarray isel), and any other word reads them once, with a note. | keep_on_disk=True for a file bigger than memory; cut it before the word that reads it. | **P5.** Reading at once is what a beginner expects (every word works at once); xarray's lazy opening is kept for big files without needing dask. *Basis: starting value.* **Checks:** Several files (a pattern) are read at once; keep_on_disk= takes one file. |  |
+| `block.find_average()` | over= names the directions that go and in_each= the ones kept; empty values are skipped (np.nanmean). | over=[...] for several; no option for one number for the whole block. | **P5.** Named directions remove NumPy's axis numbers and keepdims=True: the result keeps its names and lines up with the block by name (NumPy brief D4, approved 2026-11-15). *Basis: starting value.* **Checks:** Unknown names are refused with the names the block has. |  |
+| `block.keep_where()` | The range is taken in either order, and turned round when the labels run downward (xarray sel). | is_one_of= for exact labels; keep_by_position_in for positions. | **P4.** Many ocean and climate files store latitude from north to south; xarray then gives nothing for a range written low to high, with no error. Turning it round removes that trap. *Basis: starting value.* **Checks:** A direction without labels is refused, with the position word to use. |  |
+
+## Blocks: shape and directions
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `block.change_shape_to()` | The numbers are read row by row (NumPy's C order), and one_row_per= must be the first direction. | move_direction() first, to put another direction first; fill="repeat" for a new size (np.resize). | **P4.** NumPy's own order, so the result equals reshape; a reshape that would mix directions is refused instead of scrambling them silently (NumPy brief D5). *Basis: convention.* **Checks:** The sizes must multiply to the count of numbers. |  |
+| `block.rotate()` `by_degrees=` | The size and labels are kept (reshape=False) and the corners that come from outside are empty; straight lines fill in between the numbers. | test_method="nearest" or "cubic"; by_quarter_turns= for quarter turns without filling in. | **P4.** An empty corner is honest about places with no data, where SciPy's default would put 0, a number that was never measured. *Basis: starting value.* **Checks:** Empty values are refused. |  |
+
+## Blocks: files
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `block.save()` | A .nc file is written as netCDF-4 with the h5netcdf engine, every variable compressed (zlib, level 4), with the directions' names and labels. | Another ending (.csv, .xlsx, .parquet ...) writes the block's long table instead. | **P3.** netCDF-4 is the usual file of ocean and climate grids and keeps names, labels and units with the numbers; compression loses nothing (the numbers come back exactly) and level 4 is the middle of zlib's range. *Basis: convention.* **Checks:** Web addresses are refused: simplydata opens only the file you name; it never downloads or sends anything. |  |
+
+## Blocks: labels, dates and places
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `block.find_values_at()` | Straight lines between the neighbouring labels (test_method="linear"), along each direction named; places outside the labels are empty. | test_method="nearest" or "cubic". | **P3.** The same rule as table.find_values_at and xarray interp (SciPy interpn underneath), so the numbers agree with both; nothing is extended beyond the data without being asked. *Basis: convention.* **Checks:** Text labels are refused; the labels must run steadily up or down. |  |
+| `block.smooth()` | A moving average of window=5 places along each direction named; the edges without a full window are empty (ends="empty"), as nums.smooth. | ends="reflect" or "mirror" (SciPy's modes of those names); test_method="gaussian" (width=2) or "median". | **P3.** The same starting values as nums.smooth (R stats::filter leaves the ends empty), so a block smoothed along one direction gives what each list of numbers would give. *Basis: convention.* **Checks:** window= is odd, so it is centred; empty values are refused. |  |
+| `block.change_size_to()` | Straight lines between the numbers (SciPy ndimage.zoom, order 1); number labels are filled in the same way. | test_method="nearest" (order 0) or "cubic" (order 3). | **P5.** Linear filling in makes no new highs or lows (cubic can overshoot), so the new numbers stay within the old ones. *Basis: starting value.* **Checks:** Empty values are refused; sizes are whole numbers. |  |
+| `grid.smooth()` | Along the rows and the columns together (a picture blurred); for "gaussian" and "median" the edge number is repeated (SciPy mode "reflect"), and the bell curve is cut at 4 standard deviations. | over="row" or "column" for one direction; window=, width=; ends="mirror" (SciPy mode "mirror"). | **P3.** SciPy ndimage's own defaults, so the grid equals gaussian_filter and median_filter in scipy.ndimage. *Basis: convention.* **Checks:** Empty values are refused. |  |
+
+## Numbers: chances and random picks
+
+| Word or option | Default | Alternatives | Why | References |
+|---|---|---|---|---|
+| `nums.make_random_picks()` | Each pick is put back (putting_back=True), each number equally likely; with_chances= must add up to 1. | putting_back=False; with_chances=[...]; with_seed= to repeat the picks. | **P3.** Putting back is NumPy's choice default and what a bootstrap sample needs. Chances that do not add up to 1 are refused rather than divided by their total, so no weight is changed silently (decision 5). *Basis: convention.* **Checks:** Without putting back, at most as many picks as numbers. |  |
+| `nums.take_log_odds()` | 0, 1 and numbers outside 0 to 1 become empty, with a note. | replace_each_number_that first, to move 0 and 1 a little inside, if your field does that. | **P5.** SciPy gives -inf and inf for 0 and 1; simplydata's rule for a sum with no answer is an empty value and a note, never infinity (the same as take_log). *Basis: starting value.* **Checks:** The note counts the numbers that became empty. |  |
 
 ## Waves and systems
 

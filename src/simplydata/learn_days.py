@@ -1137,6 +1137,40 @@ UNITS = {
             "The first line only makes a raw file to practise on; with your own data, start at the second "
             "line. The school table has 180 rows and 9 columns; sleep has 19 empty cells.")],
     ),
+    # Lesson 37, a messy file from a fjord cruise (tables phase): on the day a project is cleaned, first a file that
+    # is messy on purpose, then your own (python day 22, beginner day 26).
+    "lesson37": dict(
+        lessons=[37],
+        words=["table.remove_rows_that_are_all_empty", "table.remove_duplicate_rows", "table.clean_column_names",
+               "table.keep_rows_found_in", "table.join_with"],
+        recall=[
+            ('How do you read a file so that sample IDs such as "007" keep their zeros?',
+             'sdata.table("fjord_lab.csv", read_as_text=["sample_id"])'),
+            ("Which word removes only the rows in which every cell is empty?",
+             "table.remove_rows_that_are_all_empty()"),
+            ("Which words show the rows pasted twice, and then remove the extra copies?",
+             "table.show_duplicate_rows(), then table.remove_duplicate_rows()"),
+            ('Which word turns column names such as "Distance to outfall (km)" into names you can type?',
+             "table.clean_column_names()"),
+        ],
+        spaced=[
+            ("Which word keeps only the samples that have a row in the lab table, without bringing in its columns?",
+             'samples.keep_rows_found_in(lab, using="sample_id")'),
+        ],
+        task=['Fjord lab file: save the "fjord_lab" practice table as fjord_lab.csv, read it back with sample_id '
+              "and lab_code as text, remove the empty rows and the rows pasted twice, and count the rows of each "
+              "gene."],
+        solutions=[(_code('''
+            import simplydata as sdata
+            sdata.get_example("fjord_lab").save("fjord_lab.csv")
+            lab = sdata.table("fjord_lab.csv", read_as_text=["sample_id", "lab_code"])
+            lab.remove_rows_that_are_all_empty()
+            lab.show_duplicate_rows()
+            lab.remove_duplicate_rows()
+            lab.count_each("gene")'''),
+            "Look before you remove: show_duplicate_rows lists every copy, and the IDs keep their zeros because "
+            "they were read as text.")],
+    ),
     "proj_clean": dict(
         lessons=[11],
         words=["table.count_empty_cells_in", "table.remove_extra_spaces_in", "table.replace_values_in",
@@ -1477,9 +1511,10 @@ _PYTHON = [
     ("Review, and the question of your project",
      "Remember the words of the third week, then choose the question and the raw file of your own project.",
      ["review_p21", "proj_question"], "review"),
-    ("Project: clean",
-     "Clean your raw file into a tidy table, with every step written down.",
-     ["proj_clean"], "project"),
+    ("Project: clean, after a messy lab file",
+     "Tidy a lab file that is messy on purpose, then clean your raw file into a tidy table, with every step "
+     "written down.",
+     ["lesson37", "proj_clean"], "project"),
     ("Project: explore",
      "Explore your clean table with summaries and charts before any test.",
      ["proj_explore"], "project"),
@@ -1583,9 +1618,10 @@ _BEGINNER = [
      "Add the missing days of a series, average it over time windows, smooth it, test its trend and find its "
      "peaks.",
      ["time_series"], "learn"),
-    ("Small project: look, clean and sum up",
-     "Choose a question and a file, then look at it, clean it and sum it up.",
-     ["bproj_a"], "project"),
+    ("Small project: a messy lab file, then look, clean and sum up",
+     "Tidy a lab file that is messy on purpose, then choose a question and a file, look at it, clean it and sum "
+     "it up.",
+     ["lesson37", "bproj_a"], "project"),
     ("Small project: test, figure and results",
      "Finish your project with a test, a figure and two sentences of results.",
      ["bproj_b"], "project"),

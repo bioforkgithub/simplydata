@@ -34,6 +34,7 @@ import warnings
 
 import narwhals as nw
 
+from .. import _zone_clock
 from .._data import load_native
 from .._errors import SimplydataError, choice_error, column_error, friendly, suggest
 
@@ -490,6 +491,17 @@ def _count_text(frame, source, key, piece):
     else:
         native = native.assign(**{key: native[source].str.count(re.escape(piece))})
     return nw.from_native(native, eager_only=True)
+
+
+def _polars_part(d, part):
+    """The date parts narwhals has no word for, as Polars expressions: dt.week() (ISO), dt.time(),
+    dt.days_in_month(), dt.month_end() and dt.is_leap_year()."""
+    import polars as pl
+
+    return {"week": lambda: d.dt.week(), "time": lambda: d.dt.time(),
+            "days in month": lambda: d.dt.days_in_month().cast(pl.Int64),
+            "is month end": lambda: d.dt.month_end().dt.day() == d.dt.day(),
+            "is leap year": lambda: d.dt.is_leap_year()}[part]()
 
 
 def _dtype_kind(dtype) -> str:
@@ -988,7 +1000,8 @@ class ColumnWords:
             raise SimplydataError(f'"{column}" holds dates without a time of day, so {said} cannot be added to it.')
         if option == "minus":
             code = "-" + code
-        frame = self._frame.with_columns(nw.col(column).dt.offset_by(code).alias(name))
+        # a month or a day on is counted on the column's own clock: Polars' time zone rules on both engines
+        frame = _zone_clock.with_columns(self._frame, [nw.col(column).dt.offset_by(code).alias(name)], [column])
         sign = "+" if option == "plus" else "-"
         if unit in ("month", "year"):
             print(f'"{name}" is {column} {sign} {said}; a day that the new month lacks (31 April) becomes its last day.')
@@ -1020,7 +1033,7 @@ class ColumnWords:
         # dt.total_days() / total_hours() / total_minutes(), and pandas (end - start) / pd.Timedelta(hours=1), truncated)
         days = nw.when(seconds >= 0).then(seconds // size).otherwise(-((-seconds) // size))
         try:
-            frame = self._frame.with_columns(days.alias(name))
+            frame = _zone_clock.with_columns(self._frame, [days.alias(name)], [end, start])
         except Exception as error:  # for example one column with a time zone and one without
             raise SimplydataError(f"The days between {end} and {start} could not be worked out: {error}") from None
         if frame[name].null_count() == 0:
@@ -1043,7 +1056,8 @@ class ColumnWords:
                 text = col.cast(nw.String)
             parts.append(_blank_to_empty(text))
         joined = _blank_to_empty(nw.concat_str(parts, separator=sep, ignore_nulls=True))
-        return self._frame.with_columns(joined.alias(name)), f"{', '.join(cols)} joined with {_plain(sep)}"
+        frame = _zone_clock.with_columns(self._frame, [joined.alias(name)], cols)  # dates on Polars' clock
+        return frame, f"{', '.join(cols)} joined with {_plain(sep)}"
 
     def _run_function(self, step, name, function):
         """by_running=: call the user's own function once for each row."""
@@ -1136,6 +1150,8 @@ class ColumnWords:
         and a unit, "30 days", "2 weeks", "1 month", "1 year" or "12 hours" (pandas + pd.DateOffset(months=1),
         Polars dt.offset_by("1mo")). A month after 31 January is 28 (or 29) February:
           table.add_column("check_on", from_column="date", plus="1 month")   (with sdata.get_example("shop"))
+        Dates with a time zone are counted on their own clock by Polars, on both engines: local clock
+        times before 1970 follow the main world time-zone data (IANA), the same on every computer.
 
         Summary words in a formula, average() median() total() smallest() biggest() count(),
         give one value for the whole column, or for each group with for_each_group_in=:
@@ -1503,6 +1519,8 @@ class ColumnWords:
         dt.truncate("1d"), dt.time(), dt.second(), dt.weekday() >= 6, dt.days_in_month(),
         dt.month_end(), dt.is_leap_year() and dt.to_string("%Y-%m"):
           table.add_column_with_part_of_date("weekend", from_column="date", part="is weekend")
+        A column with a time zone is read on its own clock by Polars, on a pandas table too: local
+        clock times before 1970 follow the main world time-zone data (IANA), the same on every computer.
         """
         step = "add_column_with_part_of_date"
         example = ('For example: table.add_column_with_part_of_date("weekday", from_column="date", part="weekday name")'
@@ -1526,9 +1544,10 @@ class ColumnWords:
         if part in _TIME_PARTS and dtype == nw.Date:
             raise SimplydataError(f'"{from_column}" holds dates without a time of day, so it has no {part}s.')
         col = nw.col(from_column)
-        if part == "week":
+        zoned = _zone_clock.on_pandas_with_zone(self._frame, [from_column])
+        if part == "week" and not zoned:
             return self._finish(name, self._iso_week(name, from_column), f'add date part column "{name}" = week of {from_column}')
-        if part in ("time", "days in month", "is month end", "is leap year"):
+        if part in ("time", "days in month", "is month end", "is leap year") and not zoned:
             return self._finish(name, self._native_date_part(name, from_column, part),
                                 f'add date part column "{name}" = {part} of {from_column}')
         expr = {
@@ -1548,11 +1567,33 @@ class ColumnWords:
             "second": lambda: col.dt.second(),
             "is weekend": lambda: nw.when(~col.is_null()).then(col.dt.weekday() >= 6),  # 6 and 7: Sat and Sun (ISO)
             "year and month": lambda: col.dt.to_string("%Y-%m"),  # pandas dt.strftime, Polars dt.to_string
-        }[part]()
+        }.get(part, lambda: None)()
+        if zoned:  # the clock of a time zone: Polars' rules on both engines (simplydata._zone_clock)
+            frame = self._frame.with_columns(self._zoned_date_part(name, from_column, part, expr))
+            if frame[name].null_count() == 0 and part not in (
+                    "month name", "weekday name", "date", "time", "is weekend", "is month end", "is leap year",
+                    "year and month"):
+                frame = frame.with_columns(nw.col(name).cast(nw.Int64))
+            return self._finish(name, frame, f'add date part column "{name}" = {part} of {from_column}')
         if part not in ("month name", "weekday name", "date", "is weekend", "year and month") and \
                 self._frame[from_column].null_count() == 0:
             expr = expr.cast(nw.Int64)
         return self._put_column(name, expr, f'add date part column "{name}" = {part} of {from_column}')
+
+    def _zoned_date_part(self, name, column, part, expr):
+        """A date part of a pandas column with a time zone, worked out by Polars on the column's own clock (the
+        same rules as on a Polars table) and given back as a pandas column: the narwhals expression on a Polars
+        frame, or Polars dt.week(), dt.time(), dt.days_in_month(), dt.month_end(), dt.is_leap_year()."""
+        import polars as pl
+
+        values = _zone_clock.as_polars(self._frame, column)
+        if expr is not None:
+            out = nw.from_native(pl.DataFrame({column: values}), eager_only=True).select(expr.alias(name))[name]
+            out = out.to_native()
+        else:
+            out = pl.DataFrame({"d": values}).select(_polars_part(pl.col("d"), part).alias(name))[name]
+        index = self._frame[column].to_native().index
+        return nw.from_native(_zone_clock._back_to_pandas(out, index), series_only=True).alias(name)
 
     def _native_date_part(self, name, column, part):
         """The date parts narwhals has no word for, from each engine: pandas dt.time, dt.days_in_month,
@@ -1563,11 +1604,7 @@ class ColumnWords:
             import polars as pl
 
             frame = pl.DataFrame({"d": native})
-            d = pl.col("d")
-            expr = {"time": lambda: d.dt.time(), "days in month": lambda: d.dt.days_in_month().cast(pl.Int64),
-                    "is month end": lambda: d.dt.month_end().dt.day() == d.dt.day(),
-                    "is leap year": lambda: d.dt.is_leap_year()}[part]()
-            values = frame.select(expr.alias(name))[name]
+            values = frame.select(_polars_part(pl.col("d"), part).alias(name))[name]
         else:
             empty = native.isna()
             values = {"time": lambda: native.dt.time, "days in month": lambda: native.dt.days_in_month,

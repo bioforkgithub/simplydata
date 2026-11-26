@@ -911,11 +911,12 @@ def _cases_batch_2(Case):
              ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_violins(x="Species", y="Sepal.Length")
              """, """
-                 # each violin is a band (layers 10, 11 and 12, after the 9 lines of the boxes inside), from low to high
+                 # each violin is a sideways band (layers 10, 11 and 12, after the 9 lines of the boxes inside): its
+                 # place along the sepal lengths is y, its width runs from low to high
                  tops = {}
                  for name, layer in zip(["setosa", "versicolor", "virginica"], [10, 11, 12]):
                      tops[f"top of the {name} violin"] = drawn.keep_rows_where("layer", is_equal_to=layer).get_column(
-                         "high").find_biggest()
+                         "y").find_biggest()
                      drawn.undo()
                  tops
              """),
@@ -1315,8 +1316,8 @@ def _cases_batch_2(Case):
              ours=_ours_drawn("""
                  chart = sdata.chart(data).draw_lines(x="cyl", y="mpg").add_second_y("hp", drawn_as="bars")
              """, """
-                 # the second y-axis is panel 2
-                 bars = drawn.keep_rows_where("panel", is_equal_to=2)
+                 # a second y-axis belongs to the panel it is drawn on (panel 1); the bars are drawn only on it
+                 bars = drawn.keep_rows_where("kind", is_equal_to="bar")
                  {"4 cylinders": bars.get_cell_at(row=1, column="y"), "6 cylinders": bars.get_cell_at(row=2, column="y"),
                   "8 cylinders": bars.get_cell_at(row=3, column="y")}
              """),

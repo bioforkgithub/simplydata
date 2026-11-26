@@ -21,6 +21,7 @@ from pathlib import Path
 
 import narwhals as nw
 
+from .. import _zone_clock
 from .._data import load_native
 from .._errors import (MissingWordError, SimplydataError, choice_error, column_error, friendly, missing_word_error,
                        old_word, other_name_error, suggest)
@@ -33,6 +34,10 @@ SAVE_TYPES = ("csv", "tsv", "xlsx", "parquet", "json",
               # tables phase, batch 3 (P38): each written by pandas itself (DuckDB for .duckdb)
               "csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html", "sqlite", "db", "duckdb")
 DATABASE_TYPES = ("sqlite", "db", "duckdb")  # these hold tables by name: save(..., in_table="river")
+# Times with a time zone in files that have no place for the zone name (see Table._file_frame)
+OFFSET_TEXT_TYPES = ("csv", "tsv", "csv.gz", "tsv.gz")  # written as text with the UTC offset, read back as UTC times
+NO_ZONE_TYPES = {"xlsx": "Excel", "dta": "Stata"}  # written as the clock times of their zone, without the zone
+TIME_WITH_OFFSET = "%Y-%m-%d %H:%M:%S%.f%:z"  # Polars dt.to_string: 2024-07-01 23:45:00-04:00 (pandas' own CSV text)
 
 
 def show(native):
@@ -304,6 +309,15 @@ class BaseTable:
         data are read by name, each on its own: simplydata says which columns differ and prints a line
         to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
 
+        Times with a time zone: .parquet and .feather keep the zone. A .csv or .tsv file has no place
+        for it, so the times are written with their UTC offset (2024-07-01 23:45:00-04:00, on both
+        engines) and sdata.table() reads them back as the same moments on the UTC clock; a note
+        names the zone, to put back with table.change_time_zone_in("t", to="America/New_York").
+        Excel and Stata have no time zones, so the clock times of the zone are saved (Polars
+        dt.replace_time_zone(None), on both engines), with a note naming the zone. Polars reads the
+        clock of a time zone for every date word, on both engines: local clock times before 1970 follow
+        the main world time-zone data (IANA), the same on every computer.
+
         More file types: .csv.gz and .tsv.gz (compressed), .feather (Arrow), .jsonl
         (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas.
         A database file (.sqlite, .db, .duckdb) holds tables by name, so it needs in_table=, the
@@ -335,17 +349,18 @@ class BaseTable:
             )
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
+        frame = self._file_frame(kind, path.name)
         if in_sheet is not None:
-            self._save_in_sheet(path, in_sheet)
+            self._save_in_sheet(path, in_sheet, frame)
             return self
         if kind == "csv":
-            self._frame.write_csv(str(path))
+            frame.write_csv(str(path))
         elif kind == "parquet":
-            self._frame.write_parquet(str(path))
+            frame.write_parquet(str(path))
         elif kind in ("csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html"):  # tables phase, batch 3 (P38)
-            self._save_more(path, kind)
+            self._save_more(path, kind, frame)
         else:
-            pandas_table = self._frame.to_pandas()
+            pandas_table = frame.to_pandas()
             if kind == "tsv":
                 pandas_table.to_csv(path, sep="\t", index=False)
             elif kind == "xlsx":
@@ -354,9 +369,51 @@ class BaseTable:
                 pandas_table.to_json(path, orient="records", indent=2)
         return self
 
-    def _save_more(self, path, kind):
+    def _file_frame(self, kind, file_name):
+        """The table as it goes into a file of this kind: columns with a time zone made to fit the file.
+
+        A CSV or TSV file has no place for a zone name, so each such column is written as text with its UTC offset,
+        in one layout on both engines (Polars dt.to_string("%Y-%m-%d %H:%M:%S%.f%:z"), the text pandas to_csv
+        writes: 2024-07-01 23:45:00-04:00), and sdata.table() reads it back as the same moments on the UTC clock.
+        Excel and Stata have no time zones at all (pandas refuses them), so the clock times of the zone are saved
+        (pandas dt.tz_localize(None), Polars dt.replace_time_zone(None)). Either way a note names the zone.
+        """
+        zoned = {name: kind_.time_zone for name, kind_ in self._frame.schema.items()
+                 if kind_ == nw.Datetime and kind_.time_zone}
+        if not zoned or (kind not in OFFSET_TEXT_TYPES and kind not in NO_ZONE_TYPES):
+            return self._frame
+        names = ", ".join(f'"{name}"' for name in zoned)
+        verb = "is" if len(zoned) == 1 else "are"
+        zones = ", ".join(dict.fromkeys(zoned.values()))
+        first, zone = next(iter(zoned.items()))
+        if kind in NO_ZONE_TYPES:
+            print(f"Note: {NO_ZONE_TYPES[kind]} has no time zones, so {names} {verb} saved in {file_name} as clock "
+                  f"times on the {zones} clock, without the zone name. To save UTC times instead, first write "
+                  f'table.change_time_zone_in("{first}", to="UTC").')
+            # the clock times of the zone, read by Polars on both engines (simplydata._zone_clock)
+            return _zone_clock.with_columns(self._frame, [nw.col(name).dt.replace_time_zone(None) for name in zoned],
+                                            list(zoned))
+        import polars as pl
+
+        frame = self._frame
+        polars = frame.implementation.is_polars()
+        for name in zoned:
+            native = frame[name].to_native()
+            text = (native if polars else pl.from_pandas(native)).dt.to_string(TIME_WITH_OFFSET)
+            if not polars:
+                text = text.to_pandas()
+                text.index = native.index
+            frame = frame.with_columns(nw.from_native(text, series_only=True).alias(name))
+        example = frame.filter(~nw.col(first).is_null())[first]
+        shown = f" ({example.item(0)})" if len(example) else ""
+        print(f"Note: {names} {verb} saved in {file_name} as times with their UTC offset{shown}; the zone name "
+              f"{zones} is not stored in a .{kind} file. sdata.table() reads them back as the same moments on the "
+              f'UTC clock; table.change_time_zone_in("{first}", to="{zone}") puts them back on the {zone} clock.')
+        return frame
+
+    def _save_more(self, path, kind, frame):
         """The file types of the tables phase (P38), each written by pandas itself."""
-        pandas_table = self._frame.to_pandas()
+        pandas_table = frame.to_pandas()
         try:
             if kind in ("csv.gz", "tsv.gz"):  # pandas to_csv: the .gz ending compresses it (gzip)
                 pandas_table.to_csv(path, sep="\t" if kind == "tsv.gz" else ",", index=False)
@@ -431,7 +488,7 @@ class BaseTable:
         if in_table in there:
             print(f'Replaced the table "{in_table}" in {path.name}; the other tables are kept.')
 
-    def _save_in_sheet(self, path, in_sheet):
+    def _save_in_sheet(self, path, in_sheet, frame):
         """table.save("x.xlsx", in_sheet=...): pandas ExcelWriter with openpyxl, adding to the file if it exists.
 
         The sheet name is checked first with Excel's rules as openpyxl states them (its INVALID_TITLE_REGEX, its
@@ -462,7 +519,7 @@ class BaseTable:
                                   f'in_sheet="{in_sheet}" cannot be used. Try in_sheet="history of changes".')
         if not path.exists():
             with pd.ExcelWriter(path, engine="openpyxl") as writer:
-                self._frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
+                frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
             return
         try:
             with pd.ExcelFile(path, engine="openpyxl") as book:
@@ -477,7 +534,7 @@ class BaseTable:
                                   f'"{in_sheet}" as the same name.\nTo replace that sheet: '
                                   f'table.save("{path.name}", in_sheet="{same_but_case[0]}"); or choose another name.')
         with pd.ExcelWriter(path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
-            self._frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
+            frame.to_pandas().to_excel(writer, sheet_name=in_sheet, index=False)
         if in_sheet in sheets:
             print(f'Replaced the sheet "{in_sheet}" in {path.name}; the other sheets are kept.')
 

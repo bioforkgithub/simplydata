@@ -565,10 +565,12 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
         # pandas instead (as for thousands_mark= above): one answer on both engines, nothing guessed.
         if kind == "parquet" or not fast_table.height or not fast_table.width or not fast_table.select(
                 pl.all_horizontal(pl.all().is_null()).any()).item():
+            if kind != "parquet":
+                fast_table = _offset_times_as_dates(fast_table, label, options)
             return fast_table if keep_fast else fast_table.to_pandas()
 
     if kind in ("csv", "tsv"):
-        return _read_text(source, kind, label, options)
+        return _offset_times_as_dates(_read_text(source, kind, label, options), label, options)
     if kind == "excel":
         return _read_excel(source, label, sheet, options)
     if kind == "parquet":  # pandas read_parquet(columns=[...])
@@ -586,6 +588,51 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
 
 # ---------------------------------------------------------------- more file types (tables phase, batch 3, P38)
 _MORE_KINDS = ("feather", "jsonl", "xml", "sas", "sqlite", "duckdb")
+
+# A date and time written with its UTC offset, as table.save() writes a column with a time zone to CSV or TSV
+# (2024-07-01 23:45:00-04:00; ISO 8601 with "T" and "Z" too)
+_TIME_WITH_OFFSET = r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})"
+
+
+def _offset_times_as_dates(native, label, options):
+    """Text columns whose every filled cell is a date and time with its UTC offset, read as times on the UTC clock.
+
+    A CSV file has no place for a zone name, so table.save() writes such times with their offset, and one zone can
+    have two offsets (summer time). pandas to_datetime(format="ISO8601", utc=True) reads them as the same moments on
+    the UTC clock, on both engines (a Polars table gets that column from pandas). Columns named in read_as_text= stay
+    text; other text, and dates written without an offset, are left as they are (turn_into_dates reads those).
+    """
+    polars = _is_polars(native)
+    keep = set(options.get("read_as_text", ()) or ())
+    found = []
+    for name in native.columns:
+        column = native[name]
+        is_text = str(column.dtype) == "String" if polars else pd.api.types.is_string_dtype(column.dtype)
+        if name in keep or not is_text:
+            continue
+        filled = column.drop_nulls() if polars else column.dropna()
+        if not len(filled):
+            continue
+        if polars:
+            every = filled.str.contains(f"^{_TIME_WITH_OFFSET}$").all()
+        else:
+            every = filled.astype(str).str.fullmatch(_TIME_WITH_OFFSET).all()
+        if not every:
+            continue
+        times = pd.to_datetime(column.to_pandas() if polars else column, format="ISO8601", utc=True)
+        times = times.dt.as_unit("us")
+        if polars:
+            import polars as pl
+
+            native = native.with_columns(pl.from_pandas(times).alias(name))
+        else:
+            native = native.assign(**{name: times})
+        found.append(name)
+    if found:
+        names = ", ".join(f'"{name}"' for name in found)
+        print(f"Read {names} in {label} as times on the UTC clock: every cell is a date and time with its UTC "
+              f'offset. To see them on another clock: table.change_time_zone_in("{found[0]}", to="Europe/Oslo").')
+    return native
 
 
 def _read_more(source, kind, label, options):

@@ -25,12 +25,13 @@ import re
 import narwhals as nw
 import numpy as np
 
+from .. import _zone_clock
 from .._errors import SimplydataError, choice_error, friendly, suggest
 from ._base import numbered, numbered_at
 from ._base import show as _show_native
 from .conditions import (
     _NOT_GIVEN, _ConditionReader, _condition_error, _count_in, _empty_in, _is_number, _kind,
-    _looks_like_number, _rows, _say, empty_cells_note,
+    _looks_like_number, _on_clock_of, _rows, _say, empty_cells_note,
 )
 
 # Conditions for keep_rows_where() / remove_rows_where(), in the order they are listed in messages.
@@ -477,7 +478,8 @@ class RowWords:
         if hasattr(value, "to_pydatetime"):  # a pandas Timestamp
             value = value.to_pydatetime()
         if isinstance(value, _dt.datetime):
-            return value if is_datetime else value.date()
+            return (_on_clock_of(value, self._frame.schema[column], self._frame.implementation.is_polars())
+                    if is_datetime else value.date())
         if isinstance(value, _dt.date):
             return _dt.datetime.combine(value, _dt.time()) if is_datetime else value
         raise SimplydataError(
@@ -726,6 +728,11 @@ class RowWords:
             if len(filled) and kind == "number":
                 low, high, mean = filled.select(col.min(), col.max().alias("b"), col.mean().alias("c")).row(0)
                 row.update(smallest=_nice(low), biggest=_nice(high), average=_nice(float(mean)))
+            elif len(filled) and kind == "date" and _zone_clock.zone_of(filled, name):
+                # a column with a time zone: written by Polars on the column's own clock, on both engines
+                values = _zone_clock.as_polars(filled, name)
+                low, high = _zone_clock.say(values.sort().gather([0, len(values) - 1]))
+                row.update(smallest=low, biggest=high)
             elif len(filled) and kind == "date":
                 low, high = filled.select(col.min(), col.max().alias("b")).row(0)
                 row.update(smallest=_nice(low), biggest=_nice(high))
@@ -1677,6 +1684,8 @@ class RowWords:
         taken for the month; days and months are written with two digits, 03). As pandas
         dt.strftime("%d.%m.%Y") and Polars dt.to_string("%d.%m.%Y"); % codes work too:
           table.turn_into_text("date", written_like="31.12.2026")   (with sdata.get_example("shop"))
+        Times with a time zone are written by Polars on both engines: local clock times before 1970
+        follow the main world time-zone data (IANA), the same on every computer.
         """
         example = 'table.turn_into_text("month_number")'
         self._need_one_column("turn_into_text", column, example)
@@ -1690,7 +1699,8 @@ class RowWords:
                                       + _example('table.turn_into_text("date", written_like="31.12.2026")', "shop"))
             layout = format_from_example(written_like)
             text = col.dt.to_string(layout)  # pandas dt.strftime(layout), Polars dt.to_string(layout)
-            new = self._frame.with_columns(nw.when(~empty).then(text).alias(column))
+            # a column with a time zone is written on its own clock by Polars on both engines (_zone_clock)
+            new = _zone_clock.with_columns(self._frame, [nw.when(~empty).then(text).alias(column)], [column])
             first = new.filter(~nw.col(column).is_null())
             shown = f', such as "{first[column].item(0)}"' if len(first) else ""
             print(f"{column} is now text, written like {written_like}{shown} ({layout}).")
@@ -1704,13 +1714,14 @@ class RowWords:
             fmt = "%Y-%m-%d"
             filled = self._frame.filter(~empty)
             if dtype == nw.Datetime and len(filled):
-                has_time = filled.select(((col.dt.hour() + col.dt.minute() + col.dt.second()) > 0).any()).item()
+                has_time = _zone_clock.select(filled, [((col.dt.hour() + col.dt.minute() + col.dt.second()) > 0)
+                                                       .any()], [column]).item()
                 if has_time:
                     fmt = "%Y-%m-%d %H:%M:%S"
             text = col.dt.to_string(fmt)
         else:
             text = col.cast(nw.String)
-        new = self._frame.with_columns(nw.when(~empty).then(text).alias(column))
+        new = _zone_clock.with_columns(self._frame, [nw.when(~empty).then(text).alias(column)], [column])
         print(f"{column} is now text.")
         return self._change(f"turn {column} into text", new)
 

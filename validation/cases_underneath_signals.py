@@ -698,11 +698,11 @@ def cases(Case):
                  chart = sdata.chart(data).autocorrelation_bars("level", sorted_by="year")
              """, """
                  sticks = drawn.keep_rows_where("kind", is_equal_to="dot")   # one dot on the top of each stick
-                 {"draw_sticks": sticks.count_rows(), "1 year back": sticks.get_cell_at(row=1, column="y")}
+                 {"sticks": sticks.count_rows(), "1 year back": sticks.get_cell_at(row=1, column="y")}
              """),
              parent="""
                  from statsmodels.tsa.stattools import acf
-                 {"draw_sticks": 19, "1 year back": acf(data["level"], nlags=19, adjusted=False, fft=False)[1]}
+                 {"sticks": 19, "1 year back": acf(data["level"], nlags=19, adjusted=False, fft=False)[1]}
              """, parent_label="statsmodels acf", parent_tolerance=1e-12,
              r="""
                  list(`1 year back` = stats::acf(level, plot = FALSE)$acf[2])
@@ -718,7 +718,7 @@ def cases(Case):
                  shift_0 = sticks.keep_rows_where("x", is_equal_to=0).get_cell_at(row=1, column="y")
                  sticks.undo()
                  shift_1 = sticks.keep_rows_where("x", is_equal_to=1).get_cell_at(row=1, column="y")
-                 {"draw_sticks": count, "shift 0": shift_0, "shift 1": shift_1}
+                 {"sticks": count, "shift 0": shift_0, "shift 1": shift_1}
              """),
              r="""
                  r <- stats::ccf(drivers, DriversKilled, lag.max = 12, plot = FALSE)
