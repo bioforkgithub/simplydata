@@ -87,7 +87,7 @@ jobs:
           SIMPLYDATA_REQUIRE_R: "1"
       - id: name
         run: echo "name=examples-$(echo '${{ matrix.part }}' | tr '/' '-')" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.name.outputs.name }}
           path: |
@@ -111,7 +111,7 @@ jobs:
         run: python validation/make_report.py
         env:
           SIMPLYDATA_REQUIRE_R: "1"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: report
           path: validation/report.md
@@ -171,7 +171,7 @@ jobs:
         run: python docs/make_cheat_sheet.py
         env:
           SIMPLYDATA_LATEX_DIR: ${{ runner.temp }}/latex
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: manual
           path: |
@@ -237,7 +237,7 @@ jobs:
             echo; echo "Checks of the rebuilt files: ${{ steps.check.outcome }}"
             echo; echo '```'; tail -15 "$RUNNER_TEMP/out/checks.txt"; echo '```'
           } | tee "$RUNNER_TEMP/out/summary.md" >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: rebuild
           path: ${{ runner.temp }}/out/
