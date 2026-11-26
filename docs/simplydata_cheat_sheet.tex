@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 571 commands in 67 cards, version 0.2.0.\par}
+work. 572 commands in 67 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -1463,6 +1463,8 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \cmd{\code{block.\allowbreak{}move\_\allowbreak{}direction(\textquotedbl{}column\textquotedbl{},\allowbreak{} to\_\allowbreak{}position=1)}\opts{\code{name=}, \code{to\_\allowbreak{}position=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Move one direction to another place (NumPy moveaxis).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{moveaxis()}}
 
 \cmd{\code{block.\allowbreak{}rotate(by\_\allowbreak{}quarter\_\allowbreak{}turns=1)}\opts{\code{by\_\allowbreak{}quarter\_\allowbreak{}turns=}, \code{over=}, \code{by\_\allowbreak{}degrees=}, \code{test\_\allowbreak{}method=}}}{Turn the block a quarter turn (or more) anticlockwise, as a picture (NumPy rot90).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{rot90()}}
+
+\cmd{\code{block.\allowbreak{}reverse(over=\textquotedbl{}row\textquotedbl{})}\opts{\code{over=}}}{Turn the order round along a direction, or along every direction (NumPy flip).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{flip()}}
 
 \cmd{\code{block.\allowbreak{}move\_\allowbreak{}round\_\allowbreak{}by(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{steps=}, \code{over=}}}{Move every number along a direction by some steps; the ones that fall off the end come round to the start (NumPy roll).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{roll()}}
 

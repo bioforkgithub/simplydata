@@ -30484,6 +30484,33 @@ ndimage.rotate(values, 30, axes=(2, 1), reshape=False, order=1, mode="constant",
 \undertext{The size and labels stay; \code{by\_\allowbreak{}quarter\_\allowbreak{}turns=} turns by quarter turns without filling in (np.rot90).}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
+\wordentry{block.reverse()}{word:block.reverse}
+Turn the order round along a direction, or along every direction (NumPy flip). \code{block.\allowbreak{}reverse(over=\textquotedbl{}row\textquotedbl{})}
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{over=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{flip()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+block = sdata.number_block(of_shape=(24, 8, 12), filled_with=0.5, directions_named=["hour", "row", "column"])
+block.reverse(over="row")
+print(block.find_shape())
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+a = np.arange(1, 25).reshape(2, 3, 4)
+# reverse(over="row")
+np.flip(a, axis=1)
+\end{lstlisting}
+\undertext{Without \code{over=}, every direction is turned round (\code{np.\allowbreak{}flip(a)}); labels turn round with their direction.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{block.move\_round\_by()}{word:block.move-round-by}
 Move every number along a direction by some steps; the ones that fall off the end come round to the start (NumPy roll).
 
@@ -38490,6 +38517,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.replace-text-in}{table.replace\_text\_in()}
 \indexline{word:table.replace-values-in}{table.replace\_values\_in()}
 \indexline{word:system.response-to}{system.response\_to()}
+\indexline{word:block.reverse}{block.reverse()}
 \indexline{word:nums.reverse}{nums.reverse()}
 \indexline{word:table.reverse-rows}{table.reverse\_rows()}
 \indexline{word:block.rotate}{block.rotate()}
