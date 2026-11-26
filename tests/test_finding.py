@@ -473,3 +473,77 @@ def test_review4_n2_a_local_search_says_what_it_saw_from_its_start():
                                               "has a value") as info:
         find_where_smallest("sqrt(x)", start=-2)  # 5417466: AttributeError (optimize.BracketError)
     assert "keeps getting" not in str(info.value)
+
+
+# ---------------------------------------------------------------------------- fifth review of 4c306e1
+def _scan_point(low, high, index):
+    """A point of the scan Brent's method on a range checks first (np.linspace with SCAN_POINTS points)."""
+    from simplydata.finding import SCAN_POINTS
+
+    return float(np.linspace(low, high, SCAN_POINTS)[index])
+
+
+def test_review5_new_b_scipy_bracket_goes_on_from_its_third_point(capsys):
+    # SciPy bracket tries 0, 0.1 and 0.1 + 1.618034*0.1 = 0.2618034; sqrt(x - 0.2) has a value at the third
+    r = row(find_where_smallest("sqrt(x - 0.2)", start=0))  # 4c306e1: refused, "found no place"
+    assert r["x"] == 0.2 and r["smallest value"] == np.sqrt(0.2 - 0.2) == 0.0
+    assert "The smallest value of sqrt(x - 0.2) is 0, at x = 0.2." in capsys.readouterr().out
+    with pytest.raises(SimplydataError, match="Searching from x = -2, the search found no place"):
+        find_where_smallest("sqrt(x)", start=-2)  # -2, -1.8 and -1.4763966 all have no value
+
+
+@pytest.mark.parametrize("step", [find_where_smallest, find_where_biggest])
+def test_review5_new_c_a_value_at_one_scan_point_only_is_refused_not_printed(step):
+    c = _scan_point(-100, 50, 133)  # the formula has a value only within 0.001 of c, a point of the scan
+    with pytest.raises(SimplydataError) as info:  # 4c306e1: "The smallest value ... is 0.001", which is the biggest
+        step(f"sqrt(0.000001 - (x - {c!r})**2)", between=[-100, 50])
+    said = str(info.value)
+    assert "the formula has a value at 1 of the 200 evenly spaced points checked first" in said
+    assert f"Give a narrower between= around x = {c:.6g}, for example between=[" in said
+
+
+def test_review5_a_local_search_that_ends_where_the_formula_has_no_value_says_so():
+    with pytest.raises(SimplydataError) as info:  # SLSQP steps from x = 1 to a negative x, where sqrt has no value
+        find_where_smallest("x + sqrt(x) + y**2", start={"x": 1, "y": 1}, method="slsqp")
+    said = str(info.value)  # 4c306e1: "the search found no place where the formula has a value", untrue at x = 1
+    assert "searching from x = 1, y = 1, where the formula has a value, the search ended at x = " in said
+    assert "where it has none" in said and "found no place" not in said
+
+
+@pytest.mark.parametrize("formula, between, place, shown", [
+    ("sqrt(1 - x**2)", [-100, 50], -1.0, "x = -1"),  # 4c306e1: 0.000137349; origin/main: refused
+    ("sqrt(1 - x**2)", [-2, 2], -1.0, "x = -1"),  # 4c306e1 and origin/main: 0.000177827
+    ("sqrt(x)", [-1, 4], 0.0, "x = 0"),  # 1.48276e-06 at x = 2.19857e-12
+    ("sqrt(x - 0.2)", [0, 4], 0.2, "x = 0.2"),  # 4.27418e-05
+    ("abs(x)**0.5", [-2, 2], 0.0, "x = 0")])  # 1.82501e-08 at x = 0
+def test_review5_the_smallest_value_at_an_edge_is_the_value_there(capsys, formula, between, place, shown):
+    r = row(find_where_smallest(formula, between=between))
+    at_edge = {"sqrt(1 - x**2)": lambda: np.sqrt(1 - place ** 2), "sqrt(x)": lambda: np.sqrt(place),
+               "sqrt(x - 0.2)": lambda: np.sqrt(place - 0.2), "abs(x)**0.5": lambda: np.abs(place) ** 0.5}[formula]()
+    assert at_edge == 0.0 and r["x"] == place and r["smallest value"] == at_edge
+    assert f"is 0, at {shown}." in capsys.readouterr().out
+    r = row(find_where_biggest(f"-({formula})", between=between))
+    assert r["x"] == place and r["biggest value"] == 0.0
+
+
+def test_review5_a_smooth_lowest_point_prints_as_before(capsys):
+    find_where_smallest("x**2 - 4*x + 1", between=[0, 5])
+    find_where_smallest("(x - 1/3)**2 + 2", between=[0, 5])
+    find_where_smallest("cos(x) + x/10", start=3)
+    out = capsys.readouterr().out  # the same lines as 4c306e1 printed
+    assert "The smallest value of x**2 - 4*x + 1 between 0 and 5 is -3, at x = 2." in out
+    assert "The smallest value of (x - 1/3)**2 + 2 between 0 and 5 is 2, at x = 0.333333." in out
+    assert "The smallest value of cos(x) + x/10 is -0.690845, at x = 3.04143." in out
+    assert "at most" not in out and "at least" not in out
+
+
+def test_review5_a_lowest_point_between_floating_point_numbers_gives_a_true_bound(capsys):
+    r = row(find_where_smallest("abs(x - 1/3)**0.5", between=[0, 1]))
+    out = capsys.readouterr().out  # 4c306e1: "is 2.06206e-05, at x = 0.333333", printed as if it were the smallest
+    assert "The smallest value of abs(x - 1/3)**0.5 between 0 and 1 is at most " in out
+    bound = float(out.split("is at most ")[1].split(",")[0])
+    assert r["smallest value"] == np.abs(r["x"] - 1 / 3) ** 0.5 <= bound  # the value where it was found, by NumPy
+    r = row(find_where_biggest("-abs(x - 1/3)**0.5", between=[0, 1]))
+    out = capsys.readouterr().out
+    bound = float(out.split("is at least ")[1].split(",")[0])
+    assert r["biggest value"] == -np.abs(r["x"] - 1 / 3) ** 0.5 >= bound

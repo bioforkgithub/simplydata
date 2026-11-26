@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import ast
 import math
+from typing import NamedTuple
 
 import numpy as np
 
@@ -115,6 +116,7 @@ def _formula_error(problem: str) -> SimplydataError:
 
 
 MAX_DIGITS = 1000  # a whole number made by powers of numbers may have at most this many digits
+LONG_SUM = 100  # SymPy reads a longer sum this many terms at a time (_sum_pieces)
 # gamma(10**7) is a whole number of 65 million digits and digamma(10**6) a fraction of millions: SymPy works them
 # out exactly while it reads the text. A number inside these functions may be at most this big (gamma(1000) has
 # 2565 digits).
@@ -161,10 +163,55 @@ def _check_power(node, text: str):
     if base is None or power is None or abs(base) <= 1:
         return
     digits = power * math.log10(abs(base)) if math.isfinite(power) else math.inf
-    if digits > MAX_DIGITS:
+    if _too_many(digits):
         raise _formula_error(f'"{ast.get_source_segment(text, node) or text}" is a number with more than '
                              f"{MAX_DIGITS} digits, too big to work with exactly. Use smaller numbers, or a letter "
                              "for it.")
+
+
+def _sum_terms(node) -> list:
+    """The terms of a sum a + b - c (ast), left to right, found without recursion (a sum of 3,000 terms is 3,000
+    steps deep)."""
+    terms = []
+    while isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub)):
+        terms.append(node.right)
+        node = node.left
+    terms.append(node)
+    return terms[::-1]
+
+
+def _sum_pieces(text: str) -> list:
+    """The formula text in pieces of LONG_SUM terms each, when it is a longer sum: Python's own reader (ast) and
+    SymPy's follow a + b + c + ... down by recursion, and stop after about 1,000 to 3,000 terms. The text is cut by
+    Python's tokenize (no recursion) just before a + or - that joins two terms outside every bracket, so each piece
+    after the first starts with its sign ("- b + c") and the pieces added up are the formula. Text that tokenize
+    cannot read is left whole (ast then says what is wrong with it)."""
+    import io
+    import tokenize
+
+    starts = [0]  # where each line of the text starts
+    for line in text.splitlines(keepends=True):
+        starts.append(starts[-1] + len(line))
+    cuts, depth, count, before = [0], 0, 0, None
+    try:
+        for token in tokenize.generate_tokens(io.StringIO(text).readline):
+            if token.type in (tokenize.NL, tokenize.NEWLINE, tokenize.ENDMARKER, tokenize.COMMENT):
+                continue
+            if token.type == tokenize.OP and token.string in ("(", "[", "{"):
+                depth += 1
+            elif token.type == tokenize.OP and token.string in (")", "]", "}"):
+                depth -= 1
+            elif token.type == tokenize.OP and token.string in ("+", "-") and depth == 0 and before is not None \
+                    and (before.type in (tokenize.NAME, tokenize.NUMBER) or before.string in (")", "]", "}")):
+                count += 1  # a sign between two terms (not a sign in front of a number, as in 2*-3 or x**-2)
+                if count == LONG_SUM:
+                    cuts.append(starts[token.start[0] - 1] + token.start[1])
+                    count = 0
+            before = token
+    except (tokenize.TokenError, SyntaxError):
+        return [text]
+    cuts.append(len(text))
+    return [text[a:b].strip() for a, b in zip(cuts, cuts[1:])]
 
 
 def _check_node(node, text: str, letters: list, functions: set):
@@ -189,6 +236,10 @@ def _check_node(node, text: str, letters: list, functions: set):
         return
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
         return _check_node(node.operand, text, letters, functions)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub)):
+        for term in _sum_terms(node):  # a long sum term by term, not by recursion down a + b + c + ...
+            _check_node(term, text, letters, functions)
+        return
     if isinstance(node, ast.BinOp):
         if not isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.BitXor)):
             raise _formula_error(f'The sign in "{ast.get_source_segment(text, node)}" is not allowed in a formula.')
@@ -312,72 +363,214 @@ def _times(power, digits: float) -> float:
         return math.inf
 
 
-def _digits(sp, value) -> float:
-    """At most about how many digits the biggest exact number in value has once SymPy has worked it out. A fraction
-    has its own; a power is sized by _pow_digits and an exp by _exp_digits; a product or a sum has the digits of its
-    parts added up (the numbers in a product are multiplied together, and a sum of fractions has the product of
-    their bottoms); anything else (a function, a letter) has those of its parts."""
-    if value.is_Rational:
-        return _height(value)
+def _too_many(size: float) -> bool:
+    """Whether a number of about 10**size has more than MAX_DIGITS digits. A whole number 10**size has floor(size) + 1
+    digits (10**1000 has 1,001), so the digits are counted, not size itself; the small allowance covers the rounding
+    of size in floating point (1000*log10(10) may come out a hair below 1000)."""
+    if not size < math.inf:  # endless, or not a number (inf - inf): too big
+        return True
+    return math.floor(size + 1e-9) + 1 > MAX_DIGITS
+
+
+class _Size(NamedTuple):
+    """At most about how big (in digits, as log10) the exact numbers in a part of a formula get once SymPy has worked
+    it out.
+
+    digits: the biggest number anywhere in it. top, bottom: the fraction SymPy may multiply with the other numbers of
+    a product it is in (999**100 in 999**100*x, 1/3 in x/3); none for a letter, a sum with letters, or a function that
+    keeps its shape. excess, bottoms, terms: what it brings to a sum it is in, where SymPy adds up the fractions of
+    like terms (x/3 + x/7 is 10*x/21) and the plain numbers: the biggest top minus bottom of its terms, their bottoms
+    added up, and how many terms. A sum of n fractions a/b has at most excess + bottoms + log10(n) digits on top and
+    bottoms below. number: no letters (in put_in, none left once the values are in). may_be_sum: SymPy may write it
+    as a sum, so a fraction times it is multiplied into each term (2*(x + 1) is 2*x + 2)."""
+    digits: float
+    top: float
+    bottom: float
+    excess: float
+    bottoms: float
+    terms: float
+    number: bool
+    may_be_sum: bool
+
+
+def _one_term(digits, top, bottom, number, may_be_sum) -> _Size:
+    """The size of a part that is one term of a sum (two, when SymPy may write it as a small sum)."""
+    excess = top - bottom if top < math.inf and bottom < math.inf else math.inf
+    return _Size(digits, top, bottom, excess, bottom, 2.0 if may_be_sum else 1.0, number, may_be_sum)
+
+
+def _raised(top: float, bottom: float, power) -> tuple:
+    """The top and the bottom of a fraction a/b raised to a fraction power p/q (SymPy takes out the whole powers:
+    8**(1/2) is 2*sqrt(2), (1/8)**(1/2) is sqrt(2)/4): at most |p/q| times the digits of a on top and ceil(|p/q|)
+    times those of b below (swapped for a power below 0)."""
+    up = -(-abs(int(power.p)) // int(power.q))  # ceil(|p/q|), a whole number of any size
+    if power.is_nonnegative:
+        return _times(power, top), _times(up, bottom)
+    return _times(power, bottom), _times(up, top)
+
+
+def _keeps_shape(sp) -> tuple:
+    """The functions that keep their shape around letters: SymPy takes at most a sign out of them (sin(-x) is
+    -sin(x)), never a fraction (abs(3*x) is 3*abs(x)) and never writes them as a sum (erfc(-x) is 2 - erfc(x))."""
+    return (sp.sin, sp.cos, sp.tan, sp.asin, sp.atan, sp.atan2, sp.erf, sp.sinc, sp.log, sp.gamma, sp.loggamma,
+            sp.digamma, sp.beta, sp.besselj)
+
+
+def _size(sp, value, memo=None) -> _Size:
+    """The _Size of value, from the inside out (each part once)."""
+    memo = {} if memo is None else memo
+    if value in memo:
+        return memo[value]
     if value.is_Atom:
-        return 0.0
-    if isinstance(value, sp.exp):
-        return _exp_digits(sp, value.args[0])
-    if value.is_Pow:
-        return _pow_digits(sp, *value.args)
-    return _combined(value, [_digits(sp, part) for part in value.args])
+        found = _atom_size(value)
+    elif isinstance(value, sp.exp):
+        found = _exp_size(sp, value.args[0], memo)
+    elif value.is_Pow:
+        found = _pow_size(sp, *value.args, memo=memo)
+    else:
+        found = _combined(sp, value, [_size(sp, part, memo) for part in value.args])
+    memo[value] = found
+    return found
 
 
-def _combined(value, parts) -> float:
-    """The digits of a product, sum or function from those of its parts (a sum may carry one more digit per ten
-    parts)."""
-    total = math.fsum(parts)
-    return total + math.log10(len(parts)) if value.is_Add and parts else total
+def _atom_size(value) -> _Size:
+    """A fraction has its own digits; another number (pi, 2.5) or a letter has none."""
+    number = not value.free_symbols
+    if not value.is_Rational:
+        return _one_term(0.0, 0.0, 0.0, number, False)
+    top = math.log10(abs(int(value.p))) if value.p else 0.0
+    bottom = math.log10(int(value.q))
+    return _one_term(max(top, bottom), top, bottom, True, False)
 
 
-def _pow_digits(sp, base, power) -> float:
+def _combined(sp, value, parts) -> _Size:
+    """The size of a sum, product or function from the sizes of its parts.
+
+    A sum: SymPy adds up its plain numbers and the fractions of its like terms (a sum of n fractions has at most
+    excess + bottoms + log10(n) digits); its other numbers stay as they are (999**100*x + 999**100*y keeps two
+    numbers of 300 digits). A product: SymPy multiplies its fractions together (their digits add up), and multiplies
+    a fraction into a sum (2*(x + 999) is 2*x + 1998); its other numbers stay as they are. A function: the digits of
+    its parts added up."""
+    number = all(part.number for part in parts)
+    if value.is_Add:
+        excess = max((part.excess for part in parts), default=0.0)
+        bottoms = math.fsum(part.bottoms for part in parts)
+        terms = math.fsum(part.terms for part in parts)
+        top = excess + bottoms + math.log10(max(terms, 1.0))
+        digits = max([top, bottoms] + [part.digits for part in parts])
+        if not number:
+            return _Size(digits, 0.0, 0.0, excess, bottoms, terms, False, True)
+        return _Size(digits, top, bottoms, excess, bottoms, terms, True, True)
+    if value.is_Mul:
+        top = math.fsum(part.top for part in parts)
+        bottom = math.fsum(part.bottom for part in parts)
+        if not (top < math.inf and bottom < math.inf):
+            return _Size(math.inf, math.inf, math.inf, math.inf, math.inf, 1.0, number, True)
+        digits = max([top, bottom] + [part.digits for part in parts])
+        found = _one_term(digits, top, bottom, number, False)
+        excess, bottoms, terms = found.excess, found.bottoms, found.terms
+        for part in parts:
+            if part.may_be_sum:  # the fraction of the other parts goes into each of its terms
+                other_top, other_bottom = top - part.top, bottom - part.bottom
+                digits = max(digits, max(other_top, other_bottom) + part.digits)
+                excess = max(excess, part.excess + other_top - other_bottom
+                             if other_top < math.inf and other_bottom < math.inf else math.inf)
+                bottoms, terms = max(bottoms, part.bottoms + other_bottom), max(terms, part.terms)
+        may_be_sum = any(part.may_be_sum for part in parts)
+        return _Size(digits, top, bottom, excess, bottoms, terms, number, may_be_sum)
+    digits = math.fsum(part.digits for part in parts)
+    if isinstance(value, sp.Abs) and parts:  # abs(-3*x/7) is 3*abs(x)/7
+        return _one_term(digits, parts[0].top, parts[0].bottom, number, parts[0].may_be_sum)
+    if not number and isinstance(value, _keeps_shape(sp)):
+        return _one_term(digits, 0.0, 0.0, False, False)
+    return _one_term(digits, digits, digits, number, True)
+
+
+def _pow_digits(sp, base, power, memo=None) -> float:
     """At most about how many digits base**power has once SymPy has worked it out (the power and the base worked
     out). SymPy works out a power of a fraction (999**100); multiplies out a power of a product ((999*x)**100 is
     999**100 * x**100); writes a power of a power as one power ((2**sqrt(2))**(1000*sqrt(2)) is 2**2000); and writes
     exp(c)**p as exp(c*p), so exp(2)**(1500*log(10)) is exp(3000*log(10)), which is 10**3000. A power of a sum or of
     a function is left as it is ((x + 999)**400), so it has the digits of its parts."""
+    memo = {} if memo is None else memo
     if base == sp.E:
-        return _exp_digits(sp, power)
+        return _exp_digits(sp, power, memo)
     if isinstance(base, sp.exp):
-        return _exp_digits(sp, base.args[0] * power)
+        return _exp_digits(sp, base.args[0] * power, memo)
     if base.is_Mul:
-        return math.fsum(_pow_digits(sp, factor, power) for factor in base.args)
+        return math.fsum(_pow_digits(sp, factor, power, memo) for factor in base.args)
     if base.is_Pow:
-        return max(_pow_digits(sp, base.args[0], base.args[1] * power), _digits(sp, base))
+        return max(_pow_digits(sp, base.args[0], base.args[1] * power, memo), _size(sp, base, memo).digits)
     if base.is_Rational and power.is_Rational:
         return _times(power, _height(base))
-    return _digits(sp, base) + _digits(sp, power)
+    return _size(sp, base, memo).digits + _size(sp, power, memo).digits
 
 
-def _exp_digits(sp, value) -> float:
-    """At most about how many digits exp(value) has once SymPy has worked it out. SymPy exp writes exp(n*log(b)) as
-    b**n (and exp(n*log(b) + x) as b**n * exp(x)) when n is a fraction: each such term of value counts as that
-    power, and the terms together as the product of those powers (exp(log(2)*3000 + log(3)*2000) is
-    2**3000 * 3**2000)."""
-    total = 0.0
+def _exp_parts(sp, value):
+    """The terms of the power of exp(value), each with its log and the fraction before it when the term is n*log(b)
+    with n a fraction (SymPy exp writes exp(n*log(b) + x) as b**n * exp(x)), else None and None."""
     for term in sp.Add.make_args(value):
         factors = sp.Mul.make_args(term)
         logs = [f for f in factors if isinstance(f, sp.log)]
         rest = sp.Mul(*[f for f in factors if not isinstance(f, sp.log)])
         if len(logs) == 1 and rest.is_Rational:
-            total += _pow_digits(sp, logs[0].args[0], rest)
+            yield term, logs[0], rest
         else:
-            total += _digits(sp, term)
+            yield term, None, None
+
+
+def _exp_digits(sp, value, memo=None) -> float:
+    """At most about how many digits exp(value) has once SymPy has worked it out. SymPy exp writes exp(n*log(b)) as
+    b**n (and exp(n*log(b) + x) as b**n * exp(x)) when n is a fraction: each such term of value counts as that
+    power, and the terms together as the product of those powers (exp(log(2)*3000 + log(3)*2000) is
+    2**3000 * 3**2000)."""
+    memo = {} if memo is None else memo
+    total = 0.0
+    for term, log, rest in _exp_parts(sp, value):
+        if log is not None:
+            total += _pow_digits(sp, log.args[0], rest, memo)
+        else:
+            total += _size(sp, term, memo).digits
     return total
 
 
-def _check_exp(sp, value, text: str) -> float:
-    """Refuse exp(value) when SymPy would turn it into a number with more than MAX_DIGITS digits (_exp_digits);
-    else its digits."""
-    digits = _exp_digits(sp, value)
-    if digits > MAX_DIGITS:
-        raise _too_many_digits(text)
-    return digits
+def _exp_size(sp, value, memo=None) -> _Size:
+    """The _Size of exp(value): its fraction is the product of the powers b**n that SymPy takes out of it (a term
+    n*log(b) with n a fraction); another term with a log in it may give a number of its own digits, and one without
+    a log gives none (exp(x + 2) stays as it is)."""
+    memo = {} if memo is None else memo
+    top = bottom = 0.0
+    for term, log, rest in _exp_parts(sp, value):
+        if log is not None:
+            inside = _size(sp, log.args[0], memo)
+            more = _raised(inside.top, inside.bottom, rest)
+        elif term.has(sp.log):
+            more = (_size(sp, term, memo).digits,) * 2
+        else:
+            more = (0.0, 0.0)
+        top, bottom = top + more[0], bottom + more[1]
+    number = not value.free_symbols
+    return _one_term(_exp_digits(sp, value, memo), top, bottom, number, number)  # exp(I*pi/4) is a sum
+
+
+def _pow_size(sp, base, power, memo=None) -> _Size:
+    """The _Size of base**power (its digits from _pow_digits). A power of e or of an exp is an exp; a fraction power
+    raises the fraction of the base ((3*x/7)**2 is 9*x**2/49); another power of a number, of a product or of a power
+    may give a number of its own digits ((2**sqrt(2)*x)**sqrt(2) is 4*x**sqrt(2) for a positive x)."""
+    memo = {} if memo is None else memo
+    digits = _pow_digits(sp, base, power, memo)
+    inside = _size(sp, base, memo)
+    number = inside.number and not power.free_symbols
+    if base == sp.E or isinstance(base, sp.exp):
+        found = _exp_size(sp, power if base == sp.E else base.args[0] * power, memo)
+        return _one_term(digits, found.top, found.bottom, number, found.may_be_sum)
+    if power.is_Rational:
+        top, bottom = _raised(inside.top, inside.bottom, power)
+    elif number or base.is_Mul or base.is_Pow:
+        top = bottom = digits
+    else:
+        top = bottom = 0.0
+    return _one_term(digits, top, bottom, number, inside.may_be_sum)
 
 
 def _work_out(sp, tree, text: str):
@@ -392,14 +585,14 @@ def _work_out(sp, tree, text: str):
     999**100 multiplied together have 1,200 digits). A formula with anything heavy is then worked out by SymPy doit
     under the time limit, never here while the text is read."""
     heavy = False
-    digits: dict = {}  # each part of the formula -> at most how many digits it has once worked out
+    sizes: dict = {}  # each part of the formula -> its _Size once worked out
 
     def worked_out(*values):
         return list(_guarded(sp.Tuple, *values, what="SymPy evaluate")) if heavy else [v.doit() for v in values]
 
     for node in sp.postorder_traversal(tree):
         if node.is_Atom:
-            digits[node] = _digits(sp, node)
+            sizes[node] = _atom_size(node)
             continue
         if isinstance(node, _specials(sp)):
             heavy = True
@@ -407,9 +600,10 @@ def _work_out(sp, tree, text: str):
                 size = _size_of_number(sp, value)
                 if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
                     raise _too_big_special(text, _special_name(node))
-            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
-        elif isinstance(node, sp.exp) and node.args[0].has(sp.log):
-            found = _check_exp(sp, worked_out(node.args[0])[0], text)
+            found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
+        elif isinstance(node, sp.exp):
+            power = worked_out(node.args[0])[0] if node.args[0].has(sp.log) else node.args[0]
+            found = _exp_size(sp, power, sizes)  # exp(3000*log(10)) is 10**3000
         elif isinstance(node, sp.Pow):
             base, power = node.args
             small = power.is_Number and (power.is_Float or (
@@ -418,14 +612,14 @@ def _work_out(sp, tree, text: str):
                 heavy = heavy or not small
                 base, power = worked_out(base, power)
                 if power.is_Rational and (base.is_number or isinstance(base, (sp.Mul, sp.Pow))) and \
-                        _power_digits(sp, base, power) > MAX_DIGITS:
+                        _too_many(_power_digits(sp, base, power)):
                     raise _too_many_digits(text)  # a number, or a product SymPy multiplies out: (999*x)**100
-            found = _pow_digits(sp, base, power)  # exp(2)**(1500*log(10)) is 10**3000
+            found = _pow_size(sp, base, power, sizes)  # exp(2)**(1500*log(10)) is 10**3000
         else:
-            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
-        if found > MAX_DIGITS:
+            found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
+        if _too_many(found.digits):
             raise _too_many_digits(text)
-        digits[node] = found
+        sizes[node] = found
     if not heavy:
         return None
     return _guarded(tree.doit, what="SymPy doit")
@@ -437,14 +631,11 @@ def letters_of(text, what: str = "sdata.formula()") -> list[str]:
         return text._letters()
     if not isinstance(text, str):
         return []
-    try:
-        tree = ast.parse(text.strip(), mode="eval")
-    except SyntaxError:
-        return []
     letters: list = []
     try:
-        _check_node(tree, text.strip(), letters, set())
-    except SimplydataError:  # parse() says what is wrong with the text, in its own words
+        for piece in _sum_pieces(text.strip()):  # a long sum a piece at a time, as parse() reads it
+            _check_node(ast.parse(piece, mode="eval"), piece, letters, set())
+    except (SyntaxError, RecursionError, SimplydataError):  # parse() says what is wrong with the text
         return []
     return letters
 
@@ -508,14 +699,34 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
             raise _formula_error(
                 f'"{text}" has {sign} in it, so it is an equation, not a formula. Give only the formula here, such as '
                 '"x**2 - 2"; to solve an equation exactly use sdata.solve("x**2 = 2", exactly=True).')
-    try:
-        tree = ast.parse(text.strip(), mode="eval")
-    except SyntaxError:
-        raise _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 times '
-                             "x.") from None
+    pieces = _sum_pieces(text.strip())  # a long sum is read LONG_SUM terms at a time
+    trees = []
+    for piece in pieces:
+        try:
+            trees.append(ast.parse(piece, mode="eval"))
+        except SyntaxError:
+            if len(pieces) > 1:  # never expected: then the text is read whole, as any other
+                pieces, trees = [text.strip()], []
+                break
+            raise _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 '
+                                 "times x.") from None
+        except RecursionError:
+            raise _too_deep(text) from None
+    if not trees:
+        try:
+            trees = [ast.parse(text.strip(), mode="eval")]
+        except SyntaxError:
+            raise _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 '
+                                 "times x.") from None
+        except RecursionError:
+            raise _too_deep(text) from None
     letters: list = []
     functions: set = set()
-    _check_node(tree, text.strip(), letters, functions)
+    try:
+        for piece, tree in zip(pieces, trees):
+            _check_node(tree, piece, letters, functions)
+    except RecursionError:
+        raise _too_deep(text) from None
     from sympy.parsing.sympy_parser import convert_xor, parse_expr, standard_transformations
 
     known = dict(letters_known or {})
@@ -531,12 +742,24 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     # first unevaluated: nothing is worked out while the text is read (gamma(abs(-2000)) stays as it is)
     kept = _unevaluated_functions(sp)
     unevaluated = {**local, **{name: kept[SPELLINGS.get(name, name)] for name in functions}}
-    tree = parse_expr(text.strip(), local_dict=unevaluated, transformations=transformations, evaluate=False,
-                      global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow})
-    worked_out = _work_out(sp, tree, text.strip())
-    if worked_out is not None:
-        return worked_out
-    return parse_expr(text.strip(), local_dict=local, global_dict=safe, transformations=transformations)
+    try:
+        parts = [parse_expr(piece, local_dict=unevaluated, transformations=transformations, evaluate=False,
+                            global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}) for piece in pieces]
+        tree = parts[0] if len(parts) == 1 else sp.Add(*parts, evaluate=False)
+        worked_out = _work_out(sp, tree, text.strip())
+        if worked_out is not None:
+            return worked_out
+        parts = [parse_expr(piece, local_dict=local, global_dict=safe, transformations=transformations)
+                 for piece in pieces]
+    except RecursionError:  # SymPy's reader goes into brackets in brackets, and down a * b * c ..., by recursion
+        raise _too_deep(text) from None
+    return parts[0] if len(parts) == 1 else sp.Add(*parts)
+
+
+def _too_deep(text: str) -> SimplydataError:
+    shown = text.strip() if len(text.strip()) <= 60 else text.strip()[:57] + "..."
+    return _formula_error(f'"{shown}" has too many steps one inside another to be read (brackets in brackets, a long '
+                          "chain of * and /, or a long sum inside brackets). Write it in smaller pieces.")
 
 
 def _python_printer():
@@ -700,12 +923,12 @@ def check_value_fits(symbol, value, step: str) -> None:
 
 def _kind_example(kind: str, name: str) -> str:
     """What SymPy may do with a letter of this kind, for the sentences that refuse a value that is not of it."""
-    return {"positive": f"sqrt({name}**2) is {name} only for a positive {name}",
-            "zero or more": f"sqrt({name}**2) is {name} only for {name} zero or more",
-            "negative": f"sqrt({name}**2) is -{name} only for a negative {name}",
-            "real": f"abs({name})**2 is {name}**2 only for a real {name}",
-            "whole number": f"cos(pi*{name})**2 is 1 only for a whole {name}",
-            "positive whole number": f"cos(pi*{name})**2 is 1 only for a whole {name}"}[kind]
+    return {"positive": f"sqrt({name}**2) is {name} for a positive {name} (not for a negative one)",
+            "zero or more": f"sqrt({name}**2) is {name} for {name} zero or more (not for a negative one)",
+            "negative": f"sqrt({name}**2) is -{name} for a negative {name} (not for a positive one)",
+            "real": f"abs({name})**2 is {name}**2 for a real {name} (not for {name} = sqrt(-1))",
+            "whole number": f"cos(pi*{name})**2 is 1 for a whole {name} (not for {name} = 1/2)",
+            "positive whole number": f"cos(pi*{name})**2 is 1 for a whole {name} (not for {name} = 1/2)"}[kind]
 
 
 def _kind_expression_example(kind: str) -> str:
@@ -741,7 +964,8 @@ def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
     sized from its base and power with the value put in (worked out by SymPy under the time limit when they are
     more than the letter itself, and already sized, so never huge). The numbers inside the special functions are
     checked as when a formula is read."""
-    digits: dict = {}
+    sizes: dict = {}  # each part of the formula -> its _Size with the value in it
+    plain: dict = {}  # the _Size of parts without the letter, and of the parts put_in builds
     built: dict = {}
 
     def put_in(part):
@@ -755,16 +979,13 @@ def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
 
     for node in sp.postorder_traversal(expr):
         if node == symbol:
-            found = _digits(sp, value)
-        elif node.is_Atom:
-            found = _digits(sp, node)
+            found = _size(sp, value, plain)
         elif not node.has(symbol):
-            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args]) \
-                if not (node.is_Pow or isinstance(node, sp.exp)) else _digits(sp, node)
+            found = _size(sp, node, plain)
         elif isinstance(node, sp.exp):
-            found = _exp_digits(sp, put_in(node.args[0]))
+            found = _exp_size(sp, put_in(node.args[0]), plain)
         elif node.is_Pow:
-            found = _pow_digits(sp, put_in(node.args[0]), put_in(node.args[1]))
+            found = _pow_size(sp, put_in(node.args[0]), put_in(node.args[1]), plain)
         else:
             if isinstance(node, _specials(sp)):
                 for part in node.args:
@@ -774,12 +995,12 @@ def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
                                               f"{MAX_SPECIAL_ARGUMENT} ({said}), too big to work out exactly. Use a "
                                               "smaller number, or keep the letter and use find_value_at() for a "
                                               "decimal.")
-            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
-        if found > MAX_DIGITS:
+            found = _combined(sp, node, [sizes[p] if p in sizes else _size(sp, p, plain) for p in node.args])
+        if _too_many(found.digits):
             raise SimplydataError(f"put_in() would make a number with more than {MAX_DIGITS} digits ({said}), too "
                                   "big to work with exactly. Put in a smaller number, or keep the letter and use "
                                   "find_value_at() for a decimal.")
-        digits[node] = found
+        sizes[node] = found
 
 
 def check_range_fits(formula, name: str, low: float, high: float, step: str) -> None:
@@ -1180,8 +1401,9 @@ class Formula:
                 raise SimplydataError(
                     f"put_in() cannot put {said} in place of {k}: the formula says {k} is {kind_words(kind)} "
                     f"(letters_are=), and SymPy may have used that already ({_kind_example(kind, k)}), so the "
-                    f"answer could be wrong when {said} is not {kind_words(kind)}. Put in a real number, one new "
-                    f"letter (it takes what {k} is), or an expression SymPy can show is {kind_words(kind)} "
+                    f"answer could be wrong when {said} is not {kind_words(kind)}. Put in a number that is "
+                    f"{kind_words(kind)}, one new letter (it takes what {k} is), or an expression SymPy can show is "
+                    f"{kind_words(kind)} "
                     f"({_kind_expression_example(kind)}); or write the formula again with the new letters, and give "
                     "them their own letters_are=.")
             swaps[symbol] = value
@@ -1622,7 +1844,7 @@ def _rules_exactly(sp, rules, shown, names, wanted, fast):
         except NotImplementedError:  # SymPy's own error, from the helper: x**x > 2 with other rules
             raise SimplydataError(f"SymPy could not solve {' and '.join(shown)} exactly (SymPy reduce_inequalities "
                                   "cannot do rules of this kind together).") from None
-        whole =sp.S.Reals if reduced == sp.true else sp.S.EmptySet if reduced == sp.false else reduced.as_set()
+        whole = sp.S.Reals if reduced == sp.true else sp.S.EmptySet if reduced == sp.false else reduced.as_set()
         whole = _guarded(sp.Intersection, whole, domain, what="SymPy Intersection", hint=EXACTLY_HINT)
         how = f"SymPy reduce_inequalities over {where}"
     else:
