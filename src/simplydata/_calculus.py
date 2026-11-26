@@ -655,7 +655,8 @@ def _tail_integral(sp, f, x, start):
 def _sum_between(sp, term, k, start, count: int, said: str):
     """Lower and upper bounds (40-digit decimals) of term summed from k = start to infinity: the first count terms
     added by SymPy evalf, the rest bounded by the integral test with SymPy's integrals. Needs terms that SymPy shows
-    keep falling after them (f' <= 0); when they also bend upwards (f'' >= 0), the closer bounds of the trapezoid and
+    keep falling after them (f' <= 0; terms that keep rising, to 0, are bounded as minus their sum); when they also
+    bend upwards (f'' >= 0), the closer bounds of the trapezoid and
     midpoint rules hold:
         integral from last to infinity - f(last)/2  <=  rest  <=  integral from last + 1/2 to infinity
     otherwise
@@ -668,6 +669,9 @@ def _sum_between(sp, term, k, start, count: int, said: str):
     f = term.subs(k, x)
     slope = sp.diff(f, x)
     if not _sign_is(sp, slope.subs(x, last + t), "falls"):
+        if _sign_is(sp, -slope.subs(x, last + t), "falls"):  # terms that rise to 0 (-1/k**2): bound minus them
+            low, high, bends_up = _sum_between(sp, -term, k, start, count, said)
+            return -high, -low, bends_up
         raise SimplydataError(f"{said}: SymPy found no exact formula, and simplydata gives the decimal of such a sum "
                               "only when SymPy can show that its terms keep falling, so that the integral test bounds "
                               f"the error; SymPy cannot show that here.\n{SUM_HINT}")
@@ -686,7 +690,9 @@ def _sum_between(sp, term, k, start, count: int, said: str):
     if low is None or high is None or not (first.is_Float and at_last.is_Float):
         raise SimplydataError(f"{said}: SymPy found no exact formula, and its integral of the terms, which bounds the "
                               f"error of the decimal, did not reach enough digits.\n{SUM_HINT}")
-    room = sp.Float("1e-32", 40) * (abs(first) + 1)  # SymPy's own rounding at 40 digits, with room to spare
+    # the integrals are sure to 100 bits (about 8e-31 of their size, _tail_integral), the terms to 40 digits: room
+    # for both, ten times over
+    room = sp.Float("1e-29", 40) * (abs(first) + abs(low) + abs(high) + abs(at_last) + 1)
     return first + low - room, first + high + room, bool(bends_up)
 
 
@@ -713,12 +719,19 @@ def _settled_decimal(sp, term, k, low, high, said: str):
         sides = [(term.subs(k, -k), -high)]
     else:
         sides = [(term, sp.Integer(0)), (term.subs(k, -k), sp.Integer(1))]
+    done = None  # (count, bounds, below, above, digits) of the last round that finished
     for count in TERMS_ONE_BY_ONE:
-        bounds = [_sum_between(sp, side, k, start, count, said) for side, start in sides]
+        try:
+            bounds = [_sum_between(sp, side, k, start, count, said) for side, start in sides]
+        except SimplydataError:
+            if done is None:
+                raise
+            break  # more terms ran out of time or could not be bounded: the bounds of fewer terms still hold
         below, above = sum(b[0] for b in bounds), sum(b[1] for b in bounds)
-        digits = _sure_digits(below, above)
-        if digits >= SURE_DIGITS_SHOWN:
+        done = (count, bounds, below, above, _sure_digits(below, above))
+        if done[4] >= SURE_DIGITS_SHOWN:
             break
+    count, bounds, below, above, digits = done
     if digits < 2:
         raise SimplydataError(f"{said}: SymPy found no exact formula, and the sum is only known to lie between "
                               f"{float(below):.6g} and {float(above):.6g}, not even two sure digits. The series "

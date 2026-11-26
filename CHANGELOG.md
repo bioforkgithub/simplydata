@@ -91,6 +91,13 @@ working for one release and prints a one-line note with its new name.
   the main script out only for its own thread; the exact grid words share one deadline; a rule always true or false
   for what the letters are, and the ranges of whole-number letters, are said plainly; typed decimals in rules are
   exact (x < 3.5 is x < 7/2).
+- After the third review: every power whose base is not a plain letter or number, and every exp of a log, is sized
+  before SymPy makes the number (`(abs(999)**100)**100`, `(999*x)**400`, `exp(3000*log(10))` and a typed whole
+  number of 400 digits to a power are refused at once); `find_where_smallest`/`find_where_biggest` say when the
+  formula has no value anywhere the search looked, instead of an infinite answer; `put_in` refuses an expression in
+  place of a letter with a kind unless SymPy shows it has that kind; a repeating rule over too long a finite range
+  says how many repeats it covers; a series whose terms rise to 0 gets its decimal too, the bounds leave room for
+  the accuracy of SymPy's integrals, and the 1,000-term answer is kept when the 10,000-term round fails.
 
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 

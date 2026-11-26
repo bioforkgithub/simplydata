@@ -423,6 +423,10 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         where = " within between="
     if search == "whole range":
         where = " over the whole range" + ("" if not rule_list else where)
+    if not math.isfinite(answer.value):  # the objective is infinite only where the formula is NaN or infinite
+        raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: wherever the search looked, the "
+                              "formula is not a number or is infinite (log(x), for example, has no value for x of 0 "
+                              "or below). Check between=.")
     print(f"The {word} value of {formula}{where} is {_show(value)}, at {_places(names, answer.place)}.")
     print(answer.method_words)
     tight = []

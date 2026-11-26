@@ -128,7 +128,10 @@ RESERVED = ("Integer", "Float", "Rational", "Symbol", "Function", "Lambda", "Add
 def _constant(node):
     """The size of a piece made only of numbers (float, never exact; inf when too big), or None."""
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
-        return float(node.value)
+        try:
+            return float(node.value)
+        except OverflowError:  # a whole number typed with more than 308 digits
+            return math.inf if node.value > 0 else -math.inf
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
         inner = _constant(node.operand)
         return None if inner is None else (-inner if isinstance(node.op, ast.USub) else inner)
@@ -279,14 +282,39 @@ def _power_digits(sp, base, power) -> float:
     return abs(float(power)) * max(heights, default=0.0)
 
 
+def _too_many_digits(text: str) -> SimplydataError:
+    return _formula_error(f'"{text}" has a number with more than {MAX_DIGITS} digits, too big to work with exactly. '
+                          "Use smaller numbers, or a letter for it.")
+
+
+def _check_exp(sp, value, text: str):
+    """Refuse exp(value) when SymPy would turn it into a power with more than MAX_DIGITS digits. SymPy exp writes
+    exp(n*log(b)) as b**n (and exp(n*log(b) + x) as b**n * exp(x)) when n is a number: each such term of value is
+    sized as that power."""
+    for term in sp.Add.make_args(value):
+        factors = sp.Mul.make_args(term)
+        logs = [f for f in factors if isinstance(f, sp.log)]
+        rest = sp.Mul(*[f for f in factors if not isinstance(f, sp.log)])
+        if len(logs) == 1 and rest.is_Rational and _power_digits(sp, logs[0].args[0], rest) > MAX_DIGITS:
+            raise _too_many_digits(text)
+
+
 def _work_out(sp, tree, text: str):
     """The unevaluated formula from parse_expr(evaluate=False), worked out; None when nothing in it can be heavy.
 
-    The numbers inside the special functions and of powers are checked first, from the inside out (refused when too
-    big), each worked out by SymPy under the time limit; a formula that has any of them is then worked out by SymPy
-    doit under the time limit too, never here while the text is read."""
+    Every power whose base is not a plain letter or a plain number, every power with a big or worked-out exponent,
+    and every exp of a log is sized first, from the inside out, so that a number with more than MAX_DIGITS digits
+    is refused before SymPy makes it: (abs(999)**100)**100 (each further **100 makes it 100 times longer),
+    (999*x)**100 (SymPy multiplies out the 999), exp(3000*log(10)) (SymPy writes 10**3000). Each piece is sized as
+    SymPy works it out: here while nothing before it is heavy (so it is small), else by SymPy under the time limit.
+    The numbers inside the special functions are checked too. A formula with anything heavy is then worked out by
+    SymPy doit under the time limit, never here while the text is read."""
     specials = (sp.gamma, sp.loggamma, sp.digamma, sp.beta, sp.besselj)
     heavy = False
+
+    def worked_out(*values):
+        return list(_guarded(sp.Tuple, *values, what="SymPy evaluate")) if heavy else [v.doit() for v in values]
+
     for node in sp.postorder_traversal(tree):
         if isinstance(node, specials):
             heavy = True
@@ -295,16 +323,21 @@ def _work_out(sp, tree, text: str):
                 size = _size_of_number(sp, value)
                 if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
                     raise _too_big_special(text, name)
+        elif isinstance(node, sp.exp) and node.args[0].has(sp.log):
+            _check_exp(sp, worked_out(node.args[0])[0], text)
         elif isinstance(node, sp.Pow):
             base, power = node.args
-            if base.is_Symbol or (power.is_Number and (power.is_Float or (
-                    abs(int(power.p)) <= MAX_LETTER_POWER and int(power.q) <= MAX_LETTER_POWER))):
-                continue  # x**k, or a small power of a number already checked: never a huge number
-            heavy = True
-            base, power = _guarded(sp.Tuple, base, power, what="SymPy evaluate")
-            if base.is_number and power.is_Rational and _power_digits(sp, base, power) > MAX_DIGITS:
-                raise _formula_error(f'"{text}" has a number with more than {MAX_DIGITS} digits, too big to work with '
-                                     "exactly. Use smaller numbers, or a letter for it.")
+            small = power.is_Number and (power.is_Float or (
+                abs(int(power.p)) <= MAX_LETTER_POWER and int(power.q) <= MAX_LETTER_POWER))
+            if base.is_Symbol or (base.is_Number and small):
+                continue  # x**k, or a small power of a plain number: never a huge number
+            heavy = heavy or not small
+            base, power = worked_out(base, power)
+            if base == sp.E:  # E**(n*log(b)) is exp(n*log(b))
+                _check_exp(sp, power, text)
+            elif power.is_Rational and (base.is_number or isinstance(base, (sp.Mul, sp.Pow))) and \
+                    _power_digits(sp, base, power) > MAX_DIGITS:
+                raise _too_many_digits(text)  # a number, or a product SymPy multiplies out: (999*x)**100
     if not heavy:
         return None
     return _guarded(tree.doit, what="SymPy doit")
@@ -549,6 +582,14 @@ def kind_domain(sp, symbol):
     return {"positive whole number": sp.S.Naturals, "whole number": sp.S.Integers,
             "positive": sp.Interval.open(0, sp.oo), "zero or more": sp.Interval(0, sp.oo),
             "negative": sp.Interval.open(-sp.oo, 0)}.get(kind, sp.S.Reals)
+
+
+def _fits_kind(value, kind: str) -> bool:
+    """Whether SymPy's assumptions show that value is what letters_are= says (2*y is positive for a positive y)."""
+    checks = {"positive": ("is_positive",), "zero or more": ("is_nonnegative",), "negative": ("is_negative",),
+              "whole number": ("is_integer",), "positive whole number": ("is_integer", "is_positive"),
+              "real": ("is_real",)}[kind]
+    return all(getattr(value, check) is True for check in checks)
 
 
 def check_value_fits(symbol, value, step: str) -> None:
@@ -961,7 +1002,16 @@ class Formula:
             new = v.strip() if isinstance(v, str) else None
             if kind is not None and new is not None and new.isidentifier() and new not in own:
                 symbols[new] = sp.Symbol(new, **LETTER_KINDS[kind])  # put_in(x="y"): y is what x was
-            swaps[symbol] = parse(v, "put_in()", symbols=symbols)
+            value = parse(v, "put_in()", symbols=symbols)
+            if kind is not None and not (value.is_number and value.is_real) and not _fits_kind(value, kind):
+                said = new if new is not None else _show(value)
+                raise SimplydataError(
+                    f"put_in() cannot put {said} in place of {k}: the formula says {k} is {kind_words(kind)} "
+                    f"(letters_are=), and SymPy may have used that already (sqrt(x**2) is x only for a positive x), "
+                    f"so the answer could be wrong when {said} is not {kind_words(kind)}. Put in a number, or one new "
+                    f"letter (it takes what {k} is); or write the formula again with the new letters, and give them "
+                    "their own letters_are=.")
+            swaps[symbol] = value
         for symbol, value in swaps.items():
             if value.is_number and value.is_real:
                 check_value_fits(symbol, float(value), "put_in")
@@ -1432,6 +1482,8 @@ def _keep_repeating(sp, rule, said, period, x, whole):
     every number, or none, when the rule always or never holds). That one period is moved along by whole periods
     (SymPy imageset) over the range the other rules leave, which must be of finite length, and kept to that range
     (SymPy Intersection). Over an endless range only "always" and "never" can be given; anything else is refused."""
+    if isinstance(whole, sp.ConditionSet):  # SymPy could not solve the rules before: the caller says so
+        return whole
     once = _guarded(sp.solveset, rule, x, sp.S.Reals, what="SymPy solveset", hint=EXACTLY_HINT)
     if once == sp.S.EmptySet or whole == sp.S.EmptySet or isinstance(once, sp.ConditionSet):
         return once if whole != sp.S.EmptySet else whole
@@ -1445,6 +1497,11 @@ def _keep_repeating(sp, rule, said, period, x, whole):
             moved = [_guarded(sp.imageset, sp.Lambda(x, x + n * period), once, what="SymPy imageset",
                               hint=EXACTLY_HINT) for n in range(first, last + 1)]
             return _guarded(sp.Intersection, sp.Union(*moved), whole, what="SymPy Intersection", hint=EXACTLY_HINT)
+        raise SimplydataError(f'"{said}" repeats every {_show(period)} in {x}, and the range the other rules leave '
+                              f"covers {last - first:,} repeats, more than the {MAX_PERIODS:,} simplydata puts "
+                              "together. Use a shorter range, or solve where the two sides are equal instead (with = "
+                              "and exactly=True, which gives the whole repeating set) and read the ranges between "
+                              "those points.")
     raise SimplydataError(f'"{said}" repeats every {_show(period)} in {x}, and SymPy solveset gives the ranges of one '
                           "period only, so its answer would leave out the others. Solve where the two sides are equal "
                           "instead (with = and exactly=True, which gives the whole repeating set), and read the ranges "

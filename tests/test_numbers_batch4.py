@@ -11,6 +11,7 @@ import math
 import operator
 import os
 import pickle
+import re
 import subprocess
 import sys
 import textwrap
@@ -1198,3 +1199,134 @@ def test_review2_m_the_helper_memory_limit_follows_free_memory(monkeypatch):
     assert _sympy_worker.memory_limit() == 4 * gigabyte
     monkeypatch.setattr(_sympy_worker, "_memory_free_now", lambda: gigabyte // 2)
     assert _sympy_worker.memory_limit() == gigabyte
+
+
+# ================================================================ third review of 2ded4aa (each test fails on that commit)
+# ---- A: every power that could grow, and every exp of a log, is sized before SymPy makes the number
+@pytest.mark.parametrize("text", ["(abs(999)**100)**100", "exp(3000*log(10))", "exp(log(10)*3000)*x",
+                                  "exp(3000*log(10) + x)", "exp(1)**(3000*log(10))", "(999*x + 0)**400",
+                                  "((999*x)**100)**100", "(x*abs(999)**100)**100", "((1 + 1/abs(10)**4)**100)**100",
+                                  "exp(log(1 + 1/10**4)*10**4)", "1" + "0" * 400 + "**100"])
+def test_review3_a_nested_powers_and_exp_of_a_log_are_refused(text):
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula(text)  # 2ded4aa: worked out here (29,996 digits for the first), or OverflowError for the last
+
+
+@pytest.mark.parametrize("text", ["((abs(999)**100)**100)**100", "(((abs(999)**100)**100)**100)**100",
+                                  "exp(10**6*log(10))", "exp(10**9*log(10))"])
+def test_review3_a_deeper_powers_are_refused_at_once(text):
+    started = time.monotonic()
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula(text)  # 2ded4aa: millions of digits (or 10**(10**9)) worked out in this process
+    assert time.monotonic() - started < 30
+
+
+def test_review3_a_ordinary_formulas_are_read_as_before():
+    expected = {"2**x": "2**x", "x**2 - 4*x + 1": "x**2 - 4*x + 1", "(x+1)**(1/2)": "sqrt(x + 1)",
+                "exp(-x/2)": "exp(-x/2)", "1/(1+exp(-x))": "1/(1 + exp(-x))", "10**(x/10)": "10**(x/10)",
+                "x - 1": "x - 1", "2*x/3": "2*x/3", "-x**2": "-x**2", "gamma(x)*2": "2*gamma(x)", "gamma(5)*x": "24*x",
+                "x**0.5": "x**0.5", "(x+1)**0.5": "(x + 1)**0.5", "2**-x": "2**(-x)", "beta(2, 3)*x": "x/12",
+                "sinc(x)": "sinc(pi*x)", "a*exp(-b*t)": "a*exp(-b*t)", "3.5*x": "3.5*x", "0.1*x + 0.2": "0.1*x + 0.2",
+                "(x-1)/(x-1)": "1", "x*y/y": "x", "log(8, 2)*x": "3*x", "sqrt(8)*x": "2*sqrt(2)*x",
+                "(2*x)**(3/2)": "2*sqrt(2)*x**(3/2)", "2**(1/2)": "sqrt(2)", "abs(-3)*x": "3*x",
+                "4**0.5": "2.00000000000000", "(1/3)**(x)": "(1/3)**x", "exp(3*log(10))*x": "1000*x",
+                "exp(log(x)*2)": "x**2", "(2*x)**3": "8*x**3", "(abs(2)**10)**10": str(2 ** 100)}
+    for text, shown in expected.items():
+        assert str(sdata.formula(text).as_sympy()) == shown, text
+    assert sdata.formula("(999*x)**100").as_sympy() == 999 ** 100 * _sp()[1] ** 100  # 300 digits: allowed
+
+
+# ---- B: series decimals: rising terms, room for the integrals' accuracy, fewer terms kept
+def test_review3_b_terms_that_rise_to_zero_are_bounded_as_minus_their_sum():
+    from simplydata._calculus import _sum_between
+
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    low, high, _ = _sum_between(sp, 1 / k ** 2, k, 1, 10, "s")
+    minus_low, minus_high, _ = _sum_between(sp, -1 / k ** 2, k, 1, 10, "s")  # 2ded4aa: refused ("keep falling")
+    assert (minus_low, minus_high) == (-high, -low)
+    assert minus_low <= -sp.pi ** 2 / 6 <= minus_high
+
+
+def test_review3_b_the_bounds_leave_room_for_the_accuracy_of_the_integrals():
+    from simplydata._calculus import _sum_between
+
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    low, high, bends_up = _sum_between(sp, 1 / k ** 2, k, 1, 10, "s")
+    assert bends_up
+    first = sum(sp.Rational(1, i ** 2) for i in range(1, 11))
+    exact_low = first + sp.Rational(1, 10) - sp.Rational(1, 200)  # trapezoid: integral from 10, less f(10)/2
+    exact_high = first + sp.Rational(2, 21)  # midpoint: integral from 10.5
+    accuracy = sp.Float(2, 40) ** -99 * (first + sp.Rational(1, 10))  # evalf's integrals are sure to 100 bits
+    assert exact_low - low >= accuracy and high - exact_high >= accuracy  # 2ded4aa: room 1e-32 only
+    assert low <= sp.pi ** 2 / 6 <= high
+
+
+def test_review3_b_the_bounds_of_fewer_terms_are_kept_when_more_terms_fail(monkeypatch, capsys):
+    from simplydata import _calculus
+
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    real = _calculus._sum_between
+
+    def fails_with_more(sp_, term, k_, start, count, said):
+        if count > 10:
+            raise sdata.SimplydataError("SymPy evalf took longer than 60 seconds")
+        return real(sp_, term, k_, start, count, said)
+
+    monkeypatch.setattr(_calculus, "TERMS_ONE_BY_ONE", (10, 20))
+    monkeypatch.setattr(_calculus, "_sum_between", fails_with_more)
+    value = _calculus._settled_decimal(sp, 1 / k ** 2, k, sp.Integer(1), sp.oo, "s")  # 2ded4aa: the error
+    assert value == pytest.approx(math.pi ** 2 / 6, rel=1e-4)
+    assert "the first 10 terms" in capsys.readouterr().out
+
+
+def test_review3_b_a_series_of_negative_terms_has_its_decimal(capsys):
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    value = sdata.find_sum_of_series("-1/(k**3 + k + 1)", between=[1, "infinity"])  # 2ded4aa: refused
+    reference = -sp.Sum(1 / (k ** 3 + k + 1), (k, 1, sp.oo)).evalf(30)
+    assert value == pytest.approx(float(reference), rel=1e-12)
+    assert _correctly_rounded(float(reference), _printed_sum(capsys.readouterr().out))
+
+
+# ---- C: a repeating rule over a long finite range, and after a rule SymPy could not solve
+def test_review3_c_a_long_finite_range_says_how_many_repeats():
+    with pytest.raises(sdata.SimplydataError, match="covers 15,916 repeats, more than the 1,000") as info:
+        sdata.solve(["sin(x) > 0", "x > 0", "x < 100000"], exactly=True)
+    assert "finite length" not in str(info.value)  # 2ded4aa: advised a finite range, which it already was
+
+
+def test_review3_c_a_rule_sympy_could_not_solve_is_said_before_a_repeating_one():
+    with pytest.raises(sdata.SimplydataError, match="SymPy could not solve"):
+        sdata.solve(["abs(sin(x)) <= 1", "sin(x) > 0"], exactly=True)  # 2ded4aa: NotImplementedError (ConditionSet)
+
+
+# ---- H: a formula with no value on the whole range has no smallest or biggest value there
+def test_review3_h_no_value_on_the_range_is_said(capsys):
+    geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
+    with pytest.raises(sdata.SimplydataError, match="found no smallest value"):
+        sdata.find_where_smallest(geometric, between=[-3, -2])  # 2ded4aa: "infinite, at r = -2"
+    with pytest.raises(sdata.SimplydataError, match="found no biggest value"):
+        sdata.find_where_biggest(geometric, between=[1.5, 3])  # 2ded4aa: "minus infinite, at r = 3"
+    with pytest.raises(sdata.SimplydataError, match="found no smallest value .*not a number or is infinite"):
+        sdata.find_where_smallest("log(x)", between=[-3, -1])
+    assert "infinite, at" not in capsys.readouterr().out
+    smallest = sdata.find_where_smallest("x - log(x)", between=[-1, 3])  # a value on part of the range: found
+    assert smallest.get_cell_at(row=1, column="smallest value") == pytest.approx(1.0, rel=1e-9)
+
+
+# ---- put_in: a letter with a kind takes a number, or one letter of that kind, never a free expression
+def test_review3_put_in_an_expression_for_a_letter_with_a_kind_is_refused():
+    sp, _ = _sp()
+    f = sdata.formula("sqrt(x**2)", letters_are={"x": "positive"})
+    for new in ("y + 1", "2*y"):
+        with pytest.raises(sdata.SimplydataError, match=f"cannot put {re.escape(new)} in place of x: the formula "
+                                                         "says x is positive"):
+            f.put_in(x=new)  # 2ded4aa: y + 1, then put_in(y=-5) gave -4 (sqrt((-5 + 1)**2) is 4)
+    assert "y (positive)" in repr(f.put_in(x="y"))
+    both = sdata.formula("sqrt(x**2) + y", letters_are={"x": "positive", "y": "positive"})
+    y = sp.Symbol("y", positive=True)
+    assert both.put_in(x="2*y").as_sympy() == 3 * y  # SymPy shows 2*y is positive
+    assert sdata.formula("sqrt(x**2)").put_in(x="y + 1").put_in(y=-5).as_sympy() == 4  # no kind: as before
