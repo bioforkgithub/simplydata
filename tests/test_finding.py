@@ -446,3 +446,30 @@ def test_whole_range_with_rules_and_whole_numbers():
                           search="whole range", whole_numbers=True))
     assert (r["x"], r["y"]) == (2, -2)
     assert r["smallest value"] == pytest.approx(0.32, abs=1e-12)
+
+
+# ---------------------------------------------------------------------------- fourth review of 5417466 (N2)
+# each fails on 5417466: refused as "wherever the search looked, the formula is not a number", or a crash
+def test_review4_n2_a_small_area_with_values_inside_a_long_range_without_is_found(capsys):
+    # sqrt(1 - x**2) has a value only from -1 to 1: biggest 1 at x = 0 (by hand)
+    r = row(find_where_biggest("sqrt(1-x**2)", between=[-100, 50]))
+    assert r["biggest value"] == pytest.approx(1.0, abs=1e-12) and r["x"] == pytest.approx(0.0, abs=1e-6)
+    r = row(find_where_smallest("-sqrt(1-x**2)", between=[-100, 50]))
+    assert r["smallest value"] == pytest.approx(-1.0, abs=1e-12) and r["x"] == pytest.approx(0.0, abs=1e-6)
+    r = row(find_where_biggest("log(1-x**2)", between=[-100, 50]))  # log(1) = 0 at x = 0
+    assert r["biggest value"] == pytest.approx(0.0, abs=1e-12) and r["x"] == pytest.approx(0.0, abs=1e-6)
+    assert "not a number" not in capsys.readouterr().out
+
+
+def test_review4_n2_a_local_search_says_what_it_saw_from_its_start():
+    with pytest.raises(SimplydataError) as info:  # L-BFGS-B starts at x = y = -4.5, where sqrt has no value
+        find_where_biggest("sqrt(x)+sqrt(y)", between={"x": [-10, 1], "y": [-10, 1]})
+    said = str(info.value)
+    assert "searching from x = -4.5, y = -4.5, the search found no place where the formula has a value" in said
+    assert 'search="whole range"' in said and "wherever the search looked" not in said
+    r = row(find_where_biggest("sqrt(x)+sqrt(y)", between={"x": [-10, 1], "y": [-10, 1]}, search="whole range"))
+    assert r["biggest value"] == pytest.approx(2.0, abs=1e-9)  # sqrt(1) + sqrt(1)
+    with pytest.raises(SimplydataError, match="Searching from x = -2, the search found no place where the formula "
+                                              "has a value") as info:
+        find_where_smallest("sqrt(x)", start=-2)  # 5417466: AttributeError (optimize.BracketError)
+    assert "keeps getting" not in str(info.value)

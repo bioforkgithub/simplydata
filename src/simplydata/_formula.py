@@ -261,6 +261,16 @@ def _too_big_special(text: str, name: str) -> SimplydataError:
                           "exactly. Use a smaller number, or a letter for it and find_value_at() for a decimal.")
 
 
+def _specials(sp) -> tuple:
+    """The special functions whose number may be at most MAX_SPECIAL_ARGUMENT (gamma(1000) is worked out exactly)."""
+    return sp.gamma, sp.loggamma, sp.digamma, sp.beta, sp.besselj
+
+
+def _special_name(node) -> str:
+    """The name of a special function as it is written in a formula."""
+    return {"loggamma": "lgamma", "besselj": "besselJ"}.get(type(node).__name__, type(node).__name__)
+
+
 def _size_of_number(sp, value):
     """The size of a value that is a number (worked out by SymPy N under the time limit when it is not written as a
     plain number); None for a value that still has letters, or has no size."""
@@ -287,16 +297,87 @@ def _too_many_digits(text: str) -> SimplydataError:
                           "Use smaller numbers, or a letter for it.")
 
 
-def _check_exp(sp, value, text: str):
-    """Refuse exp(value) when SymPy would turn it into a power with more than MAX_DIGITS digits. SymPy exp writes
-    exp(n*log(b)) as b**n (and exp(n*log(b) + x) as b**n * exp(x)) when n is a number: each such term of value is
-    sized as that power."""
+def _height(number) -> float:
+    """The digits of a fraction: those of the bigger of its top and its bottom."""
+    return math.log10(max(abs(int(number.p)), int(number.q), 1))
+
+
+def _times(power, digits: float) -> float:
+    """|power| times digits, for a fraction power of any size (a power too big for a float is endless)."""
+    if digits == 0:
+        return 0.0  # 1**p and 0**p have no digits, however big p is
+    try:
+        return abs(float(power)) * digits
+    except OverflowError:
+        return math.inf
+
+
+def _digits(sp, value) -> float:
+    """At most about how many digits the biggest exact number in value has once SymPy has worked it out. A fraction
+    has its own; a power is sized by _pow_digits and an exp by _exp_digits; a product or a sum has the digits of its
+    parts added up (the numbers in a product are multiplied together, and a sum of fractions has the product of
+    their bottoms); anything else (a function, a letter) has those of its parts."""
+    if value.is_Rational:
+        return _height(value)
+    if value.is_Atom:
+        return 0.0
+    if isinstance(value, sp.exp):
+        return _exp_digits(sp, value.args[0])
+    if value.is_Pow:
+        return _pow_digits(sp, *value.args)
+    return _combined(value, [_digits(sp, part) for part in value.args])
+
+
+def _combined(value, parts) -> float:
+    """The digits of a product, sum or function from those of its parts (a sum may carry one more digit per ten
+    parts)."""
+    total = math.fsum(parts)
+    return total + math.log10(len(parts)) if value.is_Add and parts else total
+
+
+def _pow_digits(sp, base, power) -> float:
+    """At most about how many digits base**power has once SymPy has worked it out (the power and the base worked
+    out). SymPy works out a power of a fraction (999**100); multiplies out a power of a product ((999*x)**100 is
+    999**100 * x**100); writes a power of a power as one power ((2**sqrt(2))**(1000*sqrt(2)) is 2**2000); and writes
+    exp(c)**p as exp(c*p), so exp(2)**(1500*log(10)) is exp(3000*log(10)), which is 10**3000. A power of a sum or of
+    a function is left as it is ((x + 999)**400), so it has the digits of its parts."""
+    if base == sp.E:
+        return _exp_digits(sp, power)
+    if isinstance(base, sp.exp):
+        return _exp_digits(sp, base.args[0] * power)
+    if base.is_Mul:
+        return math.fsum(_pow_digits(sp, factor, power) for factor in base.args)
+    if base.is_Pow:
+        return max(_pow_digits(sp, base.args[0], base.args[1] * power), _digits(sp, base))
+    if base.is_Rational and power.is_Rational:
+        return _times(power, _height(base))
+    return _digits(sp, base) + _digits(sp, power)
+
+
+def _exp_digits(sp, value) -> float:
+    """At most about how many digits exp(value) has once SymPy has worked it out. SymPy exp writes exp(n*log(b)) as
+    b**n (and exp(n*log(b) + x) as b**n * exp(x)) when n is a fraction: each such term of value counts as that
+    power, and the terms together as the product of those powers (exp(log(2)*3000 + log(3)*2000) is
+    2**3000 * 3**2000)."""
+    total = 0.0
     for term in sp.Add.make_args(value):
         factors = sp.Mul.make_args(term)
         logs = [f for f in factors if isinstance(f, sp.log)]
         rest = sp.Mul(*[f for f in factors if not isinstance(f, sp.log)])
-        if len(logs) == 1 and rest.is_Rational and _power_digits(sp, logs[0].args[0], rest) > MAX_DIGITS:
-            raise _too_many_digits(text)
+        if len(logs) == 1 and rest.is_Rational:
+            total += _pow_digits(sp, logs[0].args[0], rest)
+        else:
+            total += _digits(sp, term)
+    return total
+
+
+def _check_exp(sp, value, text: str) -> float:
+    """Refuse exp(value) when SymPy would turn it into a number with more than MAX_DIGITS digits (_exp_digits);
+    else its digits."""
+    digits = _exp_digits(sp, value)
+    if digits > MAX_DIGITS:
+        raise _too_many_digits(text)
+    return digits
 
 
 def _work_out(sp, tree, text: str):
@@ -307,37 +388,44 @@ def _work_out(sp, tree, text: str):
     is refused before SymPy makes it: (abs(999)**100)**100 (each further **100 makes it 100 times longer),
     (999*x)**100 (SymPy multiplies out the 999), exp(3000*log(10)) (SymPy writes 10**3000). Each piece is sized as
     SymPy works it out: here while nothing before it is heavy (so it is small), else by SymPy under the time limit.
-    The numbers inside the special functions are checked too. A formula with anything heavy is then worked out by
-    SymPy doit under the time limit, never here while the text is read."""
-    specials = (sp.gamma, sp.loggamma, sp.digamma, sp.beta, sp.besselj)
+    The numbers inside the special functions are checked too. Products and sums are sized from their parts (four
+    999**100 multiplied together have 1,200 digits). A formula with anything heavy is then worked out by SymPy doit
+    under the time limit, never here while the text is read."""
     heavy = False
+    digits: dict = {}  # each part of the formula -> at most how many digits it has once worked out
 
     def worked_out(*values):
         return list(_guarded(sp.Tuple, *values, what="SymPy evaluate")) if heavy else [v.doit() for v in values]
 
     for node in sp.postorder_traversal(tree):
-        if isinstance(node, specials):
+        if node.is_Atom:
+            digits[node] = _digits(sp, node)
+            continue
+        if isinstance(node, _specials(sp)):
             heavy = True
-            name = {"loggamma": "lgamma", "besselj": "besselJ"}.get(type(node).__name__, type(node).__name__)
             for value in node.args:
                 size = _size_of_number(sp, value)
                 if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
-                    raise _too_big_special(text, name)
+                    raise _too_big_special(text, _special_name(node))
+            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
         elif isinstance(node, sp.exp) and node.args[0].has(sp.log):
-            _check_exp(sp, worked_out(node.args[0])[0], text)
+            found = _check_exp(sp, worked_out(node.args[0])[0], text)
         elif isinstance(node, sp.Pow):
             base, power = node.args
             small = power.is_Number and (power.is_Float or (
                 abs(int(power.p)) <= MAX_LETTER_POWER and int(power.q) <= MAX_LETTER_POWER))
-            if base.is_Symbol or (base.is_Number and small):
-                continue  # x**k, or a small power of a plain number: never a huge number
-            heavy = heavy or not small
-            base, power = worked_out(base, power)
-            if base == sp.E:  # E**(n*log(b)) is exp(n*log(b))
-                _check_exp(sp, power, text)
-            elif power.is_Rational and (base.is_number or isinstance(base, (sp.Mul, sp.Pow))) and \
-                    _power_digits(sp, base, power) > MAX_DIGITS:
-                raise _too_many_digits(text)  # a number, or a product SymPy multiplies out: (999*x)**100
+            if not (base.is_Symbol or (base.is_Number and small)):  # else x**k, or a small power of a number
+                heavy = heavy or not small
+                base, power = worked_out(base, power)
+                if power.is_Rational and (base.is_number or isinstance(base, (sp.Mul, sp.Pow))) and \
+                        _power_digits(sp, base, power) > MAX_DIGITS:
+                    raise _too_many_digits(text)  # a number, or a product SymPy multiplies out: (999*x)**100
+            found = _pow_digits(sp, base, power)  # exp(2)**(1500*log(10)) is 10**3000
+        else:
+            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
+        if found > MAX_DIGITS:
+            raise _too_many_digits(text)
+        digits[node] = found
     if not heavy:
         return None
     return _guarded(tree.doit, what="SymPy doit")
@@ -605,9 +693,93 @@ def check_value_fits(symbol, value, step: str) -> None:
     if not np.all(fits):
         bad = numbers[~fits][0]
         raise SimplydataError(f"{step}() was given {symbol} = {bad:g}, but the formula says {symbol} is "
-                              f"{kind_words(kind)} (letters_are=). SymPy may have used that already (sqrt(x**2) is x "
-                              f"only for a positive x), so the answer would be wrong. Give a value that is "
-                              f"{kind_words(kind)}, or make the formula without letters_are=.")
+                              f"{kind_words(kind)} (letters_are=). SymPy may have used that already "
+                              f"({_kind_example(kind, str(symbol))}), so the answer would be wrong. Give a value that "
+                              f"is {kind_words(kind)}, or make the formula without letters_are=.")
+
+
+def _kind_example(kind: str, name: str) -> str:
+    """What SymPy may do with a letter of this kind, for the sentences that refuse a value that is not of it."""
+    return {"positive": f"sqrt({name}**2) is {name} only for a positive {name}",
+            "zero or more": f"sqrt({name}**2) is {name} only for {name} zero or more",
+            "negative": f"sqrt({name}**2) is -{name} only for a negative {name}",
+            "real": f"abs({name})**2 is {name}**2 only for a real {name}",
+            "whole number": f"cos(pi*{name})**2 is 1 only for a whole {name}",
+            "positive whole number": f"cos(pi*{name})**2 is 1 only for a whole {name}"}[kind]
+
+
+def _kind_expression_example(kind: str) -> str:
+    """An expression SymPy can show is of this kind."""
+    return {"positive": "2*y with y positive", "zero or more": "y**2 with y real", "negative": "-y with y positive",
+            "real": "y + 1 with y real", "whole number": "n + 1 with n a whole number",
+            "positive whole number": "n + 1 with n a positive whole number"}[kind]
+
+
+def _check_one_letter_per_name(expr, swaps: dict, values: dict) -> None:
+    """Refuse a put_in() that would leave two different letters with one name: SymPy tells letters apart by what
+    they are as well as by name, so put_in(x="z", w="z") with x positive and w negative would make a positive z and
+    a negative z, and z - z would not be 0."""
+    seen: dict = {}
+    for symbol in sorted((expr.free_symbols - set(swaps)).union(*[v.free_symbols for v in swaps.values()]),
+                         key=lambda s: (str(s), str(kind_of(s)))):
+        first = seen.setdefault(str(symbol), symbol)
+        if first != symbol:
+            kinds = " and one ".join(kind_words(kind_of(s)) if kind_of(s) else "plain (any number)"
+                                     for s in (first, symbol))
+            given = ", ".join(f"{k}={v!r}" for k, v in values.items())
+            raise SimplydataError(
+                f"put_in({given}) would make two different letters called {symbol}, one {kinds} (a new letter takes "
+                "what the letter it replaces is, from letters_are=). SymPy keeps such letters apart, so the answer "
+                "could be wrong. Give each place a new letter of its own, or write the formula again with the new "
+                "letters and give them their own letters_are=.")
+
+
+def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
+    """Refuse put_in() when putting value in place of symbol would make a number with more than MAX_DIGITS digits,
+    before SymPy makes it (2**x with x = 10000 has 3,011 digits). Each part of the formula is sized from the inside
+    out with the value in it, as _work_out sizes a formula when it is read; a part that is a power or an exp is
+    sized from its base and power with the value put in (worked out by SymPy under the time limit when they are
+    more than the letter itself, and already sized, so never huge). The numbers inside the special functions are
+    checked as when a formula is read."""
+    digits: dict = {}
+    built: dict = {}
+
+    def put_in(part):
+        if part == symbol:
+            return value
+        if not part.has(symbol):
+            return part
+        if part not in built:
+            built[part] = _guarded(part.xreplace, {symbol: value}, what="SymPy subs")
+        return built[part]
+
+    for node in sp.postorder_traversal(expr):
+        if node == symbol:
+            found = _digits(sp, value)
+        elif node.is_Atom:
+            found = _digits(sp, node)
+        elif not node.has(symbol):
+            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args]) \
+                if not (node.is_Pow or isinstance(node, sp.exp)) else _digits(sp, node)
+        elif isinstance(node, sp.exp):
+            found = _exp_digits(sp, put_in(node.args[0]))
+        elif node.is_Pow:
+            found = _pow_digits(sp, put_in(node.args[0]), put_in(node.args[1]))
+        else:
+            if isinstance(node, _specials(sp)):
+                for part in node.args:
+                    size = _size_of_number(sp, put_in(part))
+                    if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
+                        raise SimplydataError(f"put_in() would give {_special_name(node)}() a number bigger than "
+                                              f"{MAX_SPECIAL_ARGUMENT} ({said}), too big to work out exactly. Use a "
+                                              "smaller number, or keep the letter and use find_value_at() for a "
+                                              "decimal.")
+            found = _combined(node, [digits[p] if p in digits else _digits(sp, p) for p in node.args])
+        if found > MAX_DIGITS:
+            raise SimplydataError(f"put_in() would make a number with more than {MAX_DIGITS} digits ({said}), too "
+                                  "big to work with exactly. Put in a smaller number, or keep the letter and use "
+                                  "find_value_at() for a decimal.")
+        digits[node] = found
 
 
 def check_range_fits(formula, name: str, low: float, high: float, step: str) -> None:
@@ -628,7 +800,7 @@ def check_range_fits(formula, name: str, low: float, high: float, step: str) -> 
     if not inside:
         raise SimplydataError(f"{step}() goes over {name} from {low:g} to {high:g}, but the formula says {name} is "
                               f"{kind_words(kind)} (letters_are=), and SymPy may have used that already "
-                              f"(sqrt({name}**2) is {name} only for a positive {name}), so the answer would be wrong "
+                              f"({_kind_example(kind, name)}), so the answer would be wrong "
                               f"there. Keep between= where {name} is {kind}, or make the formula without "
                               "letters_are=.")
 
@@ -1007,15 +1179,25 @@ class Formula:
                 said = new if new is not None else _show(value)
                 raise SimplydataError(
                     f"put_in() cannot put {said} in place of {k}: the formula says {k} is {kind_words(kind)} "
-                    f"(letters_are=), and SymPy may have used that already (sqrt(x**2) is x only for a positive x), "
-                    f"so the answer could be wrong when {said} is not {kind_words(kind)}. Put in a number, or one new "
-                    f"letter (it takes what {k} is); or write the formula again with the new letters, and give them "
-                    "their own letters_are=.")
+                    f"(letters_are=), and SymPy may have used that already ({_kind_example(kind, k)}), so the "
+                    f"answer could be wrong when {said} is not {kind_words(kind)}. Put in a real number, one new "
+                    f"letter (it takes what {k} is), or an expression SymPy can show is {kind_words(kind)} "
+                    f"({_kind_expression_example(kind)}); or write the formula again with the new letters, and give "
+                    "them their own letters_are=.")
             swaps[symbol] = value
+        _check_one_letter_per_name(self._expr, swaps, values)
         for symbol, value in swaps.items():
             if value.is_number and value.is_real:
                 check_value_fits(symbol, float(value), "put_in")
-        new = _guarded(self._expr.subs, swaps, what="SymPy subs")
+        # SymPy subs puts the values in one after the other, in its order for a dict of letters (by name, with
+        # infinities first); each step is sized before SymPy makes it
+        order = sorted(swaps, key=sp.default_sort_key)
+        endless = (sp.nan, sp.oo, -sp.oo, sp.zoo)
+        order = [s for s in order if swaps[s] in endless] + [s for s in order if swaps[s] not in endless]
+        new = self._expr
+        for symbol in order:
+            _check_put_in_digits(sp, new, symbol, swaps[symbol], f"{_show(self._expr)} with {_places(values)}")
+            new = _guarded(new.subs, symbol, swaps[symbol], what="SymPy subs")
         print(f"{_show(self._expr)} with {_places(values)}: {_show(new)}   (SymPy subs)")
         return Formula(new)
 
@@ -1434,9 +1616,13 @@ def _rules_exactly(sp, rules, shown, names, wanted, fast):
         whole = _guarded(sp.solveset, rules[0], x, domain, what="SymPy solveset", hint=EXACTLY_HINT)
         how = f"SymPy solveset over {where}"
     elif plain:
-        reduced = _guarded(sp.reduce_inequalities, [r for r, _, _ in plain], x, what="SymPy reduce_inequalities",
-                           hint=EXACTLY_HINT)
-        whole = sp.S.Reals if reduced == sp.true else sp.S.EmptySet if reduced == sp.false else reduced.as_set()
+        try:
+            reduced = _guarded(sp.reduce_inequalities, [r for r, _, _ in plain], x,
+                               what="SymPy reduce_inequalities", hint=EXACTLY_HINT)
+        except NotImplementedError:  # SymPy's own error, from the helper: x**x > 2 with other rules
+            raise SimplydataError(f"SymPy could not solve {' and '.join(shown)} exactly (SymPy reduce_inequalities "
+                                  "cannot do rules of this kind together).") from None
+        whole =sp.S.Reals if reduced == sp.true else sp.S.EmptySet if reduced == sp.false else reduced.as_set()
         whole = _guarded(sp.Intersection, whole, domain, what="SymPy Intersection", hint=EXACTLY_HINT)
         how = f"SymPy reduce_inequalities over {where}"
     else:

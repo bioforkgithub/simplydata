@@ -354,6 +354,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     linear_method = method is not None and isinstance(method, str) and \
         METHOD_SPELLINGS.get(method.strip().lower(), method.strip().lower()) in LINEAR_METHODS
 
+    from_start = None  # where a local search (from a start) began
     if search == "whole range":
         chosen = _plain_method(step, method, GLOBAL_METHODS, METHOD_SPELLINGS)
         answer = _whole_range(step, names, limits, objective, rule_list, whole, start, chosen or
@@ -380,6 +381,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             first = _starts(step, names, start, limits, True,
                             'start={"x": 1, "y": 1} (the search under rules starts there)')
             answer = _with_rules(names, limits, objective, rule_list, first, chosen or "slsqp", all_linear)
+            from_start = first
         elif len(names) == 1 and (method is None or _plain_method(step, method, {**LOCAL_METHODS, **ONE_NAME_METHODS},
                                                                   METHOD_SPELLINGS) == "brent"):
             low, high = limits[names[0]]
@@ -409,6 +411,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             if chosen is None:
                 chosen = "l-bfgs-b" if has_limits else "nelder-mead"
             answer = _local(names, limits, has_limits, objective, first, chosen)
+            from_start = first
 
     value = sign * answer.value
     where = ""
@@ -423,6 +426,12 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         where = " within between="
     if search == "whole range":
         where = " over the whole range" + ("" if not rule_list else where)
+    if not math.isfinite(answer.value) and from_start is not None:  # a local search sees only near its start
+        raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: searching from "
+                              f"{_places(names, from_start)}, the search found no place where the formula has a value "
+                              "(it is not a number there, or is infinite: sqrt(x), for example, has no value for x "
+                              'below 0). Give a start where the formula has a value, or try search="whole range" with '
+                              "a range for each name in between=.")
     if not math.isfinite(answer.value):  # the objective is infinite only where the formula is NaN or infinite
         raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: wherever the search looked, the "
                               "formula is not a number or is infinite (log(x), for example, has no value for x of 0 "
@@ -474,6 +483,20 @@ def _brent_range(name, low, high, objective, biggest=False):
                                      options={"xatol": BRENT_TOL, "maxiter": 10000})
     place, value = float(found.x), float(found.fun)
     xs, ys = _scan(low, high, objective, SCAN_POINTS)
+    finite = np.isfinite(ys)
+    settled, iterations = bool(found.success), int(found.nit)
+    if not math.isfinite(value) and finite.any():
+        # Brent's points all fell where the formula has no value (sqrt(1 - x**2) on [-100, 50] has one only from -1
+        # to 1), but the scan found some: Brent's method again, on the scan cell around the best of them
+        best = int(np.nanargmin(np.where(finite, ys, np.nan)))
+        cell = (float(xs[max(best - 1, 0)]), float(xs[min(best + 1, len(xs) - 1)]))
+        again = optimize.minimize_scalar(objective, bounds=cell, method="bounded",
+                                         options={"xatol": BRENT_TOL, "maxiter": 10000})
+        if math.isfinite(float(again.fun)) and float(again.fun) <= ys[best]:
+            place, value = float(again.x), float(again.fun)
+            settled, iterations = bool(again.success), iterations + int(again.nit)
+        else:
+            place, value, settled = float(xs[best]), float(ys[best]), False
     notes = []
     for edge in (low, high):  # R optimize() never tries the ends themselves; look there too
         edge_value = objective(edge)
@@ -481,7 +504,6 @@ def _brent_range(name, low, high, objective, biggest=False):
             place, value = edge, edge_value
             notes.append(f"Note: the {lowest} point is at the end of the range, {name} = {_show(edge)}; a wider "
                          f"between= may give a {lower} value.")
-    finite = np.isfinite(ys)
     dips = 0
     for i in range(len(ys)):
         if not finite[i]:
@@ -500,7 +522,7 @@ def _brent_range(name, low, high, objective, biggest=False):
         notes.append(f"Note: of {SCAN_POINTS} evenly spaced points checked first, {name} = {_show(xs[best])} gives "
                      f"a {lower} value ({_show(shown)}) than Brent's answer: the curve has several {dip}s and "
                      f'Brent\'s method found one of them. Try search="whole range", or a narrower between=.')
-    return _Answer([place], value, words, settled=bool(found.success), iterations=int(found.nit), notes=notes,
+    return _Answer([place], value, words, settled=settled, iterations=iterations, notes=notes,
                    method_name="Brent's method on the range")
 
 
@@ -508,11 +530,18 @@ def _brent_start(step, name, first, low, high, objective, word):
     from scipy import optimize
 
     width = 0.1 * max(1.0, abs(first))
+    if not (math.isfinite(objective(first)) or math.isfinite(objective(first + width))):
+        # SciPy bracket cannot move from two points where the formula has no value (it stops at once)
+        raise SimplydataError(
+            f"Searching from {name} = {_show(first)}, the search found no place where the formula has a value (it is "
+            "not a number there, or is infinite: sqrt(x), for example, has no value for x below 0). Give a start "
+            "where the formula has a value, or a range, for example between=[0, 10]."
+        )
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             a, b, c, *_ = optimize.bracket(objective, xa=first, xb=first + width, maxiter=1000)
-    except (RuntimeError, ValueError, optimize.BracketError):
+    except (RuntimeError, ValueError):  # SciPy's BracketError is a RuntimeError (and not public in scipy.optimize)
         raise SimplydataError(
             f"Searching from {name} = {_show(first)}, the formula keeps getting {'bigger' if word == 'biggest' else 'smaller'}, "
             f"so it may have no {word} value. Give a range, for example between=[0, 10]."

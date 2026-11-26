@@ -677,12 +677,17 @@ def test_review_5_put_in_and_long_sums_stay_inside_the_time_limit(tmp_path):
         except sdata.SimplydataError as error:
             print("STOPPED", str(error).splitlines()[0])
         print("SUM", sdata.find_sum_of_series("1/k**2", between=[1, 10**6]))
-        print("VALUE", sdata.formula("x**(x**x)").put_in(x=8))
+        try:
+            sdata.formula("x**(x**x)").put_in(x=8)
+        except sdata.SimplydataError as error:
+            print("REFUSED", str(error).splitlines()[0])
     """, seconds=120)
-    assert "STOPPED SymPy subs did not finish in 5 seconds" in result.stdout, result.stderr
+    # since 5417466 both put_in() calls are refused before SymPy starts (gamma of more than 1000, and 8**(8**8) with
+    # 15,151,336 digits), instead of being stopped by the time limit
+    assert "STOPPED put_in() would give gamma() a number bigger than 1000" in result.stdout, result.stderr
     total = float(result.stdout.split("SUM")[1].split()[0])
     assert total == pytest.approx(math.pi ** 2 / 6 - 1e-6 + 5e-13, rel=1e-12)
-    assert "15,151,336 digits" in result.stdout
+    assert "REFUSED put_in() would make a number with more than 1000 digits" in result.stdout
 
 
 # ---- 6: answers with more than 4300 digits are shown, never a raw ValueError
@@ -691,7 +696,10 @@ def test_review_6_very_long_numbers_are_shown_with_their_size(capsys):
     out = capsys.readouterr().out
     assert "digits, too long to write out" in out
     assert "digits, too long to write out" in repr(long_sum)
-    power = sdata.formula("2**x").put_in(x=20000)
+    from simplydata import _formula
+
+    sp, _ = _sp()
+    power = _formula.Formula(sp.Integer(2) ** 20000)  # since 5417466, put_in(x=20000) on 2**x is refused
     assert "a whole number of 6,021 digits" in repr(power)
     n = 20000  # pi**2/6 - psi1(n + 1), with the asymptotic series of psi1 (the next term, 1/(30 n**5), is 1e-23)
     assert sdata.find_sum_of_series("1/k**2", between=[1, n]) == pytest.approx(
@@ -1004,7 +1012,8 @@ def test_review2_d_the_digits_of_a_long_number_are_counted_by_sympy():
     sp, _ = _sp()
     nines = _formula._too_long(sp, sp.Integer(10) ** 5000 - 1)  # 5000 nines (1bab143: "5,001 digits")
     assert "a whole number of 5,000 digits" in nines and "1.00000E+5000" in nines
-    assert "about 3.98028E+6020 (a whole number of 6,021 digits" in repr(sdata.formula("2**x").put_in(x=20000))
+    # 2**20000 made by SymPy itself: since 5417466, put_in(x=20000) on 2**x is refused (more than 1000 digits)
+    assert "about 3.98028E+6020 (a whole number of 6,021 digits" in repr(_formula.Formula(sp.Integer(2) ** 20000))
 
 
 # ---- E: exact eigenvalues in R's order, also among eigenvalues of the same size
@@ -1330,3 +1339,118 @@ def test_review3_put_in_an_expression_for_a_letter_with_a_kind_is_refused():
     y = sp.Symbol("y", positive=True)
     assert both.put_in(x="2*y").as_sympy() == 3 * y  # SymPy shows 2*y is positive
     assert sdata.formula("sqrt(x**2)").put_in(x="y + 1").put_in(y=-5).as_sympy() == 4  # no kind: as before
+
+
+# ================================================================ fourth review of 5417466 (each test fails on that commit)
+# ---- N1 and N6: an exp(c) base, and products and sums of allowed numbers, are sized too
+@pytest.mark.parametrize("text", ["exp(2)**(1500*log(10))", "x*exp(2)**(1500*log(10))", "exp(3)**(1000*log(10))",
+                                  "sqrt(exp(2))**(3000*log(10))", "999**100*999**100*999**100*999**100",
+                                  "exp(900*log(10))*exp(900*log(10))", "exp(log(2)*3000 + log(3)*2000)",
+                                  "2**3000*3**2000", "1/999**100 + 1/998**100 + 1/997**100 + 1/996**100"])
+def test_review4_a_exp_bases_products_and_sums_are_sized(text):
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula(text)  # 5417466: accepted, with 1,200 to 3,001 digits
+
+
+def test_review4_a_what_sympy_leaves_as_it_is_is_still_read():
+    sp, x = _sp()
+    assert sdata.formula("exp(2)**x").as_sympy() == sp.exp(2 * x)
+    assert sdata.formula("(x + 999)**400").as_sympy() == (x + 999) ** 400  # never multiplied out
+    assert sdata.formula("exp(log(2)*1000)**3").as_sympy() == 2 ** 3000  # 904 digits: allowed
+    assert sdata.formula("999**100*999**100*999**100").as_sympy() == 999 ** 300  # 900 digits: allowed
+    assert sdata.formula("(2**sqrt(2))**(1000*sqrt(2))").as_sympy() == 2 ** 2000  # 603 digits: allowed
+
+
+def test_review4_a_a_power_of_a_product_of_roots_counts_every_root():
+    # 2**420 * 3**630 * 5**700 * 7**720 has 1,520 digits (by hand: 420*0.301 + 630*0.477 + 700*0.699 + 720*0.845)
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula("(2**(1/2)*3**(3/4)*5**(5/6)*7**(6/7))**840")  # 5417466: sized as 840*log10(7), 710 digits
+
+
+# ---- N5: put_in() keeps the 1,000-digit rule, sized before SymPy makes the number
+def test_review4_n5_put_in_keeps_the_digit_rule():
+    for made in (lambda: sdata.formula("2**x").put_in(x=10000), lambda: sdata.formula("exp(log(10)*x)").put_in(x=3000),
+                 lambda: sdata.formula("x**100").put_in(x="y**100").put_in(y=999),
+                 lambda: sdata.formula("(x + 999)**400").put_in(x=1)):
+        with pytest.raises(sdata.SimplydataError,
+                           match=re.escape("put_in() would make a number with more than 1000 digits")):
+            made()  # 5417466: 3,011, 3,001, 29,996 and 1,201 digits
+    with pytest.raises(sdata.SimplydataError, match=re.escape("would give gamma() a number bigger than 1000")):
+        sdata.formula("gamma(x)").put_in(x=2000)  # as formula("gamma(2000)") is refused
+    sp, x = _sp()
+    y = sp.Symbol("y")
+    assert sdata.formula("2**x").put_in(x=100).as_sympy() == 2 ** 100
+    assert sdata.formula("(x + 999)**400").put_in(x="y").as_sympy() == (y + 999) ** 400
+    assert sdata.formula("x + 10*y").put_in(x="y", y=2).as_sympy() == 22  # SymPy subs order, as before
+
+
+def test_review4_n5_put_in_of_a_huge_power_is_refused_at_once():
+    started = time.monotonic()
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula("2**x").put_in(x=10 ** 10)  # 5417466: 2**(10**10) made by the helper (about 1.25 GB)
+    assert time.monotonic() - started < 30
+
+
+# ---- N3: put_in() never makes two letters with one name
+def test_review4_n3_put_in_never_makes_two_letters_with_one_name():
+    sp, _ = _sp()
+    f = sdata.formula("sqrt(x**2) + sqrt(w**2)", letters_are={"x": "positive", "w": "negative"})
+    with pytest.raises(sdata.SimplydataError, match="would make two different letters called z, one negative and one "
+                                                    "positive"):
+        f.put_in(x="z", w="z")  # 5417466: -z + z, which is not 0
+    g = sdata.formula("sqrt(x**2) + w", letters_are={"x": "positive"})
+    with pytest.raises(sdata.SimplydataError, match="two different letters called z"):
+        g.put_in(x="z", w="z + 1")  # a positive z and a plain z
+    z = sp.Symbol("z", positive=True)
+    same = sdata.formula("sqrt(x**2) + sqrt(w**2)", letters_are={"x": "positive", "w": "positive"})
+    assert same.put_in(x="z", w="z").as_sympy() == 2 * z  # one kind: one letter
+
+
+# ---- the refusal sentences name an example that fits the kind
+@pytest.mark.parametrize("kind, example, expression", [
+    ("positive", "sqrt(x**2) is x only for a positive x", "2*y with y positive"),
+    ("real", "abs(x)**2 is x**2 only for a real x", "y + 1 with y real"),
+    ("whole number", "cos(pi*x)**2 is 1 only for a whole x", "n + 1 with n a whole number")])
+def test_review4_put_in_sentence_fits_the_kind(kind, example, expression):
+    with pytest.raises(sdata.SimplydataError) as info:
+        sdata.formula("x + 1", letters_are={"x": kind}).put_in(x="sqrt(-1)")
+    said = str(info.value)
+    assert f"({example})" in said and "Put in a real number" in said  # 5417466: sqrt(x**2) for every kind
+    assert f"or an expression SymPy can show is {'a ' if 'whole' in kind else ''}{kind} ({expression})" in said
+    with pytest.raises(sdata.SimplydataError, match=re.escape("(sqrt(x**2) is -x only for a negative x)")):
+        sdata.formula("sqrt(x**2)", letters_are={"x": "negative"}).put_in(x=2)
+
+
+def test_review4_the_kind_examples_are_what_sympy_does():
+    sp, _ = _sp()
+    assert sp.sqrt(sp.Symbol("x", positive=True) ** 2) == sp.Symbol("x", positive=True)
+    assert sp.sqrt(sp.Symbol("x", nonnegative=True) ** 2) == sp.Symbol("x", nonnegative=True)
+    assert sp.sqrt(sp.Symbol("x", negative=True) ** 2) == -sp.Symbol("x", negative=True)
+    assert abs(sp.Symbol("x", real=True)) ** 2 == sp.Symbol("x", real=True) ** 2
+    assert sp.cos(sp.pi * sp.Symbol("x", integer=True)) ** 2 == 1
+    assert sp.cos(sp.pi * sp.Symbol("x")) ** 2 != 1 and abs(sp.Symbol("x")) ** 2 != sp.Symbol("x") ** 2
+
+
+# ---- B and C: SymPy's own errors
+def test_review4_b_the_bounds_of_fewer_terms_are_kept_when_sympy_fails_with_more(monkeypatch, capsys):
+    from simplydata import _calculus
+
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    real = _calculus._sum_between
+
+    def fails_with_more(sp_, term, k_, start, count, said):
+        if count > 10:
+            raise NotImplementedError("SymPy integrate")  # as the helper gives SymPy's own error back
+        return real(sp_, term, k_, start, count, said)
+
+    monkeypatch.setattr(_calculus, "TERMS_ONE_BY_ONE", (10, 20))
+    monkeypatch.setattr(_calculus, "_sum_between", fails_with_more)
+    value = _calculus._settled_decimal(sp, 1 / k ** 2, k, sp.Integer(1), sp.oo, "s")  # 5417466: NotImplementedError
+    assert value == pytest.approx(math.pi ** 2 / 6, rel=1e-4)
+    assert "the first 10 terms" in capsys.readouterr().out
+
+
+def test_review4_c_rules_reduce_inequalities_cannot_do_are_said():
+    with pytest.raises(sdata.SimplydataError, match=re.escape("SymPy could not solve x**x > 2 and sin(x) > 0")):
+        sdata.solve(["x**x > 2", "sin(x) > 0", "x < 10", "x > 0"], exactly=True)  # 5417466: NotImplementedError

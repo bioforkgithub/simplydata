@@ -723,7 +723,8 @@ def _settled_decimal(sp, term, k, low, high, said: str):
     for count in TERMS_ONE_BY_ONE:
         try:
             bounds = [_sum_between(sp, side, k, start, count, said) for side, start in sides]
-        except SimplydataError:
+        except (SimplydataError, NotImplementedError, ValueError, TypeError, ArithmeticError, RuntimeError):
+            # SymPy's own errors come back from the helper as they are (NotImplementedError from an integral)
             if done is None:
                 raise
             break  # more terms ran out of time or could not be bounded: the bounds of fewer terms still hold
