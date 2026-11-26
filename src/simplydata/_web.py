@@ -30,6 +30,7 @@ import contextlib
 import html as html_text
 import io
 import math
+import re
 
 import numpy as np
 
@@ -1769,10 +1770,11 @@ def page_html(chart, see_through=False, full_html=True) -> str:
     page = figure.to_html(include_plotlyjs=True, include_mathjax=False, full_html=full_html,
                           config=dict(WEB_CONFIG, responsive=True), validate=True, default_width="100%",
                           default_height="100%")
-    box = f'<div style="height:100%; width:100%;">'
+    # plotly's outer box is the page's first <div>: '<div style="height:100%; width:100%;">' in newer plotly, a bare
+    # '<div>' in plotly 6.0 (the oldest supported); either becomes the fitted box
     fitted = (f'<div class="simplydata-chart" style="width:100%; max-width:{width}px; '
               f'aspect-ratio:{width} / {height}; margin:0 auto;">')
-    page = page.replace(box, fitted, 1)
+    page = re.sub(r'<div(?: style="height:100%; width:100%;")?>', lambda _m: fitted, page, count=1)
     description = _description(chart)
     title = _title(figure)
     if full_html:
