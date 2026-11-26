@@ -78,7 +78,8 @@ def _helper_can_start() -> bool:
 
     if multiprocessing.current_process().daemon:
         return False
-    name = os.path.basename(spawn.get_executable() or "").lower()
+    # on Linux and macOS multiprocessing keeps the executable as bytes (os.fsencode), on Windows as text
+    name = os.path.basename(os.fsdecode(spawn.get_executable() or "")).lower()
     return bool(name) and name.startswith(("python", "pypy"))
 
 

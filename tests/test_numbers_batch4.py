@@ -885,6 +885,19 @@ def test_review_suspected_the_helper_has_a_memory_limit():
         sdata.find_sum_of_series("2**(2**k)", between=[1, 36])
 
 
+def test_the_helper_starts_when_multiprocessing_keeps_the_executable_as_bytes(monkeypatch):
+    # Linux and macOS: multiprocessing.spawn keeps the executable as os.fsencode(sys.executable), so comparing it
+    # with text raised TypeError and no SymPy word could start its helper there (PR #72, test-without-r)
+    from multiprocessing import spawn
+
+    from simplydata import _time_limit
+
+    monkeypatch.setattr(spawn, "get_executable", lambda: b"/usr/bin/python3.12")
+    assert _time_limit._helper_can_start() is True
+    monkeypatch.setattr(spawn, "get_executable", lambda: b"/opt/app/embedded-host")
+    assert _time_limit._helper_can_start() is False
+
+
 def test_review_suspected_an_embedded_python_runs_sympy_here(monkeypatch, capsys):
     from multiprocessing import context, spawn
 
