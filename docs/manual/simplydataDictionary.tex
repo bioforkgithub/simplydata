@@ -103,7 +103,7 @@
 \vspace{0.3em}
 {\sffamily\bfseries Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain words, with its results checked against the field's standard tools.\par}
 \vspace{0.3em}
-{\sffamily\small\color{inkgrey} Version 0.2.0 \textbullet{} 571 words \textbullet{} 1755 names from other tools
+{\sffamily\small\color{inkgrey} Version 0.2.0 \textbullet{} 571 words \textbullet{} 1832 names from other tools
 \textbullet{} made from the code by \code{docs/make\_dictionary.py}\par}
 \end{titleblock}
 
@@ -967,6 +967,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Add a direction of size 1, with a name (NumPy \code{expand\_\allowbreak{}dims}).}
 \eg{\code{block.\allowbreak{}add\_\allowbreak{}direction(\textquotedbl{}plate\textquotedbl{},\allowbreak{} at\_\allowbreak{}position=1)}}
 \field{Options}{\code{name=}, \code{at\_\allowbreak{}position=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{atleast\_\allowbreak{}1d}, \code{atleast\_\allowbreak{}2d}, \code{atleast\_\allowbreak{}3d}, \code{expand\_\allowbreak{}dims}, \code{newaxis}, \code{unsqueeze}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{expand\_\allowbreak{}dims()}}
 \field{See also}{\hyperref[dict:add-numbers-from]{\code{add\_\allowbreak{}numbers\_\allowbreak{}from}}, \hyperref[dict:change-shape-to]{\code{change\_\allowbreak{}shape\_\allowbreak{}to}}, \hyperref[dict:remove-directions-of-size-one]{\code{remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}, \hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}}
 \where{Manual \manualpage{word:block.add-direction}{878}{section*.591}}
@@ -1018,6 +1019,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Give a direction labels: one for each position, such as dates, depths or plate rows.}
 \eg{\code{block.\allowbreak{}add\_\allowbreak{}labels\_\allowbreak{}to(\textquotedbl{}latitude\textquotedbl{},\allowbreak{} [60,\allowbreak{} 61,\allowbreak{} 62,\allowbreak{} 63])}}
 \field{Options}{\code{direction=}, \code{labels=}}
+\field{Other tools}{\code{assign\_\allowbreak{}coords}, \code{set\_\allowbreak{}index}}
 \field{Underneath}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{assign\_\allowbreak{}coords()}}
 \field{See also}{\hyperref[dict:get-labels-of]{\code{get\_\allowbreak{}labels\_\allowbreak{}of}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:smooth]{\code{smooth}}}
 \where{Manual \manualpage{word:block.add-labels-to}{892}{section*.615}}
@@ -1062,6 +1064,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Add another block's numbers at the end of one direction (NumPy concatenate).}
 \eg{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from(other,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{other=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{append}, \code{cat}, \code{concatenate}, \code{hstack}, \code{vstack}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{concatenate()}}
 \field{See also}{\hyperref[dict:add-direction]{\code{add\_\allowbreak{}direction}}, \hyperref[dict:repeat-whole-block]{\code{repeat\_\allowbreak{}whole\_\allowbreak{}block}}, \hyperref[dict:split-into-pieces]{\code{split\_\allowbreak{}into\_\allowbreak{}pieces}}, \hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}, \hyperref[dict:split-into-one-block-per]{\code{split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per}}}
 \where{Manual \manualpage{word:block.add-numbers-from}{884}{section*.600}}
@@ -1319,6 +1322,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Give the numbers a new shape, row by row (NumPy reshape).}
 \eg{\code{block.\allowbreak{}change\_\allowbreak{}shape\_\allowbreak{}to(one\_\allowbreak{}row\_\allowbreak{}per=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{sizes.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{one\_\allowbreak{}row\_\allowbreak{}per=}, \code{fill=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{flatten\_\allowbreak{}to}, \code{reshape}, \code{resize}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{reshape()}}
 \field{See also}{\hyperref[dict:add-direction]{\code{add\_\allowbreak{}direction}}, \hyperref[dict:remove-directions-of-size-one]{\code{remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}, \hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}, \hyperref[dict:rotate]{\code{rotate}}}
 \where{Manual \manualpage{word:block.change-shape-to}{877}{section*.590}; lesson 13 (\manualpage{lesson:13}{86}{chapter.II.13})}
@@ -1334,6 +1338,7 @@ A family is learned once and used again and again: the start or the end of a wor
 \means{Give directions a new size by filling in between the numbers (as resizing a picture).}
 \eg{\code{block.\allowbreak{}change\_\allowbreak{}size\_\allowbreak{}to(latitude=8,\allowbreak{} longitude=10)}}
 \field{Options}{\code{test\_\allowbreak{}method=}}
+\field{Other tools}{\code{imresize}, \code{zoom}}
 \field{Underneath}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{zoom()}}
 \field{See also}{\hyperref[dict:smooth]{\code{smooth}}, \hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}}
 \where{Manual \manualpage{word:block.change-size-to}{897}{section*.620}}
@@ -1742,6 +1747,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{How many directions the block has (NumPy ndim).}
 \eg{\code{block.\allowbreak{}count\_\allowbreak{}directions()}}
 \field{Options}{none}
+\field{Other tools}{\code{dim}, \code{ndim}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}}
 \field{See also}{\hyperref[dict:find-shape]{\code{find\_\allowbreak{}shape}}, \hyperref[dict:find-direction-names]{\code{find\_\allowbreak{}direction\_\allowbreak{}names}}, \hyperref[dict:number-block]{\code{number\_\allowbreak{}block}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}}
 \where{Manual \manualpage{word:block.count-directions}{871}{section*.581}}
@@ -2520,6 +2526,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{The average (mean) of the numbers; empty values are skipped.}
 \eg{\code{block.\allowbreak{}find\_\allowbreak{}average(over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{over=}, \code{in\_\allowbreak{}each=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}, \code{every=}, \code{in\_\allowbreak{}groups\_\allowbreak{}of=}}
+\field{Other tools}{\code{aggregate}, \code{block\_\allowbreak{}reduce}, \code{blockproc}, \code{climatology}, \code{coarsen}, \code{groupby}, \code{groupsummary}, \code{resample}, \code{retime}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{nanmean()}}
 \field{See also}{\hyperref[dict:find-direction-names]{\code{find\_\allowbreak{}direction\_\allowbreak{}names}}, \hyperref[dict:find-shape]{\code{find\_\allowbreak{}shape}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}, \hyperref[dict:keep-by-position-in]{\code{keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}, \hyperref[dict:remove-by-position-in]{\code{remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}}
 \where{Manual \manualpage{word:block.find-average}{872}{section*.584}}
@@ -2659,6 +2666,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{The names of the directions, in order.}
 \eg{\code{block.\allowbreak{}find\_\allowbreak{}direction\_\allowbreak{}names()}}
 \field{Options}{none}
+\field{Other tools}{\code{dim\_\allowbreak{}names}, \code{dims}}
 \field{Underneath}{simplydata's own: the names of the directions, kept next to the NumPy array (NumPy arrays have no names; xarray's DataArray.dims holds them).}
 \field{See also}{\hyperref[dict:find-shape]{\code{find\_\allowbreak{}shape}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}, \hyperref[dict:count-directions]{\code{count\_\allowbreak{}directions}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}, \hyperref[dict:number-block]{\code{number\_\allowbreak{}block}}}
 \where{Manual \manualpage{word:block.find-direction-names}{871}{section*.582}}
@@ -2940,6 +2948,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{The size of each direction, in words and as NumPy's shape: (24, 8, 12).}
 \eg{\code{block.\allowbreak{}find\_\allowbreak{}shape()}}
 \field{Options}{none}
+\field{Other tools}{\code{shape}, \code{size\_\allowbreak{}of}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}}
 \field{See also}{\hyperref[dict:find-direction-names]{\code{find\_\allowbreak{}direction\_\allowbreak{}names}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}, \hyperref[dict:number-block]{\code{number\_\allowbreak{}block}}, \hyperref[dict:count-directions]{\code{count\_\allowbreak{}directions}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}}
 \where{Manual \manualpage{word:block.find-shape}{870}{section*.580}}
@@ -3083,6 +3092,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Values between the labels of a block, by straight lines between neighbours.}
 \eg{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at(latitude=60.\allowbreak{}5,\allowbreak{} longitude=2.\allowbreak{}5)}}
 \field{Options}{\code{test\_\allowbreak{}method=}}
+\field{Other tools}{\code{extract}, \code{interp}, \code{interp2}, \code{interp3}, \code{interpn}, \code{map\_\allowbreak{}coordinates}, \code{RegularGridInterpolator}}
 \field{Underneath}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{moveaxis()}, \code{stack()}, \code{meshgrid()}, \code{interpn()} \textperiodcentered{} xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{interp()}}
 \field{See also}{\hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}, \hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:get-labels-of]{\code{get\_\allowbreak{}labels\_\allowbreak{}of}}, \hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:smooth]{\code{smooth}}}
 \where{Manual \manualpage{word:block.find-values-at}{893}{section*.616}}
@@ -3362,6 +3372,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{The labels of one direction (numbers, or a table of dates or text).}
 \eg{\code{block.\allowbreak{}get\_\allowbreak{}labels\_\allowbreak{}of(\textquotedbl{}time\textquotedbl{})}}
 \field{Options}{\code{direction=}}
+\field{Other tools}{\code{coords}, \code{indexes}}
 \field{Underneath}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}}
 \field{See also}{\hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:smooth]{\code{smooth}}}
 \where{Manual \manualpage{word:block.get-labels-of}{891}{section*.614}}
@@ -3417,6 +3428,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{The numbers at the labels nearest to the ones you give, such as the grid cell nearest a station.}
 \eg{\code{block.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to(latitude=60.\allowbreak{}4,\allowbreak{} longitude=5.\allowbreak{}3)}}
 \field{Options}{\code{within=}}
+\field{Other tools}{\code{knnsearch}, \code{nearest}}
 \field{Underneath}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{sel()}}
 \field{See also}{\hyperref[dict:get-labels-of]{\code{get\_\allowbreak{}labels\_\allowbreak{}of}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}, \hyperref[dict:smooth]{\code{smooth}}}
 \where{Manual \manualpage{word:block.get-numbers-nearest-to}{894}{section*.617}; lesson 13 (\manualpage{lesson:13}{86}{chapter.II.13})}
@@ -3560,6 +3572,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Put new numbers in before a position along a direction (NumPy insert).}
 \eg{\code{block.\allowbreak{}insert\_\allowbreak{}numbers(0,\allowbreak{} at\_\allowbreak{}position=2,\allowbreak{} over=\textquotedbl{}row\textquotedbl{})}}
 \field{Options}{\code{values=}, \code{at\_\allowbreak{}position=}, \code{over=}}
+\field{Other tools}{\code{insert}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{insert()}}
 \field{See also}{\hyperref[dict:move-round-by]{\code{move\_\allowbreak{}round\_\allowbreak{}by}}, \hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}, \hyperref[dict:rotate]{\code{rotate}}, \hyperref[dict:repeat-whole-block]{\code{repeat\_\allowbreak{}whole\_\allowbreak{}block}}, \hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}}
 \where{Manual \manualpage{word:block.insert-numbers}{882}{section*.597}}
@@ -3596,6 +3609,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Keep some positions along one direction, counting from 1, both ends included.}
 \eg{\code{block.\allowbreak{}keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in(\textquotedbl{}hour\textquotedbl{},\allowbreak{} [1,\allowbreak{} 3])}}
 \field{Options}{\code{direction=}, \code{positions=}, \code{to=}, \code{step=}}
+\field{Other tools}{\code{isel}, \code{take}, \code{take\_\allowbreak{}along}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{take()}}
 \field{See also}{\hyperref[dict:keep-where]{\code{keep\_\allowbreak{}where}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}, \hyperref[dict:remove-by-position-in]{\code{remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}, \hyperref[dict:find-direction-names]{\code{find\_\allowbreak{}direction\_\allowbreak{}names}}}
 \where{Manual \manualpage{word:block.keep-by-position-in}{874}{section*.585}}
@@ -3771,6 +3785,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Keep the part of a labelled direction whose labels pass (xarray sel).}
 \eg{\code{block.\allowbreak{}keep\_\allowbreak{}where(\textquotedbl{}east\textquotedbl{},\allowbreak{} is\_\allowbreak{}between=[2,\allowbreak{} 5])}}
 \field{Options}{\code{direction=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}}
+\field{Other tools}{\code{crop}, \code{sel}}
 \field{Underneath}{xarray \code{set\_\allowbreak{}index().\allowbreak{}to\_\allowbreak{}xarray()}, \code{sel()}, \code{slice()}}
 \field{See also}{\hyperref[dict:keep-by-position-in]{\code{keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}, \hyperref[dict:remove-by-position-in]{\code{remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}, \hyperref[dict:remove-where]{\code{remove\_\allowbreak{}where}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}}
 \where{Manual \manualpage{word:block.keep-where}{876}{section*.587}}
@@ -3986,6 +4001,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Move one direction to another place (NumPy moveaxis).}
 \eg{\code{block.\allowbreak{}move\_\allowbreak{}direction(\textquotedbl{}column\textquotedbl{},\allowbreak{} to\_\allowbreak{}position=1)}}
 \field{Options}{\code{name=}, \code{to\_\allowbreak{}position=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{moveaxis}, \code{movedim}, \code{rollaxis}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{moveaxis()}}
 \field{See also}{\hyperref[dict:move-round-by]{\code{move\_\allowbreak{}round\_\allowbreak{}by}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}, \hyperref[dict:rotate]{\code{rotate}}, \hyperref[dict:remove-directions-of-size-one]{\code{remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one}}, \hyperref[dict:add-direction]{\code{add\_\allowbreak{}direction}}}
 \where{Manual \manualpage{word:block.move-direction}{880}{section*.594}}
@@ -3994,6 +4010,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Move every number along a direction by some steps; the ones that fall off the end come round to the start (NumPy roll).}
 \eg{\code{block.\allowbreak{}move\_\allowbreak{}round\_\allowbreak{}by(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{steps=}, \code{over=}}
+\field{Other tools}{\code{circshift}, \code{roll}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{roll()}}
 \field{See also}{\hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}, \hyperref[dict:rotate]{\code{rotate}}, \hyperref[dict:insert-numbers]{\code{insert\_\allowbreak{}numbers}}, \hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}}
 \where{Manual \manualpage{word:block.move-round-by}{882}{section*.596}}
@@ -4249,6 +4266,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Remove some positions along one direction, counting from 1.}
 \eg{\code{block.\allowbreak{}remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in(\textquotedbl{}hour\textquotedbl{},\allowbreak{} 24)}}
 \field{Options}{\code{direction=}, \code{positions=}, \code{to=}, \code{step=}}
+\field{Other tools}{\code{delete}, \code{drop\_\allowbreak{}isel}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{delete()}}
 \field{See also}{\hyperref[dict:remove-where]{\code{remove\_\allowbreak{}where}}, \hyperref[dict:keep-by-position-in]{\code{keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in}}, \hyperref[dict:keep-where]{\code{keep\_\allowbreak{}where}}, \hyperref[dict:find-average]{\code{find\_\allowbreak{}average}}, \hyperref[dict:get-number-at]{\code{get\_\allowbreak{}number\_\allowbreak{}at}}}
 \where{Manual \manualpage{word:block.remove-by-position-in}{875}{section*.586}}
@@ -4290,6 +4308,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Remove every direction that has size 1 (NumPy squeeze).}
 \eg{\code{block.\allowbreak{}remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one()}}
 \field{Options}{\code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{squeeze}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{squeeze()}}
 \field{See also}{\hyperref[dict:add-direction]{\code{add\_\allowbreak{}direction}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}, \hyperref[dict:change-shape-to]{\code{change\_\allowbreak{}shape\_\allowbreak{}to}}, \hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}, \hyperref[dict:rotate]{\code{rotate}}}
 \where{Manual \manualpage{word:block.remove-directions-of-size-one}{879}{section*.592}}
@@ -4474,6 +4493,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Repeat each number along a direction: 1, 2 becomes 1, 1, 2, 2 (NumPy repeat).}
 \eg{\code{block.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}number(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{repeat}, \code{repeat\_\allowbreak{}interleave}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{repeat()}}
 \field{See also}{\hyperref[dict:repeat-whole-block]{\code{repeat\_\allowbreak{}whole\_\allowbreak{}block}}, \hyperref[dict:insert-numbers]{\code{insert\_\allowbreak{}numbers}}, \hyperref[dict:move-round-by]{\code{move\_\allowbreak{}round\_\allowbreak{}by}}, \hyperref[dict:add-numbers-from]{\code{add\_\allowbreak{}numbers\_\allowbreak{}from}}, \hyperref[dict:rotate]{\code{rotate}}}
 \where{Manual \manualpage{word:block.repeat-each-number}{883}{section*.598}}
@@ -4491,6 +4511,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Repeat the whole block along a direction: 1, 2 becomes 1, 2, 1, 2 (NumPy tile).}
 \eg{\code{block.\allowbreak{}repeat\_\allowbreak{}whole\_\allowbreak{}block(2,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{repmat}, \code{tile}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{tile()}}
 \field{See also}{\hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}, \hyperref[dict:add-numbers-from]{\code{add\_\allowbreak{}numbers\_\allowbreak{}from}}, \hyperref[dict:insert-numbers]{\code{insert\_\allowbreak{}numbers}}, \hyperref[dict:split-into-pieces]{\code{split\_\allowbreak{}into\_\allowbreak{}pieces}}, \hyperref[dict:move-round-by]{\code{move\_\allowbreak{}round\_\allowbreak{}by}}}
 \where{Manual \manualpage{word:block.repeat-whole-block}{884}{section*.599}}
@@ -4548,6 +4569,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Turn the order round: the last number comes first.}
 \eg{\code{nums.\allowbreak{}reverse()}}
 \field{Options}{none}
+\field{Other tools}{\code{flip}, \code{fliplr}, \code{flipud}}
 \field{Underneath}{NumPy \code{array()}}
 \field{See also}{\hyperref[dict:sort]{\code{sort}}, \hyperref[dict:fill-empty-numbers]{\code{fill\_\allowbreak{}empty\_\allowbreak{}numbers}}, \hyperref[dict:replace-each-number-that]{\code{replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that}}, \hyperref[dict:remove-numbers-by-position]{\code{remove\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position}}, \hyperref[dict:keep-numbers-by-position]{\code{keep\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position}}}
 \where{Manual \manualpage{word:nums.reverse}{827}{section*.512}}
@@ -4572,6 +4594,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Turn the block a quarter turn (or more) anticlockwise, as a picture (NumPy rot90).}
 \eg{\code{block.\allowbreak{}rotate(by\_\allowbreak{}quarter\_\allowbreak{}turns=1)}}
 \field{Options}{\code{by\_\allowbreak{}quarter\_\allowbreak{}turns=}, \code{over=}, \code{by\_\allowbreak{}degrees=}, \code{test\_\allowbreak{}method=}}
+\field{Other tools}{\code{imrotate}, \code{rot90}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{rot90()}}
 \field{See also}{\hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}, \hyperref[dict:move-round-by]{\code{move\_\allowbreak{}round\_\allowbreak{}by}}, \hyperref[dict:swap-directions]{\code{swap\_\allowbreak{}directions}}, \hyperref[dict:insert-numbers]{\code{insert\_\allowbreak{}numbers}}, \hyperref[dict:remove-directions-of-size-one]{\code{remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one}}}
 \where{Manual \manualpage{word:block.rotate}{881}{section*.595}}
@@ -4681,6 +4704,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Save the block; the end of the file name decides the type.}
 \eg{\code{block.\allowbreak{}save(\textquotedbl{}plate.\allowbreak{}csv\textquotedbl{})}}
 \field{Options}{\code{file\_\allowbreak{}name}, \code{time\_\allowbreak{}step=}, \code{bits=}}
+\field{Other tools}{\code{to\_\allowbreak{}netcdf}}
 \field{Underneath}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{path.\allowbreak{}join()}, \code{mkdtemp()}, \code{rename().\allowbreak{}to\_\allowbreak{}netcdf()}, \code{open\_\allowbreak{}dataset().\allowbreak{}values.\allowbreak{}ravel()}}
 \field{See also}{\hyperref[dict:show-whats-inside]{\code{show\_\allowbreak{}whats\_\allowbreak{}inside}}}
 \where{Manual \manualpage{word:block.save}{890}{section*.612}; lesson 13 (\manualpage{lesson:13}{86}{chapter.II.13})}
@@ -4871,6 +4895,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Show how this block and another line up before combining them; nothing changes.}
 \eg{\code{block.\allowbreak{}show\_\allowbreak{}how\_\allowbreak{}it\_\allowbreak{}lines\_\allowbreak{}up\_\allowbreak{}with(other)}}
 \field{Options}{\code{other=}}
+\field{Other tools}{\code{broadcast}, \code{broadcast\_\allowbreak{}shapes}}
 \field{Underneath}{NumPy \code{broadcast\_\allowbreak{}shapes()}}
 \field{See also}{\hyperref[dict:show-stretching-notes]{\code{show\_\allowbreak{}stretching\_\allowbreak{}notes}}, \hyperref[dict:stretch-to]{\code{stretch\_\allowbreak{}to}}, \hyperref[dict:stretch-to-same-shape]{\code{stretch\_\allowbreak{}to\_\allowbreak{}same\_\allowbreak{}shape}}, \hyperref[dict:hide-stretching-notes]{\code{hide\_\allowbreak{}stretching\_\allowbreak{}notes}}}
 \where{Manual \manualpage{word:block.show-how-it-lines-up-with}{887}{section*.605}; lesson 13 (\manualpage{lesson:13}{86}{chapter.II.13})}
@@ -5062,6 +5087,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Smooth a block along some directions: each number becomes a summary of its neighbours.}
 \eg{\code{block.\allowbreak{}smooth(over=[\textquotedbl{}latitude\textquotedbl{},\allowbreak{} \textquotedbl{}longitude\textquotedbl{}],\allowbreak{} window=3)}}
 \field{Options}{\code{over=}, \code{test\_\allowbreak{}method=}, \code{window=}, \code{width=}, \code{ends=}}
+\field{Other tools}{\code{conv2}, \code{convolve2d}, \code{focal}, \code{gaussian\_\allowbreak{}filter}, \code{imgaussfilt}, \code{medfilt2}, \code{median\_\allowbreak{}filter}, \code{rolling}, \code{uniform\_\allowbreak{}filter}}
 \field{Underneath}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{uniform\_\allowbreak{}filter()}}
 \field{See also}{\hyperref[dict:turn-into-change-from-average]{\code{turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average}}, \hyperref[dict:change-size-to]{\code{change\_\allowbreak{}size\_\allowbreak{}to}}, \hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}}
 \where{Manual \manualpage{word:block.smooth}{896}{section*.619}}
@@ -5104,6 +5130,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{One new block for each position of a direction, without that direction (NumPy unstack).}
 \eg{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per(\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{direction=}}
+\field{Other tools}{\code{unbind}, \code{unstack}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{unstack()}}
 \field{See also}{\hyperref[dict:split-into-pieces]{\code{split\_\allowbreak{}into\_\allowbreak{}pieces}}, \hyperref[dict:stack-up]{\code{stack\_\allowbreak{}up}}, \hyperref[dict:add-numbers-from]{\code{add\_\allowbreak{}numbers\_\allowbreak{}from}}, \hyperref[dict:repeat-whole-block]{\code{repeat\_\allowbreak{}whole\_\allowbreak{}block}}, \hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}}
 \where{Manual \manualpage{word:block.split-into-one-block-per}{886}{section*.602}}
@@ -5112,6 +5139,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Split the block into pieces along a direction; gives back a list of new blocks (NumPy \code{array\_\allowbreak{}split}).}
 \eg{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}}
 \field{Options}{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{array\_\allowbreak{}split}, \code{dsplit}, \code{hsplit}, \code{split}, \code{vsplit}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{array\_\allowbreak{}split()}}
 \field{See also}{\hyperref[dict:split-into-one-block-per]{\code{split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per}}, \hyperref[dict:add-numbers-from]{\code{add\_\allowbreak{}numbers\_\allowbreak{}from}}, \hyperref[dict:repeat-whole-block]{\code{repeat\_\allowbreak{}whole\_\allowbreak{}block}}, \hyperref[dict:stack-up]{\code{stack\_\allowbreak{}up}}, \hyperref[dict:repeat-each-number]{\code{repeat\_\allowbreak{}each\_\allowbreak{}number}}}
 \where{Manual \manualpage{word:block.split-into-pieces}{885}{section*.601}}
@@ -5213,6 +5241,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Stretch the block to a bigger shape by using its numbers again (NumPy \code{broadcast\_\allowbreak{}to}).}
 \eg{\code{block.\allowbreak{}stretch\_\allowbreak{}to((2,\allowbreak{} 24,\allowbreak{} 8,\allowbreak{} 12))}}
 \field{Options}{\code{shape=}}
+\field{Other tools}{\code{broadcast\_\allowbreak{}to}, \code{expand}, \code{expand\_\allowbreak{}as}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{broadcast\_\allowbreak{}to().\allowbreak{}copy()}}
 \field{See also}{\hyperref[dict:stretch-to-same-shape]{\code{stretch\_\allowbreak{}to\_\allowbreak{}same\_\allowbreak{}shape}}, \hyperref[dict:show-how-it-lines-up-with]{\code{show\_\allowbreak{}how\_\allowbreak{}it\_\allowbreak{}lines\_\allowbreak{}up\_\allowbreak{}with}}, \hyperref[dict:hide-stretching-notes]{\code{hide\_\allowbreak{}stretching\_\allowbreak{}notes}}, \hyperref[dict:show-stretching-notes]{\code{show\_\allowbreak{}stretching\_\allowbreak{}notes}}}
 \where{Manual \manualpage{word:block.stretch-to}{888}{section*.606}}
@@ -5238,6 +5267,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Swap two directions (NumPy swapaxes).}
 \eg{\code{block.\allowbreak{}swap\_\allowbreak{}directions(\textquotedbl{}row\textquotedbl{},\allowbreak{} \textquotedbl{}column\textquotedbl{})}}
 \field{Options}{\code{first=}, \code{second=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}
+\field{Other tools}{\code{permute}, \code{permute\_\allowbreak{}dims}, \code{swapaxes}}
 \field{Underneath}{NumPy \code{arange().\allowbreak{}reshape()}, \code{swapaxes()}}
 \field{See also}{\hyperref[dict:remove-directions-of-size-one]{\code{remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one}}, \hyperref[dict:move-direction]{\code{move\_\allowbreak{}direction}}, \hyperref[dict:add-direction]{\code{add\_\allowbreak{}direction}}, \hyperref[dict:rotate]{\code{rotate}}, \hyperref[dict:change-shape-to]{\code{change\_\allowbreak{}shape\_\allowbreak{}to}}}
 \where{Manual \manualpage{word:block.swap-directions}{879}{section*.593}}
@@ -5434,6 +5464,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \means{Take the usual value away from each number, so the numbers become anomalies.}
 \eg{\code{block.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average(in\_\allowbreak{}each=\textquotedbl{}month\textquotedbl{})}}
 \field{Options}{\code{in\_\allowbreak{}each=}, \code{over=}, \code{from\_\allowbreak{}years=}}
+\field{Other tools}{\code{anomalies}, \code{anomaly}}
 \field{Underneath}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{groupby().\allowbreak{}mean()}, \code{groupby()}}
 \field{See also}{\hyperref[dict:get-numbers-nearest-to]{\code{get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to}}, \hyperref[dict:smooth]{\code{smooth}}, \hyperref[dict:find-values-at]{\code{find\_\allowbreak{}values\_\allowbreak{}at}}, \hyperref[dict:change-size-to]{\code{change\_\allowbreak{}size\_\allowbreak{}to}}, \hyperref[dict:add-labels-to]{\code{add\_\allowbreak{}labels\_\allowbreak{}to}}}
 \where{Manual \manualpage{word:block.turn-into-change-from-average}{895}{section*.618}; lesson 13 (\manualpage{lesson:13}{86}{chapter.II.13})}
@@ -5827,7 +5858,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{ageadjust\_direct}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{566}{section*.290}}
 \othername{ageadjust\_indirect}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{564}{section*.289}}
 \othername{agg}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
-\othername{aggregate}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
+\othername{aggregate}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}; \hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{aic}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}; \hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
 \othername{AICc}{\hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
 \othername{aicc}{\hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
@@ -5848,13 +5879,15 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{anderson\_ksamp}{\hyperref[dict:compare-shapes-of]{\code{table.\allowbreak{}compare\_\allowbreak{}shapes\_\allowbreak{}of()}}, \manualpage{word:table.compare-shapes-of}{557}{section*.282}}
 \othername{annotate}{\hyperref[dict:write-note]{\code{chart.\allowbreak{}write\_\allowbreak{}note()}}, \manualpage{word:write-note}{318}{section*.76}}
 \othername{annotation\_custom}{\hyperref[dict:put-chart-inside]{\code{chart.\allowbreak{}put\_\allowbreak{}chart\_\allowbreak{}inside()}}, \manualpage{word:put-chart-inside}{388}{section*.129}}
+\othername{anomalies}{\hyperref[dict:turn-into-change-from-average]{\code{block.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average()}}, \manualpage{word:block.turn-into-change-from-average}{895}{section*.618}}
+\othername{anomaly}{\hyperref[dict:turn-into-change-from-average]{\code{block.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average()}}, \manualpage{word:block.turn-into-change-from-average}{895}{section*.618}}
 \othername{anosim}{\hyperref[dict:compare-profiles-of]{\code{table.\allowbreak{}compare\_\allowbreak{}profiles\_\allowbreak{}of()}}, \manualpage{word:table.compare-profiles-of}{665}{section*.374}}
 \othername{anova}{\hyperref[dict:compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.compare-averages-of}{535}{section*.271}}
 \othername{anova\_lm}{\hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
 \othername{anti\_join}{\hyperref[dict:remove-rows-found-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}}, \manualpage{word:table.remove-rows-found-in}{788}{section*.458}}
 \othername{any}{\hyperref[dict:check-if-any-number]{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}any\_\allowbreak{}number()}}, \manualpage{word:nums.check-if-any-number}{859}{section*.562}}
 \othername{aov}{\hyperref[dict:compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.compare-averages-of}{535}{section*.271}}
-\othername{append}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{781}{section*.453}}
+\othername{append}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{781}{section*.453}; \hyperref[dict:add-numbers-from]{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from()}}, \manualpage{word:block.add-numbers-from}{884}{section*.600}}
 \othername{approx}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{approxfun}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{arange}{\hyperref[dict:numbers]{\code{sdata.\allowbreak{}numbers()}}, \manualpage{word:sdata.numbers}{803}{section*.477}}
@@ -5868,6 +5901,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{array}{\hyperref[dict:numbers]{\code{sdata.\allowbreak{}numbers()}}, \manualpage{word:sdata.numbers}{803}{section*.477}}
 \othername{array\_equal}{\hyperref[dict:check-if-same-as]{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}same\_\allowbreak{}as()}}, \manualpage{word:nums.check-if-same-as}{860}{section*.564}}
 \othername{array\_equiv}{\hyperref[dict:check-if-same-as]{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}same\_\allowbreak{}as()}}, \manualpage{word:nums.check-if-same-as}{860}{section*.564}}
+\othername{array\_split}{\hyperref[dict:split-into-pieces]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces()}}, \manualpage{word:block.split-into-pieces}{885}{section*.601}}
 \othername{arrow}{\hyperref[dict:draw-arrow]{\code{chart.\allowbreak{}draw\_\allowbreak{}arrow()}}, \manualpage{word:draw-arrow}{387}{section*.128}}
 \othername{as\_date}{\hyperref[dict:turn-into-dates]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}dates()}}, \manualpage{word:table.turn-into-dates}{479}{section*.224}}
 \othername{as\_factor}{\hyperref[dict:turn-into-categories]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}categories()}}, \manualpage{word:table.turn-into-categories}{487}{section*.231}}
@@ -5876,9 +5910,13 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{asfreq}{\hyperref[dict:add-missing-dates]{\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}}, \manualpage{word:table.add-missing-dates}{718}{section*.404}}
 \othername{assert\_frame\_equal}{\hyperref[dict:check-if-same-as]{\code{table.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}same\_\allowbreak{}as()}}, \manualpage{word:table.check-if-same-as}{441}{section*.184}}
 \othername{assign}{\hyperref[dict:add-column]{\code{table.\allowbreak{}add\_\allowbreak{}column()}}, \manualpage{word:table.add-column}{489}{section*.234}}
+\othername{assign\_coords}{\hyperref[dict:add-labels-to]{\code{block.\allowbreak{}add\_\allowbreak{}labels\_\allowbreak{}to()}}, \manualpage{word:block.add-labels-to}{892}{section*.615}}
 \othername{astype}{\hyperref[dict:turn-into-numbers]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}, \manualpage{word:table.turn-into-numbers}{477}{section*.222}}
 \othername{at}{\hyperref[dict:get-cell-at]{\code{table.\allowbreak{}get\_\allowbreak{}cell\_\allowbreak{}at()}}, \manualpage{word:table.get-cell-at}{439}{section*.181}}
 \othername{ate}{\hyperref[dict:compare-balanced-groups-of]{\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()}}, \manualpage{word:table.compare-balanced-groups-of}{570}{section*.293}}
+\othername{atleast\_1d}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
+\othername{atleast\_2d}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
+\othername{atleast\_3d}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
 \othername{att}{\hyperref[dict:compare-balanced-groups-of]{\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()}}, \manualpage{word:table.compare-balanced-groups-of}{570}{section*.293}}
 \othername{attributable\_fraction}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{563}{section*.288}}
 \othername{attributable\_fractions}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{563}{section*.288}}
@@ -5940,6 +5978,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{block\_maxima}{\hyperref[dict:find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-return-levels-of}{686}{section*.386}}
 \othername{block\_randomisation}{\hyperref[dict:make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \manualpage{word:sdata.make-random-assignments}{775}{section*.449}}
 \othername{block\_randomization}{\hyperref[dict:make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \manualpage{word:sdata.make-random-assignments}{775}{section*.449}}
+\othername{block\_reduce}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
+\othername{blockproc}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{blockrand}{\hyperref[dict:make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \manualpage{word:sdata.make-random-assignments}{775}{section*.449}}
 \othername{blup}{\hyperref[dict:find-group-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-group-levels-of}{655}{section*.366}}
 \othername{blups}{\hyperref[dict:find-group-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-group-levels-of}{655}{section*.366}}
@@ -5958,7 +5998,10 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{brier}{\hyperref[dict:check-model-of]{\code{table.\allowbreak{}check\_\allowbreak{}model\_\allowbreak{}of()}}, \manualpage{word:table.check-model-of}{648}{section*.362}}
 \othername{brm}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{brms}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
+\othername{broadcast}{\hyperref[dict:show-how-it-lines-up-with]{\code{block.\allowbreak{}show\_\allowbreak{}how\_\allowbreak{}it\_\allowbreak{}lines\_\allowbreak{}up\_\allowbreak{}with()}}, \manualpage{word:block.show-how-it-lines-up-with}{887}{section*.605}}
 \othername{broadcast\_arrays}{\hyperref[dict:stretch-to-same-shape]{\code{sdata.\allowbreak{}stretch\_\allowbreak{}to\_\allowbreak{}same\_\allowbreak{}shape()}}, \manualpage{word:sdata.stretch-to-same-shape}{888}{section*.607}}
+\othername{broadcast\_shapes}{\hyperref[dict:show-how-it-lines-up-with]{\code{block.\allowbreak{}show\_\allowbreak{}how\_\allowbreak{}it\_\allowbreak{}lines\_\allowbreak{}up\_\allowbreak{}with()}}, \manualpage{word:block.show-how-it-lines-up-with}{887}{section*.605}}
+\othername{broadcast\_to}{\hyperref[dict:stretch-to]{\code{block.\allowbreak{}stretch\_\allowbreak{}to()}}, \manualpage{word:block.stretch-to}{888}{section*.606}}
 \othername{broken\_axis}{\hyperref[dict:break-between-y]{\code{chart.\allowbreak{}break\_\allowbreak{}between\_\allowbreak{}y()}}, \manualpage{word:break-between-y}{414}{section*.158}}
 \othername{broken\_barh}{\hyperref[dict:draw-time-bars]{\code{chart.\allowbreak{}draw\_\allowbreak{}time\_\allowbreak{}bars()}}, \manualpage{word:draw-time-bars}{422}{section*.164}}
 \othername{brokenaxes}{\hyperref[dict:break-between-y]{\code{chart.\allowbreak{}break\_\allowbreak{}between\_\allowbreak{}y()}}, \manualpage{word:break-between-y}{414}{section*.158}}
@@ -5972,6 +6015,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{capscale}{\hyperref[dict:explain-profiles-of]{\code{table.\allowbreak{}explain\_\allowbreak{}profiles\_\allowbreak{}of()}}, \manualpage{word:table.explain-profiles-of}{673}{section*.378}}
 \othername{complete.cases}{\hyperref[dict:show-rows-with-empty-cells-in]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.show-rows-with-empty-cells-in}{476}{section*.220}}
 \othername{cast}{\hyperref[dict:turn-into-numbers]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}, \manualpage{word:table.turn-into-numbers}{477}{section*.222}}
+\othername{cat}{\hyperref[dict:add-numbers-from]{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from()}}, \manualpage{word:block.add-numbers-from}{884}{section*.600}}
 \othername{Categorical}{\hyperref[dict:turn-into-categories]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}categories()}}, \manualpage{word:table.turn-into-categories}{487}{section*.231}}
 \othername{CategoricalDtype}{\hyperref[dict:turn-into-categories]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}categories()}}, \manualpage{word:table.turn-into-categories}{487}{section*.231}}
 \othername{cbrt}{\hyperref[dict:take-cube-root]{\code{nums.\allowbreak{}take\_\allowbreak{}cube\_\allowbreak{}root()}}, \manualpage{word:nums.take-cube-root}{817}{section*.497}}
@@ -6003,6 +6047,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{cif}{\hyperref[dict:find-risk-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}risk\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.find-risk-over-time}{704}{section*.396}}
 \othername{Circle}{\hyperref[dict:draw-circle]{\code{chart.\allowbreak{}draw\_\allowbreak{}circle()}}, \manualpage{word:draw-circle}{425}{section*.166}}
 \othername{circmean}{\hyperref[dict:find-average-direction-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of()}}, \manualpage{word:table.find-average-direction-of}{685}{section*.385}}
+\othername{circshift}{\hyperref[dict:move-round-by]{\code{block.\allowbreak{}move\_\allowbreak{}round\_\allowbreak{}by()}}, \manualpage{word:block.move-round-by}{882}{section*.596}}
 \othername{circular\_average}{\hyperref[dict:find-average-direction-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of()}}, \manualpage{word:table.find-average-direction-of}{685}{section*.385}}
 \othername{circular\_mean}{\hyperref[dict:find-average-direction-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}direction\_\allowbreak{}of()}}, \manualpage{word:table.find-average-direction-of}{685}{section*.385}}
 \othername{circular\_uniformity}{\hyperref[dict:compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:table.compare-shape-to}{548}{section*.276}}
@@ -6012,6 +6057,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{cite\_packages}{\hyperref[dict:show-packages-used]{\code{sdata.\allowbreak{}show\_\allowbreak{}packages\_\allowbreak{}used()}}, \manualpage{word:sdata.show-packages-used}{920}{section*.655}}
 \othername{cKDTree}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}}
 \othername{clean\_names}{\hyperref[dict:clean-column-names]{\code{table.\allowbreak{}clean\_\allowbreak{}column\_\allowbreak{}names()}}, \manualpage{word:table.clean-column-names}{447}{section*.191}}
+\othername{climatology}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{clip}{\hyperref[dict:replace-values-in]{\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}}, \manualpage{word:table.replace-values-in}{482}{section*.228}}
 \othername{clogit}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{clone}{\hyperref[dict:make-copy]{\code{table.\allowbreak{}make\_\allowbreak{}copy()}}, \manualpage{word:table.make-copy}{798}{section*.469}}
@@ -6023,6 +6069,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{cmdscale}{\hyperref[dict:add-principal-coordinates]{\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}coordinates()}}, \manualpage{word:table.add-principal-coordinates}{672}{section*.377}}
 \othername{cmultRepl}{\hyperref[dict:add-log-ratio-columns]{\code{table.\allowbreak{}add\_\allowbreak{}log\_\allowbreak{}ratio\_\allowbreak{}columns()}}, \manualpage{word:table.add-log-ratio-columns}{669}{section*.376}}
 \othername{coalesce}{\hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}; \hyperref[dict:fill-empty-cells-from]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}from()}}, \manualpage{word:table.fill-empty-cells-from}{474}{section*.219}}
+\othername{coarsen}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{cobalt}{\hyperref[dict:compare-balanced-groups-of]{\code{table.\allowbreak{}compare\_\allowbreak{}balanced\_\allowbreak{}groups\_\allowbreak{}of()}}, \manualpage{word:table.compare-balanced-groups-of}{570}{section*.293}}
 \othername{cochran\_armitage}{\hyperref[dict:compare-counts-of]{\code{table.\allowbreak{}compare\_\allowbreak{}counts\_\allowbreak{}of()}}, \manualpage{word:table.compare-counts-of}{546}{section*.275}}
 \othername{cochrans\_q}{\hyperref[dict:compare-matched-columns]{\code{table.\allowbreak{}compare\_\allowbreak{}matched\_\allowbreak{}columns()}}, \manualpage{word:table.compare-matched-columns}{555}{section*.281}}
@@ -6053,6 +6100,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{compositional}{\hyperref[dict:add-log-ratio-columns]{\code{table.\allowbreak{}add\_\allowbreak{}log\_\allowbreak{}ratio\_\allowbreak{}columns()}}, \manualpage{word:table.add-log-ratio-columns}{669}{section*.376}}
 \othername{compress}{\hyperref[dict:keep-numbers-where]{\code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}where()}}, \manualpage{word:nums.keep-numbers-where}{856}{section*.558}}
 \othername{concat}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{781}{section*.453}}
+\othername{concatenate}{\hyperref[dict:add-numbers-from]{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from()}}, \manualpage{word:block.add-numbers-from}{884}{section*.600}}
 \othername{concordance}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{578}{section*.300}}
 \othername{concordance\_index}{\hyperref[dict:explain-survival]{\code{table.\allowbreak{}explain\_\allowbreak{}survival()}}, \manualpage{word:table.explain-survival}{696}{section*.393}}
 \othername{conditional\_logit}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
@@ -6064,15 +6112,18 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{contingencyTableBF}{\hyperref[dict:compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.compare-averages-of}{535}{section*.271}}
 \othername{contourf}{\hyperref[dict:draw-contour]{\code{chart.\allowbreak{}draw\_\allowbreak{}contour()}}, \manualpage{word:draw-contour}{258}{section*.35}}
 \othername{contrast}{\hyperref[dict:find-model-averages-of]{\code{table.\allowbreak{}find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.find-model-averages-of}{646}{section*.361}}
+\othername{conv2}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{convert\_time\_zone}{\hyperref[dict:change-time-zone-in]{\code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in()}}, \manualpage{word:table.change-time-zone-in}{505}{section*.247}}
 \othername{convex\_hull}{\hyperref[dict:find-fence-around]{\code{table.\allowbreak{}find\_\allowbreak{}fence\_\allowbreak{}around()}}, \manualpage{word:table.find-fence-around}{690}{section*.389}}
 \othername{ConvexHull}{\hyperref[dict:find-fence-around]{\code{table.\allowbreak{}find\_\allowbreak{}fence\_\allowbreak{}around()}}, \manualpage{word:table.find-fence-around}{690}{section*.389}}
 \othername{convhull}{\hyperref[dict:find-fence-around]{\code{table.\allowbreak{}find\_\allowbreak{}fence\_\allowbreak{}around()}}, \manualpage{word:table.find-fence-around}{690}{section*.389}}
 \othername{convolve}{\hyperref[dict:convolve-with]{\code{nums.\allowbreak{}convolve\_\allowbreak{}with()}}, \manualpage{word:nums.convolve-with}{903}{section*.629}}
 \othername{convolve1d}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
+\othername{convolve2d}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{cooks\_distance}{\hyperref[dict:show-rows-that-pull-model]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()}}, \manualpage{word:table.show-rows-that-pull-model}{650}{section*.363}}
 \othername{coord\_equal}{\hyperref[dict:use-true-shape]{\code{chart.\allowbreak{}use\_\allowbreak{}true\_\allowbreak{}shape()}}, \manualpage{word:use-true-shape}{397}{section*.137}}
 \othername{coord\_fixed}{\hyperref[dict:use-true-shape]{\code{chart.\allowbreak{}use\_\allowbreak{}true\_\allowbreak{}shape()}}, \manualpage{word:use-true-shape}{397}{section*.137}}
+\othername{coords}{\hyperref[dict:get-labels-of]{\code{block.\allowbreak{}get\_\allowbreak{}labels\_\allowbreak{}of()}}, \manualpage{word:block.get-labels-of}{891}{section*.614}}
 \othername{copy}{\hyperref[dict:make-copy]{\code{table.\allowbreak{}make\_\allowbreak{}copy()}}, \manualpage{word:table.make-copy}{798}{section*.469}}
 \othername{cor}{\hyperref[dict:find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.find-correlation-between}{531}{section*.269}}
 \othername{cor\_test}{\hyperref[dict:find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.find-correlation-between}{531}{section*.269}}
@@ -6099,6 +6150,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{credible\_interval}{\hyperref[dict:compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.compare-averages-of}{535}{section*.271}}
 \othername{cronbach}{\hyperref[dict:reliability-of]{\code{table.\allowbreak{}reliability\_\allowbreak{}of()}}, \manualpage{word:table.reliability-of}{581}{section*.302}}
 \othername{cronbach\_alpha}{\hyperref[dict:reliability-of]{\code{table.\allowbreak{}reliability\_\allowbreak{}of()}}, \manualpage{word:table.reliability-of}{581}{section*.302}}
+\othername{crop}{\hyperref[dict:keep-where]{\code{block.\allowbreak{}keep\_\allowbreak{}where()}}, \manualpage{word:block.keep-where}{876}{section*.587}}
 \othername{cross\_correlation}{\hyperref[dict:find-correlation-between]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between()}}, \manualpage{word:table.find-correlation-between}{531}{section*.269}}
 \othername{cross\_join}{\hyperref[dict:join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \manualpage{word:table.join-with}{777}{section*.452}}
 \othername{cross\_val\_score}{\hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
@@ -6162,6 +6214,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{deg2rad}{\hyperref[dict:change-angles-to]{\code{nums.\allowbreak{}change\_\allowbreak{}angles\_\allowbreak{}to()}}, \manualpage{word:nums.change-angles-to}{866}{section*.574}}
 \othername{degrees}{\hyperref[dict:change-angles-to]{\code{nums.\allowbreak{}change\_\allowbreak{}angles\_\allowbreak{}to()}}, \manualpage{word:nums.change-angles-to}{866}{section*.574}}
 \othername{delayed\_entry}{\hyperref[dict:find-survival-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.find-survival-over-time}{691}{section*.391}}
+\othername{delete}{\hyperref[dict:remove-by-position-in]{\code{block.\allowbreak{}remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in()}}, \manualpage{word:block.remove-by-position-in}{875}{section*.586}}
 \othername{delong}{\hyperref[dict:compare-accuracy]{\code{table.\allowbreak{}compare\_\allowbreak{}accuracy()}}, \manualpage{word:table.compare-accuracy}{574}{section*.296}}
 \othername{deming}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{584}{section*.305}}
 \othername{dendrogram}{\hyperref[dict:draw-cluster-tree]{\code{chart.\allowbreak{}draw\_\allowbreak{}cluster\_\allowbreak{}tree()}}, \manualpage{word:draw-cluster-tree}{287}{section*.54}}
@@ -6182,6 +6235,9 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{diagnostics}{\hyperref[dict:check-model-of]{\code{table.\allowbreak{}check\_\allowbreak{}model\_\allowbreak{}of()}}, \manualpage{word:table.check-model-of}{648}{section*.362}}
 \othername{diff}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}; \hyperref[dict:add-change-column]{\code{table.\allowbreak{}add\_\allowbreak{}change\_\allowbreak{}column()}}, \manualpage{word:table.add-change-column}{509}{section*.252}}
 \othername{diffdf}{\hyperref[dict:show-differences-from]{\code{table.\allowbreak{}show\_\allowbreak{}differences\_\allowbreak{}from()}}, \manualpage{word:table.show-differences-from}{440}{section*.183}}
+\othername{dim}{\hyperref[dict:count-directions]{\code{block.\allowbreak{}count\_\allowbreak{}directions()}}, \manualpage{word:block.count-directions}{871}{section*.581}}
+\othername{dim\_names}{\hyperref[dict:find-direction-names]{\code{block.\allowbreak{}find\_\allowbreak{}direction\_\allowbreak{}names()}}, \manualpage{word:block.find-direction-names}{871}{section*.582}}
+\othername{dims}{\hyperref[dict:find-direction-names]{\code{block.\allowbreak{}find\_\allowbreak{}direction\_\allowbreak{}names()}}, \manualpage{word:block.find-direction-names}{871}{section*.582}}
 \othername{direct\_standardisation}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{566}{section*.290}}
 \othername{direct\_standardization}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{566}{section*.290}}
 \othername{discriminant}{\hyperref[dict:add-axes-that-separate-groups]{\code{table.\allowbreak{}add\_\allowbreak{}axes\_\allowbreak{}that\_\allowbreak{}separate\_\allowbreak{}groups()}}, \manualpage{word:table.add-axes-that-separate-groups}{678}{section*.380}}
@@ -6211,10 +6267,12 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{drop\_empty\_columns}{\hyperref[dict:remove-columns-that-are-all-empty]{\code{table.\allowbreak{}remove\_\allowbreak{}columns\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}}, \manualpage{word:table.remove-columns-that-are-all-empty}{474}{section*.218}}
 \othername{drop\_empty\_rows}{\hyperref[dict:remove-rows-that-are-all-empty]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}are\_\allowbreak{}all\_\allowbreak{}empty()}}, \manualpage{word:table.remove-rows-that-are-all-empty}{473}{section*.217}}
 \othername{drop\_index}{\hyperref[dict:remove-rows-by-position]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.remove-rows-by-position}{456}{section*.200}}
+\othername{drop\_isel}{\hyperref[dict:remove-by-position-in]{\code{block.\allowbreak{}remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in()}}, \manualpage{word:block.remove-by-position-in}{875}{section*.586}}
 \othername{drop\_nulls}{\hyperref[dict:remove-rows-with-empty-cells-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.remove-rows-with-empty-cells-in}{469}{section*.214}}
 \othername{drop1}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{dropna}{\hyperref[dict:remove-rows-with-empty-cells-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.remove-rows-with-empty-cells-in}{469}{section*.214}}
 \othername{dsolve}{\hyperref[dict:find-path-over-time]{\code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:sdata.find-path-over-time}{608}{section*.332}}
+\othername{dsplit}{\hyperref[dict:split-into-pieces]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces()}}, \manualpage{word:block.split-into-pieces}{885}{section*.601}}
 \othername{dst}{\hyperref[dict:take-cosine-transform]{\code{nums.\allowbreak{}take\_\allowbreak{}cosine\_\allowbreak{}transform()}}, \manualpage{word:nums.take-cosine-transform}{763}{section*.443}}
 \othername{dstack}{\hyperref[dict:stack-up]{\code{sdata.\allowbreak{}stack\_\allowbreak{}up()}}, \manualpage{word:sdata.stack-up}{886}{section*.603}}
 \othername{dtypes}{\hyperref[dict:describe-columns]{\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}, \manualpage{word:table.describe-columns}{436}{section*.178}}
@@ -6261,8 +6319,10 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{ewma}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
 \othername{ExcelWriter}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{795}{section*.468}}
 \othername{except}{\hyperref[dict:remove-rows-found-in]{\code{table.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}}, \manualpage{word:table.remove-rows-found-in}{788}{section*.458}}
-\othername{expand}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}}
+\othername{expand}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}; \hyperref[dict:stretch-to]{\code{block.\allowbreak{}stretch\_\allowbreak{}to()}}, \manualpage{word:block.stretch-to}{888}{section*.606}}
+\othername{expand\_as}{\hyperref[dict:stretch-to]{\code{block.\allowbreak{}stretch\_\allowbreak{}to()}}, \manualpage{word:block.stretch-to}{888}{section*.606}}
 \othername{expand\_counts}{\hyperref[dict:repeat-each-row-by]{\code{table.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}row\_\allowbreak{}by()}}, \manualpage{word:table.repeat-each-row-by}{460}{section*.204}}
+\othername{expand\_dims}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
 \othername{expand\_grid}{\hyperref[dict:make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \manualpage{word:sdata.make-design-table}{772}{section*.448}}
 \othername{expanding}{\hyperref[dict:add-running-column]{\code{table.\allowbreak{}add\_\allowbreak{}running\_\allowbreak{}column()}}, \manualpage{word:table.add-running-column}{511}{section*.253}}
 \othername{experimental\_design}{\hyperref[dict:make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \manualpage{word:sdata.make-design-table}{772}{section*.448}}
@@ -6271,7 +6331,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{exploratory\_factor\_analysis}{\hyperref[dict:find-hidden-factors-behind]{\code{table.\allowbreak{}find\_\allowbreak{}hidden\_\allowbreak{}factors\_\allowbreak{}behind()}}, \manualpage{word:table.find-hidden-factors-behind}{680}{section*.382}}
 \othername{exponential\_smoothing}{\hyperref[dict:forecast]{\code{table.\allowbreak{}forecast()}}, \manualpage{word:table.forecast}{737}{section*.420}}
 \othername{ExponentialSmoothing}{\hyperref[dict:forecast]{\code{table.\allowbreak{}forecast()}}, \manualpage{word:table.forecast}{737}{section*.420}}
-\othername{extract}{\hyperref[dict:keep-numbers-where]{\code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}where()}}, \manualpage{word:nums.keep-numbers-where}{856}{section*.558}}
+\othername{extract}{\hyperref[dict:keep-numbers-where]{\code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}where()}}, \manualpage{word:nums.keep-numbers-where}{856}{section*.558}; \hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{extremes}{\hyperref[dict:find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-return-levels-of}{686}{section*.386}}
 \letterhead{F}
 \othername{f\_oneway}{\hyperref[dict:compare-averages-of]{\code{table.\allowbreak{}compare\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.compare-averages-of}{535}{section*.271}}
@@ -6325,9 +6385,11 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{fitmeasures}{\hyperref[dict:check-hidden-factors]{\code{table.\allowbreak{}check\_\allowbreak{}hidden\_\allowbreak{}factors()}}, \manualpage{word:table.check-hidden-factors}{683}{section*.383}}
 \othername{fix}{\hyperref[dict:take-whole-part]{\code{nums.\allowbreak{}take\_\allowbreak{}whole\_\allowbreak{}part()}}, \manualpage{word:nums.take-whole-part}{864}{section*.570}}
 \othername{fixed\_quad}{\hyperref[dict:find-area-under]{\code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under()}}, \manualpage{word:sdata.find-area-under}{606}{section*.330}}
+\othername{flatten\_to}{\hyperref[dict:change-shape-to]{\code{block.\allowbreak{}change\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:block.change-shape-to}{877}{section*.590}}
 \othername{fleiss\_kappa}{\hyperref[dict:agreement-between]{\code{table.\allowbreak{}agreement\_\allowbreak{}between()}}, \manualpage{word:table.agreement-between}{578}{section*.300}}
-\othername{flip}{\hyperref[dict:reverse-rows]{\code{table.\allowbreak{}reverse\_\allowbreak{}rows()}}, \manualpage{word:table.reverse-rows}{457}{section*.201}; \hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{488}{section*.233}}
-\othername{flipud}{\hyperref[dict:reverse-rows]{\code{table.\allowbreak{}reverse\_\allowbreak{}rows()}}, \manualpage{word:table.reverse-rows}{457}{section*.201}; \hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{488}{section*.233}}
+\othername{flip}{\hyperref[dict:reverse-rows]{\code{table.\allowbreak{}reverse\_\allowbreak{}rows()}}, \manualpage{word:table.reverse-rows}{457}{section*.201}; \hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{488}{section*.233}; \hyperref[dict:reverse]{\code{nums.\allowbreak{}reverse()}}, \manualpage{word:nums.reverse}{827}{section*.512}}
+\othername{fliplr}{\hyperref[dict:reverse]{\code{nums.\allowbreak{}reverse()}}, \manualpage{word:nums.reverse}{827}{section*.512}}
+\othername{flipud}{\hyperref[dict:reverse-rows]{\code{table.\allowbreak{}reverse\_\allowbreak{}rows()}}, \manualpage{word:table.reverse-rows}{457}{section*.201}; \hyperref[dict:sort-by]{\code{table.\allowbreak{}sort\_\allowbreak{}by()}}, \manualpage{word:table.sort-by}{488}{section*.233}; \hyperref[dict:reverse]{\code{nums.\allowbreak{}reverse()}}, \manualpage{word:nums.reverse}{827}{section*.512}}
 \othername{floor}{\hyperref[dict:round-down]{\code{nums.\allowbreak{}round\_\allowbreak{}down()}}, \manualpage{word:nums.round-down}{863}{section*.568}}
 \othername{floor\_date}{\hyperref[dict:round-dates-in]{\code{table.\allowbreak{}round\_\allowbreak{}dates\_\allowbreak{}in()}}, \manualpage{word:table.round-dates-in}{503}{section*.246}}
 \othername{floor\_divide}{\hyperref[dict:divide-by]{\code{nums.\allowbreak{}divide\_\allowbreak{}by()}}, \manualpage{word:nums.divide-by}{811}{section*.489}}
@@ -6336,6 +6398,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{fmin}{\hyperref[dict:find-where-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-where-smallest}{593}{section*.311}}
 \othername{fminbound}{\hyperref[dict:find-where-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-where-smallest}{593}{section*.311}}
 \othername{fminsearch}{\hyperref[dict:find-where-smallest]{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}}, \manualpage{word:sdata.find-where-smallest}{593}{section*.311}}
+\othername{focal}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{follow\_up}{\hyperref[dict:add-time-and-event-columns]{\code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns()}}, \manualpage{word:table.add-time-and-event-columns}{703}{section*.395}}
 \othername{force\_tz}{\hyperref[dict:change-time-zone-in]{\code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in()}}, \manualpage{word:table.change-time-zone-in}{505}{section*.247}}
 \othername{forecast\_accuracy}{\hyperref[dict:compare-forecasts-for]{\code{table.\allowbreak{}compare\_\allowbreak{}forecasts\_\allowbreak{}for()}}, \manualpage{word:table.compare-forecasts-for}{742}{section*.423}}
@@ -6367,6 +6430,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{gap\_plot}{\hyperref[dict:break-between-y]{\code{chart.\allowbreak{}break\_\allowbreak{}between\_\allowbreak{}y()}}, \manualpage{word:break-between-y}{414}{section*.158}}
 \othername{gather}{\hyperref[dict:gather-into-rows]{\code{table.\allowbreak{}gather\_\allowbreak{}into\_\allowbreak{}rows()}}, \manualpage{word:table.gather-into-rows}{782}{section*.454}}
 \othername{gather\_every}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{455}{section*.199}}
+\othername{gaussian\_filter}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{gaussian\_filter1d}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
 \othername{gaussian\_kde}{\hyperref[dict:fit-distribution-to]{\code{table.\allowbreak{}fit\_\allowbreak{}distribution\_\allowbreak{}to()}}, \manualpage{word:table.fit-distribution-to}{615}{section*.341}}
 \othername{gausspulse}{\hyperref[dict:make-wave]{\code{sdata.\allowbreak{}make\_\allowbreak{}wave()}}, \manualpage{word:sdata.make-wave}{905}{section*.632}}
@@ -6449,8 +6513,9 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{group\_by}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
 \othername{group\_levels}{\hyperref[dict:find-group-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}group\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-group-levels-of}{655}{section*.366}}
 \othername{group\_split}{\hyperref[dict:make-one-table-for-each-group-in]{\code{table.\allowbreak{}make\_\allowbreak{}one\_\allowbreak{}table\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in()}}, \manualpage{word:table.make-one-table-for-each-group-in}{791}{section*.461}}
-\othername{groupby}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
+\othername{groupby}{\hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}; \hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{groupby\_filter}{\hyperref[dict:keep-groups-where]{\code{table.\allowbreak{}keep\_\allowbreak{}groups\_\allowbreak{}where()}}, \manualpage{word:table.keep-groups-where}{466}{section*.210}}
+\othername{groupsummary}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{grubbs\_test}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{463}{section*.207}}
 \letterhead{H}
 \othername{hamming}{\hyperref[dict:make-window-shape]{\code{sdata.\allowbreak{}make\_\allowbreak{}window\_\allowbreak{}shape()}}, \manualpage{word:sdata.make-window-shape}{906}{section*.633}}
@@ -6490,6 +6555,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{hover\_data}{\hyperref[dict:show-when-pointing]{\code{chart.\allowbreak{}show\_\allowbreak{}when\_\allowbreak{}pointing()}}, \manualpage{word:show-when-pointing}{413}{section*.155}}
 \othername{hover\_name}{\hyperref[dict:show-when-pointing]{\code{chart.\allowbreak{}show\_\allowbreak{}when\_\allowbreak{}pointing()}}, \manualpage{word:show-when-pointing}{413}{section*.155}}
 \othername{hovertemplate}{\hyperref[dict:show-when-pointing]{\code{chart.\allowbreak{}show\_\allowbreak{}when\_\allowbreak{}pointing()}}, \manualpage{word:show-when-pointing}{413}{section*.155}}
+\othername{hsplit}{\hyperref[dict:split-into-pieces]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces()}}, \manualpage{word:block.split-into-pieces}{885}{section*.601}}
+\othername{hstack}{\hyperref[dict:add-numbers-from]{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from()}}, \manualpage{word:block.add-numbers-from}{884}{section*.600}}
 \othername{huber}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{hurdle}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{HurdleCountModel}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
@@ -6509,9 +6576,13 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{iirpeak}{\hyperref[dict:keep-each-frequency-that]{\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that()}}, \manualpage{word:nums.keep-each-frequency-that}{754}{section*.434}}
 \othername{iloc}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{455}{section*.199}}
 \othername{ilr}{\hyperref[dict:add-log-ratio-columns]{\code{table.\allowbreak{}add\_\allowbreak{}log\_\allowbreak{}ratio\_\allowbreak{}columns()}}, \manualpage{word:table.add-log-ratio-columns}{669}{section*.376}}
+\othername{imgaussfilt}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
+\othername{imresize}{\hyperref[dict:change-size-to]{\code{block.\allowbreak{}change\_\allowbreak{}size\_\allowbreak{}to()}}, \manualpage{word:block.change-size-to}{897}{section*.620}}
+\othername{imrotate}{\hyperref[dict:rotate]{\code{block.\allowbreak{}rotate()}}, \manualpage{word:block.rotate}{881}{section*.595}}
 \othername{imshow}{\hyperref[dict:draw-heatmap]{\code{chart.\allowbreak{}draw\_\allowbreak{}heatmap()}}, \manualpage{word:draw-heatmap}{252}{section*.32}}
 \othername{incidence\_rate}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{566}{section*.290}}
 \othername{incomplete\_cases}{\hyperref[dict:show-rows-with-empty-cells-in]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.show-rows-with-empty-cells-in}{476}{section*.220}}
+\othername{indexes}{\hyperref[dict:get-labels-of]{\code{block.\allowbreak{}get\_\allowbreak{}labels\_\allowbreak{}of()}}, \manualpage{word:block.get-labels-of}{891}{section*.614}}
 \othername{indirect\_effect}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{indirect\_standardisation}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{564}{section*.289}}
 \othername{indirect\_standardization}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{564}{section*.289}}
@@ -6520,6 +6591,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{influence\_measures}{\hyperref[dict:show-rows-that-pull-model]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}that\_\allowbreak{}pull\_\allowbreak{}model()}}, \manualpage{word:table.show-rows-that-pull-model}{650}{section*.363}}
 \othername{info}{\hyperref[dict:describe-columns]{\code{table.\allowbreak{}describe\_\allowbreak{}columns()}}, \manualpage{word:table.describe-columns}{436}{section*.178}}
 \othername{inner\_join}{\hyperref[dict:join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \manualpage{word:table.join-with}{777}{section*.452}}
+\othername{insert}{\hyperref[dict:insert-numbers]{\code{block.\allowbreak{}insert\_\allowbreak{}numbers()}}, \manualpage{word:block.insert-numbers}{882}{section*.597}}
 \othername{inset\_axes}{\hyperref[dict:put-chart-inside]{\code{chart.\allowbreak{}put\_\allowbreak{}chart\_\allowbreak{}inside()}}, \manualpage{word:put-chart-inside}{388}{section*.129}}
 \othername{inset\_element}{\hyperref[dict:put-chart-inside]{\code{chart.\allowbreak{}put\_\allowbreak{}chart\_\allowbreak{}inside()}}, \manualpage{word:put-chart-inside}{388}{section*.129}}
 \othername{Integral}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}}
@@ -6529,9 +6601,12 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{integrate}{\hyperref[dict:find-area-under]{\code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under()}}, \manualpage{word:sdata.find-area-under}{606}{section*.330}}
 \othername{interaction\_plot}{\hyperref[dict:draw-interaction-lines]{\code{chart.\allowbreak{}draw\_\allowbreak{}interaction\_\allowbreak{}lines()}}, \manualpage{word:draw-interaction-lines}{284}{section*.52}}
 \othername{internal\_consistency}{\hyperref[dict:reliability-of]{\code{table.\allowbreak{}reliability\_\allowbreak{}of()}}, \manualpage{word:table.reliability-of}{581}{section*.302}}
-\othername{interp}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
+\othername{interp}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}; \hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{interp1d}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
+\othername{interp2}{\hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{interp2d}{\hyperref[dict:make-map-of]{\code{table.\allowbreak{}make\_\allowbreak{}map\_\allowbreak{}of()}}, \manualpage{word:table.make-map-of}{613}{section*.338}}
+\othername{interp3}{\hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
+\othername{interpn}{\hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{interpolate}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{intersect}{\hyperref[dict:keep-rows-found-in]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}}, \manualpage{word:table.keep-rows-found-in}{786}{section*.457}}
 \othername{interval\_dots}{\hyperref[dict:draw-forest-plot]{\code{chart.\allowbreak{}draw\_\allowbreak{}forest\_\allowbreak{}plot()}}, \manualpage{word:draw-forest-plot}{713}{section*.400}}
@@ -6553,6 +6628,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{is\_stationary}{\hyperref[dict:check-steady-over-time]{\code{table.\allowbreak{}check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.check-steady-over-time}{729}{section*.413}}
 \othername{is\_weekend}{\hyperref[dict:add-column-with-part-of-date]{\code{table.\allowbreak{}add\_\allowbreak{}column\_\allowbreak{}with\_\allowbreak{}part\_\allowbreak{}of\_\allowbreak{}date()}}, \manualpage{word:table.add-column-with-part-of-date}{498}{section*.241}}
 \othername{isclose}{\hyperref[dict:check-if-same-as]{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}same\_\allowbreak{}as()}}, \manualpage{word:nums.check-if-same-as}{860}{section*.564}}
+\othername{isel}{\hyperref[dict:keep-by-position-in]{\code{block.\allowbreak{}keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in()}}, \manualpage{word:block.keep-by-position-in}{874}{section*.585}}
 \othername{isf}{\hyperref[dict:find-percentile]{\code{dist.\allowbreak{}find\_\allowbreak{}percentile()}}, \manualpage{word:dist.find-percentile}{620}{section*.346}}
 \othername{isin}{\hyperref[dict:keep-rows-found-in]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}found\_\allowbreak{}in()}}, \manualpage{word:table.keep-rows-found-in}{786}{section*.457}}
 \othername{isna}{\hyperref[dict:add-is-empty-column]{\code{table.\allowbreak{}add\_\allowbreak{}is\_\allowbreak{}empty\_\allowbreak{}column()}}, \manualpage{word:table.add-is-empty-column}{472}{section*.216}}
@@ -6586,7 +6662,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{kmo}{\hyperref[dict:find-hidden-factors-behind]{\code{table.\allowbreak{}find\_\allowbreak{}hidden\_\allowbreak{}factors\_\allowbreak{}behind()}}, \manualpage{word:table.find-hidden-factors-behind}{680}{section*.382}}
 \othername{knapp\_hartung}{\hyperref[dict:combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \manualpage{word:table.combine-studies}{707}{section*.399}}
 \othername{knha}{\hyperref[dict:combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \manualpage{word:table.combine-studies}{707}{section*.399}}
-\othername{knnsearch}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}}
+\othername{knnsearch}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}; \hyperref[dict:get-numbers-nearest-to]{\code{block.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to()}}, \manualpage{word:block.get-numbers-nearest-to}{894}{section*.617}}
 \othername{get.knnx}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}}
 \othername{kpss}{\hyperref[dict:check-steady-over-time]{\code{table.\allowbreak{}check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.check-steady-over-time}{729}{section*.413}}
 \othername{kpss\_test}{\hyperref[dict:check-steady-over-time]{\code{table.\allowbreak{}check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.check-steady-over-time}{729}{section*.413}}
@@ -6699,6 +6775,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{mantel\_haenszel\_meta}{\hyperref[dict:combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \manualpage{word:table.combine-studies}{707}{section*.399}}
 \othername{mantel\_test}{\hyperref[dict:find-correlation-between-profiles]{\code{table.\allowbreak{}find\_\allowbreak{}correlation\_\allowbreak{}between\_\allowbreak{}profiles()}}, \manualpage{word:table.find-correlation-between-profiles}{676}{section*.379}}
 \othername{mantelhaen\_test}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{563}{section*.288}}
+\othername{map\_coordinates}{\hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{marginal\_means}{\hyperref[dict:find-model-averages-of]{\code{table.\allowbreak{}find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.find-model-averages-of}{646}{section*.361}}
 \othername{marginal\_means\_of}{\hyperref[dict:find-model-averages-of]{\code{table.\allowbreak{}find\_\allowbreak{}model\_\allowbreak{}averages\_\allowbreak{}of()}}, \manualpage{word:table.find-model-averages-of}{646}{section*.361}}
 \othername{mark\_peaks}{\hyperref[dict:draw-peak-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}peak\_\allowbreak{}dots()}}, \manualpage{word:draw-peak-dots}{745}{section*.427}}
@@ -6732,8 +6809,9 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{cpt.meanvar}{\hyperref[dict:find-change-points-in]{\code{table.\allowbreak{}find\_\allowbreak{}change\_\allowbreak{}points\_\allowbreak{}in()}}, \manualpage{word:table.find-change-points-in}{730}{section*.414}}
 \othername{measurement\_model}{\hyperref[dict:check-hidden-factors]{\code{table.\allowbreak{}check\_\allowbreak{}hidden\_\allowbreak{}factors()}}, \manualpage{word:table.check-hidden-factors}{683}{section*.383}}
 \othername{medfilt}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
+\othername{medfilt2}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{median}{\hyperref[dict:find-median-of]{\code{table.\allowbreak{}find\_\allowbreak{}median\_\allowbreak{}of()}}, \manualpage{word:table.find-median-of}{517}{section*.258}}
-\othername{median\_filter}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
+\othername{median\_filter}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}; \hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{mediate}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{mediation}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{mediation\_analysis}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
@@ -6780,6 +6858,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{morans\_i}{\hyperref[dict:find-autocorrelation-of]{\code{table.\allowbreak{}find\_\allowbreak{}autocorrelation\_\allowbreak{}of()}}, \manualpage{word:table.find-autocorrelation-of}{725}{section*.411}}
 \othername{move\_column}{\hyperref[dict:move-columns]{\code{table.\allowbreak{}move\_\allowbreak{}columns()}}, \manualpage{word:table.move-columns}{449}{section*.193}}
 \othername{move\_legend}{\hyperref[dict:put-legend-inside]{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}inside()}}, \manualpage{word:put-legend-inside}{368}{section*.112}}
+\othername{moveaxis}{\hyperref[dict:move-direction]{\code{block.\allowbreak{}move\_\allowbreak{}direction()}}, \manualpage{word:block.move-direction}{880}{section*.594}}
+\othername{movedim}{\hyperref[dict:move-direction]{\code{block.\allowbreak{}move\_\allowbreak{}direction()}}, \manualpage{word:block.move-direction}{880}{section*.594}}
 \othername{moving\_average}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
 \othername{mplcursors}{\hyperref[dict:show-when-pointing]{\code{chart.\allowbreak{}show\_\allowbreak{}when\_\allowbreak{}pointing()}}, \manualpage{word:show-when-pointing}{413}{section*.155}}
 \othername{mpld3}{\hyperref[dict:show-in-web-page]{\code{chart.\allowbreak{}show\_\allowbreak{}in\_\allowbreak{}web\_\allowbreak{}page()}}, \manualpage{word:show-in-web-page}{413}{section*.154}}
@@ -6813,10 +6893,13 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{ncread}{\hyperref[dict:number-block]{\code{sdata.\allowbreak{}number\_\allowbreak{}block()}}, \manualpage{word:sdata.number-block}{869}{section*.579}}
 \othername{ncvar\_get}{\hyperref[dict:number-block]{\code{sdata.\allowbreak{}number\_\allowbreak{}block()}}, \manualpage{word:sdata.number-block}{869}{section*.579}}
 \othername{ndarray}{\hyperref[dict:number-block]{\code{sdata.\allowbreak{}number\_\allowbreak{}block()}}, \manualpage{word:sdata.number-block}{869}{section*.579}}
+\othername{ndim}{\hyperref[dict:count-directions]{\code{block.\allowbreak{}count\_\allowbreak{}directions()}}, \manualpage{word:block.count-directions}{871}{section*.581}}
+\othername{nearest}{\hyperref[dict:get-numbers-nearest-to]{\code{block.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to()}}, \manualpage{word:block.get-numbers-nearest-to}{894}{section*.617}}
 \othername{nearest\_neighbours}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}}
 \othername{NearestNeighbors}{\hyperref[dict:find-nearest-rows-to]{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to()}}, \manualpage{word:table.find-nearest-rows-to}{689}{section*.388}}
 \othername{nemenyi}{\hyperref[dict:compare-each-pair-of]{\code{table.\allowbreak{}compare\_\allowbreak{}each\_\allowbreak{}pair\_\allowbreak{}of()}}, \manualpage{word:table.compare-each-pair-of}{540}{section*.272}}
 \othername{nEvents}{\hyperref[dict:find-how-many-needed]{\code{sdata.\allowbreak{}find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.find-how-many-needed}{764}{section*.445}}
+\othername{newaxis}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
 \othername{newton}{\hyperref[dict:solve]{\code{sdata.\allowbreak{}solve()}}, \manualpage{word:sdata.solve}{596}{section*.313}}
 \othername{nlargest}{\hyperref[dict:keep-biggest-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}biggest\_\allowbreak{}rows()}}, \manualpage{word:table.keep-biggest-rows}{461}{section*.205}}
 \othername{nleqslv}{\hyperref[dict:solve]{\code{sdata.\allowbreak{}solve()}}, \manualpage{word:sdata.solve}{596}{section*.313}}
@@ -6915,6 +6998,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{perm}{\hyperref[dict:count-ways-to-order]{\code{sdata.\allowbreak{}count\_\allowbreak{}ways\_\allowbreak{}to\_\allowbreak{}order()}}, \manualpage{word:sdata.count-ways-to-order}{902}{section*.627}}
 \othername{permanova}{\hyperref[dict:compare-profiles-of]{\code{table.\allowbreak{}compare\_\allowbreak{}profiles\_\allowbreak{}of()}}, \manualpage{word:table.compare-profiles-of}{665}{section*.374}}
 \othername{perms}{\hyperref[dict:count-ways-to-order]{\code{sdata.\allowbreak{}count\_\allowbreak{}ways\_\allowbreak{}to\_\allowbreak{}order()}}, \manualpage{word:sdata.count-ways-to-order}{902}{section*.627}}
+\othername{permute}{\hyperref[dict:swap-directions]{\code{block.\allowbreak{}swap\_\allowbreak{}directions()}}, \manualpage{word:block.swap-directions}{879}{section*.593}}
+\othername{permute\_dims}{\hyperref[dict:swap-directions]{\code{block.\allowbreak{}swap\_\allowbreak{}directions()}}, \manualpage{word:block.swap-directions}{879}{section*.593}}
 \othername{permuted\_blocks}{\hyperref[dict:make-random-assignments]{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}assignments()}}, \manualpage{word:sdata.make-random-assignments}{775}{section*.449}}
 \othername{person\_time}{\hyperref[dict:rate-of]{\code{table.\allowbreak{}rate\_\allowbreak{}of()}}, \manualpage{word:table.rate-of}{566}{section*.290}}
 \othername{person\_years}{\hyperref[dict:add-time-and-event-columns]{\code{table.\allowbreak{}add\_\allowbreak{}time\_\allowbreak{}and\_\allowbreak{}event\_\allowbreak{}columns()}}, \manualpage{word:table.add-time-and-event-columns}{703}{section*.395}}
@@ -7093,6 +7178,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{regplot}{\hyperref[dict:fit-line]{\code{chart.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:fit-line}{273}{section*.45}}
 \othername{regression\_power}{\hyperref[dict:find-how-many-needed]{\code{sdata.\allowbreak{}find\_\allowbreak{}how\_\allowbreak{}many\_\allowbreak{}needed()}}, \manualpage{word:sdata.find-how-many-needed}{764}{section*.445}}
 \othername{regtest}{\hyperref[dict:combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \manualpage{word:table.combine-studies}{707}{section*.399}}
+\othername{RegularGridInterpolator}{\hyperref[dict:find-values-at]{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:block.find-values-at}{893}{section*.616}}
 \othername{relative\_risk}{\hyperref[dict:compare-risks]{\code{table.\allowbreak{}compare\_\allowbreak{}risks()}}, \manualpage{word:table.compare-risks}{563}{section*.288}}
 \othername{relative\_risk\_regression}{\hyperref[dict:explain]{\code{table.\allowbreak{}explain()}}, \manualpage{word:table.explain}{629}{section*.359}}
 \othername{relocate}{\hyperref[dict:move-columns]{\code{table.\allowbreak{}move\_\allowbreak{}columns()}}, \manualpage{word:table.move-columns}{449}{section*.193}}
@@ -7103,17 +7189,23 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{renyi}{\hyperref[dict:add-diversity-columns]{\code{table.\allowbreak{}add\_\allowbreak{}diversity\_\allowbreak{}columns()}}, \manualpage{word:table.add-diversity-columns}{667}{section*.375}}
 \othername{reorder\_categories}{\hyperref[dict:turn-into-categories]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}categories()}}, \manualpage{word:table.turn-into-categories}{487}{section*.231}}
 \othername{reorder\_columns}{\hyperref[dict:move-columns]{\code{table.\allowbreak{}move\_\allowbreak{}columns()}}, \manualpage{word:table.move-columns}{449}{section*.193}}
+\othername{repeat}{\hyperref[dict:repeat-each-number]{\code{block.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}number()}}, \manualpage{word:block.repeat-each-number}{883}{section*.598}}
+\othername{repeat\_interleave}{\hyperref[dict:repeat-each-number]{\code{block.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}number()}}, \manualpage{word:block.repeat-each-number}{883}{section*.598}}
 \othername{repeat\_rows}{\hyperref[dict:repeat-each-row-by]{\code{table.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}row\_\allowbreak{}by()}}, \manualpage{word:table.repeat-each-row-by}{460}{section*.204}}
 \othername{replace}{\hyperref[dict:replace-values-in]{\code{table.\allowbreak{}replace\_\allowbreak{}values\_\allowbreak{}in()}}, \manualpage{word:table.replace-values-in}{482}{section*.228}}
 \othername{replace\_na}{\hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{replace\_time\_zone}{\hyperref[dict:change-time-zone-in]{\code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in()}}, \manualpage{word:table.change-time-zone-in}{505}{section*.247}}
-\othername{resample}{\hyperref[dict:change-time-step]{\code{nums.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}step()}}, \manualpage{word:nums.change-time-step}{904}{section*.631}}
+\othername{repmat}{\hyperref[dict:repeat-whole-block]{\code{block.\allowbreak{}repeat\_\allowbreak{}whole\_\allowbreak{}block()}}, \manualpage{word:block.repeat-whole-block}{884}{section*.599}}
+\othername{resample}{\hyperref[dict:change-time-step]{\code{nums.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}step()}}, \manualpage{word:nums.change-time-step}{904}{section*.631}; \hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{resample\_poly}{\hyperref[dict:change-time-step]{\code{nums.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}step()}}, \manualpage{word:nums.change-time-step}{904}{section*.631}}
+\othername{reshape}{\hyperref[dict:change-shape-to]{\code{block.\allowbreak{}change\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:block.change-shape-to}{877}{section*.590}}
 \othername{resid\_plot}{\hyperref[dict:draw-residual-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}residual\_\allowbreak{}dots()}}, \manualpage{word:draw-residual-dots}{426}{section*.167}}
 \othername{residplot}{\hyperref[dict:draw-residual-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}residual\_\allowbreak{}dots()}}, \manualpage{word:draw-residual-dots}{426}{section*.167}}
 \othername{residual\_plots}{\hyperref[dict:check-model-of]{\code{table.\allowbreak{}check\_\allowbreak{}model\_\allowbreak{}of()}}, \manualpage{word:table.check-model-of}{648}{section*.362}}
 \othername{residuals\_plot}{\hyperref[dict:draw-residual-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}residual\_\allowbreak{}dots()}}, \manualpage{word:draw-residual-dots}{426}{section*.167}}
+\othername{resize}{\hyperref[dict:change-shape-to]{\code{block.\allowbreak{}change\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:block.change-shape-to}{877}{section*.590}}
 \othername{restricted\_mean}{\hyperref[dict:find-survival-over-time]{\code{table.\allowbreak{}find\_\allowbreak{}survival\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.find-survival-over-time}{691}{section*.391}}
+\othername{retime}{\hyperref[dict:find-average]{\code{block.\allowbreak{}find\_\allowbreak{}average()}}, \manualpage{word:block.find-average}{872}{section*.584}}
 \othername{return\_level}{\hyperref[dict:find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-return-levels-of}{686}{section*.386}}
 \othername{return\_levels}{\hyperref[dict:find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-return-levels-of}{686}{section*.386}}
 \othername{return\_period}{\hyperref[dict:find-return-levels-of]{\code{table.\allowbreak{}find\_\allowbreak{}return\_\allowbreak{}levels\_\allowbreak{}of()}}, \manualpage{word:table.find-return-levels-of}{686}{section*.386}}
@@ -7143,7 +7235,9 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{roc\_curve}{\hyperref[dict:draw-trade-off-curve]{\code{chart.\allowbreak{}draw\_\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \manualpage{word:draw-trade-off-curve}{576}{section*.298}}
 \othername{roc\_plot}{\hyperref[dict:draw-trade-off-curve]{\code{chart.\allowbreak{}draw\_\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve()}}, \manualpage{word:draw-trade-off-curve}{576}{section*.298}}
 \othername{roc\_test}{\hyperref[dict:compare-accuracy]{\code{table.\allowbreak{}compare\_\allowbreak{}accuracy()}}, \manualpage{word:table.compare-accuracy}{574}{section*.296}}
-\othername{rolling}{\hyperref[dict:add-rolling-column]{\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}, \manualpage{word:table.add-rolling-column}{507}{section*.250}}
+\othername{roll}{\hyperref[dict:move-round-by]{\code{block.\allowbreak{}move\_\allowbreak{}round\_\allowbreak{}by()}}, \manualpage{word:block.move-round-by}{882}{section*.596}}
+\othername{rollaxis}{\hyperref[dict:move-direction]{\code{block.\allowbreak{}move\_\allowbreak{}direction()}}, \manualpage{word:block.move-direction}{880}{section*.594}}
+\othername{rolling}{\hyperref[dict:add-rolling-column]{\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}, \manualpage{word:table.add-rolling-column}{507}{section*.250}; \hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{rolling\_join}{\hyperref[dict:join-with]{\code{table.\allowbreak{}join\_\allowbreak{}with()}}, \manualpage{word:table.join-with}{777}{section*.452}}
 \othername{rolling\_smooth}{\hyperref[dict:add-smoothed-column]{\code{table.\allowbreak{}add\_\allowbreak{}smoothed\_\allowbreak{}column()}}, \manualpage{word:table.add-smoothed-column}{719}{section*.406}}
 \othername{rollmean}{\hyperref[dict:add-rolling-column]{\code{table.\allowbreak{}add\_\allowbreak{}rolling\_\allowbreak{}column()}}, \manualpage{word:table.add-rolling-column}{507}{section*.250}}
@@ -7155,6 +7249,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{rose\_diagram}{\hyperref[dict:draw-polar]{\code{chart.\allowbreak{}draw\_\allowbreak{}polar()}}, \manualpage{word:draw-polar}{256}{section*.34}}
 \othername{rosner\_test}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{463}{section*.207}}
 \othername{rosnerTest}{\hyperref[dict:show-rows-with-outliers]{\code{table.\allowbreak{}show\_\allowbreak{}rows\_\allowbreak{}with\_\allowbreak{}outliers()}}, \manualpage{word:table.show-rows-with-outliers}{463}{section*.207}}
+\othername{rot90}{\hyperref[dict:rotate]{\code{block.\allowbreak{}rotate()}}, \manualpage{word:block.rotate}{881}{section*.595}}
 \othername{round}{\hyperref[dict:round-numbers-in]{\code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in()}}, \manualpage{word:table.round-numbers-in}{484}{section*.229}}
 \othername{round\_date}{\hyperref[dict:round-dates-in]{\code{table.\allowbreak{}round\_\allowbreak{}dates\_\allowbreak{}in()}}, \manualpage{word:table.round-dates-in}{503}{section*.246}}
 \othername{row\_index}{\hyperref[dict:add-row-number-column]{\code{table.\allowbreak{}add\_\allowbreak{}row\_\allowbreak{}number\_\allowbreak{}column()}}, \manualpage{word:table.add-row-number-column}{497}{section*.239}}
@@ -7208,6 +7303,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{secondary\_yaxis}{\hyperref[dict:add-second-y]{\code{chart.\allowbreak{}add\_\allowbreak{}second\_\allowbreak{}y()}}, \manualpage{word:add-second-y}{343}{section*.93}}
 \othername{segmented}{\hyperref[dict:fit-line]{\code{table.\allowbreak{}fit\_\allowbreak{}line()}}, \manualpage{word:table.fit-line}{584}{section*.305}}
 \othername{model.sel}{\hyperref[dict:compare-models]{\code{table.\allowbreak{}compare\_\allowbreak{}models()}}, \manualpage{word:table.compare-models}{652}{section*.364}}
+\othername{sel}{\hyperref[dict:keep-where]{\code{block.\allowbreak{}keep\_\allowbreak{}where()}}, \manualpage{word:block.keep-where}{876}{section*.587}}
 \othername{select}{\hyperref[dict:keep-columns]{\code{table.\allowbreak{}keep\_\allowbreak{}columns()}}, \manualpage{word:table.keep-columns}{442}{section*.186}}
 \othername{select\_dtypes}{\hyperref[dict:keep-columns]{\code{table.\allowbreak{}keep\_\allowbreak{}columns()}}, \manualpage{word:table.keep-columns}{442}{section*.186}}
 \othername{selfStart}{\hyperref[dict:fit-curve]{\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}, \manualpage{word:table.fit-curve}{588}{section*.306}}
@@ -7231,6 +7327,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{set\_box\_aspect}{\hyperref[dict:make-square]{\code{chart.\allowbreak{}make\_\allowbreak{}square()}}, \manualpage{word:make-square}{398}{section*.138}}
 \othername{set\_categories}{\hyperref[dict:turn-into-categories]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}categories()}}, \manualpage{word:table.turn-into-categories}{487}{section*.231}}
 \othername{set\_facecolor}{\hyperref[dict:use-background-colour]{\code{chart.\allowbreak{}use\_\allowbreak{}background\_\allowbreak{}colour()}}, \manualpage{word:use-background-colour}{419}{section*.161}}
+\othername{set\_index}{\hyperref[dict:add-labels-to]{\code{block.\allowbreak{}add\_\allowbreak{}labels\_\allowbreak{}to()}}, \manualpage{word:block.add-labels-to}{892}{section*.615}}
 \othername{set\_size\_inches}{\hyperref[dict:set-size]{\code{chart.\allowbreak{}set\_\allowbreak{}size()}}, \manualpage{word:set-size}{354}{section*.101}}
 \othername{set\_title}{\hyperref[dict:write-title-on-top]{\code{chart.\allowbreak{}write\_\allowbreak{}title\_\allowbreak{}on\_\allowbreak{}top()}}, \manualpage{word:write-title-on-top}{312}{section*.72}}
 \othername{set\_xlabel}{\hyperref[dict:label-x]{\code{chart.\allowbreak{}label\_\allowbreak{}x()}}, \manualpage{word:label-x}{315}{section*.74}}
@@ -7249,7 +7346,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{sf}{\hyperref[dict:find-chance-that-value]{\code{dist.\allowbreak{}find\_\allowbreak{}chance\_\allowbreak{}that\_\allowbreak{}value()}}, \manualpage{word:dist.find-chance-that-value}{619}{section*.344}}
 \othername{sgolayfilt}{\hyperref[dict:smooth]{\code{nums.\allowbreak{}smooth()}}, \manualpage{word:nums.smooth}{721}{section*.407}}
 \othername{shannon}{\hyperref[dict:add-diversity-columns]{\code{table.\allowbreak{}add\_\allowbreak{}diversity\_\allowbreak{}columns()}}, \manualpage{word:table.add-diversity-columns}{667}{section*.375}}
-\othername{shape}{\hyperref[dict:count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \manualpage{word:table.count-rows}{512}{section*.255}; \hyperref[dict:count-columns]{\code{table.\allowbreak{}count\_\allowbreak{}columns()}}, \manualpage{word:table.count-columns}{439}{section*.182}}
+\othername{shape}{\hyperref[dict:count-rows]{\code{table.\allowbreak{}count\_\allowbreak{}rows()}}, \manualpage{word:table.count-rows}{512}{section*.255}; \hyperref[dict:count-columns]{\code{table.\allowbreak{}count\_\allowbreak{}columns()}}, \manualpage{word:table.count-columns}{439}{section*.182}; \hyperref[dict:find-shape]{\code{block.\allowbreak{}find\_\allowbreak{}shape()}}, \manualpage{word:block.find-shape}{870}{section*.580}}
 \othername{shapiro}{\hyperref[dict:compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:table.compare-shape-to}{548}{section*.276}}
 \othername{shapiro\_test}{\hyperref[dict:compare-shape-to]{\code{table.\allowbreak{}compare\_\allowbreak{}shape\_\allowbreak{}to()}}, \manualpage{word:table.compare-shape-to}{548}{section*.276}}
 \othername{shift}{\hyperref[dict:add-previous-value-column]{\code{table.\allowbreak{}add\_\allowbreak{}previous\_\allowbreak{}value\_\allowbreak{}column()}}, \manualpage{word:table.add-previous-value-column}{508}{section*.251}}
@@ -7272,6 +7369,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{sin}{\hyperref[dict:take-sin]{\code{nums.\allowbreak{}take\_\allowbreak{}sin()}}, \manualpage{word:nums.take-sin}{864}{section*.571}}
 \othername{sind}{\hyperref[dict:take-sin]{\code{nums.\allowbreak{}take\_\allowbreak{}sin()}}, \manualpage{word:nums.take-sin}{864}{section*.571}}
 \othername{sir}{\hyperref[dict:compare-rates]{\code{table.\allowbreak{}compare\_\allowbreak{}rates()}}, \manualpage{word:table.compare-rates}{564}{section*.289}}
+\othername{size\_of}{\hyperref[dict:find-shape]{\code{block.\allowbreak{}find\_\allowbreak{}shape()}}, \manualpage{word:block.find-shape}{870}{section*.580}}
 \othername{slice}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{455}{section*.199}}
 \othername{slice\_max}{\hyperref[dict:keep-biggest-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}biggest\_\allowbreak{}rows()}}, \manualpage{word:table.keep-biggest-rows}{461}{section*.205}}
 \othername{slice\_min}{\hyperref[dict:keep-smallest-rows]{\code{table.\allowbreak{}keep\_\allowbreak{}smallest\_\allowbreak{}rows()}}, \manualpage{word:table.keep-smallest-rows}{462}{section*.206}}
@@ -7311,13 +7409,14 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{spline}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{splinefun}{\hyperref[dict:find-values-at]{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}, \manualpage{word:table.find-values-at}{611}{section*.337}; \hyperref[dict:fill-empty-cells-in]{\code{table.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}cells\_\allowbreak{}in()}}, \manualpage{word:table.fill-empty-cells-in}{470}{section*.215}}
 \othername{design.split}{\hyperref[dict:make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \manualpage{word:sdata.make-design-table}{772}{section*.448}}
-\othername{split}{\hyperref[dict:make-one-table-for-each-group-in]{\code{table.\allowbreak{}make\_\allowbreak{}one\_\allowbreak{}table\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in()}}, \manualpage{word:table.make-one-table-for-each-group-in}{791}{section*.461}}
+\othername{split}{\hyperref[dict:make-one-table-for-each-group-in]{\code{table.\allowbreak{}make\_\allowbreak{}one\_\allowbreak{}table\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in()}}, \manualpage{word:table.make-one-table-for-each-group-in}{791}{section*.461}; \hyperref[dict:split-into-pieces]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces()}}, \manualpage{word:block.split-into-pieces}{885}{section*.601}}
 \othername{split\_plot}{\hyperref[dict:make-design-table]{\code{sdata.\allowbreak{}make\_\allowbreak{}design\_\allowbreak{}table()}}, \manualpage{word:sdata.make-design-table}{772}{section*.448}}
 \othername{split\_trend\_and\_season}{\hyperref[dict:add-trend-and-season]{\code{table.\allowbreak{}add\_\allowbreak{}trend\_\allowbreak{}and\_\allowbreak{}season()}}, \manualpage{word:table.add-trend-and-season}{724}{section*.410}}
 \othername{spread}{\hyperref[dict:spread-into-columns]{\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}columns()}}, \manualpage{word:table.spread-into-columns}{783}{section*.455}}
 \othername{sql}{\hyperref[dict:run-sql]{\code{sdata.\allowbreak{}run\_\allowbreak{}sql()}}, \manualpage{word:sdata.run-sql}{793}{section*.463}; \hyperref[dict:run-sql]{\code{table.\allowbreak{}run\_\allowbreak{}sql()}}, \manualpage{word:table.run-sql}{792}{section*.462}}
 \othername{sqldf}{\hyperref[dict:run-sql]{\code{sdata.\allowbreak{}run\_\allowbreak{}sql()}}, \manualpage{word:sdata.run-sql}{793}{section*.463}; \hyperref[dict:run-sql]{\code{table.\allowbreak{}run\_\allowbreak{}sql()}}, \manualpage{word:table.run-sql}{792}{section*.462}}
 \othername{square}{\hyperref[dict:make-wave]{\code{sdata.\allowbreak{}make\_\allowbreak{}wave()}}, \manualpage{word:sdata.make-wave}{905}{section*.632}}
+\othername{squeeze}{\hyperref[dict:remove-directions-of-size-one]{\code{block.\allowbreak{}remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one()}}, \manualpage{word:block.remove-directions-of-size-one}{879}{section*.592}}
 \othername{srmr}{\hyperref[dict:check-hidden-factors]{\code{table.\allowbreak{}check\_\allowbreak{}hidden\_\allowbreak{}factors()}}, \manualpage{word:table.check-hidden-factors}{683}{section*.383}}
 \othername{ss}{\hyperref[dict:system]{\code{sdata.\allowbreak{}system()}}, \manualpage{word:sdata.system}{907}{section*.634}}
 \othername{SSgompertz}{\hyperref[dict:fit-curve]{\code{table.\allowbreak{}fit\_\allowbreak{}curve()}}, \manualpage{word:table.fit-curve}{588}{section*.306}}
@@ -7395,6 +7494,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{svyquantile}{\hyperref[dict:find-percentile-of]{\code{table.\allowbreak{}find\_\allowbreak{}percentile\_\allowbreak{}of()}}, \manualpage{word:table.find-percentile-of}{526}{section*.266}}
 \othername{svytotal}{\hyperref[dict:use-survey-design]{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()}}, \manualpage{word:table.use-survey-design}{776}{section*.450}; \hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
 \othername{svyttest}{\hyperref[dict:use-survey-design]{\code{table.\allowbreak{}use\_\allowbreak{}survey\_\allowbreak{}design()}}, \manualpage{word:table.use-survey-design}{776}{section*.450}; \hyperref[dict:find-average-of]{\code{table.\allowbreak{}find\_\allowbreak{}average\_\allowbreak{}of()}}, \manualpage{word:table.find-average-of}{515}{section*.257}}
+\othername{swapaxes}{\hyperref[dict:swap-directions]{\code{block.\allowbreak{}swap\_\allowbreak{}directions()}}, \manualpage{word:block.swap-directions}{879}{section*.593}}
 \othername{swarmplot}{\hyperref[dict:draw-all-dots]{\code{chart.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}dots()}}, \manualpage{word:draw-all-dots}{296}{section*.60}}
 \othername{sym}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}}
 \othername{Symbol}{\hyperref[dict:formula]{\code{sdata.\allowbreak{}formula()}}, \manualpage{word:sdata.formula}{598}{section*.317}}
@@ -7411,7 +7511,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{tabulate}{\hyperref[dict:count-each]{\code{table.\allowbreak{}count\_\allowbreak{}each()}}, \manualpage{word:table.count-each}{514}{section*.256}; \hyperref[dict:count-each]{\code{nums.\allowbreak{}count\_\allowbreak{}each()}}, \manualpage{word:nums.count-each}{833}{section*.521}}
 \othername{tag\_levels}{\hyperref[dict:write-letter]{\code{chart.\allowbreak{}write\_\allowbreak{}letter()}}, \manualpage{word:write-letter}{326}{section*.81}}
 \othername{tail}{\hyperref[dict:show-last-rows]{\code{table.\allowbreak{}show\_\allowbreak{}last\_\allowbreak{}rows()}}, \manualpage{word:table.show-last-rows}{434}{section*.175}}
-\othername{take}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{455}{section*.199}}
+\othername{take}{\hyperref[dict:keep-rows-by-position]{\code{table.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}by\_\allowbreak{}position()}}, \manualpage{word:table.keep-rows-by-position}{455}{section*.199}; \hyperref[dict:keep-by-position-in]{\code{block.\allowbreak{}keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in()}}, \manualpage{word:block.keep-by-position-in}{874}{section*.585}}
+\othername{take\_along}{\hyperref[dict:keep-by-position-in]{\code{block.\allowbreak{}keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in()}}, \manualpage{word:block.keep-by-position-in}{874}{section*.585}}
 \othername{tan}{\hyperref[dict:take-tan]{\code{nums.\allowbreak{}take\_\allowbreak{}tan()}}, \manualpage{word:nums.take-tan}{866}{section*.573}}
 \othername{tand}{\hyperref[dict:take-tan]{\code{nums.\allowbreak{}take\_\allowbreak{}tan()}}, \manualpage{word:nums.take-tan}{866}{section*.573}}
 \othername{tau2}{\hyperref[dict:combine-studies]{\code{table.\allowbreak{}combine\_\allowbreak{}studies()}}, \manualpage{word:table.combine-studies}{707}{section*.399}}
@@ -7430,6 +7531,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{threshrange}{\hyperref[dict:draw-threshold-check]{\code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check()}}, \manualpage{word:draw-threshold-check}{290}{section*.56}}
 \othername{threshrange\_plot}{\hyperref[dict:draw-threshold-check]{\code{chart.\allowbreak{}draw\_\allowbreak{}threshold\_\allowbreak{}check()}}, \manualpage{word:draw-threshold-check}{290}{section*.56}}
 \othername{tibble}{\hyperref[dict:table]{\code{sdata.\allowbreak{}table()}}, \manualpage{word:sdata.table}{431}{section*.173}}
+\othername{tile}{\hyperref[dict:repeat-whole-block]{\code{block.\allowbreak{}repeat\_\allowbreak{}whole\_\allowbreak{}block()}}, \manualpage{word:block.repeat-whole-block}{884}{section*.599}}
 \othername{timeline}{\hyperref[dict:draw-time-bars]{\code{chart.\allowbreak{}draw\_\allowbreak{}time\_\allowbreak{}bars()}}, \manualpage{word:draw-time-bars}{422}{section*.164}}
 \othername{times\_table\_with}{\hyperref[dict:make-pair-table-with]{\code{nums.\allowbreak{}make\_\allowbreak{}pair\_\allowbreak{}table\_\allowbreak{}with()}}, \manualpage{word:nums.make-pair-table-with}{868}{section*.577}}
 \othername{title}{\hyperref[dict:write-title-on-top]{\code{chart.\allowbreak{}write\_\allowbreak{}title\_\allowbreak{}on\_\allowbreak{}top()}}, \manualpage{word:write-title-on-top}{312}{section*.72}}
@@ -7441,6 +7543,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{to\_dummies}{\hyperref[dict:spread-into-yes-no-columns]{\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}yes\_\allowbreak{}no\_\allowbreak{}columns()}}, \manualpage{word:table.spread-into-yes-no-columns}{790}{section*.460}}
 \othername{to\_excel}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{795}{section*.468}}
 \othername{to\_html}{\hyperref[dict:save]{\code{chart.\allowbreak{}save()}}, \manualpage{word:save}{232}{section*.18}}
+\othername{to\_netcdf}{\hyperref[dict:save]{\code{block.\allowbreak{}save()}}, \manualpage{word:block.save}{890}{section*.612}}
 \othername{to\_numeric}{\hyperref[dict:turn-into-numbers]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}numbers()}}, \manualpage{word:table.turn-into-numbers}{477}{section*.222}}
 \othername{to\_parquet}{\hyperref[dict:save]{\code{table.\allowbreak{}save()}}, \manualpage{word:table.save}{795}{section*.468}}
 \othername{to\_records}{\hyperref[dict:as-list]{\code{table.\allowbreak{}as\_\allowbreak{}list()}}, \manualpage{word:table.as-list}{802}{section*.473}}
@@ -7473,14 +7576,17 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{tz\_convert}{\hyperref[dict:change-time-zone-in]{\code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in()}}, \manualpage{word:table.change-time-zone-in}{505}{section*.247}}
 \othername{tz\_localize}{\hyperref[dict:change-time-zone-in]{\code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in()}}, \manualpage{word:table.change-time-zone-in}{505}{section*.247}}
 \letterhead{U}
+\othername{unbind}{\hyperref[dict:split-into-one-block-per]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per()}}, \manualpage{word:block.split-into-one-block-per}{886}{section*.602}}
 \othername{uncount}{\hyperref[dict:repeat-each-row-by]{\code{table.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}row\_\allowbreak{}by()}}, \manualpage{word:table.repeat-each-row-by}{460}{section*.204}}
+\othername{uniform\_filter}{\hyperref[dict:smooth]{\code{block.\allowbreak{}smooth()}}, \manualpage{word:block.smooth}{896}{section*.619}}
 \othername{unique}{\hyperref[dict:remove-duplicate-rows]{\code{table.\allowbreak{}remove\_\allowbreak{}duplicate\_\allowbreak{}rows()}}, \manualpage{word:table.remove-duplicate-rows}{459}{section*.203}}
 \othername{uniroot}{\hyperref[dict:solve]{\code{sdata.\allowbreak{}solve()}}, \manualpage{word:sdata.solve}{596}{section*.313}}
 \othername{unit\_impulse}{\hyperref[dict:make-wave]{\code{sdata.\allowbreak{}make\_\allowbreak{}wave()}}, \manualpage{word:sdata.make-wave}{905}{section*.632}}
 \othername{unit\_root}{\hyperref[dict:check-steady-over-time]{\code{table.\allowbreak{}check\_\allowbreak{}steady\_\allowbreak{}over\_\allowbreak{}time()}}, \manualpage{word:table.check-steady-over-time}{729}{section*.413}}
 \othername{unnest\_longer}{\hyperref[dict:split-into-rows]{\code{table.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}rows()}}, \manualpage{word:table.split-into-rows}{502}{section*.245}}
 \othername{unpivot}{\hyperref[dict:gather-into-rows]{\code{table.\allowbreak{}gather\_\allowbreak{}into\_\allowbreak{}rows()}}, \manualpage{word:table.gather-into-rows}{782}{section*.454}}
-\othername{unstack}{\hyperref[dict:spread-into-columns]{\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}columns()}}, \manualpage{word:table.spread-into-columns}{783}{section*.455}}
+\othername{unsqueeze}{\hyperref[dict:add-direction]{\code{block.\allowbreak{}add\_\allowbreak{}direction()}}, \manualpage{word:block.add-direction}{878}{section*.591}}
+\othername{unstack}{\hyperref[dict:spread-into-columns]{\code{table.\allowbreak{}spread\_\allowbreak{}into\_\allowbreak{}columns()}}, \manualpage{word:table.spread-into-columns}{783}{section*.455}; \hyperref[dict:split-into-one-block-per]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per()}}, \manualpage{word:block.split-into-one-block-per}{886}{section*.602}}
 \othername{upper}{\hyperref[dict:turn-into-uppercase]{\code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}uppercase()}}, \manualpage{word:table.turn-into-uppercase}{481}{section*.226}}
 \othername{upsample}{\hyperref[dict:add-missing-dates]{\code{table.\allowbreak{}add\_\allowbreak{}missing\_\allowbreak{}dates()}}, \manualpage{word:table.add-missing-dates}{718}{section*.404}}
 \letterhead{V}
@@ -7501,7 +7607,8 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{violinplot}{\hyperref[dict:draw-violins]{\code{chart.\allowbreak{}draw\_\allowbreak{}violins()}}, \manualpage{word:draw-violins}{250}{section*.31}}
 \othername{vline}{\hyperref[dict:draw-line-at-x]{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x()}}, \manualpage{word:draw-line-at-x}{304}{section*.66}}
 \othername{vlines}{\hyperref[dict:draw-line-at-x]{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x()}}, \manualpage{word:draw-line-at-x}{304}{section*.66}}
-\othername{vstack}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{781}{section*.453}}
+\othername{vsplit}{\hyperref[dict:split-into-pieces]{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces()}}, \manualpage{word:block.split-into-pieces}{885}{section*.601}}
+\othername{vstack}{\hyperref[dict:add-rows-from]{\code{table.\allowbreak{}add\_\allowbreak{}rows\_\allowbreak{}from()}}, \manualpage{word:table.add-rows-from}{781}{section*.453}; \hyperref[dict:add-numbers-from]{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from()}}, \manualpage{word:block.add-numbers-from}{884}{section*.600}}
 \letterhead{W}
 \othername{wavread}{\hyperref[dict:numbers]{\code{sdata.\allowbreak{}numbers()}}, \manualpage{word:sdata.numbers}{803}{section*.477}}
 \othername{wcmdscale}{\hyperref[dict:add-principal-coordinates]{\code{table.\allowbreak{}add\_\allowbreak{}principal\_\allowbreak{}coordinates()}}, \manualpage{word:table.add-principal-coordinates}{672}{section*.377}}
@@ -7567,6 +7674,7 @@ Names from pandas, Polars, R, NumPy, SciPy, matplotlib and seaborn, and everyday
 \othername{zlab}{\hyperref[dict:label-z]{\code{chart.\allowbreak{}label\_\allowbreak{}z()}}, \manualpage{word:label-z}{406}{section*.147}}
 \othername{zlabel}{\hyperref[dict:label-z]{\code{chart.\allowbreak{}label\_\allowbreak{}z()}}, \manualpage{word:label-z}{406}{section*.147}}
 \othername{zlim}{\hyperref[dict:set-range-z]{\code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}z()}}, \manualpage{word:set-range-z}{408}{section*.148}}
+\othername{zoom}{\hyperref[dict:change-size-to]{\code{block.\allowbreak{}change\_\allowbreak{}size\_\allowbreak{}to()}}, \manualpage{word:block.change-size-to}{897}{section*.620}}
 \othername{zpk}{\hyperref[dict:system]{\code{sdata.\allowbreak{}system()}}, \manualpage{word:sdata.system}{907}{section*.634}}
 \othername{zscore}{\hyperref[dict:add-z-score-column]{\code{table.\allowbreak{}add\_\allowbreak{}z\_\allowbreak{}score\_\allowbreak{}column()}}, \manualpage{word:table.add-z-score-column}{495}{section*.237}}
 \othername{ztest}{\hyperref[dict:compare-average-to]{\code{table.\allowbreak{}compare\_\allowbreak{}average\_\allowbreak{}to()}}, \manualpage{word:table.compare-average-to}{544}{section*.274}}

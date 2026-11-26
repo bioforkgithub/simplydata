@@ -63,11 +63,12 @@ sql = ["duckdb>=2.0,<3"]
 web = ["plotly>=6.0,<8"]
 # xarray lines up blocks of numbers by the names of their directions, and chooses by labels (keep_where); NumPy does
 # the same job without it (NumPy + SciPy phase, batch 1, decision 1 approved by Manish 2026-11-25). Lower bound: a
-# release with NumPy 2 support; upper bound: the next untested year of releases.
+# release with NumPy 2 support that pandas 3 accepts (pandas 3.0 refuses xarray older than 2024.10.0 in
+# to_xarray, found by the oldest-versions CI job); upper bound: the next untested year of releases.
 # NumPy + SciPy phase, batch 2 (decision 3, approved by Manish 2026-11-25): netCDF files (sdata.number_block("sst.nc"),
 # block.save("out.nc"), sdata.show_whats_inside) read and write netCDF-4 with h5netcdf, which needs h5py; both have
 # wheels for Windows, macOS and Linux. Classic netCDF-3 files are read by SciPy's own engine (scipy is required).
-xarray = ["xarray>=2024.6,<2027", "h5netcdf>=1.4,<2", "h5py>=3.11,<4"]
+xarray = ["xarray>=2024.10,<2027", "h5netcdf>=1.4,<2", "h5py>=3.11,<4"]
 # SymPy for exact maths: sdata.formula(...) and its words, sdata.solve(exactly=True), find_area_under(exactly=True),
 # find_path_over_time(exactly=True) and show_as_fraction (numbers phase, batch 3). Lower bound: the release CI tests;
 # upper bound: the next untested major release.
