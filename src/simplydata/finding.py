@@ -502,7 +502,7 @@ def _brent_start(step, name, first, low, high, objective, word):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             a, b, c, *_ = optimize.bracket(objective, xa=first, xb=first + width, maxiter=1000)
-    except (RuntimeError, ValueError, optimize.BracketError):
+    except (RuntimeError, ValueError):  # SciPy's BracketError is a RuntimeError (and not public in scipy.optimize)
         raise SimplydataError(
             f"Searching from {name} = {_show(first)}, the formula keeps getting {'bigger' if word == 'biggest' else 'smaller'}, "
             f"so it may have no {word} value. Give a range, for example between=[0, 10]."
