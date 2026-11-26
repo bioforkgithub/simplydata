@@ -248,7 +248,7 @@ class MathsFormula:
 
     def _polynomial_terms(self):
         if not self._polynomial_done:
-            terms = self._poly(self._reader.tree)
+            terms = None if self._reader is None else self._poly(self._reader.tree)
             if terms is not None:
                 terms = {k: v for k, v in terms.items() if v != 0}
                 if not all(np.isfinite(v) for v in terms.values()):
@@ -292,14 +292,35 @@ def _times(left: dict, right: dict) -> dict:
     return out
 
 
+def _with_conditions(made, known) -> MathsFormula:
+    """A formula made with sdata.formula() that holds only under a condition (a SymPy Piecewise, such as the sum of
+    r**k for |r| < 1), which formula text cannot write: worked out by SymPy lambdify with NumPy and SciPy, as
+    f.find_value_at() does for many values. Where no condition holds there is no value (NaN)."""
+    import sympy as sp
+
+    values = _known_values(known)
+    symbols = sorted(made._expr.free_symbols, key=str)
+    names = [str(s) for s in symbols if str(s) not in values]
+    used = {str(s): values[str(s)] for s in symbols if str(s) in values}
+    function = sp.lambdify(symbols, made._expr, modules=["scipy", "numpy"])  # SymPy's own SciPy names (lgamma: gammaln)
+
+    def work_out(given, data):
+        return function(*[used[str(s)] if str(s) in used else given[str(s)] for s in symbols])
+
+    return MathsFormula(made._formula_text(), work_out, names, [], used, None)
+
+
 def read_formula(text, columns=(), known=None) -> MathsFormula:
     """Read formula text safely into a MathsFormula.
 
     read_formula("x**2 - 4*x + 1");  read_formula("a * exp(-b * time)", columns=["time"]);
     known={"a": 2.1} (or a one-row result table from fit_formula) fixes some names.
-    A formula made with sdata.formula() is read from its text (numbers phase, batch 3).
+    A formula made with sdata.formula() is read from its text (numbers phase, batch 3), or, when it holds only under
+    a condition (a SymPy Piecewise), worked out by SymPy lambdify (numbers phase, batch 4).
     """
     if hasattr(text, "_formula_text"):
+        if not columns and text._has_conditions():
+            return _with_conditions(text, known)
         text = text._formula_text()
     if not isinstance(text, str) or not text.strip():
         raise _maths_error('The formula should be some text, for example "x**2 - 4*x + 1".')

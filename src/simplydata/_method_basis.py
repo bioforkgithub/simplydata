@@ -4914,7 +4914,9 @@ BASIS["sdata.solve exactly=True with a rule"] = _b(
     "convention")
 BASIS["sdata.find_sum_of_series"] = _b(
     "The letter that counts is a whole number (a SymPy Symbol with integer=True), summed with SymPy summation; with "
-    "no closed form, Sum.is_convergent decides whether it settles and evalf gives the decimal.",
+    "no closed form, Sum.is_convergent decides whether it settles, and the decimal is bounded: the first terms "
+    "added by evalf, the rest between two integrals (the integral test, with the trapezoid and midpoint rules when "
+    "the terms bend upwards), and only the digits both bounds round to are printed.",
     "for_letter= says which letter counts; known= fixes the others; between= may end at a letter for the formula "
     "of the partial sum.",
     "A series counts in whole numbers, and SymPy can simplify terms such as (-1)**(2*k) only when it knows that; "

@@ -96,6 +96,7 @@ def read_curve_formula(word, text):
     from .._maths_formula import read_formula
 
     example = 'draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])'
+    made = text
     if hasattr(text, "_formula_text"):  # a formula made with sdata.formula() (numbers phase, batch 4)
         text = text._formula_text()
     if not isinstance(text, str) or not text.strip():
@@ -107,7 +108,7 @@ def read_curve_formula(word, text):
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_ ]*", left or ""):
             raise SimplydataError(f'.{word}() reads "{text}" as "name = formula"; the left of = should be a name, '
                                   f"such as y.\nFor example chart.{example}")
-    formula = read_formula(right)
+    formula = read_formula(made if hasattr(made, "_formula_text") else right)
     if len(formula.names) != 1:
         if not formula.names:
             raise SimplydataError(f'"{right}" has no name such as x in it, so it does not change along the chart. '

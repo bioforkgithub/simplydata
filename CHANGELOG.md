@@ -71,10 +71,26 @@ working for one release and prints a one-line note with its new name.
   `put_in`, `find_value_at` and every decimal of an exact answer run under the time limit; typed decimals and
   `known=` values are the same exact numbers in exact paths; infinity is written as a word.
 - The helper process: a watchdog thread ends it as soon as Python is gone (even mid-job), its own output goes to the
-  null device, it has a memory limit (half the computer's memory, 1 to 8 GB), multiprocessing's preparation data
+  null device, it has a memory limit (half the memory free when it starts, 1 to 4 GB), multiprocessing's preparation data
   leaves your script out instead of swapping `__main__`, an embedded Python whose executable is not Python runs SymPy
   in-process with a note, every SymPy call of one word shares one 60-second deadline, and the stop sentence gives
   advice for that word. On Linux and macOS multiprocessing also starts its own small resource-tracker process.
+- After the second review: a series with no exact formula is bounded instead of compared at two precisions (the
+  first 1,000 or 10,000 terms added by SymPy evalf, the rest between two integrals of the terms by SymPy: the
+  integral test, with the trapezoid and midpoint rules when SymPy shows the terms bend upwards), and only the digits
+  both bounds round to are printed (1/(k log(k)**3) now prints 2.065886539, as R); a formula is read unevaluated and
+  the numbers inside `gamma`, `lgamma`, `digamma`, `beta` and `besselJ` and of powers are worked out under the time
+  limit and checked first (`gamma(abs(-2000))`, `gamma(2000*x/x)` and `(1 + 1/10**4)**(10**4)` are refused, never
+  worked out while reading); a repeating rule is answered when it always or never holds, or when the other rules
+  keep the letter to a range of finite length (one period of SymPy solveset moved along by whole periods), and
+  refused otherwise; the size of a very long number comes from SymPy N and integer_log; `find_eigenvalues(exactly=
+  True)` follows R eigen()'s order also among eigenvalues of the same size; `put_in(x="y")` gives y what x was; a
+  whole typed decimal is its simplest fraction again (1e23 is 10**23); the sum of r**k has no value (instead of nan)
+  where |r| >= 1, so its slope has none there either, and such a formula works in `find_where_*`,
+  `find_area_under` (also exactly) and `draw_curve`; each thread keeps its own deadline, and the helper start leaves
+  the main script out only for its own thread; the exact grid words share one deadline; a rule always true or false
+  for what the letters are, and the ranges of whole-number letters, are said plainly; typed decimals in rules are
+  exact (x < 3.5 is x < 7/2).
 
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 

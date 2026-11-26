@@ -2,15 +2,15 @@
 dsolve, summation, apart, collect, subs and evalf of formulas, and exact grid work): a call that takes longer than
 TIME_LIMIT seconds is stopped, with a plain sentence, instead of hanging the session. A word that makes several
 SymPy calls (a limit from both sides, solve with its completeness check, a sum with its decimal) shares one deadline
-of TIME_LIMIT seconds for all of them (one_deadline).
+of TIME_LIMIT seconds for all of them (one_deadline); each thread keeps its own deadline.
 
 SymPy has no time limit of its own, and Windows has no alarm signal, so the call runs in a helper process on this
 computer that is kept alive between calls (multiprocessing with the "spawn" start method, the same on every
 system; on Linux and macOS multiprocessing also starts its own small resource-tracker process). The helper runs
 _sympy_worker.py on its own: it imports SymPy only, never simplydata and never your script, and gets each job as a
 SymPy function with its values (pickled; never text to run). When the time is up the helper is stopped and a new
-one starts at the next call. The helper has a memory limit (half the computer's memory, at most 8 GB), so a sum
-whose numbers grow without end stops with MemoryError instead of filling the computer.
+one starts at the next call. The helper has a memory limit (half the memory free when it starts, at least 1 GB and
+at most 4 GB), so a sum whose numbers grow without end stops with MemoryError instead of filling the computer.
 
 Privacy: the helper is a local process. It talks to this one through two one-way multiprocessing pipes (named pipes
 on Windows, os.pipe elsewhere; never a socket, so no network), writes no file, logs nothing, sends its own output
@@ -40,7 +40,9 @@ FORMULA_HINT = ("Try f.make_simpler() first, or carry on in SymPy itself, which 
 EXACTLY_HINT = "Leave out exactly=True for the answer in decimals (SciPy and NumPy)."
 
 _LOCK = threading.RLock()
-_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False, "deadline": None}
+_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False}
+# per thread: the deadline of the word running in this thread, and whether this thread is starting the helper
+_LOCAL = threading.local()
 
 
 def _stop_message(what: str, seconds: float, hint: str) -> str:
@@ -48,17 +50,25 @@ def _stop_message(what: str, seconds: float, hint: str) -> str:
 
 
 def one_deadline(func):
-    """All the SymPy calls of one word share one deadline of TIME_LIMIT seconds (the first word called sets it)."""
+    """All the SymPy calls of one word share one deadline of TIME_LIMIT seconds (the first word called sets it).
+
+    The deadline belongs to the thread that runs the word (threading.local), so words in two threads never share or
+    clear each other's deadline."""
     @functools.wraps(func)
     def word(*args, **kwargs):
-        if _STATE["deadline"] is not None:  # a word inside a word: the outer deadline holds
+        if getattr(_LOCAL, "deadline", None) is not None:  # a word inside a word: the outer deadline holds
             return func(*args, **kwargs)
-        _STATE["deadline"] = time.monotonic() + TIME_LIMIT
+        _LOCAL.deadline = time.monotonic() + TIME_LIMIT
         try:
             return func(*args, **kwargs)
         finally:
-            _STATE["deadline"] = None
+            _LOCAL.deadline = None
     return word
+
+
+def current_deadline():
+    """The deadline of the word running in this thread (time.monotonic() seconds), or None."""
+    return getattr(_LOCAL, "deadline", None)
 
 
 def _helper_can_start() -> bool:
@@ -72,29 +82,43 @@ def _helper_can_start() -> bool:
     return bool(name) and name.startswith(("python", "pypy"))
 
 
+def _preparation_without_main(real):
+    """multiprocessing's get_preparation_data, leaving the main script out only for the thread that starts the
+    helper (any other thread, and any other start, gets multiprocessing's own data unchanged)."""
+    def get_preparation_data(name):
+        data = real(name)
+        if getattr(_LOCAL, "starting_helper", False):
+            data.pop("init_main_from_path", None)
+            data.pop("init_main_from_name", None)
+        return data
+
+    get_preparation_data.simplydata_wrapped = real
+    return get_preparation_data
+
+
+_WRAP_LOCK = threading.Lock()
+
+
 def _start_without_main(process) -> None:
     """Start the helper without running your script again in it.
 
     With the "spawn" start method a new process normally imports the main script (as __mp_main__), which runs a
     script's top-level lines a second time when they are not under if __name__ == "__main__". The helper needs
-    nothing from the script, so while it starts, multiprocessing's preparation data leaves the main script out. Only
-    multiprocessing's own function is wrapped, for this one start, under the helper's lock; __main__ is not touched.
+    nothing from the script, so while it starts, multiprocessing's preparation data leaves the main script out.
+    multiprocessing's get_preparation_data is wrapped once, and the wrapper leaves the script out only in the thread
+    that is starting the helper at that moment (threading.local), so a process another thread starts at the same
+    time keeps its main script; __main__ is never touched.
     """
     from multiprocessing import spawn
 
-    real = spawn.get_preparation_data
-
-    def without_main(name):
-        data = real(name)
-        data.pop("init_main_from_path", None)
-        data.pop("init_main_from_name", None)
-        return data
-
-    spawn.get_preparation_data = without_main
+    with _WRAP_LOCK:
+        if not hasattr(spawn.get_preparation_data, "simplydata_wrapped"):
+            spawn.get_preparation_data = _preparation_without_main(spawn.get_preparation_data)
+    _LOCAL.starting_helper = True
     try:
         process.start()
     finally:
-        spawn.get_preparation_data = real
+        _LOCAL.starting_helper = False
 
 
 def _start():
@@ -225,7 +249,7 @@ def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_
                 return _run_here(call, values, named)
             process, jobs, answers = started
             _send(jobs, job, what)
-        deadline = _STATE["deadline"]
+        deadline = current_deadline()
         seconds = TIME_LIMIT if deadline is None else max(0.0, deadline - time.monotonic())
         try:
             finished = answers.poll(seconds)

@@ -323,7 +323,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         formula = formula._formula_text()
     if not isinstance(formula, str):
         raise SimplydataError(f"{step}() needs a formula in quotes, for example {example}.")
-    goal_formula = read_formula(formula, known=known)
+    goal_formula = read_formula(made if hasattr(made, "_formula_text") else formula, known=known)
     rule_list = _read_rules(step, rules, known)
     names = list(goal_formula.names)
     for rule in rule_list:

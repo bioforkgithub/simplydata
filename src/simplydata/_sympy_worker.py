@@ -14,7 +14,8 @@ Three guards keep the helper from outliving or troubling the parent:
   middle of a SymPy job (a job does not read the pipe, so it would not notice otherwise);
 * its standard output and error go to the null device, so it never holds the pipes of a program that reads the
   parent's output;
-* a memory limit (half the computer's memory, at most 8 GB, at least 1 GB): a job that needs more gets MemoryError.
+* a memory limit (half the memory that is free when the helper starts, at least 1 GB and at most 4 GB): a job that
+  needs more gets MemoryError, and the computer keeps memory for everything else.
 
 Nothing is written, logged or sent anywhere else: the answers pipe to the parent process is the helper's only way
 out.
@@ -28,7 +29,12 @@ import sys
 GIGABYTE = 1024 ** 3
 
 
-def _memory_of_this_computer() -> int:
+MOST_MEMORY = 4 * GIGABYTE  # the helper's memory limit is never above this
+LEAST_MEMORY = GIGABYTE  # nor below this (SymPy itself needs a few hundred MB)
+
+
+def _memory_free_now() -> int:
+    """The memory this computer has free now (Windows: available physical memory; Linux: MemAvailable)."""
     try:
         if sys.platform == "win32":
             import ctypes
@@ -41,15 +47,22 @@ def _memory_of_this_computer() -> int:
 
             status = Status()
             status.length = ctypes.sizeof(Status)
-            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
-            return int(status.total)
-        return int(os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"))
-    except (AttributeError, OSError, ValueError):  # pragma: no cover
-        return 4 * GIGABYTE
+            if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+                raise OSError("GlobalMemoryStatusEx")
+            return int(status.available)
+        if os.path.exists("/proc/meminfo"):
+            with open("/proc/meminfo", encoding="ascii") as info:
+                for line in info:
+                    if line.startswith("MemAvailable:"):
+                        return int(line.split()[1]) * 1024
+        return int(os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_AVPHYS_PAGES"))
+    except (AttributeError, OSError, ValueError):  # pragma: no cover - no way to ask: the smallest limit
+        return 2 * LEAST_MEMORY
 
 
 def memory_limit() -> int:
-    return max(GIGABYTE, min(8 * GIGABYTE, _memory_of_this_computer() // 2))
+    """Half the memory free now, at least 1 GB and at most 4 GB."""
+    return max(LEAST_MEMORY, min(MOST_MEMORY, _memory_free_now() // 2))
 
 
 def _limit_memory() -> None:

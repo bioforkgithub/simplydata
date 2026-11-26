@@ -10,10 +10,13 @@ from __future__ import annotations
 import math
 import operator
 import os
+import pickle
 import subprocess
 import sys
 import textwrap
+import threading
 import time
+from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
@@ -297,7 +300,7 @@ def test_sum_of_series_says_when_it_does_not_settle(capsys):
     assert settles == pytest.approx(float(sp.Sum(1 / (k ** 3 + k + 1), (k, 1, sp.oo)).evalf()), rel=1e-12)
     assert "no exact formula; it settles at about 0.49472" in capsys.readouterr().out
     geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
-    assert str(geometric) == "Piecewise((1/(1 - r), Abs(r) < 1), (nan, True))"
+    assert str(geometric) == "Piecewise((1/(1 - r), Abs(r) < 1))"  # no value where |r| >= 1 (review 2, I)
     assert "when Abs(r) < 1; otherwise it does not settle" in capsys.readouterr().out
     assert sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k", known={"r": 0.5})._expr == 2
 
@@ -587,14 +590,29 @@ def _run_code(tmp_path, code: str, seconds: float = 120):
 
 
 # ---- 1: a slowly settling series gets only the digits SymPy is sure of
+def _printed_sum(out: str) -> str:
+    """The decimal a sum without an exact formula prints ("settles at about 2.065886539")."""
+    return out.split("settles at about ")[1].split()[0].rstrip(";")
+
+
+def _correctly_rounded(reference: float, printed: str) -> bool:
+    """Whether printed is reference rounded to as many significant digits as printed has."""
+    digits = len(printed.replace("-", "").replace(".", "").lstrip("0"))
+    return Decimal(printed) == Decimal(f"{reference:.{digits}g}")
+
+
 def test_review_1_a_slowly_settling_series_gives_only_sure_digits(capsys):
+    # R (r7.R): the terms up to 1e6 or 1e7 and the Euler-Maclaurin tail, good to about 1e-11
     value = sdata.find_sum_of_series("1/(k*log(k)**2)", between=[2, "infinity"])
     out = capsys.readouterr().out
-    assert abs(value - 2.10974280124) < 0.01  # R: the sum to 1e7 and the integral of the tail
-    assert "only 2 digits are sure" in out and "2.106552124" not in out  # 52e71db printed 10 wrong digits
+    assert abs(value - 2.10974280124) < 1e-9
+    printed = _printed_sum(out)
+    assert len(printed.replace(".", "")) >= 8 and _correctly_rounded(2.10974280124, printed)
+    assert "2.106552124" not in out  # 52e71db printed 10 wrong digits
     third = sdata.find_sum_of_series("1/(k*log(k)**3)", between=[2, "infinity"])
-    assert third == pytest.approx(2.06588653888, rel=1e-5)
-    assert "about 2.06588;" in capsys.readouterr().out
+    assert abs(third - 2.06588653888) < 1e-9
+    printed = _printed_sum(capsys.readouterr().out)
+    assert _correctly_rounded(2.06588653888, printed)  # 1bab143 printed 2.06588 (R: 2.065887)
 
 
 def test_review_1_a_sum_that_runs_out_of_time_gives_advice_for_sums(monkeypatch):
@@ -674,8 +692,9 @@ def test_review_6_very_long_numbers_are_shown_with_their_size(capsys):
     assert "digits, too long to write out" in repr(long_sum)
     power = sdata.formula("2**x").put_in(x=20000)
     assert "a whole number of 6,021 digits" in repr(power)
-    assert sdata.find_sum_of_series("1/k**2", between=[1, 20000]) == pytest.approx(math.pi ** 2 / 6 - 1 / 20000,
-                                                                                   rel=1e-8)
+    n = 20000  # pi**2/6 - psi1(n + 1), with the asymptotic series of psi1 (the next term, 1/(30 n**5), is 1e-23)
+    assert sdata.find_sum_of_series("1/k**2", between=[1, n]) == pytest.approx(
+        math.pi ** 2 / 6 - 1 / n + 1 / (2 * n ** 2) - 1 / (6 * n ** 3), rel=1e-14)
 
 
 # ---- 7: a busy helper never outlives a Python that is killed
@@ -731,8 +750,11 @@ def test_review_10_eigenvalues_are_in_the_order_of_r(capsys):
     g = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
     values = sdata.number_grid(g).find_eigenvalues()
     found = linalg.eigvals(np.array(g, dtype=float))
-    assert np.allclose(_listed(values, "eigenvalue"), sorted(found.real, key=abs, reverse=True))  # R: by Mod
-    almost = np.array([[2.0, 1.0], [1.0 + 1e-16, 2.0]])  # symmetric to within R isSymmetric's tolerance
+    np.testing.assert_allclose(_listed(values, "eigenvalue"), sorted(found.real, key=abs, reverse=True), rtol=1e-12,
+                               atol=0)  # R: by Mod
+    almost = np.array([[2.0, 1.0], [1.0 + 1e-14, 2.0]])  # R isSymmetric() gives TRUE (all.equal, 100 * eps)
+    assert almost[1, 0] != almost[0, 1]
+    capsys.readouterr()
     sdata.number_grid(almost.tolist()).find_eigenvalues()
     assert "eigvalsh, for a symmetric grid" in capsys.readouterr().out
 
@@ -740,7 +762,11 @@ def test_review_10_eigenvalues_are_in_the_order_of_r(capsys):
 def test_review_11_real_exact_eigenvalues_have_no_imaginary_part():
     exact = sdata.number_grid([[1, 2, 3], [0, 1, 4], [5, 6, 0]]).find_eigenvalues(exactly=True)
     assert _listed(exact, "imaginary part") == [0.0, 0.0, 0.0]
-    assert np.allclose(_listed(exact, "eigenvalue"), [7.25602, -5.22967, -0.0263528], rtol=1e-5)
+    from scipy import linalg
+
+    found = linalg.eigvals(np.array([[1, 2, 3], [0, 1, 4], [5, 6, 0]], dtype=float))
+    np.testing.assert_allclose(_listed(exact, "eigenvalue"), sorted(found.real, key=abs, reverse=True), rtol=1e-12,
+                               atol=0)  # R eigen(): 7.25602242, -5.22966960, -0.02635282
 
 
 # ---- 12: exactly=True keeps a number no short fraction gives back
@@ -803,6 +829,28 @@ def test_review_15_helper_edge_cases(monkeypatch, capsys):
     assert "without the 60-second time limit" in capsys.readouterr().out
 
 
+def test_review_15_main_is_never_swapped_while_a_helper_process_starts(monkeypatch):
+    """52e71db swapped sys.modules["__main__"] while the helper started: seen from inside the start itself."""
+    from multiprocessing import context
+
+    sp, x = _sp()
+    main = sys.modules["__main__"]
+    seen = []
+
+    def recording_start(self):  # no process is started: the main module is noted, then the start fails
+        seen.append(sys.modules["__main__"])
+        raise OSError("test: no process is started")
+
+    _time_limit._stop()
+    monkeypatch.setattr(context.SpawnProcess, "start", recording_start)
+    monkeypatch.setitem(_time_limit._STATE, "said_no_helper", False)
+    try:
+        _time_limit.run_with_time_limit(sp.factor, x ** 2 - 1)
+    except OSError:
+        pass
+    assert seen and all(m is main for m in seen)
+
+
 def test_review_15_the_main_module_is_not_swapped_while_the_helper_starts():
     seen = []
 
@@ -829,27 +877,324 @@ def test_review_suspected_the_helper_has_a_memory_limit():
 
 
 def test_review_suspected_an_embedded_python_runs_sympy_here(monkeypatch, capsys):
-    from multiprocessing import spawn
+    from multiprocessing import context, spawn
 
     _time_limit._stop()
-    monkeypatch.setattr(spawn, "get_executable", lambda: "C:/Program Files/SomeApp/someapp.exe")
+    launched = []
+
+    def recording_start(self):  # never run the other program: note the try, then fail as a start would
+        launched.append(spawn.get_executable())
+        raise OSError("test: not started")
+
+    other = (os.path.join(os.environ.get("SystemRoot", "C:/Windows"), "System32", "notepad.exe")
+             if sys.platform == "win32" else "/bin/sh")
+    assert os.path.exists(other)  # a real program that is not Python (on 52e71db the start was tried)
+    monkeypatch.setattr(context.SpawnProcess, "start", recording_start)
+    monkeypatch.setattr(spawn, "get_executable", lambda: other)
     monkeypatch.setitem(_time_limit._STATE, "said_no_helper", False)
     sp, x = _sp()
     assert sdata.formula("x**2 - 1").turn_into_product()._expr == (x - 1) * (x + 1)
     assert "without the 60-second time limit" in capsys.readouterr().out
+    assert launched == []
     assert not _time_limit.helper_is_running()
 
 
+class _RecordingHelper:
+    """The two pipes of a helper that runs each job here (pickled both ways, as the real pipes do) and records how
+    long run_with_time_limit would wait for each answer."""
+
+    def __init__(self, delay: float = 0.0):
+        self.waits, self.jobs, self.delay = [], [], delay
+        self._job = None
+
+    def send(self, job):
+        self._job = pickle.loads(pickle.dumps(job))
+        self.jobs.append(self._job)
+
+    def poll(self, seconds):
+        self.waits.append(seconds)
+        return True
+
+    def recv(self):
+        call, values, named = self._job
+        time.sleep(self.delay)
+        try:
+            return pickle.loads(pickle.dumps(("done", call(*values, **named))))
+        except Exception as error:  # noqa: BLE001 - as the helper sends SymPy's error back
+            return ("error", error)
+
+
+def _recording_helper(monkeypatch, delay: float = 0.0) -> _RecordingHelper:
+    helper = _RecordingHelper(delay)
+    monkeypatch.setattr(_time_limit, "_start", lambda: (None, helper, helper))
+    return helper
+
+
 def test_review_suspected_one_word_has_one_deadline(monkeypatch):
-    monkeypatch.setattr(_time_limit, "TIME_LIMIT", 4.0)
+    """The SymPy calls of one word wait less and less: they share the word's deadline (52e71db: each waited the
+    whole TIME_LIMIT)."""
+    helper = _recording_helper(monkeypatch, delay=0.05)
+    sp, _ = _sp()
+    assert sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])._expr == sp.pi ** 2 / 6
+    assert len(helper.waits) >= 2 and helper.waits[0] <= _time_limit.TIME_LIMIT
+    assert helper.waits[-1] < _time_limit.TIME_LIMIT - 0.04
+
+
+# ================================================================ second review of 1bab143 (each test fails on that commit)
+# ---- A: nothing heavy is worked out while a formula is read
+@pytest.mark.parametrize("text", ["gamma(abs(-2000))", "gamma(sqrt(4000000))", "gamma(2000 + 0*x)", "gamma(2000*x/x)",
+                                  "digamma(abs(-5000))", "gamma(gamma(10))"])
+def test_review2_a_numbers_inside_special_functions_are_checked_however_written(text):
+    with pytest.raises(sdata.SimplydataError, match="too big to work out exactly"):
+        sdata.formula(text)
+
+
+@pytest.mark.parametrize("text", ["(1 + 1/10**4)**(10**4)", "2**(10**6*x/x)"])
+def test_review2_a_powers_with_more_than_1000_digits_are_refused_however_written(text):
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula(text)
+
+
+def test_review2_a_special_functions_of_numbers_are_worked_out_by_the_helper(monkeypatch):
+    helper = _recording_helper(monkeypatch)
+    sp, x = _sp()
+    assert sdata.formula("gamma(abs(-20)) + x").as_sympy() == sp.factorial(19) + x
+    assert helper.jobs  # worked out under the time limit; 1bab143 worked it out while reading the text
+    assert sdata.formula("2**3000").as_sympy() == sp.Integer(2) ** 3000  # 903 digits: still allowed
+    assert sdata.formula("x**2 - 1").as_sympy() == x ** 2 - 1
+
+
+# ---- B: a series decimal is bounded, and printed with its sure digits correctly rounded
+def test_review2_b_a_series_without_a_formula_is_bounded_and_correctly_rounded(capsys):
+    sp, _ = _sp()
+    k = sp.Symbol("k", integer=True)
+    value = sdata.find_sum_of_series("1/(k**3 + k + 1)", between=[1, "infinity"])
+    reference = sp.Sum(1 / (k ** 3 + k + 1), (k, 1, sp.oo)).evalf(30)  # converges fast: SymPy's evalf is good here
+    assert value == pytest.approx(float(reference), rel=1e-12)
+    out = capsys.readouterr().out
+    printed = _printed_sum(out)
+    assert _correctly_rounded(float(reference), printed)  # 0.4947249196: rounded, not cut
+    assert "integral" in out
+    with pytest.raises(sdata.SimplydataError, match="keep falling"):  # 1/(k**2 + sin(k)): SymPy cannot show it
+        sdata.find_sum_of_series("1/(k**2 + sin(k))", between=[1, "infinity"])
+
+
+# ---- C: a repeating rule is answered when it always or never holds, or within a range of finite length
+def test_review2_c_repeating_rules_that_have_a_complete_answer(capsys):
+    never = sdata.solve("sin(x) > 2", exactly=True)
+    assert math.isnan(_listed(never, "from")[0]) and "never true" in capsys.readouterr().out
+    never = sdata.solve("cos(x) > 2", exactly=True, letters_are={"x": "positive"})
+    assert math.isnan(_listed(never, "from")[0])
+    always = sdata.solve("sin(x) >= -1", exactly=True)
+    assert _listed(always, "from") == [-math.inf] and _listed(always, "to") == [math.inf]
+    short = sdata.solve(["sin(x) > 0", "x > 0", "x < 3"], exactly=True)
+    assert _listed(short, "from") == [0.0] and _listed(short, "to") == [3.0]
+    longer = sdata.solve(["sin(x) > 0", "x > 0", "x < 10"], exactly=True)  # by hand: 0 < x < pi or 2 pi < x < 3 pi
+    assert _listed(longer, "from") == pytest.approx([0.0, 2 * math.pi], rel=1e-15)
+    assert _listed(longer, "to") == pytest.approx([math.pi, 3 * math.pi], rel=1e-15)
+    with pytest.raises(sdata.SimplydataError, match="one period only"):  # endless and partly true: still refused
+        sdata.solve("sin(x) > 0", exactly=True)
+
+
+# ---- D: the size of a very long number comes from SymPy (N and integer_log)
+def test_review2_d_the_digits_of_a_long_number_are_counted_by_sympy():
+    from simplydata import _formula
+
+    sp, _ = _sp()
+    nines = _formula._too_long(sp, sp.Integer(10) ** 5000 - 1)  # 5000 nines (1bab143: "5,001 digits")
+    assert "a whole number of 5,000 digits" in nines and "1.00000E+5000" in nines
+    assert "about 3.98028E+6020 (a whole number of 6,021 digits" in repr(sdata.formula("2**x").put_in(x=20000))
+
+
+# ---- E: exact eigenvalues in R's order, also among eigenvalues of the same size
+R_EIGEN = [  # R 4.6.2, eigen(m)$values (printed to 7 digits)
+    ([[0, 4], [1, 0]], [2, -2]),
+    ([[0, -1], [1, 0]], [1j, -1j]),
+    ([[2, 0, 0], [0, -2, 0], [0, 0, 1]], [2, 1, -2]),
+    ([[0, 1, 0], [0, 0, 1], [1, 0, 0]], [-0.5 + 0.8660254j, -0.5 - 0.8660254j, 1]),
+    ([[1, 2, 0, 0, 1, 1], [0, 0, 1, 2, 0, 0], [0, 1, 0, 0, 1, 3], [0, 1, 0, 1, 0, 0], [0, 1, 0, 0, 0, 0],
+      [0, 1, 0, 0, 1, 0]],
+     [2.5236326, -0.6751899 + 0.9909579j, -0.6751899 - 0.9909579j, 1, -1, 0.8267473]),
+]
+
+
+@pytest.mark.parametrize("grid, r_order", R_EIGEN)
+def test_review2_e_exact_eigenvalues_are_in_r_order(grid, r_order):
+    exact = sdata.number_grid(grid).find_eigenvalues(exactly=True)
+    found = np.array(_listed(exact, "eigenvalue")) + 1j * np.array(_listed(exact, "imaginary part"))
+    decimal = sdata.number_grid(grid).find_eigenvalues()
+    in_numbers = np.array(_listed(decimal, "eigenvalue")) + 1j * np.array(_listed(decimal, "imaginary part"))
+    np.testing.assert_allclose(found, in_numbers, rtol=1e-12, atol=1e-14)  # SciPy (LAPACK), as R
+    np.testing.assert_allclose(found, r_order, atol=5e-8)  # R printed 7 digits; the order is what counts here
+
+
+# ---- F: put_in(x="y") gives y what x was
+def test_review2_f_put_in_a_letter_keeps_what_the_letter_is():
+    f = sdata.formula("sqrt(x**2)", letters_are={"x": "positive"})
+    g = f.put_in(x="y")
+    assert "y (positive)" in repr(g)
+    with pytest.raises(sdata.SimplydataError, match="y is positive"):
+        g.put_in(y=-2)  # 1bab143: -2, though sqrt((-2)**2) is 2
+
+
+# ---- G: a whole typed decimal is its simplest fraction (1e23 is 10**23, not its binary value)
+def test_review2_g_whole_typed_decimals_are_their_simplest_fraction():
+    from simplydata._formula import exact_number
+
+    sp, _ = _sp()
+    assert exact_number(sp, 1e23) == 10 ** 23
+    assert _listed(sdata.solve("x = 2*N", exactly=True, known={"N": 6.022e23}), "x exactly") == [
+        "1204400000000000000000000"]
+    assert sdata.find_area_under("1e23*x", between=[0, 1], exactly=True)._expr == 5 * 10 ** 22
+    assert exact_number(sp, 4 + 1e-15) == sp.Rational(4 + 1e-15)  # still no rounding (review 1, finding 12)
+
+
+# ---- H and I: the sum of r**k holds for |r| < 1 only; elsewhere it, and its slope, have no value
+def test_review2_h_a_sum_with_a_condition_works_in_the_other_words(tmp_path):
+    sp, _ = _sp()
+    geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
+    smallest = sdata.find_where_smallest(geometric, between=[-0.5, 0.5])
+    assert smallest.get_cell_at(row=1, column="smallest value") == pytest.approx(2 / 3, rel=1e-9)
+    assert sdata.find_area_under(geometric, between=[0, 0.5]) == pytest.approx(math.log(2), rel=1e-12)
+    assert sdata.find_area_under(geometric, between=[0, 0.5], exactly=True)._expr == sp.log(2)
+    chart = sdata.chart()
+    chart.draw_curve(geometric, between=[-0.5, 0.5])
+    xs, ys = chart._render().axes[0].get_lines()[0].get_data()
+    assert np.allclose(ys, 1 / (1 - xs), rtol=1e-12)
+
+
+def test_review2_i_the_slope_of_a_conditional_sum_has_no_value_where_the_sum_has_none():
+    geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
+    slope = geometric.find_slope_formula()
+    assert slope.find_value_at(r=0.5) == pytest.approx(4.0, rel=1e-15)
+    with pytest.raises(sdata.SimplydataError, match="no value among the ordinary numbers"):
+        slope.find_value_at(r=2)  # 1bab143: 0
+    many = slope.find_value_at(r=[0.5, 2]).as_numpy()
+    assert many[0] == pytest.approx(4.0) and math.isnan(many[1])
+
+
+# ---- J: while the helper starts, another thread's new process keeps its main script
+def test_review2_j_another_thread_keeps_its_main_script_while_the_helper_starts(monkeypatch):
+    import types
+    from multiprocessing import spawn
+
+    main = types.ModuleType("__main__")
+    main.__file__ = os.path.abspath("someone_elses_script.py")
+    main.__spec__ = None
+    monkeypatch.setitem(sys.modules, "__main__", main)
+    expected = spawn.get_preparation_data("other")
+    assert "init_main_from_path" in expected
+    seen = {}
+
+    class Process:
+        def start(self):  # while the helper starts, another thread prepares its own new process
+            other = threading.Thread(target=lambda: seen.update(other=spawn.get_preparation_data("other")))
+            other.start()
+            other.join(10)
+            seen["helper"] = spawn.get_preparation_data("helper")
+
+    _time_limit._start_without_main(Process())
+    assert seen["other"].get("init_main_from_path") == expected["init_main_from_path"]  # 1bab143: left out
+    assert "init_main_from_path" not in seen["helper"]
+    assert "init_main_from_path" in spawn.get_preparation_data("after")
+
+
+# ---- K: each thread has its own deadline; the exact grid words share one
+def test_review2_k_each_thread_keeps_its_own_deadline(monkeypatch):
+    monkeypatch.setattr(_time_limit, "TIME_LIMIT", 100.0)
+    helper = _recording_helper(monkeypatch)
+    waits, errors = {}, []
+    a_inside, b_inside, a_left = threading.Event(), threading.Event(), threading.Event()
 
     @_time_limit.one_deadline
-    def two_calls():
-        _time_limit.run_with_time_limit(time.sleep, 3)
-        _time_limit.run_with_time_limit(time.sleep, 3)
+    def word_a():
+        a_inside.set()
+        b_inside.wait(10)
 
-    started = time.monotonic()
-    with pytest.raises(sdata.SimplydataError, match="did not finish"):
-        two_calls()
-    assert time.monotonic() - started < 5.5
-    assert _time_limit._STATE["deadline"] is None
+    @_time_limit.one_deadline
+    def word_b():
+        b_inside.set()
+        a_left.wait(10)
+        time.sleep(0.3)
+        _time_limit.run_with_time_limit(operator.add, 1, 2)
+        waits["b"] = helper.waits[-1]
+
+    def run(word):
+        try:
+            word()
+        except Exception as error:  # noqa: BLE001 - reported below
+            errors.append(error)
+
+    a = threading.Thread(target=run, args=(word_a,))
+    a.start()
+    a_inside.wait(10)
+    b = threading.Thread(target=run, args=(word_b,))
+    b.start()
+    a.join(10)
+    a_left.set()
+    b.join(10)
+    assert not errors
+    assert waits["b"] < 100.0 - 0.2  # B's own deadline, set 0.3 s before (1bab143: A cleared it, so 100)
+
+    @_time_limit.one_deadline
+    def word_c():
+        time.sleep(0.5)
+        later.wait(10)
+
+    @_time_limit.one_deadline
+    def word_d():
+        _time_limit.run_with_time_limit(operator.add, 1, 2)
+        waits["d"] = helper.waits[-1]
+
+    later = threading.Event()
+    c = threading.Thread(target=run, args=(word_c,))
+    c.start()
+    time.sleep(0.6)
+    d = threading.Thread(target=run, args=(word_d,))
+    d.start()
+    d.join(10)
+    later.set()
+    c.join(10)
+    assert not errors
+    assert waits["d"] > 100.0 - 0.3  # D's own deadline (1bab143: C's, 0.6 s older)
+
+
+@pytest.mark.parametrize("word", ["find_eigenvalues", "find_determinant", "take_inverse"])
+def test_review2_k_the_exact_grid_words_share_one_deadline(monkeypatch, word):
+    helper = _recording_helper(monkeypatch, delay=0.05)
+    getattr(sdata.number_grid([[2, 1], [1, 3]]), word)(exactly=True)
+    assert len(helper.waits) >= 2
+    assert helper.waits[-1] < _time_limit.TIME_LIMIT - 0.04  # 1bab143: each call waited the whole time limit
+
+
+# ---- L: wording
+def test_review2_l_wording(capsys):
+    sdata.solve("x**2 < 10", exactly=True, letters_are={"x": "positive whole number"})
+    out = capsys.readouterr().out
+    assert "over the positive numbers" in out and "whole number numbers" not in out
+    assert "only the positive whole numbers in these ranges count" in out
+    with pytest.raises(sdata.SimplydataError, match="false for every value of x when x is zero or more") as info:
+        sdata.solve("x < -1", exactly=True, letters_are={"x": "zero or more"})
+    assert "no letter left" not in str(info.value)
+    with pytest.raises(sdata.SimplydataError, match="false for every value of x when x is positive"):
+        sdata.solve("x + a = 0", exactly=True, known={"a": 2}, letters_are={"x": "positive"})
+    whole = sdata.formula("x**2 + sin(pi*x)", letters_are={"x": "whole number"})
+    with pytest.raises(sdata.SimplydataError, match="x is a whole number") as info:
+        sdata.find_area_under(whole, between=[0, 1])
+    assert "Keep between=" not in str(info.value)
+    rule = sdata.solve("x < 3.5", exactly=True)
+    assert _listed(rule, "to exactly") == ["7/2"]  # 1bab143: 3.50000000000000
+
+
+# ---- M: the helper's memory limit follows the memory free now, at most 4 GB
+def test_review2_m_the_helper_memory_limit_follows_free_memory(monkeypatch):
+    from simplydata import _sympy_worker
+
+    gigabyte = 1024 ** 3
+    assert gigabyte <= _sympy_worker.memory_limit() <= 4 * gigabyte  # 1bab143: half of all memory, up to 8 GB
+    monkeypatch.setattr(_sympy_worker, "_memory_free_now", lambda: 3 * gigabyte)
+    assert _sympy_worker.memory_limit() == 3 * gigabyte // 2
+    monkeypatch.setattr(_sympy_worker, "_memory_free_now", lambda: 64 * gigabyte)
+    assert _sympy_worker.memory_limit() == 4 * gigabyte
+    monkeypatch.setattr(_sympy_worker, "_memory_free_now", lambda: gigabyte // 2)
+    assert _sympy_worker.memory_limit() == gigabyte

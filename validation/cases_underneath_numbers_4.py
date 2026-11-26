@@ -243,20 +243,25 @@ def cases(Case):
                r="""
                    list(`at 100` = sum(1:100), big = sum(as.numeric(1:1e6)^2))
                """),
-        closed("sdata.find_sum_of_series", "1 / (k log(k)^3) from 2 settles slowly: only the digits SymPy is sure of",
+        closed("sdata.find_sum_of_series", "1 / (k log(k)^3) from 2 settles slowly: only the sure digits",
                """
                    {"sum": sdata.find_sum_of_series("1/(k*log(k)**3)", between=[2, "infinity"])}
-               """, {"sum": (_log_series(3), 1e-5, "worked out by hand: the terms up to 10^7 and the integral of the "
+               """, {"sum": (_log_series(3), 1e-9, "worked out by hand: the terms up to 10^7 and the integral of the "
                                                     "rest (Euler-Maclaurin)")},
                """
                    import sympy as sp
-                   k = sp.Symbol("k", integer=True)
-                   {"sum": float(sp.Sum(1/(k*sp.log(k)**3), (k, 2, sp.oo)).evalf(30))}
-               """, "SymPy Sum.evalf at 30 digits", tolerance=1e-5,
+                   x = sp.Symbol("x", positive=True)
+                   f = 1 / (x * sp.log(x)**3)
+                   first = sp.Add(*[f.subs(x, i) for i in range(2, 1001)]).evalf(40)
+                   high = sp.integrate(f, (x, sp.Rational(2001, 2), sp.oo))
+                   low = sp.integrate(f, (x, 1000, sp.oo)) - f.subs(x, 1000) / 2
+                   {"sum": float(first + ((low + high) / 2).evalf(40))}
+               """, "SymPy: the first 1,000 terms (evalf), the rest between the trapezoid and midpoint bounds "
+                    "(integrate)", tolerance=1e-12,
                r="""
                    N <- 1e7; k <- 2:N
                    list(sum = sum(1/(k*log(k)^3)) + 1/(2*log(N)^2) - 1/(2*N*log(N)^3))
-               """, r_tolerance=1e-5),
+               """, r_tolerance=1e-9),
         closed("sdata.find_volume_under", "exactly=True: the volume under x y^2 over 0..1 by 0..2 is 4 / 3",
                """
                    v = sdata.find_volume_under("x * y**2", between={"x": [0, 1], "y": [0, 2]}, exactly=True)
@@ -404,17 +409,20 @@ def cases(Case):
                  {"first": e.get_cell_at(row=1, column="eigenvalue"),
                   "second": e.get_cell_at(row=2, column="eigenvalue"),
                   "third": e.get_cell_at(row=3, column="eigenvalue"),
-                  "third, imaginary": abs(e.get_cell_at(row=3, column="imaginary part"))}
+                  "third, imaginary": e.get_cell_at(row=3, column="imaginary part"),
+                  "fourth, imaginary": e.get_cell_at(row=4, column="imaginary part")}
              """),
              parent=_code(AIR_NUMPY, """
                  from scipy import linalg
                  v = linalg.eigvals(g[:4, :4])
                  v = v[np.argsort(-np.abs(v), kind="stable")]
-                 {"first": v[0].real, "second": v[1].real, "third": v[2].real, "third, imaginary": abs(v[2].imag)}
+                 {"first": v[0].real, "second": v[1].real, "third": v[2].real, "third, imaginary": v[2].imag,
+                  "fourth, imaginary": v[3].imag}
              """), parent_label="SciPy linalg.eigvals, by size", parent_tolerance=1e-12,
              r=_code(AIR_R, """
                  v <- eigen(g[1:4, 1:4])$values
-                 list(first = Re(v[1]), second = Re(v[2]), third = Re(v[3]), `third, imaginary` = abs(Im(v[3])))
+                 list(first = Re(v[1]), second = Re(v[2]), third = Re(v[3]), `third, imaginary` = Im(v[3]),
+                      `fourth, imaginary` = Im(v[4]))
              """), r_tolerance=1e-9),
         Case("grid.find_eigenvalues", "exactly=True: January and February of 1949 and 1950 (AirPassengers), exactly",
              "AirPassengers", "real data", option="exactly=",
