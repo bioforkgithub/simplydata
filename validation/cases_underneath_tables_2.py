@@ -39,7 +39,7 @@ def _code(*parts: str) -> str:
 
 
 def _both(Case, word, title, dataset, kind, *, ours, pandas, pandas_label, polars, polars_label, setup="",
-          r="", r_tolerance=0.0, tolerance=0.0, option="", published=None, note=""):
+          r="", r_tolerance=0.0, tolerance=0.0, option="", published=None, note="", r_explained=()):
     """Two cases: simplydata on a pandas table against pandas (and R), and on a Polars table against Polars.
 
     setup (pandas) prepares the input for both sides; then `source` is the table simplydata gets: the pandas table
@@ -47,12 +47,69 @@ def _both(Case, word, title, dataset, kind, *, ours, pandas, pandas_label, polar
     pandas_case = Case(word, title, dataset, kind,
                        ours=_code(setup, "source = data", ours), published=published or {},
                        parent=_code(setup, pandas), parent_label=pandas_label, parent_tolerance=tolerance,
-                       r=r, r_tolerance=r_tolerance, option=option, note=note)
+                       r=r, r_tolerance=r_tolerance, option=option, note=note, r_explained=r_explained)
     polars_case = Case(word, title + " (a Polars table)", dataset, kind,
                        ours=_code(setup, "import polars as pl", "source = pl.from_pandas(data)", ours),
                        parent=_code(setup, "import polars as pl", "df = pl.from_pandas(data)", polars),
                        parent_label=polars_label, parent_tolerance=tolerance, option=option)
     return [pandas_case, polars_case]
+
+
+# ---------------------------------------------------------------- Oslo before 1970 (change_time_zone_in)
+# simplydata reads every zone's clock on IANA's main data, the same on every computer (owner's decision, 2026-11-26;
+# src/simplydata/_zone_clock.py). There Europe/Oslo follows Europe/Berlin before 1970: summer time in 1949, none in
+# 1959 to 1965. Norway's own summer time of 1959 to 1965 is only in IANA's "backzone" file, which Debian and Ubuntu
+# include (so R, and Python's zoneinfo, read it there). So pandas gets the rule source simplydata promises, Python's
+# zoneinfo read from the tzdata package (IANA's main data) whatever the computer has, and must agree exactly
+# everywhere. R reads the computer's own copy. Where R differs, the case asks R for the same numbers once more on
+# IANA's main data (TZDIR set to the tzdata package's folder): the difference is explained only when R then gives
+# simplydata's numbers (make_report._explain) and the two copies differ by one summer-time hour, in summer months
+# before 1970 only; otherwise those numbers are NA and the check fails.
+MAIN_DATA = " [R on IANA's main data]"
+OSLO_REASON = ("time-zone data: R reads this computer's time-zone data, which includes Norway's 1959-65 summer time "
+               "from IANA's backzone file (and so no summer time in 1949); simplydata uses IANA's main data on every "
+               "computer (owner's decision, for reproducibility). The same R, given IANA's main data, gives "
+               "simplydata's numbers, and the two copies differ by one summer-time hour in summer months before 1970 "
+               "only; a moment itself never changes, only the UTC moment a pre-1970 Oslo clock time stands for")
+
+
+def _tzdata_folder() -> str:
+    """The tzdata package's folder of IANA's main data (what Python's zoneinfo reads), or "" when it is missing."""
+    import importlib.resources
+    import importlib.util
+
+    if importlib.util.find_spec("tzdata") is None:
+        return ""
+    return str(importlib.resources.files("tzdata").joinpath("zoneinfo")).replace("\\", "/")
+
+
+OSLO_R = """
+    days <- substr(as.character(month), 1, 10)
+    x <- as.POSIXct(days, tz = "Europe/Oslo")
+    h <- as.integer(format(x, "%H", tz = "UTC"))
+    # the same clock times on IANA's main data: R reads the tzdata package's folder for a moment (TZDIR; R reloads
+    # a zone's rules each time it changes clock), then the computer's own copy again
+    folder <- "TZDATA_FOLDER"
+    main <- NA_integer_
+    if (nzchar(folder) && dir.exists(folder)) {
+        before <- Sys.getenv("TZDIR", unset = NA)
+        Sys.setenv(TZDIR = folder)
+        main <- tryCatch(as.integer(format(as.POSIXct(days, tz = "Europe/Oslo"), "%H", tz = "UTC")),
+                         finally = if (is.na(before)) Sys.unsetenv("TZDIR") else Sys.setenv(TZDIR = before))
+    }
+    apart <- if (length(main) == length(h)) h - main else NA
+    year <- as.integer(substr(days, 1, 4))
+    month_of_year <- as.integer(substr(days, 6, 7))
+    differs <- !is.na(apart) & apart != 0
+    explained <- !anyNA(apart) && all(abs(apart) <= 1) && all(year[differs] < 1970) &&
+        all(month_of_year[differs] %in% 4:10)
+    twin <- function(value) if (explained) value else NA_real_
+    list(`months at 22:00 UTC (summer time)` = sum(h == 22), `months at 23:00 UTC` = sum(h == 23),
+         `sum of row x hour` = sum(seq_along(h) * h),
+         `months at 22:00 UTC (summer time) [R on IANA's main data]` = twin(sum(main == 22)),
+         `months at 23:00 UTC [R on IANA's main data]` = twin(sum(main == 23)),
+         `sum of row x hour [R on IANA's main data]` = twin(sum(seq_along(main) * main)))
+"""
 
 
 def cases(Case):
@@ -366,8 +423,10 @@ def cases(Case):
              v <- ifelse(breaks >= 40, "high breakage", tension)
              list(`high breakage` = sum(v == "high breakage"), L = sum(v == "L"), M = sum(v == "M"), H = sum(v == "H"))
          """)
+    # Oslo before 1970: IANA's main data for pandas too; R explained where it reads the backzone (OSLO_R above)
     both("table.change_time_zone_in", "AirPassengers: midnight at the start of each month on the Oslo clock, 1949-1960, "
-         "on the UTC clock (Norway kept summer time in 1959 and 1960; the IANA time zone database)", "AirPassengers", "real data",
+         "on the UTC clock (IANA's main time zone data, where Oslo follows Berlin before 1970: summer time in 1949)",
+         "AirPassengers", "real data",
          setup='data = data.assign(month=pd.to_datetime(data["month"]))',
          ours="""
              t = sdata.table(source).change_time_zone_in("month", to="UTC", recorded_in="Europe/Oslo")
@@ -376,23 +435,22 @@ def cases(Case):
               "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
          """,
          pandas="""
-             local = data["month"].dt.tz_localize("Europe/Oslo", nonexistent="NaT", ambiguous="NaT")
+             import importlib.resources
+             import zoneinfo
+             with importlib.resources.files("tzdata").joinpath("zoneinfo", "Europe", "Oslo").open("rb") as rules:
+                 oslo = zoneinfo.ZoneInfo.from_file(rules, key="Europe/Oslo")  # IANA's main data, not the computer's
+             local = data["month"].dt.tz_localize(oslo, nonexistent="NaT", ambiguous="NaT")
              hours = list(local.dt.tz_convert("UTC").dt.hour)
              {"months at 22:00 UTC (summer time)": hours.count(22), "months at 23:00 UTC": hours.count(23),
               "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
-         """, pandas_label="pandas dt.tz_localize(\"Europe/Oslo\").dt.tz_convert(\"UTC\")",
+         """, pandas_label="pandas dt.tz_localize(Europe/Oslo from the tzdata package).dt.tz_convert(\"UTC\")",
          polars="""
              local = pl.col("month").dt.replace_time_zone("Europe/Oslo", non_existent="null", ambiguous="null")
              hours = df.select(local.dt.convert_time_zone("UTC").dt.hour())["month"].to_list()
              {"months at 22:00 UTC (summer time)": hours.count(22), "months at 23:00 UTC": hours.count(23),
               "sum of row x hour": sum(i * h for i, h in enumerate(hours, 1))}
          """, polars_label="Polars dt.replace_time_zone().dt.convert_time_zone(\"UTC\")",
-         r="""
-             x <- as.POSIXct(substr(as.character(month), 1, 10), tz = "Europe/Oslo")
-             h <- as.integer(format(x, "%H", tz = "UTC"))
-             list(`months at 22:00 UTC (summer time)` = sum(h == 22), `months at 23:00 UTC` = sum(h == 23),
-                  `sum of row x hour` = sum(seq_along(h) * h))
-         """)
+         r=OSLO_R.replace("TZDATA_FOLDER", _tzdata_folder()), r_explained=(MAIN_DATA, OSLO_REASON))
     # America/New_York: a zone name with "_", which narwhals 2.27 to 2.29 did not read on a pandas table (the column was
     # "Unknown"); simplydata._narwhals_mend lets it read the name (tests/test_time_zone_names.py)
     both("table.change_time_zone_in", "AirPassengers: midnight at the start of each month on the New York clock, "

@@ -281,7 +281,8 @@ class MoreTableWords2:
         nonexistent="NaT", ambiguous="NaT").dt.tz_convert("UTC") and Polars
         dt.replace_time_zone("Europe/Oslo", non_existent="null", ambiguous="null").dt.convert_time_zone("UTC").
         Polars places the clock times on both engines, as it reads them in every date word: local clock
-        times before 1970 follow the main world time-zone data (IANA), the same on every computer.
+        times before 1970 follow the main world time-zone data (IANA), the same on every computer; for
+        example, Norway's summer time of 1959-65 is not included.
         """
         step = "change_time_zone_in"
         example = _example(f'table.{step}("sampled_local", to="UTC", recorded_in="Europe/Oslo")', "fjord_samples")
