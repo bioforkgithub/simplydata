@@ -1,0 +1,10 @@
+Read "fjord_lab.csv" with "," between the columns (guessed). To be sure, give separator=",".
+   sample_id lab_code       gene copies_per_ml     ct  checked_by
+1        1.0      1-1       sul1         10200  25.14         NaN
+2        1.0      1-1       tetM          1720  28.03         NaN
+3        1.0      1-1  blaOXA-48          <LOD  34.70         NaN
+Read "fjord_lab.csv" with "," between the columns (guessed). To be sure, give separator=",".
+  sample_id lab_code       gene copies_per_ml     ct  checked_by
+1       001      1-1       sul1         10200  25.14         NaN
+2       001      1-1       tetM          1720  28.03         NaN
+3       001      1-1  blaOXA-48          <LOD  34.70         NaN

@@ -25,7 +25,7 @@ import re
 import narwhals as nw
 
 from .._errors import SimplydataError, column_error
-from .columns import CONSTANTS, FORMULA_HELP, _FormulaReader
+from .columns import CONSTANTS, FORMULA_HELP, TEXT_FUNCTIONS, _FormulaReader
 
 
 class _NotGiven:
@@ -49,6 +49,37 @@ def _kind(dtype) -> str:
     if dtype == nw.Object:
         return "mixed"
     return "other"
+
+
+def _on_clock_of(value, dtype, polars_engine=True):
+    """A date and time given for a column with a time zone, read on that column's clock.
+
+    Both engines refuse to compare a column with a time zone to a time without one, so "2024-01-01" for a
+    column of Oslo times means midnight in Oslo, as Polars lit(...).dt.replace_time_zone("Europe/Oslo") (pandas
+    Timestamp("2024-01-01").tz_localize("Europe/Oslo")); a time written with its own offset is moved to the
+    column's clock (Polars dt.convert_time_zone, pandas tz_convert). Polars places it on both engines, so local clock
+    times before 1970 follow the main world time zone data (IANA), the same on every computer
+    (simplydata._zone_clock). A clock time that never happens or happens twice in that zone cannot be placed and
+    stops with a message. For a Polars table the answer is a Python datetime on the zone's clock (Polars lit()
+    places its clock time with the same rules); for a pandas table it is a pandas Timestamp of that moment.
+    """
+    zone = getattr(dtype, "time_zone", None) if dtype == nw.Datetime else None
+    if not zone or not isinstance(value, _dt.datetime):
+        return value
+    import polars as pl
+
+    try:
+        if value.tzinfo is not None:  # a moment, written with its own offset
+            moment = value.astimezone(_dt.timezone.utc).replace(tzinfo=None)
+            placed = pl.Series([moment]).dt.replace_time_zone("UTC").dt.convert_time_zone(zone)
+        else:
+            placed = pl.Series([value]).dt.replace_time_zone(zone, ambiguous="raise", non_existent="raise")
+    except Exception as error:  # Polars ComputeError / InvalidOperationError for a time that cannot be placed
+        raise SimplydataError(f"{value} never happens or happens twice on the {zone} clock (the summer-time "
+                              f"change), so it cannot be placed. Give a time an hour earlier or later.") from error
+    if polars_engine:
+        return placed.item()
+    return placed.to_pandas().iloc[0]
 
 
 def _empty_in(frame, column):
@@ -314,9 +345,15 @@ class _ConditionReader(_FormulaReader):
                 name = self.placeholders.get(part.id, part.id)
                 if name in self.columns and name not in names:
                     names.append(name)
+        # length(name) and count_text(name, ";") take a text column (tables phase, batch 3)
+        text_args = {self.placeholders.get(part.args[0].id, part.args[0].id) for part in ast.walk(node)
+                     if isinstance(part, ast.Call) and isinstance(part.func, ast.Name)
+                     and part.func.id in TEXT_FUNCTIONS and part.args and isinstance(part.args[0], ast.Name)}
         for name in names:
             kind = _kind(self.frame.schema[name])
-            if kind != "number":
+            if name in text_args and kind != "text":
+                raise _condition_error(f'length() and count_text() work on text, but "{name}" is a {kind} column.')
+            if kind != "number" and name not in text_args:
                 raise _condition_error(f'"{name}" is a {kind} column, so it cannot be used in a sum.')
         self.in_sum = True
         try:
@@ -428,7 +465,8 @@ class _ConditionReader(_FormulaReader):
                 except ValueError:
                     when = None
                 if when is not None:
-                    return when if is_datetime else when.date()
+                    return (_on_clock_of(when, self.frame.schema[side.column], self.frame.implementation.is_polars())
+                            if is_datetime else when.date())
             raise _condition_error(
                 f"\"{label}\" is a date column, so write the date in quotes as year-month-day: {label} {sign} '2026-03-15'."
             )

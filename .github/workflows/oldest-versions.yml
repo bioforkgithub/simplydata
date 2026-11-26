@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
       - uses: astral-sh/setup-uv@v6
       - name: Install the oldest allowed versions (no R, no rpy2)
-        run: uv pip install --system --resolution lowest-direct -e ".[test,systems,fast,files]"
+        run: uv pip install --system --resolution lowest-direct -e ".[test,systems,files,sql]"
       - name: Show the versions installed
         run: |
           echo '### Oldest allowed versions' >> "$GITHUB_STEP_SUMMARY"

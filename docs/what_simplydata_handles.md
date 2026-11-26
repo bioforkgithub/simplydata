@@ -2,7 +2,7 @@
 
 The full lists behind the short summary in the [README](../README.md#what-simplydata-handles): how much
 simplydata reduces the problem, every package it runs, what you can do task by task and field by field, the
-thirty-six lessons, and short examples by area. Tests (tests/test_readme_handles.py) check that the package
+thirty-seven lessons, and short examples by area. Tests (tests/test_readme_handles.py) check that the package
 tables and the counts here match the code.
 
 ## How much simplydata reduces the problem
@@ -11,9 +11,9 @@ Approximate: the names counted on 2026-11-21, the code per task on 2026-11-23.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 774 names: 402 commands and 372 options, about 93 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 829 names: 431 commands and 398 options, about 92 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 3320 lines and 2957 function calls in the 501 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1326 lines and 1350 calls (median 2 lines a task), about 60 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 3527 lines and 3151 function calls in the 547 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1453 lines and 1471 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](how_simplydata_chooses.md) (you can also choose the method you want) |
 
 ## Packages underneath
@@ -23,8 +23,8 @@ Python packages:
 | Package | What simplydata does with it | Needs |
 |---|---|---|
 | pandas | the tables behind `sdata.table`: reading files, choosing rows and columns, cleaning, grouping, joining and reshaping (`keep_rows_where`, `fill_empty_cells_in`, `join_with`, `gather_into_rows`); `table.as_pandas()` hands the table back | built in |
-| Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()` | [fast] |
-| pyarrow | Parquet files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | [fast] |
+| Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()`; some table words run on Polars for every table, so that pandas and Polars tables give one answer | built in |
+| pyarrow | Parquet and Feather files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | built in |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
 | NumPy | the number words: `sdata.numbers`, `sdata.number_grid`, maths in words (`take_log`, `turn_into_running_total`), random numbers, `nums.as_numpy()` | built in |
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
@@ -33,6 +33,7 @@ Python packages:
 | seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
+| DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
 | rpy2 | the bridge to R: runs the R package itself and brings the answer back | [r] |
 
@@ -95,12 +96,12 @@ R users, not packages simplydata needs.
 
 | Task | What you can do | Example words |
 |---|---|---|
-| Reading and saving tables | read Excel (one sheet or all), CSV, TSV, Parquet, JSON, Word, SPSS and Stata files, several files at once or a file on the web; save as Excel, CSV, TSV, Parquet or JSON | `sdata.table("data/*.csv")`, `sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")` |
-| Looking and choosing | see the first rows and each column; keep or remove columns and rows by condition, position, random draw (within each group too) or biggest values | `show_first_rows`, `describe_columns`, `keep_rows_where`, `keep_columns`, `keep_random_rows`, `keep_biggest_rows` |
-| Cleaning | turn text into numbers or dates, fix spaces and case, replace values, round, remove duplicates, show or remove outliers | `turn_into_numbers`, `turn_into_dates`, `remove_extra_spaces_in`, `replace_values_in`, `remove_duplicate_rows`, `show_rows_with_outliers` |
-| Empty cells (missing data) | count them, find which are empty together (patterns), map them, remove rows, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model, a Cox model or a correlation | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |
-| New columns, dates and text | groups from numbers, ranks, z-scores, parts of dates and text, rolling values, previous values and changes | `add_group_column`, `add_rank_column`, `add_z_score_column`, `add_column_with_part_of_date`, `split_column`, `add_rolling_column`, `add_change_column` |
-| Reshaping and joining | join two tables, stack rows, turn columns into rows and back, undo any step | `join_with`, `add_rows_from`, `gather_into_rows`, `spread_into_columns`, `undo`, `show_steps` |
+| Reading and saving tables | read Excel (one sheet or all), CSV, TSV, Parquet, JSON, Word, SPSS and Stata files, compressed CSV, Feather, JSON lines, XML, SAS and database files (SQLite, DuckDB), several files at once or a file on the web, with IDs such as 007 kept as typed; save as Excel, CSV, TSV, Parquet, JSON, Feather, Stata, HTML or a table of a database; SQL on a table or on files | `sdata.table("data/*.csv")`, `sdata.table("lab.csv", read_as_text=["sample_id"])`, `sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")` |
+| Looking and choosing | see the first rows and each column; keep or remove columns and rows by condition, position, random draw or biggest values (within each group too); keep or remove whole groups by a summary | `show_first_rows`, `describe_columns`, `keep_rows_where`, `keep_columns`, `keep_random_rows`, `keep_biggest_rows`, `keep_first_rows(2, for_each_group_in=...)`, `keep_groups_where` |
+| Cleaning | turn text into numbers, dates or categories in an order, clean column names, fix spaces and case, replace values (in chosen rows too), round, show and remove duplicates, show or remove outliers, one value per cell | `turn_into_numbers`, `turn_into_dates`, `turn_into_categories`, `clean_column_names`, `remove_extra_spaces_in`, `replace_values_in`, `show_duplicate_rows`, `remove_duplicate_rows`, `show_rows_with_outliers`, `split_into_rows` |
+| Empty cells (missing data) | count them, find which are empty together (patterns), map them, remove rows, remove rows or columns that are all empty, fill with a value, average, median, neighbour, a straight line or a smooth curve; fill missing dates; multiple imputation in a model, a Cox model or a correlation | `count_empty_cells_in`, `draw_map_of_empty_cells`, `fill_empty_cells_in(with_the="line between neighbours")`, `add_missing_dates`, `explain(empty_cells="multiple imputation")` |
+| New columns, dates and text | groups from numbers, ranks, z-scores, parts of dates and text, rolling and running values, row numbers, a summary across the columns of a row, previous values and changes | `add_group_column`, `add_rank_column`, `add_z_score_column`, `add_column_with_part_of_date`, `split_column`, `add_rolling_column`, `add_running_column`, `add_row_number_column`, `add_row_summary_column`, `add_change_column` |
+| Reshaping and joining | join two tables (keys with other names, checked for repeats, with a column saying where each row was found), keep or remove the rows found in another table, stack rows, turn columns into rows and back (combining repeats with show=), undo any step | `join_with`, `keep_rows_found_in`, `remove_rows_found_in`, `add_rows_from`, `gather_into_rows`, `spread_into_columns`, `undo`, `show_steps` |
 | Summaries | counts, averages, medians, totals, percentiles, standard deviations (weighted too), intervals for any summary (bootstrap), correlations (Pearson, Spearman, Kendall, partial) and covariances; answers on a scale (Likert items) | `count_each`, `find_summary_of`, `find_percentile_of`, `find_interval_of`, `find_correlation_between` |
 | Charts | bars, lines, dots, area, histograms, boxes, violins, heatmaps, pie, polar, contour, surface, 3D dots, bands, sticks, density, Q-Q dots, all pairs, survival and risk curves, forest and funnel plots, richness curves, cluster trees, variograms, threshold checks, compass charts, diverging bars of answers on a scale, spectra; lines, labels, axes, colours, legends, side by side, animation | `draw_bars`, `draw_boxes`, `draw_heatmap`, `draw_contour`, `draw_qq_dots`, `sdata.draw_all_pairs`, `draw_richness_curves`, `draw_cluster_tree`, `draw_one_chart_for_each_group_in`, `animate` |
 | Comparing groups (tests) | two or more averages (Welch, Student, ANOVA, Yuen, Brunner-Munzel, rank tests), pairs of groups (Holm, Tukey, Games-Howell, Dunn, Dunnett, pairs of percents), before and after, repeated measures (Friedman with Nemenyi or Conover after it, repeated-measures ANOVA), spreads, shapes, counts (chi-square, Fisher, G-test, trend), percents, equivalence and non-inferiority, many tests at once (Holm, Benjamini-Hochberg, Storey's q-values); Bayes factors and credible intervals (`test_method="bayesian"`) | `compare_averages_of`, `compare_each_pair_of`, `compare_before_and_after`, `compare_matched_columns`, `compare_spreads_of`, `compare_counts_of`, `compare_percent_to`, `add_adjusted_p_value_column` |
@@ -141,7 +142,7 @@ R users, not packages simplydata needs.
 
 ## The lessons, one by one
 
-There are thirty-six short lessons. Lessons 1 to 8 teach charts, from your first chart to
+There are thirty-seven short lessons. Lessons 1 to 8 teach charts, from your first chart to
 animations. Lessons 9 to 12 teach tables: looking at your data, choosing rows and columns,
 cleaning it, and summing it up. Lesson 13 teaches numbers (lists and grids of numbers), and
 lesson 14 the statistical tests: is a difference real, and how big is it? Lesson 15 puts it
@@ -168,7 +169,9 @@ a stratified random sample of made-up schools. Lesson 35 asks about cause and ef
 data: a job-training study made alike by weighting and by matching, with the balance table first, and how much of a
 workshop's effect on depression went through job-search confidence (mediation). Lesson 36 gives Bayesian answers: a Bayes factor for two
 wards, a credible interval for a change in pain, and a Bayesian model with its prior and its
-predictive check. Each
+predictive check. Lesson 37 tidies a messy file from a fjord cruise: IDs read as text, empty rows and
+repeats removed, column names cleaned, samples matched to lab results and stations, and work group by
+group. Each
 lesson has an example you can run, says what every line does, explains the idea behind it
 (average or median, standard deviation or standard error, p-values) and ends with a small task
 to try yourself.

@@ -186,11 +186,11 @@ it says what to install, as the note in the quick start does; see [Using the wor
 
 ## What simplydata handles
 
-**402 words (commands) in 48 groups, with 372 different options, on top of 14 Python packages (8 installed always, 6 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 3494 reliability checks.** Every word hands the work to
+**431 words (commands) in 48 groups, with 398 different options, on top of 15 Python packages (10 installed always, 5 with an extra; patsy comes with statsmodels) and
+87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 5659 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
-method it used. Words that need an extra say so: `pip install "simplydata[fast]"`, `[files]`,
-`[systems]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
+method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
+`[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
 
 **Simple words for data science in Python.** One small vocabulary: you can start in a day, and the 30-day guide
 takes you further. It is built on matplotlib, seaborn, pandas, Polars, NumPy, SciPy and statsmodels (with narwhals linking
@@ -205,8 +205,8 @@ lessons one by one, and short examples by area.
 
 Every number comes from an established package, named in
 [What simplydata handles](docs/what_simplydata_handles.md#packages-underneath). How much of that is checked, counted on 2026-11-23: the public
-[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 402 of the
-402 words with the package underneath and with R (3494 checks), and the separate test repository
+[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 431 of the
+431 words with the package underneath and with R (5659 checks), and the separate test repository
 [simplydata_tests](https://github.com/bioforkgithub/simplydata_tests#what-the-comparisons-found) makes 26,718
 comparisons on published reference data in 32 notebooks: 26,265 agree, 422 differ for a reason it explains, 29 are
 simplydata errors being fixed and 2 were skipped. The other 0 words are not compared in the reliability study yet. The
@@ -222,7 +222,7 @@ import simplydata as sdata
 sdata.show_lesson(1)
 ```
 
-There are thirty-six short lessons, from your first chart and table to models, survival, meta-analysis and
+There are thirty-seven short lessons, from your first chart and table to models, survival, meta-analysis and
 Bayesian answers; [the lessons one by one](docs/what_simplydata_handles.md#the-lessons-one-by-one). Each lesson has
 an example you can run, says what every line does, explains the idea behind it (average or median, standard
 deviation or standard error, p-values) and ends with a small task to try yourself.
@@ -265,7 +265,7 @@ the manual for each lesson and word, and the answers at the back.
 ### Manual
 
 **[The simplydata manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** has everything in one book:
-all thirty-six lessons with the real charts and output they make, every word explained (its options,
+all thirty-seven lessons with the real charts and output they make, every word explained (its options,
 an example you can run and the library that does the work underneath), the data science ideas
 behind the numbers (average or median, standard deviation or standard error, confidence intervals,
 p-values, effect sizes, and which statistical test to use when), and a worked solution for every
@@ -310,11 +310,11 @@ Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so i
 **pip** (needs Python 3.11 or newer):
 
 ```
-pip install simplydata
-pip install "simplydata[fast]"    # adds Polars, the fast engine for big data
+pip install simplydata            # with pandas, Polars, NumPy, SciPy, statsmodels, matplotlib and seaborn
 pip install "simplydata[files]"   # adds reading Word, SPSS and Stata files
 pip install "simplydata[systems]" # adds python-control: rise time, settling time and margins of systems
 pip install "simplydata[r]"       # adds rpy2, the bridge from Python to R (install R itself from https://cran.r-project.org)
+pip install "simplydata[sql]"     # adds DuckDB: SQL on a table or on files (run_sql), kept on this computer
 ```
 
 With pip, the `[r]` extra also needs R (https://cran.r-project.org) and, in R,
@@ -337,9 +337,9 @@ micromamba create -n simplydata -c conda-forge simplydata   # the same with micr
 Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if you use those):
 
 ```
-conda install -c conda-forge polars pyarrow           # Polars, the fast engine for big data
 conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
 conda install -c conda-forge control                  # rise time, settling time and margins of systems
+conda install -c conda-forge python-duckdb            # SQL on a table or on files (run_sql)
 conda install -c conda-forge rpy2 r-base              # R and the bridge to it, for the methods only R has
 ```
 
@@ -419,7 +419,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 508 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 546 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 
@@ -466,7 +466,7 @@ The design follows what the research on learning and on programming languages sa
   pandas, Polars, NumPy, SciPy, statsmodels or R code it runs underneath, so you can move on to those libraries
   whenever you want.
 - **Trust comes from checking.** simplydata does not compute statistics itself: every number comes from the
-  established package, and a public reliability study compares most words (402 of the 402 so far) with that
+  established package, and a public reliability study compares most words (431 of the 431 so far) with that
   package, with R and with published certified values.
 
 ### References

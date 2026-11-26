@@ -1,0 +1,13 @@
+sample_id is now numbers.
+Removed 59 of 60 rows: those whose sample_id is found in the other table. 1 row left.
+   sample_id station       sampled_local  depth_m  salinity crew                     notes
+1         23    St.8 2026-05-12 13:27:00       10      34.0   TO  sample lost in transport
+Undone: remove rows whose sample_id is found in another table
+Removed 241 of 244 rows: those whose sample_id is found in the other table. 3 rows left.
+Note: 2 rows have an empty sample_id, which is never found in another table, so they were not removed.
+   sample_id lab_code  gene copies_per_ml     ct  checked_by
+1        NaN      NaN   NaN           NaN    NaN         NaN
+2      141.0     2/17  tetM           550  29.44         NaN
+3        NaN      NaN   NaN           NaN    NaN         NaN
+Undone: remove rows whose sample_id is found in another table
+Kept 59 of 60 rows: those whose sample_id is found in the other table.

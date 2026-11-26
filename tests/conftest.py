@@ -140,14 +140,16 @@ def example_frame(name):
 
     sdata.get_example(name) gives a simplydata table (since 0.3.0); a test that checks a word against pandas,
     NumPy, SciPy or statsmodels reads the same file here with pandas itself, so the reference does not go
-    through simplydata at all. The date columns are read as dates, as sdata.get_example reads them.
+    through simplydata at all. The date columns are read as dates and the text columns (the lab's "007") as text,
+    as sdata.get_example reads them.
     """
     from importlib.resources import files
 
-    from simplydata.data import DATE_COLUMNS
+    from simplydata.data import DATE_COLUMNS, TEXT_COLUMNS
 
     with (files("simplydata.data") / f"{name}.csv").open("r", encoding="utf-8") as fh:
-        return pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(name, False))
+        text = {column: str for column in TEXT_COLUMNS.get(name, [])}
+        return pd.read_csv(fh, parse_dates=DATE_COLUMNS.get(name, False), dtype=text or None)
 
 
 @pytest.fixture

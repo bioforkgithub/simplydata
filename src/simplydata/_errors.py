@@ -306,15 +306,16 @@ _Word = TypeVar("_Word", bound=Callable[..., Any])
 
 
 @overload
-def friendly(func: _Word, *, renamed: dict | None = None, others: dict | None = None) -> _Word: ...
+def friendly(func: _Word, *, renamed: dict | None = None, others: dict | None = None,
+             pointers: dict | None = None) -> _Word: ...
 
 
 @overload
 def friendly(func: None = None, *, renamed: dict | None = None,
-             others: dict | None = None) -> Callable[[_Word], _Word]: ...
+             others: dict | None = None, pointers: dict | None = None) -> Callable[[_Word], _Word]: ...
 
 
-def friendly(func=None, *, renamed: dict | None = None, others: dict | None = None):
+def friendly(func=None, *, renamed: dict | None = None, others: dict | None = None, pointers: dict | None = None):
     """Decorator for every public step.
 
     * accepts both spellings (color/colour, gray/grey) for option names
@@ -325,16 +326,19 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
       left out (the new option's default)
     * others={"tp": "found"}: an option name from another tool or field works too, with a pointer
       once per session ("Note: tp= is found= in simplydata."), as alternative= is translated
+    * pointers={"left_on": 'using={"name": "student"}'}: an option name from another tool that has no one-to-one
+      simplydata option; it never runs, it stops with "In simplydata this is ..."
 
     Use it as @friendly, or as @friendly(renamed={...}, others={...}).
     """
     if func is None:
         def decorate(word):
-            return friendly(word, renamed=renamed, others=others)
+            return friendly(word, renamed=renamed, others=others, pointers=pointers)
 
         return decorate
     renamed = renamed or {}
     others = others or {}
+    pointers = pointers or {}
     sig = inspect.signature(func)
     params = [p for p in sig.parameters if p != "self"]
     takes_any = any(p.kind is p.VAR_KEYWORD for p in sig.parameters.values())
@@ -382,6 +386,9 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
                 if new in kwargs or new in fixed:
                     raise SimplydataError(f"Give {new}= only once ({key}= is another name for it).")
                 key = new
+            if key in pointers and key not in params:
+                raise SimplydataError(f".{func.__name__}() has no option called {key}= (a name from another tool).\n"
+                                      f"In simplydata this is {pointers[key]}.")
             if key not in params and not takes_any:
                 raise option_error(func.__name__, key, params)
             fixed[key] = value
@@ -415,4 +422,5 @@ def friendly(func=None, *, renamed: dict | None = None, others: dict | None = No
 
     wrapper._renamed_options = dict(renamed)
     wrapper._other_options = dict(others)
+    wrapper._option_pointers = dict(pointers)
     return wrapper

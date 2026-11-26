@@ -40,6 +40,15 @@ Every dependency in `pyproject.toml` has a range such as `pandas>=2.2,<4`.
 - The **upper bound** is the next major release, which nobody has tested yet. It keeps an
   untested release from reaching users by itself.
 - `tests/test_dependency_ranges.py` fails if a dependency has no lower or no upper bound.
+- Polars and pyarrow are required (since the tables phase, 2026-11-25), because several table
+  words run on Polars for every table so that pandas and Polars tables give one answer. The
+  `[fast]` extra is kept empty, like `[stats]`, so old install lines still work. A conda-forge
+  recipe must list `polars` and `pyarrow` under `run` with the same ranges.
+- narwhals: `src/simplydata/_narwhals_mend.py` widens narwhals' pandas datetime pattern
+  (`narwhals._pandas_like.utils.PATTERN_PD_DATETIME`) when simplydata is imported, so pandas zone names
+  with `_`, `-`, `+` or digits (`America/New_York`) are read as dates; it switches itself off when narwhals
+  reads those names itself. `tests/test_time_zone_names.py` fails if narwhals moves that pattern. When a
+  fixed narwhals is the lowest supported release, delete the module and its import.
 
 ## The warning issues
 

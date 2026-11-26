@@ -4243,3 +4243,287 @@ BASIS["sdata.get_example from_r_package="] = _b(
     "is downloaded or installed, so data never leave the computer (simplydata's privacy promise).", (), "P5",
     "A missing package or dataset is refused with the nearest name and the install line (never run by simplydata).",
     "starting value")
+
+# ---- 2026-11-25 (PR tables-1): tables phase, batch 1 (approved by Manish 2026-11-25)
+BASIS["table.keep_rows_found_in"] = _b(
+    "A semi join: the rows whose key is in the other table stay, in their order; no column comes in and no row is "
+    "repeated (pandas isin, Polars join(how=\"semi\")).",
+    "join_with() to bring the other table's columns in; remove_rows_found_in() for the rows that are not there.",
+    "Data preparation: learners who only want to keep the matching rows reach for a join and get repeated rows when "
+    "a key appears twice; a word that cannot repeat a row keeps the count of rows honest.", (), "P4",
+    "Keys of different kinds (text and numbers) are refused with the step that fixes them; an empty key is never "
+    "found, and a note says how many rows had one.", "convention")
+BASIS["table.remove_rows_found_in"] = _b(
+    "An anti join: the rows whose key is not in the other table stay, in their order (pandas ~isin, Polars "
+    "join(how=\"anti\")).",
+    "keep_rows_found_in() for the opposite.",
+    "Data preparation: finding what one table lacks (samples with no lab result) is the usual check before a join.",
+    (), "P4", "Keys of different kinds are refused; a row with an empty key is never found, so it stays, and a note "
+    "says so.", "convention")
+BASIS["table.clean_column_names"] = _b(
+    "R janitor::clean_names(): % becomes percent and # number, letters become plain ASCII, every run of other "
+    "signs one \"_\", small letters, an x before a leading digit, _2 for a repeated name; pH becomes ph (janitor "
+    "would split the capital: p_h).",
+    "rename_column() for one name of your own.",
+    "Data preparation: a fixed published rule (the janitor package, widely used in R) gives the same names every "
+    "time and on every computer; not splitting capitals inside a word keeps unit and chemistry names (pH, OD600) "
+    "readable.", (), "P3", "Each change is printed, old -> new; nothing changes when the names are already clean.",
+    "convention")
+BASIS["table.remove_rows_that_are_all_empty"] = _b(
+    "A row goes only when every cell is empty; an empty cell is a missing value or text of only spaces (pandas "
+    "dropna(how=\"all\"), Polars all_horizontal(is_null)).",
+    "remove_rows_with_empty_cells_in() removes a row for one empty cell.",
+    "Data preparation: spreadsheet exports leave blank rows between blocks of data; text of only spaces looks empty "
+    "in a spreadsheet, so it counts as empty here as everywhere in simplydata (pandas and Polars count it as "
+    "filled).", (), "P5", "The sentence says how many rows went.", "convention")
+BASIS["table.remove_columns_that_are_all_empty"] = _b(
+    "A column goes only when every cell is empty (a missing value or text of only spaces).",
+    "remove_columns() to remove columns by name.",
+    "Data preparation: a column nobody filled in carries no information; the same definition of an empty cell as "
+    "everywhere in simplydata.", (), "P5",
+    "A table whose every cell is empty is refused; the sentence names the columns that went.", "convention")
+BASIS["table.show_duplicate_rows"] = _b(
+    "Every copy is shown, the first one too (pandas duplicated(keep=False), Polars is_duplicated()), with its row "
+    "number counted from 1; two empty cells count as the same; the table does not change.",
+    "columns= to compare only some columns; remove_duplicate_rows(keep=) to remove them.",
+    "Data preparation: looking at the repeats before removing them shows whether they are true repeats (pasted "
+    "twice) or different measurements that share a key.", (), "P5",
+    "The sentence says how many rows repeat and how many extra copies there are.", "convention")
+BASIS["table.add_row_summary_column"] = _b(
+    "Empty cells are left out of each row's summary (pandas skipna, Polars *_horizontal); a row with every cell "
+    "empty gets an empty cell, also for the total (pandas sum(min_count=1)).",
+    "show= \"average\", \"total\", \"median\", \"smallest\", \"biggest\", \"standard deviation\" or \"count\".",
+    "Data preparation: an all-empty row has no total, so 0 (Polars' own sum_horizontal) would invent a value; "
+    "pandas and Polars both skip single empty cells.", (), "P4",
+    "Only number columns (any column for count); the sentence says how many rows had an empty cell.", "convention")
+BASIS["table.turn_into_categories"] = _b(
+    "The values in the order of in_order= (pandas Categorical(ordered=True), Polars Enum); a value not in the list "
+    "stops the word with its name; without in_order= the order in which the values first appear.",
+    "in_order= for your own order.",
+    "Data preparation: pandas Categorical turns a value it does not know into an empty cell without a word, which "
+    "hides typing mistakes (\"Severe\" for \"severe\"); Polars Enum refuses it, and simplydata does the same on both "
+    "engines.", (), "P4", "Text columns only; values of only spaces become empty cells, with a note.", "convention")
+BASIS["table.split_into_rows"] = _b(
+    "The separator is plain text, not a pattern; a cell without it stays one row and an empty cell one empty row "
+    "(pandas str.split + explode, Polars str.split + explode).",
+    "split_column() to split into columns instead; a column of lists needs no separator=.",
+    "Data preparation: one value per cell is what counts, joins and charts need (tidy data); a plain-text separator "
+    "cannot be misread as a pattern (\";\" and \"|\" mean other things in patterns).", (), "P5",
+    "A note says when new cells start or end with a space.", "convention")
+BASIS["table.add_running_column"] = _b(
+    "The running summary follows sorted_by= while the rows keep their place; an empty cell stays empty and is left "
+    "out of the rows after it (pandas cumsum, Polars cum_sum).",
+    "show= \"total\", \"average\", \"smallest\", \"biggest\", \"count\" or \"product\"; for_each_group_in=.",
+    "Data preparation: pandas' expanding().mean() would carry the average on through an empty cell while its cumsum "
+    "leaves the cell empty; simplydata treats every show= the same way.", (), "P5",
+    "Number columns only (any column for count).", "convention")
+BASIS["table.add_row_number_column"] = _b(
+    "Numbers start at 1, as table.show() counts, in the order of sorted_by=, while the rows keep their place (pandas "
+    "cumcount() + 1, Polars int_range(1, len + 1).over()).",
+    "for_each_group_in= to start again in each group.",
+    "Learners count from 1, and every position word of simplydata counts from 1.", (), "P5", "", "convention")
+BASIS["table.keep_groups_where"] = _b(
+    "Whole groups stay or go, in their places; empty cells are left out of each summary; a group whose summary "
+    "cannot be worked out is left out (pandas groupby().filter(), Polars filter(... .over())).",
+    "count() for the rows of a group; summaries joined with and / or.",
+    "Data preparation: a condition on single rows is refused here (keep_rows_where is the word for it), so a "
+    "group condition cannot be confused with a row condition.", (), "P4",
+    "The sentence says how many groups and rows stayed.", "convention")
+BASIS["table.remove_groups_where"] = _b(
+    "Whole groups go, the others stay in their places; a group whose summary cannot be worked out is never "
+    "removed.",
+    "keep_groups_where() for the opposite.",
+    "The same rule as keep_groups_where, turned round: a group is removed only when the condition is surely true.",
+    (), "P4", "The sentence says how many groups and rows went.", "convention")
+BASIS["table.join_with using="] = _b(
+    "using={\"name\": \"student\"} pairs this table's column with the other table's; the key keeps this table's name "
+    "only; check_that= runs pandas' and Polars' own validate= before anything is joined.",
+    "check_that= \"each row has one match\", \"each key appears once in both\" or \"each key appears once here\"; "
+    "keep=\"all rows from the other table\"; with_match_column=True.",
+    "Data preparation: a key that repeats by mistake multiplies rows without a word; a check that names the "
+    "repeated values stops it before the table changes.", (), "P4",
+    "A failed check names the repeated values and the table they are in; keys of different kinds are refused.",
+    "convention")
+BASIS["table.spread_into_columns show="] = _b(
+    "Rows and new columns stay in the order they first appear; a pair that never appears stays an empty cell for "
+    "every show= (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)).",
+    "show= \"average\", \"total\", \"median\", \"smallest\", \"biggest\" or \"count\".",
+    "Data preparation: Polars gives 0 for a total of no rows, which reads as a measurement; an empty cell keeps "
+    "\"not measured\" apart from \"measured zero\".", (), "P4",
+    "Without show=, repeated pairs stop the word with their names, so nothing is combined without your word.",
+    "convention")
+BASIS["table.change_column in_rows_where="] = _b(
+    "The condition is read on the values before the change; a row it cannot check (an empty cell) keeps its value "
+    "(pandas df.loc[mask, column] = value, Polars when/then/otherwise).",
+    "replace_values_in(in_rows_where=) and fill_empty_cells_in(in_rows_where=) work the same way.",
+    "Data preparation: pandas' chained assignment can fail without a word; one written condition, the same as "
+    "keep_rows_where's, avoids it.", (), "P5",
+    "A new value of another kind than the column is refused; a note says how many rows could not be checked.",
+    "convention")
+BASIS["table.keep_first_rows for_each_group_in="] = _b(
+    "The first rows of each group in the table's present order; the rows keep their places (pandas "
+    "groupby().head(), Polars int_range().over()); an empty group cell is a group of its own.",
+    "sort_by() first to choose which rows come first; keep_last_rows and keep_rows_by_position take "
+    "for_each_group_in= too.",
+    "Polars group_by().head() would put each group's rows together; keeping the order makes the result easy to "
+    "check against the table.", (), "P5", "", "convention")
+
+# ---- 2026-11-25 (tables-2): tables phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["table.fill_empty_cells_from"] = _b(
+    "Only empty cells take the other table's value (a missing value or text of only spaces); a filled cell never "
+    "changes (pandas combine_first, Polars join + coalesce).",
+    "join_with() to bring the other table's columns in; fill_empty_cells_in(from_column=) to fill from a column of "
+    "the same row.",
+    "Data preparation: pandas update() would overwrite filled cells, which loses data typed by hand; a key that is in "
+    "the other table twice is refused, so it is never unclear which row fills.", (), "P4",
+    "Keys of different kinds and columns of different kinds are refused; the sentence counts the cells filled in "
+    "each column.", "convention")
+BASIS["table.round_dates_in to_the="] = _b(
+    "A time exactly half way goes up (10:30 to the hour is 11:00), as Polars dt.round(); pandas is made to agree "
+    "with dt.floor() of the time plus half a step.",
+    "down_to= (the start of the unit, pandas dt.floor / Polars dt.truncate) and up_to= (pandas dt.ceil).",
+    "Data preparation: pandas dt.round() sends half way to the even unit, Polars up; one rule on both engines keeps "
+    "the same table on both; a month or a year has no one length, so to_the= refuses them.", (), "P5",
+    "Dates without a time of day are refused for hours, minutes and seconds.", "convention")
+BASIS["table.change_time_zone_in"] = _b(
+    "A clock time that never happened (summer time starts) or happened twice (it ends) becomes an empty cell, with a "
+    "note (pandas tz_localize(nonexistent=\"NaT\", ambiguous=\"NaT\"), Polars replace_time_zone(non_existent="
+    "\"null\", ambiguous=\"null\")).",
+    "recorded_in= for clock times without a zone; to= for the clock to change to.",
+    "Data preparation: the parents' default stops the whole column at one such time, and shifting it would invent a "
+    "time; an empty cell keeps every other time and says what happened. Clock times without a zone are never "
+    "assumed to be UTC.", (), "P4",
+    "Zone names are checked against the IANA list with a did-you-mean; a column that has a zone refuses recorded_in=.",
+    "convention")
+BASIS["table.add_missing_combinations_of"] = _b(
+    "Every combination of the values found in the columns gets a row; the rows come out sorted by those columns, a "
+    "combination that is there twice keeps both rows, and a row with an empty key stays, at the end.",
+    "add_missing_dates() for a run of dates.",
+    "Data preparation: pandas reindex refuses repeated keys and R tidyr::complete() keeps them; keeping every row "
+    "already there means the word only ever adds rows.", (), "P5",
+    "The sentence says how many rows were added and how many combinations there are.", "convention")
+BASIS["table.spread_into_yes_no_columns"] = _b(
+    "One True/False column for each value, named \"column: value\", A to Z, after the other columns; the column "
+    "itself stays; empty cells get a column of their own, \"column: (empty)\", last, named as the cross tables of "
+    "count_rows name them (pandas get_dummies, Polars to_dummies).",
+    "separator= for cells that hold several values (pandas str.get_dummies).",
+    "Data preparation: pandas names the column of empty cells \"nan\" and Polars \"null\"; one plain name on both "
+    "engines keeps the same table on both (approved by Manish 2026-11-25).", (), "P5",
+    "Text columns only; a column that holds the value \"(empty)\" next to empty cells is refused, with the "
+    "fill_empty_cells_in line that fixes it; a new name that already exists is refused.", "convention")
+BASIS["table.add_column counted_in="] = _b(
+    "Whole units counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars total_hours(); pandas "
+    "(end - start) / pd.Timedelta(hours=1), truncated).",
+    "counted_in= \"days\" (the default), \"hours\", \"minutes\" or \"weeks\".",
+    "Data preparation: the same rule as the whole days simplydata already counts, so a unit never changes how the "
+    "count is cut.", (), "P5", "Two date columns only.", "convention")
+BASIS["table.add_group_column into_equal_groups="] = _b(
+    "Groups numbered 1 (the smallest values) to n, cut at the percentiles of the data (pandas qcut, Polars qcut); a "
+    "value on a cut goes into the lower group; the cut points are printed.",
+    "names= for names of your own; cut_at= for cut points of your own.",
+    "Learners count from 1, as every position word of simplydata does (pandas labels=False counts from 0).", (),
+    "P5", "Too many equal values for n groups is refused with a plain sentence.", "convention")
+BASIS["table.turn_into_text written_like="] = _b(
+    "An example date is turned into strftime codes by a fixed table of its parts: the four-digit year, the number "
+    "above 12 as the day, the other number as the month, month and weekday names, and a time joined by \":\".",
+    "% codes may be given directly; turn_into_dates(written_like=) reads the same way.",
+    "Data preparation: an example is easier to write than % codes, but 03/04/2026 cannot say which number is the day, "
+    "so an example whose day is 12 or less is refused rather than guessed.", (), "P4",
+    "A date that does not exist (31.02.2026) and a two-digit year are refused.", "convention")
+BASIS["table.count_rows with_totals="] = _b(
+    "A \"(total)\" row and a \"(total)\" column (named like \"(empty)\"), each worked out from the rows "
+    "themselves (pandas crosstab(margins=True), pivot_table(margins=True)); rows with an empty group or across= "
+    "value stay in the table as \"(empty)\" and count in the totals; the same on find_total_of and "
+    "find_average_of.",
+    "across= is needed; with_totals= does not go with every= or in_percent=True.",
+    "Data preparation: pandas margins give the total (or average) of all the rows in a row or column, not of the "
+    "cells, but leave out rows with an empty key; simplydata cross tables keep them, so the totals do too. Polars "
+    "has no margins, so simplydata works each total out with group_by().agg() on both engines.", (),
+    "P5", "A table that already holds the value \"(total)\" is refused, with the replace_values_in line that "
+    "renames it.", "convention")
+
+# ---- 2026-11-25 (PR tables-3): tables phase, batch 3 (approved by Manish 2026-11-25)
+BASIS["table.add_zeros_in_front_of"] = _b(
+    "Zeros in front until the text has to_length= characters (pandas and Polars str.zfill); a longer text is never "
+    "cut, a minus or plus sign stays in front, and an empty cell stays empty.",
+    "turn_into_text() first for a column of numbers; other filling characters in pandas str.pad.",
+    "Data preparation: IDs typed as 7 in one file and 007 in another never match in a join; padding the shorter ones "
+    "is the usual fix, and cutting a longer one would change an ID without a word.", (), "P4",
+    "A column that is not text is refused with the step that makes it text; the sentence says how many values were "
+    "already longer.", "convention")
+BASIS["table.show_rows_with_empty_cells_in"] = _b(
+    "A row is shown when any of its cells (or of the columns= named) is empty, with its row number; text of only "
+    "spaces counts as empty.",
+    "columns= for some columns only; remove_rows_with_empty_cells_in() or fill_empty_cells_in() afterwards.",
+    "Data preparation: looking at the rows with a hole before removing them shows whether they are missing at "
+    "random or all from one place or time.", (), "P4", "", "convention")
+BASIS["table.show_differences_from"] = _b(
+    "Rows compared in order, two empty cells the same (pandas compare); differing cells listed as row, column, "
+    "this, other.",
+    "check_if_same_as() for a plain same or not.",
+    "Data preparation: after cleaning, the cells a step changed should be the ones meant; listing only those makes "
+    "the check quick.", (), "P4",
+    "Tables with other columns or another number of rows are not compared cell by cell: simplydata says how they "
+    "differ.", "convention")
+BASIS["table.check_if_same_as"] = _b(
+    "The same columns in the same order, the same rows, the same values and the same kinds (pandas and Polars "
+    "equals); two empty cells count as the same.",
+    "show_differences_from() lists every differing cell.",
+    "Data preparation: a strict check (kinds too) catches a column that turned from whole numbers into decimals or "
+    "text; the sentence names the first difference.", (), "P4", "", "convention")
+BASIS["table.run_sql"] = _b(
+    "DuckDB, with the table called data; no extensions loaded or installed on their own, no files, the settings "
+    "locked, and one SELECT only. Without DuckDB the word stops with the install line.",
+    "sdata.run_sql() for queries on files; the table words for the same jobs without SQL.",
+    "Privacy: simplydata is used on sensitive data, so a query must never fetch from or send to the web, open a "
+    "file, install anything or write a file; DuckDB's own settings and its own parser's statement type enforce it. "
+    "Polars SQL is not used as a stand-in: its read_csv and read_parquet table functions can open any file.", (),
+    "P4",
+    "A query with a web or cloud address, more than one statement, or anything but a SELECT is refused before it "
+    "runs.", "convention")
+BASIS["sdata.run_sql"] = _b(
+    "DuckDB on the files of this computer; no extensions loaded or installed on their own, the settings locked, and "
+    "one SELECT only.",
+    "table.run_sql() on a table already read; sdata.table() to read a file whole.",
+    "Privacy: the query reads local files only, so data never leave the computer; DuckDB reads only the rows and "
+    "columns a query needs, which keeps big files quick.", (), "P4",
+    "An address such as https:// or s3:// is refused before DuckDB sees it; so are statements that are not a "
+    "SELECT.", "convention")
+BASIS["table.make_one_table_for_each_group_in"] = _b(
+    "Groups in the order they are first seen, rows in their order, an empty value a group of its own; one column's "
+    "tables are found by the value itself.",
+    "for_each_group_in= on most words works group by group without splitting the table.",
+    "Data preparation: pandas groupby sorts the groups and drops empty keys by default, and Polars partition_by "
+    "keeps them; one rule for both keeps every row.", (), "P3", "", "convention")
+BASIS["table.find_summary_of show="] = _b(
+    "\"first\" and \"last\": the first and last filled value in the order of the rows (empty cells left out, as "
+    "pandas groupby first() and last()).",
+    "sort_by() first for another order; every= for one row per period (open, high, low, close).",
+    "Data preparation: every other measure leaves empty cells out, so first and last do too; pandas does this by "
+    "default and Polars after drop_nulls().", (), "P3", "", "convention")
+BASIS["table.sort_by biggest_first="] = _b(
+    "A list gives each column its own direction; rows that tie keep their order.",
+    "biggest_first=True or False for every column at once.",
+    "Data preparation: sorting by class A to Z and marks best first is a common need; pandas ascending= means the "
+    "opposite, so it points to biggest_first= instead of running.", (), "P3",
+    "A list of the wrong length, or with anything but True and False, is refused.", "convention")
+BASIS["table.gather_into_rows starts_with="] = _b(
+    "starts_with=, ends_with= and matches_pattern= choose the columns by their names as keep_columns does, in table "
+    "order (capital letters matter).",
+    "A list of columns; one way at a time.",
+    "Data preparation: wide files name repeated measures with a shared start (pain_week_0, pain_week_4); choosing "
+    "them by it avoids typing every name.", (), "P3", "No match is refused with the column names there are.",
+    "convention")
+BASIS["table.join_with match="] = _b(
+    "\"nearest before\" (pandas merge_asof direction=\"backward\"), both tables sorted by the date first and the "
+    "rows put back in order; within= as a time such as \"2 days\".",
+    "\"nearest after\", \"nearest\"; keep=\"all rows from this table\" keeps rows with nothing near enough.",
+    "Data preparation: measurements at different times (a river and a rain gauge) are matched to the last reading "
+    "before each one, which is what was known then; a limit stops a match to a reading weeks away.", (), "P4",
+    "Empty dates are refused, and dates or numbers are needed in both tables.", "convention")
+BASIS["table.save in_table="] = _b(
+    "Replace that one table and keep the other tables of the database file (pandas to_sql(if_exists=\"replace\"), "
+    "no row labels); DuckDB files through DuckDB with no extensions.",
+    "in_sheet= for Excel; sdata.table(table_name=) to read it back.",
+    "Data preparation: mirrors in_sheet=, so several tables go into one file and saving again never removes the "
+    "others.", (), "P4", "A database file without in_table= is refused with an example.", "convention")

@@ -1,0 +1,14 @@
+"number_at_station" numbers the rows from 1 (separately for each station), in order of sampled_local.
+Each "samples_so_far" is the count of sample_id from the first row up to this one, in order of sampled_local.
+Kept the first 1 row of each group of "depth_m": 3 of 60 rows (3 groups).
+   sample_id station       sampled_local  depth_m  salinity   crew notes  number_at_station  samples_so_far
+1          1    St.1 2026-05-12 08:32:00        1      20.3  KL;TO   NaN                  1               1
+2          2    St.1 2026-05-12 08:46:00       10      21.1     AH   NaN                  2               2
+3          3    St.1 2026-05-12 08:56:00       30      25.0  KL;TO   NaN                  3               3
+Removed 2 of 244 rows: every cell in them was empty. 242 rows left.
+Removed 6 of 242 rows. 236 rows left.
+79 cells could not become numbers and are now empty, for example: "<LOD", "n.d."
+copies_per_ml is now numbers.
+Kept 3 of 4 groups of "gene": those where count(copies_per_ml) >= 40 (177 of 236 rows).
+Note: 29 empty cells in "copies_per_ml" were skipped.
+The median of "copies_per_ml" for each "gene": intI1 1020, sul1 1620, tetM 280.

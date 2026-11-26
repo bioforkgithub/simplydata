@@ -8,7 +8,7 @@ inputs:
     default: "false"
   extras:
     description: the pip extras of simplydata
-    default: "test,systems"
+    default: "test,systems,sql"
 runs:
   using: composite
   steps:

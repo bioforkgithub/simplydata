@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-24. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-26. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**3494 checks passed, 7 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision, and is listed with that reason).
+**5659 checks passed, 12 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
 
 ## Setup
 
@@ -36,19 +36,19 @@ Kinds: *published* = real data with a published or certified answer; *real data*
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | NIST certified | 1.00211681802045 | 1.00211681802045 | at least 9 digits (LRE 14.4) | pass |
-| intercept | NIST certified | -0.262323073773985 | -0.262323073774029 | at least 9 digits (LRE 12.8) | pass |
-| slope standard error | NIST certified | 0.000429796848200648 | 0.000429796848199937 | at least 9 digits (LRE 11.8) | pass |
-| intercept standard error | NIST certified | 0.232818234301538 | 0.232818234301152 | at least 9 digits (LRE 11.8) | pass |
+| intercept | NIST certified | -0.262323073774041 | -0.262323073774029 | at least 9 digits (LRE 13.3) | pass |
+| slope standard error | NIST certified | 0.000429796848185389 | 0.000429796848199937 | at least 9 digits (LRE 10.5) | pass |
+| intercept standard error | NIST certified | 0.232818234293272 | 0.232818234301152 | at least 9 digits (LRE 10.5) | pass |
 | R squared | NIST certified | 0.999993745883712 | 0.999993745883712 | at least 9 digits (LRE 15.0) | pass |
 | slope | SciPy stats.linregress | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | -0.262323073773985 | -0.262323073773985 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.000429796848200648 | 0.000429796848200648 | relative 1e-09 | pass |
-| intercept standard error | SciPy stats.linregress | 0.232818234301538 | 0.232818234301538 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | -0.262323073774041 | -0.262323073774041 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.000429796848185389 | 0.000429796848185389 | relative 1e-09 | pass |
+| intercept standard error | SciPy stats.linregress | 0.232818234293272 | 0.232818234293272 | relative 1e-09 | pass |
 | R squared | SciPy stats.linregress | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 | slope | R | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | R | -0.262323073773985 | -0.262323073773899 | relative 1e-09 | pass |
-| slope standard error | R | 0.000429796848200648 | 0.000429796848199944 | relative 1e-09 | pass |
-| intercept standard error | R | 0.232818234301538 | 0.232818234301156 | relative 1e-09 | pass |
+| intercept | R | -0.262323073774041 | -0.26232307377373 | relative 1e-09 | pass |
+| slope standard error | R | 0.000429796848185389 | 0.000429796848199947 | relative 1e-09 | pass |
+| intercept standard error | R | 0.232818234293272 | 0.232818234301158 | relative 1e-09 | pass |
 | R squared | R | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 
 **Anscombe's set 1: the same line through four different patterns** (published; data: Anscombe's quartet)
@@ -73,11 +73,11 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | slope | Anscombe (1973) | 0.5 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00090909090909 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117963745967641 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666242033727484 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666242033727485 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.5 | 0.5 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00090909090909 | 3.00090909090909 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117963745967641 | 0.117963745967641 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666242033727484 | 0.666242033727484 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666242033727485 | 0.666242033727485 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -86,13 +86,13 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499727272727273 | 0.5 | within 0.001 (printed rounding) | pass |
-| intercept | Anscombe (1973) | 3.00245454545455 | 3 | within 0.01 (printed rounding) | pass |
+| intercept | Anscombe (1973) | 3.00245454545454 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117877662221002 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666324041066559 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.66632404106656 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499727272727273 | 0.499727272727273 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | 3.00245454545455 | 3.00245454545455 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | 3.00245454545454 | 3.00245454545454 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117877662221002 | 0.117877662221002 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666324041066559 | 0.666324041066559 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.66632404106656 | 0.66632404106656 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -102,12 +102,12 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499909090909091 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00172727272727 | 3 | within 0.01 (printed rounding) | pass |
-| slope standard error | Anscombe (1973) | 0.117818941729685 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666707256898466 | 0.667 | within 0.001 (printed rounding) | pass |
+| slope standard error | Anscombe (1973) | 0.117818941729686 | 0.118 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666707256898465 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499909090909091 | 0.499909090909091 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00172727272727 | 3.00172727272727 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.117818941729685 | 0.117818941729685 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666707256898466 | 0.666707256898466 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.117818941729686 | 0.117818941729686 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666707256898465 | 0.666707256898465 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -316,10 +316,10 @@ Note: No data: the published value is the standard normal table (5 decimals).
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| slope | statsmodels WLS | 0.204801163243055 | 0.204801163243055 | relative 1e-09 | pass |
+| slope | statsmodels WLS | 0.204801163243056 | 0.204801163243056 | relative 1e-09 | pass |
 | slope standard error | statsmodels WLS | 0.0381548260706377 | 0.0381548260706378 | relative 1e-09 | pass |
 | intercept | statsmodels WLS | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
-| slope | R | 0.204801163243055 | 0.204801163243057 | relative 1e-09 | pass |
+| slope | R | 0.204801163243056 | 0.204801163243057 | relative 1e-09 | pass |
 | slope standard error | R | 0.0381548260706377 | 0.0381548260706376 | relative 1e-09 | pass |
 | intercept | R | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
 
@@ -331,13 +331,13 @@ Note: Weisberg (2014, section 7.1) fits this weighted line; the numbers are chec
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603429 | 0.540078166603428 | relative 1e-07 | pass |
+| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603428 | 0.540078166603428 | relative 1e-07 | pass |
 | extract standard error | statsmodels GLM (Binomial, scale X2) | 0.340867231336386 | 0.340867231336386 | relative 1e-07 | pass |
 | interaction standard error | statsmodels GLM (Binomial, scale X2) | 0.418124932214023 | 0.418124932214023 | relative 1e-07 | pass |
-| extract | R | 0.540078166603429 | 0.540078166603427 | relative 1e-06 | pass |
+| extract | R | 0.540078166603428 | 0.540078166603429 | relative 1e-06 | pass |
 | extract standard error | R | 0.340867231336386 | 0.340867231340939 | relative 1e-06 | pass |
 | interaction standard error | R | 0.418124932214023 | 0.418124932215663 | relative 1e-06 | pass |
-| interaction p-value | R | 0.0801390217137065 | 0.080139021714788 | relative 1e-06 | pass |
+| interaction p-value | R | 0.0801390217137059 | 0.0801390217147883 | relative 1e-06 | pass |
 
 Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the same data (Collett 2003, Modelling Binary Data) is checked here against statsmodels and R.
 
@@ -349,12 +349,12 @@ Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the
 |---|---|---|---|---|---|
 | spontaneous | statsmodels ConditionalLogit | 1.98587551668241 | 1.98587551668241 | relative 1e-07 | pass |
 | induced | statsmodels ConditionalLogit | 1.40901163187936 | 1.40901163187936 | relative 1e-07 | pass |
-| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539729635 | 0.352443543187006 | relative 1e-07 | pass |
-| induced standard error | statsmodels ConditionalLogit | 0.360712432546398 | 0.360712438256113 | relative 1e-07 | pass |
+| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539645452 | 0.352443543187006 | relative 1e-07 | pass |
+| induced standard error | statsmodels ConditionalLogit | 0.360712433692957 | 0.360712438256113 | relative 1e-07 | pass |
 | spontaneous | R | 1.98587551668241 | 1.98587551667772 | relative 1e-06 | pass |
 | induced | R | 1.40901163187936 | 1.40901163187514 | relative 1e-06 | pass |
-| spontaneous standard error | R | 0.352443539729635 | 0.35244353980717 | relative 1e-06 | pass |
-| induced standard error | R | 0.360712432546398 | 0.360712436248923 | relative 1e-06 | pass |
+| spontaneous standard error | R | 0.352443539645452 | 0.35244353980717 | relative 1e-06 | pass |
+| induced standard error | R | 0.360712433692957 | 0.360712436248923 | relative 1e-06 | pass |
 
 Note: The model of R's ?clogit example; R and statsmodels both use the exact conditional likelihood.
 
@@ -366,9 +366,9 @@ Note: The model of R's ?clogit example; R and statsmodels both use the exact con
 |---|---|---|---|---|---|
 | risk ratio, smoking alone | statsmodels Table2x2 and GLM (Poisson, HC0) | 1.6076421248835 | 1.6076421248835 | relative 1e-06 | pass |
 | log risk ratio with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.460730395503193 | 0.460730395503193 | relative 1e-06 | pass |
-| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081042 | 0.213624213081042 | relative 1e-06 | pass |
+| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081043 | 0.213624213081043 | relative 1e-06 | pass |
 | log risk ratio with age | R | 0.460730395503193 | 0.460730390124031 | relative 1e-06 | pass |
-| standard error with age | R | 0.213624213081042 | 0.2136243204413 | relative 1e-06 | pass |
+| standard error with age | R | 0.213624213081043 | 0.2136243204413 | relative 1e-06 | pass |
 
 Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table (Zou 2004), here from statsmodels' Table2x2.
 
@@ -387,15 +387,15 @@ Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| air flow | statsmodels RLM (HuberT) | 0.829384334599657 | 0.829384334599655 | relative 1e-09 | pass |
-| water temperature | statsmodels RLM (HuberT) | 0.926065966198336 | 0.926065966198341 | relative 1e-09 | pass |
-| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945884 | relative 1e-09 | pass |
-| intercept | statsmodels RLM (HuberT) | -41.0264983523996 | -41.0264983523997 | relative 1e-09 | pass |
-| air flow standard error | statsmodels RLM (HuberT) | 0.11100521335458 | 0.11100521335458 | relative 1e-09 | pass |
-| air flow | R | 0.829384334599657 | 0.829385770253741 | relative 1e-05 | pass |
-| water temperature | R | 0.926065966198336 | 0.926059415549028 | relative 1e-05 | pass |
+| air flow | statsmodels RLM (HuberT) | 0.829384334599656 | 0.829384334599656 | relative 1e-09 | pass |
+| water temperature | statsmodels RLM (HuberT) | 0.926065966198343 | 0.926065966198346 | relative 1e-09 | pass |
+| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945885 | relative 1e-09 | pass |
+| intercept | statsmodels RLM (HuberT) | -41.0264983523997 | -41.0264983523998 | relative 1e-09 | pass |
+| air flow standard error | statsmodels RLM (HuberT) | 0.111005213354579 | 0.11100521335458 | relative 1e-09 | pass |
+| air flow | R | 0.829384334599656 | 0.829385770253742 | relative 1e-05 | pass |
+| water temperature | R | 0.926065966198343 | 0.92605941554903 | relative 1e-05 | pass |
 | acid concentration | R | -0.127846724945884 | -0.12784631796544 | relative 1e-05 | pass |
-| intercept | R | -41.0264983523996 | -41.0264853732949 | relative 1e-05 | pass |
+| intercept | R | -41.0264983523997 | -41.0264853732949 | relative 1e-05 | pass |
 
 Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates agree with R to the stopping rules of the two fits; the standard errors are statsmodels' (Huber's H1), which differ from R's summary(rlm) in the third digit, so R's are not compared.
 
@@ -405,8 +405,8 @@ Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989213 | 1309424.66989214 | relative 1e-09 | pass |
-| F of the whole curve | R | 1309424.66989213 | 1309424.66989224 | relative 1e-08 | pass |
+| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989212 | 1309424.66989217 | relative 1e-09 | pass |
+| F of the whole curve | R | 1309424.66989212 | 1309424.66989218 | relative 1e-08 | pass |
 
 Note: The spline's own coefficients differ between patsy and R's ns() (another basis of the same curves); the test of the whole curve and the fitted values are the same, so those are compared.
 
@@ -416,7 +416,7 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133064 | relative 1e-09 | pass |
+| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133065 | relative 1e-09 | pass |
 | horsepower | statsmodels OLS on z-scores | -0.426359898323383 | -0.426359898323383 | relative 1e-09 | pass |
 | gearbox | statsmodels OLS on z-scores | 0.17251723761303 | 0.17251723761303 | relative 1e-09 | pass |
 | weight 95 % CI low | statsmodels OLS on z-scores | -0.768278926188221 | -0.768278926188221 | relative 1e-09 | pass |
@@ -431,9 +431,9 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688276 | 0.638744784688276 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688277 | 0.638744784688277 | relative 1e-09 | pass |
 | 95 % CI high | SciPy stats.bootstrap (BCa) | 1.17896864783934 | 1.17896864783934 | relative 1e-09 | pass |
-| 95 % CI low | R | 0.638744784688276 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
+| 95 % CI low | R | 0.638744784688277 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
 | 95 % CI high | R | 1.17896864783934 | 1.17339381682502 | within 4 Monte Carlo SE (0.00853) | pass |
 
 Note: R draws other random rows than SciPy, so R checks the same method within its Monte Carlo error: R boot runs 10 times (seeds 1 to 10, 9999 resamples each); the reference is their average, and the difference may be 4 Monte Carlo standard errors, from the spread of R's 10 runs (simplydata's one run of 9999 resamples is taken to vary as much as one of R's). SciPy with the same seed gives the same interval exactly.
@@ -444,7 +444,7 @@ Note: R draws other random rows than SciPy, so R checks the same method within i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke low | R | 0.0326710772426009 | 0.0326710772426009 | relative 1e-06 | pass |
+| smoke low | R | 0.032671077242603 | 0.032671077242603 | relative 1e-06 | pass |
 | smoke high | R | 1.31383593363347 | 1.31383593363347 | relative 1e-06 | pass |
 | lwt low | R | -0.0249706001060748 | -0.0249706001060748 | relative 1e-06 | pass |
 
@@ -456,12 +456,12 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670746 | 0.0393884378670746 | relative 1e-08 | pass |
-| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237073 | relative 1e-08 | pass |
-| lwt | statsmodels GLM refits and SciPy chi2 | 0.036003504929209 | 0.036003504929209 | relative 1e-08 | pass |
-| smoke | R | 0.0393884378670746 | 0.0393884378670747 | relative 1e-07 | pass |
+| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670759 | 0.0393884378670759 | relative 1e-08 | pass |
+| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237077 | relative 1e-08 | pass |
+| lwt | statsmodels GLM refits and SciPy chi2 | 0.03600350492921 | 0.0360035049292094 | relative 1e-08 | pass |
+| smoke | R | 0.0393884378670759 | 0.0393884378670747 | relative 1e-07 | pass |
 | age | R | 0.226723754237082 | 0.226723754237081 | relative 1e-07 | pass |
-| lwt | R | 0.036003504929209 | 0.0360035049292096 | relative 1e-07 | pass |
+| lwt | R | 0.03600350492921 | 0.0360035049292096 | relative 1e-07 | pass |
 
 ### `table.explain`
 
@@ -469,8 +469,8 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Nagelkerke | R | 0.0850637355720789 | 0.085063735572079 | relative 1e-09 | pass |
-| Tjur | R | 0.0584872861258487 | 0.058487286125848 | relative 1e-09 | pass |
+| Nagelkerke | R | 0.0850637355720787 | 0.085063735572079 | relative 1e-09 | pass |
+| Tjur | R | 0.058487286125849 | 0.058487286125848 | relative 1e-09 | pass |
 
 Note: The printout gives the two measures with 3 decimals; the check takes them at full precision from the same statsmodels fit and the same function explain() prints them with (and checks that the printout is their rounding), so it is not limited by the printed rounding.
 
@@ -478,20 +478,20 @@ Note: The printout gives the two measures with 3 decimals; the check takes them 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -3482258.63459781 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
-| b0 standard error | NIST certified | 890420.3836076 | 890420.383607373 | at least 9 digits (LRE 12.6) | pass |
-| b1 | NIST certified | 15.0618722715538 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
-| b1 standard error | NIST certified | 84.9149257747983 | 84.9149257747669 | at least 9 digits (LRE 12.4) | pass |
-| b2 | NIST certified | -0.0358191792926458 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
-| b2 standard error | NIST certified | 0.0334910077722505 | 0.0334910077722432 | at least 9 digits (LRE 12.7) | pass |
-| b3 | NIST certified | -2.02022980381739 | -2.02022980381683 | at least 9 digits (LRE 12.6) | pass |
-| b3 standard error | NIST certified | 0.488399681651751 | 0.488399681651699 | at least 9 digits (LRE 13.0) | pass |
+| b0 | NIST certified | -3482258.63459792 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
+| b0 standard error | NIST certified | 890420.383607341 | 890420.383607373 | at least 9 digits (LRE 13.4) | pass |
+| b1 | NIST certified | 15.0618722715518 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
+| b1 standard error | NIST certified | 84.9149257747738 | 84.9149257747669 | at least 9 digits (LRE 13.1) | pass |
+| b2 | NIST certified | -0.035819179292647 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
+| b2 standard error | NIST certified | 0.0334910077722407 | 0.0334910077722432 | at least 9 digits (LRE 13.1) | pass |
+| b3 | NIST certified | -2.02022980381741 | -2.02022980381683 | at least 9 digits (LRE 12.5) | pass |
+| b3 standard error | NIST certified | 0.488399681651607 | 0.488399681651699 | at least 9 digits (LRE 12.7) | pass |
 | b4 | NIST certified | -1.03322686717365 | -1.03322686717359 | at least 9 digits (LRE 13.2) | pass |
-| b4 standard error | NIST certified | 0.214274163161705 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
-| b5 | NIST certified | -0.0511041056536771 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
-| b5 standard error | NIST certified | 0.226073200069399 | 0.22607320006937 | at least 9 digits (LRE 12.9) | pass |
-| b6 | NIST certified | 1829.15146461458 | 1829.15146461355 | at least 9 digits (LRE 12.3) | pass |
-| b6 standard error | NIST certified | 455.478499142331 | 455.478499142212 | at least 9 digits (LRE 12.6) | pass |
+| b4 standard error | NIST certified | 0.214274163161642 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
+| b5 | NIST certified | -0.051104105653695 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
+| b5 standard error | NIST certified | 0.226073200069334 | 0.22607320006937 | at least 9 digits (LRE 12.8) | pass |
+| b6 | NIST certified | 1829.15146461464 | 1829.15146461355 | at least 9 digits (LRE 12.2) | pass |
+| b6 standard error | NIST certified | 455.478499142198 | 455.478499142212 | at least 9 digits (LRE 13.5) | pass |
 
 Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor; statsmodels' own inv(R'R) after its QR fit gave only 7.97 to 9.42 digits here.
 
@@ -501,9 +501,9 @@ Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| anger | R | 0.0574458844202677 | 0.0574458844202677 | relative 1e-06 | pass |
-| anger standard error | R | 0.0168501572217191 | 0.0168501572217191 | relative 1e-06 | pass |
-| gender | R | 0.3206482938272 | 0.3206482938272 | relative 1e-06 | pass |
+| anger | R | 0.0574458838988813 | 0.0574458838988813 | relative 1e-06 | pass |
+| anger standard error | R | 0.0168463055675871 | 0.0168463055675871 | relative 1e-06 | pass |
+| gender | R | 0.320648189300347 | 0.320648189300347 | relative 1e-06 | pass |
 
 Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their order is that of text ("1", "10", "100" ...); R's reference does the same. A user's own R run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical Hessian) then differ in the fourth digit.
 
@@ -513,13 +513,13 @@ Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); th
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008) | 0.211898197949241 | 0.211898 | within 5e-07 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008) | 0.315957574199258 | 0.315958 | within 5e-07 (printed rounding) | pass |
+| count: hospital | Zeileis et al. (2008) | 0.211898197949242 | 0.211898 | within 5e-07 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008) | 0.315957574199259 | 0.315958 | within 5e-07 (printed rounding) | pass |
 | count: chronic | Zeileis et al. (2008) | 0.126420588812089 | 0.126421 | within 5e-07 (printed rounding) | pass |
 | count: chronic standard error | Zeileis et al. (2008) | 0.0124523069035939 | 0.012452 | within 5e-07 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008) | 0.535212637877491 | 0.535213 | within 5e-07 (printed rounding) | pass |
-| zero: insurance | Zeileis et al. (2008) | 0.747119812774805 | 0.74712 | within 5e-07 (printed rounding) | pass |
-| zero: insurance standard error | Zeileis et al. (2008) | 0.100879502575643 | 0.10088 | within 5e-07 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008) | 0.535212638440462 | 0.535213 | within 5e-07 (printed rounding) | pass |
+| zero: insurance | Zeileis et al. (2008) | 0.747119812959575 | 0.74712 | within 5e-07 (printed rounding) | pass |
+| zero: insurance standard error | Zeileis et al. (2008) | 0.100879503174149 | 0.10088 | within 5e-07 (printed rounding) | pass |
 
 Note: The paper's model fm_hurdle0: a negative binomial count part and a logistic zero hurdle, the same columns in both.
 
@@ -529,14 +529,14 @@ Note: The paper's model fm_hurdle0: a negative binomial count part and a logisti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498612 | 0.201 | within 0.0005 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246968 | 0.285 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130287 | -0.8 | within 0.0005 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597441 | -1.248 | within 0.0005 (printed rounding) | pass |
-| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015306 | 0.648 | within 0.0005 (printed rounding) | pass |
-| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498612 | 0.201476841187617 | relative 0.0001 | pass |
-| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130287 | -0.800490700364446 | relative 0.0001 | pass |
-| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597441 | -1.2479358116885 | relative 0.0001 | pass |
+| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498611 | 0.201 | within 0.0005 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246967 | 0.285 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130165 | -0.8 | within 0.0005 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597445 | -1.248 | within 0.0005 (printed rounding) | pass |
+| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015324 | 0.648 | within 0.0005 (printed rounding) | pass |
+| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498611 | 0.201476841187623 | relative 0.0001 | pass |
+| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130165 | -0.800490700364435 | relative 0.0001 | pass |
+| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597445 | -1.24793581168842 | relative 0.0001 | pass |
 
 Note: The paper's model fm_zinb (the zero part without health). simplydata runs R pscl itself, for its standard errors; statsmodels gives the same estimates.
 
@@ -546,17 +546,17 @@ Note: The paper's model fm_zinb (the zero part without health). simplydata runs 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285051 | 0.016 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481663 | 0.318 | within 0.0005 (printed rounding) | pass |
+| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285058 | 0.016 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481662 | 0.318 | within 0.0005 (printed rounding) | pass |
 | zero: chronic | Zeileis et al. (2008), Table 2 | 0.54783250793305 | 0.548 | within 0.0005 (printed rounding) | pass |
 | zero: insurance | Zeileis et al. (2008), Table 2 | 0.745720049336323 | 0.746 | within 0.0005 (printed rounding) | pass |
-| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413957 | 0.057 | within 0.0005 (printed rounding) | pass |
+| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413954 | 0.057 | within 0.0005 (printed rounding) | pass |
 | zero: gender male | Zeileis et al. (2008), Table 2 | -0.419147791025234 | -0.419 | within 0.0005 (printed rounding) | pass |
-| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285051 | 0.0159401718063212 | relative 1e-06 | pass |
-| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481663 | 0.318434494004322 | relative 1e-06 | pass |
+| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285058 | 0.0159401718063209 | relative 1e-06 | pass |
+| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481662 | 0.318434494004322 | relative 1e-06 | pass |
 | zero: chronic | statsmodels Logit (the first step on its own) | 0.54783250793305 | 0.547832508738329 | relative 1e-06 | pass |
 | zero: insurance | statsmodels Logit (the first step on its own) | 0.745720049336323 | 0.745720049922439 | relative 1e-06 | pass |
-| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413957 | 0.0570728147518849 | relative 1e-06 | pass |
+| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413954 | 0.0570728147518849 | relative 1e-06 | pass |
 | zero: gender male | statsmodels Logit (the first step on its own) | -0.419147791025234 | -0.419147791543225 | relative 1e-06 | pass |
 
 Note: The first step of a hurdle model is a logistic regression of zero or not, so statsmodels' Logit gives the same numbers as pscl's zero hurdle.
@@ -567,12 +567,12 @@ Note: The first step of a hurdle model is a logistic regression of zero or not, 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867450264 | relative 2e-06 | pass |
-| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945390997 | relative 2e-06 | pass |
-| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232712923 | relative 2e-06 | pass |
-| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922446201 | relative 2e-06 | pass |
-| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516764472 | relative 2e-06 | pass |
-| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531645388 | relative 2e-06 | pass |
+| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867449863 | relative 2e-06 | pass |
+| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945466304 | relative 2e-06 | pass |
+| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232719357 | relative 2e-06 | pass |
+| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922438271 | relative 2e-06 | pass |
+| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516748209 | relative 2e-06 | pass |
+| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531612046 | relative 2e-06 | pass |
 | b | R | 2.98222857655474 | 2.98222857655474 | relative 1e-09 | pass |
 | c | R | 0.481409615432056 | 0.481409615432056 | relative 1e-09 | pass |
 | d | R | 7.79296184542426 | 7.79296184542426 | relative 1e-09 | pass |
@@ -590,7 +590,7 @@ Note: Python has no dose-response package with drc's ED intervals, so R drc itse
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | LD50 | Dobson & Barnett (2008) | 59.1181877103869 | 59.1186543855778 | within 0.01 (printed rounding) | pass |
-| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.1181676064851 | relative 1e-06 | pass |
+| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.118167606485 | relative 1e-06 | pass |
 | LD50 | R | 59.1181877103869 | 59.1181676064854 | relative 1e-06 | pass |
 
 Note: The 2 parameter log-logistic curve with binomial errors is logistic regression on log dose, so its LD50 is the published fit's; the tolerance allows the printed 3 decimals of the fit.
@@ -611,10 +611,10 @@ Note: The 2 parameter log-logistic curve with binomial errors is logistic regres
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | Box & Cox (1964) | -0.750162301480205 | -0.75 | within 0.01 (printed rounding) | pass |
+| power | Box & Cox (1964) | -0.750162301479909 | -0.75 | within 0.01 (printed rounding) | pass |
 | simple power | Box & Cox (1964) | -1 | -1 | within 0 (printed rounding) | pass |
-| power | R | -0.750162301480205 | -0.750162301480205 | relative 1e-06 | pass |
-| 95 % CI low | R | -1.13693054527241 | -1.13693054527241 | relative 1e-06 | pass |
+| power | R | -0.750162301479909 | -0.750162301479909 | relative 1e-06 | pass |
+| 95 % CI low | R | -1.13693054535237 | -1.13693054535237 | relative 1e-06 | pass |
 | simple power | R | -1 | -1 | relative 1e-06 | pass |
 
 Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power -1), the rate of dying.
@@ -625,9 +625,9 @@ Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | SciPy stats.boxcox(alpha=0.05) | -0.360158452952329 | -0.360158452952329 | relative 1e-09 | pass |
-| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.96199386235822 | -0.96199386235822 | relative 1e-09 | pass |
-| power | R | -0.360158452952329 | -0.360158410727371 | relative 0.0001 | pass |
+| power | SciPy stats.boxcox(alpha=0.05) | -0.360158442078502 | -0.360158442078502 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.961993862358217 | -0.961993862358217 | relative 1e-09 | pass |
+| power | R | -0.360158442078502 | -0.360158410727371 | relative 0.0001 | pass |
 
 Note: car::powerTransform maximises the same likelihood with another optimiser (to about 1e-5).
 
@@ -637,10 +637,10 @@ Note: car::powerTransform maximises the same likelihood with another optimiser (
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 72.4622376211471 | 72.462237576 | at least 6 digits (LRE 9.2) | pass |
-| b2 | NIST certified | 2.61807683865333 | 2.6180768402 | at least 6 digits (LRE 9.2) | pass |
-| b3 | NIST certified | 0.0673591999756809 | 0.067359200066 | at least 6 digits (LRE 8.9) | pass |
-| residual sum of squares | NIST certified | 8.05652293381127 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
+| b1 | NIST certified | 72.4622374345916 | 72.462237576 | at least 6 digits (LRE 8.7) | pass |
+| b2 | NIST certified | 2.61807684336174 | 2.6180768402 | at least 6 digits (LRE 8.9) | pass |
+| b3 | NIST certified | 0.0673592003257281 | 0.067359200066 | at least 6 digits (LRE 8.4) | pass |
+| residual sum of squares | NIST certified | 8.05652293381126 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
 
 Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid / scal and b3 is 1 / scal of R's SSlogis.
 
@@ -650,9 +650,9 @@ Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 238.942129037623 | 238.94212918 | at least 6 digits (LRE 9.2) | pass |
-| b2 | NIST certified | 0.000550156432185112 | 0.00055015643181 | at least 6 digits (LRE 9.2) | pass |
-| residual sum of squares | NIST certified | 0.12455138894441 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
+| b1 | NIST certified | 238.942128882798 | 238.94212918 | at least 6 digits (LRE 8.9) | pass |
+| b2 | NIST certified | 0.000550156432601245 | 0.00055015643181 | at least 6 digits (LRE 8.8) | pass |
+| residual sum of squares | NIST certified | 0.1245513889444 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
 
@@ -660,8 +660,8 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 213.809410992926 | 213.80940889 | at least 6 digits (LRE 8.0) | pass |
-| b2 | NIST certified | 0.547237460702395 | 0.54723748542 | at least 6 digits (LRE 7.3) | pass |
+| b1 | NIST certified | 213.809411675878 | 213.80940889 | at least 6 digits (LRE 7.9) | pass |
+| b2 | NIST certified | 0.547237453159843 | 0.54723748542 | at least 6 digits (LRE 7.2) | pass |
 | residual sum of squares | NIST certified | 1168.00887655557 | 1168.0088766 | at least 6 digits (LRE 10.4) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
@@ -672,28 +672,28 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -1467.48961422976 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
-| b0 standard error | NIST certified | 298.084530995529 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.6) | pass |
-| b1 standard error | NIST certified | 559.779865474936 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
+| b0 | NIST certified | -1467.48961422975 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
+| b0 standard error | NIST certified | 298.08453099553 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
+| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.5) | pass |
+| b1 standard error | NIST certified | 559.779865474937 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
 | b2 | NIST certified | -2316.37108160886 | -2316.37108160893 | at least 9 digits (LRE 13.5) | pass |
-| b2 standard error | NIST certified | 466.477572127785 | 466.477572127796 | at least 9 digits (LRE 13.6) | pass |
-| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.4) | pass |
-| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.6) | pass |
-| b4 | NIST certified | -354.478233703336 | -354.478233703349 | at least 9 digits (LRE 13.4) | pass |
-| b4 standard error | NIST certified | 71.647866087591 | 71.6478660875927 | at least 9 digits (LRE 13.6) | pass |
-| b5 | NIST certified | -75.1242017393729 | -75.1242017393757 | at least 9 digits (LRE 13.4) | pass |
-| b5 standard error | NIST certified | 15.2897178747396 | 15.28971787474 | at least 9 digits (LRE 13.6) | pass |
-| b6 | NIST certified | -10.8753180355338 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
-| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.6) | pass |
-| b7 | NIST certified | -1.06221498588942 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
-| b7 standard error | NIST certified | 0.221624321934222 | 0.221624321934227 | at least 9 digits (LRE 13.6) | pass |
-| b8 | NIST certified | -0.0670191154593381 | -0.0670191154593408 | at least 9 digits (LRE 13.4) | pass |
-| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.6) | pass |
-| b9 | NIST certified | -0.00246781078275468 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
-| b9 standard error | NIST certified | 0.000535617408889808 | 0.000535617408889821 | at least 9 digits (LRE 13.6) | pass |
-| b10 | NIST certified | -4.02962525080386e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
-| b10 standard error | NIST certified | 8.96632837373847e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.6) | pass |
+| b2 standard error | NIST certified | 466.477572127786 | 466.477572127796 | at least 9 digits (LRE 13.7) | pass |
+| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.5) | pass |
+| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.7) | pass |
+| b4 | NIST certified | -354.478233703337 | -354.478233703349 | at least 9 digits (LRE 13.5) | pass |
+| b4 standard error | NIST certified | 71.6478660875912 | 71.6478660875927 | at least 9 digits (LRE 13.7) | pass |
+| b5 | NIST certified | -75.1242017393732 | -75.1242017393757 | at least 9 digits (LRE 13.5) | pass |
+| b5 standard error | NIST certified | 15.2897178747397 | 15.28971787474 | at least 9 digits (LRE 13.7) | pass |
+| b6 | NIST certified | -10.8753180355339 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
+| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.7) | pass |
+| b7 | NIST certified | -1.06221498588943 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
+| b7 standard error | NIST certified | 0.221624321934223 | 0.221624321934227 | at least 9 digits (LRE 13.7) | pass |
+| b8 | NIST certified | -0.0670191154593385 | -0.0670191154593408 | at least 9 digits (LRE 13.5) | pass |
+| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.7) | pass |
+| b9 | NIST certified | -0.0024678107827547 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
+| b9 standard error | NIST certified | 0.00053561740888981 | 0.000535617408889821 | at least 9 digits (LRE 13.7) | pass |
+| b10 | NIST certified | -4.02962525080388e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
+| b10 standard error | NIST certified | 8.96632837373851e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.7) | pass |
 
 Note: The hardest NIST linear problem (condition number of the powers 1.8e15). simplydata fits on x mapped onto [-1, 1] and turns the answer back into the raw powers with statsmodels t_test(); a QR fit on the raw powers (simplydata 0.2.0) gave no standard errors for b5 to b10, and R lm() drops two terms.
 
@@ -701,18 +701,18 @@ Note: The hardest NIST linear problem (condition number of the powers 1.8e15). s
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000058208 | 1 | at least 9 digits (LRE 9.2) | pass |
-| b0 standard error | NIST certified | 1.55712885651003e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 | NIST certified | 0.999999999708962 | 1 | at least 9 digits (LRE 9.5) | pass |
-| b1 standard error | NIST certified | 1.70994272613356e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 | NIST certified | 0.999999999949068 | 1 | at least 9 digits (LRE 10.3) | pass |
-| b2 standard error | NIST certified | 5.63826368184418e-10 | 0 | at least 9 digits (LRE 9.2) | pass |
-| b3 | NIST certified | 1.00000000001637 | 1 | at least 9 digits (LRE 10.8) | pass |
-| b3 standard error | NIST certified | 7.34137964780744e-11 | 0 | at least 9 digits (LRE 10.1) | pass |
-| b4 | NIST certified | 0.999999999998805 | 1 | at least 9 digits (LRE 11.9) | pass |
-| b4 standard error | NIST certified | 4.08443101427947e-12 | 0 | at least 9 digits (LRE 11.4) | pass |
-| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
-| b5 standard error | NIST certified | 8.12628999836708e-14 | 0 | at least 9 digits (LRE 13.1) | pass |
+| b0 | NIST certified | 0.999999998195563 | 1 | at least 9 digits (LRE 8.7) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 1.17536756270587e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 | NIST certified | 1.00000000096043 | 1 | at least 9 digits (LRE 9.0) | pass |
+| b1 standard error | NIST certified | 1.29071605473089e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 | NIST certified | 0.9999999997126 | 1 | at least 9 digits (LRE 9.5) | pass |
+| b2 standard error | NIST certified | 4.2559305313212e-10 | 0 | at least 9 digits (LRE 9.4) | pass |
+| b3 | NIST certified | 1.00000000003502 | 1 | at least 9 digits (LRE 10.5) | pass |
+| b3 standard error | NIST certified | 5.5414935427256e-11 | 0 | at least 9 digits (LRE 10.3) | pass |
+| b4 | NIST certified | 0.999999999998107 | 1 | at least 9 digits (LRE 11.7) | pass |
+| b4 standard error | NIST certified | 3.0830510308914e-12 | 0 | at least 9 digits (LRE 11.5) | pass |
+| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
+| b5 standard error | NIST certified | 6.13396741656262e-14 | 0 | at least 9 digits (LRE 13.2) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -720,18 +720,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000000001 | 1 | at least 9 digits (LRE 13.9) | pass |
-| b0 standard error | NIST certified | 3.12641750882078e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
-| b1 | NIST certified | 0.0999999999999968 | 0.1 | at least 9 digits (LRE 13.5) | pass |
-| b1 standard error | NIST certified | 3.43323858890304e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
-| b2 | NIST certified | 0.00999999999999818 | 0.01 | at least 9 digits (LRE 12.7) | pass |
-| b2 standard error | NIST certified | 1.13205572040932e-14 | 0 | at least 9 digits (LRE 13.9) | pass |
-| b3 | NIST certified | 0.00100000000000043 | 0.001 | at least 9 digits (LRE 12.4) | pass |
-| b3 standard error | NIST certified | 1.47400889617114e-15 | 0 | at least 9 digits (LRE 14.8) | pass |
-| b4 | NIST certified | 9.99999999999711e-05 | 0.0001 | at least 9 digits (LRE 12.5) | pass |
-| b4 standard error | NIST certified | 8.20075781347625e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000006e-05 | 1e-05 | at least 9 digits (LRE 13.2) | pass |
-| b5 standard error | NIST certified | 1.63160391167578e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b0 | NIST certified | 0.999999999999975 | 1 | at least 9 digits (LRE 13.6) | pass |
+| b0 standard error | NIST certified | 2.09772532092002e-14 | 0 | at least 9 digits (LRE 13.7) | pass |
+| b1 | NIST certified | 0.100000000000016 | 0.1 | at least 9 digits (LRE 12.8) | pass |
+| b1 standard error | NIST certified | 2.30359237062298e-14 | 0 | at least 9 digits (LRE 13.6) | pass |
+| b2 | NIST certified | 0.00999999999999468 | 0.01 | at least 9 digits (LRE 12.3) | pass |
+| b2 standard error | NIST certified | 7.5957287940429e-15 | 0 | at least 9 digits (LRE 14.1) | pass |
+| b3 | NIST certified | 0.00100000000000068 | 0.001 | at least 9 digits (LRE 12.2) | pass |
+| b3 standard error | NIST certified | 9.89012432292142e-16 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b4 | NIST certified | 9.99999999999629e-05 | 0.0001 | at least 9 digits (LRE 12.4) | pass |
+| b4 standard error | NIST certified | 5.50244401700223e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b5 | NIST certified | 1.00000000000007e-05 | 1e-05 | at least 9 digits (LRE 13.1) | pass |
+| b5 standard error | NIST certified | 1.09475360522959e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -739,18 +739,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.0000000015134 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 | NIST certified | 0.999999999825377 | 1 | at least 9 digits (LRE 9.8) | pass |
 | b0 standard error | NIST certified | 2152.32624678175 | 2152.3262467817 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | 0.999999999592546 | 1 | at least 9 digits (LRE 9.4) | pass |
-| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.7) | pass |
-| b2 | NIST certified | 0.999999999919964 | 1 | at least 9 digits (LRE 10.1) | pass |
-| b2 standard error | NIST certified | 779.3435243316 | 779.343524331583 | at least 9 digits (LRE 13.7) | pass |
-| b3 | NIST certified | 1.00000000002228 | 1 | at least 9 digits (LRE 10.7) | pass |
-| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.8) | pass |
-| b4 | NIST certified | 0.999999999998442 | 1 | at least 9 digits (LRE 11.8) | pass |
-| b4 standard error | NIST certified | 5.64566512170763 | 5.64566512170752 | at least 9 digits (LRE 13.7) | pass |
-| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.5) | pass |
-| b5 standard error | NIST certified | 0.112324854679314 | 0.112324854679312 | at least 9 digits (LRE 13.7) | pass |
+| b1 | NIST certified | 1.00000000026193 | 1 | at least 9 digits (LRE 9.6) | pass |
+| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.6) | pass |
+| b2 | NIST certified | 0.999999999843567 | 1 | at least 9 digits (LRE 9.8) | pass |
+| b2 standard error | NIST certified | 779.343524331603 | 779.343524331583 | at least 9 digits (LRE 13.6) | pass |
+| b3 | NIST certified | 1.00000000002319 | 1 | at least 9 digits (LRE 10.6) | pass |
+| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.6) | pass |
+| b4 | NIST certified | 0.999999999998682 | 1 | at least 9 digits (LRE 11.9) | pass |
+| b4 standard error | NIST certified | 5.64566512170767 | 5.64566512170752 | at least 9 digits (LRE 13.6) | pass |
+| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
+| b5 standard error | NIST certified | 0.112324854679315 | 0.112324854679312 | at least 9 digits (LRE 13.6) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -758,17 +758,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000023283 | 1 | at least 9 digits (LRE 9.6) | pass |
-| b0 standard error | NIST certified | 215232.624678172 | 215232.62467817 | at least 9 digits (LRE 14.1) | pass |
-| b1 | NIST certified | 1.00000000008731 | 1 | at least 9 digits (LRE 10.1) | pass |
-| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 15.0) | pass |
-| b2 | NIST certified | 0.999999999829015 | 1 | at least 9 digits (LRE 9.8) | pass |
-| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 14.8) | pass |
-| b3 | NIST certified | 1.00000000003229 | 1 | at least 9 digits (LRE 10.5) | pass |
+| b0 | NIST certified | 0.999999997729901 | 1 | at least 9 digits (LRE 8.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 215232.624678169 | 215232.62467817 | at least 9 digits (LRE 14.6) | pass |
+| b1 | NIST certified | 1.00000000162981 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 14.7) | pass |
+| b2 | NIST certified | 0.999999999457941 | 1 | at least 9 digits (LRE 9.3) | pass |
+| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 15.0) | pass |
+| b3 | NIST certified | 1.00000000007071 | 1 | at least 9 digits (LRE 10.2) | pass |
 | b3 standard error | NIST certified | 10147.550755035 | 10147.550755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999997922 | 1 | at least 9 digits (LRE 11.7) | pass |
+| b4 | NIST certified | 0.999999999996129 | 1 | at least 9 digits (LRE 11.4) | pass |
 | b4 standard error | NIST certified | 564.566512170752 | 564.566512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
+| b5 | NIST certified | 1.00000000000008 | 1 | at least 9 digits (LRE 13.1) | pass |
 | b5 standard error | NIST certified | 11.2324854679312 | 11.2324854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -777,17 +777,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000001234002 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b0 standard error | NIST certified | 21523262.4678171 | 21523262.467817 | at least 9 digits (LRE 14.2) | pass |
-| b1 | NIST certified | 1.00000001394073 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 15.0) | pass |
-| b2 | NIST certified | 0.999999991876393 | 1 | at least 9 digits (LRE 8.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 14.8) | pass |
-| b3 | NIST certified | 1.00000000125374 | 1 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 | NIST certified | 0.999999973806553 | 1 | at least 9 digits (LRE 7.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 21523262.467817 | 21523262.467817 | at least 9 digits (LRE 15.0) | pass |
+| b1 | NIST certified | 1.00000008297502 | 1 | at least 9 digits (LRE 7.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 14.7) | pass |
+| b2 | NIST certified | 0.999999966697942 | 1 | at least 9 digits (LRE 7.5) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 15.0) | pass |
+| b3 | NIST certified | 1.00000000457021 | 1 | at least 9 digits (LRE 8.3) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b3 standard error | NIST certified | 1014755.0755035 | 1014755.0755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999925702 | 1 | at least 9 digits (LRE 10.1) | pass |
+| b4 | NIST certified | 0.999999999745376 | 1 | at least 9 digits (LRE 9.6) | pass |
 | b4 standard error | NIST certified | 56456.6512170752 | 56456.6512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.0000000000015 | 1 | at least 9 digits (LRE 11.8) | pass |
+| b5 | NIST certified | 1.00000000000496 | 1 | at least 9 digits (LRE 11.3) | pass |
 | b5 standard error | NIST certified | 1123.24854679312 | 1123.24854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -825,10 +825,10 @@ Note: arctan is NumPy's arctan in the formula reader.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Vm | Bates & Watts (1988) | 212.683743078492 | 212.7 | within 0.05 (printed rounding) | pass |
-| K | Bates & Watts (1988) | 0.064121281534958 | 0.06412 | within 5e-06 (printed rounding) | pass |
-| Vm | R | 212.683743078492 | 212.683707332376 | relative 1e-05 | pass |
-| K | R | 0.064121281534958 | 0.0641212258897697 | relative 1e-05 | pass |
+| Vm | Bates & Watts (1988) | 212.683742750122 | 212.7 | within 0.05 (printed rounding) | pass |
+| K | Bates & Watts (1988) | 0.0641212810909031 | 0.06412 | within 5e-06 (printed rounding) | pass |
+| Vm | R | 212.683742750122 | 212.683707477025 | relative 1e-05 | pass |
+| K | R | 0.0641212810909031 | 0.0641212261151318 | relative 1e-05 | pass |
 
 Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
@@ -884,10 +884,10 @@ Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope st
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| bend 1 | R | 0.0411057845539577 | 0.0411057845539577 | relative 1e-09 | pass |
-| slope 1 | R | -0.422076814402602 | -0.422076814402602 | relative 1e-09 | pass |
-| slope 2 | R | -1.02056754499518 | -1.02056754499518 | relative 1e-09 | pass |
-| Davies p-value | R | 1.29088012334925e-17 | 1.29088012334925e-17 | relative 1e-09 | pass |
+| bend 1 | R | 0.0411057838717026 | 0.0411057838717026 | relative 1e-09 | pass |
+| slope 1 | R | -0.422076814198344 | -0.422076814198344 | relative 1e-09 | pass |
+| slope 2 | R | -1.02056754472769 | -1.02056754472769 | relative 1e-09 | pass |
+| Davies p-value | R | 1.2908801233492e-17 | 1.2908801233492e-17 | relative 1e-09 | pass |
 
 Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
 
@@ -897,11 +897,11 @@ Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| level change | statsmodels OLS with the two change columns | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
-| slope change | statsmodels OLS with the two change columns | 19.2016179865776 | 19.2016179865776 | relative 1e-09 | pass |
+| level change | statsmodels OLS with the two change columns | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
+| slope change | statsmodels OLS with the two change columns | 19.2016179865778 | 19.2016179865778 | relative 1e-09 | pass |
 | level change standard error | statsmodels OLS with the two change columns | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
-| level change | R | -457.768100628468 | -457.768100628469 | relative 1e-09 | pass |
-| slope change | R | 19.2016179865776 | 19.2016179865777 | relative 1e-09 | pass |
+| level change | R | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
+| slope change | R | 19.2016179865778 | 19.2016179865777 | relative 1e-09 | pass |
 | level change standard error | R | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
 
 Note: A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin model the season and the trend too.
@@ -912,9 +912,9 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189851 | 0.724689274189852 | relative 1e-07 | pass |
+| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | statsmodels GLM (Poisson) with the two change columns | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
-| jump | R | 0.724689274189851 | 0.724689274189851 | relative 1e-07 | pass |
+| jump | R | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | R | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
 
 ### `table.explain for_percentile=`
@@ -923,11 +923,11 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508507577411 | relative 1e-05 | pass |
-| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.68629949685196 | relative 1e-05 | pass |
+| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508508860644 | relative 1e-05 | pass |
+| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.686299496750445 | relative 1e-05 | pass |
 | intercept | R | 67.3508720801297 | 67.3508720801297 | relative 1e-09 | pass |
 | income | R | 0.686299480371905 | 0.686299480371905 | relative 1e-09 | pass |
-| income standard error | R | 0.0284907223757293 | 0.0284907223757293 | relative 1e-09 | pass |
+| income standard error | R | 0.0284907223757292 | 0.0284907223757292 | relative 1e-09 | pass |
 
 Note: statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; the lines agree to about 1e-7.
 
@@ -977,9 +977,9 @@ Note: R nlme::gls() is the reference: statsmodels has no variance functions. nlm
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| trend | R | -0.0194345899685668 | -0.0194345899685668 | relative 1e-05 | pass |
-| standard error | R | 0.0126641385287768 | 0.0126641385287768 | relative 1e-05 | pass |
-| phi | R | 0.82476741303063 | 0.82476741303063 | relative 1e-05 | pass |
+| trend | R | -0.0194345899644702 | -0.0194345899644702 | relative 1e-05 | pass |
+| standard error | R | 0.0126641385380824 | 0.0126641385380824 | relative 1e-05 | pass |
+| phi | R | 0.824767413181072 | 0.824767413181072 | relative 1e-05 | pass |
 
 ### `table.find_columns_that_predict`
 
@@ -1000,9 +1000,9 @@ Note: R glmnet with the same seed is the reference (the random split is made in 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | AICc of Fertility ~ Education | statsmodels OLS and eval_measures.aicc | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
+| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.985031863347791 | 0.985031863347791 | relative 1e-09 | pass |
 | AICc of Fertility ~ Education | R | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | R | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
+| weight of the biggest | R | 0.985031863347791 | 0.98503186334779 | relative 1e-09 | pass |
 
 ### `table.compare_models check_on_left_out_rows=True`
 
@@ -1021,12 +1021,12 @@ Note: R boot::cv.glm with the same seed is the reference: the split is made by R
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603395 | 7.42688836033877 | relative 1e-09 | pass |
-| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.006425635749869 | 0.00642563574987162 | relative 1e-09 | pass |
-| White | statsmodels het_breuschpagan, het_white | 7.95553731022983 | 7.95553731022923 | relative 1e-09 | pass |
-| Breusch-Pagan | R | 7.4268883603395 | 7.42688836033915 | relative 1e-08 | pass |
-| Breusch-Pagan p | R | 0.006425635749869 | 0.00642563574987025 | relative 1e-08 | pass |
-| White | R | 7.95553731022983 | 7.95553731022953 | relative 1e-08 | pass |
+| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603388 | 7.42688836034022 | relative 1e-09 | pass |
+| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.00642563574987153 | 0.00642563574986645 | relative 1e-09 | pass |
+| White | statsmodels het_breuschpagan, het_white | 7.95553731022935 | 7.95553731023029 | relative 1e-09 | pass |
+| Breusch-Pagan | R | 7.4268883603388 | 7.42688836033886 | relative 1e-08 | pass |
+| Breusch-Pagan p | R | 0.00642563574987153 | 0.00642563574987129 | relative 1e-08 | pass |
+| White | R | 7.95553731022935 | 7.95553731022924 | relative 1e-08 | pass |
 
 ### `table.check_model_of outcome="yes or no"`
 
@@ -1113,12 +1113,12 @@ Note: The book's three-level table (rats, preparations, readings) tests treatmen
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Pillai | statsmodels MANOVA | 0.988500527043352 | 0.988500527043352 | relative 1e-09 | pass |
-| F | statsmodels MANOVA | 71.8287954469357 | 71.8287954469357 | relative 1e-09 | pass |
-| Wilks | statsmodels MANOVA | 0.0398783132489431 | 0.0398783132489431 | relative 1e-09 | pass |
-| Pillai | R | 0.988500527043352 | 0.988500527043337 | relative 1e-10 | pass |
-| F | R | 71.8287954469357 | 71.8287954469336 | relative 1e-10 | pass |
-| Wilks | R | 0.0398783132489431 | 0.0398783132489472 | relative 1e-10 | pass |
+| Pillai | statsmodels MANOVA | 0.988500527043341 | 0.988500527043341 | relative 1e-09 | pass |
+| F | statsmodels MANOVA | 71.8287954469342 | 71.8287954469342 | relative 1e-09 | pass |
+| Wilks | statsmodels MANOVA | 0.0398783132489484 | 0.0398783132489484 | relative 1e-09 | pass |
+| Pillai | R | 0.988500527043341 | 0.988500527043341 | relative 1e-10 | pass |
+| F | R | 71.8287954469342 | 71.8287954469341 | relative 1e-10 | pass |
+| Wilks | R | 0.0398783132489484 | 0.0398783132489471 | relative 1e-10 | pass |
 
 ### `table.add_time_and_event_columns`
 
@@ -1288,8 +1288,8 @@ Note: 36 rows start at a death time (each patient's second row starts at the tra
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370916 | relative 1e-06 | pass |
-| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665881 | relative 1e-06 | pass |
+| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370915 | relative 1e-06 | pass |
+| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665887 | relative 1e-06 | pass |
 | age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
 | men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
 
@@ -1451,9 +1451,9 @@ Note: Paule-Mandel is found by iteration. simplydata runs metafor to 1e-10 (its 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.86144494615464 | relative 1e-08 | pass |
-| p between | R | 0.394268758883901 | 0.394268758885584 | relative 1e-08 | pass |
+| p between | R | 0.3942687588839 | 0.394268758885585 | relative 1e-08 | pass |
 | random | R | 0.378717511421929 | 0.378717511421398 | relative 1e-08 | pass |
-| random tau2 | R | 0.392528006891838 | 0.392528006900774 | relative 1e-08 | pass |
+| random tau2 | R | 0.392528006891837 | 0.392528006900774 | relative 1e-08 | pass |
 
 Note: Each subgroup has its own between-study variance; the test of their difference uses each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the next case checks it against meta), not metafor's rma(mods = ~ alloc), which shares one variance.
 
@@ -1462,7 +1462,7 @@ Note: Each subgroup has its own between-study variance; the test of their differ
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.8614461412312 | relative 0.0001 | pass |
-| p between | R | 0.394268758883901 | 0.394268523294979 | relative 0.0001 | pass |
+| p between | R | 0.3942687588839 | 0.394268523294979 | relative 0.0001 | pass |
 
 Note: R meta (each subgroup its own between-study variance, REML) is a second package; meta's REML stops at its own tolerance, so the numbers agree to about 1e-5.
 
@@ -1473,8 +1473,8 @@ Note: R meta (each subgroup its own between-study variance, REML) is a second pa
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | R | -0.029101725011181 | -0.0291017250116429 | relative 1e-08 | pass |
-| low | R | -0.0471529230265922 | -0.0471529230250808 | relative 1e-08 | pass |
-| p-value | R | 0.00456505154515336 | 0.00456505154159258 | relative 1e-08 | pass |
+| low | R | -0.0471529230265922 | -0.0471529230250807 | relative 1e-08 | pass |
+| p-value | R | 0.00456505154515336 | 0.0045650515415926 | relative 1e-08 | pass |
 
 ### `table.combine_studies estimates=`
 
@@ -1838,7 +1838,7 @@ Note: The shares are read from the printout (one decimal) and compared with R ro
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PCo1 row 1 | R | 2.69778157533697 | 2.69778157533697 | relative 1e-08 | pass |
-| PCo2 row 70 | R | 0.0179984204752766 | 0.0179984204752766 | relative 1e-08 | pass |
+| PCo2 row 70 | R | 0.0179984204752759 | 0.0179984204752759 | relative 1e-08 | pass |
 
 ### `table.explain_profiles_of`
 
@@ -1861,7 +1861,7 @@ Note: The design check found adjusted R squared 0.0753 and marginal p-values 0.1
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| adjusted R squared | R | 0.0824713297170611 | 0.0824713297170611 | relative 1e-09 | pass |
+| adjusted R squared | R | 0.0824713297170609 | 0.0824713297170609 | relative 1e-09 | pass |
 | F all | R | 1.68911219341243 | 1.68911219341243 | relative 1e-09 | pass |
 | p all | R | 0.048 | 0.048 | relative 1e-09 | pass |
 
@@ -1873,7 +1873,7 @@ Note: The design check found adjusted R squared 0.0825.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| R squared | R | 0.309204040714597 | 0.309204040714597 | relative 1e-09 | pass |
+| R squared | R | 0.309204040714596 | 0.309204040714596 | relative 1e-09 | pass |
 | F all | R | 2.98403637676605 | 2.98403637676605 | relative 1e-09 | pass |
 | p Al | R | 0.001 | 0.001 | relative 1e-09 | pass |
 
@@ -2002,7 +2002,7 @@ Note: simplydata takes the shares of the trace from MASS's own print (4 decimals
 | CA2 % | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 17.1 | 17.1 | within 0.05 (printed rounding) | pass |
 | CA1 % | R | 25.2 | 25.2 | relative 1e-09 | pass |
 | CA2 % | R | 17.1 | 17.1 | relative 1e-09 | pass |
-| CA1 row 1 size | R | 0.108121658834309 | 0.108121658834309 | relative 1e-09 | pass |
+| CA1 row 1 size | R | 0.108121658834307 | 0.108121658834307 | relative 1e-09 | pass |
 
 Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares.
 
@@ -2021,11 +2021,11 @@ Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the print
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280496 | 0.5249 | within 5e-05 (printed rounding) | pass |
-| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083953 | 0.3568 | within 5e-05 (printed rounding) | pass |
+| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280495 | 0.5249 | within 5e-05 (printed rounding) | pass |
+| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083954 | 0.3568 | within 5e-05 (printed rounding) | pass |
 | total inertia | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 2.08319828789077 | 2.083 | within 0.0005 (printed rounding) | pass |
-| CA1 eigenvalue | R | 0.524931994280496 | 0.524931994280496 | relative 1e-10 | pass |
-| CA2 eigenvalue | R | 0.356798023083953 | 0.356798023083953 | relative 1e-10 | pass |
+| CA1 eigenvalue | R | 0.524931994280495 | 0.524931994280495 | relative 1e-10 | pass |
+| CA2 eigenvalue | R | 0.356798023083954 | 0.356798023083954 | relative 1e-10 | pass |
 | total inertia | R | 2.08319828789077 | 2.08319828789077 | relative 1e-10 | pass |
 
 Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given back as numbers; the tutorial prints them to 4 and 3 decimals.
@@ -2036,13 +2036,13 @@ Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: Parallel analysis finds the three factors of Holzinger and Swineford's design (visual, verbal and speed); x9 goes with two of them, as the modification indices of the confirmatory model also show.
@@ -2053,13 +2053,13 @@ Note: Parallel analysis finds the three factors of Holzinger and Swineford's des
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: The oblimin rotation of GPArotation starts from random numbers, so both sides set R's seed first (unseeded, the loadings change in the sixth digit from run to run).
@@ -2070,7 +2070,7 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.0390228442789629 | 0.0390228442789629 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.0390228442789628 | 0.0390228442789628 | relative 1e-08 | pass |
 | x4 on factor 1 | R | 0.849737553166453 | 0.849737553166453 | relative 1e-08 | pass |
 | x7 on factor 3 | R | -0.226409506419214 | -0.226409506419214 | relative 1e-08 | pass |
 | x9 on factor 2 | R | 0.47660221600333 | 0.47660221600333 | relative 1e-08 | pass |
@@ -2085,28 +2085,28 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512527657149384 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735982118138 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542773983455036 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279192908549017 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877279441826 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215830587586 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208525265036 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549598534707 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246986127361 | relative 1e-05 | pass |
-| own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
-| own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
-| own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
-| own part of x4 | R | 0.279193093920191 | 0.279193042199911 | relative 1e-05 | pass |
-| own part of x5 | R | 0.242877320676011 | 0.242877299281568 | relative 1e-05 | pass |
-| own part of x6 | R | 0.305215855558411 | 0.305215788144815 | relative 1e-05 | pass |
-| own part of x7 | R | 0.50220722191608 | 0.502208589411399 | relative 1e-05 | pass |
-| own part of x8 | R | 0.468550489794592 | 0.468549571055329 | relative 1e-05 | pass |
-| own part of x9 | R | 0.54324768648344 | 0.543246719034091 | relative 1e-05 | pass |
-| x1 on factor 2 | R | 0.622657847373771 | 0.622659197499952 | relative 1e-05 | pass |
-| x4 on factor 1 | R | 0.826999673867176 | 0.826999686294711 | relative 1e-05 | pass |
-| x7 on factor 3 | R | 0.69587391774676 | 0.695872958548142 | relative 1e-05 | pass |
-| x9 on factor 3 | R | 0.5236179828285 | 0.523618567249556 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173444 | 0.512527825599199 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.748736035431844 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729758 | 0.542774370524291 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920193 | 0.279193018974672 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676014 | 0.242877112970241 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215628362029 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916073 | 0.502208690052179 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794598 | 0.46854969647987 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483438 | 0.543246627959866 | relative 1e-05 | pass |
+| own part of x1 | R | 0.512529527173444 | 0.512528062225809 | relative 1e-05 | pass |
+| own part of x2 | R | 0.7487351603869 | 0.748735775106279 | relative 1e-05 | pass |
+| own part of x3 | R | 0.542773290729758 | 0.542774360019973 | relative 1e-05 | pass |
+| own part of x4 | R | 0.279193093920193 | 0.279193042201229 | relative 1e-05 | pass |
+| own part of x5 | R | 0.242877320676014 | 0.242877299279511 | relative 1e-05 | pass |
+| own part of x6 | R | 0.305215855558411 | 0.305215788140177 | relative 1e-05 | pass |
+| own part of x7 | R | 0.502207221916073 | 0.502208589415889 | relative 1e-05 | pass |
+| own part of x8 | R | 0.468550489794598 | 0.468549571050821 | relative 1e-05 | pass |
+| own part of x9 | R | 0.543247686483438 | 0.543246719035281 | relative 1e-05 | pass |
+| x1 on factor 2 | R | 0.622657847373775 | 0.622659197499037 | relative 1e-05 | pass |
+| x4 on factor 1 | R | 0.826999673867174 | 0.826999686293857 | relative 1e-05 | pass |
+| x7 on factor 3 | R | 0.695873917746764 | 0.695872958545316 | relative 1e-05 | pass |
+| x9 on factor 3 | R | 0.523617982828501 | 0.52361856724954 | relative 1e-05 | pass |
 
 Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked against factanal (the same factor order and signs here). Both references are run to convergence (factanal's optim with factr = 1, statsmodels to 1e-14); they then agree with simplydata (R psych::fa(fm = "ml") with its own stopping rule) to 3e-6, so the check allows 1e-5. With their default stopping rules the three differed by up to 1.6e-5, and the check allowed 1e-3.
 
@@ -2116,20 +2116,20 @@ Note: The part of each column the factors do not share (the uniqueness) does not
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699727 | 85.306 | within 0.0005 (printed rounding) | pass |
+| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699732 | 85.306 | within 0.0005 (printed rounding) | pass |
 | degrees of freedom | exact | 24 | 24 | within 0 | pass |
 | CFI | Rosseel (2012), JSS 48(2) | 0.930559651799336 | 0.931 | within 0.0005 (printed rounding) | pass |
-| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699004 | 0.896 | within 0.0005 (printed rounding) | pass |
-| RMSEA | Rosseel (2012), JSS 48(2) | 0.0921214845101686 | 0.092 | within 0.0005 (printed rounding) | pass |
-| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399382 | 0.071 | within 0.0005 (printed rounding) | pass |
+| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699003 | 0.896 | within 0.0005 (printed rounding) | pass |
+| RMSEA | Rosseel (2012), JSS 48(2) | 0.092121484510169 | 0.092 | within 0.0005 (printed rounding) | pass |
+| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399386 | 0.071 | within 0.0005 (printed rounding) | pass |
 | RMSEA 90 % CI high | Rosseel (2012), JSS 48(2) | 0.113678016811963 | 0.114 | within 0.0005 (printed rounding) | pass |
 | SRMR | Rosseel (2012), JSS 48(2) | 0.0652050571843865 | 0.065 | within 0.0005 (printed rounding) | pass |
-| chi-square | R | 85.3055217699727 | 85.3055217699727 | relative 1e-08 | pass |
+| chi-square | R | 85.3055217699732 | 85.3055217699732 | relative 1e-08 | pass |
 | degrees of freedom | R | 24 | 24 | relative 1e-08 | pass |
 | CFI | R | 0.930559651799336 | 0.930559651799336 | relative 1e-08 | pass |
-| TLI | R | 0.895839477699004 | 0.895839477699004 | relative 1e-08 | pass |
-| RMSEA | R | 0.0921214845101686 | 0.0921214845101686 | relative 1e-08 | pass |
-| RMSEA 90 % CI low | R | 0.0714184904399382 | 0.0714184904399382 | relative 1e-08 | pass |
+| TLI | R | 0.895839477699003 | 0.895839477699003 | relative 1e-08 | pass |
+| RMSEA | R | 0.092121484510169 | 0.092121484510169 | relative 1e-08 | pass |
+| RMSEA 90 % CI low | R | 0.0714184904399386 | 0.0714184904399386 | relative 1e-08 | pass |
 | RMSEA 90 % CI high | R | 0.113678016811963 | 0.113678016811963 | relative 1e-08 | pass |
 | SRMR | R | 0.0652050571843865 | 0.0652050571843865 | relative 1e-08 | pass |
 
@@ -2139,7 +2139,7 @@ Note: Rosseel (2012) prints the fit of this model to three decimals; the p-value
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | R | 87.4018469694266 | 87.4018469694266 | relative 1e-08 | pass |
+| chi-square | R | 87.4018469694271 | 87.4018469694271 | relative 1e-08 | pass |
 | x1 loading | R | 0.791634162191103 | 0.791634162191103 | relative 1e-08 | pass |
 | CFI | R | 0.92794179373821 | 0.92794179373821 | relative 1e-08 | pass |
 
@@ -2152,9 +2152,9 @@ Note: Real data with 30 cells emptied on purpose (the first 30 rows of x1): ever
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | path | R | 0.460317218924395 | 0.460317218924395 | relative 1e-08 | pass |
-| its standard error | R | 0.0741697800268379 | 0.0741697800268379 | relative 1e-08 | pass |
-| chi-square | R | 47.4133581632698 | 47.4133581632698 | relative 1e-08 | pass |
-| CFI | R | 0.879367051234156 | 0.879367051234156 | relative 1e-08 | pass |
+| its standard error | R | 0.0741697800420569 | 0.0741697800420569 | relative 1e-08 | pass |
+| chi-square | R | 47.4133581632695 | 47.4133581632695 | relative 1e-08 | pass |
+| CFI | R | 0.879367051234157 | 0.879367051234157 | relative 1e-08 | pass |
 
 ### `table.find_average_direction_of`
 
@@ -2294,15 +2294,15 @@ Note: The exact ends: the profile log-likelihood of the 100-year level (the GEV 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985410054 | 3.87 | within 0.005 (printed rounding) | pass |
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956225498 | 0.198 | within 0.0005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095278177458 | -0.05 | within 0.0005 (printed rounding) | pass |
-| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985410054 | 3.87474985804743 | relative 1e-06 | pass |
-| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956225498 | 0.19804395857383 | relative 1e-06 | pass |
-| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095278177458 | -0.050109546237635 | relative 1e-06 | pass |
-| location | R | 3.87474985410054 | 3.87474985509283 | relative 1e-06 | pass |
-| scale | R | 0.198043956225498 | 0.198043956945225 | relative 1e-06 | pass |
-| shape | R | -0.0501095278177458 | -0.0501095325366495 | relative 1e-06 | pass |
+| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985466404 | 3.87 | within 0.005 (printed rounding) | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956699285 | 0.198 | within 0.0005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095297651447 | -0.05 | within 0.0005 (printed rounding) | pass |
+| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985466404 | 3.87474985805047 | relative 1e-06 | pass |
+| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956699285 | 0.198043958575381 | relative 1e-06 | pass |
+| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095297651447 | -0.0501095462385828 | relative 1e-06 | pass |
+| location | R | 3.87474985466404 | 3.87474985509283 | relative 1e-06 | pass |
+| scale | R | 0.198043956699285 | 0.198043956945225 | relative 1e-06 | pass |
+| shape | R | -0.0501095297651447 | -0.0501095325366495 | relative 1e-06 | pass |
 
 Note: SciPy's own fit stops a little short of the maximum (by up to 8e-5 here), so simplydata polishes it. Both references are run to 1e-14 (SciPy's fit with a tighter Nelder-Mead, R extRemes with optim's reltol 1e-14) and agree with simplydata to 1e-6; the shape, near 0, is the least precise (2e-7 relative). Before, the default fits were the references, at 5e-3 and 1e-4.
 
@@ -2325,10 +2325,10 @@ Note: Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026894085537 | 7.44 | within 0.005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.18449906745455 | 0.184 | within 0.0005 (printed rounding) | pass |
-| scale | R | 7.44026894085537 | 7.44025220565683 | relative 0.0001 | pass |
-| shape | R | 0.18449906745455 | 0.184497962931526 | relative 0.0001 | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026904808288 | 7.44 | within 0.005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.184499047010465 | 0.184 | within 0.0005 (printed rounding) | pass |
+| scale | R | 7.44026904808288 | 7.44025220565683 | relative 0.0001 | pass |
+| shape | R | 0.184499047010465 | 0.184497962931526 | relative 0.0001 | pass |
 
 ### `draw_threshold_check`
 
@@ -2433,10 +2433,10 @@ Note: The order is Box and Jenkins's airline model; the two estimates are checke
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474838 | 0.67 | within 0.005 (printed rounding) | pass |
-| pi0 | R | 0.669926026474838 | 0.669926026474838 | relative 1e-09 | pass |
+| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474841 | 0.67 | within 0.005 (printed rounding) | pass |
+| pi0 | R | 0.669926026474841 | 0.669926026474842 | relative 1e-09 | pass |
 | q-values below 0.05 | R | 162 | 162 | relative 1e-09 | pass |
-| first q-value | R | 0.0881916317044274 | 0.0881916317044274 | relative 1e-09 | pass |
+| first q-value | R | 0.0881916317044278 | 0.0881916317044278 | relative 1e-09 | pass |
 
 Note: pi0 is read back from the table as the q-value of the largest p-value divided by that p-value (qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; qvalue's copy of the p-values gives 162.
 
@@ -2447,8 +2447,8 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | below 0.05 | R | 85 | 85 | relative 1e-09 | pass |
-| first | R | 0.168270194881526 | 0.168270194881526 | relative 1e-09 | pass |
-| smallest | R | 0.00656991586563374 | 0.00656991586563374 | relative 1e-09 | pass |
+| first | R | 0.168270194881528 | 0.168270194881528 | relative 1e-09 | pass |
+| smallest | R | 0.00656991586563362 | 0.00656991586563362 | relative 1e-09 | pass |
 
 ### `table.compare_each_pair_of matched_by=, test_method="nemenyi"`
 
@@ -2699,9 +2699,9 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| meals | R | -3.1106289944093 | -3.1106289944093 | relative 1e-09 | pass |
+| meals | R | -3.11062899440931 | -3.11062899440931 | relative 1e-09 | pass |
 | meals standard error | R | 0.275765488815881 | 0.275765488815881 | relative 1e-09 | pass |
-| ell p-value | R | 0.193873946007242 | 0.193873946007243 | relative 1e-09 | pass |
+| ell p-value | R | 0.193873946007243 | 0.193873946007243 | relative 1e-09 | pass |
 | intercept | R | 823.857925625161 | 823.857925625161 | relative 1e-09 | pass |
 
 ### `table.compare_averages_of after use_survey_design()`
@@ -2721,7 +2721,7 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | F | R | 14.1694081180078 | 14.1694081180078 | relative 1e-09 | pass |
-| p-value | R | 2.08210867642842e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
+| p-value | R | 2.08210867642843e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
 | design degrees of freedom | R | 371.371769351819 | 371.371769351819 | relative 1e-09 | pass |
 
 ### `table.compare_balanced_groups_of`
@@ -2731,8 +2731,8 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 224.676308271437 | 224.676308271437 | relative 1e-09 | pass |
-| standard error | R | 876.193185589196 | 876.193185589196 | relative 1e-09 | pass |
-| p-value | R | 0.797624033435263 | 0.797624033435263 | relative 1e-09 | pass |
+| standard error | R | 876.193185586486 | 876.193185586486 | relative 1e-09 | pass |
+| p-value | R | 0.797624033434651 | 0.797624033434651 | relative 1e-09 | pass |
 
 Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); the survey comparison group is very unlike the trained men, so balancing on these columns does not recover it fully.
 
@@ -2760,7 +2760,7 @@ Note: The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standar
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 1770.60290641026 | 1770.60290641026 | relative 1e-09 | pass |
-| standard error | R | 924.234347046257 | 924.234347046257 | relative 1e-09 | pass |
+| standard error | R | 924.234347046258 | 924.234347046258 | relative 1e-09 | pass |
 
 ### `table.compare_risks show="attributable fractions"`
 
@@ -2817,11 +2817,11 @@ Note: The ratio and the expected count from R epitools::ageadjust.indirect (a se
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561465 | -0.0163155082561465 | relative 1e-09 | pass |
-| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325961 | -0.0457537091325961 | relative 1e-09 | pass |
-| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177591 | -0.0554964945177591 | relative 1e-09 | pass |
-| indirect effect | R | -0.0163155082561465 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
-| total effect | R | -0.0554964945177591 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
+| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561466 | -0.0163155082561466 | relative 1e-09 | pass |
+| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325962 | -0.0457537091325962 | relative 1e-09 | pass |
+| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177594 | -0.0554964945177594 | relative 1e-09 | pass |
+| indirect effect | R | -0.0163155082561466 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
+| total effect | R | -0.0554964945177594 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
 
 Note: For two linear models without an interaction the indirect effect is the product of the two coefficients and the total effect the coefficient of treat without job_seek (base R lm): the exact values the simulation (1000 draws) estimates, so the difference may be 4 Monte Carlo standard errors of simplydata's mean of 1000 draws. statsmodels with the same seed gives the same numbers exactly. R mediation::mediate(sims = 1000) gave -0.0159 (-0.0422 to 0.0105) here; Tingley et al. (2014) analyse the same data.
 
@@ -3388,10 +3388,10 @@ Note: R's check is the Brown-Forsythe test written out: a one-way ANOVA of the d
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PC1 of row 1 | statsmodels PCA (SVD) | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | statsmodels PCA (SVD) | 0.957448488427992 | 0.957448488427994 | relative 1e-09 | pass |
 | PC1 of row 1 | R | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | R | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | R | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | R | 0.957448488427992 | 0.957448488427993 | relative 1e-09 | pass |
 
 ### `table.add_predicted_column`
@@ -3723,7 +3723,7 @@ Note: R's qqnorm() puts the dots at slightly different places (Blom's, not Filli
 |---|---|---|---|---|---|
 | log scale | matplotlib set_yscale("log") | 1 | 1 | relative 1e-12 | pass |
 | bottom of the y axis | matplotlib set_yscale("log") | 17.52208300845 | 17.52208300845 | relative 1e-12 | pass |
-| top of the y axis | matplotlib set_yscale("log") | 42.8898398220215 | 42.8898398220215 | relative 1e-12 | pass |
+| top of the y axis | matplotlib set_yscale("log") | 42.8898398220214 | 42.8898398220214 | relative 1e-12 | pass |
 
 ### `draw_line_at_x`
 
@@ -5027,8 +5027,8 @@ Note: The dots of the forest plot are the differences between the averages of ea
 | first year | SciPy signal.detrend | 0.202164502164351 | 0.202164502164351 | relative 1e-09 | pass |
 | last year | SciPy signal.detrend | 2.12967223252963 | 2.12967223252963 | relative 1e-09 | pass |
 | total | SciPy signal.detrend | 2.27373675443232e-13 | 2.27373675443232e-13 | relative 1e-09 | pass |
-| first year | R | 0.202164502164351 | 0.202164502165233 | relative 1e-09 | pass |
-| last year | R | 2.12967223252963 | 2.12967223252943 | relative 1e-09 | pass |
+| first year | R | 0.202164502164351 | 0.20216450216436 | relative 1e-09 | pass |
+| last year | R | 2.12967223252963 | 2.12967223252941 | relative 1e-09 | pass |
 
 ### `table.add_trend_and_season`
 
@@ -5066,7 +5066,7 @@ Note: The dots of the forest plot are the differences between the averages of ea
 |---|---|---|---|---|---|
 | ADF statistic | R | -2.50692013839604 | -2.50692013839604 | relative 1e-09 | pass |
 | ADF p-value | R | 0.117094492257189 | 0.117094492257189 | relative 1e-09 | pass |
-| KPSS statistic | R | 0.995290114411624 | 0.995290114411624 | relative 1e-09 | pass |
+| KPSS statistic | R | 0.995290114411602 | 0.995290114411602 | relative 1e-09 | pass |
 
 ### `table.find_change_points_in`
 
@@ -5084,9 +5084,9 @@ Note: The dots of the forest plot are the differences between the averages of ea
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
-| January 1961, 95 % low | R | 428.41526696502 | 428.41526696502 | relative 1e-09 | pass |
-| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+| January 1961 | R | 453.497721751319 | 453.497721751319 | relative 1e-09 | pass |
+| January 1961, 95 % low | R | 428.415266965018 | 428.415266965018 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789794 | 469.531518789794 | relative 1e-09 | pass |
 
 ### `table.compare_forecasts_for`
 
@@ -5094,9 +5094,9 @@ Note: The dots of the forest plot are the differences between the averages of ea
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| best MASE | R | 0.379783839708638 | 0.379783839708638 | relative 1e-09 | pass |
+| best MASE | R | 0.379783839708431 | 0.379783839708431 | relative 1e-09 | pass |
 | worst MASE | R | 2.49589490968801 | 2.49589490968801 | relative 1e-09 | pass |
-| best MAE | R | 11.564417919128 | 11.564417919128 | relative 1e-09 | pass |
+| best MAE | R | 11.5644179191217 | 11.5644179191217 | relative 1e-09 | pass |
 
 ### `nums.find_each_peak_that`
 
@@ -5305,7 +5305,7 @@ Note: The years are one apart, so keep_below=0.1 keeps the cycles longer than 10
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | gain at 10 | exact: a Butterworth filter passes 1 / sqrt(2) at its cutoff | 0.707106781186548 | 0.707106781186548 | within 1e-12 (exact formula) | pass |
-| numerator total / denominator total | exact: a low-pass filter passes frequency 0 whole (gain 1 at z = 1) | 1.00000000000002 | 1 | within 1e-12 (exact formula) | pass |
+| numerator total / denominator total | exact: a low-pass filter passes frequency 0 whole (gain 1 at z = 1) | 1.00000000000009 | 1 | within 1e-12 (exact formula) | pass |
 | b0 | SciPy signal.butter (as numerator and denominator) | 0.000416599204406599 | 0.000416599204406599 | relative 1e-09 | pass |
 | a1 | SciPy signal.butter (as numerator and denominator) | -3.18063854887472 | -3.18063854887472 | relative 1e-09 | pass |
 | a4 | SciPy signal.butter (as numerator and denominator) | 0.43826514226198 | 0.43826514226198 | relative 1e-09 | pass |
@@ -5322,7 +5322,7 @@ Note: A filter has no data: the Butterworth design of order 4 at a tenth of the 
 | poles | SciPy signal.butter | 4 | 4 | relative 1e-09 | pass |
 | smallest distance | SciPy signal.butter | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
 | biggest distance | SciPy signal.butter | 0.887975078375119 | 0.887975078375118 | relative 1e-09 | pass |
-| steady gain | SciPy signal.butter | 1.00000000000002 | 1 | relative 1e-09 | pass |
+| steady gain | SciPy signal.butter | 1.00000000000009 | 1 | relative 1e-09 | pass |
 | poles | R | 4 | 4 | relative 1e-09 | pass |
 | smallest distance | R | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
 | biggest distance | R | 0.887975078375119 | 0.887975078375119 | relative 1e-09 | pass |
@@ -5594,9 +5594,9 @@ Note: R: the step response written out from the poles and residues of the formul
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| at time 10 / 199 x 31 | exact: exp(-t) sin(2t) / 2 | 0.00273906139735488 | 0.00273906139735484 | within 1e-07 (exact formula) | pass |
+| at time 10 / 199 x 31 | exact: exp(-t) sin(2t) / 2 | 0.00273906139735492 | 0.00273906139735484 | within 1e-07 (exact formula) | pass |
 | at time 10 | exact: exp(-t) sin(2t) / 2 | 2.07238251300142e-05 | 2.07238251300142e-05 | within 1e-07 (exact formula) | pass |
-| at time 10 / 199 x 31 | SciPy signal.impulse | 0.00273906139735488 | 0.00273906139735488 | relative 1e-12 | pass |
+| at time 10 / 199 x 31 | SciPy signal.impulse | 0.00273906139735492 | 0.00273906139735492 | relative 1e-12 | pass |
 | at time 10 | SciPy signal.impulse | 2.07238251300142e-05 | 2.07238251300142e-05 | relative 1e-12 | pass |
 
 **1 / (s^2 + 2 s + 5): the answer to a kick, 0 to 5 seconds** (real data; data: checks against R (no published example))
@@ -5604,11 +5604,11 @@ Note: R: the step response written out from the poles and residues of the formul
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | at 0.5 | python-control impulse_response | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
-| at 2 | python-control impulse_response | -0.0512110400283369 | -0.0512110400283368 | relative 1e-08 | pass |
-| total | python-control impulse_response | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+| at 2 | python-control impulse_response | -0.0512110400283368 | -0.0512110400283368 | relative 1e-08 | pass |
+| total | python-control impulse_response | 0.360101948231805 | 0.360101948231806 | relative 1e-08 | pass |
 | at 0.5 | R | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
-| at 2 | R | -0.0512110400283369 | -0.0512110400283369 | relative 1e-08 | pass |
-| total | R | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+| at 2 | R | -0.0512110400283368 | -0.0512110400283369 | relative 1e-08 | pass |
+| total | R | 0.360101948231805 | 0.360101948231806 | relative 1e-08 | pass |
 
 ### `system.response_to`
 
@@ -5941,8 +5941,8 @@ Note: A stick at shift s pairs the first column at month t with the second at mo
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | months drawn | R | 12 | 12 | relative 1e-09 | pass |
-| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
-| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+| January 1961 | R | 453.497721751319 | 453.497721751319 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789794 | 469.531518789794 | relative 1e-09 | pass |
 
 **El Nino sea temperatures: the next 12 months by Holt-Winters, drawn after the line** (real data; data: El Nino sea surface temperatures)
 
@@ -5950,7 +5950,7 @@ Note: A stick at shift s pairs the first column at month t with the second at mo
 |---|---|---|---|---|---|
 | forecast points | R | 12 | 12 | relative 1e-09 | pass |
 | first month | R | 23.8701353286347 | 23.8701353286347 | relative 1e-09 | pass |
-| twelfth month | R | 21.9750442568474 | 21.9750442568474 | relative 1e-09 | pass |
+| twelfth month | R | 21.9750442568466 | 21.9750442568466 | relative 1e-09 | pass |
 
 Note: simplydata runs R HoltWinters through forecast::forecast; the reference is HoltWinters' own predict() in base R.
 
@@ -6452,10 +6452,10 @@ Note: Random numbers have no published answer; the check is that the same seed g
 |---|---|---|---|---|---|
 | PC1 standard deviation | NumPy linalg.svd | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
 | PC1 share (%) | NumPy linalg.svd | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
-| PC1 weight of petal length | NumPy linalg.svd | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+| PC1 weight of petal length | NumPy linalg.svd | 0.580413095796295 | 0.580413095796295 | relative 1e-12 | pass |
 | PC1 standard deviation | R | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
 | PC1 share (%) | R | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
-| PC1 weight of petal length | R | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+| PC1 weight of petal length | R | 0.580413095796295 | 0.580413095796295 | relative 1e-12 | pass |
 
 Note: The sign of a component is arbitrary, so the weight is compared without its sign.
 
@@ -6976,6 +6976,2559 @@ Note: R boot::boot.ci() draws other random rows, so only SciPy, with the same se
 | hyp | R | 8 | 8 | exact | pass |
 | chl | R | 10 | 10 | exact | pass |
 
+### `sdata.run_sql`
+
+**mtcars saved as a CSV file and summed up by DuckDB: cars, average mpg and the most horsepower for each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: cars | DuckDB (the same SELECT on the same file) | 11 | 11 | relative 1e-12 | pass |
+| 4 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 4 cylinders: most hp | DuckDB (the same SELECT on the same file) | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: cars | DuckDB (the same SELECT on the same file) | 7 | 7 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 6 cylinders: most hp | DuckDB (the same SELECT on the same file) | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: cars | DuckDB (the same SELECT on the same file) | 14 | 14 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | DuckDB (the same SELECT on the same file) | 15.1 | 15.1 | relative 1e-12 | pass |
+| 8 cylinders: most hp | DuckDB (the same SELECT on the same file) | 335 | 335 | relative 1e-12 | pass |
+| 4 cylinders: cars | R | 11 | 11 | relative 1e-12 | pass |
+| 6 cylinders: cars | R | 7 | 7 | relative 1e-12 | pass |
+| 8 cylinders: cars | R | 14 | 14 | relative 1e-12 | pass |
+| 4 cylinders: average mpg | R | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | R | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | R | 15.1 | 15.1 | relative 1e-12 | pass |
+| 4 cylinders: most hp | R | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: most hp | R | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: most hp | R | 335 | 335 | relative 1e-12 | pass |
+
+### `table.run_sql`
+
+**iris: the average sepal length and the flowers of each species, by SQL** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa: average sepal length | DuckDB (register, then the same SELECT) | 5.006 | 5.006 | relative 1e-12 | pass |
+| setosa: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: average sepal length | DuckDB (register, then the same SELECT) | 5.936 | 5.936 | relative 1e-12 | pass |
+| versicolor: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| virginica: average sepal length | DuckDB (register, then the same SELECT) | 6.588 | 6.588 | relative 1e-12 | pass |
+| virginica: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| setosa: average sepal length | R | 5.006 | 5.006 | relative 1e-12 | pass |
+| versicolor: average sepal length | R | 5.936 | 5.936 | relative 1e-12 | pass |
+| virginica: average sepal length | R | 6.588 | 6.588 | relative 1e-12 | pass |
+| setosa: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | R | 50 | 50 | relative 1e-12 | pass |
+
+**iris: the average sepal length and the flowers of each species, by SQL (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa: average sepal length | DuckDB (register, then the same SELECT) | 5.006 | 5.006 | relative 1e-12 | pass |
+| setosa: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: average sepal length | DuckDB (register, then the same SELECT) | 5.936 | 5.936 | relative 1e-12 | pass |
+| versicolor: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+| virginica: average sepal length | DuckDB (register, then the same SELECT) | 6.588 | 6.588 | relative 1e-12 | pass |
+| virginica: flowers | DuckDB (register, then the same SELECT) | 50 | 50 | relative 1e-12 | pass |
+
+### `table.add_column counted_in=`
+
+**AirPassengers: whole weeks from January 1949 to the start of each month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total weeks | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 44685 | 44685 | exact | pass |
+| February | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 4 | 4 | exact | pass |
+| last month | pandas (end - start) / pd.Timedelta(weeks=1), whole weeks | 621 | 621 | exact | pass |
+| total weeks | R | 44685 | 44685 | exact | pass |
+| February | R | 4 | 4 | exact | pass |
+| last month | R | 621 | 621 | exact | pass |
+
+**AirPassengers: whole weeks from January 1949 to the start of each month (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total weeks | Polars (end - start).dt.total_days() // 7 | 44685 | 44685 | exact | pass |
+| February | Polars (end - start).dt.total_days() // 7 | 4 | 4 | exact | pass |
+| last month | Polars (end - start).dt.total_days() // 7 | 621 | 621 | exact | pass |
+
+### `table.add_group_column into_equal_groups=`
+
+**mtcars miles per gallon in four equal groups (quarters)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cars in quarter 1 | pandas qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 2 | pandas qcut(4) | 9 | 9 | exact | pass |
+| cars in quarter 3 | pandas qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 4 | pandas qcut(4) | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | pandas qcut(4) | 1303 | 1303 | exact | pass |
+| cars in quarter 1 | R | 8 | 8 | exact | pass |
+| cars in quarter 2 | R | 9 | 9 | exact | pass |
+| cars in quarter 3 | R | 8 | 8 | exact | pass |
+| cars in quarter 4 | R | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | R | 1303 | 1303 | exact | pass |
+
+**mtcars miles per gallon in four equal groups (quarters) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cars in quarter 1 | Polars qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 2 | Polars qcut(4) | 9 | 9 | exact | pass |
+| cars in quarter 3 | Polars qcut(4) | 8 | 8 | exact | pass |
+| cars in quarter 4 | Polars qcut(4) | 7 | 7 | exact | pass |
+| quarter of each car (sum of row x quarter) | Polars qcut(4) | 1303 | 1303 | exact | pass |
+
+### `table.add_missing_combinations_of`
+
+**mtcars: the one missing pair of cylinders and gears (8 cylinders, 4 gears) added as a row** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 33 | 33 | exact | pass |
+| empty mpg | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 1 | 1 | exact | pass |
+| row of the new pair | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 31 | 31 | exact | pass |
+| its cylinders | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 8 | 8 | exact | pass |
+| its gears | pandas MultiIndex.from_product, merge(indicator=True), concat, sort_values (stable) | 4 | 4 | exact | pass |
+| rows | R | 33 | 33 | exact | pass |
+| empty mpg | R | 1 | 1 | exact | pass |
+| row of the new pair | R | 31 | 31 | exact | pass |
+| its cylinders | R | 8 | 8 | exact | pass |
+| its gears | R | 4 | 4 | exact | pass |
+
+**mtcars: the one missing pair of cylinders and gears (8 cylinders, 4 gears) added as a row (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="cross"), join(how="anti"), concat, sort | 33 | 33 | exact | pass |
+| empty mpg | Polars join(how="cross"), join(how="anti"), concat, sort | 1 | 1 | exact | pass |
+| row of the new pair | Polars join(how="cross"), join(how="anti"), concat, sort | 31 | 31 | exact | pass |
+| its cylinders | Polars join(how="cross"), join(how="anti"), concat, sort | 8 | 8 | exact | pass |
+| its gears | Polars join(how="cross"), join(how="anti"), concat, sort | 4 | 4 | exact | pass |
+
+### `table.add_rank_column when_tied=`
+
+**mtcars: each car's place for fuel use within its number of cylinders, ties sharing the average place** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of places | pandas groupby().rank(method="average") | 199 | 199 | exact | pass |
+| Mazda RX4 | pandas groupby().rank(method="average") | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | pandas groupby().rank(method="average") | 2.5 | 2.5 | exact | pass |
+| sum of row x place | pandas groupby().rank(method="average") | 3436 | 3436 | exact | pass |
+| sum of places | R | 199 | 199 | exact | pass |
+| Mazda RX4 | R | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | R | 2.5 | 2.5 | exact | pass |
+| sum of row x place | R | 3436 | 3436 | exact | pass |
+
+**mtcars: each car's place for fuel use within its number of cylinders, ties sharing the average place (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of places | Polars rank("average").over() | 199 | 199 | exact | pass |
+| Mazda RX4 | Polars rank("average").over() | 2.5 | 2.5 | exact | pass |
+| Mazda RX4 Wag | Polars rank("average").over() | 2.5 | 2.5 | exact | pass |
+| sum of row x place | Polars rank("average").over() | 3436 | 3436 | exact | pass |
+
+### `table.add_row_number_column`
+
+**mtcars: the cars numbered from the least powerful within each number of cylinders (ties keep the table's order)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest number | pandas sort_values (stable), groupby().cumcount() + 1 | 14 | 14 | exact | pass |
+| sum of row x number | pandas sort_values (stable), groupby().cumcount() + 1 | 3754 | 3754 | exact | pass |
+| biggest number | R | 14 | 14 | exact | pass |
+| sum of row x number | R | 3754 | 3754 | exact | pass |
+
+**mtcars: the cars numbered from the least powerful within each number of cylinders (ties keep the table's order) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest number | Polars int_range(1, len() + 1).over(order_by=) | 14 | 14 | exact | pass |
+| sum of row x number | Polars int_range(1, len() + 1).over(order_by=) | 3754 | 3754 | exact | pass |
+
+### `table.add_row_summary_column`
+
+**iris: the average of the four measurements of each flower** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas mean(axis=1) | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | pandas mean(axis=1) | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | pandas mean(axis=1) | 3.95 | 3.95 | relative 1e-12 | pass |
+| total | R | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | R | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | R | 3.95 | 3.95 | relative 1e-12 | pass |
+
+**iris: the average of the four measurements of each flower (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars mean_horizontal | 519.675 | 519.675 | relative 1e-12 | pass |
+| first flower | Polars mean_horizontal | 2.55 | 2.55 | relative 1e-12 | pass |
+| last flower | Polars mean_horizontal | 3.95 | 3.95 | relative 1e-12 | pass |
+
+### `table.add_running_column`
+
+**Seatbelts: drivers killed in Great Britain so far each year, month by month** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas sort_values (stable), groupby().cumsum() | 144099 | 144099 | exact | pass |
+| December 1969 | pandas sort_values (stable), groupby().cumsum() | 1402 | 1402 | exact | pass |
+| December 1984 | pandas sort_values (stable), groupby().cumsum() | 1228 | 1228 | exact | pass |
+| January 1970 | pandas sort_values (stable), groupby().cumsum() | 125 | 125 | exact | pass |
+| total | R | 144099 | 144099 | exact | pass |
+| December 1969 | R | 1402 | 1402 | exact | pass |
+| December 1984 | R | 1228 | 1228 | exact | pass |
+| January 1970 | R | 125 | 125 | exact | pass |
+
+**Seatbelts: drivers killed in Great Britain so far each year, month by month (a Polars table)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars cum_sum().over(order_by=) | 144099 | 144099 | exact | pass |
+| December 1969 | Polars cum_sum().over(order_by=) | 1402 | 1402 | exact | pass |
+| December 1984 | Polars cum_sum().over(order_by=) | 1228 | 1228 | exact | pass |
+| January 1970 | Polars cum_sum().over(order_by=) | 125 | 125 | exact | pass |
+
+### `table.add_zeros_in_front_of`
+
+**Seatbelts: the month of the year written with two digits (01 to 12)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells reading 01 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 09 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 10 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 12 | pandas astype(str).str.zfill(2) | 16 | 16 | exact | pass |
+| cells two long | pandas astype(str).str.zfill(2) | 192 | 192 | exact | pass |
+| cells reading 01 | R | 16 | 16 | exact | pass |
+| cells reading 09 | R | 16 | 16 | exact | pass |
+| cells reading 10 | R | 16 | 16 | exact | pass |
+| cells reading 12 | R | 16 | 16 | exact | pass |
+| cells two long | R | 192 | 192 | exact | pass |
+
+**Seatbelts: the month of the year written with two digits (01 to 12) (a Polars table)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells reading 01 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 09 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 10 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells reading 12 | Polars cast(pl.String).str.zfill(2) | 16 | 16 | exact | pass |
+| cells two long | Polars cast(pl.String).str.zfill(2) | 192 | 192 | exact | pass |
+
+### `table.change_column in_rows_where=`
+
+**warpbreaks: the tension written as "high breakage" in the rows with 40 breaks or more** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| high breakage | pandas loc[condition, column] = value | 9 | 9 | exact | pass |
+| L | pandas loc[condition, column] = value | 11 | 11 | exact | pass |
+| M | pandas loc[condition, column] = value | 17 | 17 | exact | pass |
+| H | pandas loc[condition, column] = value | 17 | 17 | exact | pass |
+| high breakage | R | 9 | 9 | exact | pass |
+| L | R | 11 | 11 | exact | pass |
+| M | R | 17 | 17 | exact | pass |
+| H | R | 17 | 17 | exact | pass |
+
+**warpbreaks: the tension written as "high breakage" in the rows with 40 breaks or more (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| high breakage | Polars when().then().otherwise() | 9 | 9 | exact | pass |
+| L | Polars when().then().otherwise() | 11 | 11 | exact | pass |
+| M | Polars when().then().otherwise() | 17 | 17 | exact | pass |
+| H | Polars when().then().otherwise() | 17 | 17 | exact | pass |
+
+### `table.change_time_zone_in`
+
+**AirPassengers: midnight at the start of each month on the Oslo clock, 1949-1960, on the UTC clock (IANA's main time zone data, where Oslo follows Berlin before 1970: summer time in 1949)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 22:00 UTC (summer time) | pandas dt.tz_localize(Europe/Oslo from the tzdata package).dt.tz_convert("UTC") | 6 | 6 | exact | pass |
+| months at 23:00 UTC | pandas dt.tz_localize(Europe/Oslo from the tzdata package).dt.tz_convert("UTC") | 138 | 138 | exact | pass |
+| sum of row x hour | pandas dt.tz_localize(Europe/Oslo from the tzdata package).dt.tz_convert("UTC") | 240075 | 240075 | exact | pass |
+| months at 22:00 UTC (summer time) | R | 6 | 12 | exact | explained difference – time-zone data: R reads this computer's time-zone data, which includes Norway's 1959-65 summer time from IANA's backzone file (and so no summer time in 1949); simplydata uses IANA's main data on every computer (owner's decision, for reproducibility). The same R, given IANA's main data, gives simplydata's numbers, and the two copies differ by one summer-time hour in summer months before 1970 only; a moment itself never changes, only the UTC moment a pre-1970 Oslo clock time stands for |
+| months at 23:00 UTC | R | 138 | 132 | exact | explained difference – time-zone data: R reads this computer's time-zone data, which includes Norway's 1959-65 summer time from IANA's backzone file (and so no summer time in 1949); simplydata uses IANA's main data on every computer (owner's decision, for reproducibility). The same R, given IANA's main data, gives simplydata's numbers, and the two copies differ by one summer-time hour in summer months before 1970 only; a moment itself never changes, only the UTC moment a pre-1970 Oslo clock time stands for |
+| sum of row x hour | R | 240075 | 238530 | exact | explained difference – time-zone data: R reads this computer's time-zone data, which includes Norway's 1959-65 summer time from IANA's backzone file (and so no summer time in 1949); simplydata uses IANA's main data on every computer (owner's decision, for reproducibility). The same R, given IANA's main data, gives simplydata's numbers, and the two copies differ by one summer-time hour in summer months before 1970 only; a moment itself never changes, only the UTC moment a pre-1970 Oslo clock time stands for |
+
+**AirPassengers: midnight at the start of each month on the Oslo clock, 1949-1960, on the UTC clock (IANA's main time zone data, where Oslo follows Berlin before 1970: summer time in 1949) (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 22:00 UTC (summer time) | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 6 | 6 | exact | pass |
+| months at 23:00 UTC | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 138 | 138 | exact | pass |
+| sum of row x hour | Polars dt.replace_time_zone().dt.convert_time_zone("UTC") | 240075 | 240075 | exact | pass |
+
+**AirPassengers: midnight at the start of each month on the New York clock, 1949-1960, on the UTC clock (US summer time; the IANA time zone database)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 04:00 UTC (summer time) | pandas dt.tz_localize("America/New_York").dt.tz_convert("UTC") | 66 | 66 | exact | pass |
+| months at 05:00 UTC | pandas dt.tz_localize("America/New_York").dt.tz_convert("UTC") | 78 | 78 | exact | pass |
+| sum of row x hour | pandas dt.tz_localize("America/New_York").dt.tz_convert("UTC") | 47148 | 47148 | exact | pass |
+| months at 04:00 UTC (summer time) | R | 66 | 66 | exact | pass |
+| months at 05:00 UTC | R | 78 | 78 | exact | pass |
+| sum of row x hour | R | 47148 | 47148 | exact | pass |
+
+**AirPassengers: midnight at the start of each month on the New York clock, 1949-1960, on the UTC clock (US summer time; the IANA time zone database) (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months at 04:00 UTC (summer time) | Polars dt.replace_time_zone("America/New_York").dt.convert_time_zone("UTC") | 66 | 66 | exact | pass |
+| months at 05:00 UTC | Polars dt.replace_time_zone("America/New_York").dt.convert_time_zone("UTC") | 78 | 78 | exact | pass |
+| sum of row x hour | Polars dt.replace_time_zone("America/New_York").dt.convert_time_zone("UTC") | 47148 | 47148 | exact | pass |
+
+**AirPassengers: a column that already carries the America/New_York zone (midnight at the start of each month, 1949-1960), its day of the month, then the same moments on the UTC clock** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first of the month in New York | pandas dt.day and dt.tz_convert("UTC") | 144 | 144 | exact | pass |
+| months at 04:00 UTC (summer time) | pandas dt.day and dt.tz_convert("UTC") | 66 | 66 | exact | pass |
+| months at 05:00 UTC | pandas dt.day and dt.tz_convert("UTC") | 78 | 78 | exact | pass |
+| sum of row x hour | pandas dt.day and dt.tz_convert("UTC") | 47148 | 47148 | exact | pass |
+| first of the month in New York | R | 144 | 144 | exact | pass |
+| months at 04:00 UTC (summer time) | R | 66 | 66 | exact | pass |
+| months at 05:00 UTC | R | 78 | 78 | exact | pass |
+| sum of row x hour | R | 47148 | 47148 | exact | pass |
+
+**AirPassengers: a column that already carries the America/New_York zone (midnight at the start of each month, 1949-1960), its day of the month, then the same moments on the UTC clock (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first of the month in New York | Polars dt.day() and dt.convert_time_zone("UTC") | 144 | 144 | exact | pass |
+| months at 04:00 UTC (summer time) | Polars dt.day() and dt.convert_time_zone("UTC") | 66 | 66 | exact | pass |
+| months at 05:00 UTC | Polars dt.day() and dt.convert_time_zone("UTC") | 78 | 78 | exact | pass |
+| sum of row x hour | Polars dt.day() and dt.convert_time_zone("UTC") | 47148 | 47148 | exact | pass |
+
+### `table.round_dates_in`
+
+**AirPassengers: the first day of each month taken back to the Monday of its week** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| still the first of the month | pandas: the date minus its dt.dayofweek in days | 19 | 19 | exact | pass |
+| all Mondays | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 1: 1948-12-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | pandas: the date minus its dt.dayofweek in days | 1 | 1 | exact | pass |
+| still the first of the month | R | 19 | 19 | exact | pass |
+| row 1: 1948-12-27 | R | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | R | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | R | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | R | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | R | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | R | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | R | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | R | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | R | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | R | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | R | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | R | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | R | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | R | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | R | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | R | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | R | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | R | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | R | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | R | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | R | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | R | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | R | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | R | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | R | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | R | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | R | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | R | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | R | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | R | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | R | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | R | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | R | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | R | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | R | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | R | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | R | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | R | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | R | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | R | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | R | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | R | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | R | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | R | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | R | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | R | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | R | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | R | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | R | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | R | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | R | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | R | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | R | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | R | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | R | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | R | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | R | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | R | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | R | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | R | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | R | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | R | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | R | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | R | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | R | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | R | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | R | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | R | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | R | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | R | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | R | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | R | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | R | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | R | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | R | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | R | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | R | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | R | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | R | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | R | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | R | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | R | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | R | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | R | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | R | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | R | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | R | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | R | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | R | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | R | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | R | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | R | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | R | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | R | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | R | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | R | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | R | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | R | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | R | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | R | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | R | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | R | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | R | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | R | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | R | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | R | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | R | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | R | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | R | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | R | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | R | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | R | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | R | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | R | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | R | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | R | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | R | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | R | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | R | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | R | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | R | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | R | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | R | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | R | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | R | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | R | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | R | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | R | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | R | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | R | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | R | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | R | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | R | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | R | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | R | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | R | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | R | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | R | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | R | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | R | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | R | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | R | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | R | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | R | 1 | 1 | exact | pass |
+
+**AirPassengers: the first day of each month taken back to the Monday of its week (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| still the first of the month | Polars dt.truncate("1w") | 19 | 19 | exact | pass |
+| all Mondays | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 1: 1948-12-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 2: 1949-01-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 3: 1949-02-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 4: 1949-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 5: 1949-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 6: 1949-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 7: 1949-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 8: 1949-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 9: 1949-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 10: 1949-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 11: 1949-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 12: 1949-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 13: 1949-12-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 14: 1950-01-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 15: 1950-02-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 16: 1950-03-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 17: 1950-05-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 18: 1950-05-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 19: 1950-06-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 20: 1950-07-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 21: 1950-08-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 22: 1950-09-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 23: 1950-10-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 24: 1950-11-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 25: 1951-01-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 26: 1951-01-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 27: 1951-02-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 28: 1951-03-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 29: 1951-04-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 30: 1951-05-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 31: 1951-06-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 32: 1951-07-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 33: 1951-08-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 34: 1951-10-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 35: 1951-10-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 36: 1951-11-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 37: 1951-12-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 38: 1952-01-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 39: 1952-02-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 40: 1952-03-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 41: 1952-04-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 42: 1952-05-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 43: 1952-06-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 44: 1952-07-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 45: 1952-09-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 46: 1952-09-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 47: 1952-10-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 48: 1952-12-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 49: 1952-12-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 50: 1953-01-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 51: 1953-02-23 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 52: 1953-03-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 53: 1953-04-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 54: 1953-06-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 55: 1953-06-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 56: 1953-07-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 57: 1953-08-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 58: 1953-09-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 59: 1953-10-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 60: 1953-11-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 61: 1953-12-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 62: 1954-02-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 63: 1954-03-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 64: 1954-03-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 65: 1954-04-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 66: 1954-05-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 67: 1954-06-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 68: 1954-07-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 69: 1954-08-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 70: 1954-09-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 71: 1954-11-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 72: 1954-11-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 73: 1954-12-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 74: 1955-01-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 75: 1955-02-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 76: 1955-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 77: 1955-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 78: 1955-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 79: 1955-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 80: 1955-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 81: 1955-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 82: 1955-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 83: 1955-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 84: 1955-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 85: 1955-12-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 86: 1956-01-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 87: 1956-02-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 88: 1956-03-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 89: 1956-04-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 90: 1956-05-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 91: 1956-06-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 92: 1956-07-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 93: 1956-08-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 94: 1956-10-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 95: 1956-10-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 96: 1956-11-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 97: 1956-12-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 98: 1957-01-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 99: 1957-02-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 100: 1957-04-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 101: 1957-04-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 102: 1957-05-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 103: 1957-07-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 104: 1957-07-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 105: 1957-08-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 106: 1957-09-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 107: 1957-10-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 108: 1957-11-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 109: 1957-12-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 110: 1958-01-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 111: 1958-02-24 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 112: 1958-03-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 113: 1958-04-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 114: 1958-05-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 115: 1958-06-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 116: 1958-07-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 117: 1958-09-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 118: 1958-09-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 119: 1958-10-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 120: 1958-12-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 121: 1958-12-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 122: 1959-01-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 123: 1959-02-23 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 124: 1959-03-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 125: 1959-04-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 126: 1959-06-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 127: 1959-06-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 128: 1959-07-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 129: 1959-08-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 130: 1959-09-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 131: 1959-10-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 132: 1959-11-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 133: 1959-12-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 134: 1960-02-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 135: 1960-02-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 136: 1960-03-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 137: 1960-04-25 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 138: 1960-05-30 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 139: 1960-06-27 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 140: 1960-08-01 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 141: 1960-08-29 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 142: 1960-09-26 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 143: 1960-10-31 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+| row 144: 1960-11-28 | Polars dt.truncate("1w") | 1 | 1 | exact | pass |
+
+### `table.round_dates_in to_the=`
+
+**ICU arrivals: 254 arrival times rounded to the nearest hour (59 are exactly half past, which go up)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of hours | pandas (time + 30 minutes).dt.floor("h") (half way up) | 3542 | 3542 | exact | pass |
+| next day | pandas (time + 30 minutes).dt.floor("h") (half way up) | 4 | 4 | exact | pass |
+| sum of row x hour | pandas (time + 30 minutes).dt.floor("h") (half way up) | 443501 | 443501 | exact | pass |
+| on the hour | pandas (time + 30 minutes).dt.floor("h") (half way up) | 1 | 1 | exact | pass |
+| sum of hours | R | 3542 | 3542 | exact | pass |
+| next day | R | 4 | 4 | exact | pass |
+| sum of row x hour | R | 443501 | 443501 | exact | pass |
+| on the hour | R | 1 | 1 | exact | pass |
+
+Note: R round.POSIXt(x, "hours") also sends a time exactly half way up.
+
+**ICU arrivals: 254 arrival times rounded to the nearest hour (59 are exactly half past, which go up) (a Polars table)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum of hours | Polars dt.round("1h") | 3542 | 3542 | exact | pass |
+| next day | Polars dt.round("1h") | 4 | 4 | exact | pass |
+| sum of row x hour | Polars dt.round("1h") | 443501 | 443501 | exact | pass |
+| on the hour | Polars dt.round("1h") | 1 | 1 | exact | pass |
+
+### `table.turn_into_text written_like=`
+
+**AirPassengers: the 144 months written as day.month.year** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | pandas dt.strftime("%d.%m.%Y") | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | pandas dt.strftime("%d.%m.%Y") | 1 | 1 | exact | pass |
+| cells | R | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | R | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | R | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | R | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | R | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | R | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | R | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | R | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | R | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | R | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | R | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | R | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | R | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | R | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | R | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | R | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | R | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | R | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | R | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | R | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | R | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | R | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | R | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | R | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | R | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | R | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | R | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | R | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | R | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | R | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | R | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | R | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | R | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | R | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | R | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | R | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | R | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | R | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | R | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | R | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | R | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | R | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | R | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | R | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | R | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | R | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | R | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | R | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | R | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | R | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | R | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | R | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | R | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | R | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | R | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | R | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | R | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | R | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | R | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | R | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | R | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | R | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | R | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | R | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | R | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | R | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | R | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | R | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | R | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | R | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | R | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | R | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | R | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | R | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | R | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | R | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | R | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | R | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | R | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | R | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | R | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | R | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | R | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | R | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | R | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | R | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | R | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | R | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | R | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | R | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | R | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | R | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | R | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | R | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | R | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | R | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | R | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | R | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | R | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | R | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | R | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | R | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | R | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | R | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | R | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | R | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | R | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | R | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | R | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | R | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | R | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | R | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | R | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | R | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | R | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | R | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | R | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | R | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | R | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | R | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | R | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | R | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | R | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | R | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | R | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | R | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | R | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | R | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | R | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | R | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | R | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | R | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | R | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | R | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | R | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | R | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | R | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | R | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | R | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | R | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | R | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | R | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | R | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | R | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | R | 1 | 1 | exact | pass |
+
+**AirPassengers: the 144 months written as day.month.year (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells | Polars dt.to_string("%d.%m.%Y") | 144 | 144 | exact | pass |
+| row 1: 01.01.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 2: 01.02.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 3: 01.03.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 4: 01.04.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 5: 01.05.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 6: 01.06.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 7: 01.07.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 8: 01.08.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 9: 01.09.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 10: 01.10.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 11: 01.11.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 12: 01.12.1949 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 13: 01.01.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 14: 01.02.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 15: 01.03.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 16: 01.04.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 17: 01.05.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 18: 01.06.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 19: 01.07.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 20: 01.08.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 21: 01.09.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 22: 01.10.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 23: 01.11.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 24: 01.12.1950 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 25: 01.01.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 26: 01.02.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 27: 01.03.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 28: 01.04.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 29: 01.05.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 30: 01.06.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 31: 01.07.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 32: 01.08.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 33: 01.09.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 34: 01.10.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 35: 01.11.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 36: 01.12.1951 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 37: 01.01.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 38: 01.02.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 39: 01.03.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 40: 01.04.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 41: 01.05.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 42: 01.06.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 43: 01.07.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 44: 01.08.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 45: 01.09.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 46: 01.10.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 47: 01.11.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 48: 01.12.1952 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 49: 01.01.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 50: 01.02.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 51: 01.03.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 52: 01.04.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 53: 01.05.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 54: 01.06.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 55: 01.07.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 56: 01.08.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 57: 01.09.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 58: 01.10.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 59: 01.11.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 60: 01.12.1953 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 61: 01.01.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 62: 01.02.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 63: 01.03.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 64: 01.04.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 65: 01.05.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 66: 01.06.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 67: 01.07.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 68: 01.08.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 69: 01.09.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 70: 01.10.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 71: 01.11.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 72: 01.12.1954 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 73: 01.01.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 74: 01.02.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 75: 01.03.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 76: 01.04.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 77: 01.05.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 78: 01.06.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 79: 01.07.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 80: 01.08.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 81: 01.09.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 82: 01.10.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 83: 01.11.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 84: 01.12.1955 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 85: 01.01.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 86: 01.02.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 87: 01.03.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 88: 01.04.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 89: 01.05.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 90: 01.06.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 91: 01.07.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 92: 01.08.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 93: 01.09.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 94: 01.10.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 95: 01.11.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 96: 01.12.1956 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 97: 01.01.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 98: 01.02.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 99: 01.03.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 100: 01.04.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 101: 01.05.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 102: 01.06.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 103: 01.07.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 104: 01.08.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 105: 01.09.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 106: 01.10.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 107: 01.11.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 108: 01.12.1957 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 109: 01.01.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 110: 01.02.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 111: 01.03.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 112: 01.04.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 113: 01.05.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 114: 01.06.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 115: 01.07.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 116: 01.08.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 117: 01.09.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 118: 01.10.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 119: 01.11.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 120: 01.12.1958 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 121: 01.01.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 122: 01.02.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 123: 01.03.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 124: 01.04.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 125: 01.05.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 126: 01.06.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 127: 01.07.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 128: 01.08.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 129: 01.09.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 130: 01.10.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 131: 01.11.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 132: 01.12.1959 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 133: 01.01.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 134: 01.02.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 135: 01.03.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 136: 01.04.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 137: 01.05.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 138: 01.06.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 139: 01.07.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 140: 01.08.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 141: 01.09.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 142: 01.10.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 143: 01.11.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+| row 144: 01.12.1960 | Polars dt.to_string("%d.%m.%Y") | 1 | 1 | exact | pass |
+
+### `table.turn_into_categories`
+
+**warpbreaks: tension put in the order high, medium, low, then sorted by it** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first tension is H | pandas Categorical(ordered=True), sort_values (stable) | 1 | 1 | exact | pass |
+| sum of row x breaks | pandas Categorical(ordered=True), sort_values (stable) | 46250 | 46250 | exact | pass |
+| first tension is H | R | 1 | 1 | exact | pass |
+| sum of row x breaks | R | 46250 | 46250 | exact | pass |
+
+**warpbreaks: tension put in the order high, medium, low, then sorted by it (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first tension is H | Polars pl.Enum, sort | 1 | 1 | exact | pass |
+| sum of row x breaks | Polars pl.Enum, sort | 46250 | 46250 | exact | pass |
+
+### `table.clean_column_names`
+
+**Hackshaw's passive smoking studies: "odds ratio 95 % CI low" and the other names made plain** (real data; data: passive smoking (metadat))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 4 | 4 | exact | pass |
+| column 1: study | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 2: odds_ratio | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | pandas str.replace, str.normalize("NFKD"), str.lower on the column names | 1 | 1 | exact | pass |
+| columns | R | 4 | 4 | exact | pass |
+| column 1: study | R | 1 | 1 | exact | pass |
+| column 2: odds_ratio | R | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | R | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | R | 1 | 1 | exact | pass |
+
+**Hackshaw's passive smoking studies: "odds ratio 95 % CI low" and the other names made plain (a Polars table)** (real data; data: passive smoking (metadat))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars rename (re.sub, unicodedata) | 4 | 4 | exact | pass |
+| column 1: study | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 2: odds_ratio | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 3: odds_ratio_95_percent_ci_low | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+| column 4: odds_ratio_95_percent_ci_high | Polars rename (re.sub, unicodedata) | 1 | 1 | exact | pass |
+
+### `table.keep_first_rows for_each_group_in=`
+
+**mtcars: the two cars with the best fuel use for each number of cylinders** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values (stable), groupby().head(2) | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | pandas sort_values (stable), groupby().head(2) | 1 | 1 | exact | pass |
+| rows | R | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | R | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | R | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | R | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | R | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | R | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | R | 1 | 1 | exact | pass |
+
+**mtcars: the two cars with the best fuel use for each number of cylinders (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars sort, filter(int_range(len()).over() < 2) | 6 | 6 | exact | pass |
+| row 1: Toyota Corolla | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 3: Hornet 4 Drive | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 4: Mazda RX4 | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 5: Pontiac Firebird | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+| row 6: Hornet Sportabout | Polars sort, filter(int_range(len()).over() < 2) | 1 | 1 | exact | pass |
+
+### `table.keep_groups_where`
+
+**mtcars: only the numbers of cylinders whose cars average 19 mpg or more** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas groupby().filter() | 18 | 18 | relative 1e-12 | pass |
+| total mpg | pandas groupby().filter() | 431.5 | 431.5 | relative 1e-12 | pass |
+| rows | R | 18 | 18 | relative 1e-12 | pass |
+| total mpg | R | 431.5 | 431.5 | relative 1e-12 | pass |
+
+**mtcars: only the numbers of cylinders whose cars average 19 mpg or more (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars filter(mean().over() >= 19) | 18 | 18 | relative 1e-12 | pass |
+| total mpg | Polars filter(mean().over() >= 19) | 431.5 | 431.5 | relative 1e-12 | pass |
+
+### `table.remove_groups_where`
+
+**mtcars: the numbers of cylinders whose cars average under 19 mpg removed** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas groupby().filter() | 18 | 18 | relative 1e-12 | pass |
+| total mpg | pandas groupby().filter() | 431.5 | 431.5 | relative 1e-12 | pass |
+| rows | R | 18 | 18 | relative 1e-12 | pass |
+| total mpg | R | 431.5 | 431.5 | relative 1e-12 | pass |
+
+**mtcars: the numbers of cylinders whose cars average under 19 mpg removed (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars filter(~(mean().over() < 19)) | 18 | 18 | relative 1e-12 | pass |
+| total mpg | Polars filter(~(mean().over() < 19)) | 431.5 | 431.5 | relative 1e-12 | pass |
+
+### `table.keep_rows_found_in`
+
+**warpbreaks: the looms run at low or high tension (a list with a repeat)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas isin | 36 | 36 | exact | pass |
+| total breaks | pandas isin | 1045 | 1045 | exact | pass |
+| sum of row x breaks | pandas isin | 16616 | 16616 | exact | pass |
+| rows | R | 36 | 36 | exact | pass |
+| total breaks | R | 1045 | 1045 | exact | pass |
+| sum of row x breaks | R | 16616 | 16616 | exact | pass |
+
+**warpbreaks: the looms run at low or high tension (a list with a repeat) (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="semi") | 36 | 36 | exact | pass |
+| total breaks | Polars join(how="semi") | 1045 | 1045 | exact | pass |
+| sum of row x breaks | Polars join(how="semi") | 16616 | 16616 | exact | pass |
+
+### `table.remove_rows_found_in`
+
+**warpbreaks: the looms run at low tension removed** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas ~isin | 36 | 36 | exact | pass |
+| total breaks | pandas ~isin | 865 | 865 | exact | pass |
+| sum of row x breaks | pandas ~isin | 15626 | 15626 | exact | pass |
+| rows | R | 36 | 36 | exact | pass |
+| total breaks | R | 865 | 865 | exact | pass |
+| sum of row x breaks | R | 15626 | 15626 | exact | pass |
+
+**warpbreaks: the looms run at low tension removed (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="anti") | 36 | 36 | exact | pass |
+| total breaks | Polars join(how="anti") | 865 | 865 | exact | pass |
+| sum of row x breaks | Polars join(how="anti") | 15626 | 15626 | exact | pass |
+
+### `table.keep_rows_where capitals_matter=`
+
+**iris: the flowers whose species is SETOSA, capitals not mattering** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas str.lower() == | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | pandas str.lower() == | 250.3 | 250.3 | relative 1e-12 | pass |
+| rows | R | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | R | 250.3 | 250.3 | relative 1e-12 | pass |
+
+**iris: the flowers whose species is SETOSA, capitals not mattering (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars str.to_lowercase() == | 50 | 50 | relative 1e-12 | pass |
+| total sepal length | Polars str.to_lowercase() == | 250.3 | 250.3 | relative 1e-12 | pass |
+
+### `table.make_one_table_for_each_group_in`
+
+**iris: one table for each of the three species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| tables | pandas groupby(sort=False) | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | pandas groupby(sort=False) | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | pandas groupby(sort=False) | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | pandas groupby(sort=False) | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | pandas groupby(sort=False) | 277.6 | 277.6 | relative 1e-12 | pass |
+| tables | R | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | R | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | R | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | R | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | R | 277.6 | 277.6 | relative 1e-12 | pass |
+
+**iris: one table for each of the three species (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| tables | Polars partition_by(as_dict=True) | 3 | 3 | relative 1e-12 | pass |
+| setosa: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| versicolor: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| virginica: flowers | Polars partition_by(as_dict=True) | 50 | 50 | relative 1e-12 | pass |
+| setosa: total petal length | Polars partition_by(as_dict=True) | 73.1 | 73.1 | relative 1e-12 | pass |
+| versicolor: total petal length | Polars partition_by(as_dict=True) | 213 | 213 | relative 1e-12 | pass |
+| virginica: total petal length | Polars partition_by(as_dict=True) | 277.6 | 277.6 | relative 1e-12 | pass |
+
+### `table.move_columns`
+
+**mtcars: horsepower and weight moved to the front** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas df[columns in the new order] | 12 | 12 | exact | pass |
+| column 1: hp | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 2: wt | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 3: model | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 4: mpg | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 5: cyl | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 6: disp | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 7: drat | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 8: qsec | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 9: vs | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 10: am | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 11: gear | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+| column 12: carb | pandas df[columns in the new order] | 1 | 1 | exact | pass |
+
+**mtcars: horsepower and weight moved to the front (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars select(columns in the new order) | 12 | 12 | exact | pass |
+| column 1: hp | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 2: wt | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 3: model | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 4: mpg | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 5: cyl | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 6: disp | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 7: drat | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 8: qsec | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 9: vs | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 10: am | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 11: gear | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+| column 12: carb | Polars select(columns in the new order) | 1 | 1 | exact | pass |
+
+### `table.rename_columns`
+
+**mtcars: mpg and hp given longer names** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas rename(columns=) | 12 | 12 | exact | pass |
+| total horsepower | pandas rename(columns=) | 4694 | 4694 | exact | pass |
+| column 1: model | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 2: miles_per_gallon | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 3: cyl | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 4: disp | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 5: horsepower | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 6: drat | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 7: wt | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 8: qsec | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 9: vs | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 10: am | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 11: gear | pandas rename(columns=) | 1 | 1 | exact | pass |
+| column 12: carb | pandas rename(columns=) | 1 | 1 | exact | pass |
+
+**mtcars: mpg and hp given longer names (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars rename | 12 | 12 | exact | pass |
+| total horsepower | Polars rename | 4694 | 4694 | exact | pass |
+| column 1: model | Polars rename | 1 | 1 | exact | pass |
+| column 2: miles_per_gallon | Polars rename | 1 | 1 | exact | pass |
+| column 3: cyl | Polars rename | 1 | 1 | exact | pass |
+| column 4: disp | Polars rename | 1 | 1 | exact | pass |
+| column 5: horsepower | Polars rename | 1 | 1 | exact | pass |
+| column 6: drat | Polars rename | 1 | 1 | exact | pass |
+| column 7: wt | Polars rename | 1 | 1 | exact | pass |
+| column 8: qsec | Polars rename | 1 | 1 | exact | pass |
+| column 9: vs | Polars rename | 1 | 1 | exact | pass |
+| column 10: am | Polars rename | 1 | 1 | exact | pass |
+| column 11: gear | Polars rename | 1 | 1 | exact | pass |
+| column 12: carb | Polars rename | 1 | 1 | exact | pass |
+
+### `table.count_columns`
+
+**the 12 columns of mtcars (the car names and 11 measurements)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Henderson & Velleman (1981): 11 variables, with the car names | 12 | 12 | within 0 (printed rounding) | pass |
+| columns | pandas shape[1] | 12 | 12 | exact | pass |
+
+**the 12 columns of mtcars (the car names and 11 measurements) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars width | 12 | 12 | exact | pass |
+
+### `table.remove_columns_that_are_all_empty`
+
+**NHANES: the 9 people without a body mass index; their bmi column, all empty, removed** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas dropna(axis=1, how="all") | 3 | 3 | exact | pass |
+| column 1: age | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| column 2: hyp | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| column 3: chl | pandas dropna(axis=1, how="all") | 1 | 1 | exact | pass |
+| columns | R | 3 | 3 | exact | pass |
+| column 1: age | R | 1 | 1 | exact | pass |
+| column 2: hyp | R | 1 | 1 | exact | pass |
+| column 3: chl | R | 1 | 1 | exact | pass |
+
+**NHANES: the 9 people without a body mass index; their bmi column, all empty, removed (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars select(columns with null_count() < height) | 3 | 3 | exact | pass |
+| column 1: age | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+| column 2: hyp | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+| column 3: chl | Polars select(columns with null_count() < height) | 1 | 1 | exact | pass |
+
+### `table.remove_rows_that_are_all_empty`
+
+**NHANES body mass index, hypertension and cholesterol: the 7 people with none of the three removed** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | pandas dropna(how="all") | 18 | 18 | exact | pass |
+| total cholesterol | pandas dropna(how="all") | 2871 | 2871 | exact | pass |
+| empty bmi left | pandas dropna(how="all") | 2 | 2 | exact | pass |
+| rows left | R | 18 | 18 | exact | pass |
+| total cholesterol | R | 2871 | 2871 | exact | pass |
+| empty bmi left | R | 2 | 2 | exact | pass |
+
+**NHANES body mass index, hypertension and cholesterol: the 7 people with none of the three removed (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows left | Polars filter(~all_horizontal(is_null())) | 18 | 18 | exact | pass |
+| total cholesterol | Polars filter(~all_horizontal(is_null())) | 2871 | 2871 | exact | pass |
+| empty bmi left | Polars filter(~all_horizontal(is_null())) | 2 | 2 | exact | pass |
+
+### `table.sort_by biggest_first=`
+
+**mtcars sorted by cylinders (fewest first), then by miles per gallon (most first)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas sort_values(ascending=[True, False], kind="stable") | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 3: Honda Civic | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 7: Merc 240D | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 9: Merc 230 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 16: Merc 280 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 17: Valiant | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 18: Merc 280C | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 29: Duster 360 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | pandas sort_values(ascending=[True, False], kind="stable") | 1 | 1 | exact | pass |
+| rows | R | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | R | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | R | 1 | 1 | exact | pass |
+| row 3: Honda Civic | R | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | R | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | R | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | R | 1 | 1 | exact | pass |
+| row 7: Merc 240D | R | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | R | 1 | 1 | exact | pass |
+| row 9: Merc 230 | R | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | R | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | R | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | R | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | R | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | R | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | R | 1 | 1 | exact | pass |
+| row 16: Merc 280 | R | 1 | 1 | exact | pass |
+| row 17: Valiant | R | 1 | 1 | exact | pass |
+| row 18: Merc 280C | R | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | R | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | R | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | R | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | R | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | R | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | R | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | R | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | R | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | R | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | R | 1 | 1 | exact | pass |
+| row 29: Duster 360 | R | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | R | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | R | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | R | 1 | 1 | exact | pass |
+
+**mtcars sorted by cylinders (fewest first), then by miles per gallon (most first) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars sort(descending=[False, True], maintain_order=True) | 32 | 32 | exact | pass |
+| row 1: Toyota Corolla | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 2: Fiat 128 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 3: Honda Civic | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 4: Lotus Europa | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 5: Fiat X1-9 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 6: Porsche 914-2 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 7: Merc 240D | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 8: Datsun 710 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 9: Merc 230 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 10: Toyota Corona | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 11: Volvo 142E | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 12: Hornet 4 Drive | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 13: Mazda RX4 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 14: Mazda RX4 Wag | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 15: Ferrari Dino | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 16: Merc 280 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 17: Valiant | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 18: Merc 280C | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 19: Pontiac Firebird | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 20: Hornet Sportabout | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 21: Merc 450SL | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 22: Merc 450SE | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 23: Ford Pantera L | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 24: Dodge Challenger | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 25: Merc 450SLC | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 26: AMC Javelin | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 27: Maserati Bora | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 28: Chrysler Imperial | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 29: Duster 360 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 30: Camaro Z28 | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 31: Cadillac Fleetwood | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+| row 32: Lincoln Continental | Polars sort(descending=[False, True], maintain_order=True) | 1 | 1 | exact | pass |
+
+### `table.split_into_rows`
+
+**mtcars: each word of a car's name on its own row** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas str.split, explode | 66 | 66 | relative 1e-12 | pass |
+| Merc | pandas str.split, explode | 7 | 7 | relative 1e-12 | pass |
+| total mpg | pandas str.split, explode | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | pandas str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 66 | 66 | relative 1e-12 | pass |
+| Merc | R | 7 | 7 | relative 1e-12 | pass |
+| total mpg | R | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | R | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | R | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | R | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | R | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | R | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | R | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | R | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | R | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | R | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | R | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | R | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | R | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | R | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | R | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | R | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | R | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | R | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | R | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | R | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | R | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | R | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | R | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | R | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | R | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | R | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | R | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | R | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | R | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | R | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | R | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | R | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | R | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | R | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | R | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | R | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | R | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | R | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | R | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | R | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | R | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | R | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | R | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | R | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | R | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | R | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | R | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | R | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | R | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | R | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | R | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | R | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | R | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | R | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | R | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | R | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | R | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | R | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | R | 1 | 1 | relative 1e-12 | pass |
+
+**mtcars: each word of a car's name on its own row (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars str.split, explode | 66 | 66 | relative 1e-12 | pass |
+| Merc | Polars str.split, explode | 7 | 7 | relative 1e-12 | pass |
+| total mpg | Polars str.split, explode | 1325.9 | 1325.9 | relative 1e-12 | pass |
+| row 1: Mazda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 2: RX4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 4: RX4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 5: Wag | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 7: 710 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 9: 4 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 10: Drive | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 11: Hornet | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 12: Sportabout | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 13: Valiant | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 15: 360 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 17: 240D | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 19: 230 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 21: 280 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 23: 280C | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 25: 450SE | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 27: 450SL | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 29: 450SLC | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 31: Fleetwood | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 33: Continental | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 35: Imperial | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 37: 128 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 39: Civic | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 41: Corolla | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 43: Corona | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 45: Challenger | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 47: Javelin | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 49: Z28 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 51: Firebird | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 53: X1-9 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 55: 914-2 | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 57: Europa | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 59: Pantera | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 60: L | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 61: Ferrari | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 62: Dino | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 63: Maserati | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 64: Bora | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 65: Volvo | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+| row 66: 142E | Polars str.split, explode | 1 | 1 | relative 1e-12 | pass |
+
+### `table.gather_into_rows starts_with=`
+
+**iris: the two sepal columns (names starting with "Sepal.") turned into rows** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas melt | 300 | 300 | relative 1e-12 | pass |
+| columns | pandas melt | 5 | 5 | relative 1e-12 | pass |
+| total cm | pandas melt | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | pandas melt | 150 | 150 | relative 1e-12 | pass |
+| row 151 | pandas melt | 3.5 | 3.5 | relative 1e-12 | pass |
+| rows | R | 300 | 300 | relative 1e-12 | pass |
+| total cm | R | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | R | 150 | 150 | relative 1e-12 | pass |
+| row 151 | R | 3.5 | 3.5 | relative 1e-12 | pass |
+
+**iris: the two sepal columns (names starting with "Sepal.") turned into rows (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars unpivot(on=cs.starts_with()) | 300 | 300 | relative 1e-12 | pass |
+| columns | Polars unpivot(on=cs.starts_with()) | 5 | 5 | relative 1e-12 | pass |
+| total cm | Polars unpivot(on=cs.starts_with()) | 1335.1 | 1335.1 | relative 1e-12 | pass |
+| Sepal.Width rows | Polars unpivot(on=cs.starts_with()) | 150 | 150 | relative 1e-12 | pass |
+| row 151 | Polars unpivot(on=cs.starts_with()) | 3.5 | 3.5 | relative 1e-12 | pass |
+
+### `table.spread_into_columns show=`
+
+**warpbreaks: the total breaks for each wool (rows) and tension (columns)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas pivot_table(aggfunc="sum") | 4 | 4 | exact | pass |
+| wool A, tension L | pandas pivot_table(aggfunc="sum") | 401 | 401 | exact | pass |
+| wool A, tension M | pandas pivot_table(aggfunc="sum") | 216 | 216 | exact | pass |
+| wool A, tension H | pandas pivot_table(aggfunc="sum") | 221 | 221 | exact | pass |
+| wool B, tension L | pandas pivot_table(aggfunc="sum") | 254 | 254 | exact | pass |
+| wool B, tension M | pandas pivot_table(aggfunc="sum") | 259 | 259 | exact | pass |
+| wool B, tension H | pandas pivot_table(aggfunc="sum") | 169 | 169 | exact | pass |
+| wool A, tension L | R | 401 | 401 | exact | pass |
+| wool A, tension M | R | 216 | 216 | exact | pass |
+| wool A, tension H | R | 221 | 221 | exact | pass |
+| wool B, tension L | R | 254 | 254 | exact | pass |
+| wool B, tension M | R | 259 | 259 | exact | pass |
+| wool B, tension H | R | 169 | 169 | exact | pass |
+
+**warpbreaks: the total breaks for each wool (rows) and tension (columns) (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars pivot(aggregate_function="sum") | 4 | 4 | exact | pass |
+| wool A, tension L | Polars pivot(aggregate_function="sum") | 401 | 401 | exact | pass |
+| wool A, tension M | Polars pivot(aggregate_function="sum") | 216 | 216 | exact | pass |
+| wool A, tension H | Polars pivot(aggregate_function="sum") | 221 | 221 | exact | pass |
+| wool B, tension L | Polars pivot(aggregate_function="sum") | 254 | 254 | exact | pass |
+| wool B, tension M | Polars pivot(aggregate_function="sum") | 259 | 259 | exact | pass |
+| wool B, tension H | Polars pivot(aggregate_function="sum") | 169 | 169 | exact | pass |
+
+### `table.spread_into_yes_no_columns`
+
+**iris: a yes/no column for each species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas get_dummies(prefix_sep=": ") | 8 | 8 | exact | pass |
+| yes in Species: setosa | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| yes in Species: versicolor | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| yes in Species: virginica | pandas get_dummies(prefix_sep=": ") | 50 | 50 | exact | pass |
+| row 51 is versicolor | pandas get_dummies(prefix_sep=": ") | 1 | 1 | exact | pass |
+| yes in Species: setosa | R | 50 | 50 | exact | pass |
+| yes in Species: versicolor | R | 50 | 50 | exact | pass |
+| yes in Species: virginica | R | 50 | 50 | exact | pass |
+| row 51 is versicolor | R | 1 | 1 | exact | pass |
+
+**iris: a yes/no column for each species (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | Polars to_dummies(separator=": ") | 8 | 8 | exact | pass |
+| yes in Species: setosa | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| yes in Species: versicolor | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| yes in Species: virginica | Polars to_dummies(separator=": ") | 50 | 50 | exact | pass |
+| row 51 is versicolor | Polars to_dummies(separator=": ") | 1 | 1 | exact | pass |
+
+### `table.join_with keep="every combination"`
+
+**mtcars: every car paired with both kinds of gearbox (64 rows)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge(how="cross") | 64 | 64 | relative 1e-12 | pass |
+| total mpg | pandas merge(how="cross") | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | pandas merge(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 64 | 64 | relative 1e-12 | pass |
+| total mpg | R | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | R | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | R | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | R | 1 | 1 | relative 1e-12 | pass |
+
+**mtcars: every car paired with both kinds of gearbox (64 rows) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(how="cross") | 64 | 64 | relative 1e-12 | pass |
+| total mpg | Polars join(how="cross") | 1285.8 | 1285.8 | relative 1e-12 | pass |
+| row 1: Mazda RX4 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 2: Mazda RX4 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 3: Mazda RX4 Wag / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 4: Mazda RX4 Wag / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 5: Datsun 710 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 6: Datsun 710 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 7: Hornet 4 Drive / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 8: Hornet 4 Drive / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 9: Hornet Sportabout / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 10: Hornet Sportabout / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 11: Valiant / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 12: Valiant / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 13: Duster 360 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 14: Duster 360 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 15: Merc 240D / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 16: Merc 240D / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 17: Merc 230 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 18: Merc 230 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 19: Merc 280 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 20: Merc 280 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 21: Merc 280C / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 22: Merc 280C / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 23: Merc 450SE / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 24: Merc 450SE / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 25: Merc 450SL / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 26: Merc 450SL / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 27: Merc 450SLC / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 28: Merc 450SLC / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 29: Cadillac Fleetwood / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 30: Cadillac Fleetwood / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 31: Lincoln Continental / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 32: Lincoln Continental / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 33: Chrysler Imperial / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 34: Chrysler Imperial / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 35: Fiat 128 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 36: Fiat 128 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 37: Honda Civic / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 38: Honda Civic / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 39: Toyota Corolla / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 40: Toyota Corolla / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 41: Toyota Corona / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 42: Toyota Corona / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 43: Dodge Challenger / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 44: Dodge Challenger / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 45: AMC Javelin / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 46: AMC Javelin / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 47: Camaro Z28 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 48: Camaro Z28 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 49: Pontiac Firebird / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 50: Pontiac Firebird / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 51: Fiat X1-9 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 52: Fiat X1-9 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 53: Porsche 914-2 / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 54: Porsche 914-2 / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 55: Lotus Europa / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 56: Lotus Europa / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 57: Ford Pantera L / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 58: Ford Pantera L / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 59: Ferrari Dino / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 60: Ferrari Dino / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 61: Maserati Bora / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 62: Maserati Bora / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 63: Volvo 142E / automatic | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+| row 64: Volvo 142E / manual | Polars join(how="cross") | 1 | 1 | relative 1e-12 | pass |
+
+### `table.join_with match=`
+
+**AirPassengers: each month joined to the start of its quarter (January, April, July, October) when that is at most 40 days before** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge_asof(direction="backward", tolerance=40 days) | 144 | 144 | exact | pass |
+| empty | pandas merge_asof(direction="backward", tolerance=40 days) | 48 | 48 | exact | pass |
+| total | pandas merge_asof(direction="backward", tolerance=40 days) | 27042 | 27042 | exact | pass |
+| February 1949 | pandas merge_asof(direction="backward", tolerance=40 days) | 112 | 112 | exact | pass |
+| sum of row x value | pandas merge_asof(direction="backward", tolerance=40 days) | 2401719 | 2401719 | exact | pass |
+| rows | R | 144 | 144 | exact | pass |
+| empty | R | 48 | 48 | exact | pass |
+| total | R | 27042 | 27042 | exact | pass |
+| February 1949 | R | 112 | 112 | exact | pass |
+| sum of row x value | R | 2401719 | 2401719 | exact | pass |
+
+**AirPassengers: each month joined to the start of its quarter (January, April, July, October) when that is at most 40 days before (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join_asof(strategy="backward", tolerance=40 days) | 144 | 144 | exact | pass |
+| empty | Polars join_asof(strategy="backward", tolerance=40 days) | 48 | 48 | exact | pass |
+| total | Polars join_asof(strategy="backward", tolerance=40 days) | 27042 | 27042 | exact | pass |
+| February 1949 | Polars join_asof(strategy="backward", tolerance=40 days) | 112 | 112 | exact | pass |
+| sum of row x value | Polars join_asof(strategy="backward", tolerance=40 days) | 2401719 | 2401719 | exact | pass |
+
+### `table.join_with using=`
+
+**iris joined to a table of the species' average petal length, named "kind" there** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge(left_on=, right_on=, validate="many_to_one") | 150 | 150 | relative 1e-12 | pass |
+| columns | pandas merge(left_on=, right_on=, validate="many_to_one") | 6 | 6 | relative 1e-12 | pass |
+| total | pandas merge(left_on=, right_on=, validate="many_to_one") | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | pandas merge(left_on=, right_on=, validate="many_to_one") | 5.552 | 5.552 | relative 1e-12 | pass |
+| column 1: Sepal.Length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 2: Sepal.Width | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 3: Petal.Length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 4: Petal.Width | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 5: Species | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| column 6: species_petal_length | pandas merge(left_on=, right_on=, validate="many_to_one") | 1 | 1 | relative 1e-12 | pass |
+| rows | R | 150 | 150 | relative 1e-12 | pass |
+| total | R | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | R | 5.552 | 5.552 | relative 1e-12 | pass |
+
+**iris joined to a table of the species' average petal length, named "kind" there (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join(left_on=, right_on=, validate="m:1") | 150 | 150 | relative 1e-12 | pass |
+| columns | Polars join(left_on=, right_on=, validate="m:1") | 6 | 6 | relative 1e-12 | pass |
+| total | Polars join(left_on=, right_on=, validate="m:1") | 563.7 | 563.7 | relative 1e-12 | pass |
+| row 150 | Polars join(left_on=, right_on=, validate="m:1") | 5.552 | 5.552 | relative 1e-12 | pass |
+| column 1: Sepal.Length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 2: Sepal.Width | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 3: Petal.Length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 4: Petal.Width | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 5: Species | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+| column 6: species_petal_length | Polars join(left_on=, right_on=, validate="m:1") | 1 | 1 | relative 1e-12 | pass |
+
+### `table.fill_empty_cells_from`
+
+**NHANES: the 9 empty body mass index cells filled with the average of the person's age group** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty left | pandas fillna from the other table's matching row (set_index, reindex) | 0 | 0 | relative 1e-12 | pass |
+| total | pandas fillna from the other table's matching row (set_index, reindex) | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | pandas fillna from the other table's matching row (set_index, reindex) | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | pandas fillna from the other table's matching row (set_index, reindex) | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+| empty left | R | 0 | 0 | relative 1e-12 | pass |
+| total | R | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | R | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | R | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+
+**NHANES: the 9 empty body mass index cells filled with the average of the person's age group (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| empty left | Polars join(how="left"), coalesce | 0 | 0 | relative 1e-12 | pass |
+| total | Polars join(how="left"), coalesce | 667.347142857143 | 667.347142857143 | relative 1e-12 | pass |
+| first person | Polars join(how="left"), coalesce | 28.3714285714286 | 28.3714285714286 | relative 1e-12 | pass |
+| sum of row x bmi | Polars join(how="left"), coalesce | 8916.40428571428 | 8916.40428571428 | relative 1e-12 | pass |
+
+### `table.find_summary_of show=`
+
+**NHANES body mass index by age group: the first and last filled values, the biggest and the smallest** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age group 1: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 20.4 | 20.4 | exact | pass |
+| age group 1: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.5 | 27.5 | exact | pass |
+| age group 2: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 22 | 22 | exact | pass |
+| age group 2: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.4 | 27.4 | exact | pass |
+| age group 3: first | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 21.7 | 21.7 | exact | pass |
+| age group 3: last | pandas groupby().agg(["first", "max", "min", "last"]) (empty cells skipped) | 24.9 | 24.9 | exact | pass |
+| age group 1: first | R | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | R | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | R | 20.4 | 20.4 | exact | pass |
+| age group 1: last | R | 27.5 | 27.5 | exact | pass |
+| age group 2: first | R | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | R | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | R | 22 | 22 | exact | pass |
+| age group 2: last | R | 27.4 | 27.4 | exact | pass |
+| age group 3: first | R | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | R | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | R | 21.7 | 21.7 | exact | pass |
+| age group 3: last | R | 24.9 | 24.9 | exact | pass |
+
+**NHANES body mass index by age group: the first and last filled values, the biggest and the smallest (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| age group 1: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 20.4 | 20.4 | exact | pass |
+| age group 1: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 35.3 | 35.3 | exact | pass |
+| age group 1: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 20.4 | 20.4 | exact | pass |
+| age group 1: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.5 | 27.5 | exact | pass |
+| age group 2: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 22.7 | 22.7 | exact | pass |
+| age group 2: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 28.7 | 28.7 | exact | pass |
+| age group 2: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 22 | 22 | exact | pass |
+| age group 2: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.4 | 27.4 | exact | pass |
+| age group 3: first | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 21.7 | 21.7 | exact | pass |
+| age group 3: biggest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 27.2 | 27.2 | exact | pass |
+| age group 3: smallest | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 21.7 | 21.7 | exact | pass |
+| age group 3: last | Polars group_by().agg(drop_nulls().first(), max(), min(), last()) | 24.9 | 24.9 | exact | pass |
+
+### `table.as_list`
+
+**mtcars given back as a list of 32 rows, one dict for each car** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas to_dict("records") | 32 | 32 | exact | pass |
+| keys in a row | pandas to_dict("records") | 12 | 12 | exact | pass |
+| total hp | pandas to_dict("records") | 4694 | 4694 | exact | pass |
+| total wt | pandas to_dict("records") | 102.952 | 102.952 | exact | pass |
+| row 1: Mazda RX4 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 2: Mazda RX4 Wag | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 3: Datsun 710 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 4: Hornet 4 Drive | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 5: Hornet Sportabout | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 6: Valiant | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 7: Duster 360 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 8: Merc 240D | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 9: Merc 230 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 10: Merc 280 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 11: Merc 280C | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 12: Merc 450SE | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 13: Merc 450SL | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 14: Merc 450SLC | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 15: Cadillac Fleetwood | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 16: Lincoln Continental | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 17: Chrysler Imperial | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 18: Fiat 128 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 19: Honda Civic | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 20: Toyota Corolla | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 21: Toyota Corona | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 22: Dodge Challenger | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 23: AMC Javelin | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 24: Camaro Z28 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 25: Pontiac Firebird | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 26: Fiat X1-9 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 27: Porsche 914-2 | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 28: Lotus Europa | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 29: Ford Pantera L | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 30: Ferrari Dino | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 31: Maserati Bora | pandas to_dict("records") | 1 | 1 | exact | pass |
+| row 32: Volvo 142E | pandas to_dict("records") | 1 | 1 | exact | pass |
+
+**mtcars given back as a list of 32 rows, one dict for each car (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars to_dicts() | 32 | 32 | exact | pass |
+| keys in a row | Polars to_dicts() | 12 | 12 | exact | pass |
+| total hp | Polars to_dicts() | 4694 | 4694 | exact | pass |
+| total wt | Polars to_dicts() | 102.952 | 102.952 | exact | pass |
+| row 1: Mazda RX4 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 2: Mazda RX4 Wag | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 3: Datsun 710 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 4: Hornet 4 Drive | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 5: Hornet Sportabout | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 6: Valiant | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 7: Duster 360 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 8: Merc 240D | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 9: Merc 230 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 10: Merc 280 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 11: Merc 280C | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 12: Merc 450SE | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 13: Merc 450SL | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 14: Merc 450SLC | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 15: Cadillac Fleetwood | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 16: Lincoln Continental | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 17: Chrysler Imperial | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 18: Fiat 128 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 19: Honda Civic | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 20: Toyota Corolla | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 21: Toyota Corona | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 22: Dodge Challenger | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 23: AMC Javelin | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 24: Camaro Z28 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 25: Pontiac Firebird | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 26: Fiat X1-9 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 27: Porsche 914-2 | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 28: Lotus Europa | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 29: Ford Pantera L | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 30: Ferrari Dino | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 31: Maserati Bora | Polars to_dicts() | 1 | 1 | exact | pass |
+| row 32: Volvo 142E | Polars to_dicts() | 1 | 1 | exact | pass |
+
+### `table.check_if_same_as`
+
+**mtcars against itself, and against mtcars with the weights rounded to 1 decimal** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| same as itself | pandas equals | 1 | 1 | exact | pass |
+| same after rounding wt | pandas equals | 0 | 0 | exact | pass |
+| same as itself | R | 1 | 1 | exact | pass |
+| same after rounding wt | R | 0 | 0 | exact | pass |
+
+**mtcars against itself, and against mtcars with the weights rounded to 1 decimal (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| same as itself | Polars equals | 1 | 1 | exact | pass |
+| same after rounding wt | Polars equals | 0 | 0 | exact | pass |
+
+### `table.show_duplicate_rows`
+
+**iris: flower 143 repeats flower 102 exactly** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows that repeat | pandas duplicated(keep=False) | 2 | 2 | exact | pass |
+| different rows | pandas duplicated(keep=False) | 1 | 1 | exact | pass |
+| extra copies | pandas duplicated(keep=False) | 1 | 1 | exact | pass |
+| rows that repeat | R | 2 | 2 | exact | pass |
+| extra copies | R | 1 | 1 | exact | pass |
+| different rows | R | 1 | 1 | exact | pass |
+
+**iris: flower 143 repeats flower 102 exactly (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows that repeat | Polars is_duplicated() | 2 | 2 | exact | pass |
+| different rows | Polars is_duplicated() | 1 | 1 | exact | pass |
+| extra copies | Polars is_duplicated() | 1 | 1 | exact | pass |
+
+### `table.show_rows_with_empty_cells_in`
+
+**NHANES: the people with at least one empty cell** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows with an empty cell | pandas isna().any(axis=1) | 12 | 12 | exact | pass |
+| rows | pandas isna().any(axis=1) | 25 | 25 | exact | pass |
+| rows with an empty cell | R | 12 | 12 | exact | pass |
+| rows | R | 25 | 25 | exact | pass |
+
+**NHANES: the people with at least one empty cell (a Polars table)** (real data; data: nhanes (mice))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows with an empty cell | Polars any_horizontal(is_null()) | 12 | 12 | exact | pass |
+| rows | Polars any_horizontal(is_null()) | 25 | 25 | exact | pass |
+
+### `table.count_rows with_totals=`
+
+**warpbreaks: looms for each wool and tension, with the totals** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| columns | pandas crosstab(margins=True, margins_name="(total)") | 5 | 5 | exact | pass |
+| A, L | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, M | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, H | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| A, (total) | pandas crosstab(margins=True, margins_name="(total)") | 27 | 27 | exact | pass |
+| B, L | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, M | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, H | pandas crosstab(margins=True, margins_name="(total)") | 9 | 9 | exact | pass |
+| B, (total) | pandas crosstab(margins=True, margins_name="(total)") | 27 | 27 | exact | pass |
+| (total), L | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), M | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), H | pandas crosstab(margins=True, margins_name="(total)") | 18 | 18 | exact | pass |
+| (total), (total) | pandas crosstab(margins=True, margins_name="(total)") | 54 | 54 | exact | pass |
+| A, H | R | 9 | 9 | exact | pass |
+| A, L | R | 9 | 9 | exact | pass |
+| A, M | R | 9 | 9 | exact | pass |
+| A, (total) | R | 27 | 27 | exact | pass |
+| B, H | R | 9 | 9 | exact | pass |
+| B, L | R | 9 | 9 | exact | pass |
+| B, M | R | 9 | 9 | exact | pass |
+| B, (total) | R | 27 | 27 | exact | pass |
+| (total), H | R | 18 | 18 | exact | pass |
+| (total), L | R | 18 | 18 | exact | pass |
+| (total), M | R | 18 | 18 | exact | pass |
+| (total), (total) | R | 54 | 54 | exact | pass |
+
+Note: R addmargins() names its totals "Sum"; simplydata and pandas (margins_name) call them "(total)". The R names are changed to "(total)" before the numbers are compared.
+
+### `table.save in_table=`
+
+**mtcars saved twice into an SQLite file (two tables) and read back** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas to_sql, read_sql_query (sqlite3) | 32 | 32 | relative 1e-12 | pass |
+| columns | pandas to_sql, read_sql_query (sqlite3) | 12 | 12 | relative 1e-12 | pass |
+| total hp | pandas to_sql, read_sql_query (sqlite3) | 4694 | 4694 | relative 1e-12 | pass |
+| total wt | pandas to_sql, read_sql_query (sqlite3) | 102.952 | 102.952 | relative 1e-12 | pass |
+| row 3 | pandas to_sql, read_sql_query (sqlite3) | 1 | 1 | relative 1e-12 | pass |
+
+### `table.show_differences_from`
+
+**mtcars with horsepower capped at 200, against mtcars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells that differ | pandas compare | 7 | 7 | exact | pass |
+| rows that differ | pandas compare | 7 | 7 | exact | pass |
+| cells that differ | R | 7 | 7 | exact | pass |
+| rows that differ | R | 7 | 7 | exact | pass |
+
 ### `get_numbers_drawn`
 
 **Anscombe's first set: the drawn fitted line is the least-squares line** (published; data: Anscombe's quartet)
@@ -7006,7 +9559,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | first row | Daniel & Wood (1980): observation 21 is the most influential | 21 | 21 | within 0 (printed rounding) | pass |
 | first row | R | 21 | 21 | relative 1e-09 | pass |
-| its Cook's distance | R | 0.69199991633951 | 0.69199991633951 | relative 1e-09 | pass |
+| its Cook's distance | R | 0.691999916339513 | 0.69199991633951 | relative 1e-09 | pass |
 | rows found | R | 1 | 1 | relative 1e-09 | pass |
 
 ### `sdata.get_example from_r_package=`
@@ -7025,8 +9578,8 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| BP | R | 0.880722470178817 | 0.880722470178813 | relative 1e-09 | pass |
-| p | R | 0.64380381454434 | 0.643803814544342 | relative 1e-09 | pass |
+| BP | R | 0.880722470178803 | 0.880722470178814 | relative 1e-09 | pass |
+| p | R | 0.643803814544345 | 0.643803814544341 | relative 1e-09 | pass |
 
 ### `table.find_correlation_between show="result table"`
 
@@ -7047,7 +9600,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | partial r | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
-| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620001e-06 | relative 1e-09 | pass |
+| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620003e-06 | relative 1e-09 | pass |
 | rows | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 32 | 32 | relative 1e-09 | pass |
 | partial r | R | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | R | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
@@ -7452,6 +10005,179 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.swap_rows_and_columns` | pandas | polars | table | relative 1e-09 | pass |
 | `table.swap_rows_and_columns` | Polars | polars | table | relative 1e-09 | pass |
 | `table.start_again` | - | - | none | relative 0 | pass |
+| `table.keep_rows_found_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_found_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_found_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.clean_column_names` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.clean_column_names` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.clean_column_names` | pandas | polars | table | relative 1e-09 | pass |
+| `table.clean_column_names` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_rows_that_are_all_empty` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_columns_that_are_all_empty` | Polars | polars | table | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | Polars | pandas | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show_duplicate_rows` | Polars | polars | printed | relative 1e-09 | pass |
+| `table.add_row_summary_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_row_summary_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_categories` | Polars | polars | table | relative 1e-09 | pass |
+| `table.split_into_rows` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.split_into_rows` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.split_into_rows` | pandas | polars | table | relative 1e-09 | pass |
+| `table.split_into_rows` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_running_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_running_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_running_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_running_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_row_number_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_groups_where` | Polars | polars | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | pandas | polars | table | relative 1e-09 | pass |
+| `table.remove_groups_where` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with using=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with using=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with using=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with using=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_columns show=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.change_column in_rows_where=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_first_rows for_each_group_in=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.count_columns` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.count_columns` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.count_columns` | pandas | polars | value | relative 1e-09 | pass |
+| `table.count_columns` | Polars | polars | value | relative 1e-09 | pass |
+| `table.rename_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.rename_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.rename_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.rename_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_missing_combinations_of` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.change_time_zone_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.spread_into_yes_no_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | pandas | polars | table | relative 1e-09 | pass |
+| `table.fill_empty_cells_from` | Polars | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where capitals_matter=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.count_rows with_totals=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.count_rows with_totals=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rank_column when_tied=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_group_column into_equal_groups=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_text written_like=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column counted_in=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.round_dates_in to_the=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_zeros_in_front_of` | Polars | polars | table | relative 1e-09 | pass |
+| `table.move_columns` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.move_columns` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.move_columns` | pandas | polars | table | relative 1e-09 | pass |
+| `table.move_columns` | Polars | polars | table | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | Polars | pandas | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.show_rows_with_empty_cells_in` | Polars | polars | printed | relative 1e-09 | pass |
+| `table.show_differences_from` | pandas | pandas | printed | relative 1e-09 | pass |
+| `table.show_differences_from` | pandas | polars | printed | relative 1e-09 | pass |
+| `table.check_if_same_as` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | pandas | polars | value | relative 1e-09 | pass |
+| `table.check_if_same_as` | Polars | polars | value | relative 1e-09 | pass |
+| `table.run_sql` | DuckDB | pandas | table | relative 1e-09 | pass |
+| `table.run_sql` | DuckDB | polars | table | relative 1e-09 | pass |
+| `sdata.run_sql` | DuckDB | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | pandas | polars | table | relative 1e-09 | pass |
+| `table.make_one_table_for_each_group_in` | Polars | polars | table | relative 1e-09 | pass |
+| `table.as_list` | pandas | pandas | value | relative 1e-09 | pass |
+| `table.as_list` | Polars | pandas | value | relative 1e-09 | pass |
+| `table.as_list` | pandas | polars | value | relative 1e-09 | pass |
+| `table.as_list` | Polars | polars | value | relative 1e-09 | pass |
+| `table.find_summary_of show=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_summary_of show=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.sort_by biggest_first=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.gather_into_rows starts_with=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with match=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with match=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with match=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with match=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with keep="every combination"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.save in_table=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.save in_table=` | pandas | polars | table | relative 1e-09 | pass |
 | `nums.find_median` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_average` | NumPy | pandas | value | relative 1e-12 | pass |
 | `nums.find_percentile` | NumPy | pandas | value | relative 1e-12 | pass |
@@ -8221,6 +10947,49 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.gather_into_rows` (1): every other column stays beside each value, and the new columns are called "column" and "value" (names_to=, values_to= change them; pandas' own names are "variable" and "value").
 - `table.spread_into_columns` (1): rows and new columns stay in the order they first appear (Jan, Feb ...; Sunnyvale first), on both engines; pandas' pivot sorts them (Apr, Aug ...; Frostby first).
 - `table.swap_rows_and_columns` (1): the first column (here "name") names the new columns, because it holds text with no repeat and no empty cell, and the old column names go in a first column called "column"; pandas' plain .T and Polars' transpose() would number the columns instead.
+- `table.keep_rows_found_in` (1): a semi join: no column comes in from the other table and no row is repeated, however often a name appears there; the rows keep their order, and an empty key is never found.
+- `table.remove_rows_found_in` (1): an anti join: the rows whose name is not in the other table stay, in their order; a row with an empty key is never found, so it stays.
+- `table.clean_column_names` (1): the rule of R janitor::clean_names(): % becomes percent and # number, letters such as ø and é become plain letters, every run of other signs one "_", small letters; a name that starts with a digit gets an x in front and a repeated name _2. Unlike janitor, pH becomes ph, not p_h.
+- `table.remove_rows_that_are_all_empty` (1): a row goes only when every cell is empty; an empty cell is a missing value or text of only spaces (pandas and Polars count "   " as filled).
+- `table.remove_columns_that_are_all_empty` (1): a column goes only when every cell is empty (a missing value or text of only spaces); a table whose every cell is empty is refused rather than left with no columns.
+- `table.show_duplicate_rows` (1): every copy is shown, the first one too (keep=False), each with its row number counted from 1, and two empty cells count as the same; the table does not change.
+- `table.add_row_summary_column` (1): empty cells are left out of each row's summary, as pandas (skipna) and Polars do; a row with every cell empty gets an empty cell, also for show="total" (pandas sum(min_count=1); Polars sum_horizontal alone would give 0).
+- `table.turn_into_categories` (1): a value that is not in in_order= stops the word with its name (pandas Categorical would turn it into an empty cell without a word; Polars Enum refuses it too); without in_order= the order is the one in which the values first appear.
+- `table.split_into_rows` (1): the separator is plain text, not a pattern; a cell without it stays one row, and an empty cell stays one row with an empty cell.
+- `table.add_running_column` (1): the sum follows sorted_by= (here the date) while the rows keep their place in the table;
+- `table.add_running_column` (2): an empty cell stays empty and is left out of the rows after it (for show="average" too, whose pandas expanding().mean() would carry the average on).
+- `table.add_row_number_column` (1): numbers start at 1, as table.show() counts (pandas cumcount() starts at 0), in the order of sorted_by=, while the rows keep their place.
+- `table.keep_groups_where` (1): whole groups stay or go, in their places; empty cells are left out of each summary, and a group whose summary cannot be worked out (every cell empty) is left out.
+- `table.remove_groups_where` (1): whole groups go, the others stay in their places; a group whose summary cannot be worked out is never removed.
+- `table.join_with using=` (1): check_that= runs pandas' and Polars' own validate= and, when a key repeats, says which values repeat and in which table, before anything is joined;
+- `table.join_with using=` (2): the key keeps this table's name only (pandas keeps both columns; Polars drops the other's).
+- `table.spread_into_columns show=` (1): rows and new columns stay in the order they first appear (pandas pivot_table sorts them);
+- `table.spread_into_columns show=` (2): a day and fruit that never appear together stay an empty cell for every show= (Polars gives 0 for a total or count of no rows).
+- `table.change_column in_rows_where=` (1): the condition is read on the values before the change, and a row it cannot check (an empty cell) keeps its value, with a note.
+- `table.keep_first_rows for_each_group_in=` (1): the rows keep their order in the table (Polars group_by().head() would put each group's rows together), and an empty group cell is a group of its own.
+- `table.add_missing_combinations_of` (1): the rows come out sorted by the key columns, and every row already there stays as it is: a combination that is there twice keeps both rows (pandas' reindex would refuse it), and a row with an empty key stays, at the end.
+- `table.change_time_zone_in` (1): a clock time that never happened (the hour skipped when summer time starts) or happened twice (when it ends) becomes an empty cell, with a note, instead of stopping the whole column (the pandas and Polars default) or being moved without a word.
+- `table.spread_into_yes_no_columns` (1): the new columns are True/False, A to Z, after the others, and the column itself stays; empty cells get a column of their own called "fruit: (empty)" on both engines (pandas dummy_na=True names it "fruit: nan", Polars "fruit: null").
+- `table.fill_empty_cells_from` (1): only empty cells take a value (text of only spaces counts as empty); a filled cell never changes, and a key that is in the other table twice stops the word with its name, so it is never unclear which row fills.
+- `table.count_rows with_totals=` (1): each total is worked out from the rows themselves, as pandas margins=True does (for an average, the average of all the rows, not of the cells); Polars has no margins, so simplydata works out each total with group_by().agg() on both engines. The total row and column are called "(total)"; rows with an empty key stay, as "(empty)", and count in the totals (pandas leaves them out; this table has none).
+- `table.add_group_column into_equal_groups=` (1): the groups are numbered 1 (the smallest values) to 4, counted from 1 as everywhere in simplydata (pandas labels=False counts from 0), or named with names=; the cut points are printed.
+- `table.turn_into_text written_like=` (1): the example date is turned into the % codes by a fixed table of its parts (a four-digit year, the number above 12 as the day, month and weekday names); an example whose day is 12 or less is refused, because then the day cannot be told from the month.
+- `table.add_column counted_in=` (1): whole units, counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars total_hours(); pandas gives 1.98 until it is truncated).
+- `table.round_dates_in to_the=` (1): a time exactly half way goes up (10:30 becomes 11:00), as Polars dt.round() does; pandas dt.round() would send it to the even hour (10:00), so the two engines would differ.
+- `table.add_zeros_in_front_of` (1): zeros go in front until the text has to_length= characters; a longer text is never cut, a minus or plus sign stays in front, and an empty cell stays empty (str.zfill in pandas and Polars).
+- `table.show_rows_with_empty_cells_in` (1): a row is shown when any of its cells (or of the columns= named) is empty, with its row number counted from 1; text of only spaces counts as empty too, and the table does not change.
+- `table.show_differences_from` (1): rows are compared in order (row 3 with row 3), and two empty cells count as the same (pandas compare); tables with other columns or another number of rows are not compared cell by cell, and simplydata says how they differ. Polars tables go through pandas compare.
+- `table.check_if_same_as` (1): the same means the same columns in the same order, the same rows, the same values and the same kinds (pandas and Polars equals); two empty cells count as the same.
+- `table.run_sql` (1): DuckDB runs with no extensions loaded or installed on their own and no access to files or the web, the settings locked, and only one SELECT is run: a query can never fetch, install or write anything;
+- `table.run_sql` (2): inside the query the table is called data, and a Polars table comes back as Polars (.pl()); without DuckDB the word stops with the install line (no other SQL engine is used).
+- `sdata.run_sql` (1): DuckDB reads the files on this computer, with no extensions loaded or installed on their own (so no web or cloud address can be read), the settings locked, and only one SELECT is run; an address such as https:// or s3:// is refused before DuckDB sees it.
+- `table.make_one_table_for_each_group_in` (1): the groups come in the order they are first seen and the rows keep their order; rows with an empty cell in the column make a group of their own (dropna=False), and with one column each table is found by the value itself: tables["Station B"].
+- `table.find_summary_of show=` (1): "first" and "last" are the first and last filled value in the order of the rows (pandas groupby first() and last() skip empty cells; Polars drop_nulls() then first() and last()): sort first with sort_by for another order.
+- `table.sort_by biggest_first=` (1): a list gives each column its own direction, one True or False for each; pandas' ascending= is the opposite (ascending=[True, False]), Polars' descending= the same; rows that tie keep their order.
+- `table.gather_into_rows starts_with=` (1): starts_with=, ends_with= and matches_pattern= choose the columns by their names exactly as keep_columns does (capital letters matter), in table order; one way at a time.
+- `table.join_with match=` (1): both tables are sorted stably by the date first, as merge_asof and join_asof need, and the rows go back to this table's order afterwards; a pandas table runs through Polars join_asof too, so ties, repeated dates and empty keys are handled by one rule on both engines;
+- `table.join_with match=` (2): "nearest before" takes the last row at or before each date (backward), "nearest after" the first at or after (forward), "nearest" either; within= is the furthest it looks (tolerance), and keep="matching rows" leaves out the rows with nothing near enough.
+- `table.save in_table=` (1): in_table= replaces that one table and keeps the other tables of the file (if_exists="replace"), with no row labels (index=False); a .duckdb file is written by DuckDB, with no extensions.
 - `nums.find_median` (1): empty values are skipped (np.nanmedian); NumPy's np.median would give nan.
 - `nums.find_average` (1): empty values are skipped (np.nanmean); NumPy's np.mean would give nan.
 - `nums.find_percentile` (1): NumPy's usual "linear" method, the same as pandas' quantile and R's quantile(type = 7); empty values are skipped (nanpercentile).

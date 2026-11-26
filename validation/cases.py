@@ -256,6 +256,9 @@ class Case:
     option: str = ""              # the option the case checks ("weights="); empty for the word itself
     ours_r: tuple | None = None   # R packages simplydata's own side runs (None: it needs no R); skipped without them
     explained: dict = field(default_factory=dict)  # published name -> why it may fall short (a precision limit)
+    # (suffix, reason): R also gives each number worked out on simplydata's rules as "<name><suffix>"; a number that
+    # differs from R is an explained difference only when all of those agree with simplydata (make_report._explain)
+    r_explained: tuple = ()
     local_data: str = ""          # the environment variable naming a data file that is not shipped; skipped without
 
     def __post_init__(self):

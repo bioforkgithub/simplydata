@@ -58,6 +58,8 @@ def test_example_tables_load_with_the_columns_described(name, capsys):
     assert type(table).__name__ == "Table"  # a pandas DataFrame up to simplydata 0.2.x
     if name == "bcg":  # real data: the 13 BCG trials (Colditz et al. 1994)
         assert len(table) == 13
+    elif name == "fjord_stations":  # the eight stations of the fjord cruise
+        assert len(table) == 8
     else:
         assert len(table) >= 20
     columns = table.get_column_names()
@@ -77,6 +79,14 @@ def test_example_tables_load_with_the_columns_described(name, capsys):
         assert with_empty == {"materials", "pace"}
     elif name == "ability_tests":  # S3c-2: made up after Holzinger & Swineford (1939); one grade is empty, as there
         assert with_empty == {"grade"} and empty["grade"] == 1
+    elif name == "fjord_samples":  # tables phase: most notes are empty; sample_id is stored as a number
+        assert with_empty == {"notes"} and _is_dates(table, "sampled_local")
+        assert table.get_cell_at(row=7, column="sample_id") == 7
+    elif name == "fjord_lab":  # messy on purpose: 2 empty rows and an empty column, IDs kept as text ("001")
+        assert with_empty == set(columns) and empty["checked_by"] == len(table)
+        assert table.get_column("sample_id")[:2] == ["001", "001"] and "141" in table.get_column("sample_id")
+    elif name == "fjord_logger":
+        assert not with_empty and _is_dates(table, "time_utc")
     else:
         assert not with_empty
     capsys.readouterr()
@@ -349,10 +359,10 @@ LESSON_NUMBERS = range(1, len(learn.LESSONS) + 1)
 
 
 def test_the_lesson_count(capsys):
-    assert len(learn.LESSONS) == 36
+    assert len(learn.LESSONS) == 37
     sdata.show_lesson()
     out = capsys.readouterr().out
-    assert "36 lessons" in out
+    assert "37 lessons" in out
     for i in LESSON_NUMBERS:
         assert f"sdata.show_lesson({i})" in out
 
@@ -400,9 +410,9 @@ def test_lessons_use_tables_and_charts(number):
         assert gone not in code, f"lesson {number} uses {gone}"
 
 
-@pytest.mark.parametrize("bad", [0, 37, "1", 1.0, True])
+@pytest.mark.parametrize("bad", [0, 38, "1", 1.0, True])
 def test_wrong_lesson_number_is_explained(bad):
-    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 36"):
+    with pytest.raises(sdata.SimplydataError, match="lessons 1 to 37"):
         sdata.show_lesson(bad)
 
 

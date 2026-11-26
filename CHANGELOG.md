@@ -5,6 +5,155 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
+
+- Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several
+  table words run on Polars for every table so that pandas and Polars tables give one answer (`round_dates_in`,
+  `matches_pattern=` on rows, `replace_text_in(capitals_matter=False)`, `join_with(match="nearest before")`).
+  `pip install "simplydata[fast]"` still works and adds nothing more. The messages that asked to install
+  `simplydata[fast]` are gone. The lowest Polars is now 1.43.2: older ones stop with a panic in
+  `turn_into_dates(written_like=)` for written-out month names.
+
+### Fixed
+
+- One set of time zone rules on every computer (decided by Manish 2026-11-26). pandas reads the clock of a column
+  with a time zone through the computer's copy of the world time zone data, Polars through its own; the copies can
+  differ before 1970 (Debian and Ubuntu keep Norway's summer time of 1959 to 1965, the main IANA data does not), so
+  on Linux 1 July 1959 00:00 in Oslo was month 7 on a pandas table and month 6 on a Polars table. Every date step on
+  a column with a time zone now reads and writes its clock through Polars on both engines: the parts of a date,
+  `turn_into_text`, `add_column(plus=, minus=, by_subtracting=, counted_in=)`, joined text, `every=`, cross-table
+  column names, `keep_rows_where` on dates, `change_time_zone_in(recorded_in=)`, `describe_columns`,
+  `add_missing_dates`, `round_dates_in` and Excel and Stata files. Local clock times before 1970 follow the main
+  world time-zone data (IANA), the same on every computer; the moments themselves never change. For example,
+  Norway's summer time of 1959-65 is not included (it is only in IANA's "backzone" file, which Ubuntu and R on Linux
+  include). The reliability study compares pandas through Python's zoneinfo read from the tzdata package (IANA's main
+  data) on every system, so `tzdata` (2023.3 to 2027) joins the `test` extra. Where R reads a copy with the
+  backzone, its Oslo numbers are listed as an explained difference, only when R given IANA's main data gives simplydata's numbers.
+- Time zone names with `_`, `-`, `+` or digits (`America/New_York`, `America/Port-au-Prince`, `Etc/GMT+5`,
+  `America/Argentina/Buenos_Aires`) on a pandas table. narwhals (2.27 to 2.29) reads the kind of a pandas column from
+  its written dtype with a pattern that takes only letters and `/` in the zone, so such a column was `Unknown`: every
+  date word on a pandas table (the parts of a date, days between, `plus=`, `round_dates_in`, `change_time_zone_in`,
+  `keep_rows_where`, `every=`, `join_with(match="nearest")`, `add_missing_dates` ...) stopped or called the column
+  "other values". simplydata now widens that one narwhals pattern when it is loaded, and only while narwhals needs it;
+  the date steps still run in pandas' and Polars' own methods. Polars tables were not affected.
+- `every="month"` (and `"quarter"`, `"year"`) on a pandas column with a time zone east of UTC: narwhals truncated
+  pandas dates on the UTC clock, so 1 July 00:00 in Oslo was counted in June. It is now truncated by Polars
+  `dt.truncate` on the column's own clock, as on a Polars table.
+- `keep_rows_where` (`is_after=`, `is_before=`, `is_between=`, a written condition such as `"t > '2024-01-01'"`) on a
+  column with a time zone stopped on both engines (a time without a zone cannot be compared with one). A date or time
+  given there is now read on the column's clock (pandas `Timestamp.tz_localize`); one that never happens or happens
+  twice there stops with a message.
+- `round_dates_in`: on a pandas table the sentence counted empty cells as changed.
+- `table.save()` with a column that has a time zone: a .csv, .tsv, .csv.gz or .tsv.gz file gets the times with
+  their UTC offset in one layout on both engines (`2024-07-01 23:45:00-04:00`; Polars wrote
+  `2024-07-01T23:45:00.000000-0400`), and `sdata.table()` now reads a column of such times back as the same
+  moments on the UTC clock (pandas `to_datetime(format="ISO8601", utc=True)`); a note names the zone that a text
+  file cannot keep. Excel (.xlsx, also `in_sheet=`) and Stata (.dta) have no time zones, and pandas stopped with
+  its own error: the clock times of the zone are now saved (pandas `dt.tz_localize(None)`), with a note naming
+  the zone and how to save UTC times instead.
+- `sdata.table(..., fast=True)`: a blank line in a CSV or TSV file is now skipped, as without `fast=True`. Polars
+  made it a row of empty cells, the same row as a line of empty fields (`,,`), which both engines keep; Polars
+  cannot tell the two apart, so a file with a row of only empty cells is read by pandas (`skip_blank_lines`) and
+  then handed to Polars.
+
+### Added: tables phase, batch 2 (ranks 16-30 of the tables proposal; approved by Manish 2026-11-25)
+
+- `sdata.table(..., columns=[...], column_names=[...], skip_lines_starting_with="#")`: read only some columns (in the
+  order given), name the columns of a file without a header line, and skip a logger's note lines (pandas `usecols=`,
+  `header=None, names=`, `comment=`; Polars `columns=`, `new_columns=`, `comment_prefix=`). `usecols=`, `names=`,
+  `comment=` and friends run with a note once; `header=` points to `column_names=`.
+- `capitals_matter=False` on `keep_rows_where`, `remove_rows_where`, `replace_values_in`, `replace_text_in`,
+  `find_percent_of_rows_where`, `keep_columns` and `remove_columns`; `matches_pattern=` on `keep_rows_where` and
+  `remove_rows_where`. `ignore_case=`, `case=` and `regex=` point to them.
+- Durations: `add_column("check_on", from_column="date", plus="1 month")` (also "30 days", "2 weeks", "1 year",
+  "12 hours", and `minus=`); `add_column(..., by_subtracting=[end, start], counted_in="hours")`.
+- `written_like="31.12.2026"` on `turn_into_text` and `turn_into_dates`: an example date instead of % codes.
+- `table.add_missing_combinations_of("station", "depth_m")`, `table.count_columns()`,
+  `table.rename_columns({...})` / `rename_columns(add_in_front="w_")`, `table.round_dates_in("date",
+  down_to="month")` (`up_to=`, `to_the=`), `table.change_time_zone_in("time", to="UTC", recorded_in="Europe/Oslo")`,
+  `table.spread_into_yes_no_columns("fruit")` (empty cells get a column "fruit: (empty)" on both engines),
+  `table.fill_empty_cells_from(other, using="id")`.
+- `with_totals=True` on `count_rows`, `find_total_of` and `find_average_of` cross tables (a "(total)" row and column; rows with an empty key count in them, unlike pandas margins); `fill_empty_cells_in(...,
+  from_column=)`; new `part=` values on `add_column_with_part_of_date` ("date", "time", "second", "is weekend", "days
+  in month", "is month end", "is leap year", "year and month"); `add_rank_column(..., for_each_group_in=,
+  when_tied=)`; `add_group_column(..., into_equal_groups=4)`.
+- One rule on both engines where pandas and Polars differ: `capitals_matter=False` compares after pandas `str.casefold()`; `matches_pattern=` on rows, `round_dates_in` and `replace_text_in(capitals_matter=False)` run through Polars; `into_equal_groups=` through pandas `qcut`.
+- Other names: `shape` points to count_rows and count_columns, `crosstab` to count_rows(across=) first, `complete`
+  to add_missing_combinations_of and add_missing_dates; get_dummies, tz_convert, combine_first, qcut, strftime ...
+  point to the new words.
+
+### Added: tables phase, batch 1 (the 15 jobs a messy table needs most; approved by Manish 2026-11-25)
+
+- `sdata.table("lab.csv", read_as_text=["sample_id"])` keeps columns as text, exactly as typed: 007 stays 007 and a
+  lab code such as 3-12 stays text (pandas `read_csv(dtype=)`, Polars `schema_overrides=`). pandas' `dtype=` and
+  Polars' `schema_overrides=` (and R's `col_types=`, `colClasses=`) run as `read_as_text=` with a note once when
+  every type in them is text.
+- `join_with`: `using={"name": "student"}` pairs differently named columns; `keep="all rows from the other table"`
+  (the right join); `check_that="each row has one match"` (or "each key appears once in both", "each key appears
+  once here") runs pandas' and Polars' own `validate=` and names the repeated keys before anything is joined;
+  `with_match_column=True` adds a column "found in" ("both", "this table only", "other table only").
+  `how="left"` and friends run as `keep=` with a note once; `left_on=`, `right_on=`, `validate=` and `indicator=`
+  point to the simplydata way and never run.
+- `table.keep_rows_found_in(other, using=)` and `table.remove_rows_found_in(other, using=)`: semi and anti joins.
+- `table.clean_column_names()`: "Max Temp (°C)" becomes max_temp_c (the R janitor rule; pH becomes ph).
+- `table.remove_rows_that_are_all_empty()` and `table.remove_columns_that_are_all_empty()`.
+- `table.show_duplicate_rows(columns=)` shows every copy with its row number; `remove_duplicate_rows(keep="last")`
+  and `keep="none"`.
+- `table.add_row_summary_column(name, columns=, show=)`: the average (total, median, ...) across the columns of
+  each row.
+- `spread_into_columns(..., show="total")` combines rows that would fill the same cell; without `show=` the word
+  stops and names the repeated pairs. A pair that never appears stays an empty cell.
+- `keep_first_rows`, `keep_last_rows` and `keep_rows_by_position` take `for_each_group_in=`.
+- `table.turn_into_categories(column, in_order=[...])`: sorting, group summaries and charts follow the order; a
+  value not in the list stops the word with its name.
+- `change_column(..., in_rows_where="marks >= 50")`, and `in_rows_where=` on `replace_values_in` and
+  `fill_empty_cells_in`: only the rows that meet the condition change.
+- `table.keep_groups_where("average(marks) >= 50", for_each_group_in=)` and `remove_groups_where`.
+- `table.add_running_column(name, from_column=, show="total")` and `table.add_row_number_column(name,
+  for_each_group_in=, sorted_by=)`.
+- `table.split_into_rows("genes", separator=";")`.
+- New practice tables from one made-up fjord cruise, messy on purpose: `fjord_samples`, `fjord_lab`,
+  `fjord_stations`, `fjord_logger` (docs/make_fjord_tables.py), and lesson 37, "Tables: a messy file from a fjord
+  cruise". Each new word has a "same underneath" entry (pandas and Polars) and its basis in
+  docs/how_simplydata_chooses.md; other names from pandas, Polars and R (semi_join, explode, cumsum, rowMeans,
+  factor, clean_names ...) point to the new words.
+
+### Added: tables phase, batch 3 (ranks 31-44 of the proposal; approved by Manish 2026-11-25)
+
+- `table.add_zeros_in_front_of("sample_id", to_length=3)`: "7" becomes "007" (pandas and Polars `str.zfill`);
+  longer texts are never cut.
+- `find_summary_of(show=["first", "last"])`: the first and last filled value in the order of the rows; with
+  `every="month"`, `show=["first", "biggest", "smallest", "last"]` gives open, high, low and close.
+- `sort_by("class", "marks", biggest_first=[False, True])`: a direction for each column. Polars' `descending=`
+  runs as `biggest_first=`; pandas' `ascending=` (the opposite) points and never runs.
+- `gather_into_rows(starts_with="pain_week_", ...)`, and `ends_with=`, `matches_pattern=`: the columns chosen by
+  their names, as in `keep_columns`.
+- `table.move_columns("marks", to="start")` (or `to="end"`, `after="name"`).
+- `table.show_rows_with_empty_cells_in(columns=)`: the rows with a hole, with their row numbers.
+- `join_with(rain, using="date", match="nearest before", within="2 days")` (pandas `merge_asof`, Polars
+  `join_asof`; also "nearest after" and "nearest"), and `join_with(other, keep="every combination")` (a cross
+  join).
+- `table.show_differences_from(other)` (pandas `compare`) and `table.check_if_same_as(other)` (pandas and Polars
+  `equals`, kinds too).
+- File types by name: read .csv.gz, .tsv.gz, .zip (one CSV inside), .feather and .arrow, .jsonl and .ndjson, .xml,
+  .sas7bdat, and the databases .sqlite, .db and .duckdb (`sdata.table("lab.sqlite", table_name="samples")`); save
+  .csv.gz, .tsv.gz, .feather, .jsonl, .dta and .html, and one table of a database file with
+  `table.save("results.sqlite", in_table="river")`, which replaces that table and keeps the others (the mirror of
+  `in_sheet=`).
+- `table.run_sql("SELECT ... FROM data ...")` and `sdata.run_sql("SELECT ... FROM 'river/*.parquet' ...")`: SQL
+  through DuckDB, a new optional extra (`pip install "simplydata[sql]"`); without DuckDB both words stop with the
+  install line. For sensitive data, DuckDB is opened with no extensions installed or loaded on their own (so it
+  cannot read web or cloud addresses), its settings locked and only one SELECT allowed (checked by DuckDB's own
+  parser); a query naming any scheme:// address but file:// (https://, s3://, adl:// ...) is refused before DuckDB
+  sees it, and a query on a table cannot open files.
+- `tables = table.make_one_table_for_each_group_in("station")`: one table for each group, `tables["Station A"]`.
+- Formula functions `length(name)` and `count_text(genes, ";")` (pandas `str.len`, `str.count`; Polars
+  `len_chars`, `count_matches`); `length()` works in conditions too.
+- `table.as_list()`: one dict per row, for plain Python.
+- Each new word and option has a "same underneath" entry (pandas and Polars, or DuckDB, sqlite3) and its basis;
+  other names (zfill, relocate, compare, equals, merge_asof, cross_join, partition_by, to_dicts, to_sql, sqldf ...)
+  point to them.
+
 ### Changed: a front door for new users
 
 - New motto: "Learn basic Python, and simplydata takes you from your first table to sound statistics, in plain

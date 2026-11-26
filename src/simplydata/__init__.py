@@ -21,6 +21,7 @@ import sys as _sys
 # The packages loaded before simplydata (for sdata.show_packages_used(): "You also loaded these yourself")
 _BEFORE = {_name.split(".")[0] for _name in list(_sys.modules)}
 
+from . import _narwhals_mend  # noqa: F401  pandas zone names such as America/New_York (see the module)
 from ._errors import SimplydataError
 from .chart import Chart, chart
 from .data import get_example
@@ -37,6 +38,7 @@ from .risks import compare_rates, compare_risks, compare_to_truth
 from ._dates import make_run_of_dates
 from ._waves import find_inverse_fourier_transform, make_wave, make_window_shape
 from .systems import System, frequency_filter, system
+from ._sql import run_sql  # tables phase, batch 3: SQL on files, with DuckDB
 
 # Last, on purpose: the old name sdata.words (defined below) must win over the subpackage simplydata.words
 # (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
@@ -90,7 +92,7 @@ __all__ = [
     "find_where_smallest", "frequency_filter", "get_example", "go_to_next_day", "help", "make_design_table",
     "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_grid", "numbers", "put_in_rows_and_columns",
-    "put_one_above_other", "put_side_by_side", "show_all_words", "show_answers", "show_day", "show_lesson",
+    "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_packages_used", "show_today", "solve", "start_30_days", "system", "table", "__version__",
 ]
 

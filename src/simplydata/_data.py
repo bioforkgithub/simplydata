@@ -43,11 +43,30 @@ _READERS = {
     ".sav": "spss",    # optional extra: pyreadstat
     ".zsav": "spss",
     ".dta": "stata",
+    # tables phase, batch 3 (P38): more file types by name, each read by pandas itself
+    ".csv.gz": "csv",   # pandas read_csv(compression="gzip")
+    ".tsv.gz": "tsv",
+    ".txt.gz": "csv",
+    ".zip": "csv",      # one CSV file inside: pandas read_csv(compression="zip")
+    ".feather": "feather",  # pandas read_feather (pyarrow)
+    ".arrow": "feather",
+    ".jsonl": "jsonl",  # pandas read_json(lines=True)
+    ".ndjson": "jsonl",
+    ".xml": "xml",      # pandas read_xml(parser="etree"), Python's own XML reader
+    ".sas7bdat": "sas",  # pandas read_sas
+    ".sqlite": "sqlite",  # Python's sqlite3 and pandas read_sql_query
+    ".sqlite3": "sqlite",
+    ".db": "sqlite",
+    ".duckdb": "duckdb",  # DuckDB (simplydata[sql]), opened read-only, with no extensions and no files
 }
+# file endings of two parts: the compressed text files
+_TWO_PART_ENDINGS = (".csv.gz", ".tsv.gz", ".txt.gz")
 
 _KIND_NAMES = {
     "csv": "CSV and text", "tsv": "TSV", "excel": "Excel", "parquet": "Parquet", "json": "JSON",
     "word": "Word", "spss": "SPSS", "stata": "Stata",
+    "feather": "Feather (Arrow)", "jsonl": "JSON lines", "xml": "XML", "sas": "SAS", "sqlite": "SQLite",
+    "duckdb": "DuckDB",
 }
 
 # Which reading options make sense for which kind of file.
@@ -59,6 +78,12 @@ _OPTIONS_FOR = {
     "empty_values": ("csv", "tsv", "excel", "word"),
     "skip_rows": ("csv", "tsv", "excel", "word"),
     "table_number": ("word",),
+    "read_as_text": ("csv", "tsv", "excel", "word"),
+    # tables phase, batch 2 (approved by Manish 2026-11-25)
+    "columns": ("csv", "tsv", "excel", "parquet"),
+    "column_names": ("csv", "tsv", "excel"),
+    "skip_lines_starting_with": ("csv", "tsv"),
+    "table_name": ("sqlite", "duckdb"),  # tables phase, batch 3 (P38)
 }
 
 READING_OPTIONS = tuple(_OPTIONS_FOR)
@@ -93,8 +118,58 @@ def _missing_file_error(path: Path) -> SimplydataError:
 
 
 # ---------------------------------------------------------------- reading options
+# read_as_text= also takes pandas' dtype={"sample": str} and Polars' schema_overrides={"sample": pl.String} when every
+# type in it is a text type; these are the ways of writing "text" that are accepted
+_TEXT_TYPES = ("str", "string", "text", "object", "utf8", "character")
+
+
+def _is_text_type(value) -> bool:
+    if value is str:
+        return True
+    name = getattr(value, "__name__", None) or str(value)
+    return name.strip().lower().replace("pl.", "") in _TEXT_TYPES
+
+
+def _read_as_text_names(value) -> list:
+    """read_as_text= as a list of column names (one name, a list, or a {name: str} mapping from pandas or Polars)."""
+    example = 'For example:  sdata.table("lab.csv", read_as_text=["sample_id"])'
+    if isinstance(value, dict):
+        not_text = [str(k) for k, v in value.items() if not _is_text_type(v)]
+        if not_text:
+            raise SimplydataError(
+                "read_as_text= keeps columns as text, exactly as typed. Other kinds are set after reading: "
+                "table.turn_into_numbers(...) or table.turn_into_dates(...).\n"
+                f"Not text here: {', '.join(not_text)}.\n{example}"
+            )
+        value = list(value)
+    if isinstance(value, str):
+        value = [value]
+    if (not isinstance(value, (list, tuple)) or not value
+            or not all(isinstance(v, str) and v.strip() for v in value)):
+        raise SimplydataError(
+            "read_as_text= is a list of the column names to keep as text, so that 007 stays 007 and 3-12 "
+            f"stays 3-12.\n{example}"
+        )
+    return list(dict.fromkeys(value))
+
+
+def _names_option(option, value, example) -> list:
+    """columns= / column_names=: one name or a list of names, each once."""
+    if isinstance(value, str):
+        value = [value]
+    if (not isinstance(value, (list, tuple)) or not value
+            or not all(isinstance(v, str) and v.strip() for v in value)):
+        raise SimplydataError(f"{option}= is a list of column names in quotes.\nFor example:  {example}")
+    twice = sorted({v for v in value if list(value).count(v) > 1})
+    if twice:
+        raise SimplydataError(f"{option}= has {', '.join(twice)} more than once; give each name once.\n"
+                              f"For example:  {example}")
+    return list(value)
+
+
 def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empty_values=None,
-                    skip_rows=None, encoding=None, table_number=None) -> dict:
+                    skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
+                    column_names=None, skip_lines_starting_with=None, table_name=None) -> dict:
     """Check the reading options at once and give back only the ones that were given.
 
     sdata.table(...) and sdata.chart(...) pass their options through here, so every
@@ -164,6 +239,34 @@ def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empt
                 'or "all" to stack them.\nFor example:  sdata.table("report.docx", table_number=2)'
             )
         options["table_number"] = table_number if table_number == "all" else int(table_number)
+    if read_as_text is not None:
+        options["read_as_text"] = _read_as_text_names(read_as_text)
+    if columns is not None:  # pandas read_csv(usecols=), Polars read_csv(columns=)
+        options["columns"] = _names_option("columns", columns, 'sdata.table("weather.csv", columns=["month", "city", '
+                                                               '"rain"])')
+    if column_names is not None:  # pandas read_csv(header=None, names=), Polars read_csv(has_header=False, new_columns=)
+        options["column_names"] = _names_option("column_names", column_names,
+                                                'sdata.table("logger.csv", column_names=["time", "temperature"])')
+    if skip_lines_starting_with is not None:  # pandas read_csv(comment=), Polars read_csv(comment_prefix=)
+        mark = skip_lines_starting_with
+        if not isinstance(mark, str) or len(mark) != 1 or mark.isalnum() or mark in ",;\t\"' \n":
+            raise SimplydataError(
+                "skip_lines_starting_with= is the one sign that starts a note line in the file, such as \"#\" "
+                "(not a letter, a digit, a quote or a separator).\n"
+                'For example:  sdata.table("logger.csv", skip_lines_starting_with="#")')
+        options["skip_lines_starting_with"] = mark
+    if "columns" in options and "column_names" in options:
+        missing = [c for c in options["columns"] if c not in options["column_names"]]
+        if missing:
+            raise SimplydataError(f'columns= names "{missing[0]}", which is not in column_names=. With column_names= '
+                                  "the names in columns= are the new names.")
+    if table_name is not None:  # tables phase, batch 3 (P38): one table of a database file
+        if not isinstance(table_name, str) or not table_name.strip():
+            raise SimplydataError(
+                "table_name= is the name of one table in a database file, in quotes.\n"
+                'For example:  sdata.table("lab.sqlite", table_name="samples")'
+            )
+        options["table_name"] = table_name
     return options
 
 
@@ -188,6 +291,21 @@ def _check_reading_source(source, options) -> None:
         )
 
 
+def _file_suffix(name) -> str:
+    """The file type by the end of the name: ".csv", or ".csv.gz" for the compressed text files."""
+    lowered = str(name).lower()
+    for ending in _TWO_PART_ENDINGS:
+        if lowered.endswith(ending):
+            return ending
+    return Path(lowered).suffix
+
+
+def _compression(label) -> str | None:
+    """pandas read_csv(compression=) for a compressed text file, by its name."""
+    lowered = str(label).lower()
+    return "gzip" if lowered.endswith(".gz") else "zip" if lowered.endswith(".zip") else None
+
+
 def _kind_of(suffix: str, label: str) -> str:
     kind = _READERS.get(suffix.lower())
     if kind is None:
@@ -204,13 +322,15 @@ _SEPARATOR_OPTION = {",": '","', ";": '";"', "\t": '"tab"', "|": '"|"'}
 _guesses: list | None = None  # while a folder is read, the guesses are collected and said once
 
 
-def _guess_separator(source, encoding="utf-8", skip_rows=0) -> str:
+def _guess_separator(source, encoding="utf-8", skip_rows=0, compression=None) -> str:
     """The character between values in a text file: Python's csv.Sniffer, allowed to choose only a comma,
     semicolon, tab or bar. Anything else it might find (a letter such as the "e" of "species", a digit, a
     space or another sign) is refused. A file with one column has none of the four, so the sniffer fails and
     "," is used: the file is read as one column."""
     try:
-        if isinstance(source, io.BytesIO):
+        if compression is not None:  # a .csv.gz or .zip file: the guess reads the start of the text inside
+            sample = _start_of_compressed(source, compression)
+        elif isinstance(source, io.BytesIO):
             sample = source.getvalue()[:65536]
         else:
             with open(source, "rb") as fh:
@@ -234,6 +354,24 @@ def _guess_separator(source, encoding="utf-8", skip_rows=0) -> str:
     return found if found in SEPARATORS else ","
 
 
+def _start_of_compressed(source, compression) -> bytes:
+    """The first 64 KB of the text in a .gz file (Python's gzip) or in the one file of a .zip (zipfile)."""
+    import gzip
+    import zipfile
+
+    if isinstance(source, io.BytesIO):
+        source = io.BytesIO(source.getvalue())
+    if compression == "gzip":
+        with gzip.open(source, "rb") as fh:
+            return fh.read(65536)
+    with zipfile.ZipFile(source) as archive:
+        names = [n for n in archive.namelist() if not n.endswith("/")]
+        if len(names) != 1:
+            return b""
+        with archive.open(names[0]) as fh:
+            return fh.read(65536)
+
+
 def _say_guess(label, sep) -> None:
     """One plain line when simplydata guessed the separator (none when separator= was given)."""
     if _guesses is not None:
@@ -249,7 +387,8 @@ def _separator_for(source, kind, label, options) -> str:
         return options["separator"]
     if kind == "tsv":
         return "\t"
-    sep = _guess_separator(_rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0))
+    sep = _guess_separator(_rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0),
+                           _compression(label))
     _say_guess(label, sep)
     return sep
 
@@ -279,7 +418,7 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
                           options=options, asked_for=text)
     if not path.exists():
         raise _missing_file_error(path)
-    kind = _kind_of(path.suffix, path.name)
+    kind = _kind_of(_file_suffix(path.name), path.name)
     return _read_one(path, kind, path.stat().st_size, path.name, sheet=sheet, fast=fast,
                      keep_fast=keep_fast, options=options)
 
@@ -287,51 +426,289 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
 def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False, options=None):
     """Read one file (a path, or the bytes of a downloaded file)."""
     options = options or {}
+    if "column_names" in options and kind in ("csv", "tsv", "excel"):
+        _check_column_names(source, kind, label, options)
+    if "skip_lines_starting_with" in options and kind in ("csv", "tsv"):
+        _check_note_mark(source, label, options)
+    try:
+        found = _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options)
+    except SimplydataError:
+        raise
+    except Exception:
+        if "columns" in options:  # the parent's refusal of a missing column, said in words
+            _check_columns_wanted(source, kind, label, options)
+        raise
+    if "read_as_text" in options:
+        _check_read_as_text(found, options["read_as_text"], label)
+    if "columns" in options:  # in the order given (pandas usecols= and Polars columns= keep the file's order)
+        wanted = options["columns"]
+        found = found.select(wanted) if _is_polars(found) else found[wanted]
+    return found
+
+
+def _header_of(source, kind, options, header="infer"):
+    """The first lines of a file, read by pandas with the file's reading options (for the checks below)."""
+    if kind == "excel":
+        return pd.read_excel(_rewind(source), nrows=1, header=0 if header == "infer" else None,
+                             skiprows=options.get("skip_rows"))
+    if kind == "parquet":
+        return pd.read_parquet(_rewind(source)).head(1)
+    sep = options.get("separator") or ("\t" if kind == "tsv" else _guess_separator(
+        _rewind(source), options.get("encoding", "utf-8"), options.get("skip_rows", 0)))
+    return pd.read_csv(_rewind(source), sep=sep, nrows=1, header=header, skiprows=options.get("skip_rows"),
+                       comment=options.get("skip_lines_starting_with"), encoding=options.get("encoding"),
+                       engine=None if len(sep) == 1 else "python")
+
+
+def _check_columns_wanted(source, kind, label, options) -> None:
+    """Every column named in columns= must be in the file; the refusal names the file's columns."""
+    try:
+        names = (options["column_names"] if "column_names" in options
+                 else [str(c) for c in _header_of(source, kind, options).columns])
+    except Exception:  # noqa: BLE001 - the original error is raised instead
+        return
+    missing = [c for c in options["columns"] if c not in names]
+    if missing:
+        lines = [f'columns= names "{missing[0]}", but "{label}" has no column called that.']
+        guess = suggest(missing[0], names, n=1)
+        if guess:
+            lines.append(f'Did you mean "{guess[0]}"?')
+        lines.append("Its columns: " + ", ".join(names))
+        raise SimplydataError("\n".join(lines))
+
+
+def _check_column_names(source, kind, label, options) -> None:
+    """column_names= gives one name for each column of the file (pandas would put extra columns in the row labels,
+    Polars would keep the extra columns' own names)."""
+    width = _header_of(source, kind, options, header=None).shape[1]
+    given = len(options["column_names"])
+    if given != width:
+        raise SimplydataError(
+            f'"{label}" has {width} column{"s" if width != 1 else ""}, but column_names= gives {given} '
+            f'name{"s" if given != 1 else ""}. Give one name for each column, in order; to keep only some of them, '
+            "add columns= with the ones you want.")
+
+
+def _check_note_mark(source, label, options) -> None:
+    """skip_lines_starting_with= skips whole lines. pandas comment= also cuts a line where the sign appears later in
+    it, so a file in which it does is refused, with the line, rather than cut without a word."""
+    mark = options["skip_lines_starting_with"]
+    encoding = options.get("encoding", "utf-8")
+    if isinstance(source, io.BytesIO):
+        text = source.getvalue().decode(encoding, errors="ignore")
+    else:
+        with open(source, encoding=encoding, errors="ignore") as fh:
+            text = fh.read()
+    for number, line in enumerate(text.splitlines(), 1):
+        if mark in line[1:] and not line.startswith(mark):
+            raise SimplydataError(
+                f'Line {number} of "{label}" has "{mark}" inside it, not at its start: {line.strip()[:60]!r}.\n'
+                f'skip_lines_starting_with="{mark}" skips whole lines that start with it, and pandas would cut this '
+                "line at the sign. Choose a sign that starts only the note lines.")
+    _rewind(source)
+
+
+def _check_read_as_text(found, names, label) -> None:
+    """Every column named in read_as_text= must be in the file (pandas and Polars pass over a missing one)."""
+    columns = [str(c) for c in found.columns]
+    missing = [n for n in names if n not in columns]
+    if not missing:
+        return
+    lines = [f'read_as_text= names "{missing[0]}", but "{label}" has no column called that.']
+    guess = suggest(missing[0], columns, n=1)
+    if guess:
+        lines.append(f'Did you mean "{guess[0]}"?')
+    lines.append("Its columns: " + ", ".join(columns))
+    raise SimplydataError("\n".join(lines))
+
+
+def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     _check_options_fit(kind, options, label)
 
     asked = fast
     fast = asked or size > BIG_FILE_BYTES
-    polars_can = ("thousands_mark" not in options
+    polars_can = ("thousands_mark" not in options and _compression(label) is None
                   and str(options.get("encoding", "utf-8")).lower().replace("_", "-") in ("utf-8", "utf8"))
     if fast and kind in ("csv", "tsv", "parquet") and polars_can:
-        try:
-            import polars as pl
-        except ImportError:
-            if asked:
-                raise SimplydataError(
-                    "fast=True needs the fast engine.\n"
-                    "Install it with:  pip install simplydata[fast]"
-                ) from None
+        import polars as pl
+
+        if not asked:
+            print("This file is large, so simplydata is using its fast mode.")
+        if kind == "parquet":  # Polars read_parquet(columns=[...])
+            fast_table = pl.read_parquet(_rewind(source), columns=options.get("columns"))
         else:
-            if not asked:
-                print("This file is large, so simplydata is using its fast mode.")
-            if kind == "parquet":
-                fast_table = pl.read_parquet(_rewind(source))
-            else:
-                sep = _separator_for(source, kind, label, options)
-                extra = {}
-                if options.get("decimal_mark") == ",":
-                    extra["decimal_comma"] = True
-                if "empty_values" in options:
-                    extra["null_values"] = options["empty_values"]
+            sep = _separator_for(source, kind, label, options)
+            extra = {}
+            if options.get("decimal_mark") == ",":
+                extra["decimal_comma"] = True
+            if "empty_values" in options:
+                extra["null_values"] = options["empty_values"]
+            if "skip_rows" in options:
+                extra["skip_rows"] = options["skip_rows"]
+            if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})
+                extra["schema_overrides"] = {name: pl.String for name in options["read_as_text"]}
+            if "column_names" in options:  # Polars read_csv(has_header=False, new_columns=[...])
+                extra["has_header"] = False
+                extra["new_columns"] = options["column_names"]
+            elif "columns" in options:  # Polars read_csv(columns=[...])
+                extra["columns"] = options["columns"]
+            if "skip_lines_starting_with" in options:  # Polars read_csv(comment_prefix="#")
+                extra["comment_prefix"] = options["skip_lines_starting_with"]
                 if "skip_rows" in options:
-                    extra["skip_rows"] = options["skip_rows"]
-                fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
+                    # Polars skip_rows= counts the rows left after the note lines are taken out; pandas
+                    # skiprows= counts the lines as they are in the file. Polars skip_lines= counts those too.
+                    extra["skip_lines"] = extra.pop("skip_rows")
+            fast_table = pl.read_csv(_rewind(source), separator=sep, infer_schema_length=10000, **extra)
+        # A blank line: pandas read_csv skips it (skip_blank_lines=True), Polars read_csv makes it a row of empty
+        # cells, the same row as a line of empty fields (",,"), which both keep. Polars has no option to skip blank
+        # lines and its result cannot tell the two apart, so a file with a row of only empty cells is read by
+        # pandas instead (as for thousands_mark= above): one answer on both engines, nothing guessed.
+        if kind == "parquet" or not fast_table.height or not fast_table.width or not fast_table.select(
+                pl.all_horizontal(pl.all().is_null()).any()).item():
+            if kind != "parquet":
+                fast_table = _offset_times_as_dates(fast_table, label, options)
             return fast_table if keep_fast else fast_table.to_pandas()
 
     if kind in ("csv", "tsv"):
-        return _read_text(source, kind, label, options)
+        return _offset_times_as_dates(_read_text(source, kind, label, options), label, options)
     if kind == "excel":
         return _read_excel(source, label, sheet, options)
-    if kind == "parquet":
-        return pd.read_parquet(_rewind(source))
+    if kind == "parquet":  # pandas read_parquet(columns=[...])
+        return pd.read_parquet(_rewind(source), columns=options.get("columns"))
     if kind == "json":
         return pd.read_json(_rewind(source))
     if kind == "word":
         return _read_word(source, label, options)
     if kind == "spss":
         return _read_spss(source)
+    if kind in _MORE_KINDS:  # tables phase, batch 3 (P38)
+        return _read_more(source, kind, label, options)
     return pd.read_stata(_rewind(source))
+
+
+# ---------------------------------------------------------------- more file types (tables phase, batch 3, P38)
+_MORE_KINDS = ("feather", "jsonl", "xml", "sas", "sqlite", "duckdb")
+
+# A date and time written with its UTC offset, as table.save() writes a column with a time zone to CSV or TSV
+# (2024-07-01 23:45:00-04:00; ISO 8601 with "T" and "Z" too)
+_TIME_WITH_OFFSET = r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})"
+
+
+def _offset_times_as_dates(native, label, options):
+    """Text columns whose every filled cell is a date and time with its UTC offset, read as times on the UTC clock.
+
+    A CSV file has no place for a zone name, so table.save() writes such times with their offset, and one zone can
+    have two offsets (summer time). pandas to_datetime(format="ISO8601", utc=True) reads them as the same moments on
+    the UTC clock, on both engines (a Polars table gets that column from pandas). Columns named in read_as_text= stay
+    text; other text, and dates written without an offset, are left as they are (turn_into_dates reads those).
+    """
+    polars = _is_polars(native)
+    keep = set(options.get("read_as_text", ()) or ())
+    found = []
+    for name in native.columns:
+        column = native[name]
+        is_text = str(column.dtype) == "String" if polars else pd.api.types.is_string_dtype(column.dtype)
+        if name in keep or not is_text:
+            continue
+        filled = column.drop_nulls() if polars else column.dropna()
+        if not len(filled):
+            continue
+        if polars:
+            every = filled.str.contains(f"^{_TIME_WITH_OFFSET}$").all()
+        else:
+            every = filled.astype(str).str.fullmatch(_TIME_WITH_OFFSET).all()
+        if not every:
+            continue
+        times = pd.to_datetime(column.to_pandas() if polars else column, format="ISO8601", utc=True)
+        times = times.dt.as_unit("us")
+        if polars:
+            import polars as pl
+
+            native = native.with_columns(pl.from_pandas(times).alias(name))
+        else:
+            native = native.assign(**{name: times})
+        found.append(name)
+    if found:
+        names = ", ".join(f'"{name}"' for name in found)
+        print(f"Read {names} in {label} as times on the UTC clock: every cell is a date and time with its UTC "
+              f'offset. To see them on another clock: table.change_time_zone_in("{found[0]}", to="Europe/Oslo").')
+    return native
+
+
+def _read_more(source, kind, label, options):
+    """Feather, JSON lines, XML, SAS and database files, each read by pandas (or DuckDB) itself."""
+    if kind == "feather":
+        return pd.read_feather(_rewind(source))  # pandas read_feather
+    if kind == "jsonl":
+        return pd.read_json(_rewind(source), lines=True)  # pandas read_json(lines=True): one row per line
+    if kind == "xml":
+        return pd.read_xml(_rewind(source), parser="etree")  # pandas read_xml, with Python's own XML reader
+    if kind == "sas":
+        return pd.read_sas(_rewind(source), format="sas7bdat", encoding="infer")  # pandas read_sas
+    if isinstance(source, io.BytesIO):
+        raise SimplydataError(f'"{label}" is a database file. simplydata reads databases from this computer only: '
+                              "download it, then read it by its file name.")
+    if kind == "sqlite":
+        return _read_sqlite(Path(source), label, options.get("table_name"))
+    return _read_duckdb(Path(source), label, options.get("table_name"))
+
+
+def _which_table(names, wanted, label) -> str:
+    """The database table to read: the one named by table_name=, or the only one there is."""
+    example = f'sdata.table("{label}", table_name="{names[0] if names else "samples"}")'
+    if not names:
+        raise SimplydataError(f'"{label}" has no tables in it.')
+    if wanted is None:
+        if len(names) == 1:
+            print(f'"{label}" holds one table, "{names[0]}"; reading it.')
+            return names[0]
+        raise SimplydataError(f'"{label}" holds {len(names)} tables: ' + ", ".join(f'"{n}"' for n in names)
+                              + f".\nSay which one with table_name=, for example:  {example}")
+    if wanted not in names:
+        lines = [f'"{label}" has no table called "{wanted}".']
+        guess = suggest(wanted, names, n=1)
+        if guess:
+            lines.append(f'Did you mean table_name="{guess[0]}"?')
+        lines.append("Its tables: " + ", ".join(f'"{n}"' for n in names))
+        raise SimplydataError("\n".join(lines))
+    return wanted
+
+
+def _read_sqlite(path, label, wanted):
+    """One table of an SQLite file: Python's sqlite3 (read-only) and pandas read_sql_query."""
+    import sqlite3
+
+    from ._sql import quoted
+
+    try:
+        con = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
+    except sqlite3.Error as problem:
+        raise SimplydataError(f'simplydata could not open "{label}" as an SQLite database ({problem}).') from None
+    try:
+        names = [row[0] for row in con.execute(
+            "SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' "
+            "ORDER BY name")]
+        name = _which_table(names, wanted, label)
+        return pd.read_sql_query(f"SELECT * FROM {quoted(name)}", con)  # pandas read_sql_query
+    except sqlite3.DatabaseError as problem:
+        raise SimplydataError(f'"{label}" is not an SQLite database that simplydata can read ({problem}).') from None
+    finally:
+        con.close()
+
+
+def _read_duckdb(path, label, wanted):
+    """One table of a DuckDB file, opened read-only with no extensions and no other files (simplydata._sql)."""
+    from . import _sql
+
+    con = _sql.connect(f'Reading "{label}"', database=str(path), read_only=True)
+    try:
+        names = [row[0] for row in con.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main' ORDER BY table_name"
+        ).fetchall()]
+        name = _which_table(names, wanted, label)
+        return con.sql(f"SELECT * FROM {_sql.quoted(name)}").df()  # DuckDB con.sql(...).df()
+    finally:
+        con.close()
 
 
 def _pandas_text_options(options: dict) -> dict:
@@ -344,6 +721,15 @@ def _pandas_text_options(options: dict) -> dict:
         extra["na_values"] = options["empty_values"]
     if "skip_rows" in options:
         extra["skiprows"] = options["skip_rows"]
+    if "read_as_text" in options:  # pandas read_csv(dtype={"sample_id": str}); empty cells stay empty
+        extra["dtype"] = {name: str for name in options["read_as_text"]}
+    if "column_names" in options:  # pandas read_csv(header=None, names=[...])
+        extra["header"] = None
+        extra["names"] = options["column_names"]
+    if "columns" in options:  # pandas read_csv(usecols=[...])
+        extra["usecols"] = options["columns"]
+    if "skip_lines_starting_with" in options:  # pandas read_csv(comment="#")
+        extra["comment"] = options["skip_lines_starting_with"]
     return extra
 
 
@@ -354,6 +740,8 @@ def _read_text(source, kind, label, options):
     sep = _separator_for(source, kind, label, options)
     try:
         engine = {} if len(sep) == 1 else {"engine": "python"}
+        if _compression(label) is not None:  # .csv.gz, .zip: pandas read_csv(compression=)
+            extra["compression"] = _compression(label)
         return pd.read_csv(_rewind(source), sep=sep, **engine, **extra)
     except UnicodeDecodeError:
         raise SimplydataError(
@@ -371,6 +759,12 @@ def _read_text(source, kind, label, options):
             "If there are notes above the column names, skip them:  "
             f'sdata.table("{label}", skip_rows=2)'
         ) from None
+    except ValueError as problem:  # a .zip with more than one file in it
+        if _compression(label) != "zip":
+            raise
+        raise SimplydataError(f'simplydata reads a .zip file that holds one CSV or TSV file; "{label}" could not be '
+                              f"read that way ({str(problem).strip()}).\nUnzip it and read the files, for example "
+                              'sdata.table("folder/*.csv").') from None
 
 
 def _read_excel(source, label, sheet, options):
@@ -472,7 +866,8 @@ def _list_some(names) -> str:
 
 
 def _files_in_folder(folder: Path) -> list[Path]:
-    files = sorted((p for p in folder.iterdir() if _readable(p) and p.suffix.lower() in _READERS), key=_natural_key)
+    files = sorted((p for p in folder.iterdir() if _readable(p) and _file_suffix(p.name) in _READERS),
+                   key=_natural_key)
     if not files:
         there = [p.name for p in folder.iterdir() if p.is_file()]
         lines = [f'The folder "{folder}" has no files simplydata can read.',
@@ -513,7 +908,7 @@ def _read_many(files, sheet, fast, keep_fast, options, asked_for):
     _guesses = []
     try:
         for path, label in zip(files, labels):
-            kind = _kind_of(path.suffix, path.name)
+            kind = _kind_of(_file_suffix(path.name), path.name)
             parts.append((label, _read_one(path, kind, path.stat().st_size, label, sheet=sheet, fast=fast,
                                            keep_fast=keep_fast, options=options)))
         guessed = sorted(set(_guesses), key=SEPARATORS.index)
@@ -701,7 +1096,7 @@ def _size_in_words(size: int) -> str:
 def _read_web(url, sheet, fast, keep_fast, options):
     parts = urllib.parse.urlparse(url)
     name = Path(urllib.parse.unquote(parts.path)).name or parts.netloc
-    suffix = Path(name).suffix.lower()
+    suffix = _file_suffix(name)
     if suffix not in _READERS:
         wanted = urllib.parse.parse_qs(parts.query).get("format", [""])[0].lower()  # such as ?format=csv
         suffix = "." + wanted if wanted and "." + wanted in _READERS else ""

@@ -1,6 +1,6 @@
-"""The same work in the packages underneath: tested entries for 402 of simplydata's 402 words.
+"""The same work in the packages underneath: tested entries for 431 of simplydata's 431 words.
 
-Every word has an entry. There are 517 entries: one for each of 402 words, plus one for each option of those
+Every word has an entry. There are 563 entries: one for each of 431 words, plus one for each option of those
 words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
 Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept

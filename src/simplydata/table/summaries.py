@@ -47,6 +47,7 @@ import math
 import narwhals as nw
 import numpy as np
 
+from .. import _zone_clock
 from .._errors import SimplydataError, choice_error, friendly
 from .._stats import _plain_name
 from .conditions import _empty_in
@@ -103,7 +104,11 @@ EVERY_EXAMPLE = ('table.turn_into_dates("year")\n'
 MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "standard deviation", "variance",
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
+            "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
+            "first", "last")  # first, last: tables phase, batch 3
+# "first" and "last": the first and last filled value in the order of the rows (pandas groupby().first() / last(),
+# which skip empty cells; Polars drop_nulls().first() / last()); not a NumPy measure, not one of _measure_values
+FIRST_LAST = ("first", "last")
 MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation", "se": "standard error",
                    "ci": "confidence interval", "iqr": "interquartile range", "geometric average": "geometric mean",
                    "gmean": "geometric mean", "skew": "skewness", "cv": "coefficient of variation",
@@ -124,6 +129,37 @@ SUMMARY_LINES = 12  # find_summary_of prints at most this many rows; the table h
 
 # lower edge of each band, biggest first
 STRENGTH_WORDS = ((0.8, "very strong"), (0.6, "strong"), (0.4, "medium"), (0.2, "weak"), (0.0, "very weak"))
+
+
+def _truncated(frame, column, code):
+    """narwhals dt.truncate(code) of a date column, the start of its hour, day, month, quarter or year.
+
+    A pandas column with a time zone is truncated by Polars dt.truncate and comes back as pandas: narwhals
+    truncates pandas months, quarters and years on the UTC clock (through NumPy datetime64), so 1 July 00:00
+    in Oslo (30 June 22:00 UTC) fell in June, while Polars uses the column's own clock. A column with a time zone
+    is truncated by Polars on both engines (code "1w" too: the Monday of the week), so its local clock follows the
+    main world time zone data (IANA), the same on every computer (simplydata._zone_clock).
+    """
+    dtype = frame.schema[column]
+    if not (dtype == nw.Datetime and dtype.time_zone):
+        return nw.col(column).dt.truncate(code)
+    import polars as pl
+
+    native = frame[column].to_native()
+    if frame.implementation.is_polars():
+        return nw.from_native(native.dt.truncate(code), series_only=True).alias(column)
+    start = pl.from_pandas(native).dt.truncate(code).to_pandas().astype(native.dtype)
+    start.index = native.index
+    return nw.from_native(start, series_only=True).alias(column)
+
+
+def _on_one_clock(frame, position, column):
+    """frame.rows(), with the cells of column (at position) read on Polars' clock when it has a time zone, so the
+    column names of a cross table are the same on both engines (simplydata._zone_clock)."""
+    rows = frame.rows()
+    if not _zone_clock.on_pandas_with_zone(frame, [column]):
+        return rows
+    return [(*r[:position], v, *r[position + 1:]) for r, v in zip(rows, _zone_clock.values(frame, column))]
 
 
 def _plain(value):
@@ -592,6 +628,25 @@ def _measure_values(names, raw: dict) -> dict:
     return out
 
 
+# with_totals=True: the name of the total row and column, in the style of "(empty)"
+TOTAL = "(total)"
+
+
+def _check_with_totals(step, with_totals, across, every, in_percent=False):
+    """with_totals= (tables phase, batch 2) goes with across= only: it adds a total row and column to a cross table."""
+    if not isinstance(with_totals, bool):
+        raise SimplydataError("with_totals= should be True or False.")
+    if not with_totals:
+        return
+    example = (f'table.{step}(for_each_group_in="shop", across="fruit", with_totals=True)' if step == "count_rows" else
+               f'table.{step}("count", for_each_group_in="shop", across="fruit", with_totals=True)')
+    if across is None:
+        raise SimplydataError("with_totals=True adds a total row and a total column to a cross table, so it goes with "
+                              f'across=.\nFor example:  {example}   (with sdata.get_example("fruit"))')
+    if every is not None or in_percent:
+        raise SimplydataError("with_totals=True does not go with every= or in_percent=True; leave one of them out.")
+
+
 class SummaryWords:
     # ------------------------------------------------------------------ helpers
     def _number_frame(self, step: str, columns: list[str]):
@@ -679,20 +734,30 @@ class SummaryWords:
             )
         frame = nw.maybe_reset_index(frame)
         for g in dates:
-            if name == "week":
+            if name == "week" and schema[g] == nw.Datetime and schema[g].time_zone:
+                # the Monday on the column's own clock: Polars dt.truncate("1w") on both engines (_zone_clock)
+                frame = frame.with_columns(_truncated(frame, g, "1w"))
+            elif name == "week":
                 values = [None if _missing(v) else _week_start(v) for v in frame[g].to_list()]
                 frame = frame.with_columns(
                     nw.new_series(g, values, schema[g], backend=frame.implementation))
             elif schema[g] == nw.Date and name == "hour":
                 continue  # a date has no hours: each day stays as it is
             else:
-                frame = frame.with_columns(nw.col(g).dt.truncate(EVERY[name]))
+                frame = frame.with_columns(_truncated(frame, g, EVERY[name]))
         return frame, {g: name for g in dates}
 
-    def _cross(self, frame, groups: list[str], across: str, expr, fill=None, periods=None):
-        """A cross table: one row per group, one column per value of across=, expr in each cell."""
+    def _cross(self, frame, groups: list[str], across: str, expr, fill=None, periods=None, with_totals=False):
+        """A cross table: one row per group, one column per value of across=, expr in each cell.
+
+        with_totals=True adds a "(total)" column (expr over each row's group) and a "(total)" row (expr over each
+        across= value, and over every row in its last cell), named in the style of "(empty)". As pandas
+        crosstab(margins=True) and pivot_table(margins=True), each total is worked out from the rows themselves
+        (group_by().agg()), not from the cells, so the total average is the average of all the rows. Unlike pandas,
+        rows with an empty group or across= value stay in the table (as "(empty)") and so count in the totals;
+        pandas leaves them out of the table and its margins."""
         long = frame.group_by([*groups, across], drop_null_keys=False).agg(expr.alias("__value"))
-        rows = long.select(*groups, across, "__value").rows()
+        rows = _on_one_clock(long.select(*groups, across, "__value"), len(groups), across)
         row_keys = sorted({_key(r[:-2]) for r in rows}, key=lambda k: tuple(_order(v) for v in k))
         col_keys = sorted({_key(r[-2:-1])[0] for r in rows}, key=_order)
         cells = {(_key(r[:-2]), _key(r[-2:-1])[0]): _plain(r[-1]) for r in rows}
@@ -702,6 +767,28 @@ class SummaryWords:
             if label in data:
                 label = f"{across} {label}"
             data[label] = [cells.get((k, c), fill) for k in row_keys]
+        if with_totals:
+            labels = [c for c in data if c not in groups]
+            first = data[groups[0]] if groups else []
+            if TOTAL in labels or TOTAL in groups or any(str(v) == TOTAL for v in first if v is not None):
+                raise SimplydataError(f'with_totals=True adds a row and a column called "{TOTAL}", and the table '
+                                      f'already holds the value "{TOTAL}". Rename that value first, for example '
+                                      f'table.replace_values_in("{across}", "{TOTAL}", with_value="total (typed)").')
+            by_row = {_key(r[:-1]): _plain(r[-1]) for r in frame.group_by(groups, drop_null_keys=False)
+                      .agg(expr.alias("__value")).select(*groups, "__value").rows()}
+            by_column = {_key(r[:1])[0]: _plain(r[1]) for r in _on_one_clock(
+                frame.group_by([across], drop_null_keys=False).agg(expr.alias("__value")).select(across, "__value"),
+                0, across)}
+            everything = _plain(frame.select(expr.alias("__value")).item())
+            data[TOTAL] = [by_row.get(k, fill) for k in row_keys]
+            for i, g in enumerate(groups):  # the total row: "(total)" in the first group column, text from here on
+                values = data[g]
+                if not all(v is None or isinstance(v, str) for v in values):
+                    values = [None if v is None else str(_say_label(v, (periods or {}).get(g))) for v in values]
+                data[g] = values + ([TOTAL] if i == 0 else [None])
+            for c, label in zip(col_keys, labels):
+                data[label].append(by_column.get(c, fill))
+            data[TOTAL].append(everything)
         result = nw.from_dict(data, backend=frame.implementation)
         return self._new_table(result), [str(c) for c in data if c not in groups]
 
@@ -734,11 +821,12 @@ class SummaryWords:
                 f"For example:  {example}"
             )
 
-    def _summary(self, step: str, column, for_each, every=None, across=None, measure=None):
+    def _summary(self, step: str, column, for_each, every=None, across=None, measure=None, with_totals=False):
         """measure=(start of the column name, calculation, words for sentences) for words not in _SUMMARIES."""
         start, make = _SUMMARIES[step] if measure is None else measure[:2]
         said = start if measure is None else measure[2]
         columns = _as_list(step, "the column", column)
+        _check_with_totals(step, with_totals, across, every)
         groups = self._group_columns(step, for_each, columns) if for_each is not None else None
         if across is not None:
             self._check_across(step, across, groups, columns)
@@ -752,7 +840,8 @@ class SummaryWords:
         frame, periods = self._periods(step, frame, groups, every)
         exprs = [make(c).alias(f"{start} of {c}") for c in columns]
         if across is not None:
-            result, labels = self._cross(frame, groups, across, make(columns[0]), periods=periods)
+            result, labels = self._cross(frame, groups, across, make(columns[0]), periods=periods,
+                                         with_totals=with_totals)
             self._note_empty(frame, columns)
             print(f'The {said} of "{columns[0]}" for each {_each(groups, periods)} (rows) and each "{across}" '
                   f"(columns): a new table with {len(result)} rows and {len(labels)} columns of numbers.")
@@ -998,15 +1087,18 @@ class SummaryWords:
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ number words
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_average_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None):
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"margins": "with_totals"})
+    def find_average_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None,
+                        with_totals=False):
         """The average (mean) of a column; empty cells are skipped.
 
         table.find_average_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"))
         across= gives a cross table, one column per subject:
         table.find_average_of("marks", for_each_group_in="class", across="subject")
         every= groups a date column in for_each_group_in= into "hour", "day", "week", "month",
-        "quarter" or "year" periods:
+        "quarter" or "year" periods (a date with a time zone on its own clock, read by Polars on both
+        engines: local clock times before 1970 follow the main world time-zone data (IANA), the same on
+        every computer):
         table.turn_into_dates("year")
         table.find_average_of("population", for_each_group_in="year", every="year")   (with sdata.get_example("growth"))
         interval=95 adds the 95 % confidence interval of each average (the t interval, as R
@@ -1015,6 +1107,10 @@ class SummaryWords:
         column of weights (statsmodels DescrStatsW, as R weighted.mean()).
         Under a survey design (table.use_survey_design) it gives the population average with its
         standard error and interval, from R survey::svymean.
+        with_totals=True adds a "(total)" row and column to a cross table: the average of all the rows
+        of that group (or subject), as pandas pivot_table(aggfunc="mean", margins=True); rows with an
+        empty group are kept, as "(empty)", and count in the totals (pandas leaves them out):
+        table.find_average_of("marks", for_each_group_in="class", across="subject", with_totals=True)
         """
         from .places import direction_note
 
@@ -1022,11 +1118,13 @@ class SummaryWords:
             self._survey_only("find_average_of", locals(), ("column", "for_each_group_in"))
             return self._survey_summary("find_average_of", "mean", column, for_each_group_in, label="average")
         direction_note(column)
+        if with_totals is not False and (weights is not None or interval is not None):
+            raise SimplydataError("with_totals=True goes with a plain cross table; leave out weights= and interval=.")
         if weights is not None:
             return self._weighted("find_average_of", column, weights, for_each_group_in, every, across, interval)
         if interval is not None:
             return self._summary_interval("find_average_of", column, for_each_group_in, every, across, interval)
-        return self._summary("find_average_of", column, for_each_group_in, every, across)
+        return self._summary("find_average_of", column, for_each_group_in, every, across, with_totals=with_totals)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def find_median_of(self, column, for_each_group_in=None, every=None, across=None, interval=None, weights=None,
@@ -1057,19 +1155,23 @@ class SummaryWords:
             return self._summary_interval("find_median_of", column, for_each_group_in, every, across, interval)
         return self._summary("find_median_of", column, for_each_group_in, every, across)
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_total_of(self, column, for_each_group_in=None, every=None, across=None):
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"margins": "with_totals"})
+    def find_total_of(self, column, for_each_group_in=None, every=None, across=None, with_totals=False):
         """All the numbers in a column added up; empty cells are skipped.
 
         table.find_total_of("count", for_each_group_in="shop")   (with sdata.get_example("fruit"))
         table.find_total_of("count", for_each_group_in="shop", across="fruit")   a cross table
         every="month" with a date column in for_each_group_in= gives the total of each month.
         Under a survey design (use_survey_design) it gives the estimated population total (R survey).
+        with_totals=True adds a "(total)" row and a "(total)" column to the cross table (pandas
+        pivot_table(aggfunc="sum", margins=True), except that rows with an empty group are kept, as
+        "(empty)", and count in the totals):
+        table.find_total_of("count", for_each_group_in="shop", across="fruit", with_totals=True)
         """
         if self._survey_on():
             self._survey_only("find_total_of", locals(), ("column", "for_each_group_in"))
             return self._survey_summary("find_total_of", "total", column, for_each_group_in, label="total")
-        return self._summary("find_total_of", column, for_each_group_in, every, across)
+        return self._summary("find_total_of", column, for_each_group_in, every, across, with_totals=with_totals)
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def find_smallest_of(self, column, for_each_group_in=None, every=None, across=None):
@@ -1361,8 +1463,8 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ counting words
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def count_rows(self, for_each_group_in=None, across=None, every=None, in_percent=False):
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"margins": "with_totals"})
+    def count_rows(self, for_each_group_in=None, across=None, every=None, in_percent=False, with_totals=False):
         """How many rows the table has, or how many in each group.
 
         table.count_rows(for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -1373,6 +1475,10 @@ class SummaryWords:
         every="month" with a date column in for_each_group_in= counts the rows of each month.
         Under a survey design (use_survey_design) it gives the estimated number in the population
         (R survey), and with in_percent=True each group's estimated share.
+        with_totals=True adds a "(total)" row and a "(total)" column to a cross table, as pandas
+        crosstab(margins=True, margins_name="(total)"). Rows with an empty group or across= value are
+        kept, as "(empty)", and count in the totals; pandas crosstab leaves them out:
+        table.count_rows(for_each_group_in="shop", across="fruit", with_totals=True)
         """
         if self._survey_on():
             self._survey_only("count_rows", locals(), ("for_each_group_in", "in_percent"))
@@ -1380,6 +1486,7 @@ class SummaryWords:
         step = "count_rows"
         if not isinstance(in_percent, bool):
             raise SimplydataError("in_percent= should be True or False.")
+        _check_with_totals(step, with_totals, across, every, in_percent)
         if for_each_group_in is None:
             if across is not None:
                 self._check_across(step, across, None)
@@ -1399,7 +1506,8 @@ class SummaryWords:
         frame, periods = self._periods(step, self._frame, groups, every)
         each = _each(groups, periods)
         if across is not None:
-            result, labels = self._cross(frame, groups, across, nw.len(), fill=0, periods=periods)
+            result, labels = self._cross(frame, groups, across, nw.len(), fill=0, periods=periods,
+                                         with_totals=with_totals)
             say = _say_number
             if in_percent:
                 shares = result._frame.with_columns(nw.sum_horizontal(*labels).alias("__total")).with_columns(
@@ -1568,7 +1676,7 @@ class SummaryWords:
     def find_percent_of_rows_where(self, column=None, *extra, for_each_group_in=None, every=None, is_above=_NOT_GIVEN, is_below=_NOT_GIVEN,
                                    is_at_least=_NOT_GIVEN, is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN,
                                    is_between=_NOT_GIVEN, is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN,
-                                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact"):
+                                   ends_with=_NOT_GIVEN, is_empty=_NOT_GIVEN, interval_by="exact", capitals_matter=True):
         """What percent of the rows meet a condition, or each group's share.
 
         table.find_percent_of_rows_where("marks", is_above=60, for_each_group_in="class")   (with sdata.get_example("marks"))
@@ -1586,6 +1694,8 @@ class SummaryWords:
         proportion_confint, as R DescTools::BinomCI().
         Under a survey design (table.use_survey_design) a condition gives the population percent with
         survey's logit interval (R survey::svyciprop).
+        capitals_matter=False makes the text words find "maths", "Maths" and "MATHS" alike:
+        table.find_percent_of_rows_where("subject", is_equal_to="maths", capitals_matter=False)
         """
         step = "find_percent_of_rows_where"
         method = _percent_method(step, interval_by)
@@ -1629,7 +1739,7 @@ class SummaryWords:
                 "Use is_between=[low, high] for a range.\n"
                 'For example:  table.find_percent_of_rows_where("marks", is_between=[40, 80])   (with sdata.get_example("marks"))'
             )
-        cond, words = self._condition(step, column, options, ())
+        cond, words = self._condition(step, column, options, (), capitals_matter)
         counted = nw.lit(True) if "is_empty" in given else ~self._empty(column)
         if self._survey_on():
             if every is not None or interval_by != "exact":
@@ -1754,7 +1864,10 @@ class SummaryWords:
         "percentile 90" (any percent, R quantile type 7), "harmonic mean" (numbers above 0,
         SciPy hmean, as R psych::harmonic.mean) and "winsorised average" (the lowest and
         highest 20 % set to the nearest value kept, then the average; SciPy, as R
-        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %).
+        WRS2::winmean(tr = 0.2); "winsorised average 10" pulls in 10 %), and "first" and "last"
+        (the first and last filled value, in the order of the rows: sort first with sort_by, as
+        pandas groupby().first() / last() and Polars first() / last()). With every="month",
+        show=["first", "biggest", "smallest", "last"] gives each month's open, high, low and close.
         Without show=: count, average, standard deviation, smallest, median,
         biggest. A measure of your own also works: a function that gets one group's
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
@@ -1780,7 +1893,8 @@ class SummaryWords:
         frame, periods = self._periods(step, frame, groups or None, every)
         frame = frame.with_columns(nw.col(c).is_null().cast(nw.Int64).alias(f"__empty {i}")
                                    for i, c in enumerate(columns))
-        names = [m for m in measures if isinstance(m, str) and not _is_array_measure(m)]
+        names = [m for m in measures if isinstance(m, str) and not _is_array_measure(m) and m not in FIRST_LAST]
+        ends = [m for m in measures if m in FIRST_LAST]
         arrays = [m for m in measures if _is_array_measure(m)]
         own = [m for m in measures if not isinstance(m, str)]
         problems: dict = {}  # (measure, why) -> [where]
@@ -1815,6 +1929,8 @@ class SummaryWords:
                 agg = frame.select(*exprs)
             own_values = self._own_measures(frame, groups, c, own, own_names) if own else {}
             array_values = self._array_measures(frame, groups, c, arrays, problems, len(columns) > 1) if arrays else {}
+            if ends:
+                array_values = {**array_values, **self._first_and_last(frame, groups, c, ends)}
             for row in agg.rows(named=True):
                 key = _key([row[g] for g in groups])
                 data["column"].append(c)
@@ -1832,6 +1948,8 @@ class SummaryWords:
         float_names = [n for n in out_names if _is_array_measure(n)]
         if float_names:
             result = result.with_columns(nw.col(n).cast(nw.Float64) for n in float_names)
+        if ends:  # first and last keep the column's own kind (a whole number above 2**53 stays exact)
+            result = self._ends_in_own_kind(result, data, columns, ends)
         result = result.with_columns(nw.col(n).cast(nw.Int64) for n in ("count", "empty cells") if n in out_names)
         table = self._new_table(result)
         self._note_empty(frame, columns)
@@ -1855,6 +1973,51 @@ class SummaryWords:
                       f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
         return table
+
+    def _ends_in_own_kind(self, result, data, columns, ends):
+        """The "first" and "last" columns built in the summarised column's own kind: Polars pl.Series(dtype=), pandas
+        the same numpy kind, or its nullable twin (Int64 for int64) when a group has no value. Several columns of
+        different kinds become decimals."""
+        native = self._frame.to_native()
+        kinds = {native.schema[c] if self._frame.implementation.is_polars() else native[c].dtype for c in columns}
+        values = {end: [None if isinstance(v, float) and math.isnan(v) else v for v in data[end]] for end in ends}
+        if len(kinds) != 1:
+            return result.with_columns(nw.col(end).cast(nw.Float64) for end in ends)
+        kind = next(iter(kinds))
+        out = result.to_native()
+        if self._frame.implementation.is_polars():
+            import polars as pl
+
+            out = out.with_columns(pl.Series(end, values[end], dtype=kind) for end in ends)
+        else:
+            import pandas as pd
+
+            for end in ends:
+                target, name = kind, str(kind)
+                if any(v is None for v in values[end]) and name.startswith(("int", "uint")):  # numpy int64 -> Int64
+                    target = "UInt" + name[4:] if name.startswith("uint") else "Int" + name[3:]
+                out[end] = pd.Series(pd.array(values[end], dtype=target), index=out.index)
+        return nw.from_native(out, eager_only=True)
+
+    @staticmethod
+    def _first_and_last(frame, groups, column, ends) -> dict:
+        """find_summary_of(show=["first", "last"]): the first and last filled value of each group, in row order.
+
+        The empty cells are left out first, as for every other measure, so the first value is the first filled one
+        (pandas groupby().first() / last() skip empty cells; Polars first() / last() after drop_nulls()). A group
+        whose every cell is empty has no first value, so its cell stays empty."""
+        filled = frame.filter(~nw.col(column).is_null())
+        exprs = [getattr(nw.col(column), end)().alias(f"__{end}") for end in ends]  # narwhals first() / last()
+        if groups:
+            found = filled.group_by(groups, drop_null_keys=False).agg(*exprs)
+        else:
+            found = filled.select(*exprs) if len(filled) else None
+        values = {}
+        for row in (found.rows(named=True) if found is not None else []):
+            key = _key([row[g] for g in groups])
+            for end in ends:
+                values[(key, end)] = _plain(row[f"__{end}"])
+        return values
 
     @staticmethod
     def _group_arrays(frame, groups, column) -> dict:

@@ -1,0 +1,15 @@
+Cleaned 5 of 5 column names (the R janitor rule):
+  "Station" -> station
+  "Fjord" -> fjord
+  "Latitude (°N)" -> latitude_n
+  "Longitude (°E)" -> longitude_e
+  "Distance to outfall (km)" -> distance_to_outfall_km
+56 of 60 rows in this table found a match in the other table.
+The column "found in" says where each row was found: both 56 rows, this table only 4 rows.
+How many rows have each "found in" (2 different values): both 56, this table only 4.
+Kept 4 of 60 rows.
+   sample_id  station       sampled_local  depth_m  salinity      crew notes fjord  latitude_n  longitude_e  distance_to_outfall_km         found in
+1          8    St.3  2026-05-12 10:07:00       10      24.1  MS;IB;AH   NaN   NaN         NaN          NaN                     NaN  this table only
+2         30     st.3 2026-05-13 10:02:00       10      23.2     TO;IB   NaN   NaN         NaN          NaN                     NaN  this table only
+3         37  Råvika 2026-05-13 12:31:00        1      30.2     TO;KL   NaN   NaN         NaN          NaN                     NaN  this table only
+4         46    St.3  2026-05-14 09:51:00        1      22.2        AH   NaN   NaN         NaN          NaN                     NaN  this table only

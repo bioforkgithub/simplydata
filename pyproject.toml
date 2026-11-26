@@ -39,13 +39,22 @@ dependencies = [
     "statsmodels>=0.15,<0.16",
     "openpyxl>=3.1.5,<4",
     "narwhals>=2.27.1,<3",
+    # Polars and pyarrow are required since the tables phase (Manish, 2026-11-25): several table words run on Polars
+    # for every table, so that pandas and Polars tables give one answer. Lower bound 1.43.2: Polars 1.37 to 1.42
+    # panic in str.strptime("%d %B %Y") on a short month name (turn_into_dates(written_like=)), and before 1.40 a
+    # pivot drops the values of an empty name (the oldest-versions run of 2026-11-25).
+    "polars>=1.43.2,<3",
+    "pyarrow>=19,<27",
 ]
 
 [project.optional-dependencies]
-fast = ["polars>=1.37,<3", "pyarrow>=19,<27"]
+fast = []  # kept so that pip install "simplydata[fast]" still works; Polars and pyarrow are now required
 files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
+# DuckDB for SQL (table.run_sql, sdata.run_sql) and .duckdb files; simplydata opens it with no extensions and no web
+# access (src/simplydata/_sql.py). Lower bound: the release CI tests; upper bound: the next untested major release.
+sql = ["duckdb>=2.0,<3"]
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg
@@ -86,7 +95,9 @@ r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: 
 # the install line.
 # data-and-fixes: the reliability study reads the tables of GPL and LGPL R packages from the installed packages
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
-test = ["pytest>=7,<10", "polars>=1.37,<3", "pyarrow>=19,<27", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1"]
+# tzdata: IANA's main time zone data (what simplydata reads through Polars) for Python's zoneinfo on every system;
+# the reliability study's pandas reference for Oslo before 1970 reads it (validation/cases_underneath_tables_2.py)
+test = ["pytest>=7,<10", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1", "tzdata>=2023.3,<2028"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"
@@ -98,7 +109,7 @@ Manual = "https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simp
 path = "src/simplydata/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/simplydata", "tests", "validation", "docs/make_job_search.py", "docs/make_practice_tables.py", "README.md", "LICENSE", "DATA_LICENSES.md", "CHANGELOG.md",
+include = ["src/simplydata", "tests", "validation", "docs/make_job_search.py", "docs/make_practice_tables.py", "docs/make_fjord_tables.py", "README.md", "LICENSE", "DATA_LICENSES.md", "CHANGELOG.md",
            "CITATION.cff", "pyproject.toml"]
 
 [tool.hatch.build.targets.wheel]

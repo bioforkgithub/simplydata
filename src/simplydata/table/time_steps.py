@@ -13,7 +13,7 @@ from .._typing import _Same
 import narwhals as nw
 import numpy as np
 
-from .. import _dates
+from .. import _dates, _zone_clock
 from .._errors import SimplydataError, friendly
 
 STEP_NAMES = ((1 / 86400, "second"), (1 / 1440, "minute"), (1 / 24, "hour"), (1, "day"), (7, "week"))
@@ -52,7 +52,9 @@ class TimeStepWords:
         the first and after the last date. The new rows have empty cells: fill them next with
         table.fill_empty_cells_in(..., with_the="line between neighbours", sorted_by=..., for_each_group_in=...).
         The table comes back sorted by the groups and the dates. As pandas reindex / Polars upsample;
-        R merge(data.frame(date = seq(...)), x, all.x = TRUE). Undo with table.undo().
+        R merge(data.frame(date = seq(...)), x, all.x = TRUE). A column with a time zone is stepped on
+        its own clock as Polars reads it: local clock times before 1970 follow the main world time-zone
+        data (IANA), the same on every computer. Undo with table.undo().
         """
         import pandas as pd
 
@@ -71,10 +73,70 @@ class TimeStepWords:
             if not (isinstance(between, (list, tuple)) and len(between) == 2):
                 raise SimplydataError('between= needs the first and last date, such as between=["2024-01-01", '
                                       '"2025-12-31"].')
-            low, high = (_dates.read_date(v, "between", step_name) for v in between)
-            zone = getattr(native[column].dtype, "tz", None)
-            if zone is not None:  # between= dates are clock times in the column's own time zone
-                low, high = (v.tz_convert(zone) if v.tzinfo is not None else v.tz_localize(zone) for v in (low, high))
+            between = [_dates.read_date(v, "between", step_name) for v in between]
+        zone = _zone_clock.zone_of(self._frame, column)
+        if zone is None:
+            new_rows, counts, shown_every = self._missing_dates(native, column, groups, given, between)
+        else:
+            # A column with a time zone: Polars reads its clock on both engines (simplydata._zone_clock), so local
+            # clock times before 1970 follow the main world time zone data (IANA), the same on every computer.
+            # Days, weeks, months and years are stepped on the zone's clock times and placed back in the zone;
+            # hours, minutes and seconds are stepped on the UTC clock, so a summer-time change neither adds an hour
+            # that never happens nor repeats one.
+            on_clock = native.assign(**{column: _zone_clock.wall_clock(self._frame, column).set_axis(native.index)})
+            new_rows, counts, shown_every = self._missing_dates(
+                on_clock, column, groups, given, _zone_clock.between_on_clock(between, zone, utc=False))
+            if shown_every[1] in ("second", "minute", "hour"):
+                in_utc = native.assign(**{column: native[column].dt.tz_convert("UTC")})
+                new_rows, counts, shown_every = self._missing_dates(
+                    in_utc, column, groups, given, _zone_clock.between_on_clock(between, zone, utc=True))
+                for row in new_rows:
+                    row[column] = row[column].tz_convert(zone)
+            elif new_rows:
+                placed = _zone_clock.place_on_clock(pd.Series([row[column] for row in new_rows]), zone,
+                                                    ambiguous="earliest", non_existent="null")
+                if placed.isna().any():
+                    raise SimplydataError(f'A date to add to "{column}" never happens on the {zone} clock (the '
+                                          f"summer-time change skips it). Give every= in hours instead.")
+                for row, stamp in zip(new_rows, placed):
+                    row[column] = stamp
+        total = sum(n for _, n in counts)
+        unit_words = _dates.every_words(*shown_every)
+        plural = (unit_words if total == 1 else (_dates.UNITS[shown_every[1]] if shown_every[0] == 1 else
+                                                    f"steps of {unit_words}"))
+        each = ""
+        if groups and total:
+            each = " (" + ", ".join(f"{n} for {label}" for label, n in counts) + ")"
+        source = "" if every is not None else f" (every {unit_words}: the most common step)"
+        if total:
+            print(f'Added {total} missing {plural} to "{column}"{each}{source}; the new rows have empty cells. '
+                  f'Fill them next: table.fill_empty_cells_in("<column>", with_the="line between neighbours", '
+                  f'sorted_by="{column}"' + (f', for_each_group_in="{groups[0]}"' if len(groups) == 1 else "") + ").")
+        else:
+            print(f'No dates were missing from "{column}"{source}.')
+        added = pd.DataFrame(new_rows, columns=[column, *groups]) if new_rows else None
+        frame = self._frame
+        if added is not None:
+            if frame.implementation.is_polars():
+                import polars as pl
+
+                extra = pl.from_pandas(added).with_columns(pl.col(column).cast(frame.to_native().schema[column]))
+                native_new = pl.concat([frame.to_native(), extra], how="diagonal_relaxed")
+                native_new = native_new.sort([*groups, column], maintain_order=True)
+            else:
+                native_new = pd.concat([frame.to_native(), added], ignore_index=True)
+                native_new = native_new.sort_values([*groups, column], kind="stable").reset_index(drop=True)
+            frame = nw.from_native(native_new, eager_only=True)
+        return self._change(f'add {total} missing dates to "{column}"', frame)
+
+    @staticmethod
+    def _missing_dates(native, column, groups, given, between):
+        """The rows to add (one dict each), the count for each group and the step, worked out on a pandas copy of
+        the table whose date column has no time zone (or is on the UTC clock)."""
+        import pandas as pd
+
+        if between is not None:
+            low, high = between
             if high < low:
                 raise SimplydataError("between= needs the earlier date first.")
         parts = native.groupby(groups, sort=True, dropna=False) if groups else [((), native)]
@@ -113,34 +175,7 @@ class TimeStepWords:
                 row = {column: stamp}
                 row.update(dict(zip(groups, key)))
                 new_rows.append(row)
-        total = sum(n for _, n in counts)
-        unit_words = _dates.every_words(*shown_every)
-        plural = (unit_words if total == 1 else (_dates.UNITS[shown_every[1]] if shown_every[0] == 1 else
-                                                    f"steps of {unit_words}"))
-        each = ""
-        if groups and total:
-            each = " (" + ", ".join(f"{n} for {label}" for label, n in counts) + ")"
-        source = "" if every is not None else f" (every {unit_words}: the most common step)"
-        if total:
-            print(f'Added {total} missing {plural} to "{column}"{each}{source}; the new rows have empty cells. '
-                  f'Fill them next: table.fill_empty_cells_in("<column>", with_the="line between neighbours", '
-                  f'sorted_by="{column}"' + (f', for_each_group_in="{groups[0]}"' if len(groups) == 1 else "") + ").")
-        else:
-            print(f'No dates were missing from "{column}"{source}.')
-        added = pd.DataFrame(new_rows, columns=[column, *groups]) if new_rows else None
-        frame = self._frame
-        if added is not None:
-            if frame.implementation.is_polars():
-                import polars as pl
-
-                extra = pl.from_pandas(added).with_columns(pl.col(column).cast(frame.to_native().schema[column]))
-                native_new = pl.concat([frame.to_native(), extra], how="diagonal_relaxed")
-                native_new = native_new.sort([*groups, column], maintain_order=True)
-            else:
-                native_new = pd.concat([frame.to_native(), added], ignore_index=True)
-                native_new = native_new.sort_values([*groups, column], kind="stable").reset_index(drop=True)
-            frame = nw.from_native(native_new, eager_only=True)
-        return self._change(f'add {total} missing dates to "{column}"', frame)
+        return new_rows, counts, shown_every
 
     @friendly(renamed={"method": "test_method", "for_each": "for_each_group_in", "degree": "of_degree"})
     def add_smoothed_column(self: _Same, name=None, from_column=None, test_method="moving average", window=5, sorted_by=None,
