@@ -27,8 +27,8 @@ working for one release and prints a one-line note with its new name.
   world time-zone data (IANA), the same on every computer; the moments themselves never change. For example,
   Norway's summer time of 1959-65 is not included (it is only in IANA's "backzone" file, which Ubuntu and R on Linux
   include). The reliability study compares pandas through Python's zoneinfo read from the tzdata package (IANA's main
-  data) on every system, so `tzdata` joins the `test` extra. Where R reads a copy with the backzone, its Oslo
-  numbers are listed as an explained difference, only when R given IANA's main data gives simplydata's numbers.
+  data) on every system, so `tzdata` (2023.3 to 2027) joins the `test` extra. Where R reads a copy with the
+  backzone, its Oslo numbers are listed as an explained difference, only when R given IANA's main data gives simplydata's numbers.
 - Time zone names with `_`, `-`, `+` or digits (`America/New_York`, `America/Port-au-Prince`, `Etc/GMT+5`,
   `America/Argentina/Buenos_Aires`) on a pandas table. narwhals (2.27 to 2.29) reads the kind of a pandas column from
   its written dtype with a pattern that takes only letters and `/` in the zone, so such a column was `Unknown`: every
