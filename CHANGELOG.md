@@ -56,6 +56,25 @@ working for one release and prints a one-line note with its new name.
   1)**200` would have about 1.4 million terms).
 - Other names from SymPy, MATLAB and R point to the new words (apart, collect, vpa, summation, Sum, symsum,
   reduce_inequalities, refine, det, inv, eig, eigenvals ...).
+- After the independent review of the batch: a series with no exact formula prints only the digits SymPy's evalf
+  gives the same at 15 and 30 digits of precision (a slowly settling series such as 1/(k log(k)**2) gets 2.1, not
+  ten wrong digits), and refuses when not even two agree; a sum up to a letter of the formula uses that same letter;
+  a long finite sum is worked out from SymPy's formula of the sum up to n (exactly when it is a polynomial, else as a
+  decimal), and a sum whose terms have more than 100,000 digits is refused; `letters_are=` reaches formulas in
+  `solve` and the ranges of rules (x positive: 0 < x < 2), and a value or range that contradicts it is refused in
+  `find_value_at`, `put_in`, `find_area_under`, `find_volume_under`, `find_where_*` and `draw_curve`; a rule that
+  repeats (sin(x) > 0) is refused, since SymPy gives one period only; a letter every number fits is said ("y can be
+  any number; x = 3 - y"); `find_eigenvalues` follows R eigen()'s order (by size for a grid that is not symmetric,
+  with R isSymmetric's tolerance) and real exact eigenvalues have no imaginary part; exact grids keep a number that
+  no short fraction gives back (4 + 1e-15) instead of rounding it; numbers longer than 4300 digits are shown with
+  their size; `gamma`, `lgamma`, `digamma`, `beta` and `besselJ` of a number above 1000 are refused while reading;
+  `put_in`, `find_value_at` and every decimal of an exact answer run under the time limit; typed decimals and
+  `known=` values are the same exact numbers in exact paths; infinity is written as a word.
+- The helper process: a watchdog thread ends it as soon as Python is gone (even mid-job), its own output goes to the
+  null device, it has a memory limit (half the computer's memory, 1 to 8 GB), multiprocessing's preparation data
+  leaves your script out instead of swapping `__main__`, an embedded Python whose executable is not Python runs SymPy
+  in-process with a note, every SymPy call of one word shares one 60-second deadline, and the stop sentence gives
+  advice for that word. On Linux and macOS multiprocessing also starts its own small resource-tracker process.
 
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 

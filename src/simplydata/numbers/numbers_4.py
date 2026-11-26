@@ -17,7 +17,27 @@ from .._typing import _Same
 
 
 def _exact_rows(sp, matrix) -> list[str]:
-    return ["[" + ", ".join(str(v) for v in matrix.row(i)) + "]" for i in range(matrix.rows)]
+    from .._formula import _show
+
+    return ["[" + ", ".join(_show(v) for v in matrix.row(i)) + "]" for i in range(matrix.rows)]
+
+
+SYMMETRIC_TOLERANCE = 100 * np.finfo(float).eps  # as R isSymmetric(): all.equal(a, t(a), tolerance = 100 * eps)
+
+
+def _is_symmetric(values) -> bool:
+    """R isSymmetric(): the mean absolute difference from the transposed grid, relative to the mean size of the
+    numbers (all.equal's own measure), is at most 100 times the machine epsilon."""
+    gap = float(np.mean(np.abs(values - values.T)))
+    size = float(np.mean(np.abs(values)))
+    return (gap / size if size > SYMMETRIC_TOLERANCE else gap) <= SYMMETRIC_TOLERANCE
+
+
+def _order_like_r(real, imaginary, symmetric: bool):
+    """The order of R eigen(): a symmetric grid's eigenvalues biggest first, any other grid's by their size (the
+    modulus, Mod) biggest first; equal ones keep LAPACK's order."""
+    keys = -np.asarray(real, dtype=float) if symmetric else -np.hypot(real, imaginary)
+    return np.argsort(keys, kind="stable")
 
 
 class GridWords4:
@@ -36,14 +56,12 @@ class GridWords4:
         values = self._square("find_determinant")
         n = values.shape[0]
         if exactly:
-            from .._formula import Formula, exact_matrix, run_exactly
-
-            import sympy as sp
+            from .._formula import EXACTLY_HINT, Formula, _show, exact_matrix, float_of, run_exactly
 
             matrix = exact_matrix(values, "find_determinant", _max_exact())
             found = run_exactly(matrix.det, what="SymPy det")
-            print(f"The determinant of the {n} x {n} grid, exactly: {found} (about {float(sp.N(found)):.10g})   "
-                  "(SymPy det, exact)")
+            print(f"The determinant of the {n} x {n} grid, exactly: {_show(found)} (about "
+                  f"{float_of(found, 'SymPy N', EXACTLY_HINT):.10g})   (SymPy det, exact)")
             return Formula(found)
         found = float(linalg.det(values))
         print(f"The determinant of the {n} x {n} grid: {found:.10g}   (SciPy linalg.det, from the LU decomposition)"
@@ -79,7 +97,7 @@ class GridWords4:
             for line in _exact_rows(sp, inverse):
                 print("  " + line)
             print("The grid now holds these as decimals.")
-            out = np.array(inverse.evalf(), dtype=float)
+            out = np.array(run_exactly(inverse.evalf, what="SymPy evalf"), dtype=float)
             return self._change("inverse (exact)", out)
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
@@ -99,10 +117,11 @@ class GridWords4:
         """The eigenvalues of a square grid, biggest first, as a table. grid.find_eigenvalues()
 
         sdata.number_grid([[2, 1], [1, 2]]).find_eigenvalues() gives 3 and 1. Gives back a table: eigenvalue,
-        imaginary part (0 unless the grid turns things round). A symmetric grid (as a correlation grid) uses SciPy
-        linalg.eigvalsh, whose eigenvalues are always real; any other grid uses linalg.eigvals. exactly=True gives
-        the exact eigenvalues from SymPy (eigenvals, the numbers as fractions), with how many times each comes, for
-        grids up to 6 x 6. As R eigen()$values, MATLAB eig.
+        imaginary part (0 unless the grid turns things round). A symmetric grid (as a correlation grid; symmetric to
+        within R isSymmetric's tolerance) uses SciPy linalg.eigvalsh, whose eigenvalues are always real, biggest
+        first; any other grid uses linalg.eigvals, ordered by their size (the modulus) biggest first. That is the
+        order of R eigen()$values. exactly=True gives the exact eigenvalues from SymPy (eigenvals, the numbers as
+        exact fractions), in the same order, with how many times each comes, for grids up to 6 x 6. MATLAB eig.
         """
         import pandas as pd
         from scipy import linalg
@@ -114,31 +133,36 @@ class GridWords4:
         values = self._square("find_eigenvalues")
         n = values.shape[0]
         if exactly:
-            from .._formula import MAX_EXACT_EIGEN, exact_matrix, run_exactly
-
-            import sympy as sp
+            from .._formula import EXACTLY_HINT, MAX_EXACT_EIGEN, _show, decimal_of, exact_matrix, run_exactly
 
             matrix = exact_matrix(values, "find_eigenvalues", MAX_EXACT_EIGEN)
             found = run_exactly(matrix.eigenvals, what="SymPy eigenvals")
             rows = []
             for value, times in found.items():
-                number = complex(sp.N(value))
-                rows.append({"eigenvalue": number.real, "imaginary part": number.imag, "eigenvalue exactly": str(value),
-                             "times": int(times)})
-            rows.sort(key=lambda r: (-r["eigenvalue"], -r["imaginary part"]))
+                number = complex(decimal_of(value, "SymPy N", EXACTLY_HINT))
+                # a real eigenvalue written with I (the roots of a cubic) has no imaginary part, only SymPy's
+                # rounding remainder of about 1e-20 at 15 digits: SymPy says it is real, or the part is that small
+                if value.is_real or (value.is_real is None and
+                                     abs(number.imag) <= 1e-12 * max(1.0, abs(number.real))):
+                    number = complex(number.real, 0.0)
+                rows.append({"eigenvalue": number.real, "imaginary part": number.imag,
+                             "eigenvalue exactly": _show(value), "times": int(times)})
+            order = _order_like_r([r["eigenvalue"] for r in rows], [r["imaginary part"] for r in rows],
+                                  _is_symmetric(values))
+            rows = [rows[i] for i in order]
             said = " and ".join(r["eigenvalue exactly"] for r in rows)
             each = "each once" if all(r["times"] == 1 for r in rows) else \
                 "; ".join(f"{r['eigenvalue exactly']} comes {r['times']} times" for r in rows if r["times"] > 1)
             print(f"The eigenvalues of the {n} x {n} grid: {said} ({each})   (SymPy eigenvals, exact)")
             return Table(pd.DataFrame(rows))
-        symmetric = bool(np.array_equal(values, values.T))
+        symmetric = _is_symmetric(values)
         if symmetric:
-            found = linalg.eigvalsh(values)[::-1].astype(complex)
+            found = linalg.eigvalsh(values).astype(complex)
             how = "SciPy linalg.eigvalsh, for a symmetric grid"
         else:
             found = linalg.eigvals(values)
-            found = found[np.lexsort((-found.imag, -found.real))]
-            how = "SciPy linalg.eigvals"
+            how = "SciPy linalg.eigvals, ordered by size (modulus) as R eigen()"
+        found = found[_order_like_r(found.real, found.imag, symmetric)]
         table = pd.DataFrame({"eigenvalue": found.real, "imaginary part": found.imag})
         shown = ", ".join(f"{v.real:.6g}" + (f" {'+' if v.imag > 0 else '-'} {abs(v.imag):.6g}i" if v.imag else "")
                           for v in found[:8]) + (" ..." if n > 8 else "")

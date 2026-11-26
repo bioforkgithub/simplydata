@@ -4938,11 +4938,15 @@ BASIS['sdata.find_path_over_time equations="d2x/dt2 = ..."'] = _b(
     ("soetaert2010", "dormand1980"), "P3", "One second-order equation on its own; at_start= needs x and dx/dt.",
     "published")
 BASIS["grid.find_determinant exactly="] = _b(
-    "Each number of the grid becomes the fraction it stands for (SymPy nsimplify, rational=True: 0.2 is 1/5), then "
+    "Each number of the grid becomes the simplest fraction whose decimal is exactly that number (SymPy nsimplify, "
+    "rational=True: 0.2 is 1/5); a number no short fraction gives back exactly (4 + 1e-15) keeps its exact binary "
+    "value instead of being rounded to 15 digits. Then "
     "SymPy Matrix.det works exactly.",
     "Without exactly=True: SciPy linalg.det (LU decomposition, LAPACK).",
     "A decimal such as 0.2 cannot be held exactly by a float; the fraction it was typed as is what the reader "
-    "means.", ("meurer2017",), "P5", "Grids up to 12 x 12 with a number in every cell.", "convention")
+    "means. Rounding every number to 15 digits first would change a number such as 4 + 1e-15 and could turn a grid "
+    "with an inverse into one without, so such a number is kept exactly as stored.", ("meurer2017",), "P5",
+    "Grids up to 12 x 12 with a number in every cell.", "convention")
 BASIS["grid.take_inverse exactly="] = _b(
     "The exact inverse from SymPy (the numbers as fractions) is printed as fractions; the grid keeps their "
     "decimals, so the other grid words work on it.",
@@ -4950,14 +4954,16 @@ BASIS["grid.take_inverse exactly="] = _b(
     "A grid holds numbers, so the fractions are shown for reading and the decimals kept for working on.",
     ("meurer2017",), "P5", "A grid whose determinant is exactly 0 is refused; grids up to 12 x 12.", "convention")
 BASIS["grid.find_eigenvalues"] = _b(
-    "A symmetric grid uses SciPy linalg.eigvalsh (real eigenvalues always); any other grid linalg.eigvals; biggest "
-    "first, as R eigen().",
+    "A grid symmetric to within R isSymmetric's tolerance (100 x machine epsilon) uses SciPy linalg.eigvalsh (real "
+    "eigenvalues always), biggest first; any other grid linalg.eigvals, biggest size (modulus) first: the order of "
+    "R eigen().",
     "exactly=True: SymPy eigenvals, for grids up to 6 x 6.",
     "LAPACK's symmetric eigensolver (Anderson et al. 1999) is faster and more accurate for symmetric grids and never "
     "gives a tiny imaginary part by rounding; biggest first matches R and the order readers expect.",
     ("anderson1999",), "P3", "A square grid with no empty cells.", "published")
 BASIS["grid.find_eigenvalues exactly="] = _b(
-    "SymPy Matrix.eigenvals on the numbers as fractions, biggest first, with how many times each comes.",
+    "SymPy Matrix.eigenvals on the numbers as exact fractions, in the order of R eigen() (as without exactly=True), "
+    "with how many times each comes; a real eigenvalue has no imaginary part, not a rounding remainder.",
     "Without exactly=True: SciPy linalg.eigvalsh or eigvals.",
     "SymPy gives the eigenvalues as a dict without an order; biggest first is the order of the numeric word and "
     "R eigen().", ("meurer2017",), "P5",

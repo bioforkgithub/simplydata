@@ -318,7 +318,8 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     if not isinstance(search, str) or search.strip().lower() not in SEARCHES:
         raise choice_error(step, "search", search, SEARCHES)
     search = search.strip().lower()
-    if hasattr(formula, "_formula_text"):  # a formula made with sdata.formula()
+    made = formula  # a formula made with sdata.formula() keeps what letters_are= said
+    if hasattr(formula, "_formula_text"):
         formula = formula._formula_text()
     if not isinstance(formula, str):
         raise SimplydataError(f"{step}() needs a formula in quotes, for example {example}.")
@@ -336,6 +337,11 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         print("Using " + ", ".join(f"{k} = {_show(v)}" for k, v in goal_formula.known.items()) + " from known=.")
     limits, has_limits = _limits(step, names, between, "between=[0, 5]" if len(names) == 1 else
                                  'between={"x": [0, 5], "y": [0, None]}')
+    if hasattr(made, "_expr"):  # a formula made with letters_are=: the search stays where the letters fit
+        from ._formula import check_range_fits
+
+        for name, (low, high) in limits.items():
+            check_range_fits(made, name, low, high, step)
     whole = _whole_names(step, names, whole_numbers)
     sign = -1.0 if biggest else 1.0
 

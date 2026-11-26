@@ -79,7 +79,8 @@ _SDATA = [
     ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then f.turn_into_partial_fractions()',
      "apart partial_fractions partfrac"),
     ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then f.group_by_powers_of("x")', "collect coeffs"),
-    ('sdata.formula("sqrt(2)"), then f.show_as_decimal(digits=50)', "N vpa"),
+    ('sdata.formula("sqrt(2)"), then f.find_value_at() for a number, or f.show_as_decimal(digits=50) for many '
+     'digits', "N vpa"),
     ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"})', "assumptions refine assume Q"),
     ('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])', "summation Sum nsum symsum is_convergent"),
     ('sdata.solve("x**2 - 4 > 0", exactly=True)',

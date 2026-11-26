@@ -429,6 +429,10 @@ class CurveWords:
                 raise SimplydataError('show="cumulative" is for a distribution, such as '
                                       'chart.draw_curve(sdata.distribution("normal"), show="cumulative").')
             thing = read_curve_formula(word, formula_or_distribution)
+            if span is not None and hasattr(formula_or_distribution, "_expr"):  # letters_are= of a formula
+                from .._formula import check_range_fits
+
+                check_range_fits(formula_or_distribution, thing[2], span[0], span[1], word)
         self._add("curve", "extra", _draw_curve, thing=thing, between=span, steps=int(steps), dashed=bool(dashed),
                   colour=colour, label=None if labelled is None else str(labelled), thickness=thickness, show=show,
                   said={})

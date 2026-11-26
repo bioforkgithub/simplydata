@@ -8,6 +8,7 @@ gone when Python exits, even when Python is stopped without a goodbye.
 from __future__ import annotations
 
 import math
+import operator
 import os
 import subprocess
 import sys
@@ -223,7 +224,8 @@ def test_solve_rules_are_sympy_solveset_over_the_reals(capsys):
     sp, x = _sp()
     found = sdata.solve("x**2 - 4 > 0", exactly=True)
     whole = sp.solveset(x ** 2 - 4 > 0, x, sp.S.Reals)
-    assert _listed(found, "to exactly") == [str(piece.end) for piece in whole.args] == ["-2", "oo"]
+    assert _listed(found, "to exactly") == [str(piece.end).replace("oo", "infinity") for piece in whole.args] == [
+        "-2", "infinity"]
     assert _listed(found, "from") == [-math.inf, 2.0]
     assert _listed(found, "includes to") == [False, False]
     assert "x**2 - 4 > 0 when x < -2 or x > 2   (SymPy solveset over the real numbers)" in capsys.readouterr().out
@@ -295,7 +297,7 @@ def test_sum_of_series_says_when_it_does_not_settle(capsys):
     assert settles == pytest.approx(float(sp.Sum(1 / (k ** 3 + k + 1), (k, 1, sp.oo)).evalf()), rel=1e-12)
     assert "no exact formula; it settles at about 0.49472" in capsys.readouterr().out
     geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
-    assert str(geometric) == "1/(1 - r)"
+    assert str(geometric) == "Piecewise((1/(1 - r), Abs(r) < 1), (nan, True))"
     assert "when Abs(r) < 1; otherwise it does not settle" in capsys.readouterr().out
     assert sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k", known={"r": 0.5})._expr == 2
 
@@ -398,7 +400,7 @@ def test_determinant_inverse_and_eigenvalues_are_scipy(capsys):
     assert "eigvalsh, for a symmetric grid" in capsys.readouterr().out
     turn = sdata.number_grid([[0, -1], [1, 0]]).find_eigenvalues()
     assert _listed(turn, "imaginary part") == [1.0, -1.0]
-    assert "linalg.eigvals)" in capsys.readouterr().out
+    assert "linalg.eigvals, ordered by size (modulus) as R eigen()" in capsys.readouterr().out
 
 
 def test_matrix_words_refuse_what_has_no_answer():
@@ -568,3 +570,286 @@ def test_without_a_helper_sympy_runs_here_and_says_so(monkeypatch, capsys):
     sp, x = _sp()
     assert sdata.formula("x**2 - 1").turn_into_product()._expr == (x - 1) * (x + 1)
     assert "without the 60-second time limit" in capsys.readouterr().out
+
+
+# ================================================================ review of 52e71db (each test fails on that commit)
+def _run_code(tmp_path, code: str, seconds: float = 120):
+    """Run code in a fresh Python; a hang shows as a failure here instead of hanging the test run."""
+    script = tmp_path / "check.py"
+    script.write_text(textwrap.dedent(code), encoding="utf-8")
+    env = {**os.environ, "PYTHONPATH": str(SRC), "SIMPLYDATA_NO_CITE_LIST": "1"}
+    try:
+        result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, cwd=tmp_path, env=env,
+                                timeout=seconds)
+    except subprocess.TimeoutExpired:
+        pytest.fail(f"did not finish in {seconds} seconds:\n{code}")
+    return result
+
+
+# ---- 1: a slowly settling series gets only the digits SymPy is sure of
+def test_review_1_a_slowly_settling_series_gives_only_sure_digits(capsys):
+    value = sdata.find_sum_of_series("1/(k*log(k)**2)", between=[2, "infinity"])
+    out = capsys.readouterr().out
+    assert abs(value - 2.10974280124) < 0.01  # R: the sum to 1e7 and the integral of the tail
+    assert "only 2 digits are sure" in out and "2.106552124" not in out  # 52e71db printed 10 wrong digits
+    third = sdata.find_sum_of_series("1/(k*log(k)**3)", between=[2, "infinity"])
+    assert third == pytest.approx(2.06588653888, rel=1e-5)
+    assert "about 2.06588;" in capsys.readouterr().out
+
+
+def test_review_1_a_sum_that_runs_out_of_time_gives_advice_for_sums(monkeypatch):
+    monkeypatch.setattr(_time_limit, "TIME_LIMIT", 3.0)
+    with pytest.raises(sdata.SimplydataError, match="put the terms in numbers") as info:
+        sdata.find_sum_of_series("(-1)**k/log(k)", between=[2, "infinity"])
+    assert "make_simpler" not in str(info.value)
+
+
+# ---- 2: an end that is a letter of the formula is that same letter
+def test_review_2_a_sum_up_to_a_letter_of_the_formula_is_that_letter():
+    sp, _ = _sp()
+    s = sdata.find_sum_of_series("k/n", between=[1, "n"], for_letter="k")
+    assert len(s._expr.free_symbols) == 1
+    assert s.put_in(n=4)._expr == sp.Rational(5, 2)
+
+
+# ---- 3: letters_are= and the kinds of formulas reach every equation of solve
+def test_review_3_letters_are_reaches_formulas_in_solve():
+    found = sdata.solve(sdata.formula("c**2 - 4"), exactly=True, letters_are={"c": "positive"})
+    assert _listed(found, "c") == [2.0]
+    mixed = sdata.solve([sdata.formula("x - 1", letters_are={"x": "positive"}), "x + y = 3"], exactly=True)
+    assert _listed(mixed, "x") == [1.0] and _listed(mixed, "y") == [2.0]
+    with pytest.raises(sdata.SimplydataError, match="say one thing for each letter"):
+        sdata.solve(sdata.formula("c**2 - 4", letters_are={"c": "negative"}), exactly=True,
+                    letters_are={"c": "positive"})
+
+
+# ---- 4: rules keep to the numbers the letter may be
+def test_review_4_rules_keep_to_what_the_letter_is(capsys):
+    found = sdata.solve("x**2 < 4", exactly=True, letters_are={"x": "positive"})
+    assert _listed(found, "from") == [0.0] and _listed(found, "to") == [2.0]
+    assert "0 < x < 2" in capsys.readouterr().out
+    several = sdata.solve(["x**2 < 4", "x < 1"], exactly=True, letters_are={"x": "positive"})
+    assert _listed(several, "from") == [0.0] and _listed(several, "to") == [1.0]
+    with pytest.raises(sdata.SimplydataError, match="one period only"):  # SymPy would give 0 < x < pi only
+        sdata.solve("sin(x) > 0", exactly=True)
+
+
+# ---- 5: no heavy SymPy work outside the time limit
+def test_review_5_big_special_values_are_refused_while_reading(tmp_path):
+    result = _run_code(tmp_path, """
+        import simplydata as sdata
+        for text in ["gamma(10**7)", "digamma(10**6)", "lgamma(2*10**4)"]:
+            try:
+                sdata.formula(text)
+            except sdata.SimplydataError as error:
+                print("REFUSED", str(error).splitlines()[0])
+        print("SMALL", sdata.formula("gamma(10)").as_sympy())
+    """, seconds=60)
+    assert result.stdout.count("REFUSED") == 3 and "SMALL 362880" in result.stdout, result.stderr
+
+
+def test_review_5_put_in_and_long_sums_stay_inside_the_time_limit(tmp_path):
+    result = _run_code(tmp_path, """
+        import simplydata as sdata
+        from simplydata import _time_limit
+        _time_limit.TIME_LIMIT = 5
+        try:
+            sdata.formula("gamma(x)").put_in(x=10**7)
+        except sdata.SimplydataError as error:
+            print("STOPPED", str(error).splitlines()[0])
+        print("SUM", sdata.find_sum_of_series("1/k**2", between=[1, 10**6]))
+        print("VALUE", sdata.formula("x**(x**x)").put_in(x=8))
+    """, seconds=120)
+    assert "STOPPED SymPy subs did not finish in 5 seconds" in result.stdout, result.stderr
+    total = float(result.stdout.split("SUM")[1].split()[0])
+    assert total == pytest.approx(math.pi ** 2 / 6 - 1e-6 + 5e-13, rel=1e-12)
+    assert "15,151,336 digits" in result.stdout
+
+
+# ---- 6: answers with more than 4300 digits are shown, never a raw ValueError
+def test_review_6_very_long_numbers_are_shown_with_their_size(capsys):
+    long_sum = sdata.find_sum_of_series("k**k", between=[1, 2000])
+    out = capsys.readouterr().out
+    assert "digits, too long to write out" in out
+    assert "digits, too long to write out" in repr(long_sum)
+    power = sdata.formula("2**x").put_in(x=20000)
+    assert "a whole number of 6,021 digits" in repr(power)
+    assert sdata.find_sum_of_series("1/k**2", between=[1, 20000]) == pytest.approx(math.pi ** 2 / 6 - 1 / 20000,
+                                                                                   rel=1e-8)
+
+
+# ---- 7: a busy helper never outlives a Python that is killed
+def test_review_7_a_busy_helper_ends_when_python_is_killed(tmp_path):
+    pid_file = tmp_path / "helper.txt"
+    result = _run_code(tmp_path, f"""
+        import os, threading
+        import simplydata as sdata
+        from simplydata import _time_limit
+        sdata.formula("x + 1").make_simpler()
+        open({str(pid_file)!r}, "w").write(str(_time_limit.helper_process_id()))
+        threading.Timer(4, lambda: os._exit(4)).start()
+        sdata.formula("(x + y + 1)**100*(x + y + 2)**100").turn_into_sum()
+    """, seconds=90)  # 52e71db: the helper kept the output pipe open, so this never returned
+    assert result.returncode == 4
+    assert _helper_gone(int(pid_file.read_text()), 20)
+
+
+# ---- 8: a value or a range that contradicts letters_are= is refused
+def test_review_8_values_must_fit_letters_are():
+    f = sdata.formula("sqrt(x**2)", letters_are={"x": "positive"})
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        f.find_value_at(x=-2)
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        f.find_value_at(x=[1, 2, -3])
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        f.put_in(x=-2)
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        sdata.find_area_under(f, between=[-1, 1])
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        sdata.find_area_under(f, between=[-1, 1], exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        sdata.find_where_smallest(f, between=[-1, 1])
+    with pytest.raises(sdata.SimplydataError, match="x is positive"):
+        sdata.chart().draw_curve(f, between=[-1, 1])
+    assert f.find_value_at(x=2) == 2.0
+    assert sdata.find_area_under(f, between=[0, 1]) == pytest.approx(0.5)
+
+
+# ---- 9: a letter every number fits is said so
+def test_review_9_a_letter_every_number_fits_is_said(capsys):
+    found = sdata.solve(["x + y = 3", "2*x + 2*y = 6"], exactly=True)
+    out = capsys.readouterr().out
+    assert "y can be any number; x = 3 - y" in out
+    assert "These are all the solutions" not in out and "y = y" not in out and "\n stay" not in out
+    assert _listed(found, "y exactly") == ["any number"]
+
+
+# ---- 10 and 11: the order of R eigen(), and real exact eigenvalues without a rounding remainder
+def test_review_10_eigenvalues_are_in_the_order_of_r(capsys):
+    from scipy import linalg
+
+    g = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
+    values = sdata.number_grid(g).find_eigenvalues()
+    found = linalg.eigvals(np.array(g, dtype=float))
+    assert np.allclose(_listed(values, "eigenvalue"), sorted(found.real, key=abs, reverse=True))  # R: by Mod
+    almost = np.array([[2.0, 1.0], [1.0 + 1e-16, 2.0]])  # symmetric to within R isSymmetric's tolerance
+    sdata.number_grid(almost.tolist()).find_eigenvalues()
+    assert "eigvalsh, for a symmetric grid" in capsys.readouterr().out
+
+
+def test_review_11_real_exact_eigenvalues_have_no_imaginary_part():
+    exact = sdata.number_grid([[1, 2, 3], [0, 1, 4], [5, 6, 0]]).find_eigenvalues(exactly=True)
+    assert _listed(exact, "imaginary part") == [0.0, 0.0, 0.0]
+    assert np.allclose(_listed(exact, "eigenvalue"), [7.25602, -5.22967, -0.0263528], rtol=1e-5)
+
+
+# ---- 12: exactly=True keeps a number no short fraction gives back
+def test_review_12_exact_grids_do_not_round_the_numbers():
+    sp, _ = _sp()
+    d = sdata.number_grid([[1, 2], [2, 4 + 1e-15]]).find_determinant(exactly=True)
+    assert d._expr != 0 and d._expr == sp.Rational(4 + 1e-15) - 4
+    assert sdata.number_grid([[0.5, 0.25], [0.2, 0.4]]).find_determinant(exactly=True)._expr == sp.Rational(3, 20)
+
+
+# ---- 13: a letter SymPy cancels is still integrated over
+def test_review_13_volume_with_a_cancelled_letter():
+    v = sdata.find_volume_under("x*y/y", between={"x": [0, 1], "y": [0, 2]}, exactly=True)
+    assert v._expr == 1
+
+
+# ---- 14: wording
+def test_review_14_wording(capsys):
+    sp, _ = _sp()
+    assert sdata.formula("1/x").find_limit_as("x", goes_to="infinity") == 0.0
+    out = capsys.readouterr().out
+    assert "goes to infinity" in out and "oo" not in out
+    with pytest.raises(sdata.SimplydataError, match="at infinity there is only one side"):
+        sdata.formula("1/x").find_limit_as("x", goes_to="infinity", from_side="below")
+    sdata.find_sum_of_series("1/k**2", between=["-infinity", -1])
+    assert "from -infinity to -1" in capsys.readouterr().out
+    sdata.formula("sqrt(-4)").show_as_decimal()
+    assert "complex number" in capsys.readouterr().out
+    path = sdata.find_path_over_time("d2x/dt2 = -x", at_start={"x": 1, "dx/dt": 0}, between=[0, 10],
+                                     stop_when="dx/dt > 0.5")
+    assert path.get_cell_at(row=path.count_rows(), column="dx/dt") == pytest.approx(0.5, abs=1e-6)
+    with pytest.raises(Exception, match="show_as_decimal") as info:
+        sdata.formula("x").N()
+    assert "find_value_at" in str(info.value)
+    assert "solve_matrix" not in sdata.NumberGrid._HINTS  # solving is sdata.solve, not an inverse
+    geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
+    assert geometric.find_value_at(r=0.5) == 2.0
+    with pytest.raises(sdata.SimplydataError, match="no value among the ordinary numbers"):
+        geometric.find_value_at(r=2)
+    t = sp.Symbol("t")
+    typed = sdata.find_path_over_time("dN/dt = 0.3*N", at_start={"N": 10}, exactly=True)
+    assert typed._expr == 10 * sp.exp(sp.Rational(3, 10) * t)  # as known={"r": 0.3} gives
+
+
+# ---- 15: the helper's edge cases
+def test_review_15_helper_edge_cases(monkeypatch, capsys):
+    sp, x = _sp()
+    with pytest.raises(sdata.SimplydataError, match="could not be handed to the helper"):
+        _time_limit.run_with_time_limit(lambda: 1, what="a lambda")
+
+    class Gone:
+        def send(self, job):
+            raise OSError("pipe gone")
+
+    started = iter([(None, Gone(), None), None])
+    monkeypatch.setattr(_time_limit, "_start", lambda: next(started))
+    monkeypatch.setattr(_time_limit, "_kill", lambda: None)
+    monkeypatch.setitem(_time_limit._STATE, "said_no_helper", False)
+    assert _time_limit.run_with_time_limit(sp.factor, x ** 2 - 1) == (x - 1) * (x + 1)  # 52e71db: TypeError
+    assert "without the 60-second time limit" in capsys.readouterr().out
+
+
+def test_review_15_the_main_module_is_not_swapped_while_the_helper_starts():
+    seen = []
+
+    class Process:
+        def start(self):
+            from multiprocessing import spawn
+
+            seen.append(sys.modules["__main__"])
+            seen.append(spawn.get_preparation_data("x"))
+
+    main = sys.modules["__main__"]
+    _time_limit._start_without_main(Process())
+    assert seen[0] is main
+    assert "init_main_from_path" not in seen[1] and "init_main_from_name" not in seen[1]
+
+
+# ---- suspected: memory, embedded Pythons, one deadline per word
+def test_review_suspected_the_helper_has_a_memory_limit():
+    sp, _ = _sp()
+    with pytest.raises(sdata.SimplydataError, match="more memory than the helper may use"):
+        _time_limit.run_with_time_limit(operator.lshift, 1, 2 ** 37, what="SymPy power")  # 16 GB at once
+    with pytest.raises(sdata.SimplydataError, match="too big to add up exactly"):
+        sdata.find_sum_of_series("2**(2**k)", between=[1, 36])
+
+
+def test_review_suspected_an_embedded_python_runs_sympy_here(monkeypatch, capsys):
+    from multiprocessing import spawn
+
+    _time_limit._stop()
+    monkeypatch.setattr(spawn, "get_executable", lambda: "C:/Program Files/SomeApp/someapp.exe")
+    monkeypatch.setitem(_time_limit._STATE, "said_no_helper", False)
+    sp, x = _sp()
+    assert sdata.formula("x**2 - 1").turn_into_product()._expr == (x - 1) * (x + 1)
+    assert "without the 60-second time limit" in capsys.readouterr().out
+    assert not _time_limit.helper_is_running()
+
+
+def test_review_suspected_one_word_has_one_deadline(monkeypatch):
+    monkeypatch.setattr(_time_limit, "TIME_LIMIT", 4.0)
+
+    @_time_limit.one_deadline
+    def two_calls():
+        _time_limit.run_with_time_limit(time.sleep, 3)
+        _time_limit.run_with_time_limit(time.sleep, 3)
+
+    started = time.monotonic()
+    with pytest.raises(sdata.SimplydataError, match="did not finish"):
+        two_calls()
+    assert time.monotonic() - started < 5.5
+    assert _time_limit._STATE["deadline"] is None

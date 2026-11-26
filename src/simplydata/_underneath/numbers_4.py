@@ -171,11 +171,12 @@ ENTRIES = [
         code={"SymPy": SYMPY + """
             # solve("x**2 - 4 > 0", exactly=True)
             ranges = sp.solveset(x**2 - 4 > 0, x, sp.S.Reals)   # (1)
-            [str(piece.end) for piece in ranges.args]
+            [str(piece.end).replace("oo", "infinity") for piece in ranges.args]   # (2)
         """},
         compare="value",
         choices=("over the real numbers (domain S.Reals): SymPy solveset's own default is the complex numbers, where "
-                 "< and > have no meaning.",),
+                 "< and > have no meaning; with letters_are= the numbers the letter may be (positive: 0 to infinity).",
+                 "infinity is written as the word, not as SymPy's oo.",),
         also="simplydata also says the answer in words (x < -2 or x > 2) and uses reduce_inequalities for several "
              "rules.",
     ),
@@ -298,7 +299,8 @@ ENTRIES = [
             str(m.det())
         """},
         compare="value",
-        choices=("each number becomes the fraction it stands for (SymPy nsimplify, rational=True): 0.2 is 1/5.",),
+        choices=("each number becomes the fraction it stands for (SymPy nsimplify, rational=True): 0.2 is 1/5; a "
+                 "number no such fraction gives back exactly keeps its exact binary value.",),
         also="simplydata also prints the decimal, and refuses grids bigger than 12 x 12.",
     ),
     Entry(

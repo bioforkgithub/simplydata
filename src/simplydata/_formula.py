@@ -29,6 +29,7 @@ import math
 import numpy as np
 
 from ._errors import MissingWordError, SimplydataError, choice_error, friendly, suggest
+from ._time_limit import EXACTLY_HINT, FORMULA_HINT, one_deadline
 
 INSTALL_EXACT = 'pip install "simplydata[exact]"   (or: conda install -c conda-forge sympy)'
 FORMULA_EXAMPLE = 'f = sdata.formula("(x + 2)**2 - 4")'
@@ -56,7 +57,8 @@ HINTS = {"simplify": "make_simpler()", "expand": "turn_into_sum() (multiplied ou
          "integrate": "find_area_formula() (sdata.find_area_under for a number)",
          "Integral": "find_area_formula()", "int": "find_area_formula()",
          "subs": 'put_in(x="y + 1") (find_value_at(x=2) for a number)', "substitute": 'put_in(x="y + 1")',
-         "evalf": "find_value_at(x=2)", "N": "find_value_at(x=2)", "lambdify": "find_value_at(x=numbers)",
+         "evalf": "find_value_at(x=2) for a number, or show_as_decimal(digits=50) for many digits",
+         "N": "find_value_at(x=2) for a number, or show_as_decimal(digits=50) for many digits", "lambdify": "find_value_at(x=numbers)",
          "matlabFunction": "find_value_at(x=numbers)", "latex": "show_as_latex()",
          "limit": 'find_limit_as("x", goes_to=0)', "series": "find_taylor_series(around=0, up_to_power=4)",
          "taylor": "find_taylor_series(around=0, up_to_power=4)",
@@ -110,6 +112,11 @@ def _formula_error(problem: str) -> SimplydataError:
 
 
 MAX_DIGITS = 1000  # a whole number made by powers of numbers may have at most this many digits
+# gamma(10**7) is a whole number of 65 million digits and digamma(10**6) a fraction of millions: SymPy works them
+# out exactly while it reads the text. A number inside these functions may be at most this big (gamma(1000) has
+# 2565 digits).
+MAX_SPECIAL_ARGUMENT = 1000
+SPECIAL_FUNCTIONS = ("gamma", "lgamma", "digamma", "beta", "besselJ")
 # names SymPy's reader writes into the text it runs (Integer(2), Symbol('x') ...): never letters of a formula
 RESERVED = ("Integer", "Float", "Rational", "Symbol", "Function", "Lambda")
 
@@ -201,6 +208,13 @@ def _check_node(node, text: str, letters: list, functions: set):
         functions.add(node.func.id)
         for arg in node.args:
             _check_node(arg, text, letters, functions)
+        if name in SPECIAL_FUNCTIONS:
+            for arg in node.args:
+                size = _constant(arg)
+                if size is not None and not abs(size) <= MAX_SPECIAL_ARGUMENT:
+                    raise _formula_error(f'"{ast.get_source_segment(text, node)}": {name}() of a number bigger than '
+                                         f"{MAX_SPECIAL_ARGUMENT} is too big to work out exactly. Use a smaller "
+                                         "number, or a letter for it and find_value_at() for a decimal.")
         return
     if isinstance(node, ast.Attribute):
         raise _formula_error(f'"{ast.get_source_segment(text, node)}" is not allowed: a formula cannot use a dot '
@@ -349,8 +363,39 @@ def formula_text(expr) -> str:
 
 
 def _show(expr) -> str:
-    """How an answer is printed: SymPy's own text (sqrt(2), pi, x**2 + 4*x)."""
-    return str(expr)
+    """How an answer is printed: SymPy's own text (sqrt(2), pi, x**2 + 4*x), with oo written as infinity. A number
+    with more digits than Python writes out (4300) is shown as a decimal with its number of digits."""
+    import sympy as sp
+
+    if expr == sp.oo:
+        return "infinity"
+    if expr == -sp.oo:
+        return "-infinity"
+    try:
+        return str(expr)
+    except ValueError:  # Python's limit on writing very long whole numbers
+        return _too_long(sp, expr)
+
+
+def _log10_of_whole(whole: int) -> float:
+    """log10 of a whole number of any size, from its leading 64 bits (display only: no str() of millions of digits)."""
+    shift = max(0, whole.bit_length() - 64)
+    return math.log10(whole >> shift) + shift * math.log10(2)
+
+
+def _too_long(sp, expr) -> str:
+    """A number too long to write out, as "about 6.01452e+15151335 (a whole number of 15,151,336 digits)": the first
+    digits come from its size alone (good to about 6 digits), for display only."""
+    if isinstance(expr, sp.Rational) and expr.p:
+        size = _log10_of_whole(abs(int(expr.p))) - _log10_of_whole(int(expr.q))
+        power = math.floor(size)
+        lead = 10 ** (size - power)
+        sign = "-" if expr.p < 0 else ""
+        whole = isinstance(expr, sp.Integer)
+        digits = int(_log10_of_whole(abs(int(expr.p)))) + 1
+        part = "a whole number of" if whole else "a fraction whose top has"
+        return f"about {sign}{lead:.5f}e{power:+d} ({part} {digits:,} digits, too long to write out)"
+    return "(an exact answer with numbers of more than 4300 digits, too long to write out)"
 
 
 def _decimal(value) -> str:
@@ -377,11 +422,70 @@ def _limit_value(sp, value, what: str):
 
 
 # ---------------------------------------------------------------- the formula object
-def _guarded(call, *values, what: str, **named):
+def _guarded(call, *values, what: str, hint: str = FORMULA_HINT, **named):
     """A heavy SymPy call under simplydata's one time limit (see _time_limit.py)."""
     from ._time_limit import run_with_time_limit
 
-    return run_with_time_limit(call, *values, what=what, **named)
+    return run_with_time_limit(call, *values, what=what, hint=hint, **named)
+
+
+def decimal_of(expr, what: str = "SymPy N", hint: str = FORMULA_HINT, digits: int = 15):
+    """The decimal of an exact number, worked out by SymPy under the time limit."""
+    import sympy as sp
+
+    return _guarded(sp.N, expr, digits, what=what, hint=hint)
+
+
+def float_of(expr, what: str = "SymPy N", hint: str = FORMULA_HINT) -> float:
+    """A real exact number as a float; NaN when it is not a real number."""
+    value = complex(decimal_of(expr, what, hint))
+    return value.real if abs(value.imag) <= 1e-12 * max(1.0, abs(value.real)) else math.nan
+
+
+# what a letter is -> the real numbers it may take (letters_are=)
+def kind_domain(sp, symbol):
+    """The set of real numbers a letter may be, from what letters_are= said (Reals for a plain letter)."""
+    kind = kind_of(symbol)
+    return {"positive whole number": sp.S.Naturals, "whole number": sp.S.Integers,
+            "positive": sp.Interval.open(0, sp.oo), "zero or more": sp.Interval(0, sp.oo),
+            "negative": sp.Interval.open(-sp.oo, 0)}.get(kind, sp.S.Reals)
+
+
+def check_value_fits(symbol, value, step: str) -> None:
+    """Refuse a number that contradicts what letters_are= said the letter is (x positive, x = -2)."""
+    kind = kind_of(symbol)
+    if kind is None or kind == "real":
+        return
+    numbers = np.asarray(value, dtype=float).ravel()
+    numbers = numbers[~np.isnan(numbers)]
+    fits = {"positive": numbers > 0, "zero or more": numbers >= 0, "negative": numbers < 0,
+            "whole number": numbers == np.round(numbers),
+            "positive whole number": (numbers == np.round(numbers)) & (numbers > 0)}[kind]
+    if not np.all(fits):
+        bad = numbers[~fits][0]
+        raise SimplydataError(f"{step}() was given {symbol} = {bad:g}, but the formula says {symbol} is {kind} "
+                              f"(letters_are=). SymPy may have used that already (sqrt(x**2) is x only for a "
+                              f"positive x), so the answer would be wrong. Give a value that is {kind}, or make the "
+                              "formula without letters_are=.")
+
+
+def check_range_fits(formula, name: str, low: float, high: float, step: str) -> None:
+    """Refuse a range of a letter that goes outside what letters_are= said the letter is."""
+    expr = getattr(formula, "_expr", None)
+    if expr is None:
+        return
+    symbol = next((s for s in expr.free_symbols if str(s) == name), None)
+    if symbol is None or kind_of(symbol) in (None, "real"):
+        return
+    kind = kind_of(symbol)
+    inside = {"positive": low >= 0, "zero or more": low >= 0, "negative": high <= 0}.get(kind, True)
+    if kind in ("whole number", "positive whole number"):
+        inside = False
+    if not inside:
+        raise SimplydataError(f"{step}() goes over {name} from {low:g} to {high:g}, but the formula says {name} is "
+                              f"{kind} (letters_are=), and SymPy may have used that already (sqrt({name}**2) is "
+                              f"{name} only for a positive {name}), so the answer would be wrong there. Keep "
+                              f"between= where {name} is {kind}, or make the formula without letters_are=.")
 
 
 def _whole(value, option: str, low: int, high: int, example: str) -> int:
@@ -546,6 +650,7 @@ class Formula:
         return self._change("turn into product", new)
 
     @friendly
+    @one_deadline
     def group_by_powers_of(self, letter=None):
         """Multiply out, then gather the terms by the powers of one letter (SymPy collect). f.group_by_powers_of("x")
 
@@ -681,11 +786,18 @@ class Formula:
             if name not in many and (isinstance(value, bool) or not isinstance(value, (int, float, np.integer,
                                                                                          np.floating))):
                 raise SimplydataError(f"{name}= needs a number or a list of numbers; it got {value!r}.")
+        for name, value in values.items():
+            check_value_fits(self._symbol(name), value._values if hasattr(value, "_values") else value,
+                             "find_value_at")
         singles_empty = any(isinstance(v, (float, np.floating)) and math.isnan(v) for k, v in values.items()
                             if k not in many)
         by_numbers = bool(many) or singles_empty or self._expr.has(sp.loggamma)
         if not by_numbers:
-            found = self._expr.subs({self._symbol(k): parse(v, "find_value_at()") for k, v in values.items()}).evalf()
+            swaps = {self._symbol(k): parse(v, "find_value_at()") for k, v in values.items()}
+            found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
+            if found.is_real and found.is_finite and not math.isfinite(float(found)):
+                raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
+                                      "decimal (float). f.put_in(...).show_as_decimal() shows it.")
             if not found.is_real:
                 if found.is_number:
                     raise SimplydataError(f"At {_places(values)} the formula has no value among the ordinary "
@@ -731,7 +843,10 @@ class Formula:
         need_sympy("f.put_in()")
         self._values_for("put_in", values, 'put_in(x="y + 1")')
         swaps = {self._symbol(k): parse(v, "put_in()", symbols=self._symbols()) for k, v in values.items()}
-        new = self._expr.subs(swaps)
+        for symbol, value in swaps.items():
+            if value.is_number and value.is_real:
+                check_value_fits(symbol, float(value), "put_in")
+        new = _guarded(self._expr.subs, swaps, what="SymPy subs")
         print(f"{_show(self._expr)} with {_places(values)}: {_show(new)}   (SymPy subs)")
         return Formula(new)
 
@@ -770,6 +885,8 @@ class Formula:
                                   f"{value}).")
         text = str(value)
         print(text)
+        if not value.is_real and value.has(sp.I):
+            print("(A complex number: the part with I is the imaginary part, I being the square root of -1.)")
         return text
 
     @friendly
@@ -786,6 +903,7 @@ class Formula:
         return self._expr
 
     @friendly
+    @one_deadline
     def find_limit_as(self, letter=None, goes_to=0, from_side="both"):
         """The value the formula comes close to as a letter goes to a value (the limit). f.find_limit_as("x", goes_to=0)
 
@@ -806,8 +924,8 @@ class Formula:
         if key not in FROM_SIDES:
             raise choice_error("find_limit_as", "from_side", from_side, list(FROM_SIDES))
         if key != "both" and not target.is_finite:
-            raise SimplydataError(f"from_side= is for a number: at {target} there is only one side to come from, so "
-                                  "leave from_side= out.")
+            raise SimplydataError(f"from_side= is for a number: at {_show(target)} there is only one side to come "
+                                  "from, so leave from_side= out.")
         if key != "both":
             side = FROM_SIDES[key]
             found = _guarded(sp.limit, self._expr, x, target, dir=side, what="SymPy limit")
@@ -822,20 +940,23 @@ class Formula:
                 below = _guarded(sp.limit, self._expr, x, target, dir="-", what="SymPy limit")
                 if above != below or above.has(sp.zoo):
                     raise SimplydataError(f"{_show(self._expr)} comes to different values from the two sides of {x} "
-                                          f"= {target}: {above} from above and {below} from below, so it has no limit "
+                                          f"= {_show(target)}: {_show(above)} from above and {_show(below)} from "
+                                          "below, so it has no limit "
                                           'there. For one side, use from_side="above" or from_side="below".') from None
                 found = above
         if found.has(sp.zoo):
-            raise SimplydataError(f"{_show(self._expr)} grows without end as {x} goes to {target}, but not towards "
+            raise SimplydataError(f"{_show(self._expr)} grows without end as {x} goes to {_show(target)}, but not "
+                                  "towards "
                                   "plus or minus infinity (SymPy calls it complex infinity), so it has no limit.")
         if found.has(sp.Limit) or isinstance(found, sp.AccumBounds):
-            raise SimplydataError(f"SymPy found no limit of {_show(self._expr)} as {x} goes to {target} "
+            raise SimplydataError(f"SymPy found no limit of {_show(self._expr)} as {x} goes to {_show(target)} "
                                   f"(it gave {found}).")
         if not target.is_finite:
             how = ")"
         else:
             how = {"+-": ", from both sides)", "+": ", from above)", "-": ", from below)"}[side]
-        print(f"As {x} goes to {target}{' from ' + key if key != 'both' else ''}, {_show(self._expr)} comes close to "
+        print(f"As {x} goes to {_show(target)}{' from ' + key if key != 'both' else ''}, {_show(self._expr)} comes "
+              "close to "
               f"{_show(found)}   (SymPy limit{how}")
         if found.free_symbols:
             return Formula(found)
@@ -843,7 +964,7 @@ class Formula:
             return math.inf
         if found == -sp.oo:
             return -math.inf
-        return float(found) if found.is_real else complex(found)
+        return float_of(found) if found.is_real else complex(decimal_of(found))
 
     @friendly
     def find_taylor_series(self, around=0, up_to_power=4, for_letter=None) -> Formula:
@@ -956,27 +1077,71 @@ def _letters_of_items(texts) -> list[str]:
     return found
 
 
+def exact_number(sp, value):
+    """A typed number as an exact SymPy number: the simplest fraction whose decimal is exactly that number (0.2 is
+    1/5, as nsimplify writes it), or, when no short fraction gives the number back exactly, its exact binary value
+    (4 + 1e-15 stays 4 + 1e-15, never 4)."""
+    x = float(value)
+    if math.isfinite(x) and x.is_integer():
+        return sp.Integer(int(x))
+    simple = sp.nsimplify(x, rational=True)
+    return simple if float(simple) == x else sp.Rational(x)
+
+
+def _unify_letters(sp, equations, chosen_by_option):
+    """Every letter the same SymPy Symbol in every equation: what letters_are= says, else what a formula made with
+    letters_are= says, else a plain letter. Two different kinds for one letter are refused."""
+    by_name: dict = {}
+    for eq in equations:
+        for s in eq.free_symbols:
+            by_name.setdefault(str(s), set()).add(s)
+    chosen = {}
+    for name, found in by_name.items():
+        kinds = {kind_of(s) for s in found} - {None}
+        if name in chosen_by_option:
+            wanted = kind_of(chosen_by_option[name])
+            if kinds - {wanted}:
+                raise SimplydataError(f"{name} is {', '.join(sorted(kinds))} in a formula but {wanted} in letters_are=; "
+                                      "say one thing for each letter.")
+            chosen[name] = chosen_by_option[name]
+        elif len(kinds) > 1:
+            raise SimplydataError(f"{name} is {' in one formula and '.join(sorted(kinds))} in another; say one thing "
+                                  "for each letter (letters_are=).")
+        elif kinds:
+            chosen[name] = next(s for s in found if kind_of(s) is not None)
+        else:
+            chosen[name] = next(iter(found))
+    swaps = {s: chosen[str(s)] for eq in equations for s in eq.free_symbols if s is not chosen[str(s)]}
+    return [eq.xreplace(swaps) if swaps else eq for eq in equations]
+
+
+@one_deadline
 def solve_exactly(texts: list, known, fast: bool, for_letter=None, letters_are=None):
     """sdata.solve(..., exactly=True): SymPy solve on the equations; a table with one row per solution.
 
     for_letter= solves for some letters and leaves the others as letters; rules (<, >, <=, >=) go to SymPy solveset
-    over the real numbers; a formula means formula = 0; letters_are= gives the letters SymPy's assumptions."""
+    over the real numbers (or the numbers the letter may be, from letters_are=); a formula means formula = 0;
+    letters_are= gives the letters SymPy's assumptions, in every equation and formula alike. All the SymPy calls of
+    one solve share one time limit."""
     sp = need_sympy("sdata.solve(exactly=True)")
     from ._maths_formula import _known_values
 
     values = _known_values(known)
-    known_symbols = {k: sp.nsimplify(v, rational=True) for k, v in values.items()}
+    known_symbols = {k: exact_number(sp, v) for k, v in values.items()}
     symbols = letter_kind_symbols(letters_are, _letters_of_items(texts), "sdata.solve()",
                                   'sdata.solve("c**2 = 4", exactly=True, letters_are={"c": "positive"})')
-    equations, shown, signs, names = [], [], [], []
+    equations, shown, signs = [], [], []
     for item in texts:
         eq, said, sign = _equation_of(sp, item, known_symbols, symbols)
-        if eq in (sp.true, sp.false):
-            raise SimplydataError(f'"{said}" is always {"true" if eq == sp.true else "false"}: it has no letter left '
-                                  "to find.")
         equations.append(eq)
         shown.append(said)
         signs.append(sign)
+    equations = _unify_letters(sp, equations, symbols)
+    names: list = []
+    for eq, said in zip(equations, shown):
+        if eq in (sp.true, sp.false):
+            raise SimplydataError(f'"{said}" is always {"true" if eq == sp.true else "false"}: it has no letter left '
+                                  "to find.")
         for s in sorted(eq.free_symbols, key=str):
             if str(s) not in names:
                 names.append(str(s))
@@ -996,33 +1161,43 @@ def solve_exactly(texts: list, known, fast: bool, for_letter=None, letters_are=N
                               f"which to find with for_letter= (the others stay letters).\nFor example:  {example}")
     by_name = {str(s): s for eq in equations for s in eq.free_symbols}
     symbols_found = [by_name[n] for n in find]
-    found = _guarded(sp.solve, equations, symbols_found, dict=True, what="SymPy solve")
+    found = _guarded(sp.solve, equations, symbols_found, dict=True, what="SymPy solve", hint=EXACTLY_HINT)
     joined = " and ".join(shown)
     if not found:
         print(f"{joined} has no solution SymPy can write down exactly (SymPy solve). Without exactly=True, "
               "sdata.solve looks for decimal solutions.")
         return _result_rows([{**{n: math.nan for n in find}, "method": "SymPy solve (exact)"}], fast)
     rows, said = [], []
-    with_letters = False
+    with_letters, any_number = False, set()
     for answer in found:
-        row, parts = {}, []
+        row, parts, free = {}, [], []
         for n, s in zip(find, symbols_found):
-            value = answer.get(s, s)
+            if s not in answer:  # SymPy leaves a letter out when every number fits it
+                free.append(n)
+                any_number.add(n)
+                row[n] = math.nan
+                row[f"{n} exactly"] = "any number"
+                continue
+            value = answer[s]
             parts.append(f"{n} = {_show(value)}")
             with_letters = with_letters or bool(value.free_symbols)
-            number = complex(sp.N(value)) if not value.free_symbols else complex(math.nan)
-            row[n] = number.real if abs(number.imag) <= 1e-12 * max(1.0, abs(number.real)) else math.nan
+            row[n] = math.nan if value.free_symbols else float_of(value, "SymPy N", EXACTLY_HINT)
             row[f"{n} exactly"] = _show(value)
         row["method"] = "SymPy solve (exact)"
         rows.append(row)
-        said.append(", ".join(parts))
+        free_words = (f"{' and '.join(free)} can be any number{'s' if len(free) > 1 else ''}; " if free else "")
+        said.append(free_words + ", ".join(parts))
     print(f"{joined} when " + " or ".join(said) + "   (SymPy solve, exact)")
-    if with_letters:
-        others = [n for n in names if n not in find]
+    others = [n for n in names if n not in find]
+    if with_letters and others:
         print(f"{', '.join(others)} {'stays a letter' if len(others) == 1 else 'stay letters'}, so the decimal "
               "column is empty where the answer has letters; the exact form is in the table.")
-    print(_completeness(sp, equations, symbols_found, len(found)))
-    if not with_letters and any(any(math.isnan(r[n]) for n in find) for r in rows):
+    if any_number:
+        print(f"There are endless solutions: for each value of {' and '.join(sorted(any_number))} there is one "
+              "solution, as written.")
+    else:
+        print(_completeness(sp, equations, symbols_found, len(found)))
+    if not with_letters and not any_number and any(any(math.isnan(r[n]) for n in find) for r in rows):
         print("A solution that is not an ordinary (real) number has an empty decimal; its exact form is in the "
               "table.")
     return _result_rows(rows, fast)
@@ -1055,22 +1230,36 @@ def _decimal_end(sp, value) -> float:
         return math.inf
     if value == -sp.oo:
         return -math.inf
-    return float(sp.N(value))
+    return float_of(value, "SymPy N", EXACTLY_HINT)
 
 
 def _rules_exactly(sp, rules, shown, names, wanted, fast):
-    """Rules (<, >, <=, >=) in one letter: SymPy solveset over the real numbers (reduce_inequalities for several)."""
+    """Rules (<, >, <=, >=) in one letter: SymPy solveset over the real numbers the letter may be (from letters_are=;
+    reduce_inequalities for several rules, then kept to those numbers)."""
     if len(names) != 1 or (wanted is not None and wanted != names):
         raise SimplydataError(f"solve(exactly=True) solves rules (<, >, <=, >=) in one letter; these have "
                               f"{len(names)} ({', '.join(names)}). Fix the others with known=.")
     x = next(s for r in rules for s in r.free_symbols if str(s) == names[0])
+    kind = kind_of(x)
+    whole_numbers = kind in ("whole number", "positive whole number")
+    domain = sp.Interval.open(0, sp.oo) if kind == "positive whole number" else (
+        sp.S.Reals if whole_numbers else kind_domain(sp, x))
+    where = "the real numbers" if domain == sp.S.Reals else f"the {kind} numbers"
+    for rule, said in zip(rules, shown):  # sin(x) > 0: SymPy solveset gives one period only, not every one
+        period = _guarded(sp.periodicity, rule.lhs - rule.rhs, x, what="SymPy periodicity", hint=EXACTLY_HINT)
+        if period is not None and period != 0:
+            raise SimplydataError(f'"{said}" repeats every {_show(period)} in {x}, and SymPy solveset gives the ranges '
+                                  "of one period only, so its answer would leave out the others. Solve where the two "
+                                  "sides are equal instead (with = and exactly=True, which gives the whole repeating "
+                                  "set), and read the ranges between those points.")
     if len(rules) == 1:
-        whole = _guarded(sp.solveset, rules[0], x, sp.S.Reals, what="SymPy solveset")
-        how = "SymPy solveset over the real numbers"
+        whole = _guarded(sp.solveset, rules[0], x, domain, what="SymPy solveset", hint=EXACTLY_HINT)
+        how = f"SymPy solveset over {where}"
     else:
-        reduced = _guarded(sp.reduce_inequalities, rules, x, what="SymPy reduce_inequalities")
+        reduced = _guarded(sp.reduce_inequalities, rules, x, what="SymPy reduce_inequalities", hint=EXACTLY_HINT)
         whole = sp.S.Reals if reduced == sp.true else sp.S.EmptySet if reduced == sp.false else reduced.as_set()
-        how = "SymPy reduce_inequalities over the real numbers"
+        whole = _guarded(sp.Intersection, whole, domain, what="SymPy Intersection", hint=EXACTLY_HINT)
+        how = f"SymPy reduce_inequalities over {where}"
     if isinstance(whole, sp.ConditionSet):
         raise SimplydataError(f"SymPy could not solve {' and '.join(shown)} exactly ({whole}).")
     pieces = list(whole.args) if isinstance(whole, sp.Union) else ([] if whole == sp.S.EmptySet else [whole])
@@ -1090,10 +1279,12 @@ def _rules_exactly(sp, rules, shown, names, wanted, fast):
                          "method": f"{how} (exact)"})
     joined = " and ".join(shown)
     if not rows:
-        print(f"{joined} is never true for a real number {x}   ({how})")
+        print(f"{joined} is never true for {x} among {where}   ({how})")
         return _result_rows([{"from": math.nan, "to": math.nan, "includes from": False, "includes to": False,
                               "from exactly": "", "to exactly": "", "method": f"{how} (exact)"}], fast)
     print(f"{joined} when " + " or ".join(said) + f"   ({how})")
+    if whole_numbers:
+        print(f"{x} is a {kind} (letters_are=), so only the {kind}s in these ranges count.")
     return _result_rows(rows, fast)
 
 
@@ -1101,7 +1292,7 @@ def _completeness(sp, equations, symbols, listed: int) -> str:
     """Whether the solutions listed are all of them: SymPy solveset gives the whole set for one equation in one
     letter (an endless, repeating set for sin(x) = 0); for several equations, a polynomial system is complete."""
     if len(equations) == 1 and len(symbols) == 1:
-        whole = _guarded(sp.solveset, equations[0], symbols[0], what="SymPy solveset")
+        whole = _guarded(sp.solveset, equations[0], symbols[0], what="SymPy solveset", hint=EXACTLY_HINT)
         if isinstance(whole, sp.FiniteSet):  # solveset leaves out what letters_are= says; keep what fits
             facts = [f for f, v in symbols[0].assumptions0.items() if v is True and f in
                      ("positive", "nonnegative", "negative", "integer", "real")]
@@ -1137,7 +1328,8 @@ MAX_EXACT_EIGEN = 6  # rows of a grid for exact eigenvalues (roots of a polynomi
 
 
 def exact_matrix(values, step: str, most: int):
-    """A grid of numbers as a SymPy Matrix of exact fractions (each number as SymPy nsimplify writes it)."""
+    """A grid of numbers as a SymPy Matrix of exact numbers: each the simplest fraction whose decimal is exactly that
+    number (0.2 is 1/5), else its exact binary value (4 + 1e-15 is not rounded to 4); see exact_number."""
     sp = need_sympy(f"grid.{step}(exactly=True)")
     rows, columns = values.shape
     if max(rows, columns) > most:
@@ -1145,9 +1337,9 @@ def exact_matrix(values, step: str, most: int):
                               f"is {rows} x {columns}. Leave out exactly=True for the decimal answer.")
     if not np.isfinite(values).all():
         raise SimplydataError(f"{step}(exactly=True) needs a number in every cell (no empty or infinite ones).")
-    return sp.Matrix([[sp.nsimplify(float(v), rational=True) for v in row] for row in values])
+    return sp.Matrix([[exact_number(sp, v) for v in row] for row in values])
 
 
 def run_exactly(call, *values, what: str):
     """A SymPy call on a grid, under the same time limit as the formula words."""
-    return _guarded(call, *values, what=what)
+    return _guarded(call, *values, what=what, hint=EXACTLY_HINT)

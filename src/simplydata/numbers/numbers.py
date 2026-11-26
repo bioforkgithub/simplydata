@@ -115,7 +115,7 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
               "null": "find_null_space",
               # numbers phase, batch 4: the matrix words
               "det": "find_determinant", "determinant": "find_determinant", "inv": "take_inverse",
-              "inverse": "take_inverse", "solve_matrix": "take_inverse", "eig": "find_eigenvalues",
+              "inverse": "take_inverse", "eig": "find_eigenvalues",
               "eigvals": "find_eigenvalues", "eigvalsh": "find_eigenvalues", "eigenvals": "find_eigenvalues",
               "eigen": "find_eigenvalues", "eigenvalues": "find_eigenvalues", "nullspace": "find_null_space"}
     # Words that cannot work on a grid, with the reason and what to write instead.

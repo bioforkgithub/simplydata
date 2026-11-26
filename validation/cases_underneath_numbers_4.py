@@ -38,6 +38,16 @@ def _damped(t: float, k: float = 4.0, c: float = 0.5) -> tuple[float, float]:
     return x, speed
 
 
+def _log_series(power: int, last: int = 10**7) -> float:
+    """1/(k log(k)**power) from 2 on, worked out by hand: the terms up to last, then the integral of the rest
+    (1/((power - 1) log(last)**(power - 1))) less half the last term, as the Euler-Maclaurin rule gives."""
+    import numpy as np
+
+    k = np.arange(2, last + 1, dtype=float)
+    return float(np.sum(1 / (k * np.log(k) ** power)) + 1 / ((power - 1) * math.log(last) ** (power - 1))
+                 - 1 / (2 * last * math.log(last) ** power))
+
+
 def cases(Case):
     def closed(word, title, ours, published, parent="", label="", r="", option="", tolerance=1e-12,
                r_tolerance=1e-9):
@@ -233,6 +243,20 @@ def cases(Case):
                r="""
                    list(`at 100` = sum(1:100), big = sum(as.numeric(1:1e6)^2))
                """),
+        closed("sdata.find_sum_of_series", "1 / (k log(k)^3) from 2 settles slowly: only the digits SymPy is sure of",
+               """
+                   {"sum": sdata.find_sum_of_series("1/(k*log(k)**3)", between=[2, "infinity"])}
+               """, {"sum": (_log_series(3), 1e-5, "worked out by hand: the terms up to 10^7 and the integral of the "
+                                                    "rest (Euler-Maclaurin)")},
+               """
+                   import sympy as sp
+                   k = sp.Symbol("k", integer=True)
+                   {"sum": float(sp.Sum(1/(k*sp.log(k)**3), (k, 2, sp.oo)).evalf(30))}
+               """, "SymPy Sum.evalf at 30 digits", tolerance=1e-5,
+               r="""
+                   N <- 1e7; k <- 2:N
+                   list(sum = sum(1/(k*log(k)^3)) + 1/(2*log(N)^2) - 1/(2*N*log(N)^3))
+               """, r_tolerance=1e-5),
         closed("sdata.find_volume_under", "exactly=True: the volume under x y^2 over 0..1 by 0..2 is 4 / 3",
                """
                    v = sdata.find_volume_under("x * y**2", between={"x": [0, 1], "y": [0, 2]}, exactly=True)
@@ -371,6 +395,27 @@ def cases(Case):
                  v <- eigen({IRIS_R})$values
                  list(biggest = v[1], smallest = v[4], total = sum(v))
              """, r_tolerance=1e-9),
+        Case("grid.find_eigenvalues", "AirPassengers, first 4 years x 4 months (not symmetric): in R eigen()'s order",
+             "AirPassengers", "real data",
+             ours=_code(AIR_GRID, """
+                 grid.keep_rows_by_position(1, to=4)
+                 grid.keep_columns_by_position(1, to=4)
+                 e = grid.find_eigenvalues()
+                 {"first": e.get_cell_at(row=1, column="eigenvalue"),
+                  "second": e.get_cell_at(row=2, column="eigenvalue"),
+                  "third": e.get_cell_at(row=3, column="eigenvalue"),
+                  "third, imaginary": abs(e.get_cell_at(row=3, column="imaginary part"))}
+             """),
+             parent=_code(AIR_NUMPY, """
+                 from scipy import linalg
+                 v = linalg.eigvals(g[:4, :4])
+                 v = v[np.argsort(-np.abs(v), kind="stable")]
+                 {"first": v[0].real, "second": v[1].real, "third": v[2].real, "third, imaginary": abs(v[2].imag)}
+             """), parent_label="SciPy linalg.eigvals, by size", parent_tolerance=1e-12,
+             r=_code(AIR_R, """
+                 v <- eigen(g[1:4, 1:4])$values
+                 list(first = Re(v[1]), second = Re(v[2]), third = Re(v[3]), `third, imaginary` = abs(Im(v[3])))
+             """), r_tolerance=1e-9),
         Case("grid.find_eigenvalues", "exactly=True: January and February of 1949 and 1950 (AirPassengers), exactly",
              "AirPassengers", "real data", option="exactly=",
              ours=_code(AIR_GRID, """

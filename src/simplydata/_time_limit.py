@@ -1,61 +1,100 @@
-"""One time limit for the heavy SymPy calls (simplify, factor, integrate, limit, series, solve, solveset, dsolve,
-summation, apart, collect, and exact grid work): a call that takes longer than TIME_LIMIT seconds is stopped, with a
-plain sentence, instead of hanging the session.
+"""One time limit for the heavy SymPy calls (simplify, factor, expand, integrate, limit, series, solve, solveset,
+dsolve, summation, apart, collect, subs and evalf of formulas, and exact grid work): a call that takes longer than
+TIME_LIMIT seconds is stopped, with a plain sentence, instead of hanging the session. A word that makes several
+SymPy calls (a limit from both sides, solve with its completeness check, a sum with its decimal) shares one deadline
+of TIME_LIMIT seconds for all of them (one_deadline).
 
-SymPy has no time limit of its own, and Windows has no alarm signal, so the call runs in one helper process on this
+SymPy has no time limit of its own, and Windows has no alarm signal, so the call runs in a helper process on this
 computer that is kept alive between calls (multiprocessing with the "spawn" start method, the same on every
-system). The helper runs _sympy_worker.py on its own: it imports SymPy only, never simplydata, and gets each job as
-a SymPy function with its values (pickled; never text to run). When the time is up the helper is stopped and a new
-one starts at the next call.
+system; on Linux and macOS multiprocessing also starts its own small resource-tracker process). The helper runs
+_sympy_worker.py on its own: it imports SymPy only, never simplydata and never your script, and gets each job as a
+SymPy function with its values (pickled; never text to run). When the time is up the helper is stopped and a new
+one starts at the next call. The helper has a memory limit (half the computer's memory, at most 8 GB), so a sum
+whose numbers grow without end stops with MemoryError instead of filling the computer.
 
 Privacy: the helper is a local process. It talks to this one through two one-way multiprocessing pipes (named pipes
-on Windows, os.pipe elsewhere; never a socket, so no network), writes no file, logs nothing, and is stopped when
-Python exits
-(atexit here, and as a daemon process by multiprocessing itself). Where no helper process can be started (inside
-another daemon process, or on a system without processes), the call runs here without the time limit, and
-simplydata says so once.
+on Windows, os.pipe elsewhere; never a socket, so no network), writes no file, logs nothing, sends its own output
+to the null device, and is stopped when Python exits (atexit here, and as a daemon process by multiprocessing
+itself); a watchdog thread in the helper ends it when this process is gone, even in the middle of a job. Where no
+helper process can be started (inside another daemon process, an embedded Python whose executable is not Python,
+or a system without processes), the call runs here without the time limit, and simplydata says so once.
 """
 
 from __future__ import annotations
 
 import atexit
+import functools
 import os
+import pickle
 import sys
 import threading
-import types
-from contextlib import contextmanager
+import time
 
 from ._errors import SimplydataError
 
-TIME_LIMIT = 60.0  # seconds one SymPy call may take
+TIME_LIMIT = 60.0  # seconds one SymPy call (or one word's SymPy calls together) may take
 START_LIMIT = 120.0  # seconds the helper may take to start (it imports SymPy once)
 WORKER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_sympy_worker.py")
+FORMULA_HINT = ("Try f.make_simpler() first, or carry on in SymPy itself, which has no time limit: f.as_sympy() "
+                "gives the SymPy expression.")
+EXACTLY_HINT = "Leave out exactly=True for the answer in decimals (SciPy and NumPy)."
 
 _LOCK = threading.RLock()
-_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False}
+_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False, "deadline": None}
 
 
-def _stop_message(what: str) -> str:
-    return (f"{what} did not finish in {TIME_LIMIT:g} seconds, so simplydata stopped it.\n"
-            "Try f.make_simpler() first, or leave out exactly=True for a decimal answer. To give SymPy as long as it "
-            "needs, carry on in SymPy itself: f.as_sympy() gives the SymPy expression.")
+def _stop_message(what: str, seconds: float, hint: str) -> str:
+    return f"{what} did not finish in {seconds:g} seconds, so simplydata stopped it.\n{hint}"
 
 
-@contextmanager
-def _main_module_hidden():
+def one_deadline(func):
+    """All the SymPy calls of one word share one deadline of TIME_LIMIT seconds (the first word called sets it)."""
+    @functools.wraps(func)
+    def word(*args, **kwargs):
+        if _STATE["deadline"] is not None:  # a word inside a word: the outer deadline holds
+            return func(*args, **kwargs)
+        _STATE["deadline"] = time.monotonic() + TIME_LIMIT
+        try:
+            return func(*args, **kwargs)
+        finally:
+            _STATE["deadline"] = None
+    return word
+
+
+def _helper_can_start() -> bool:
+    """False inside a daemon process, or in an embedded Python whose executable is not a Python."""
+    import multiprocessing
+    from multiprocessing import spawn
+
+    if multiprocessing.current_process().daemon:
+        return False
+    name = os.path.basename(spawn.get_executable() or "").lower()
+    return bool(name) and name.startswith(("python", "pypy"))
+
+
+def _start_without_main(process) -> None:
     """Start the helper without running your script again in it.
 
-    With the "spawn" start method the new process normally imports the main script (as __mp_main__), which runs a
+    With the "spawn" start method a new process normally imports the main script (as __mp_main__), which runs a
     script's top-level lines a second time when they are not under if __name__ == "__main__". The helper needs
-    nothing from the script, so the main module is swapped for an empty one while the helper starts.
+    nothing from the script, so while it starts, multiprocessing's preparation data leaves the main script out. Only
+    multiprocessing's own function is wrapped, for this one start, under the helper's lock; __main__ is not touched.
     """
-    real = sys.modules.get("__main__")
-    sys.modules["__main__"] = types.ModuleType("__main__")
+    from multiprocessing import spawn
+
+    real = spawn.get_preparation_data
+
+    def without_main(name):
+        data = real(name)
+        data.pop("init_main_from_path", None)
+        data.pop("init_main_from_name", None)
+        return data
+
+    spawn.get_preparation_data = without_main
     try:
-        yield
+        process.start()
     finally:
-        if real is not None:
-            sys.modules["__main__"] = real
+        spawn.get_preparation_data = real
 
 
 def _start():
@@ -67,23 +106,28 @@ def _start():
     import multiprocessing
     import runpy
 
+    if not _helper_can_start():
+        return None
     context = multiprocessing.get_context("spawn")
+    pipes = []
     try:
         job_reader, jobs = context.Pipe(duplex=False)  # one-way: this process writes jobs, the helper reads them
         answers, answer_writer = context.Pipe(duplex=False)  # one-way: the helper writes answers back
+        pipes = [job_reader, jobs, answers, answer_writer]
         process = context.Process(target=runpy.run_path, args=(WORKER_FILE,),
                                   kwargs={"init_globals": {"jobs": job_reader, "answers": answer_writer},
                                           "run_name": "simplydata_sympy_helper"},
                                   name="simplydata SymPy helper", daemon=True)
-        with _main_module_hidden():
-            process.start()
+        _start_without_main(process)
     except (AssertionError, OSError, RuntimeError, ValueError):  # e.g. a daemon process cannot have children
+        for pipe in pipes:
+            pipe.close()
         return None
     job_reader.close()
     answer_writer.close()
     _STATE["process"], _STATE["jobs"], _STATE["answers"] = process, jobs, answers
     if not answers.poll(START_LIMIT):
-        _stop()
+        _kill()
         raise SimplydataError(f"The helper process for SymPy did not start in {START_LIMIT:g} seconds.")
     try:
         answers.recv()  # ("ready", None)
@@ -142,40 +186,64 @@ def helper_process_id():
     return process.pid if process is not None and process.is_alive() else None
 
 
-def run_with_time_limit(call, *values, what: str = "SymPy", **named):
+def _run_here(call, values, named):
+    if not _STATE["said_no_helper"] and os.environ.get("SIMPLYDATA_SYMPY_HELPER") != "0":
+        _STATE["said_no_helper"] = True
+        print(f"Note: no helper process can be started here, so SymPy runs without the {TIME_LIMIT:g}-second time "
+              "limit.")
+    return call(*values, **named)
+
+
+def _send(jobs, job, what: str) -> None:
+    try:
+        jobs.send(job)
+    except (pickle.PicklingError, AttributeError, TypeError) as error:  # never for SymPy's own functions
+        raise SimplydataError(f"{what} could not be handed to the helper process ({error}).") from None
+
+
+def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_HINT, **named):
     """call(*values, **named) in the helper process, stopped after TIME_LIMIT seconds with a plain sentence.
 
     call is always a function of SymPy itself (sympy.simplify, sympy.integrate, a SymPy object's method ...), and
-    the values are SymPy objects and numbers. SymPy's own errors come back as they are.
+    the values are SymPy objects and numbers. SymPy's own errors come back as they are; hint= is the advice the
+    stop sentence gives (it depends on the word).
     """
     with _LOCK:
-        if os.environ.get("SIMPLYDATA_SYMPY_HELPER") == "0" or (started := _start()) is None:
-            if not _STATE["said_no_helper"] and os.environ.get("SIMPLYDATA_SYMPY_HELPER") != "0":
-                _STATE["said_no_helper"] = True
-                print(f"Note: no helper process can be started here, so SymPy runs without the {TIME_LIMIT:g}-second "
-                      "time limit.")
-            return call(*values, **named)
+        if os.environ.get("SIMPLYDATA_SYMPY_HELPER") == "0":
+            return _run_here(call, values, named)
+        started = _start()
+        if started is None:
+            return _run_here(call, values, named)
         process, jobs, answers = started
+        job = (call, values, named)
         try:
-            jobs.send((call, values, named))
+            _send(jobs, job, what)
         except (OSError, ValueError):  # the helper went away between calls: start a new one once
             _kill()
-            process, jobs, answers = _start()
-            jobs.send((call, values, named))
+            started = _start()
+            if started is None:
+                return _run_here(call, values, named)
+            process, jobs, answers = started
+            _send(jobs, job, what)
+        deadline = _STATE["deadline"]
+        seconds = TIME_LIMIT if deadline is None else max(0.0, deadline - time.monotonic())
         try:
-            finished = answers.poll(TIME_LIMIT)
+            finished = answers.poll(seconds)
         except BaseException:  # Ctrl+C while waiting: the helper is mid-job, so stop it too
             _kill()
             raise
         if not finished:
             _kill()
-            raise SimplydataError(_stop_message(what))
+            raise SimplydataError(_stop_message(what, TIME_LIMIT, hint))
         try:
             status, answer = answers.recv()
         except (EOFError, OSError):
             _kill()
             raise SimplydataError(f"{what} stopped the helper process (it may have run out of memory). Try a "
-                                  "simpler formula, or leave out exactly=True for a decimal answer.") from None
+                                  f"simpler formula.\n{hint}") from None
     if status == "error":
+        if isinstance(answer, MemoryError):
+            raise SimplydataError(f"{what} needed more memory than the helper may use, so simplydata stopped it. "
+                                  f"The numbers grow too big to work with exactly.\n{hint}")
         raise answer
     return answer
