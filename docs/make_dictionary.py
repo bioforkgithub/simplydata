@@ -287,7 +287,7 @@ def other_names() -> dict[str, list[str]]:
     """
     words = set(entries()) | {a for names in learn._aliases().values() for a in names}
     found: dict[str, list[str]] = {}
-    for kind in ("sdata", "table", "chart", "numbers"):
+    for kind in OTHER_NAMES:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"

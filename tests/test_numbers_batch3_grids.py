@@ -20,7 +20,7 @@ def test_take_cube_root_is_numpy_cbrt_on_numbers_and_grids():
     assert nums.get_number_at(2) == -2.0  # raise_to_power(1/3) would give an empty value here
     grid = sdata.number_grid([[8, -27], [1, 64]])
     grid.take_cube_root()
-    np.testing.assert_array_equal(grid.as_numpy(), [[2, -3], [1, 4]])
+    np.testing.assert_array_equal(grid.as_numpy(), np.cbrt(np.array([[8, -27], [1, 64]], dtype=float)))
     grid.undo()
     np.testing.assert_array_equal(grid.as_numpy(), [[8, -27], [1, 64]])
 
