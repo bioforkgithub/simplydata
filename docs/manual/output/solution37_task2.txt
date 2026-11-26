@@ -1,0 +1,10 @@
+Cleaned 5 of 5 column names (the R janitor rule):
+  "Station" -> station
+  "Fjord" -> fjord
+  "Latitude (°N)" -> latitude_n
+  "Longitude (°E)" -> longitude_e
+  "Distance to outfall (km)" -> distance_to_outfall_km
+Replaced 1 cell in station.
+59 of 60 rows in this table found a match in the other table.
+The column "found in" says where each row was found: both 59 rows, this table only 1 row.
+How many rows have each "found in" (2 different values): both 59, this table only 1.

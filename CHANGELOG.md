@@ -174,6 +174,41 @@ working for one release and prints a one-line note with its new name.
 
 ### Fixed
 
+- One set of time zone rules on every computer (decided by Manish 2026-11-26). pandas reads the clock of a column
+  with a time zone through the computer's copy of the world time zone data, Polars through its own; the copies can
+  differ before 1970 (Debian and Ubuntu keep Norway's summer time of 1959 to 1965, the main IANA data does not), so
+  on Linux 1 July 1959 00:00 in Oslo was month 7 on a pandas table and month 6 on a Polars table. Every date step on
+  a column with a time zone now reads and writes its clock through Polars on both engines: the parts of a date,
+  `turn_into_text`, `add_column(plus=, minus=, by_subtracting=, counted_in=)`, joined text, `every=`, cross-table
+  column names, `keep_rows_where` on dates, `change_time_zone_in(recorded_in=)`, `describe_columns`,
+  `add_missing_dates`, `round_dates_in` and Excel and Stata files. Local clock times before 1970 follow the main
+  world time-zone data (IANA), the same on every computer; the moments themselves never change. For example,
+  Norway's summer time of 1959-65 is not included (it is only in IANA's "backzone" file, which Ubuntu and R on Linux
+  include). The reliability study compares pandas through Python's zoneinfo read from the tzdata package (IANA's main
+  data) on every system, so `tzdata` (2023.3 to 2027) joins the `test` extra. Where R reads a copy with the
+  backzone, its Oslo numbers are listed as an explained difference, only when R given IANA's main data gives simplydata's numbers.
+- Time zone names with `_`, `-`, `+` or digits (`America/New_York`, `America/Port-au-Prince`, `Etc/GMT+5`,
+  `America/Argentina/Buenos_Aires`) on a pandas table. narwhals (2.27 to 2.29) reads the kind of a pandas column from
+  its written dtype with a pattern that takes only letters and `/` in the zone, so such a column was `Unknown`: every
+  date word on a pandas table (the parts of a date, days between, `plus=`, `round_dates_in`, `change_time_zone_in`,
+  `keep_rows_where`, `every=`, `join_with(match="nearest")`, `add_missing_dates` ...) stopped or called the column
+  "other values". simplydata now widens that one narwhals pattern when it is loaded, and only while narwhals needs it;
+  the date steps still run in pandas' and Polars' own methods. Polars tables were not affected.
+- `every="month"` (and `"quarter"`, `"year"`) on a pandas column with a time zone east of UTC: narwhals truncated
+  pandas dates on the UTC clock, so 1 July 00:00 in Oslo was counted in June. It is now truncated by Polars
+  `dt.truncate` on the column's own clock, as on a Polars table.
+- `keep_rows_where` (`is_after=`, `is_before=`, `is_between=`, a written condition such as `"t > '2024-01-01'"`) on a
+  column with a time zone stopped on both engines (a time without a zone cannot be compared with one). A date or time
+  given there is now read on the column's clock (pandas `Timestamp.tz_localize`); one that never happens or happens
+  twice there stops with a message.
+- `round_dates_in`: on a pandas table the sentence counted empty cells as changed.
+- `table.save()` with a column that has a time zone: a .csv, .tsv, .csv.gz or .tsv.gz file gets the times with
+  their UTC offset in one layout on both engines (`2024-07-01 23:45:00-04:00`; Polars wrote
+  `2024-07-01T23:45:00.000000-0400`), and `sdata.table()` now reads a column of such times back as the same
+  moments on the UTC clock (pandas `to_datetime(format="ISO8601", utc=True)`); a note names the zone that a text
+  file cannot keep. Excel (.xlsx, also `in_sheet=`) and Stata (.dta) have no time zones, and pandas stopped with
+  its own error: the clock times of the zone are now saved (pandas `dt.tz_localize(None)`), with a note naming
+  the zone and how to save UTC times instead.
 - `sdata.table(..., fast=True)`: a blank line in a CSV or TSV file is now skipped, as without `fast=True`. Polars
   made it a row of empty cells, the same row as a line of empty fields (`,,`), which both engines keep; Polars
   cannot tell the two apart, so a file with a row of only empty cells is read by pandas (`skip_blank_lines`) and

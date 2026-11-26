@@ -21,6 +21,7 @@ import sys as _sys
 # The packages loaded before simplydata (for sdata.show_packages_used(): "You also loaded these yourself")
 _BEFORE = {_name.split(".")[0] for _name in list(_sys.modules)}
 
+from . import _narwhals_mend  # noqa: F401  pandas zone names such as America/New_York (see the module)
 from ._errors import SimplydataError
 from .chart import Chart, chart
 from .data import get_example

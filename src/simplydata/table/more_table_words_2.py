@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import narwhals as nw
 
+from .. import _zone_clock
 from .._errors import SimplydataError, friendly, suggest
 from .._typing import _Same
 from .conditions import _count_in, _kind, _rows
@@ -209,7 +210,8 @@ class MoreTableWords2:
         and Polars dt.truncate("1h") and dt.round("1h"). simplydata runs Polars for every table: pandas
         dt.round sends a time half way to the even hour and stops at the hour that comes twice when
         summer time ends, so Polars' rule (half way goes up; summer-time changes kept in order) is
-        used on pandas tables too. Undo with table.undo().
+        used on pandas tables too. Local clock times before 1970 follow the main world time-zone data
+        (IANA), the same on every computer. Undo with table.undo().
         """
         step = "round_dates_in"
         example = _example(f'table.{step}("date", down_to="month")', "shop")
@@ -256,9 +258,11 @@ class MoreTableWords2:
             rounded.index = native.index
         new = self._frame.with_columns(nw.from_native(rounded, series_only=True).alias(column))
         old = "_simplydata_old_"
-        both = new.with_columns(self._frame[column].alias(old)).filter((nw.col(column) != nw.col(old)).fill_null(False))
+        both = new.with_columns(self._frame[column].alias(old)).filter(
+            (nw.col(column) != nw.col(old)).fill_null(False) & ~nw.col(old).is_null())  # pandas NaT != NaT is True
         changed = len(both)
-        shown = f" For example {both[old].item(0)} became {both[column].item(0)}." if changed else ""
+        shown = (f" For example {_zone_clock.text_of(both, old, 0)} became {_zone_clock.text_of(both, column, 0)}."
+                 if changed else "")
         print(f'Rounded the dates in "{column}" {how}: {changed} of {_rows(len(new))} changed.{shown}')
         return self._change(f'round dates in "{column}" {how}', new)
 
@@ -276,6 +280,9 @@ class MoreTableWords2:
         becomes an empty cell, and a note says how many. As pandas dt.tz_localize("Europe/Oslo",
         nonexistent="NaT", ambiguous="NaT").dt.tz_convert("UTC") and Polars
         dt.replace_time_zone("Europe/Oslo", non_existent="null", ambiguous="null").dt.convert_time_zone("UTC").
+        Polars places the clock times on both engines, as it reads them in every date word: local clock
+        times before 1970 follow the main world time-zone data (IANA), the same on every computer; for
+        example, Norway's summer time of 1959-65 is not included.
         """
         step = "change_time_zone_in"
         example = _example(f'table.{step}("sampled_local", to="UTC", recorded_in="Europe/Oslo")', "fjord_samples")
@@ -312,8 +319,9 @@ class MoreTableWords2:
                     recorded_in, ambiguous="null", non_existent="null"))
                 after_empty = native[column].is_null().sum()
             else:
-                native = native.assign(**{column: native[column].dt.tz_localize(
-                    recorded_in, ambiguous="NaT", nonexistent="NaT")})
+                # placed on the zone's clock by Polars dt.replace_time_zone on both engines (_zone_clock)
+                native = native.assign(**{column: _zone_clock.place_on_clock(
+                    native[column], recorded_in, ambiguous="null", non_existent="null")})
                 after_empty = native[column].isna().sum()
             frame = nw.from_native(native, eager_only=True)
             gaps = int(after_empty - before_empty)
@@ -323,8 +331,9 @@ class MoreTableWords2:
         shown = ""
         if len(old):
             row = self._frame.with_row_index("_simplydata_i_").filter(~nw.col(column).is_null())["_simplydata_i_"].item(0)
-            after = frame[column].item(row)
-            shown = f" For example {old[column].item(0)}{' ' + zone_now if zone_now else ''} is now {after}."
+            after = _zone_clock.text_of(frame, column, row)
+            shown = (f" For example {_zone_clock.text_of(old, column, 0)}{' ' + zone_now if zone_now else ''} is now "
+                     f"{after}.")
         where = f"written in {recorded_in}" if recorded_in is not None else f"in {zone_now}"
         if to is not None:
             print(f'The times in "{column}" ({where}) are now on the {to} clock.{shown}')

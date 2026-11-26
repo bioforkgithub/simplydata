@@ -178,6 +178,31 @@ def test_a_monte_carlo_tolerance_uses_four_standard_errors():
     assert [r["passed"] for r in report.check_case(missing)] == [False]
 
 
+def test_an_r_difference_is_explained_only_when_r_on_simplydata_rules_agrees():
+    """r_explained=(suffix, reason): R also gives "<name><suffix>", worked out on simplydata's rules (the Oslo case:
+    R on IANA's main data). Only when every such twin is simplydata's number is a difference explained."""
+    suffix = " [R on IANA's main data]"
+    case = study.Case("table.change_time_zone_in", "an explained difference", "made-up", "made-up", ours="",
+                      r_explained=(suffix, "time-zone data: a stated reason"))
+    ours = {"summer": 6.0, "sum": 240075.0}
+    theirs = {"summer": 12.0, "sum": 238530.0}
+
+    def compared(twins):
+        return report._compared(case, ours, {**theirs, **twins}, "R", 0.0, case.r_explained)
+
+    rows = compared({"summer" + suffix: 6.0, "sum" + suffix: 240075.0})
+    assert [r["name"] for r in rows] == ["summer", "sum"]  # the twins are not compared themselves
+    assert all(r["passed"] and r["explained"] == "time-zone data: a stated reason" for r in rows)
+    assert report._status(rows[0]).startswith("explained difference – time-zone data")
+    for twins in ({"summer" + suffix: 6.0, "sum" + suffix: 1.0},              # one twin differs
+                  {"summer" + suffix: 6.0},                                    # one twin missing
+                  {"summer" + suffix: float("nan"), "sum" + suffix: float("nan")},  # R's guard gave NA
+                  {}):
+        assert not any(r["passed"] or r["explained"] for r in compared(twins)), twins
+    same = report._compared(case, ours, {**ours, "summer" + suffix: 0.0}, "R", 0.0, case.r_explained)
+    assert all(r["passed"] and not r["explained"] for r in same)  # nothing differs: a plain pass
+
+
 def test_tables_from_gpl_and_lgpl_r_packages_are_not_stored():
     """DATA_LICENSES.md: copies of data from GPL or LGPL R packages are read from the installed package instead."""
     r_data = study._r_data()

@@ -186,7 +186,7 @@ def check_case(case) -> list[dict]:
             row = _row(case, name, source, got, value, f"at least {least:.0f} digits (LRE {digits:.1f})",
                        digits >= least)
             if not row["passed"] and name in case.explained:
-                row.update(passed=True, explained=case.explained[name])
+                row.update(passed=True, explained="precision limit: " + case.explained[name])
             rows.append(row)
         else:
             # a closed form is worked out from the formula: its tolerance allows for floating point, not rounding
@@ -202,7 +202,7 @@ def check_case(case) -> list[dict]:
             rows.append(_skipped(case, "R" + (" with " + ", ".join(case.r_packages) if case.r_packages else "")))
         else:
             theirs = run_r(case.r, data, case.r_packages)
-            rows.extend(_compared(case, ours, theirs, "R", case.r_tolerance))
+            rows.extend(_compared(case, ours, theirs, "R", case.r_tolerance, case.r_explained))
     return rows
 
 
@@ -210,14 +210,19 @@ MCSE = study.MONTE_CARLO  # "4 mcse", a Monte Carlo tolerance: within 4 Monte Ca
 MCSE_SUFFIX = " MCSE"
 
 
-def _compared(case, ours: dict, theirs: dict, label: str, tolerance) -> list[dict]:
+def _compared(case, ours: dict, theirs: dict, label: str, tolerance, explained: tuple = ()) -> list[dict]:
     """simplydata against one reference. A number tolerance is relative. The tolerance "4 mcse" is for a Monte Carlo
     answer checked against another generator or an exact limit: the difference must lie within 4 Monte Carlo
     standard errors, read from "<name> MCSE" in the reference's numbers (or in simplydata's, when the Monte Carlo
-    error is simplydata's alone); those entries are not compared themselves."""
+    error is simplydata's alone); those entries are not compared themselves.
+
+    explained = (suffix, reason): the reference also works every number out on simplydata's rules and gives it as
+    "<name><suffix>" (not compared itself). A number that differs is an explained difference only when every number
+    of the case, worked out that way, is simplydata's own; otherwise it fails (_explain)."""
+    suffix, reason = explained or ("", "")
     out = []
     for name, value in theirs.items():
-        if name.endswith(MCSE_SUFFIX):
+        if name.endswith(MCSE_SUFFIX) or (suffix and name.endswith(suffix)):
             continue
         if name not in ours:
             out.append(_missing(case, name, label))
@@ -234,7 +239,21 @@ def _compared(case, ours: dict, theirs: dict, label: str, tolerance) -> list[dic
         else:
             out.append(_row(case, name, label, ours[name], value, _relative(tolerance),
                             _close(ours[name], value, tolerance)))
+    if suffix and any(not row["passed"] for row in out):
+        _explain(out, ours, theirs, suffix, reason, tolerance)
     return out
+
+
+def _explain(rows: list[dict], ours: dict, theirs: dict, suffix: str, reason: str, tolerance) -> None:
+    """Marks the differing rows as explained when the reference, on simplydata's rules, gives simplydata's numbers:
+    every compared number must have its "<name><suffix>" twin, and each twin must agree with simplydata within the
+    case's tolerance. One missing or differing twin and every differing row stays a failure."""
+    same = all(row["name"] + suffix in theirs and row["name"] in ours
+               and _close(ours[row["name"]], theirs[row["name"] + suffix], tolerance) for row in rows)
+    if same:
+        for row in rows:
+            if not row["passed"]:
+                row.update(passed=True, explained=reason)
 
 
 def _relative(tol: float) -> str:
@@ -292,14 +311,14 @@ def underneath_rows() -> list[dict]:
 
 
 # ---------------------------------------------------------------- the report
-EXPLAINED = "explained difference – precision limit"
+EXPLAINED = "explained difference"
 
 
 def _status(row) -> str:
     if row["skipped"]:
         return "skipped"
     if row.get("explained"):
-        return f"{EXPLAINED}: {row['explained']}"
+        return f"{EXPLAINED} – {row['explained']}"
     return "pass" if row["passed"] else "**FAIL**"
 
 
@@ -334,7 +353,8 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
         f"**{passed} checks passed, {explained} explained differences, {failed} failed, {skipped} skipped** "
         f"(skipped: R or an R package is not installed on this computer, or, for {local}, the data may not be "
         "passed on and no file was given; an explained difference falls short of its tolerance for a stated "
-        "reason, a limit of precision, and is listed with that reason).",
+        "reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's "
+        "rules, then gives simplydata's numbers), and is listed with that reason).",
         "",
         "## Setup",
         "",
