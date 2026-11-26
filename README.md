@@ -186,7 +186,7 @@ it says what to install, as the note in the quick start does; see [Using the wor
 
 ## What simplydata handles
 
-**431 words (commands) in 48 groups, with 398 different options, on top of 15 Python packages (10 installed always, 5 with an extra; patsy comes with statsmodels) and
+**431 words (commands) in 48 groups, with 398 different options, on top of 16 Python packages (10 installed always, 6 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 15 more used only to check its answers), checked by 5659 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
@@ -420,7 +420,7 @@ shows the same job written in the package underneath, in a grey box that a test 
   every entry of the table below, with its references, was read again by automated review passes told to act as
   hostile statistical referees (AI review, not named human reviewers). Their findings were applied.
 
-[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 546 defaults: for each, the default,
+[How simplydata chooses methods](docs/how_simplydata_chooses.md) gives all 565 defaults: for each, the default,
 the alternatives, why it was chosen, what simplydata checks in the data, and its references (each DOI checked in
 Crossref). The manual has the same table as its last part.
 

@@ -35,6 +35,7 @@ Python packages:
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
 | DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
+| plotly | web pages you can point at: `chart.save("chart.html")` and `chart.show_in_web_page()` copy what matplotlib drew into a plotly figure, with plotly.js written inside the page, so it opens with no internet | [web] |
 | rpy2 | the bridge to R: runs the R package itself and brings the answer back | [r] |
 
 R packages that simplydata runs, where Python has no method of its own or none that gives R's answer (all need `[r]` and R):
