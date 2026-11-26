@@ -1120,8 +1120,8 @@ ENTRIES += [
             b = sdata.chart(marks).draw_histogram(x="marks")
             c = sdata.chart(marks).draw_dots(x="hours", y="marks")
             d = sdata.chart(marks).draw_boxes(x="subject", y="marks")
-            page = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
-            page.write_title_on_top("Four ways to look at the marks")
+            charts = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
+            charts.write_title_on_top("Four ways to look at the marks")
         """,
         code={"matplotlib": """
             import pandas as pd

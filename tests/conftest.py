@@ -296,6 +296,18 @@ def no_browser(tmp_path, monkeypatch):
 
 
 @pytest.fixture
+def needs_sympy():
+    """For tests of exact maths (simplydata[exact]): skipped where SymPy is not installed, except when
+    SIMPLYDATA_REQUIRE_SYMPY=1 (CI), where they must run."""
+    try:
+        import sympy  # noqa: F401
+    except ImportError:
+        if os.environ.get("SIMPLYDATA_REQUIRE_SYMPY") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_SYMPY=1 but SymPy is missing (pip install 'simplydata[exact]')")
+        pytest.skip("needs SymPy (pip install 'simplydata[exact]')")
+
+
+@pytest.fixture
 def needs_control():
     """For tests of the measures that come from python-control (simplydata[systems]): skipped where it is
     not installed, except when SIMPLYDATA_REQUIRE_CONTROL=1 (CI), where they must run."""

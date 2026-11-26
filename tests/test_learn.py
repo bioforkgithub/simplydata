@@ -118,7 +118,7 @@ def test_example_files_are_inside_the_package():
 
 # ---------------------------------------------------------------- the grouping
 def _public_ps_functions():
-    skip = {"Chart", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "__version__"}
+    skip = {"Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "__version__"}
     return [n for n in sdata.__all__ if n not in skip]
 
 
@@ -342,10 +342,10 @@ def test_every_docstring_example_runs_and_draws(key, tmp_path, monkeypatch, caps
         warnings.simplefilter("ignore")  # chart.show() with no screen only warns
         exec(compile(code, f"<{key} example>", "exec"), space)
         result = space["_result"]
-        target = result if hasattr(result, "save") else space.get("chart", space.get("page"))
+        target = result if hasattr(result, "save") else space.get("chart", space.get("charts", space.get("page")))
         if target is not None:
             saved = _saved_files(learn.HELP_EXAMPLES[key])
-            if any(getattr(target, f"_is_simplydata_{kind}", False) for kind in ("table", "numbers", "grid")):
+            if any(getattr(target, f"_is_simplydata_{kind}", False) for kind in ("table", "numbers", "grid", "block")):
                 ending = ".csv"  # a table, numbers or a grid saves as a table file
             else:
                 ending = Path(saved[-1]).suffix if saved else ".png"

@@ -92,6 +92,26 @@ GROUP_UNDERNEATH = {
     "Numbers: summaries": "NumPy (functions that skip empty values, such as nanmean)",
     "Grids of numbers": "NumPy (a two-dimensional array)",
     "Numbers: undo and finish": "simplydata itself: it keeps every version of the numbers",
+    # NumPy + SciPy phase, batch 1
+    "Numbers: yes or no": "NumPy (comparisons, logical_and, logical_or, logical_not, where, count_nonzero, any, all, "
+                          "array_equal, allclose)",
+    "Numbers: rounding, angles and positions": "NumPy (floor, ceil, trunc, sin, cos, tan, deg2rad, rad2deg, "
+                                               "nanargmax, nanargmin, unravel_index, ufunc.outer, kron)",
+    "Blocks of numbers": "NumPy (an array with any number of directions: shape, ndim, indexing, take, delete, and the "
+                         "nan summaries with axis=)",
+    "Blocks: shape and directions": "NumPy (reshape, expand_dims, squeeze, swapaxes, moveaxis, rot90, roll, insert, "
+                                    "repeat, tile, concatenate, array_split, unstack, stack)",
+    "Blocks: stretching": "NumPy (broadcast_shapes, broadcast_to, broadcast_arrays); xarray (broadcast) lines up named "
+                          "directions when simplydata[xarray] is installed",
+    # NumPy + SciPy phase, batch 2
+    "Blocks: files": "xarray (open_dataset, combine_by_coords, to_netcdf) with h5netcdf for netCDF-4 files and SciPy's "
+                     "engine for classic netCDF-3 files (simplydata[xarray]); NumPy and openpyxl read .npz, .npy and "
+                     ".xlsx headers",
+    "Blocks: labels, dates and places": "xarray (coords, assign_coords, groupby, interp for dates), pandas "
+                                        "(Index.get_indexer for the nearest label) and SciPy (interpolate.interpn, "
+                                        "ndimage filters and zoom)",
+    "Numbers: chances and random picks": "NumPy (random.default_rng().choice) and SciPy (special.logit, expit, comb, "
+                                         "perm)",
     "Waves and systems": "SciPy (signal.lti / dlti, step, impulse, lsim, freqresp, freqz, cont2discrete, tf2ss, tf2zpk); "
                "the formula read with Python's ast and NumPy polynomials; rise time, settling time, overshoot and "
                "margins from python-control (step_info, stability_margins: simplydata[systems])",
@@ -335,7 +355,7 @@ UNDERNEATH = {
     "sdata.find_where_biggest": "SciPy (the same as find_smallest, on minus the formula)",
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
     # values between points
-    "table.values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
+    "table.find_values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
                        "smoothness=\"auto\" lets R smooth.spline choose the smoothness (needs R)",
     "table.make_map_of": "SciPy (interpolate: RegularGridInterpolator, griddata, RBFInterpolator)",
@@ -455,8 +475,40 @@ UNDERNEATH = {
     "table.as_pandas": "pandas",
     "table.as_polars": "Polars",
     # numbers
-    "sdata.make_random_numbers": "NumPy (random.default_rng)",
+    "sdata.make_random_numbers": "NumPy (random.default_rng; of_shape= for a block)",
+    "sdata.numbers": "NumPy (arange, linspace); SciPy (io.wavfile) for .wav files; pandas (read_csv with na_values=) for "
+                     "text files",
     "nums.find_percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
+    "sdata.number_block": "NumPy (asarray, full); pandas (reindex on every combination of the labels) for a table; "
+                          "an xarray DataArray brings its names and labels; a netCDF file is read with xarray "
+                          "(open_dataset, combine_by_coords for several files; h5netcdf or SciPy's netCDF-3 engine)",
+    "block.find_average": "NumPy (the nan summaries with axis=); xarray (groupby, resample) for in_each=\"month\" and "
+                          "every=; NumPy reshape (as xarray coarsen) for in_groups_of=",
+    "block.rotate": "NumPy (rot90); SciPy (ndimage.rotate) for by_degrees=",
+    "block.keep_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels)",
+    "block.remove_where": "xarray (sel) when simplydata[xarray] is installed, else NumPy (flatnonzero on the labels), "
+                          "then NumPy delete",
+    "block.find_direction_names": "simplydata itself: the names are kept next to the NumPy array",
+    "sdata.hide_stretching_notes": "simplydata itself: a setting",
+    "sdata.show_stretching_notes": "simplydata itself: a setting",
+    # NumPy + SciPy phase, batch 2
+    "sdata.show_whats_inside": "xarray (open_dataset: names, sizes, units and labels only), NumPy (np.lib.format "
+                               "header readers) and openpyxl (read only)",
+    "block.save": "xarray (to_netcdf, h5netcdf engine, zlib) for .nc; pandas for table files",
+    "block.get_labels_of": "xarray (coords)",
+    "block.add_labels_to": "xarray (assign_coords)",
+    "block.find_values_at": "SciPy (interpolate.interpn, as xarray interp); xarray interp for dates",
+    "block.get_numbers_nearest_to": "pandas (Index.get_indexer(method=\"nearest\"), as xarray sel(method=\"nearest\"))",
+    "block.turn_into_change_from_average": "xarray (groupby(\"time.month\") minus its mean) or NumPy (nanmean with "
+                                           "keepdims=True)",
+    "block.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "block.change_size_to": "SciPy (ndimage.zoom)",
+    "nums.make_random_picks": "NumPy (random.default_rng(seed).choice)",
+    "nums.take_log_odds": "SciPy (special.logit)",
+    "nums.turn_into_chances": "SciPy (special.expit)",
+    "sdata.count_ways_to_choose": "SciPy (special.comb, exact=True)",
+    "sdata.count_ways_to_order": "SciPy (special.perm, exact=True)",
     "nums.turn_into_table": "pandas",
     "nums.start_chart": "matplotlib and seaborn, from a pandas table with one column called value",
     "nums.save": "pandas (to_csv, to_excel ...)",
@@ -510,6 +562,39 @@ UNDERNEATH = {
     "table.use_survey_design": "R survey (svydesign, degf; then svymean, svytotal, svyquantile, svyciprop, svyby, "
                                "svyglm, svyttest, svychisq; needs R)",
     "draw_answer_bars": "pandas (value_counts), drawn with matplotlib (barh)",
+    # numbers phase, batch 3 (each also has a tested entry in simplydata._underneath)
+    "sdata.formula": "SymPy (parse_expr, with each letter a Symbol; simplydata[exact]); the text checked with Python's "
+                     "ast first",
+    "f.make_simpler": "SymPy (simplify)",
+    "f.turn_into_sum": "SymPy (expand)",
+    "f.turn_into_product": "SymPy (factor)",
+    "f.find_slope_formula": "SymPy (diff)",
+    "f.find_area_formula": "SymPy (integrate)",
+    "f.find_value_at": "SymPy (subs and evalf; lambdify with NumPy and SciPy for many values)",
+    "f.put_in": "SymPy (subs)",
+    "f.show_as_latex": "SymPy (latex)",
+    "f.find_limit_as": "SymPy (limit, from both sides)",
+    "f.find_taylor_series": "SymPy (series, removeO)",
+    "f.undo": "simplydata itself: a formula keeps its earlier forms",
+    "sdata.find_area_under": "SciPy (integrate.quad, QUADPACK; fixed_quad for test_method=\"gauss\"); SymPy integrate "
+                             "for exactly=True",
+    "sdata.find_volume_under": "SciPy (integrate.dblquad, tplquad, nquad)",
+    "sdata.find_path_over_time": "SciPy (integrate.solve_ivp); SymPy dsolve for exactly=True",
+    "nums.turn_into_running_area": "SciPy (integrate.cumulative_trapezoid, cumulative_simpson)",
+    "nums.take_cube_root": "NumPy (cbrt)",
+    "nums.show_as_fraction": "SymPy (nsimplify with rational=True)",
+    "nums.find_coherence_with": "SciPy (signal.coherence, Welch's method)",
+    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal)",
+    "grid.get_numbers_at_pairs": "NumPy (indexing with two lists of positions)",
+    "grid.get_numbers_from_each_row_at": "NumPy (take_along_axis)",
+    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass)",
+    "grid.change_size_to": "SciPy (ndimage.zoom)",
+    "grid.rotate": "SciPy (ndimage.rotate)",
+    "grid.take_matrix_exp": "SciPy (linalg.expm)",
+    "grid.find_null_space": "SciPy (linalg.null_space)",
+    "table.find_nearest_rows_to": "SciPy (spatial.KDTree: query, query_ball_point; spatial.distance.cdist)",
+    "table.find_distances_to_rows_of": "SciPy (spatial.distance.cdist)",
+    "table.find_fence_around": "SciPy (spatial.ConvexHull, Qhull)",
 }
 
 # ---------------------------------------------------------------- hand-written text
@@ -702,7 +787,8 @@ FAMILY_TITLES = {
                              "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
-                                "and on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}."),
+                                "on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}, "
+                                "and on formulas, \\code{f = sdata.formula(\"(x + 2)**2 - 4\")}."),
     "help": ("Help words", "Words that teach simplydata."),
 }
 
@@ -712,7 +798,7 @@ _UNICODE = {
     "°": r"\textdegree{}", "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}", "⁴": r"\textsuperscript{4}", "·": r"\textperiodcentered{}",
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
     "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
-    "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
+    "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "Ü": r"\"U", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
     "š": r"\v{s}", "å": r"\aa{}", "Å": r"\AA{}", "ø": r"\o{}", "æ": r"\ae{}",
     # the Greek and Turkish letters of the capitals_matter= notes (ΟΔΟΣ and οδος, İ)
     "Ο": "O", "Δ": r"$\Delta$", "Σ": r"$\Sigma$", "ο": "o", "δ": r"$\delta$", "ς": r"$\varsigma$",
@@ -1192,7 +1278,7 @@ def _word_entry(key: str, aliases: dict) -> str:
     title = learn._call_form(key)
     out = [f"\\wordentry{{{esc(title)}}}{{{label(key)}}}"]
     if key in aliases:
-        start = {"table": "table", "numbers": "nums", "grid": "grid"}.get(learn._kind(key), "chart")
+        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
         other = ", ".join(code(f"{start}.{a}()") for a in aliases[key])
         out.append(f"\\wordfield{{Also written}}{{{other}}}")
     if key in learn.OPTIONS:
@@ -1370,7 +1456,7 @@ def _index(aliases: dict) -> str:
     entries = []
     for key in learn._all_keys():
         entries.append((learn._word(key).lower(), learn._call_form(key), key))
-        start = {"table": "table", "numbers": "nums", "grid": "grid"}.get(learn._kind(key), "chart")
+        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
         for alias in aliases.get(key, []):
             entries.append((alias.lower(), f"{start}.{alias}()", key))
     entries.sort(key=lambda e: (e[0].strip("="), e[1]))

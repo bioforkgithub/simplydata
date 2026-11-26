@@ -51,10 +51,11 @@ MANUAL_PDF_NAME = make_manual.PDF.name  # links open the manual next to the dict
 
 # How each kind of word is written in front of the word, and the order of the senses of a headword.
 WRITTEN = {"sdata": "sdata", "table": "table", "chart": "chart", "option": "chart", "numbers": "nums",
-           "grid": "grid", "dist": "dist", "system": "system"}
-KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "dist", "system"]
+           "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "block", "dist", "system", "formula"]
 KIND_NAME = {"sdata": "simplydata", "table": "table", "chart": "chart", "option": "option in a chart step",
-             "numbers": "numbers", "grid": "grid of numbers", "dist": "distribution", "system": "system"}
+             "numbers": "numbers", "grid": "grid of numbers", "block": "block of numbers", "dist": "distribution",
+             "system": "system", "formula": "formula"}
 MAX_OPTIONS = 8  # the main options: the first ones in the brackets, then "and N more"
 MAX_SEE_ALSO = 5
 
@@ -262,7 +263,7 @@ def sort_key(word: str) -> tuple:
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
-    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|dist)\.(\w+)\(", written):
+    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|block|dist)\.(\w+)\(", written):
         base = f"{m.group(1)}.{m.group(2)}"
         end = make_manual._balanced(written, m.end() - 1, "(", ")")
         name = base
@@ -286,7 +287,7 @@ def other_names() -> dict[str, list[str]]:
     """
     words = set(entries()) | {a for names in learn._aliases().values() for a in names}
     found: dict[str, list[str]] = {}
-    for kind in ("sdata", "table", "chart", "numbers"):
+    for kind in OTHER_NAMES:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"

@@ -5,6 +5,147 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: minimum versions
+
+- NumPy 2.1 or newer is needed (was 2.0): `block.split_into_one_block_per` uses NumPy's `np.unstack`, which
+  NumPy has from 2.1, and its printout names it.
+- The `simplydata[xarray]` extra needs xarray 2024.10 or newer (was 2024.6): pandas 3 refuses older xarray when a
+  block is turned into xarray, so `block.keep_where`, `block.remove_where`, `block.split_into_one_block_per` and
+  `sdata.number_block` failed with the oldest allowed versions.
+
+### Fixed
+
+- `find_where_smallest(..., start=...)` and `find_where_biggest(..., start=...)` raised a Python `AttributeError`
+  whenever SciPy could not find a dip or a peak from the start (for example `find_where_smallest("x", start=0)`).
+  They now say the formula keeps getting smaller (or bigger), so it may have no smallest (or biggest) value.
+- The dictionary lists the other names of block words (`reshape`, `squeeze`, `rot90`, `flip`, ...), and
+  `block.reverse(over=...)` has its own entry (NumPy `flip`).
+
+### Changed: `ends="mirror"` now means SciPy's "mirror" everywhere (numbers phase)
+
+- `nums.smooth(ends="mirror")`, and with it `table.add_smoothed_column(ends="mirror")` and
+  `chart.draw_smooth_line(ends="mirror")`, now use SciPy mode "mirror": the readings are mirrored about the end
+  reading, which is not repeated (d c b | a b c d). Before this change they used SciPy mode "reflect", which repeats
+  the end reading (d c b a | a b c d), so the first and last few smoothed values change. `grid.smooth` and
+  `block.smooth` already meant "mirror" this way; now all the smoothing words agree.
+- `ends="reflect"` is a separate option on all of them and means SciPy mode "reflect". To get the old numbers of
+  `ends="mirror"`, write `ends="reflect"`.
+- `test_method="gaussian"` on numbers takes `ends="reflect"` (its default, SciPy's own, so the default numbers do not
+  change) or `ends="mirror"`. Before, its only choice was called "mirror" but was SciPy "reflect".
+- Tests compare both options with SciPy and R (`stats::filter` on the padded readings), and two new reliability cases
+  check them on the Lake Huron levels.
+
+### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
+
+- Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
+  `f.make_simpler()`, `f.turn_into_sum()`, `f.turn_into_product()`, `f.find_slope_formula()`, `f.find_area_formula()`,
+  `f.find_value_at(x=2)`, `f.put_in(x="y + 1")`, `f.show_as_latex()`, `f.find_limit_as("x", goes_to=0)`,
+  `f.find_taylor_series(around=0, up_to_power=4)` and `f.undo()`; `sdata.solve("x**2 = 2", exactly=True)`;
+  `nums.show_as_fraction()`. The text is checked with Python's ast before SymPy reads it, and every letter stays a
+  letter (E, I, N and beta too). A formula is accepted by `find_where_smallest`, `find_where_biggest` and
+  `find_area_under`. Without SymPy these words say how to install it.
+- Areas and paths over time (SciPy integrate): `sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])`
+  (quad; `test_method="gauss"`; `exactly=True`), `sdata.find_volume_under(...)` (dblquad, tplquad, nquad),
+  `sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start=, between=, known=, time_step=, stop_when=)`
+  (solve_ivp with R deSolve's tolerances; `exactly=True` with SymPy dsolve) and `nums.turn_into_running_area()`.
+- Numbers: `take_cube_root()` (also on grids), `find_coherence_with(other)`, `take_cosine_transform()`.
+- Grids: `get_numbers_at_pairs(rows=, columns=)`, `get_numbers_from_each_row_at(columns=)`,
+  `find_each_patch_that(is_above=, touching=)`, `change_size_to(rows=, columns=)`, `rotate(by_degrees=)`,
+  `take_matrix_exp()` and `find_null_space()`.
+- Tables: `find_nearest_rows_to(point, how_many=, within=)`, `find_distances_to_rows_of(other, using=)` and
+  `find_fence_around(x=, y=)` (SciPy spatial).
+- Other names from SymPy, SciPy, MATLAB and R point to the new words; lessons 13 and 19 have new parts; SymPy is
+  cited (Meurer et al. 2017).
+
+### Added: NumPy + SciPy phase, batch 2 (netCDF files, labels, dates and places; approved by Manish 2026-11-25)
+
+- netCDF files (P21, P22): `sdata.number_block("sst.nc", values="sst")` reads one variable as a block with its names,
+  labels and units (decision 2: one block per variable); `values=["u", "v"]` stacks variables as a new direction
+  "variable"; `"argo_*.nc"` joins several files by their labels; `keep_on_disk=True` leaves the numbers in the file
+  until a word needs them (`keep_where`, `keep_by_position_in` and `get_numbers_nearest_to` cut it there);
+  `empty_values=[-999]`; `with_labels={"time": dates}`. `block.save("out.nc")` writes netCDF-4, compressed.
+  `sdata.show_whats_inside("file")` shows the variables, sizes, units and labels of a .nc file (and the arrays of
+  .npz/.npy, the sheets of .xlsx) without reading the numbers. xarray with h5netcdf (and SciPy's engine for classic
+  netCDF-3) is the extra `simplydata[xarray]` (decision 3); without it, a plain error with the install line.
+- Privacy: simplydata opens only the file you name; it never downloads or sends anything. A file on a network share
+  or a mapped drive is read like any file you name (as `sdata.table` does). Web addresses and every `scheme://` path
+  (http, https, s3, OPeNDAP, file:// ...) and `::` tool chains are refused before anything is opened, and so are
+  variables that come from another file through a hidden link (HDF5 external links, virtual datasets, soft links to
+  nothing). xarray gets an absolute path with the engine named; `show_whats_inside` writes nothing. Tests run with
+  the network blocked.
+- Dates, labels and places on blocks: `find_average(in_each="month")` (all Januaries together; also "season",
+  "year", "quarter", "day of year", "hour") and `find_average(every="month")` (each calendar month) on every block
+  summary (P26, xarray groupby and resample); `find_average(in_groups_of={"latitude": 4})` for a coarser grid (P46);
+  `block.find_values_at(latitude=60.5, longitude=5.25)` (P27, SciPy interpn as xarray interp);
+  `block.get_numbers_nearest_to(latitude=60.4, within=0.5)` (P28); `block.turn_into_change_from_average(
+  in_each="month", from_years=["1991", "2020"])` (P29; decision 8: the reference-period option was scored at build
+  time, `from_years=` 99.3 against `baseline=` 37.2; confirmed by Manish 2026-11-26, and `baseline=` works as its
+  other name);
+  `block.get_labels_of("time")` and `block.add_labels_to("time", dates)` (P47).
+- `smooth(over=[...])` on grids and blocks (P30): moving average, gaussian and median (SciPy ndimage filters with
+  axes=); `block.change_size_to(latitude=90)` (SciPy ndimage.zoom; number labels follow) and
+  `block.rotate(by_degrees=15)` (SciPy ndimage.rotate) (P32, block versions).
+- Numbers: `nums.make_random_picks(how_many=, putting_back=True, with_chances=, with_seed=)` (P10; decision 5:
+  chances must add up to 1), `nums.take_log_odds()` and `nums.turn_into_chances()` (P24, SciPy logit and expit),
+  `sdata.count_ways_to_choose(3, out_of=10)` and `sdata.count_ways_to_order(3, out_of=10)` (P23, exact),
+  `sdata.numbers("readings.txt", empty_values=[-999])` (P38), `sdata.make_random_numbers(of_shape=(24, 8, 12))`
+  (P39, a block).
+- Wiring: learn groups (3), help examples, a part of lesson 13, other names (numbers, blocks and sdata; NumPy's
+  `choice` now points to make_random_picks), underneath entries (`_underneath/numbers_2.py`), method basis, manual
+  library lines, h5netcdf and h5py in the extra and in CI, 22 real-data reliability cases
+  (`validation/cases_underneath_numbers_2.py`: El Nino, AirPassengers, iris, Michelson, Lake Huron) against xarray,
+  SciPy, NumPy and pandas and, where it has the calculation, base R. Tests: `tests/test_numbers_batch2_*.py`.
+
+### Added: NumPy + SciPy phase, batch 1 (blocks of numbers, yes or no values, rounding and angles; approved by Manish 2026-11-25)
+
+- `sdata.number_block(...)`: numbers with any number of directions (NumPy's n-D array), from lists inside lists, a
+  NumPy array, `of_shape=(24, 8, 12), filled_with=0`, `like=other`, a long table (`directions_named=["east",
+  "north"], values="height"`: the columns' values become each direction's labels) or an xarray DataArray (its names
+  and labels come too). Directions have names: `directions_named=[...]`, or row and column for the last two, then
+  page and book (decision 1 of the NumPy review), then direction a, b ... A block prints page by page: "page 1 of
+  24 (8 rows x 12 columns)", and every shape is said in words.
+- Block words: `find_shape`, `count_directions`, `find_direction_names`, `get_number_at(hour=1, row=2, column=3)`,
+  `get_all_numbers`, `turn_into_table` (one column per direction), summaries with `over=` (the directions that go)
+  and `in_each=` (the ones kept), `turn_into_running_total(over=)`, `keep_by_position_in` and
+  `remove_by_position_in`, `keep_where` and `remove_where` on labels (a range in either order, also when the labels
+  run downward), `change_shape_to(8, "rest")` and `change_shape_to(one_row_per="image")` (with `fill="repeat"`),
+  `add_direction`, `remove_directions_of_size_one`, `swap_directions`, `move_direction`, `reverse(over=)`,
+  `rotate(by_quarter_turns=)`, `move_round_by(3, over=)`, `insert_numbers(at_position=, over=)`,
+  `repeat_each_number`, `repeat_whole_block`, `add_numbers_from(other, over=)`, `split_into_pieces`,
+  `split_into_one_block_per`, and `sdata.stack_up([a, b, c], as_new_direction="image")`. The maths words take
+  `over=`: `plate.subtract(blank, over="row")`.
+- Stretching (NumPy's broadcasting) in plain words: blocks that name every direction line up by name (xarray when the
+  new extra `simplydata[xarray]` is installed, NumPy expand_dims and transpose otherwise, with a test that both
+  agree), others from the right as NumPy does; a clash says, in at most five lines, how the shapes line up and what
+  to write instead; words say which numbers were used again, symbols only when both sides stretch.
+  `block.show_how_it_lines_up_with(other)`, `only_show_new_shape=True` on every shape-changing word and summary,
+  `block.stretch_to(shape)`, `sdata.stretch_to_same_shape(a, b)`, `sdata.hide_stretching_notes()` and
+  `sdata.show_stretching_notes()`.
+- Yes or no values: `nums.turn_into_yes_or_no(is_above=20)` with `&`, `|` and `~`; `keep_numbers_where`,
+  `remove_numbers_where`, `replace_numbers_where(yes_no, with_value="empty")`; `count_numbers_that`,
+  `check_if_any_number`, `check_if_all_numbers` (with `over=` on grids and blocks); `check_if_same_as(other,
+  within=)`; `grid.keep_rows_where(column=3, is_above=0.5)` and `grid.remove_rows_where`.
+  `replace_each_number_that(..., with_value="empty")` works too.
+- Rounding and angles: `round_down()`, `round_up()`, `take_whole_part()`; `take_sin`, `take_cos`, `take_tan` (radians,
+  as NumPy; `degrees=True` for degrees); `change_angles_to("degrees")`; `divide_by(7, rounding_down=True)`.
+- `find_where_biggest()` and `find_where_smallest()` on numbers, grids and blocks: the position counted from 1 (with
+  the NumPy index in the sentence), `over=` for one position along a direction.
+- `make_pair_table_with(other, by_subtracting=True)`: every pair (NumPy outer; `as_blocks=True` for Kronecker).
+- `take_fourier_transform(with_zero_in_middle=True)`: frequency 0 in the middle (SciPy fftshift); the inverse
+  transform puts the order back.
+- Other tools' names point to the new words (reshape, squeeze, expand_dims, flip, roll, tile, broadcast_to,
+  broadcast_shapes, outer, floor, argmax, isclose, count_nonzero ...). Underneath entries, method basis, learn groups
+  and two new parts of the numbers lesson; 49 new real-data cases in the reliability study
+  (validation/cases_underneath_numbers_1.py: iris as a block, AirPassengers, Lake Huron, Michelson), each against
+  NumPy and base R.
+
+### Changed: NumPy + SciPy phase, batch 1
+
+- `table.values_at` is now `table.find_values_at` (decision 7: a verb, as `find_value_at`); the old name works for one
+  release with a note.
+- Lessons, help examples and the 30-day guide call a page of charts `charts` (`charts = sdata.put_side_by_side(a, b)`),
+  since "page" is now the name of a block's third direction.
+
 ### Added: charts phase, batch 1 (the priority-1 matplotlib and seaborn words; approved by Manish 2026-11-25)
 
 - Reading a chart back: `chart.get_text_drawn()` (a table of every piece of text: title, axis names, legend title and

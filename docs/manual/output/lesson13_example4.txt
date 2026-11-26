@@ -1,0 +1,8 @@
+6 yes or no values (NumPy bool): 3 yes (the numbers that are above 10).
+simplydata yes or no values: 6 values, 3 yes
+[False, False, False,  True,  True,  True]
+3 of 6 numbers are above 10. NumPy: np.count_nonzero(test)
+Yes: all 6 numbers are above 0. NumPy: np.all(test)
+The biggest number, 20.4, is at position 6 (NumPy index 5). NumPy: np.nanargmax(nums)
+6
+Round down to whole numbers. NumPy: np.floor(nums)

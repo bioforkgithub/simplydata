@@ -14,7 +14,7 @@
   MASS::fitdistr()) on the values of a histogram or density chart, per colour group, scaled
   as draw_curve() scales a density.
 * draw_lines(joined_by=) and draw_qq_dots(distribution=) use the helpers at the end of this file;
-  the joining itself is table/between.py (the engine of table.values_at()).
+  the joining itself is table/between.py (the engine of table.find_values_at()).
 """
 
 from __future__ import annotations

@@ -297,7 +297,10 @@ def read_formula(text, columns=(), known=None) -> MathsFormula:
 
     read_formula("x**2 - 4*x + 1");  read_formula("a * exp(-b * time)", columns=["time"]);
     known={"a": 2.1} (or a one-row result table from fit_formula) fixes some names.
+    A formula made with sdata.formula() is read from its text (numbers phase, batch 3).
     """
+    if hasattr(text, "_formula_text"):
+        text = text._formula_text()
     if not isinstance(text, str) or not text.strip():
         raise _maths_error('The formula should be some text, for example "x**2 - 4*x + 1".')
     signs = _SIGN_PATTERN.findall(text)

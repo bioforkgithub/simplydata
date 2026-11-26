@@ -36,7 +36,8 @@ dependencies = [
     "matplotlib>=3.11,<4",
     "seaborn>=0.13.2,<0.14",
     "pandas>=3.0.6,<4",
-    "numpy>=2.0,<3",
+    # Lower bound 2.1 (numbers phase, 2026-11-26): np.unstack, which block.split_into_one_block_per uses and names.
+    "numpy>=2.1,<3",
     "scipy>=1.17,<2",
     "statsmodels>=0.15,<0.16",
     "openpyxl>=3.1.5,<4",
@@ -61,6 +62,18 @@ sql = ["duckdb>=2.0,<3"]
 # is drawn by matplotlib and copied into plotly, and plotly.js goes inside the page; kaleido is not needed. Lower
 # bound: the release CI tests; upper bound: the next untested major release.
 web = ["plotly>=6.0,<8"]
+# xarray lines up blocks of numbers by the names of their directions, and chooses by labels (keep_where); NumPy does
+# the same job without it (NumPy + SciPy phase, batch 1, decision 1 approved by Manish 2026-11-25). Lower bound: a
+# release with NumPy 2 support that pandas 3 accepts (pandas 3.0 refuses xarray older than 2024.10.0 in
+# to_xarray, found by the oldest-versions CI job); upper bound: the next untested year of releases.
+# NumPy + SciPy phase, batch 2 (decision 3, approved by Manish 2026-11-25): netCDF files (sdata.number_block("sst.nc"),
+# block.save("out.nc"), sdata.show_whats_inside) read and write netCDF-4 with h5netcdf, which needs h5py; both have
+# wheels for Windows, macOS and Linux. Classic netCDF-3 files are read by SciPy's own engine (scipy is required).
+xarray = ["xarray>=2024.10,<2027", "h5netcdf>=1.4,<2", "h5py>=3.11,<4"]
+# SymPy for exact maths: sdata.formula(...) and its words, sdata.solve(exactly=True), find_area_under(exactly=True),
+# find_path_over_time(exactly=True) and show_as_fraction (numbers phase, batch 3). Lower bound: the release CI tests;
+# upper bound: the next untested major release.
+exact = ["sympy>=1.13,<2"]
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg

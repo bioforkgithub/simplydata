@@ -40,6 +40,10 @@ ALLOWED = {
                                         "kept, decided 2026-11-14)",
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
+    # numbers phase, batch 3: the user's own formula handed to SymPy lambdify, with lgamma pointed at SciPy gammaln
+    # (the function itself, as R lgamma and fit_formula); nothing is computed by simplydata
+    "_formula.py::Formula.find_value_at": "SymPy lambdify told to use scipy.special.gammaln for the formula's lgamma "
+                                          "(a name mapping, as table/columns.py offers digamma)",
     "words/more_charts.py::_second_scale.inverse": "add_second_x / add_second_y(formula=): inverts the user's own "
                                                    "second-scale formula for tick positions with SciPy brentq "
                                                    "(matplotlib secondary_xaxis needs both directions); no "

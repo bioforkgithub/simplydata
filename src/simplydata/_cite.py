@@ -51,7 +51,8 @@ SIMPLYDATA_YEAR = "2026"
 
 # Python packages whose work can be behind a word (the import name)
 WORK_PACKAGES = ("pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "patsy", "matplotlib", "seaborn",
-                 "lifelines", "control", "pyreadstat", "docx", "openpyxl", "pyarrow", "duckdb", "plotly")
+                 "lifelines", "control", "pyreadstat", "docx", "openpyxl", "pyarrow", "duckdb", "plotly", "xarray",
+                 "h5netcdf", "h5py", "sympy")
 # R's own packages: they are cited as R itself (citation("stats") gives R's reference)
 R_BASE = {"base", "stats", "utils", "methods", "graphics", "grDevices", "splines", "grid", "tools", "parallel",
           "stats4", "tcltk", "datasets", "compiler"}
@@ -59,7 +60,8 @@ R_BASE = {"base", "stats", "utils", "methods", "graphics", "grDevices", "splines
 OWN_WORDS = {"sdata.help", "sdata.show_all_words", "sdata.show_lesson", "sdata.start_30_days", "sdata.show_today",
              "sdata.show_day", "sdata.show_answers", "sdata.go_to_next_day", "sdata.show_packages_used"}
 # What every word of a kind uses (tables: narwhals, and pandas or Polars, found when the word runs)
-KIND_PACKAGES = {"chart": ("matplotlib",), "table": ("narwhals",), "numbers": ("numpy",), "grid": ("numpy",)}
+KIND_PACKAGES = {"chart": ("matplotlib",), "table": ("narwhals",), "numbers": ("numpy",), "grid": ("numpy",),
+                 "block": ("numpy",)}
 WORD_PACKAGES = {"sdata.chart": ("matplotlib",), "sdata.table": ("narwhals",)}
 # What holds a table is found when the word runs, never from the code (a word's code names both)
 HOLDERS = ("pandas", "polars")

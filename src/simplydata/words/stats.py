@@ -781,7 +781,7 @@ class StatsWords:
         LOWESS as R lowess() with its defaults (the nearest 2/3 of the dots, 3 robustness steps,
         delta = 1 % of the x range), from statsmodels lowess().
         thickness=3 draws a thicker line (normal is 2).
-        test_method="spline" draws a smoothing spline instead (as table.values_at(...,
+        test_method="spline" draws a smoothing spline instead (as table.find_values_at(...,
         smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
         generalised cross-validation, which needs R (pip install "simplydata[r]"); a number
         is R's lambda= (bigger is smoother) and needs no R.

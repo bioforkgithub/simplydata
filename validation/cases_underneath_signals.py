@@ -66,6 +66,42 @@ def cases(Case):
                  f <- stats::filter(level, rep(1 / 5, 5), sides = 2)
                  list(`empty at the ends` = sum(is.na(f)), `third year` = f[3], `year 50` = f[50])
              """, r_tolerance=1e-12),
+        # ends="mirror" is SciPy mode "mirror" (d c b | a b c d) and ends="reflect" SciPy "reflect" (d c b a | a b c d),
+        # as in grid.smooth and block.smooth (2026-11-26; before, nums.smooth's "mirror" was SciPy "reflect")
+        Case("nums.smooth", 'the level of Lake Huron, 1875-1972: a moving average of 5 years, the ends mirrored about '
+             'the first and last year (ends="mirror")', "Lake Huron", "real data", option='ends="mirror"',
+             ours="""
+                 s = sdata.numbers(data["level"]).smooth(ends="mirror")
+                 {"first year": s.get_number_at(1), "second year": s.get_number_at(2), "last year": s.get_number_at(98)}
+             """,
+             parent="""
+                 from scipy import ndimage
+                 m = ndimage.convolve1d(data["level"].to_numpy(dtype=float), [0.2] * 5, mode="mirror")
+                 {"first year": m[0], "second year": m[1], "last year": m[97]}
+             """, parent_label='SciPy ndimage.convolve1d(mode="mirror")', parent_tolerance=1e-12,
+             r="""
+                 n <- length(level)
+                 x <- c(rev(level[2:3]), level, rev(level[(n - 2):(n - 1)]))
+                 f <- stats::filter(x, rep(1 / 5, 5), sides = 2)[3:(n + 2)]
+                 list(`first year` = f[1], `second year` = f[2], `last year` = f[n])
+             """, r_tolerance=1e-12),
+        Case("nums.smooth", 'the level of Lake Huron, 1875-1972: a moving average of 5 years, the ends mirrored with '
+             'the first and last year repeated (ends="reflect")', "Lake Huron", "real data", option='ends="reflect"',
+             ours="""
+                 s = sdata.numbers(data["level"]).smooth(ends="reflect")
+                 {"first year": s.get_number_at(1), "second year": s.get_number_at(2), "last year": s.get_number_at(98)}
+             """,
+             parent="""
+                 from scipy import ndimage
+                 m = ndimage.convolve1d(data["level"].to_numpy(dtype=float), [0.2] * 5, mode="reflect")
+                 {"first year": m[0], "second year": m[1], "last year": m[97]}
+             """, parent_label='SciPy ndimage.convolve1d(mode="reflect")', parent_tolerance=1e-12,
+             r="""
+                 n <- length(level)
+                 x <- c(rev(level[1:2]), level, rev(level[(n - 1):n]))
+                 f <- stats::filter(x, rep(1 / 5, 5), sides = 2)[3:(n + 2)]
+                 list(`first year` = f[1], `second year` = f[2], `last year` = f[n])
+             """, r_tolerance=1e-12),
         Case("nums.remove_trend", "the level of Lake Huron without its straight-line fall", "Lake Huron", "real data",
              ours="""
                  d = sdata.numbers(data["level"]).remove_trend()

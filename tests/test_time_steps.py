@@ -201,8 +201,14 @@ def test_rolling_errors(engine):
     ({"test_method": "moving average", "ends": "shorter windows"}, [0, 1, 2], [0.1826, 0.4006, 0.52376]),
     # R: w <- c(1, 2, 1); stats::filter(x, w / sum(w), sides = 2)[2:3]
     ({"test_method": "moving average", "weights": [1, 2, 1]}, [1, 2], [0.303, 0.49045]),
+    # ends="reflect" is SciPy mode "reflect", the end reading repeated (d c b a | a b c d):
     # R: xr <- c(rev(x[1:2]), x, rev(x[59:60])); stats::filter(xr, rep(1/5, 5), sides = 2)[3:5]
-    ({"test_method": "moving average", "ends": "mirror"}, [0, 1, 2], [0.19482, 0.2729, 0.52376]),
+    ({"test_method": "moving average", "ends": "reflect"}, [0, 1, 2], [0.19482, 0.2729, 0.52376]),
+    # ends="mirror" is SciPy mode "mirror", the end reading not repeated (d c b | a b c d); before 2026-11-26 it was
+    # SciPy "reflect" and gave 0.19482, 0.2729 here, so this row fails on the old mapping:
+    # R: xm <- c(rev(x[2:3]), x, rev(x[58:59])); stats::filter(xm, rep(1/5, 5), sides = 2)[c(3:5, 61:62)]
+    ({"test_method": "moving average", "ends": "mirror"}, [0, 1, 2, 58, 59], [0.2667, 0.45332, 0.52376, 0.19056,
+                                                                              0.2093]),
     # R: signal::sgolayfilt(x, 2, 11)[c(1, 2, 30)]
     ({"test_method": "savitzky-golay", "window": 11}, [0, 1, 29], [0.167486713286713, 0.309181958041956,
                                                                -1.12041235431235]),
@@ -212,6 +218,12 @@ def test_rolling_errors(engine):
     ({"test_method": "exponential", "span": 9}, [59], [0.483183478700769]),
     # R: dnorm(-8:8, sd = 2) weights (scaled to add up to 1) on the mirrored readings (ref_partA.R)
     ({"test_method": "gaussian"}, [0, 1, 2], [0.274174367562221, 0.362412269909438, 0.498816058381256]),
+    ({"test_method": "gaussian", "ends": "reflect"}, [0, 1, 2], [0.274174367562221, 0.362412269909438,
+                                                                0.498816058381256]),
+    # ends="mirror" (SciPy mode "mirror"); before 2026-11-26 gaussian's "mirror" was SciPy "reflect" (the row above):
+    # R: w <- dnorm(-8:8, sd = 2); xg <- c(rev(x[2:9]), x, rev(x[52:59])); stats::filter(xg, w / sum(w), sides = 2)[9:11]
+    ({"test_method": "gaussian", "ends": "mirror"}, [0, 1, 2], [0.424230122096271, 0.460681197967788,
+                                                               0.550571122614385]),
     # R: lowess(seq_along(x), x, f = 2/3)$y[1:3]
     ({"test_method": "lowess"}, [0, 1, 2], [0.986347115509803, 0.947468957834992, 0.907301858393227]),
     # R: solve(diag(60) + 100 * crossprod(diff(diag(60), differences = 2)), x)[1:3]

@@ -36,7 +36,7 @@ _SDATA = [
      "curve_fit nls nlsLM least_squares leastsq"),
     ('table.fit_curve(x="hours", y="marks", of_degree=2), on one subject (one row per child), on a table', "polyfit"),
     ('table.fit_line(x="hours", y="marks"), on one subject (one row per child), on a table', "linregress lm ols"),
-    ('table.values_at("population", at={"year": [2001, 2003]}), on a table',
+    ('table.find_values_at("population", at={"year": [2001, 2003]}), on a table',
      "interpolate interp interp1d approx approxfun spline splinefun CubicSpline pchip PchipInterpolator "
      "make_interp_spline"),
     ('table.make_map_of("height", across=["east", "north"]), on a table', "griddata interp2d RBFInterpolator"),
@@ -58,7 +58,36 @@ _SDATA = [
      "sql read_sql sqldf dbGetQuery duckdb query"),
     ('sdata.table("lab.sqlite", table_name="samples")',
      "read_sql_table dbReadTable read_database read_feather read_ipc read_ndjson read_xml read_sas"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25): exact maths (SymPy), areas and paths over time
+    ('sdata.formula("(x + 2)**2 - 4")', "symbols Symbol sympify parse_expr syms sym"),
+    ('sdata.formula("(x + 2)**2 - 4"), then f.make_simpler(), f.turn_into_sum() or f.turn_into_product()',
+     "simplify expand factor factorise factorize"),
+    ('sdata.formula("x**3 - 2*x"), then f.find_slope_formula() or f.find_area_formula()',
+     "diff Derivative Integral deriv derivative"),
+    ('sdata.formula("x**3 - 2*x"), then f.find_value_at(x=2) or f.put_in(x="y + 1")',
+     "subs evalf lambdify matlabFunction substitute"),
+    ('sdata.formula("x**3 - 2*x"), then f.show_as_latex()', "latex"),
+    ('sdata.formula("sin(x) / x"), then f.find_limit_as("x", goes_to=0) or f.find_taylor_series(around=0)',
+     "limit series taylor"),
+    ('sdata.solve("x**2 = 2", exactly=True)', "solveset linsolve"),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])',
+     "quad integrate integral quad_vec fixed_quad romberg"),
+    ('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})', "dblquad tplquad nquad integral2 integral3"),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3})',
+     "solve_ivp odeint ode dsolve lsoda ode45 ode15s ode23"),
     ("sdata.numbers(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+    ('sdata.number_block("sst.nc", values="sst")',
+     "open_dataset open_mfdataset open_dataarray Dataset nc_open ncvar_get rast read_stars ncread"),
+    ('sdata.show_whats_inside("sst.nc")', "ncdump ncinfo ncdisp"),
+    ('sdata.numbers("readings.txt", empty_values=[-999])', "genfromtxt loadtxt"),
+    ("sdata.count_ways_to_choose(3, out_of=10)", "comb binom nchoosek choose"),
+    ("sdata.count_ways_to_order(3, out_of=10)", "perm perms"),
+    # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25)
+    ("sdata.number_block(of_shape=(24, 8, 12), filled_with=0)",
+     "ndarray tensor zeros_like ones_like full_like empty_like empty DataArray"),
+    ('sdata.stack_up([a, b, c], as_new_direction="image")', "stack dstack column_stack"),
+    ("sdata.stretch_to_same_shape(a, b)", "broadcast_arrays"),
     ("sdata.number_grid(rows=2, columns=3, filled_with=0)", "zeros ones matrix full"),
     ('sdata.chart(table), then chart.draw_lines(x="year", y="population")', "plot figure subplots ggplot"),
     ('table.compare_averages_of("marks", for_each_group_in="class"), on one subject (one row per child), on a table',
@@ -174,7 +203,7 @@ _TABLE = [
     ('table.sort_by("marks")', "sort_values arrange order sort"),
     ("table.remove_rows_with_empty_cells_in()", "dropna drop_nulls na_omit"),
     ('table.fill_empty_cells_in("price", with_the="median")', "fillna fill_null fill_nan replace_na"),
-    ('table.values_at("population", at={"year": [2001, 2003]}) for values between the known points, or '
+    ('table.find_values_at("population", at={"year": [2001, 2003]}) for values between the known points, or '
      'table.fill_empty_cells_in("price", with_the="line between neighbours") to fill gaps',
      "interpolate interp interp1d approx approxfun spline splinefun CubicSpline pchip"),
     ('table.make_map_of("height", across=["east", "north"])', "griddata interp2d"),
@@ -491,6 +520,11 @@ _TABLE = [
     ('table.check_model_of("marks", using=["hours"], test_method="bayesian") (show="prior check" for the prior)',
      "pp_check ppc posterior_predictive_check prior_predictive_check ppc_dens_overlay rhat r_hat ess "
      "effective_sample_size"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25): nearest rows, distances to another table, the fence
+    ('table.find_nearest_rows_to({"east": 4000, "north": 1000}, how_many=3)',
+     "KDTree cKDTree query_ball_point NearestNeighbors knnsearch rangesearch nn2 get.knnx nearest_neighbours"),
+    ('table.find_distances_to_rows_of(other, using=["east", "north"])', "cdist pdist2"),
+    ('table.find_fence_around(x="east", y="north")', "ConvexHull convex_hull chull convhull"),
 ]
 
 # chart.<name>
@@ -651,8 +685,79 @@ _NUMBERS = [
     ("nums.deconvolve_by([1, 2, 3])", "deconvolve deconv"),
     ("nums.change_time_step(to=0.01, time_step=0.005)", "resample resample_poly decimate downsample"),
     ("nums.start_chart()", "plot hist"),
-    ("nums.keep_random_numbers(3, with_seed=1)", "sample choice"),
+    ("nums.keep_random_numbers(3, with_seed=1)", "sample"),
+    # NumPy + SciPy phase, batch 2: NumPy's choice puts back by default, as make_random_picks does
+    ("nums.make_random_picks(how_many=40, with_seed=1)", "choice choices randsample datasample"),
+    ("nums.take_log_odds()", "logit qlogis"),
+    ("nums.turn_into_chances()", "expit sigmoid plogis logsig logistic"),
     ("nums.count_each()", "value_counts tabulate"),
+    # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): words on numbers, grids and blocks alike
+    ("nums.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater less logical"),
+    ("nums.keep_numbers_where(yes_no)", "compress extract"),
+    ('nums.replace_numbers_where(yes_no, with_value="empty")', "ifelse"),
+    ("nums.count_numbers_that(is_above=25)", "count_nonzero nnz"),
+    ("nums.check_if_any_number(is_above=30)", "any sometrue"),
+    ("nums.check_if_all_numbers(is_at_least=0)", "all alltrue"),
+    ("nums.check_if_same_as(other, within=0.001)", "isclose allclose array_equal array_equiv is_same_as"),
+    ("nums.find_where_biggest()", "argmax nanargmax"),
+    ("nums.find_where_smallest()", "argmin nanargmin"),
+    ("nums.make_pair_table_with(other, by_subtracting=True)", "outer kron times_table_with bsxfun"),
+    ("nums.round_down()", "floor"),
+    ("nums.round_up()", "ceil ceiling"),
+    ("nums.take_whole_part()", "trunc fix modf"),
+    ("nums.take_sin(degrees=True)", "sin sind"),
+    ("nums.take_cos(degrees=True)", "cos cosd"),
+    ("nums.take_tan(degrees=True)", "tan tand"),
+    ('nums.change_angles_to("degrees")', "deg2rad rad2deg degrees radians"),
+    ("nums.divide_by(7, rounding_down=True)", "floor_divide floordiv"),
+    ("nums.take_fourier_transform(with_zero_in_middle=True)", "fftshift ifftshift"),
+    # Numbers phase, batch 3 (approved by Manish 2026-11-25); the grid words' other names are in NumberGrid._HINTS
+    ("nums.turn_into_running_area(time_step=60)", "cumulative_trapezoid cumtrapz cumulative_simpson"),
+    ("nums.take_cube_root()", "cbrt nthroot"),
+    ("nums.find_coherence_with(other, time_step=0.01)", "coherence csd mscohere"),
+    ("nums.take_cosine_transform()", "dct dst"),
+    ("nums.show_as_fraction()", "nsimplify Rational rat as_fraction"),
+]
+
+# block.<name> (blocks of numbers, NumPy + SciPy phase batch 1). The words of numbers above work on blocks too.
+_BLOCKS = [
+    ('block.change_shape_to(8, "rest")', "reshape flatten_to resize"),
+    ('block.add_direction("image", at_position=1)', "expand_dims newaxis atleast_1d atleast_2d atleast_3d unsqueeze"),
+    ("block.remove_directions_of_size_one()", "squeeze"),
+    ('block.swap_directions("row", "column")', "swapaxes permute_dims permute"),
+    ('block.move_direction("colour", to_position=1)', "moveaxis movedim rollaxis"),
+    ('block.reverse(over="row")', "flip fliplr flipud"),
+    ("block.rotate(by_quarter_turns=1)", "rot90"),
+    ('block.move_round_by(3, over="hour")', "roll circshift"),
+    ('block.insert_numbers(0, at_position=2, over="row")', "insert"),
+    ('block.repeat_each_number(3, over="hour")', "repeat repeat_interleave"),
+    ('block.repeat_whole_block(24, over="hour")', "tile repmat"),
+    ('block.add_numbers_from(other, over="row")', "concatenate hstack vstack append cat"),
+    ('block.split_into_pieces(3, over="row")', "array_split split hsplit vsplit dsplit"),
+    ('block.split_into_one_block_per("image")', "unstack unbind"),
+    ("block.stretch_to((24, 8, 12))", "broadcast_to expand expand_as"),
+    ("block.show_how_it_lines_up_with(other)", "broadcast_shapes broadcast"),
+    ('block.keep_where("latitude", is_between=[60, 80])', "sel crop"),
+    ('block.keep_by_position_in("image", [1, 3])', "isel take take_along"),
+    ('block.remove_by_position_in("image", 40)', "delete drop_isel"),
+    ("block.count_directions()", "ndim dim"),
+    ("block.find_direction_names()", "dims dim_names"),
+    ("block.find_shape()", "shape size_of"),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+    ('block.save("out.nc")', "to_netcdf"),
+    ('block.find_average(in_each="month") for all Januaries together, or block.find_average(every="month") for each '
+     'calendar month', "groupby resample climatology retime groupsummary"),
+    ('block.find_average(in_groups_of={"latitude": 4, "longitude": 4})', "coarsen block_reduce blockproc aggregate"),
+    ("block.find_values_at(latitude=60.5, longitude=5.25)",
+     "interp interpn map_coordinates RegularGridInterpolator interp2 interp3 extract"),
+    ("block.get_numbers_nearest_to(latitude=60.4, longitude=5.3)", "nearest knnsearch"),
+    ('block.turn_into_change_from_average(in_each="month")', "anomalies anomaly"),
+    ('block.smooth(over=["latitude", "longitude"], test_method="gaussian", width=2)',
+     "gaussian_filter uniform_filter median_filter convolve2d rolling focal imgaussfilt medfilt2 conv2"),
+    ("block.change_size_to(latitude=90, longitude=180)", "zoom imresize"),
+    ("block.rotate(by_degrees=15)", "imrotate"),
+    ('block.get_labels_of("time")', "coords indexes"),
+    ('block.add_labels_to("time", dates)', "assign_coords set_index"),
 ]
 
 
@@ -666,4 +771,4 @@ def _build(groups):
 
 
 OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2 + _CHART_3),
-               "numbers": _build(_NUMBERS)}
+               "numbers": _build(_NUMBERS), "block": _build(_BLOCKS)}

@@ -1,4 +1,4 @@
-"""Tests for values between known points: table.values_at, table.make_map_of and
+"""Tests for values between known points: table.find_values_at, table.make_map_of and
 fill_empty_cells(with_the="curve between neighbours").
 
 Every printed number is checked against R 4.6.2 (values written in below, with the R call
@@ -200,10 +200,10 @@ def test_thin_plate_spline_matches_r_by_hand():
     assert np.allclose(got, [1.35456397673, 1.85755575086, 1.54163586196, 2.22263635005], atol=1e-8)
 
 
-# ====================================================================== values_at
+# ====================================================================== find_values_at
 def test_values_at_one_direction_for_each(engine, capsys):
     table = make(example_frame("growth"), engine)
-    result = table.values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")
+    result = table.find_values_at("population", at={"year": [2001, 2003, 2011]}, for_each_group_in="country")
     out = capsys.readouterr().out
     assert ('Estimated "population" at 3 values of "year" for each of the 4 groups in "country", joined by '
             "straight lines between the known points (linear interpolation, as R approx()).") in out
@@ -219,47 +219,47 @@ def test_values_at_one_direction_for_each(engine, capsys):
 @pytest.mark.parametrize("how", ["smooth curve", "curve without overshoot", "steps", "nearest", "akima"])
 def test_values_at_each_way(engine, how, capsys):
     table = make(example_frame("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
-    result = frame(table.values_at("population", at={"year": AT}, joined_by=how))
+    result = frame(table.find_values_at("population", at={"year": AT}, joined_by=how))
     assert np.allclose(result["population"], R_ONE_DIRECTION[how], atol=1e-9)
     assert how.split()[0] in capsys.readouterr().out
 
 
 def test_values_at_other_names_and_spellings():
     table = Table(sdata.get_example("growth")).keep_rows_where("country", is_equal_to="Applia")
-    assert np.allclose(frame(table.values_at("population", at={"year": AT}, joined_by="spline"))["population"],
+    assert np.allclose(frame(table.find_values_at("population", at={"year": AT}, joined_by="spline"))["population"],
                        R_ONE_DIRECTION["smooth curve"])
-    assert np.allclose(frame(table.values_at("population", at={"year": AT}, joined_by="PCHIP"))["population"],
+    assert np.allclose(frame(table.find_values_at("population", at={"year": AT}, joined_by="PCHIP"))["population"],
                        R_ONE_DIRECTION["curve without overshoot"])
-    assert np.allclose(frame(table.values_at("population", at={"year": 2001}))["population"], [12.3])
+    assert np.allclose(frame(table.find_values_at("population", at={"year": 2001}))["population"], [12.3])
 
 
 def test_values_at_outside(capsys):
     table = Table(sdata.get_example("growth")).keep_rows_where("country", is_equal_to="Applia")
     capsys.readouterr()
-    got = frame(table.values_at("population", at={"year": [1990, 2001, 2030]}))["population"]
+    got = frame(table.find_values_at("population", at={"year": [1990, 2001, 2030]}))["population"]
     assert np.isnan(got[0]) and np.isnan(got[2]) and got[1] == pytest.approx(12.3)
     out = capsys.readouterr().out
     assert ('2 places were outside 2000 to 2024 in "year", so they are empty; outside="nearest end" fills them'
             in out)
-    got = frame(table.values_at("population", at={"year": [1990, 2030]}, outside="nearest end"))["population"]
+    got = frame(table.find_values_at("population", at={"year": [1990, 2030]}, outside="nearest end"))["population"]
     assert got.tolist() == [12.0, 24.1]
-    got = frame(table.values_at("population", at={"year": [1995, 2030]}, joined_by="smooth curve",
+    got = frame(table.find_values_at("population", at={"year": [1995, 2030]}, joined_by="smooth curve",
                                 outside="extend"))["population"]
     assert np.allclose(got, [10.5773381303, 26.5739596026])
     assert "guesswork" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="nearest end"):
-        table.values_at("population", at={"year": [2030]}, outside="extend")
+        table.find_values_at("population", at={"year": [2030]}, outside="extend")
 
 
 def test_values_at_smoothing(engine, capsys):
     table = make(example_frame("growth"), engine).keep_rows_where("country", is_equal_to="Applia")
     capsys.readouterr()
-    got = frame(table.values_at("population", at={"year": [2001, 2003, 2011]}, smoothness="auto"))
+    got = frame(table.find_values_at("population", at={"year": [2001, 2003, 2011]}, smoothness="auto"))
     assert np.allclose(got["population"], [12.2633508089467, 13.0542882126724, 16.6317113148074], atol=1e-3)
     out = capsys.readouterr().out
     assert "smoothing spline" in out and "generalised cross-validation" in out
     assert "4.03 equivalent degrees of freedom" in out and "smooth.spline" in out
-    got = frame(table.values_at("population", at={"year": AT}, smoothness=1e-4))
+    got = frame(table.find_values_at("population", at={"year": AT}, smoothness=1e-4))
     assert np.allclose(got["population"], [12.2934434513, 13.0157650071, 16.5740925874, 23.9026633748,
                                            13.4313361049, 13.8735791048], atol=2e-5)
     assert "lambda = 0.0001" in capsys.readouterr().out
@@ -268,7 +268,7 @@ def test_values_at_smoothing(engine, capsys):
 def test_values_at_ties_and_empty_cells(capsys):
     data = pd.DataFrame({"x": [1, 2, 2, 3, None, 4], "y": [1.0, 2.0, 4.0, 5.0, 9.0, None]})
     table = Table(data)
-    got = frame(table.values_at("y", at={"x": [1.5, 2]}))["y"]
+    got = frame(table.find_values_at("y", at={"x": [1.5, 2]}))["y"]
     # approx(c(1, 2, 2, 3), c(1, 2, 4, 5), c(1.5, 2))$y: ties are averaged (ties = mean)
     assert np.allclose(got, [2.0, 3.0])
     out = capsys.readouterr().out
@@ -278,22 +278,22 @@ def test_values_at_ties_and_empty_cells(capsys):
 
 def test_values_at_two_directions(engine, capsys):
     table = make(example_frame("island"), engine)
-    got = frame(table.values_at("height", at={"east": [1.5, 2.5, 7.2], "north": [3, 4.5, 11.9]}))
+    got = frame(table.find_values_at("height", at={"east": [1.5, 2.5, 7.2], "north": [3, 4.5, 11.9]}))
     # by hand in R on the 15 x 15 grid: H[e0, n0] (1 - de)(1 - dn) + ... (bilinear)
     assert np.allclose(got["height"], [0.5, 14.25, 37.72], atol=1e-9)
     assert list(got.columns) == ["east", "north", "height"]
     assert "full grid (bilinear interpolation)" in capsys.readouterr().out
-    got = frame(table.values_at("height", at={"east": [1.5], "north": [3]}, joined_by="smooth surface"))
+    got = frame(table.find_values_at("height", at={"east": [1.5], "north": [3]}, joined_by="smooth surface"))
     assert "thin-plate spline" in capsys.readouterr().out
     assert np.isfinite(got["height"][0])
     with pytest.raises(SimplydataError, match="same length"):
-        table.values_at("height", at={"east": [1, 2], "north": [1, 2, 3]})
+        table.find_values_at("height", at={"east": [1, 2], "north": [1, 2, 3]})
 
 
 def test_values_at_scattered_table(engine, capsys):
     data = pd.DataFrame({"east": SX, "north": SY, "depth": SZ})
     table = make(data, engine)
-    got = frame(table.values_at("depth", at={"east": [3, 5, 6.5, 2, 20], "north": [4, 5, 2.5, 7, 20]}))
+    got = frame(table.find_values_at("depth", at={"east": [3, 5, 6.5, 2, 20], "north": [4, 5, 2.5, 7, 20]}))
     assert np.allclose(got["depth"][:4], [1.48256521534, 2.01079440685, 1.54420225495, 2.25028652792], atol=1e-9)
     assert np.isnan(got["depth"][4])
     out = capsys.readouterr().out
@@ -303,7 +303,7 @@ def test_values_at_scattered_table(engine, capsys):
 
 def test_values_at_dates():
     data = pd.DataFrame({"day": pd.to_datetime(["2026-01-01", "2026-01-11", "2026-01-21"]), "level": [1.0, 2.0, 4.0]})
-    got = frame(Table(data).values_at("level", at={"day": ["2026-01-06", "2026-01-16"]}))
+    got = frame(Table(data).find_values_at("level", at={"day": ["2026-01-06", "2026-01-16"]}))
     assert np.allclose(got["level"], [1.5, 3.0])
     assert str(got["day"][0].date()) == "2026-01-06"
 
@@ -311,21 +311,21 @@ def test_values_at_dates():
 def test_values_at_friendly_errors():
     table = Table(sdata.get_example("growth"))
     with pytest.raises(SimplydataError, match="at="):
-        table.values_at("population")
+        table.find_values_at("population")
     with pytest.raises(SimplydataError, match='Did you mean joined_by="steps"'):
-        table.values_at("population", at={"year": [2001]}, joined_by="stepz")
+        table.find_values_at("population", at={"year": [2001]}, joined_by="stepz")
     with pytest.raises(SimplydataError, match="Did you mean"):
-        table.values_at("population", at={"yaer": [2001]})
+        table.find_values_at("population", at={"yaer": [2001]})
     with pytest.raises(SimplydataError, match="numbers"):
-        table.values_at("country", at={"year": [2001]})
+        table.find_values_at("country", at={"year": [2001]})
     with pytest.raises(SimplydataError, match="smoothness="):
-        table.values_at("population", at={"year": [2001]}, smoothness=-1)
+        table.find_values_at("population", at={"year": [2001]}, smoothness=-1)
     with pytest.raises(SimplydataError, match="leave out"):
-        table.values_at("population", at={"year": [2001]}, joined_by="steps", smoothness="auto")
+        table.find_values_at("population", at={"year": [2001]}, joined_by="steps", smoothness="auto")
     with pytest.raises(SimplydataError, match="first and last"):
-        table.keep_rows_where("country", is_equal_to="Applia").values_at("population", at={"year": [2001]}, joined_by="periodic")
+        table.keep_rows_where("country", is_equal_to="Applia").find_values_at("population", at={"year": [2001]}, joined_by="periodic")
     with pytest.raises(SimplydataError, match="two or more directions"):
-        table.values_at("population", at={"year": [2001]}, joined_by="smooth surface")
+        table.find_values_at("population", at={"year": [2001]}, joined_by="smooth surface")
 
 
 # ====================================================================== map_of

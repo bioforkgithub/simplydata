@@ -49,7 +49,7 @@ ENTRIES = [
         tolerance=1e-12,
         choices=("a moving average of 5 readings centred on each one (window=5); the weights add up to 1.",
                  "the first and last 2 readings have no full window, so they are left empty, as R stats::filter(x, "
-                 "rep(1 / 5, 5), sides = 2) (ends=\"empty\"; \"shorter windows\" and \"mirror\" fill them).",),
+                 "rep(1 / 5, 5), sides = 2) (ends=\"empty\"; \"shorter windows\", \"mirror\" and \"reflect\" fill them).",),
         also="test_method= offers a running median (R runmed itself), Savitzky-Golay, exponential, Gaussian, lowess, "
              "loess, spline, Whittaker and Wiener smoothing. simplydata also says which method it used and the R "
              "call that gives the same numbers, and remembers the step for nums.undo().",

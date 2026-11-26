@@ -275,6 +275,7 @@ class BaseNumbers:
                   "percentile": "find_percentile", "table": "turn_into_table", "chart": "start_chart",
                   "steps": "show_steps",}
     _HINTS: dict = {}  # extra names -> words for one kind (grids), looked at before HINTS
+    _OTHER_KIND = "numbers"  # the list of other tools' names in _other_names.py (blocks have their own too)
     _POINTERS: dict = {}  # names that cannot work here -> the whole explanation
 
     def __init__(self, values):
@@ -362,6 +363,8 @@ class BaseNumbers:
         if not (is_number(other) or isinstance(other, (BaseNumbers, list, tuple, np.ndarray, range))
                 or _is_pandas(other) or _is_polars(other)):
             return NotImplemented
+        if getattr(other, "_is_simplydata_block", False):
+            return NotImplemented  # the block lines the two up (block words, directions by name)
         b = self._operand(other, op)
         a = self._values
         result, n, why = calculate(op, b, a) if reverse else calculate(op, a, b)
@@ -570,9 +573,10 @@ class BaseNumbers:
         if name in self._POINTERS:
             raise MissingWordError(f"simplydata has no step called .{name}() for a {self._noun}.\n"
                                    + self._POINTERS[name])
-        pointer = other_name_error("numbers", name, known, prefix=self._name)
-        if pointer is not None:
-            raise pointer
+        for kind in dict.fromkeys((self._OTHER_KIND, "numbers")):
+            pointer = other_name_error(kind, name, known, prefix=self._name)
+            if pointer is not None:
+                raise pointer
         target = self._HINTS.get(name, HINTS.get(name))
         if target is None and name.endswith("_of") and name[:-3] in known:
             target = name[:-3]

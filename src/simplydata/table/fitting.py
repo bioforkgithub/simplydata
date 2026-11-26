@@ -795,7 +795,7 @@ class FittingWords:
         for label, problem in failed:
             print(f'Note: group "{label}" was not fitted: {problem}')
         if of_degree >= WIGGLY_DEGREE:
-            print('Note: high degrees wiggle between points; a smooth curve (values_at(..., smoothness="auto")) '
+            print('Note: high degrees wiggle between points; a smooth curve (find_values_at(..., smoothness="auto")) '
                   "or a formula (fit_formula) may describe the data better.")
         return self._rows_table(rows)
 

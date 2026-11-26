@@ -11,9 +11,11 @@ Every entry is copied from the package's own request, never made up (checked 202
   Polars       the DOI badge of github.com/pola-rs/polars (Zenodo, "DOI Latest Release")
   scikit-learn https://scikit-learn.org/stable/about.html, "Citing scikit-learn" (Pedregosa et al. 2011)
   control      README of github.com/python-control/python-control (Fuller et al. 2021)
+  xarray       "Citing xarray" in the xarray documentation (Hoyer and Hamman 2017, also cited by the NumPy brief)
+  SymPy        CITATION.cff in github.com/sympy/sympy, its preferred-citation (Meurer et al. 2017; checked 2026-11-25)
   DuckDB       CITATION.cff in github.com/duckdb/duckdb ("please cite it", Raasveldt and Muehleisen) and their
                paper as duckdb.org/library gives it, with the ACM reference on its first page (checked 2026-11-25)
-A package that is not here (narwhals, rpy2, pyarrow, plotly ... ask for no paper) is listed with its name,
+A package that is not here (narwhals, rpy2, pyarrow, plotly, h5netcdf, h5py ... ask for no paper) is listed with its name,
 version and home page from its installed metadata (importlib.metadata), never with a made-up reference.
 
 Each entry: the import name -> (shown name, distribution name on PyPI, one-line reference, full reference,
@@ -198,6 +200,23 @@ CITATIONS = {
   organization = {IEEE}
 }""",
     ),
+    "xarray": (
+        "xarray", "xarray",
+        "Hoyer and Hamman (2017), xarray: N-D labeled arrays and datasets in Python, J. Open Res. Softw. 5(1), 10, "
+        "doi:10.5334/jors.148",
+        "Hoyer, S. and Hamman, J. (2017). xarray: N-D labeled Arrays and Datasets in Python. Journal of Open Research "
+        "Software, 5(1), 10. doi:10.5334/jors.148.",
+        """@article{hoyer2017xarray,
+  title = {xarray: {N-D} labeled arrays and datasets in {Python}},
+  author = {Hoyer, Stephan and Hamman, Joseph},
+  journal = {Journal of Open Research Software},
+  volume = {5},
+  number = {1},
+  pages = {10},
+  year = {2017},
+  doi = {10.5334/jors.148}
+}""",
+    ),
     "duckdb": (
         "DuckDB", "duckdb",
         "Raasveldt and M\u00fchleisen (2019), DuckDB: an Embeddable Analytical Database, SIGMOD '19, "
@@ -215,9 +234,34 @@ CITATIONS = {
   doi = {10.1145/3299869.3320212}
 }""",
     ),
+    "sympy": (
+        "SymPy", "sympy",
+        "Meurer et al. (2017), SymPy: symbolic computing in Python, PeerJ Computer Science 3, e103, "
+        "doi:10.7717/peerj-cs.103",
+        "Meurer, A., Smith, C. P., Paprocki, M., Čertík, O., Kirpichev, S. B., Rocklin, M., Kumar, A., "
+        "Ivanov, S., Moore, J. K., Singh, S., Rathnayake, T., Vig, S., Granger, B. E., Muller, R. P., Bonazzi, F., "
+        "Gupta, H., Vats, S., Johansson, F., Pedregosa, F., Curry, M. J., Terrel, A. R., Roučka, Š., "
+        "Saboo, A., Fernando, I., Kulal, S., Cimrman, R. and Scopatz, A. (2017). SymPy: symbolic computing in Python. "
+        "PeerJ Computer Science, 3, e103. doi:10.7717/peerj-cs.103.",
+        """@article{10.7717/peerj-cs.103,
+  title = {SymPy: symbolic computing in Python},
+  author = {Meurer, Aaron and Smith, Christopher P. and Paprocki, Mateusz and {\\v{C}}ert{\\'i}k, Ond{\\v{r}}ej and
+            Kirpichev, Sergey B. and Rocklin, Matthew and Kumar, Amit and Ivanov, Sergiu and Moore, Jason K. and
+            Singh, Sartaj and Rathnayake, Thilina and Vig, Sean and Granger, Brian E. and Muller, Richard P. and
+            Bonazzi, Francesco and Gupta, Harsh and Vats, Shivam and Johansson, Fredrik and Pedregosa, Fabian and
+            Curry, Matthew J. and Terrel, Andy R. and Rou{\\v{c}}ka, {\\v{S}}t{\\v{e}}p{\\'a}n and Saboo, Ashutosh and
+            Fernando, Isuru and Kulal, Sumith and Cimrman, Robert and Scopatz, Anthony},
+  journal = {PeerJ Computer Science},
+  volume = {3},
+  pages = {e103},
+  year = {2017},
+  doi = {10.7717/peerj-cs.103}
+}""",
+    ),
 }
 
 # Packages that are used but ask for no paper: their import name -> (shown name, distribution name)
 NAMES = {"narwhals": ("narwhals", "narwhals"), "rpy2": ("rpy2", "rpy2"), "pyarrow": ("pyarrow", "pyarrow"),
          "openpyxl": ("openpyxl", "openpyxl"), "patsy": ("patsy", "patsy"), "pyreadstat": ("pyreadstat", "pyreadstat"),
-         "docx": ("python-docx", "python-docx"), "plotly": ("plotly", "plotly")}
+         "docx": ("python-docx", "python-docx"), "plotly": ("plotly", "plotly"),
+         "h5netcdf": ("h5netcdf", "h5netcdf"), "h5py": ("h5py", "h5py")}

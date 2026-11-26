@@ -1339,7 +1339,7 @@ BASIS["sdata.solve"] = _b(
     "starting value")
 
 # ---- Values between points
-BASIS["table.values_at"] = _b(
+BASIS["table.find_values_at"] = _b(
     "Straight lines between the points (as R approx()); repeated places averaged; places outside the data left "
     "empty.",
     "joined_by=\"smooth curve\", \"curve without overshoot\", \"steps\", \"nearest\" and more; smoothness=; "
@@ -1348,10 +1348,10 @@ BASIS["table.values_at"] = _b(
     "(ties = mean, rule = 1).",
     (), "P3", "Too few points, and collinear points on a map, are refused; extension gets a note.", "convention")
 BASIS["table.make_map_of"] = _b(
-    "50 steps in each direction, joined as values_at (triangles for scattered points, bilinear on a full grid), "
+    "50 steps in each direction, joined as find_values_at (triangles for scattered points, bilinear on a full grid), "
     "places outside the points left empty.",
     "steps=, joined_by=, outside=.",
-    "The same rules as values_at; 50 steps is a starting value for a smooth-looking map.",
+    "The same rules as find_values_at; 50 steps is a starting value for a smooth-looking map.",
     (), "P5", "At most 1 000 000 places.", "starting value")
 
 # ---- Distributions
@@ -4645,3 +4645,246 @@ BASIS["draw_bars_3d"] = _b(
     "draw_heatmap() for the same numbers in two dimensions.",
     "Showing results: 3D bars hide each other and their heights are hard to read, so simplydata says so once.", (),
     "P5", "Each place (x and y) needs one row.", "starting value")
+
+# ---- NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25)
+BASIS["nums.turn_into_yes_or_no"] = _b(
+    "An empty number is no; the numbers themselves do not change (new yes or no values come back).",
+    "is_empty=True for yes where the numbers are empty; & | ~ to join tests.",
+    "As NumPy, where nan > 20 is False, so the answer matches the NumPy line; keeping the numbers lets the same "
+    "values make several tests.", (), "P3", "One condition at a time, as keep_each_number_that.", "convention")
+BASIS["nums.check_if_all_numbers"] = _b(
+    "Empty numbers are skipped, and the sentence says how many were skipped.",
+    "count_empty_numbers() and replace_each_number_that(is_empty=True, with_value=...) first, to decide them yourself.",
+    "The same rule as every simplydata summary (empty values are skipped, with a note); NumPy's np.all would say "
+    "False for any nan.", (), "P5", "One condition at a time.", "starting value")
+BASIS["nums.take_sin"] = _b(
+    "Angles in radians, as NumPy; degrees=True for degrees.",
+    "degrees=True; change_angles_to(\"degrees\") or (\"radians\") to change the numbers themselves.",
+    "Radians keep the printed NumPy line exactly the same as the word (owner decision 2026-11-25); the sentence "
+    "says which unit was used every time.", (), "P3", "degrees= is True or False.", "convention")
+BASIS["nums.find_where_biggest"] = _b(
+    "The position counted from 1 (NumPy's index plus 1); empty values skipped (np.nanargmax); on a tie, the first.",
+    "over= for one position along a direction of a grid or block.",
+    "Positions count from 1 everywhere in simplydata (approved 2026-11-14); the sentence gives the NumPy index too, "
+    "so the bridge to NumPy is exact.", (), "P5", "All-empty numbers are refused.", "convention")
+BASIS["block.find_average"] = _b(
+    "over= names the directions that go and in_each= the ones kept; empty values are skipped (np.nanmean).",
+    "over=[...] for several; no option for one number for the whole block.",
+    "Named directions remove NumPy's axis numbers and keepdims=True: the result keeps its names and lines up with "
+    "the block by name (NumPy brief D4, approved 2026-11-15).", (), "P5", "Unknown names are refused with the names "
+    "the block has.", "starting value")
+BASIS["block.keep_where"] = _b(
+    "The range is taken in either order, and turned round when the labels run downward (xarray sel).",
+    "is_one_of= for exact labels; keep_by_position_in for positions.",
+    "Many ocean and climate files store latitude from north to south; xarray then gives nothing for a range written "
+    "low to high, with no error. Turning it round removes that trap.", (), "P4",
+    "A direction without labels is refused, with the position word to use.", "starting value")
+BASIS["block.change_shape_to"] = _b(
+    "The numbers are read row by row (NumPy's C order), and one_row_per= must be the first direction.",
+    "move_direction() first, to put another direction first; fill=\"repeat\" for a new size (np.resize).",
+    "NumPy's own order, so the result equals reshape; a reshape that would mix directions is refused instead of "
+    "scrambling them silently (NumPy brief D5).", (), "P4", "The sizes must multiply to the count of numbers.",
+    "convention")
+
+# ---- NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["block.save"] = _b(
+    "A .nc file is written as netCDF-4 with the h5netcdf engine, every variable compressed (zlib, level 4), with the "
+    "directions' names and labels.",
+    "Another ending (.csv, .xlsx, .parquet ...) writes the block's long table instead.",
+    "netCDF-4 is the usual file of ocean and climate grids and keeps names, labels and units with the numbers; "
+    "compression loses nothing (the numbers come back exactly) and level 4 is the middle of zlib's range.", (), "P3",
+    "Web addresses are refused: simplydata opens only the file you name; it never downloads or sends anything.", "convention")
+BASIS["sdata.number_block keep_on_disk="] = _b(
+    "Off: the numbers of a file are read at once. keep_on_disk=True leaves them in the file; keep_where, "
+    "keep_by_position_in and get_numbers_nearest_to cut it there (xarray isel), and any other word reads them once, "
+    "with a note.",
+    "keep_on_disk=True for a file bigger than memory; cut it before the word that reads it.",
+    "Reading at once is what a beginner expects (every word works at once); xarray's lazy opening is kept for big files "
+    "without needing dask.", (), "P5", "Several files (a pattern) are read at once; keep_on_disk= takes one file.",
+    "starting value")
+BASIS["block.find_values_at"] = _b(
+    "Straight lines between the neighbouring labels (test_method=\"linear\"), along each direction named; places "
+    "outside the labels are empty.",
+    "test_method=\"nearest\" or \"cubic\".",
+    "The same rule as table.find_values_at and xarray interp (SciPy interpn underneath), so the numbers agree with "
+    "both; nothing is extended beyond the data without being asked.", (), "P3",
+    "Text labels are refused; the labels must run steadily up or down.", "convention")
+BASIS["block.smooth"] = _b(
+    "A moving average of window=5 places along each direction named; the edges without a full window are empty "
+    "(ends=\"empty\"), as nums.smooth.",
+    "ends=\"reflect\" or \"mirror\" (SciPy's modes of those names); test_method=\"gaussian\" (width=2) or "
+    "\"median\".",
+    "The same starting values as nums.smooth (R stats::filter leaves the ends empty), so a block smoothed along one "
+    "direction gives what each list of numbers would give.", (), "P3",
+    "window= is odd, so it is centred; empty values are refused.", "convention")
+BASIS["grid.smooth"] = _b(
+    "Along the rows and the columns together (a picture blurred); for \"gaussian\" and \"median\" the edge "
+    "number is repeated (SciPy mode \"reflect\"), and the bell curve is cut at 4 standard deviations.",
+    "over=\"row\" or \"column\" for one direction; window=, width=; ends=\"mirror\" (SciPy mode \"mirror\").",
+    "SciPy ndimage's own defaults, so the grid equals gaussian_filter and median_filter in scipy.ndimage.", (), "P3",
+    "Empty values are refused.", "convention")
+BASIS["block.change_size_to"] = _b(
+    "Straight lines between the numbers (SciPy ndimage.zoom, order 1); number labels are filled in the same way.",
+    "test_method=\"nearest\" (order 0) or \"cubic\" (order 3).",
+    "Linear filling in makes no new highs or lows (cubic can overshoot), so the new numbers stay within the old "
+    "ones.", (), "P5", "Empty values are refused; sizes are whole numbers.", "starting value")
+BASIS["block.rotate by_degrees="] = _b(
+    "The size and labels are kept (reshape=False) and the corners that come from outside are empty; straight lines "
+    "fill in between the numbers.",
+    "test_method=\"nearest\" or \"cubic\"; by_quarter_turns= for quarter turns without filling in.",
+    "An empty corner is honest about places with no data, where SciPy's default would put 0, a number that was never "
+    "measured.", (), "P4", "Empty values are refused.", "starting value")
+BASIS["nums.make_random_picks"] = _b(
+    "Each pick is put back (putting_back=True), each number equally likely; with_chances= must add up to 1.",
+    "putting_back=False; with_chances=[...]; with_seed= to repeat the picks.",
+    "Putting back is NumPy's choice default and what a bootstrap sample needs. Chances that do not add up to 1 are "
+    "refused rather than divided by their total, so no weight is changed silently (decision 5).", (), "P3",
+    "Without putting back, at most as many picks as numbers.", "convention")
+BASIS["nums.take_log_odds"] = _b(
+    "0, 1 and numbers outside 0 to 1 become empty, with a note.",
+    "replace_each_number_that first, to move 0 and 1 a little inside, if your field does that.",
+    "SciPy gives -inf and inf for 0 and 1; simplydata's rule for a sum with no answer is an empty value and a note, "
+    "never infinity (the same as take_log).", (), "P5", "The note counts the numbers that became empty.",
+    "starting value")
+
+# ---------------------------------------------------------------- numbers phase, batch 3 (approved by Manish 2026-11-25)
+REFERENCES.update({
+    "piessens1983": _ref("Piessens et al. 1983", "Piessens R, de Doncker-Kapenga E, Überhuber CW, Kahaner DK (1983). QUADPACK: A Subroutine Package for Automatic Integration. Springer Series in Computational Mathematics 1. Springer, Berlin.", doi="10.1007/978-3-642-61786-7"),
+    "dormand1980": _ref("Dormand & Prince 1980", "Dormand JR, Prince PJ (1980). A family of embedded Runge-Kutta formulae. Journal of Computational and Applied Mathematics 6:19-26.", doi="10.1016/0771-050X(80)90013-3"),
+    "soetaert2010": _ref("Soetaert et al. 2010", "Soetaert K, Petzoldt T, Setzer RW (2010). Solving Differential Equations in R: Package deSolve. Journal of Statistical Software 33(9).", doi="10.18637/jss.v033.i09"),
+    "almohy2009": _ref("Al-Mohy & Higham 2009", "Al-Mohy AH, Higham NJ (2009). A New Scaling and Squaring Algorithm for the Matrix Exponential. SIAM Journal on Matrix Analysis and Applications 31:970-989.", doi="10.1137/09074721X"),
+    "barber1996": _ref("Barber et al. 1996", "Barber CB, Dobkin DP, Huhdanpaa H (1996). The quickhull algorithm for convex hulls. ACM Transactions on Mathematical Software 22:469-483.", doi="10.1145/235815.235821"),
+    "ahmed1974": _ref("Ahmed et al. 1974", "Ahmed N, Natarajan T, Rao KR (1974). Discrete Cosine Transform. IEEE Transactions on Computers C-23:90-93.", doi="10.1109/T-C.1974.223784"),
+    "meurer2017": _ref("Meurer et al. 2017", "Meurer A, Smith CP, Paprocki M et al. (2017). SymPy: symbolic computing in Python. PeerJ Computer Science 3:e103.", doi="10.7717/peerj-cs.103"),
+})
+
+BASIS["sdata.formula"] = _b(
+    "Every letter of the formula is handed to SymPy as a plain Symbol of its own (no assumptions such as positive or "
+    "real), so E, I, N, S and beta stay letters.",
+    "None: write pi for 3.14159... and exp(1) for e.",
+    "SymPy's parser alone reads E as the number e, I as the imaginary unit and N, S, beta as its own functions, which "
+    "would change a researcher's formula without a word (Meurer et al. 2017 describe the parser).", ("meurer2017",),
+    "P4", "The text is checked with Python's ast first: numbers, letters, + - * / ** ^, brackets and the functions "
+    "of fit_formula only; an equation (=) is refused with a pointer to sdata.solve(exactly=True).", "convention")
+BASIS["f.find_value_at"] = _b(
+    "One value: a decimal is put in as the fraction it stands for (SymPy nsimplify) and the answer is worked out "
+    "exactly before it becomes a decimal (subs, then evalf). Many values: SymPy lambdify with NumPy and SciPy.",
+    "None; for exact answers use put_in(x=...) and keep the formula.",
+    "Exact arithmetic first loses no digits on the way; lambdify is SymPy's own route to fast numbers.",
+    ("meurer2017",), "P3", "Every letter needs a value; a value that is not an ordinary number is refused.",
+    "convention")
+BASIS["f.find_limit_as"] = _b(
+    "At a number, the limit from both sides (SymPy limit(dir=\"+-\")); at infinity, from below.",
+    "None: when the two sides differ, simplydata says so and gives the value from each.",
+    "A limit in school maths and in most textbooks is two-sided; SymPy's own default (from above only) would give a "
+    "value where the limit does not exist, such as 1/x at 0.", ("meurer2017",), "P4",
+    "goes_to= is a number, \"infinity\" or \"-infinity\".", "convention")
+BASIS["f.find_taylor_series"] = _b(
+    "Around 0, up to the power 4 (SymPy series with n = up_to_power + 1, the rest left out with removeO).",
+    "around= another point; up_to_power= more or fewer powers.",
+    "A few powers show the shape near the point; the option names the highest power kept, not SymPy's order of the "
+    "left-out term, which learners misread.", (), "P5", "up_to_power= a whole number, 0 or more.",
+    "starting value")
+BASIS["sdata.find_area_under"] = _b(
+    "SciPy integrate.quad (QUADPACK's adaptive Gauss-Kronrod rules, as R integrate()), with SciPy's own tolerances "
+    "(1.49e-8).",
+    "test_method=\"gauss\" (fixed_quad, 5 points); exactly=True (SymPy integrate).",
+    "QUADPACK (Piessens et al. 1983) is the standard library for one-dimensional integrals in SciPy, R and MATLAB; "
+    "R integrate() calls the same routines with a looser tolerance (about 1.2e-4).", ("piessens1983",), "P3",
+    "The formula has one letter (known= fixes others); SciPy's warnings are passed on as notes.", "published")
+BASIS["sdata.find_area_under test_method="] = _b(
+    "test_method=\"gauss\": Gauss-Legendre with 5 points (SciPy fixed_quad's own default), exact for polynomials up "
+    "to the power 9.",
+    "test_method=\"quad\" (the default) for an error estimate and infinite ends.",
+    "The fixed rule needs no stopping rule; SciPy's default number of points is kept.", (), "P3",
+    "Both ends must be numbers.", "convention")
+BASIS["sdata.find_volume_under"] = _b(
+    "SciPy integrate.dblquad (two letters), tplquad (three) or nquad (more), QUADPACK in each direction; the first "
+    "letter of between= is the outer one.",
+    "None: the order of between= sets the order of the letters.",
+    "Nested QUADPACK integrals are SciPy's standard for constant limits (Piessens et al. 1983).", ("piessens1983",),
+    "P3", "A range for every letter and no other.", "published")
+BASIS["sdata.find_path_over_time"] = _b(
+    "SciPy integrate.solve_ivp with RK45 (Dormand-Prince), relative and absolute tolerance 1e-6 as R deSolve; the "
+    "table holds the times of time_step= (else the solver's own steps).",
+    "test_method=\"LSODA\" (R deSolve's default), \"stiff\" (Radau), \"BDF\", \"DOP853\", \"RK23\"; exactly=True "
+    "(SymPy dsolve).",
+    "RK45 is SciPy's and MATLAB's (ode45) default for problems that are not stiff (Dormand & Prince 1980); SciPy's own "
+    "tolerances (1e-3) are looser than R deSolve's (1e-6, Soetaert et al. 2010), which are used so that both agree.",
+    ("dormand1980", "soetaert2010"), "P3",
+    "Every value that changes has a start; letters that do not change need known=; the solver's failure is said.",
+    "published")
+BASIS["sdata.find_path_over_time exactly="] = _b(
+    "SymPy dsolve with the start as its initial condition, the answer written as simply as SymPy can (simplify).",
+    "Without exactly=True: the path in numbers (solve_ivp).",
+    "dsolve is SymPy's own solver of differential equations (Meurer et al. 2017).", ("meurer2017",), "P3",
+    "One equation only; an answer SymPy can give only as an equation (not a formula) is refused, with a sentence.",
+    "convention")
+BASIS["nums.turn_into_running_area"] = _b(
+    "The trapezoid rule (SciPy cumulative_trapezoid) with the first value 0, so the result is as long as the "
+    "readings; time step 1 unless given or remembered.",
+    "test_method=\"simpson\" (cumulative_simpson); time_step= or sampling_rate=.",
+    "The trapezoid rule assumes nothing about the curve between readings; it is SciPy's, MATLAB's (cumtrapz) and "
+    "R pracma's (cumtrapz) standard.", (), "P3", "Empty values are refused.", "convention")
+BASIS["nums.find_coherence_with"] = _b(
+    "Welch's method (SciPy signal.coherence: Hann window, half-overlapping segments of 256 readings); a recording "
+    "shorter than 1152 readings is cut into eight half-overlapping segments (as MATLAB mscohere).",
+    "time_step= or sampling_rate= for the frequencies.",
+    "Coherence is an average over segments (Welch 1967): with one segment it is 1 at every frequency, so short "
+    "recordings take MATLAB's default of eight segments instead of SciPy's fixed 256 readings.", ("welch1967",),
+    "P4", "The two recordings must have the same length, at least 16 readings and no empty values.", "convention")
+BASIS["nums.take_cosine_transform"] = _b(
+    "The type-2 discrete cosine transform with orthonormal scaling (SciPy fft.dct(type=2, norm=\"ortho\")).",
+    "None; SciPy's other types and scalings stay in SciPy (the manual shows the call).",
+    "Type 2 is the DCT of Ahmed et al. (1974) and of image and sound compression; the orthonormal scaling keeps the "
+    "sum of squares, so the sizes can be compared with the numbers.", ("ahmed1974",), "P3",
+    "Empty values are refused.", "published")
+BASIS["grid.get_numbers_at_pairs"] = _b(
+    "Positions count from 1, as everywhere in simplydata; 1 is taken off for NumPy's indexing.",
+    "keep_rows_by_position then keep_columns_by_position for the rectangle of the rows and columns.",
+    "One way of counting in every word; the sentence gives NumPy's own positions too.", (), "P5",
+    "Whole numbers inside the grid, as many rows as columns.", "convention")
+BASIS["grid.get_numbers_from_each_row_at"] = _b(
+    "Positions count from 1, as everywhere in simplydata; 1 is taken off for NumPy's take_along_axis.",
+    "A list (one position for each row) or a grid (several).",
+    "One way of counting in every word.", (), "P5", "Whole numbers inside the grid, one row of positions for each "
+    "row.", "convention")
+BASIS["grid.find_each_patch_that"] = _b(
+    "Cells that share a side touch (SciPy ndimage.label's own default); the centre of a patch counts each cell the "
+    "same, from 1.",
+    "touching=\"corners\" lets a shared corner count too.",
+    "Side-touching (4-connectivity) is the default of SciPy label and of image analysis; an unweighted centre is "
+    "where the patch lies, whatever its values.", (), "P3", "Empty cells are never in a patch.", "convention")
+BASIS["grid.change_size_to"] = _b(
+    "Straight lines between neighbouring cells (SciPy ndimage.zoom, order=1).",
+    "test_method=\"nearest\" or \"cubic\" (SciPy's own default, order=3).",
+    "Linear interpolation stays between the neighbouring values; a cubic spline can overshoot them (for example "
+    "below 0 next to a 0), which is easy to miss in a map of concentrations.", (), "P5", "Empty cells are refused.",
+    "starting value")
+BASIS["grid.rotate"] = _b(
+    "The grid keeps its size; straight lines between neighbouring cells (order=1); cells from outside the old grid "
+    "are empty (SciPy ndimage.rotate, reshape=False, cval=nan).",
+    "test_method=\"nearest\" or \"cubic\".",
+    "SciPy fills the outside with 0, which would read as a measured 0; empty says nothing was there.", (), "P4",
+    "Empty cells are refused; the sentence says how many became empty.", "starting value")
+BASIS["grid.take_matrix_exp"] = _b(
+    "SciPy linalg.expm (scaling and squaring with a Pade approximation).",
+    "None: R Matrix::expm gives the same answer.",
+    "The method of Al-Mohy & Higham (2009) is the standard in SciPy and MATLAB.", ("almohy2009",), "P3",
+    "A square grid without empty cells.", "published")
+BASIS["table.find_nearest_rows_to"] = _b(
+    "The straight-line (Euclidean) distance in the columns given, nearest first (SciPy spatial.KDTree).",
+    "within= for every row up to a distance; how_many= for more rows.",
+    "Straight-line distance is what \"nearest\" means on a map in metres; columns in other units should be put on "
+    "one scale first.", (), "P5", "Rows with an empty cell in the columns used are left out, with a note.",
+    "convention")
+BASIS["table.find_distances_to_rows_of"] = _b(
+    "The straight-line (Euclidean) distance (SciPy spatial.distance.cdist, metric=\"euclidean\").",
+    "test_method=\"manhattan\", \"chebyshev\", \"bray-curtis\", \"canberra\" or \"cosine\".",
+    "Straight-line distance is cdist's own default and the meaning of distance on a map.", (), "P3",
+    "Rows with an empty cell in the columns used are left out, with a note.", "convention")
+BASIS["table.find_fence_around"] = _b(
+    "The convex hull from Qhull (SciPy spatial.ConvexHull), its corners in Qhull's order (anticlockwise).",
+    "None: R chull() gives the same corners, clockwise.",
+    "Quickhull (Barber et al. 1996) is the standard convex-hull algorithm in SciPy, MATLAB and R geometry.",
+    ("barber1996",), "P3", "At least 3 points that are not on one line.", "published")

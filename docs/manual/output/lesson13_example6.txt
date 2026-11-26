@@ -1,0 +1,14 @@
+36 dates from 2010-01-01 to 2012-12-01, one every month.
+A block of 36 pages x 4 rows x 5 columns random numbers (seed 1). NumPy random.default_rng
+time now has 36 labels (dates, from 2010-01-01 to 2012-12-01). xarray: block.assign_coords(time=labels)
+latitude now has 4 labels (numbers, from 62 to 59). xarray: block.assign_coords(latitude=labels)
+longitude now has 5 labels (numbers, from 1 to 5). xarray: block.assign_coords(longitude=labels)
+Saved 36 times x 4 latitudes x 5 longitudes as "values" to lesson13_sst.nc (netCDF-4, compressed). xarray to_netcdf(engine="h5netcdf")
+lesson13_sst.nc: netCDF (netCDF-4), 1 variable
+  values: 36 times x 4 latitudes x 5 longitudes; time from 2010-01-01 to 2012-12-01; latitude from 62 to 59 (runs downward); longitude from 1 to 5 (float64)
+Read with xarray open_dataset (h5netcdf engine): only the names, sizes, units and labels; sdata.number_block("lesson13_sst.nc", values="...") reads the numbers.
+values: 36 times x 4 latitudes x 5 longitudes; time from 2010-01-01 to 2012-12-01; latitude from 62 to 59 (runs downward); longitude from 1 to 5. xarray open_dataset (h5netcdf engine)
+12 averages, one for each month (all years together): 36 times x 4 latitudes x 5 longitudes -> 12 months x 4 latitudes x 5 longitudes. xarray groupby("time.month").mean()
+Nearest labels: latitude 60; longitude 2. pandas Index.get_indexer(method="nearest") (as xarray sel(method="nearest"))
+Each number minus the usual value of its month (the average over all the years): anomalies. xarray: block.groupby("time.month") - reference.groupby("time.month").mean()
+36 picks from 36 numbers, putting each back, each equally likely (seed 1). NumPy random.default_rng(1).choice(nums, size=36, replace=True)

@@ -1,0 +1,1764 @@
+"""Blocks of numbers: numbers with any number of directions (NumPy's n-D arrays), each direction with a name.
+
+    plate = sdata.number_block(of_shape=(24, 8, 12), filled_with=0, directions_named=["hour", "row", "column"])
+    plate.find_average(over="hour")       # one average for each row and column: 8 rows x 12 columns remain
+    plate.subtract(blank)                 # blank (8 rows x 12 columns) is used again for each of the 24 hours
+
+The words are the words of numbers and grids (decision 2 of the NumPy review, approved by Manish 2026-11-25):
+find_shape, get_number_at, get_all_numbers, find_average(over=, in_each=) ... and the block words of the NumPy brief
+(change_shape_to, add_direction, keep_by_position_in, stretch_to, repeat_each_number, split_into_pieces ...).
+
+Every calculation is one NumPy call (named in the sentence each word prints); xarray lines up named directions when
+the extra simplydata[xarray] is installed. Positions count from 1, both ends included.
+"""
+
+from __future__ import annotations
+
+from .._typing import _Same
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..chart import Chart
+    from ..table import Table
+
+import numbers as _nb
+import sys
+
+import numpy as np
+
+from .._errors import SimplydataError, choice_error, friendly, suggest
+from .._positions import read_positions
+from ._base import (HISTORY_LIMIT, BaseNumbers, amount, calculate, check_whole, is_number, note_empty, plain, say,
+                    to_array)
+from ._directions import (SETTINGS, check_names, default_names, line_up, numpy_shape, plural, say_shape, say_size,
+                          xarray_or_none)
+from .maths import MathsWords
+from .more_number_words import MoreNumberWords
+from .picking import ReplacingWords
+from .summaries import SUMMARIES, _ordinal, _quiet
+from .numbers_2 import BlockLabelWords, ChanceWords, SmoothOverWords  # batch 2
+from ..table.summaries import _say_number
+
+PAGES_SHOWN = 3  # print(block) shows this many pages; block.show() shows them all
+_EXAMPLE = ('sdata.number_block(of_shape=(24, 8, 12), filled_with=0, directions_named=["hour", "row", "column"])')
+
+
+def _is_block(value) -> bool:
+    return getattr(value, "_is_simplydata_block", False)
+
+
+def _say_numpy_axis(axes) -> str:
+    axes = tuple(int(a) for a in axes)
+    return str(axes[0]) if len(axes) == 1 else str(axes)
+
+
+class NumberBlock(BlockLabelWords, SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, MathsWords,
+                  BaseNumbers):
+    """Numbers in any number of directions, each with a name. Make one with sdata.number_block(...)."""
+
+    _is_simplydata_block = True
+    _name = "block"
+    _noun = "block"
+    _OTHER_KIND = "block"
+    _OLD_WORDS: dict = {}  # blocks were never released, so they have no old names
+    _HINTS = {"reshape": "change_shape_to", "flatten": "get_all_numbers", "ravel": "get_all_numbers",
+              "shape": "find_shape", "ndim": "count_directions", "transpose": "swap_directions",
+              "T": "swap_directions", "squeeze": "remove_directions_of_size_one", "expand_dims": "add_direction",
+              "flip": "reverse", "roll": "move_round_by", "rot90": "rotate", "insert": "insert_numbers",
+              "repeat": "repeat_each_number", "tile": "repeat_whole_block", "concatenate": "add_numbers_from",
+              "split": "split_into_pieces", "broadcast_to": "stretch_to", "take": "keep_by_position_in",
+              "delete": "remove_by_position_in", "sel": "keep_where", "isel": "keep_by_position_in",
+              "mean": "find_average", "sum": "find_total",
+              # batch 2
+              "coords": "get_labels_of", "assign_coords": "add_labels_to", "interp": "find_values_at",
+              "to_netcdf": "save", "coarsen": "find_average", "resample": "find_average", "groupby": "find_average"}
+
+    def __init__(self, values, names=None, named=None, labels=None):
+        values = np.asarray(values)
+        names = list(names) if names is not None else default_names(values.ndim)
+        named = list(named) if named is not None else [False] * values.ndim
+        super().__init__(values)
+        object.__setattr__(self, "_names", names)
+        object.__setattr__(self, "_named", named)
+        object.__setattr__(self, "_labels", dict(labels or {}))
+        object.__setattr__(self, "_original_state", (names, named, dict(labels or {})))
+
+    # ------------------------------------------------------------------ history (the names go with the numbers)
+    def _change(self, what: str, values, names=None, named=None, labels=None):
+        values = np.asarray(values)
+        if names is None:
+            names, named = self._names, self._named
+            labels = self._labels if labels is None else labels
+        if named is None:
+            named = [n in self._names and self._named[self._names.index(n)] for n in names]
+        if labels is None:
+            labels = {n: lab for n, lab in self._labels.items() if n in names}
+        self._history.append((what, self._values, None, (self._names, self._named, self._labels)))
+        if len(self._history) > HISTORY_LIMIT:
+            self._history.pop(0)
+        object.__setattr__(self, "_values", values)
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", list(named))
+        object.__setattr__(self, "_labels", dict(labels))
+        return self
+
+    @friendly
+    def undo(self: _Same) -> _Same:
+        """Take the last step back; the directions come back with the numbers. block.undo()"""
+        if not self._history:
+            print("Nothing to undo: this block has no steps yet.")
+            return self
+        what, before, _, (names, named, labels) = self._history.pop()
+        object.__setattr__(self, "_values", before)
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", list(named))
+        object.__setattr__(self, "_labels", dict(labels))
+        print(f"Undone: {what}")
+        return self
+
+    @friendly
+    def start_again(self: _Same) -> _Same:
+        """Go back to the block as it was at the start. block.start_again()"""
+        names, named, labels = self._original_state
+        return self._change("start again", self._original, names, named, labels)
+
+    def _new(self, values, names=None, named=None, labels=None):
+        """A new block (for symbols and the words that make new things)."""
+        values = np.asarray(values)
+        if names is None and values.ndim == self._values.ndim:
+            names, named, labels = self._names, self._named, self._labels
+        return NumberBlock(values, names, named, labels)
+
+    def _like(self, values):
+        return NumberBlock(values, self._names, self._named, self._labels)
+
+    def _wrap(self, values):
+        return self._new(values)
+
+    # ------------------------------------------------------------------ directions
+    def _shape_words(self, shape=None, names=None) -> str:
+        return say_shape(self._values.shape if shape is None else shape, self._names if names is None else names)
+
+    def _axis(self, step: str, direction, option: str = "over") -> int:
+        """The NumPy axis of a direction given by name (or by its position, counting from 1)."""
+        names = self._names
+        if isinstance(direction, str):
+            if direction in names:
+                return names.index(direction)
+            guesses = suggest(direction, names)
+            hint = f' Did you mean "{guesses[0]}"?' if guesses else ""
+            raise SimplydataError(
+                f'This block has no direction called "{direction}".{hint} Its directions are: '
+                + ", ".join(f'"{n}"' for n in names) + f".\nFor example:  {self._name}.{step}({option}=\"{names[0]}\")")
+        if isinstance(direction, _nb.Integral) and not isinstance(direction, bool) and 1 <= direction <= len(names):
+            axis = int(direction) - 1
+            print(f"Note: direction {direction} is {names[axis]} (NumPy axis {axis}).")
+            return axis
+        raise SimplydataError(
+            f"{option}= needs the name of a direction in quotes: " + ", ".join(f'"{n}"' for n in names)
+            + f" (or its position, from 1 to {len(names)}).\nFor example:  {self._name}.{step}({option}=\"{names[0]}\")")
+
+    def _axes(self, step: str, directions, option: str = "over") -> list[int]:
+        if isinstance(directions, (list, tuple)):
+            if not directions:
+                raise SimplydataError(f"{option}= needs at least one direction.")
+            axes = [self._axis(step, d, option) for d in directions]
+            if len(set(axes)) != len(axes):
+                raise SimplydataError(f"{option}= names a direction twice.")
+            return axes
+        return [self._axis(step, directions, option)]
+
+    def _summary_axes(self, step: str, over, in_each) -> list[int] | None:
+        """over= names the directions a summary runs through (they go); in_each= the ones kept."""
+        if over is not None and in_each is not None:
+            raise SimplydataError(
+                f".{step}() takes over= (the directions that go) or in_each= (the directions kept), not both."
+                f'\nFor example:  {self._name}.{step}(over="{self._names[0]}")')
+        if over is not None:
+            return sorted(self._axes(step, over))
+        if in_each is not None:
+            kept = self._axes(step, in_each, "in_each")
+            return [i for i in range(self._values.ndim) if i not in kept]
+        return None
+
+    def _empty(self):
+        if self._values.dtype.kind == "f":
+            return np.isnan(self._values)
+        return np.zeros(self._values.shape, dtype=bool)
+
+    def _note_stretch(self, text: str):
+        if SETTINGS["stretching_notes"] and text:
+            print(text)
+
+    # ------------------------------------------------------------------ looking
+    def _pages(self, limit=None) -> list[str]:
+        values, names = self._values, self._names
+        if values.ndim <= 2:
+            return [np.array2string(values, separator=", ", threshold=sys.maxsize if limit is None else 200)]
+        lead_shape = values.shape[:-2]
+        out = []
+        total = int(np.prod(lead_shape)) if lead_shape else 1
+        for count, index in enumerate(np.ndindex(*lead_shape)):
+            if limit is not None and count >= limit:
+                out.append(f"... and {total - limit} more (block.show() shows every one)")
+                break
+            where = ", ".join(f"{name} {i + 1} of {size}" for name, i, size in zip(names, index, lead_shape))
+            out.append(f"{where} ({say_shape(values.shape[-2:], names[-2:])})")
+            out.append(np.array2string(values[index], separator=", ", threshold=sys.maxsize))
+        return out
+
+    def __repr__(self):
+        head = f"simplydata number block: {self._shape_words()} (NumPy: array, PyTorch: tensor)"
+        if self._values.dtype.kind == "b":
+            head += f"; yes or no values: {int(np.count_nonzero(self._values))} yes"
+        return "\n".join([head, *self._pages(limit=PAGES_SHOWN)])
+
+    @friendly
+    def show(self):
+        """Show every number, page by page. block.show()"""
+        print(f"{self._shape_words()}:")
+        print("\n".join(self._pages()))
+        return None
+
+    def _picking_help(self) -> str:
+        args = ", ".join(f"{n}=1" for n in self._names if n.isidentifier())
+        return (
+            "Numbers in a block are picked with words, and positions count from 1:\n"
+            f"    block.get_number_at({args})   one number\n"
+            f'    block.keep_by_position_in("{self._names[0]}", 1, to=3)   keep part of one direction\n'
+            "    block.get_all_numbers()             every number in one list\n"
+            "Python's [ ] counts from 0, so simplydata does not use it. For a NumPy array, use block.as_numpy()."
+        )
+
+    @friendly
+    def find_shape(self):
+        """The size of each direction, in words and as NumPy's shape: (24, 8, 12). block.find_shape()"""
+        print(f"{self._shape_words()} (NumPy shape {numpy_shape(self._values.shape)}).")
+        return tuple(int(n) for n in self._values.shape)
+
+    @friendly
+    def count_directions(self):
+        """How many directions the block has (NumPy ndim). block.count_directions()"""
+        n = self._values.ndim
+        print(f"{n} direction{'' if n == 1 else 's'}: {', '.join(self._names)} (NumPy ndim {n}).")
+        return n
+
+    @friendly
+    def find_direction_names(self):
+        """The names of the directions, in order. block.find_direction_names()"""
+        given = [n for n, real in zip(self._names, self._named) if real]
+        print("Directions: " + ", ".join(self._names)
+              + ("" if given else " (the names simplydata gives; directions_named= gives your own)") + ".")
+        return list(self._names)
+
+    @friendly
+    def get_number_at(self, *positions, **by_name):
+        """The number at one position in every direction, counting from 1. block.get_number_at(hour=1, row=2, column=3)
+
+        Give a position for each direction, by name (hour=1) or in order (block.get_number_at(1, 2, 3)); "last" is
+        the last one. As NumPy block[0, 1, 2].
+        """
+        names, shape = self._names, self._values.shape
+        example = f"{self._name}.get_number_at(" + ", ".join(f"{n}=1" for n in names if n.isidentifier()) + ")"
+        if positions and by_name:
+            raise SimplydataError(f"Give the positions by name or in order, not both.\nFor example:  {example}")
+        if by_name:
+            unknown = [k for k in by_name if k not in names]
+            if unknown:
+                raise SimplydataError(f'This block has no direction called "{unknown[0]}". Its directions are: '
+                                      + ", ".join(names) + f".\nFor example:  {example}")
+            missing = [n for n in names if n not in by_name]
+            if missing:
+                raise SimplydataError(f"get_number_at() needs a position for every direction; {', '.join(missing)} "
+                                      f"{'is' if len(missing) == 1 else 'are'} missing.\nFor example:  {example}")
+            positions = tuple(by_name[n] for n in names)
+        if len(positions) != len(names):
+            raise SimplydataError(f"get_number_at() needs {len(names)} positions, one for each direction "
+                                  f"({', '.join(names)}).\nFor example:  {example}")
+        index = []
+        for value, name, size in zip(positions, names, shape):
+            if isinstance(value, str) and value.strip().lower() == "last":
+                index.append(size - 1)
+                continue
+            if not isinstance(value, _nb.Integral) or isinstance(value, bool) or not 1 <= value <= size:
+                raise SimplydataError(
+                    f"{name} needs a whole number from 1 to {size}, or \"last\"; positions count from 1."
+                    f"\nFor example:  {example}")
+            index.append(int(value) - 1)
+        return plain(self._values[tuple(index)])
+
+    @friendly
+    def get_all_numbers(self):
+        """Every number of the block in one list, the last direction fastest (NumPy ravel). nums = block.get_all_numbers()"""
+        from .numbers import Numbers
+
+        return Numbers(self._values.ravel().copy())
+
+    @friendly
+    def turn_into_table(self) -> Table:
+        """The block as a long table: one column per direction (positions from 1) and a column "value". block.turn_into_table()"""
+        import pandas as pd
+
+        from ..table import Table
+
+        index = pd.MultiIndex.from_product([range(1, n + 1) for n in self._values.shape], names=self._names)
+        frame = pd.DataFrame({"value": self._values.ravel()}, index=index).reset_index()
+        for name, labels in self._labels.items():
+            frame[name] = np.asarray(labels)[frame[name].to_numpy() - 1]
+        return Table(frame)
+
+    @friendly
+    def start_chart(self) -> Chart:
+        """Start a chart from a block with one or two directions (a grid gives a heatmap). block.start_chart()"""
+        from ..chart import chart
+        from .numbers import NumberGrid, Numbers
+
+        if self._values.ndim == 1:
+            return chart(Numbers(self._values.copy()))
+        if self._values.ndim == 2:
+            return chart(NumberGrid(self._values.copy()))
+        raise SimplydataError(
+            f"A chart is drawn from one or two directions, and this block has {self._values.ndim} "
+            f"({self._shape_words()}). Keep one page first:  "
+            f'block.keep_by_position_in("{self._names[0]}", 1).remove_directions_of_size_one().start_chart()')
+
+    # ------------------------------------------------------------------ lining up and sums
+    def _other_parts(self, other, step: str):
+        """values, names and real-name flags of the other side of a sum."""
+        if _is_block(other):
+            return other._values, other._names, other._named
+        if is_number(other):
+            return np.asarray(other), [], []
+        if other is None or isinstance(other, (str, bytes, bool, np.bool_)):
+            raise SimplydataError(f".{step}() needs a number, a block or a list of numbers."
+                                  + self._example(f"{step}(5)"))
+        values = other._values if isinstance(other, BaseNumbers) else to_array(other, f".{step}()", f"{self._name}.{step}(5)")
+        return values, default_names(values.ndim), [False] * values.ndim
+
+    def _lined_up(self, other, step: str, over=None):
+        """The two sides lined up, the other side's values, and the names that describe the other side in sentences
+        (for numbers without names of their own: the directions they line up with)."""
+        b, b_names, b_named = self._other_parts(other, step)
+        over_axes = self._axes(step, over) if over is not None else None
+        if over_axes is not None and np.ndim(b) and b_named and all(b_named):
+            # the other block names its directions: they go where over= puts the same names, never by position
+            wanted = [self._names[i] for i in over_axes]
+            if sorted(b_names) != sorted(wanted):
+                raise SimplydataError(
+                    f"over= says the other numbers run along {', '.join(wanted)}, but the other block's directions are "
+                    f"called {', '.join(b_names)}. Leave out over= to line them up by name, or rename them to match.")
+            if list(b_names) != wanted:
+                b = np.transpose(b, [list(b_names).index(n) for n in wanted])
+                b_names = wanted
+        lined = line_up(self._values, self._names, self._named, b, b_names, b_named, over_axes=over_axes, step=step,
+                        owner=self._name)
+        if np.ndim(b) and not (b_named and all(b_named)):
+            if over_axes is not None:
+                b_names = [self._names[i] for i in over_axes]
+            elif lined.how == "from the right" and np.ndim(b) <= len(lined.names):
+                b_names = list(lined.names[len(lined.names) - np.ndim(b):])
+        return lined, b, b_names
+
+    def _used_again(self, lined, b, b_names, result_shape) -> list[str]:
+        """The directions along which the other side's numbers were used again."""
+        if lined.how == "by name":
+            return [say_size(int(s), n) for s, n in zip(result_shape, lined.names) if n not in lined.b_kept and s != 1]
+        shape_b = np.shape(lined.b)
+        offset = len(result_shape) - len(shape_b)
+        return [say_size(int(s), n) for i, (s, n) in enumerate(zip(result_shape, lined.names))
+                if s != 1 and (i < offset or shape_b[i - offset] == 1)]
+
+    def _sum_word(self, op: str, other, over=None):
+        lined, b, b_names = self._lined_up(other, op, over)
+        result, n, why = calculate(op, lined.a, lined.b)
+        if result.shape != self._values.shape:
+            raise SimplydataError(
+                f"{self._name}.{op}() would change the shape of your block ({self._shape_words()} -> "
+                f"{say_shape(result.shape, lined.names)}). Use the symbol instead to make a new block, for example:  "
+                f"new = {self._name} {'+-*/'['add subtract times divide_by'.split().index(op)] if op != 'power' else '**'} other")
+        note_empty(n, why)
+        again = self._used_again(lined, b, b_names, self._values.shape) if np.ndim(b) else []
+        if again:
+            self._note_stretch(f"The other numbers ({say_shape(np.shape(b), b_names)}) were used again for each of "
+                               f"the {' and '.join(again)} (lined up {lined.how}; NumPy: broadcasting).")
+        word = op.replace("_", " ")
+        return self._change(f"{word} {'a number' if not np.ndim(b) else 'other numbers'}", result)
+
+    def _sum_symbol(self, op: str, other, reverse: bool = False):
+        if not (is_number(other) or isinstance(other, (BaseNumbers, list, tuple, np.ndarray, range))):
+            return NotImplemented
+        lined, b, b_names = self._lined_up(other, op)
+        result, n, why = calculate(op, lined.b, lined.a) if reverse else calculate(op, lined.a, lined.b)
+        note_empty(n, why)
+        if np.ndim(b):
+            if lined.how == "by name":
+                mine_again = [n for n in lined.names if n not in lined.a_kept]
+            else:
+                mine_again = _again(self._values.shape, result.shape)
+            theirs_again = self._used_again(lined, b, b_names, result.shape)
+            if mine_again and theirs_again and result.size > max(self._values.size, np.size(b)):
+                self._note_stretch(
+                    f"Note: both sides were stretched: {self._shape_words()} and {say_shape(np.shape(b), b_names)} "
+                    f"gave {say_shape(result.shape, lined.names)}. If you meant one number per "
+                    f"{self._names[0]}, use {self._name}.{op}(other, over=\"{self._names[0]}\"). If you meant "
+                    f"every pair, use {self._name}.make_pair_table_with(other, by_{_BY.get(op, 'multiplying')}=True).")
+        return NumberBlock(result, lined.names, lined.named)
+
+    # the maths words take over= on blocks: plate.subtract(blank, over="row")
+    @friendly
+    def add(self: _Same, number=None, over=None) -> _Same:
+        """Add a number, or a block that lines up, to every number. block.add(5)
+
+        over="row" says which direction the other numbers belong to (one number per row). Named directions line up
+        by name. For a new block write bigger = block + 5.
+        """
+        return self._sum_word("add", number, over)
+
+    @friendly
+    def subtract(self: _Same, number=None, over=None) -> _Same:
+        """Take a number, or a block that lines up, away from every number. block.subtract(2)
+
+        block.subtract(blank) takes a blank of 8 rows x 12 columns from each of the 24 hours; over="row" gives one
+        number per row (plate.subtract(blank, over="row")). For a new block write smaller = block - 2.
+        """
+        return self._sum_word("subtract", number, over)
+
+    @friendly
+    def times(self: _Same, number=None, over=None) -> _Same:
+        """Multiply every number by a number, or by a block that lines up. block.times(2)
+
+        block.times(weights, over="colour") gives one weight for each colour of a photo.
+        """
+        return self._sum_word("times", number, over)
+
+    @friendly
+    def divide_by(self: _Same, number=None, rounding_down=False, over=None) -> _Same:
+        """Divide every number by a number, or by a block that lines up. block.divide_by(4)
+
+        rounding_down=True keeps the whole part, rounded down (NumPy floor_divide). Dividing by 0 has no answer, so
+        those values become empty and a note says how many.
+        """
+        if rounding_down is True:
+            return self._floor_divide(number, over)
+        if rounding_down is not False:
+            raise SimplydataError("rounding_down= needs True or False (no quotes).")
+        return self._sum_word("divide_by", number, over)
+
+    @friendly
+    def raise_to_power(self: _Same, number=None, over=None) -> _Same:
+        """Raise every number to a power. block.raise_to_power(2)"""
+        return self._sum_word("power", number, over)
+
+    def __and__(self, other):
+        return self._yes_no_symbol("and", other)
+
+    def __rand__(self, other):
+        return self._yes_no_symbol("and", other)
+
+    def __or__(self, other):
+        return self._yes_no_symbol("or", other)
+
+    def __ror__(self, other):
+        return self._yes_no_symbol("or", other)
+
+    def _yes_no_symbol(self, how, other):
+        if not isinstance(other, (BaseNumbers, list, tuple, np.ndarray, bool, np.bool_)):
+            return NotImplemented
+        b = other._values if isinstance(other, BaseNumbers) else np.asarray(other)
+        b_names = other._names if _is_block(other) else default_names(b.ndim)
+        b_named = other._named if _is_block(other) else [False] * b.ndim
+        self._need_yes_no("&" if how == "and" else "|", b)
+        lined = line_up(self._values, self._names, self._named, b, b_names, b_named, step=how, owner=self._name)
+        result = (np.logical_and if how == "and" else np.logical_or)(lined.a, lined.b)
+        return NumberBlock(result, lined.names, lined.named)
+
+    # ------------------------------------------------------------------ stretching (P04, B2-B6)
+    @friendly
+    def show_how_it_lines_up_with(self, other=None):
+        """Show how this block and another line up before combining them; nothing changes. block.show_how_it_lines_up_with(other)
+
+        Shapes line up from the right; a direction of size 1, or one the other side lacks, is used again (NumPy:
+        broadcasting). Blocks whose directions all have names line up by name. NumPy np.broadcast_shapes.
+        """
+        b, b_names, b_named = self._other_parts(other, "show_how_it_lines_up_with")
+        a, names = self._values, self._names
+        mine = f"this block: {self._shape_words()}"
+        theirs = f"other:      {say_shape(np.shape(b), b_names)}"
+        by_name = all(self._named) and all(b_named) and np.ndim(b) > 0
+        lines = [mine, theirs]
+        if by_name:
+            lines.append("lined up by name (both blocks name every direction):")
+            sizes_b = dict(zip(b_names, np.shape(b)))
+            result = []
+            for name in [n for n in b_names if n not in names] + list(names):
+                size_a = dict(zip(names, a.shape)).get(name)
+                size_b = sizes_b.get(name)
+                if size_a is None:
+                    lines.append(f"  {name:<10} {size_b:>4}   (this block has no {name}: its numbers are used again "
+                                 f"for each of the {say_size(size_b, name)})")
+                    result.append((size_b, name))
+                elif size_b is None:
+                    lines.append(f"  {name:<10} {size_a:>4}   (the other has no {name}: its numbers are used again "
+                                 f"for each of the {say_size(size_a, name)})")
+                    result.append((size_a, name))
+                elif size_a == size_b:
+                    lines.append(f"  {name:<10} {size_a:>4} = {size_b}")
+                    result.append((size_a, name))
+                elif 1 in (size_a, size_b):
+                    which = "the other" if size_b == 1 else "this block"
+                    lines.append(f"  {name:<10} {size_a:>4} and {size_b}   ({which} has 1: it is used again for each "
+                                 f"of the {say_size(max(size_a, size_b), name)})")
+                    result.append((max(size_a, size_b), name))
+                else:
+                    lines.append(f"  {name:<10} {size_a:>4} against {size_b}   <- clash: the same name needs the "
+                                 "same size, or 1")
+                    result = None
+                    break
+            if result is None:
+                lines.append("These do not fit.")
+            else:
+                lines.append(f"result: {say_shape([s for s, _ in result], [n for _, n in result])}. Nothing is "
+                             "copied; the numbers are only read again.")
+            lines.append("xarray lines up by name the same way (xarray.broadcast).")
+            print("\n".join(lines))
+            return None
+        lines.append("lined up from the right:")
+        width = max(a.ndim, np.ndim(b))
+        sa = (None,) * (width - a.ndim) + tuple(a.shape)
+        sb = (None,) * (width - np.ndim(b)) + tuple(np.shape(b))
+        na = [None] * (width - a.ndim) + list(names)
+        nb = [None] * (width - np.ndim(b)) + list(b_names)
+        clash = False
+        for x, y, n1, n2 in zip(sa, sb, na, nb):
+            name = n1 or n2
+            if x is None or y is None:
+                size = x if y is None else y
+                lacking = "the other" if y is None else "this block"
+                lines.append(f"  {name:<10} {size:>4}   ({lacking} has no {name}: its numbers are used again for "
+                             f"each of the {say_size(size, name)})")
+            elif x == y:
+                lines.append(f"  {name:<10} {x:>4} = {y}")
+            elif 1 in (x, y):
+                size = max(x, y)
+                which = "the other" if y == 1 else "this block"
+                lines.append(f"  {name:<10} {x:>4} and {y}   ({which} has 1: it is used again for each of the "
+                             f"{say_size(size, name)})")
+            else:
+                lines.append(f"  {name:<10} {x:>4} against {y}   <- clash: neither is 1")
+                clash = True
+        try:
+            shape = np.broadcast_shapes(a.shape, np.shape(b))
+        except ValueError:
+            shape = None
+        if clash or shape is None:
+            lines.append("These do not fit." + (f' For one number per {names[list(a.shape).index(np.shape(b)[0])]}: '
+                                                 f'{self._name}.subtract(other, over="'
+                                                 f'{names[list(a.shape).index(np.shape(b)[0])]}")'
+                                                 if np.ndim(b) == 1 and np.shape(b)[0] in a.shape else ""))
+            lines.append(f"NumPy: np.broadcast_shapes({numpy_shape(a.shape)}, {numpy_shape(np.shape(b))}) raises "
+                         "\"shape mismatch\"")
+        else:
+            result_names = (default_names(len(shape))[: len(shape) - a.ndim] if len(shape) > a.ndim else []) + list(names)
+            lines.append(f"result: {say_shape(shape, result_names)}. Nothing is copied; the numbers are only read "
+                         "again.")
+            lines.append(f"NumPy: np.broadcast_shapes({numpy_shape(a.shape)}, {numpy_shape(np.shape(b))})")
+        print("\n".join(lines))
+        return None
+
+    @friendly
+    def stretch_to(self: _Same, shape=None) -> _Same:
+        """Stretch the block to a bigger shape by using its numbers again (NumPy broadcast_to). block.stretch_to((2, 24, 8, 12))
+
+        shape= is a shape such as (24, 8, 12), or another block (its shape and names). Directions line up from the
+        right, or by name when both blocks name every direction.
+        """
+        example = f"{self._name}.stretch_to((24, 8, 12))"
+        if _is_block(shape):
+            target, t_names, t_named = shape._values.shape, shape._names, shape._named
+            if all(self._named) and all(t_named):
+                lined = line_up(np.broadcast_to(0, target), t_names, t_named, self._values, self._names, self._named,
+                                step="stretch_to", owner=self._name)
+                if list(lined.names) != list(t_names):
+                    raise SimplydataError(f"The block has directions the other one lacks, so it cannot be stretched "
+                                          f"to {say_shape(target, t_names)}.")
+                new = np.broadcast_to(lined.b, target).copy()
+                call = f"np.broadcast_to(block, {numpy_shape(target)}) after lining up by name"
+                return self._stretched(new, t_names, t_named, call, dict(shape._labels))
+        elif isinstance(shape, (tuple, list)) and shape and all(isinstance(n, _nb.Integral) and not isinstance(n, bool)
+                                                                and n >= 0 for n in shape):
+            target = tuple(int(n) for n in shape)
+            if not any(self._named):
+                t_names = default_names(len(target))  # no names given: the names a block of that shape gets
+            else:
+                t_names = default_names(len(target))[: len(target) - self._values.ndim] + list(self._names) \
+                    if len(target) >= self._values.ndim else default_names(len(target))
+            t_named = [False] * (len(target) - self._values.ndim) + list(self._named) \
+                if len(target) >= self._values.ndim else [False] * len(target)
+        else:
+            raise SimplydataError(f"stretch_to() needs a shape in brackets, such as (24, 8, 12), or another block."
+                                  f"\nFor example:  {example}")
+        try:
+            new = np.broadcast_to(self._values, target).copy()
+        except ValueError:
+            raise SimplydataError(
+                f"{self._shape_words()} cannot be stretched to {say_shape(target, t_names)}: lined up from the right, "
+                "each size must be the same or 1 (NumPy np.broadcast_to raised \"shape mismatch\").") from None
+        labels = {n: v for n, v in self._labels.items()
+                  if n in t_names and len(v) == target[list(t_names).index(n)]}
+        return self._stretched(new, t_names, t_named, f"np.broadcast_to(block, {numpy_shape(target)})", labels)
+
+    def _stretched(self, new, names, named, call, labels):
+        before = self._shape_words()
+        after = say_shape(new.shape, names)
+        lost = [n for n in self._labels if n not in labels]
+        print(f"{before} -> {after}: the same numbers used again, nothing resized. NumPy: {call}"
+              + (f" The labels of {', '.join(lost)} were left out (that direction was stretched)." if lost else ""))
+        return self._change(f"stretch to {after}", new, names, named, labels)
+
+    # ------------------------------------------------------------------ the shape (B6: only_show_new_shape=)
+    def _preview(self, new_shape, new_names, call) -> None:
+        print(f"{self._shape_words()} -> {say_shape(new_shape, new_names)} (nothing changed). NumPy: {call}")
+
+    def _stand_in(self):
+        """A zero-memory stand-in with the block's shape: the NumPy call runs on it to give the new shape."""
+        return np.broadcast_to(0, self._values.shape)
+
+    @friendly
+    def change_shape_to(self: _Same, *sizes, one_row_per=None, fill=None, only_show_new_shape=False) -> _Same:
+        """Give the numbers a new shape, row by row (NumPy reshape). block.change_shape_to(one_row_per="hour")
+
+        block.change_shape_to(8, "rest") makes 8 rows and as many columns as the numbers fill. one_row_per="image"
+        keeps one row for each hour (the first direction) and puts the rest of its numbers in that row, as
+        scikit-learn needs. fill="repeat" fills a new shape of any size by repeating the numbers (NumPy resize).
+        only_show_new_shape=True only says what the shape would be.
+        """
+        example = f'{self._name}.change_shape_to(8, "rest")'
+        a = self._values
+        if one_row_per is not None:
+            if sizes:
+                raise SimplydataError(f"Give sizes or one_row_per=, not both.\nFor example:  {example}")
+            axis = self._axis("change_shape_to", one_row_per, "one_row_per")
+            if axis != 0:
+                raise SimplydataError(
+                    f'{one_row_per} is not the first direction, so a new shape would mix it up with the others. Move it '
+                    f'first:  {self._name}.move_direction("{one_row_per}", to_position=1)')
+            target = (a.shape[0], -1)
+            call = f"block.reshape({a.shape[0]}, -1)"
+        else:
+            if not sizes:
+                raise SimplydataError(f"change_shape_to() needs the new sizes.\nFor example:  {example}")
+            target = []
+            for size in sizes:
+                if isinstance(size, str) and size.strip().lower() == "rest":
+                    target.append(-1)
+                elif isinstance(size, _nb.Integral) and not isinstance(size, bool) and size >= 0:
+                    target.append(int(size))
+                else:
+                    raise SimplydataError(f'Sizes are whole numbers, or "rest" once for the size that fits '
+                                          f"(you gave {size!r}).\nFor example:  {example}")
+            if target.count(-1) > 1:
+                raise SimplydataError(f'"rest" can be used once.\nFor example:  {example}')
+            target = tuple(target)
+            call = f"block.reshape{target}" if len(target) > 1 else f"block.reshape({target[0]})"
+        if fill is not None:
+            if fill != "repeat":
+                raise choice_error("change_shape_to", "fill", fill, ["repeat"])
+            if -1 in target:
+                raise SimplydataError('fill="repeat" needs every size; "rest" cannot be worked out.')
+            new_shape = np.resize(self._stand_in(), target).shape
+            call = f"np.resize(block, {numpy_shape(target)})"
+            if only_show_new_shape:
+                self._preview(new_shape, default_names(len(new_shape)), call)
+                return self
+            new = np.resize(a, target)
+        else:
+            try:
+                new_shape = np.reshape(self._stand_in(), target).shape
+            except ValueError:
+                fits = [d for d in range(1, a.size + 1) if a.size % d == 0][:12]
+                raise SimplydataError(
+                    f"{amount(a.size)} cannot fill that shape exactly: the sizes multiplied together must be "
+                    f"{a.size}. Sizes that divide {a.size}: {', '.join(map(str, fits))} ...\n"
+                    f'For example:  {example}   ("rest" works out the last size)') from None
+            if only_show_new_shape:
+                self._preview(new_shape, default_names(len(new_shape)), call)
+                return self
+            new = np.reshape(a, target).copy()
+        names = default_names(new.ndim)
+        print(f"{self._shape_words()} -> {say_shape(new.shape, names)}. NumPy: {call}")
+        return self._change(f"change shape to {say_shape(new.shape, names)}", new, names, [False] * new.ndim, {})
+
+    @friendly
+    def add_direction(self: _Same, name=None, at_position=1, only_show_new_shape=False) -> _Same:
+        """Add a direction of size 1, with a name (NumPy expand_dims). block.add_direction("plate", at_position=1)
+
+        at_position=1 puts it first (the default); a direction of size 1 is used again along it when combining.
+        """
+        example = f'{self._name}.add_direction("image", at_position=1)'
+        if not isinstance(name, str) or not name.strip():
+            raise SimplydataError(f"add_direction() needs a name for the new direction, in quotes.\nFor example:  {example}")
+        if name in self._names:
+            raise SimplydataError(f'The block already has a direction called "{name}".\nFor example:  {example}')
+        n = self._values.ndim
+        if not isinstance(at_position, _nb.Integral) or isinstance(at_position, bool) or not 1 <= at_position <= n + 1:
+            raise SimplydataError(f"at_position= needs a whole number from 1 to {n + 1}.\nFor example:  {example}")
+        axis = int(at_position) - 1
+        names = self._names[:axis] + [name] + self._names[axis:]
+        named = self._named[:axis] + [True] + self._named[axis:]
+        call = f"np.expand_dims(block, axis={axis})"
+        if only_show_new_shape:
+            self._preview(np.expand_dims(self._stand_in(), axis).shape, names, call)
+            return self
+        new = np.expand_dims(self._values, axis).copy()
+        print(f"{self._shape_words()} -> {say_shape(new.shape, names)}. NumPy: {call}")
+        return self._change(f'add direction "{name}"', new, names, named)
+
+    @friendly
+    def remove_directions_of_size_one(self: _Same, only_show_new_shape=False) -> _Same:
+        """Remove every direction that has size 1 (NumPy squeeze). block.remove_directions_of_size_one()"""
+        a = self._values
+        keep = [i for i, s in enumerate(a.shape) if s != 1]
+        if len(keep) == a.ndim:
+            print(f"No direction has size 1 ({self._shape_words()}); nothing to remove.")
+            return self
+        if not keep:
+            raise SimplydataError("Every direction has size 1, so the block holds one number: "
+                                  f"{self._name}.get_all_numbers() gives it.")
+        names = [self._names[i] for i in keep]
+        if only_show_new_shape:
+            self._preview(np.squeeze(self._stand_in()).shape, names, "np.squeeze(block)")
+            return self
+        new = np.squeeze(a).copy()
+        print(f"{self._shape_words()} -> {say_shape(new.shape, names)}. NumPy: np.squeeze(block)")
+        return self._change("remove directions of size one", new, names, [self._named[i] for i in keep])
+
+    @friendly
+    def swap_directions(self: _Same, first=None, second=None, only_show_new_shape=False) -> _Same:
+        """Swap two directions (NumPy swapaxes). block.swap_directions("row", "column")"""
+        i = self._axis("swap_directions", first, "first")
+        j = self._axis("swap_directions", second, "second")
+        order = list(range(self._values.ndim))
+        order[i], order[j] = order[j], order[i]
+        names = [self._names[k] for k in order]
+        named = [self._named[k] for k in order]
+        call = f"np.swapaxes(block, {i}, {j})"
+        if only_show_new_shape:
+            self._preview(np.swapaxes(self._stand_in(), i, j).shape, names, call)
+            return self
+        new = np.swapaxes(self._values, i, j).copy()
+        print(f"{self._shape_words()} -> {say_shape(new.shape, names)}. NumPy: {call}")
+        return self._change(f"swap directions {first} and {second}", new, names, named)
+
+    @friendly
+    def move_direction(self: _Same, name=None, to_position=None, only_show_new_shape=False) -> _Same:
+        """Move one direction to another place (NumPy moveaxis). block.move_direction("column", to_position=1)"""
+        i = self._axis("move_direction", name, "name")
+        n = self._values.ndim
+        if not isinstance(to_position, _nb.Integral) or isinstance(to_position, bool) or not 1 <= to_position <= n:
+            raise SimplydataError(f"to_position= needs a whole number from 1 to {n}.\nFor example:  "
+                                  f'{self._name}.move_direction("{self._names[-1]}", to_position=1)')
+        j = int(to_position) - 1
+        order = [k for k in range(n) if k != i]
+        order.insert(j, i)
+        names = [self._names[k] for k in order]
+        named = [self._named[k] for k in order]
+        call = f"np.moveaxis(block, {i}, {j})"
+        if only_show_new_shape:
+            self._preview(np.moveaxis(self._stand_in(), i, j).shape, names, call)
+            return self
+        new = np.moveaxis(self._values, i, j).copy()
+        print(f"{self._shape_words()} -> {say_shape(new.shape, names)}. NumPy: {call}")
+        return self._change(f"move direction {self._names[i]} to position {to_position}", new, names, named)
+
+    # ------------------------------------------------------------------ order along a direction
+    def _labels_after(self, axis, how, index=None):
+        name = self._names[axis]
+        labels = dict(self._labels)
+        if name in labels:
+            if how == "flip":
+                labels[name] = np.flip(labels[name])
+            elif how == "take":
+                labels[name] = np.take(labels[name], index)
+            else:
+                labels.pop(name)
+                print(f"Note: the labels of {name} were left out (the positions moved).")
+        return labels
+
+    @friendly
+    def reverse(self: _Same, over=None) -> _Same:
+        """Turn the order round along a direction, or along every direction (NumPy flip). block.reverse(over="row")"""
+        if over is None:
+            axes = list(range(self._values.ndim))
+        else:
+            axes = self._axes("reverse", over)
+        new = np.flip(self._values, axis=tuple(axes)).copy()
+        labels = dict(self._labels)
+        for axis in axes:
+            if self._names[axis] in labels:
+                labels[self._names[axis]] = np.flip(labels[self._names[axis]])
+        said = "every direction" if over is None else ", ".join(self._names[a] for a in axes)
+        print(f"Reversed along {said}. NumPy: np.flip(block, axis={_say_numpy_axis(axes)})")
+        return self._change(f"reverse along {said}", new, labels=labels)
+
+    @friendly
+    def rotate(self: _Same, by_quarter_turns=1, over=None, by_degrees=None, test_method="linear") -> _Same:
+        """Turn the block a quarter turn (or more) anticlockwise, as a picture (NumPy rot90). block.rotate(by_quarter_turns=1)
+
+        It turns the last two directions (rows and columns), or the two named in over=["row", "column"];
+        by_quarter_turns=-1 turns clockwise. by_degrees=15 turns by any angle round the centre, keeping the size;
+        the corners that come from outside are empty, and test_method= "linear" (the default), "nearest" or "cubic"
+        fills in between the numbers (SciPy ndimage.rotate, reshape=False).
+        """
+        if by_degrees is not None:
+            return self._rotate_by_degrees(by_degrees, over, test_method)
+        if test_method != "linear":
+            raise SimplydataError("test_method= goes with by_degrees=; a quarter turn moves the numbers as they are.")
+        if not isinstance(by_quarter_turns, _nb.Integral) or isinstance(by_quarter_turns, bool):
+            raise SimplydataError(f"by_quarter_turns= needs a whole number, such as 1 or -1.\nFor example:  "
+                                  f"{self._name}.rotate(by_quarter_turns=1)")
+        if self._values.ndim < 2:
+            raise SimplydataError("rotate() turns two directions, and this block has one.")
+        axes = (self._values.ndim - 2, self._values.ndim - 1) if over is None else tuple(self._axes("rotate", over))
+        if len(axes) != 2:
+            raise SimplydataError('over= names the two directions to turn, such as over=["row", "column"].')
+        new = np.rot90(self._values, k=int(by_quarter_turns), axes=axes).copy()
+        i, j = axes
+        k = int(by_quarter_turns) % 4
+        names, named, labels = list(self._names), list(self._named), dict(self._labels)
+        old_i, old_j = self._labels.get(self._names[i]), self._labels.get(self._names[j])
+        for n in (self._names[i], self._names[j]):
+            labels.pop(n, None)
+
+        def flip(v):
+            return None if v is None else np.flip(v)
+
+        # the names and labels go with their numbers: np.rot90 with k=1 puts the old j direction (reversed) at i and
+        # the old i direction at j; k=3 puts old j at i and old i (reversed) at j; k=2 reverses both in place
+        if k in (1, 3) and (self._named[i] or self._named[j] or old_i is not None or old_j is not None):
+            names[i], names[j] = self._names[j], self._names[i]
+            named[i], named[j] = self._named[j], self._named[i]
+            new_i, new_j = (flip(old_j), old_i) if k == 1 else (old_j, flip(old_i))
+        elif k in (1, 3):  # directions without names are only places (row, column), as in a picture: they keep them
+            new_i, new_j = None, None
+        elif k == 2:
+            new_i, new_j = flip(old_i), flip(old_j)
+        else:
+            new_i, new_j = old_i, old_j
+        for n, v in ((names[i], new_i), (names[j], new_j)):
+            if v is not None:
+                labels[n] = v
+        print(f"Turned {by_quarter_turns} quarter turn{'' if abs(by_quarter_turns) == 1 else 's'} "
+              f"{'anticlockwise' if by_quarter_turns >= 0 else 'clockwise'}: {self._shape_words()} -> "
+              f"{say_shape(new.shape, names)}; names and labels move with their numbers. "
+              f"NumPy: np.rot90(block, k={by_quarter_turns}, axes={axes})")
+        return self._change(f"rotate by {by_quarter_turns} quarter turns", new, names, named, labels)
+
+    def _rotate_by_degrees(self, by_degrees, over, test_method):
+        from scipy import ndimage
+
+        from .numbers_2 import ZOOM_ORDERS
+
+        if not is_number(by_degrees):
+            raise SimplydataError(f"by_degrees= needs a number: positive turns anticlockwise.\nFor example:  "
+                                  f"{self._name}.rotate(by_degrees=15)")
+        if test_method not in ZOOM_ORDERS:
+            raise choice_error("rotate", "test_method", test_method, list(ZOOM_ORDERS))
+        if self._values.ndim < 2:
+            raise SimplydataError("rotate() turns two directions, and this block has one.")
+        axes = (self._values.ndim - 2, self._values.ndim - 1) if over is None else tuple(self._axes("rotate", over))
+        if len(axes) != 2:
+            raise SimplydataError('over= names the two directions to turn, such as over=["row", "column"].')
+        values = self._values.astype(float)
+        if np.isnan(values).any():
+            raise SimplydataError("rotate(by_degrees=) needs a value at every place; fill the empty ones first.")
+        order = ZOOM_ORDERS[test_method]
+        turn = (axes[1], axes[0])  # as a picture: anticlockwise, the same as ndimage.rotate's own default (1, 0)
+        new = ndimage.rotate(values, float(by_degrees), axes=turn, reshape=False, order=order, mode="constant",
+                             cval=np.nan)
+        empty = int(np.isnan(new).sum())
+        print(f"Turned by {say(by_degrees)} degrees round the centre of {self._names[axes[0]]} and "
+              f"{self._names[axes[1]]}, by {test_method} filling in; the size and labels stay"
+              + (f", and {amount(empty)} in the corners came from outside, so they are empty" if empty else "")
+              + f". SciPy ndimage.rotate(block, {say(by_degrees)}, axes={turn}, reshape=False, order={order}, "
+              "cval=nan)")
+        return self._change(f"rotate by {say(by_degrees)} degrees", new)
+
+    @friendly
+    def move_round_by(self: _Same, steps=None, over=None) -> _Same:
+        """Move every number along a direction by some steps; the ones that fall off the end come round to the start (NumPy roll).
+
+        block.move_round_by(3, over="hour")
+        """
+        if not isinstance(steps, _nb.Integral) or isinstance(steps, bool):
+            raise SimplydataError(f'move_round_by() needs a whole number of steps.\nFor example:  '
+                                  f'{self._name}.move_round_by(3, over="{self._names[0]}")')
+        if over is None and self._values.ndim > 1:
+            raise SimplydataError(f'move_round_by() needs over=, the direction to move along.\nFor example:  '
+                                  f'{self._name}.move_round_by(3, over="{self._names[0]}")')
+        axis = 0 if over is None else self._axis("move_round_by", over)
+        new = np.roll(self._values, int(steps), axis=axis)
+        labels = self._labels_after(axis, "drop")
+        print(f"Moved round by {steps} along {self._names[axis]}. NumPy: np.roll(block, {steps}, axis={axis})")
+        return self._change(f"move round by {steps} over {self._names[axis]}", new, labels=labels)
+
+    @friendly
+    def insert_numbers(self: _Same, values=None, at_position=None, over=None) -> _Same:
+        """Put new numbers in before a position along a direction (NumPy insert). block.insert_numbers(0, at_position=2, over="row")
+
+        at_position counts from 1; one more than the size adds them at the end. The numbers are one number, or one
+        for each position of the other directions.
+        """
+        example = f'{self._name}.insert_numbers(0, at_position=2, over="{self._names[0]}")'
+        if over is None and self._values.ndim > 1:
+            raise SimplydataError(f"insert_numbers() needs over=, the direction to insert along.\nFor example:  {example}")
+        axis = 0 if over is None else self._axis("insert_numbers", over)
+        size = self._values.shape[axis]
+        if not isinstance(at_position, _nb.Integral) or isinstance(at_position, bool) or not 1 <= at_position <= size + 1:
+            raise SimplydataError(f"at_position= needs a whole number from 1 to {size + 1}.\nFor example:  {example}")
+        if values is None:
+            raise SimplydataError(f"insert_numbers() needs the numbers to put in.\nFor example:  {example}")
+        new_values = np.asarray(values) if is_number(values) else to_array(values, ".insert_numbers()", example)
+        try:
+            new = np.insert(self._values, int(at_position) - 1, new_values, axis=axis)
+        except ValueError:
+            raise SimplydataError(f"The numbers to insert do not fit: give one number, or one for each position of "
+                                  f"the other directions.\nFor example:  {example}") from None
+        labels = self._labels_after(axis, "drop")
+        print(f"{self._shape_words()} -> {say_shape(new.shape, self._names)}. "
+              f"NumPy: np.insert(block, {int(at_position) - 1}, values, axis={axis})")
+        return self._change(f"insert numbers at position {at_position} over {self._names[axis]}", new, labels=labels)
+
+    def _by_position(self, step, direction, positions, to, step_size, keep):
+        axis = self._axis(step, direction, "direction")
+        name = self._names[axis]
+        total = self._values.shape[axis]
+        picked = read_positions(step, positions, to, step_size, total, noun=name, count_noun=plural(name),
+                                owner="The block has", example=f'{self._name}.{step}("{name}", 1, to=2)',
+                                last_hint=f'{self._name}.{step}("{name}", "last")', name=self._name)
+        if keep:
+            index = picked.array()
+        else:
+            if len(picked) == total:
+                raise SimplydataError(f"That would remove every {name}. Keep at least one.")
+            index = picked.kept_positions(total)
+        new = np.take(self._values, index, axis=axis)
+        labels = self._labels_after(axis, "take", index)
+        verb = "Kept" if keep else "Removed"
+        count = len(index) if keep else len(picked)
+        print(f"{verb} {picked.words()} ({count} of {say_size(total, name)}); the block is now "
+              f"{say_shape(new.shape, self._names)}. NumPy: "
+              + (f"np.take(block, positions, axis={axis})" if keep else f"np.delete(block, positions, axis={axis})"))
+        return self._change(f"{'keep' if keep else 'remove'} {picked.short_words()}", new, labels=labels)
+
+    @friendly
+    def keep_by_position_in(self: _Same, direction=None, positions=None, to=None, step=None) -> _Same:
+        """Keep some positions along one direction, counting from 1, both ends included. block.keep_by_position_in("hour", [1, 3])
+
+        As keep_rows_by_position: a run (to=), every n-th (step=) or a list. NumPy np.take(block, ..., axis=).
+        """
+        return self._by_position("keep_by_position_in", direction, positions, to, step, keep=True)
+
+    @friendly
+    def remove_by_position_in(self: _Same, direction=None, positions=None, to=None, step=None) -> _Same:
+        """Remove some positions along one direction, counting from 1. block.remove_by_position_in("hour", 24)"""
+        return self._by_position("remove_by_position_in", direction, positions, to, step, keep=False)
+
+    # ------------------------------------------------------------------ labels (P25)
+    def _label_positions(self, step, direction, is_between, is_one_of):
+        axis = self._axis(step, direction, "direction")
+        name = self._names[axis]
+        if name not in self._labels:
+            raise SimplydataError(
+                f'{name} has no labels (only positions), so {step}() has nothing to compare. By position:  '
+                f'{self._name}.keep_by_position_in("{name}", 1, to=3)')
+        given = [x for x in (is_between, is_one_of) if x is not None]
+        if len(given) != 1:
+            raise SimplydataError(f'.{step}() needs is_between=[low, high] or is_one_of=[...].\nFor example:  '
+                                  f'{self._name}.{step}("{name}", is_between=[60, 80])')
+        labels = np.asarray(self._labels[name])
+        xr = xarray_or_none()
+        if xr is not None:
+            # xarray chooses the positions itself (sel), from a block of positions labelled like this one
+            places = xr.DataArray(np.arange(labels.size), dims=[name], coords={name: labels})
+            if is_between is not None:
+                low, high = sorted(self._two_bounds(step, name, is_between))  # either order
+                if places.indexes[name].is_monotonic_decreasing:
+                    low, high = high, low
+                chosen = places.sel({name: slice(low, high)}).values
+                said = f"between {low} and {high}"
+            else:
+                wanted = self._one_of_list(step, name, is_one_of)
+                missing = []
+                for value in wanted:
+                    try:
+                        places.sel({name: [value]})
+                    except KeyError:
+                        missing.append(value)
+                self._refuse_missing(name, missing)
+                chosen = places.sel({name: wanted}).values  # in the order given
+                said = "one of " + ", ".join(str(x) for x in wanted)
+            return axis, name, np.asarray(chosen, dtype=int), said, "xarray sel"
+        if labels.dtype.kind not in "iuf":
+            raise SimplydataError(f'Choosing by date or text labels needs xarray: pip install "simplydata[xarray]".')
+        if is_between is not None:
+            low, high = sorted(self._two_bounds(step, name, is_between))
+            chosen = np.flatnonzero(np.logical_and(labels >= low, labels <= high))
+            said = f"between {low} and {high}"
+        else:
+            wanted = self._one_of_list(step, name, is_one_of)
+            found = [np.flatnonzero(np.equal(labels, value)) for value in wanted]
+            self._refuse_missing(name, [v for v, f in zip(wanted, found) if f.size == 0])
+            chosen = np.concatenate(found)  # in the order given, as xarray sel
+            said = "one of " + ", ".join(str(x) for x in wanted)
+        return axis, name, chosen, said, "NumPy flatnonzero on the labels"
+
+    def _one_of_list(self, step, name, value):
+        if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or not value:
+            raise SimplydataError(f'is_one_of= needs a list of labels in square brackets.\nFor example:  '
+                                  f'{self._name}.{step}("{name}", is_one_of=[0, 10])')
+        return list(value)
+
+    @staticmethod
+    def _refuse_missing(name, missing):
+        if missing:
+            listed = ", ".join(repr(v) for v in missing)
+            raise SimplydataError(f"{name} has no label {listed}, so {'it' if len(missing) == 1 else 'they'} cannot be "
+                                  f"kept or removed. Check the labels with the block's table (turn_into_table()).")
+
+    def _two_bounds(self, step, name, value):
+        if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)) or len(value) != 2:
+            raise SimplydataError(f'is_between= needs two values in square brackets.\nFor example:  '
+                                  f'{self._name}.{step}("{name}", is_between=[60, 80])')
+        return value[0], value[1]
+
+    @friendly
+    def keep_where(self: _Same, direction=None, is_between=None, is_one_of=None) -> _Same:
+        """Keep the part of a labelled direction whose labels pass (xarray sel). block.keep_where("east", is_between=[2, 5])
+
+        The range can be written in either order, also when the labels run downward. is_one_of=[0, 10, 50] keeps
+        those labels. A direction without labels is chosen by position: keep_by_position_in.
+        """
+        axis, name, chosen, said, how = self._label_positions("keep_where", direction, is_between, is_one_of)
+        if chosen.size == 0:
+            raise SimplydataError(f"No {name} is {said}, so nothing would be left.")
+        new = np.take(self._values, chosen, axis=axis)
+        labels = self._labels_after(axis, "take", chosen)
+        print(f"Kept {chosen.size} of {say_size(self._values.shape[axis], name)} ({name} {said}); the block is now "
+              f"{say_shape(new.shape, self._names)}. Chosen by {how}.")
+        return self._change(f"keep where {name} is {said}", new, labels=labels)
+
+    @friendly
+    def remove_where(self: _Same, direction=None, is_between=None, is_one_of=None) -> _Same:
+        """Remove the part of a labelled direction whose labels pass. block.remove_where("north", is_one_of=[0, 1])"""
+        axis, name, chosen, said, how = self._label_positions("remove_where", direction, is_between, is_one_of)
+        if chosen.size == self._values.shape[axis]:
+            raise SimplydataError(f"Every {name} is {said}, so nothing would be left.")
+        new = np.delete(self._values, chosen, axis=axis)
+        kept = np.delete(np.arange(self._values.shape[axis]), chosen)
+        labels = self._labels_after(axis, "take", kept)
+        print(f"Removed {chosen.size} of {say_size(self._values.shape[axis], name)} ({name} {said}); the block is now "
+              f"{say_shape(new.shape, self._names)}. Chosen by {how}.")
+        return self._change(f"remove where {name} is {said}", new, labels=labels)
+
+    # ------------------------------------------------------------------ repeating, joining, splitting
+    @friendly
+    def repeat_each_number(self: _Same, how_many=None, over=None, only_show_new_shape=False) -> _Same:
+        """Repeat each number along a direction: 1, 2 becomes 1, 1, 2, 2 (NumPy repeat). block.repeat_each_number(3, over="hour")"""
+        n = check_whole("repeat_each_number", "repeat_each_number()", how_many,
+                        f'{self._name}.repeat_each_number(3, over="{self._names[0]}")', smallest=1)
+        if over is None and self._values.ndim > 1:
+            raise SimplydataError(f'repeat_each_number() needs over=, the direction to repeat along.\nFor example:  '
+                                  f'{self._name}.repeat_each_number(3, over="{self._names[0]}")')
+        axis = 0 if over is None else self._axis("repeat_each_number", over)
+        call = f"np.repeat(block, {n}, axis={axis})"
+        if only_show_new_shape:
+            self._preview(np.repeat(self._stand_in(), n, axis=axis).shape, self._names, call)
+            return self
+        new = np.repeat(self._values, n, axis=axis)
+        labels = self._labels_after(axis, "drop")
+        print(f"{self._shape_words()} -> {say_shape(new.shape, self._names)}. NumPy: {call}")
+        return self._change(f"repeat each number {n} times over {self._names[axis]}", new, labels=labels)
+
+    @friendly
+    def repeat_whole_block(self: _Same, how_many=None, over=None, only_show_new_shape=False) -> _Same:
+        """Repeat the whole block along a direction: 1, 2 becomes 1, 2, 1, 2 (NumPy tile). block.repeat_whole_block(2, over="hour")
+
+        over= a name the block does not have adds that direction in front, with the block repeated along it.
+        """
+        example = f'{self._name}.repeat_whole_block(24, over="hour")'
+        n = check_whole("repeat_whole_block", "repeat_whole_block()", how_many, example, smallest=1)
+        if not isinstance(over, str) and over is not None:
+            axis = self._axis("repeat_whole_block", over)
+        elif over is None:
+            if self._values.ndim > 1:
+                raise SimplydataError(f"repeat_whole_block() needs over=, the direction to repeat along.\nFor example:  {example}")
+            axis = 0
+        elif over in self._names:
+            axis = self._names.index(over)
+        else:
+            reps = (n,) + (1,) * self._values.ndim
+            names, named = [over] + list(self._names), [True] + list(self._named)
+            call = f"np.tile(block, {reps})"
+            if only_show_new_shape:
+                self._preview(np.tile(self._stand_in(), reps).shape, names, call)
+                return self
+            new = np.tile(self._values, reps)
+            print(f"{self._shape_words()} -> {say_shape(new.shape, names)}: the block used again for each "
+                  f"{over}. NumPy: {call}")
+            return self._change(f"repeat whole block {n} times over new direction {over}", new, names, named)
+        reps = tuple(n if i == axis else 1 for i in range(self._values.ndim))
+        call = f"np.tile(block, {reps})"
+        if only_show_new_shape:
+            self._preview(np.tile(self._stand_in(), reps).shape, self._names, call)
+            return self
+        new = np.tile(self._values, reps)
+        labels = self._labels_after(axis, "drop")
+        print(f"{self._shape_words()} -> {say_shape(new.shape, self._names)}. NumPy: {call}")
+        return self._change(f"repeat whole block {n} times over {self._names[axis]}", new, labels=labels)
+
+    @friendly
+    def add_numbers_from(self: _Same, other=None, over=None, only_show_new_shape=False) -> _Same:
+        """Add another block's numbers at the end of one direction (NumPy concatenate). block.add_numbers_from(other, over="hour")
+
+        The other directions must have the same sizes; blocks that name every direction are lined up by name first.
+        """
+        example = f'{self._name}.add_numbers_from(other, over="{self._names[0]}")'
+        if over is None:
+            raise SimplydataError(f"add_numbers_from() needs over=, the direction to add along.\nFor example:  {example}")
+        axis = self._axis("add_numbers_from", over)
+        b, b_names, b_named = self._other_parts(other, "add_numbers_from")
+        if np.ndim(b) != self._values.ndim:
+            raise SimplydataError(f"The other numbers have {np.ndim(b)} directions and this block {self._values.ndim}; "
+                                  f"they need the same directions.\nFor example:  {example}")
+        if all(self._named) and all(b_named) and sorted(b_names) == sorted(self._names) and b_names != self._names:
+            b = np.transpose(b, [b_names.index(n) for n in self._names])
+        call = f"np.concatenate([block, other], axis={axis})"
+        try:
+            if only_show_new_shape:
+                shape = np.concatenate([self._stand_in(), np.broadcast_to(0, np.shape(b))], axis=axis).shape
+                self._preview(shape, self._names, call)
+                return self
+            new = np.concatenate([self._values, b], axis=axis)
+        except ValueError:
+            raise SimplydataError(
+                f"The other numbers ({say_shape(np.shape(b), b_names)}) do not fit {self._shape_words()}: every "
+                f"direction except {self._names[axis]} needs the same size.\nFor example:  {example}") from None
+        labels = self._labels_after(axis, "drop")
+        print(f"{self._shape_words()} -> {say_shape(new.shape, self._names)}. NumPy: {call}")
+        return self._change(f"add numbers from other over {self._names[axis]}", new, labels=labels)
+
+    @friendly
+    def split_into_pieces(self, how_many=None, over=None, only_show_new_shape=False) -> list:
+        """Split the block into pieces along a direction; gives back a list of new blocks (NumPy array_split).
+
+        block.split_into_pieces(3, over="hour")
+        Pieces are as equal as they can be: 10 hours in 3 pieces gives 4, 3 and 3. The block itself does not change.
+        """
+        example = f'{self._name}.split_into_pieces(3, over="{self._names[0]}")'
+        n = check_whole("split_into_pieces", "split_into_pieces()", how_many, example, smallest=1)
+        if over is None and self._values.ndim > 1:
+            raise SimplydataError(f"split_into_pieces() needs over=, the direction to split along.\nFor example:  {example}")
+        axis = 0 if over is None else self._axis("split_into_pieces", over)
+        call = f"np.array_split(block, {n}, axis={axis})"
+        if only_show_new_shape:
+            shapes = [p.shape for p in np.array_split(self._stand_in(), n, axis=axis)]
+            print(f"{self._shape_words()} -> {n} pieces: " + "; ".join(say_shape(s, self._names) for s in shapes)
+                  + f" (nothing changed). NumPy: {call}")
+            return None
+        pieces = np.array_split(self._values, n, axis=axis)
+        print(f"{n} pieces along {self._names[axis]}: " + "; ".join(say_shape(p.shape, self._names) for p in pieces)
+              + f". NumPy: {call}")
+        return [NumberBlock(p.copy(), self._names, self._named) for p in pieces]
+
+    @friendly
+    def split_into_one_block_per(self, direction=None) -> list:
+        """One new block for each position of a direction, without that direction (NumPy unstack). block.split_into_one_block_per("hour")"""
+        axis = self._axis("split_into_one_block_per", direction, "direction")
+        names = [n for i, n in enumerate(self._names) if i != axis]
+        named = [r for i, r in enumerate(self._named) if i != axis]
+        parts = np.unstack(self._values, axis=axis)
+        print(f"{len(parts)} blocks of {say_shape(self._values.shape[:axis] + self._values.shape[axis + 1:], names)}, "
+              f"one for each {self._names[axis]}. NumPy: np.unstack(block, axis={axis})")
+        return [NumberBlock(np.asarray(p).copy(), names, named) for p in parts]
+
+    # ------------------------------------------------------------------ summaries over directions
+    def _block_summary(self, step: str, func, over, in_each, only_show_new_shape, every=None, in_groups_of=None,
+                       **more):
+        from .numbers_2 import block_summary_by_time_or_groups, is_time_part
+
+        if every is not None or in_groups_of is not None or is_time_part(self, in_each):
+            return block_summary_by_time_or_groups(self, step, func, over, in_each, every, in_groups_of,
+                                                   only_show_new_shape, **more)
+        what = f"the {_ordinal(more['q'])} percentile" if step == "percentile" else f"the {step.replace('_', ' ')}"
+        np_name = {"average": "nanmean", "median": "nanmedian", "total": "nansum", "smallest": "nanmin",
+                   "biggest": "nanmax", "standard_deviation": "nanstd(..., ddof=1)", "percentile": "nanpercentile"}[step]
+        axes = self._summary_axes(f"find_{step}", over, in_each)
+        a = self._values
+        empty = int(self._empty().sum())
+        if axes is None or len(axes) == a.ndim:
+            if only_show_new_shape:
+                print(f"{self._shape_words()} -> one number (nothing changed). NumPy: np.{np_name}(block)")
+                return None
+            filled = a[~self._empty()]
+            if filled.size == 0:
+                print(f"Note: there are no numbers here, so {what} is empty (nan).")
+                return float("nan")
+            if empty:
+                print(f"Note: {amount(empty, 'empty value')} {'was' if empty == 1 else 'were'} skipped.")
+            answer = plain(_quiet(func, filled, **more))
+            print(f"{what[0].upper()}{what[1:]} of the block is {_say_number(answer)} ({amount(filled.size)}). "
+                  f"NumPy: np.{np_name}(block)")
+            return answer
+        kept = [i for i in range(a.ndim) if i not in axes]
+        names = [self._names[i] for i in kept]
+        gone = " and ".join(say_size(a.shape[i], self._names[i]) for i in axes)
+        call = f"np.{np_name.split('(')[0]}(block, axis={_say_numpy_axis(axes)}" + (", ddof=1)" if "ddof" in np_name else ")")
+        if only_show_new_shape:
+            shape = tuple(a.shape[i] for i in kept)
+            print(f"{self._shape_words()} -> {say_shape(shape, names)} (nothing changed). NumPy: {call}")
+            return None
+        result = _quiet(func, a, axis=tuple(axes), **more)
+        if empty:
+            print(f"Note: {amount(empty, 'empty value')} {'was' if empty == 1 else 'were'} skipped.")
+        verb = {"average": "Averaged", "total": "Added up", "median": "The median taken"}.get(step, f"{what[0].upper()}{what[1:]} taken")
+        print(f"{verb} over the {gone}; {say_shape(np.shape(result), names)} remain. NumPy: {call}")
+        labels = {n: v for n, v in self._labels.items() if n in names}
+        return NumberBlock(np.asarray(result), names, [self._named[i] for i in kept], labels)
+
+    @friendly
+    def find_percentile(self, percent=None, over=None, in_each=None, only_show_new_shape=False, every=None,
+                        in_groups_of=None):
+        """The number that this percent of the numbers are below, over some directions. block.find_percentile(90, over="hour")
+
+        NumPy nanpercentile (the usual "linear" method, as pandas and R). Empty values are skipped. in_each="month",
+        every="month" and in_groups_of= work as in find_average.
+        """
+        if not is_number(percent) or not 0 <= percent <= 100:
+            raise SimplydataError(".find_percentile() needs a number from 0 to 100." + self._example("find_percentile(90)"))
+        return self._block_summary("percentile", np.nanpercentile, over, in_each, only_show_new_shape, every,
+                                   in_groups_of, q=float(percent))
+
+    @friendly
+    def save(self: _Same, file_name, time_step=None, bits=32) -> _Same:
+        """Save the block; the end of the file name decides the type. block.save("plate.csv")
+
+        .nc writes a netCDF-4 file (compressed), with the directions' names and labels and, for a block read from a
+        netCDF file, its variable name and units (xarray to_netcdf with the h5netcdf engine; simplydata[xarray]).
+        .csv, .xlsx, .parquet and the other table types write the block's long table (turn_into_table()).
+        """
+        from .block_files import NETCDF_ENDINGS, is_file_name, save_block
+
+        if is_file_name(file_name) and str(file_name).lower().endswith(NETCDF_ENDINGS):
+            if time_step is not None or bits != 32:
+                raise SimplydataError("time_step= and bits= go with a .wav file, not a .nc file.")
+            save_block(self, file_name)
+            return self
+        return BaseNumbers.save(self, file_name, time_step, bits)
+
+    @friendly
+    def turn_into_running_total(self: _Same, over=None) -> _Same:
+        """Each number becomes the total so far along a direction (NumPy cumsum). block.turn_into_running_total(over="hour")
+
+        Empty values stay empty and are skipped in the total, as pandas cumsum().
+        """
+        if over is None and self._values.ndim > 1:
+            raise SimplydataError(f'turn_into_running_total() needs over=, the direction to run along.\nFor example:  '
+                                  f'{self._name}.turn_into_running_total(over="{self._names[0]}")')
+        axis = 0 if over is None else self._axis("turn_into_running_total", over)
+        empty = self._empty()
+        totals = np.cumsum(np.where(empty, 0, self._values), axis=axis)
+        if empty.any():
+            totals = np.where(empty, np.nan, totals)
+        print(f"A running total along {self._names[axis]}. NumPy: np.cumsum(block, axis={axis})")
+        return self._change(f"running total over {self._names[axis]}", totals)
+
+
+_BY = {"add": "adding", "subtract": "subtracting", "times": "multiplying", "divide_by": "dividing"}
+
+
+def _again(shape, result_shape) -> list:
+    """The positions (from the right) where a side of this shape was used again in the result."""
+    offset = len(result_shape) - len(shape)
+    return [i for i, size in enumerate(result_shape) if size != 1 and (i < offset or shape[i - offset] == 1)]
+
+
+def _summary_word(step: str):
+    func, doc = SUMMARIES[step]
+
+    def word(self, over=None, in_each=None, only_show_new_shape=False, every=None, in_groups_of=None):
+        return self._block_summary(step, func, over, in_each, only_show_new_shape, every, in_groups_of)
+
+    word.__doc__ = (f"{doc.split(chr(10))[0]}\n\n        block.find_{step}(over=\"hour\")   over= the directions that go;"
+                    f" in_each= the directions kept;\n        no option: one number for the whole block. "
+                    f"only_show_new_shape=True only says the shape.\n"
+                    "        With dates as the labels of a direction: in_each=\"month\" gives one answer for each month of "
+                    "the year,\n        all years together (xarray groupby(\"time.month\"); also \"season\", \"year\", "
+                    "\"quarter\", \"day of year\", \"hour\"),\n        and every=\"month\" one for each calendar month "
+                    "(xarray resample; also \"hour\", \"day\", \"week\", \"quarter\", \"year\").\n"
+                    "        \"day of year\" counts as xarray does: 29 February of a leap year is day 60, grouped with "
+                    "1 March of other years.\n"
+                    "        in_groups_of={\"latitude\": 4} gives one answer for each group of 4 next to each other (a "
+                    "coarser grid;\n        NumPy reshape, as xarray coarsen).\n        ")
+    word.__name__ = word.__qualname__ = f"find_{step}"
+    return friendly(word)
+
+
+for _step in ("average", "median", "total", "smallest", "biggest", "standard_deviation"):
+    setattr(NumberBlock, f"find_{_step}", _summary_word(_step))
+
+
+def _is_xarray(value) -> bool:
+    return type(value).__module__.split(".")[0] == "xarray"
+
+
+def _variable_of(dataset, name):
+    """One variable of an open Dataset, or the stacked ones ("u+v") as a new direction "variable"."""
+    if "+" in name and name not in dataset.data_vars:
+        return dataset[name.split("+")].to_dataarray(dim="variable")
+    return dataset[name]
+
+
+class FileBlock(NumberBlock):
+    """A block whose numbers stay in their netCDF file until a word needs them (keep_on_disk=True).
+
+    Its shape, names and labels are known at once. keep_where, keep_by_position_in and get_numbers_nearest_to cut the
+    block in the file (xarray isel on the lazily opened variable), so only the part kept is read later. Any other word
+    reads the numbers (once, with a note) and the block then works as any other.
+    """
+
+    def __init__(self, lazy, names, labels, about, source, dataset=None, markers=None):
+        import weakref
+
+        object.__setattr__(self, "_markers", markers)
+        object.__setattr__(self, "_dims_in_file", None if dataset is None else
+                           list(_variable_of(dataset, about["name"]).dims))
+        # the file is closed when the numbers are read, and when the block is deleted
+        object.__setattr__(self, "_closer", weakref.finalize(self, dataset.close) if dataset is not None else None)
+        object.__setattr__(self, "_lazy", lazy)
+        object.__setattr__(self, "_original_lazy", lazy)
+        object.__setattr__(self, "_loaded", None)
+        object.__setattr__(self, "_history", [])
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", [True] * len(names))
+        object.__setattr__(self, "_labels", dict(labels))
+        object.__setattr__(self, "_original_state", (list(names), [True] * len(names), dict(labels)))
+        object.__setattr__(self, "_about", about)
+        object.__setattr__(self, "_source", source)
+
+    # the numbers: read from the file the first time a word needs them
+    def _read(self, lazy):
+        print(f"Reading {say_shape(lazy.shape, self._names)} from {self._source.name} now (xarray load).")
+        found = lazy.load()
+        markers = object.__getattribute__(self, "_markers")
+        if markers is not None:
+            hits = int(found.isin(markers).sum())
+            found = found.where(~found.isin(markers))
+            print(f"{hits} value{'' if hits == 1 else 's'} equal to {', '.join(f'{m:g}' for m in markers)} "
+                  f"{'is' if hits == 1 else 'are'} now empty (xarray where).")
+        return np.asarray(found.values)
+
+    def _close_file(self):
+        """Close the file once the numbers are read: the steps that cut it in the file can no longer be undone
+        one by one (start_again opens it again)."""
+        closer = object.__getattribute__(self, "_closer")
+        if closer is not None and closer.alive:
+            closer()
+            lazy_steps = [h for h in self._history if _is_xarray(h[1])]
+            if lazy_steps:
+                self._history[:] = [h for h in self._history if not _is_xarray(h[1])]
+                print(f"The file {self._source.name} is closed now that its numbers are read; the "
+                      f"{len(lazy_steps)} step{'' if len(lazy_steps) == 1 else 's'} done in the file cannot be undone "
+                      "one by one (block.start_again() reads the file again).")
+
+    @property
+    def _values(self):
+        loaded = object.__getattribute__(self, "_loaded")
+        if loaded is None:
+            loaded = self._read(object.__getattribute__(self, "_lazy"))
+            object.__setattr__(self, "_loaded", loaded)
+            object.__setattr__(self, "_lazy", None)
+            self._close_file()
+        return loaded
+
+    def _open_again(self):
+        """The variable, lazily, from a fresh open of the file (after it was closed)."""
+        import weakref
+
+        from .block_files import _open
+
+        dataset, _ = _open(self._source, "block.start_again()")
+        lazy = _variable_of(dataset, self._about["name"])
+        dims = object.__getattribute__(self, "_dims_in_file") or [str(d) for d in lazy.dims]
+        lazy = lazy.rename({old: new for old, new in zip(dims, self._original_state[0]) if old != new})
+        object.__setattr__(self, "_closer", weakref.finalize(self, dataset.close))
+        return lazy
+
+    @_values.setter
+    def _values(self, values):
+        object.__setattr__(self, "_loaded", np.asarray(values))
+        object.__setattr__(self, "_lazy", None)
+
+    @property
+    def _original(self):
+        return self._read(self._original_lazy)
+
+    def _on_disk(self) -> bool:
+        return object.__getattribute__(self, "_lazy") is not None
+
+    def _shape(self):
+        return tuple(self._lazy.shape) if self._on_disk() else self._values.shape
+
+    def _cut(self, what, axis, index):
+        """Cut the block in the file: xarray isel on the lazy variable (nothing is read); the labels go along."""
+        name = self._names[axis]
+        before = self._lazy
+        self._history.append((what, before, None, (self._names, self._named, self._labels)))
+        object.__setattr__(self, "_lazy", before.isel({before.dims[axis]: np.asarray(index)}))
+        labels = dict(self._labels)
+        if name in labels:
+            labels[name] = np.asarray(labels[name])[np.asarray(index)]
+        object.__setattr__(self, "_labels", labels)
+        return self
+
+    # words that work in the file
+    def __repr__(self):
+        if not self._on_disk():
+            return NumberBlock.__repr__(self)
+        return (f"simplydata number block: {say_shape(self._shape(), self._names)} (NumPy: array, PyTorch: tensor), "
+                f"still in {self._source.name}: the numbers are read when a word needs them")
+
+    @friendly
+    def find_shape(self):
+        """The size of each direction, in words and as NumPy's shape: (24, 8, 12). block.find_shape()"""
+        if not self._on_disk():
+            return NumberBlock.find_shape(self)
+        shape = self._shape()
+        print(f"{say_shape(shape, self._names)} (NumPy shape {numpy_shape(shape)}; still in the file).")
+        return tuple(int(n) for n in shape)
+
+    @friendly
+    def count_directions(self):
+        """How many directions the block has (NumPy ndim). block.count_directions()"""
+        n = len(self._names)
+        print(f"{n} direction{'' if n == 1 else 's'}: {', '.join(self._names)} (NumPy ndim {n}).")
+        return n
+
+    @friendly
+    def keep_by_position_in(self: _Same, direction=None, positions=None, to=None, step=None) -> _Same:
+        """Keep some positions along one direction, counting from 1, both ends included. block.keep_by_position_in("hour", [1, 3])"""
+        if not self._on_disk():
+            return NumberBlock.keep_by_position_in(self, direction, positions, to, step)
+        axis = self._axis("keep_by_position_in", direction, "direction")
+        name = self._names[axis]
+        total = self._shape()[axis]
+        picked = read_positions("keep_by_position_in", positions, to, step, total, noun=name, count_noun=plural(name),
+                                owner="The block has", example=f'{self._name}.keep_by_position_in("{name}", 1, to=2)',
+                                last_hint=f'{self._name}.keep_by_position_in("{name}", "last")', name=self._name)
+        index = picked.array()
+        self._cut(f"keep {picked.short_words()}", axis, index)
+        print(f"Kept {picked.words()} ({len(index)} of {say_size(total, name)}) in the file; the block is now "
+              f"{say_shape(self._shape(), self._names)}, not read yet. xarray isel({name}=positions)")
+        return self
+
+    @friendly
+    def keep_where(self: _Same, direction=None, is_between=None, is_one_of=None) -> _Same:
+        """Keep the part of a labelled direction whose labels pass (xarray sel). block.keep_where("east", is_between=[2, 5])"""
+        if not self._on_disk():
+            return NumberBlock.keep_where(self, direction, is_between, is_one_of)
+        axis, name, chosen, said, how = self._label_positions("keep_where", direction, is_between, is_one_of)
+        if chosen.size == 0:
+            raise SimplydataError(f"No {name} is {said}, so nothing would be left.")
+        total = self._shape()[axis]
+        self._cut(f"keep where {name} is {said}", axis, chosen)
+        print(f"Kept {chosen.size} of {say_size(total, name)} ({name} {said}) in the file; the block is now "
+              f"{say_shape(self._shape(), self._names)}, not read yet. Chosen by {how}.")
+        return self
+
+    @friendly
+    def get_numbers_nearest_to(self, within=None, **at):
+        """The numbers at the labels nearest to the ones you give; only those are read from the file. block.get_numbers_nearest_to(east=2.4, north=3.6)"""
+        if not self._on_disk():
+            return NumberBlock.get_numbers_nearest_to(self, within, **at)
+        import pandas as pd
+
+        part = FileBlock(self._lazy, self._names, self._labels, self._about, self._source)
+        for name, value in at.items():
+            if name not in self._labels:
+                break  # the word itself explains it below
+            axis = self._names.index(name)
+            labels = pd.Index(self._labels[name])
+            asked = [value] if np.ndim(value) == 0 else list(value)
+            if labels.dtype.kind == "M":
+                asked = pd.to_datetime(asked)
+            tolerance = None if within is None else (pd.Timedelta(within) if labels.dtype.kind == "M" else within)
+            try:
+                positions = labels.get_indexer(asked, method="nearest", tolerance=tolerance)
+            except (TypeError, ValueError):
+                break
+            if (positions < 0).any():
+                break
+            part._cut("nearest", axis, np.unique(positions))  # only the places near the ones asked are read below
+        return NumberBlock.get_numbers_nearest_to(part, within, **at)
+
+    @friendly
+    def undo(self: _Same) -> _Same:
+        """Take the last step back; the directions come back with the numbers. block.undo()"""
+        if self._history and _is_xarray(self._history[-1][1]):
+            what, before, _, (names, named, labels) = self._history.pop()
+            object.__setattr__(self, "_lazy", before)
+            object.__setattr__(self, "_loaded", None)
+            object.__setattr__(self, "_names", list(names))
+            object.__setattr__(self, "_named", list(named))
+            object.__setattr__(self, "_labels", dict(labels))
+            print(f"Undone: {what}")
+            return self
+        return NumberBlock.undo(self)
+
+    @friendly
+    def start_again(self: _Same) -> _Same:
+        """Go back to the block as it was at the start (still in the file). block.start_again()"""
+        names, named, labels = self._original_state
+        closer = object.__getattribute__(self, "_closer")
+        if self._on_disk():
+            before = self._lazy
+            original = self._original_lazy
+        else:
+            before = self._values
+            original = self._open_again() if closer is not None and not closer.alive else self._original_lazy
+            object.__setattr__(self, "_original_lazy", original)
+        self._history.append(("start again", before, None, (self._names, self._named, self._labels)))
+        object.__setattr__(self, "_lazy", original)
+        object.__setattr__(self, "_loaded", None)
+        object.__setattr__(self, "_names", list(names))
+        object.__setattr__(self, "_named", list(named))
+        object.__setattr__(self, "_labels", dict(labels))
+        return self
+
+
+# ====================================================================== making blocks
+def _from_xarray(values):
+    names = [str(d) for d in values.dims]
+    labels = {}
+    for name in names:
+        if name in values.coords and values.coords[name].ndim == 1:
+            labels[name] = np.asarray(values.coords[name].values)
+    return np.asarray(values.values), names, labels
+
+
+def _from_table(table, directions, values):
+    """A long table (one row per number) as a block: pandas reindex on every combination of the labels, NumPy reshape."""
+    import pandas as pd
+
+    example = 'sdata.number_block(sdata.get_example("island"), directions_named=["east", "north"], values="height")'
+    frame = table.as_pandas() if hasattr(table, "as_pandas") else (table.to_pandas() if hasattr(table, "to_pandas")
+                                                                    else table)
+    if directions is None or values is None:
+        raise SimplydataError("A block from a table needs directions_named= (the columns that place each number) and "
+                          f"values= (the column of numbers).\nFor example:  {example}")
+    names = check_names(directions, len(directions) if isinstance(directions, (list, tuple)) else -1,
+                        "number_block", example)
+    missing = [c for c in [*names, values] if c not in frame.columns]
+    if missing:
+        raise SimplydataError(f'The table has no column called "{missing[0]}".\nFor example:  {example}')
+    no_place = int(frame[names].isna().any(axis=1).sum())
+    if no_place:
+        print(f"Note: {no_place} row{'s' if no_place != 1 else ''} with an empty {' or '.join(names)} cell "
+              f"{'were' if no_place != 1 else 'was'} left out: {'they have' if no_place != 1 else 'it has'} no place in "
+              "the block.")
+        frame = frame.dropna(subset=names)
+    keyed = frame.set_index(names)[values]
+    if keyed.index.duplicated().any():
+        raise SimplydataError(f"Some rows have the same {', '.join(names)}, so one place would hold two numbers. "
+                              f"Find the average for each place first.\nFor example:  {example}")
+    labels = [np.sort(frame[n].dropna().unique()) for n in names]
+    every = pd.MultiIndex.from_product(labels, names=names)
+    column = keyed.reindex(every).to_numpy()
+    arr = to_array(column, "sdata.number_block()", example).reshape([len(lab) for lab in labels])
+    gaps = int(np.isnan(arr).sum()) if arr.dtype.kind == "f" else 0
+    print(f"{say_shape(arr.shape, names)} from the column {values}"
+          + (f"; {gaps} places have no row and are empty" if gaps else "")
+          + ". pandas reindex on every combination, then NumPy reshape.")
+    return arr, list(names), {n: lab for n, lab in zip(names, labels)}
+
+
+def _is_table(value) -> bool:
+    return getattr(value, "_is_simplydata_table", False) or type(value).__module__.split(".")[0] in ("pandas",
+                                                                                                    "polars")
+
+
+@friendly
+def number_block(source=None, of_shape=None, filled_with=0, like=None, directions_named=None,
+                 values=None, keep_on_disk=False, empty_values=None, with_labels=None) -> NumberBlock:
+    block = _number_block(source, of_shape, filled_with, like, directions_named, values, keep_on_disk, empty_values)
+    if with_labels is not None:
+        if not isinstance(with_labels, dict) or not with_labels:
+            raise SimplydataError('with_labels= needs the labels of each direction in curly brackets, such as '
+                                  'with_labels={"time": dates}.')
+        for name, labels in with_labels.items():
+            block = block.add_labels_to(name, labels)
+        block._history.clear()  # the labels are part of the new block, not a step to undo
+        object.__setattr__(block, "_original_state", (list(block._names), list(block._named), dict(block._labels)))
+    return block
+
+
+number_block.__doc__ = """Make a block of numbers with any number of directions (NumPy's n-D array, PyTorch's tensor).
+
+    sdata.number_block(of_shape=(24, 8, 12), filled_with=0, directions_named=["hour", "row", "column"])
+    sdata.number_block([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])   from lists inside lists (2 pages x 2 rows x 2 columns)
+    sdata.number_block(array)                                  from a NumPy array (or an xarray DataArray: its names and labels come too)
+    sdata.number_block(table, directions_named=["east", "north"], values="height")   from a long table: the
+        directions' labels are the values of those columns
+    sdata.number_block(like=plate, filled_with=1)              the shape and names of another block
+    sdata.number_block("sst.nc", values="sst")                 one variable of a netCDF file (values=["u", "v"] stacks
+        two as a new direction "variable"; "argo_*.nc" joins several files; keep_on_disk=True leaves the numbers in
+        the file until a word needs them; empty_values=[-999] makes those numbers empty). Needs simplydata[xarray].
+    with_labels={"time": dates} gives directions labels (block.add_labels_to does it later).
+    Without names the directions are called row and column (the last two), page, book, then direction a, b ...
+    filled_with=None makes every number empty.
+    """
+
+
+def _number_block(source=None, of_shape=None, filled_with=0, like=None, directions_named=None,
+                  values=None, keep_on_disk=False, empty_values=None) -> NumberBlock:
+    """sdata.number_block() without with_labels= (its docstring is on number_block)."""
+    sources = [x is not None for x in (source, of_shape, like)]
+    if sum(sources) != 1:
+        raise SimplydataError(f"sdata.number_block() needs your numbers, or of_shape=, or like= (one of them).\n"
+                              f"For example:  {_EXAMPLE}")
+    if filled_with is not None and not is_number(filled_with):
+        raise SimplydataError(f"filled_with= needs a number, like filled_with=0 (or None for empty values).\n"
+                              f"For example:  {_EXAMPLE}")
+    from .block_files import is_file_name, read_block
+
+    if source is not None and is_file_name(source):
+        return read_block(source, values, keep_on_disk, empty_values, directions_named)
+    if keep_on_disk is not False or empty_values is not None:
+        raise SimplydataError('keep_on_disk= and empty_values= go with a file, such as '
+                              'sdata.number_block("sst.nc", values="sst", keep_on_disk=True).')
+    if values is not None and not _is_table(source):
+        raise SimplydataError("values= names the column of numbers when the block comes from a table, or the variable "
+                              "when it comes from a file.")
+    names = labels = None
+    named = None
+    if like is not None:
+        if not _is_block(like):
+            raise SimplydataError("like= needs another block.\nFor example:  sdata.number_block(like=plate, filled_with=0)")
+        arr = np.full(like._values.shape, np.nan if filled_with is None else filled_with)
+        names, named = list(like._names), list(like._named)
+    elif of_shape is not None:
+        if isinstance(of_shape, _nb.Integral) and not isinstance(of_shape, bool):
+            of_shape = (of_shape,)
+        if (not isinstance(of_shape, (tuple, list)) or not of_shape
+                or not all(isinstance(n, _nb.Integral) and not isinstance(n, bool) and n >= 1 for n in of_shape)):
+            raise SimplydataError(f"of_shape= needs the size of each direction in brackets, such as (24, 8, 12).\n"
+                                  f"For example:  {_EXAMPLE}")
+        arr = np.full(tuple(int(n) for n in of_shape), np.nan if filled_with is None else filled_with)
+    elif _is_table(source):
+        arr, names, labels = _from_table(source, directions_named, values)
+        return NumberBlock(arr, names, [True] * len(names), labels)
+    else:
+        if type(source).__module__.split(".")[0] == "xarray":
+            arr, names, labels = _from_xarray(source)
+            named = [True] * len(names)
+        elif _is_block(source):
+            arr, names, named, labels = (source._values.copy(), list(source._names), list(source._named),
+                                         dict(source._labels))
+        else:
+            raw = np.asarray(source._values if isinstance(source, BaseNumbers) else source)                 if not isinstance(source, (list, tuple)) else None
+            if raw is not None and raw.dtype.kind == "b":
+                arr = raw.copy()
+            else:
+                arr = to_array(source, "sdata.number_block()", _EXAMPLE)
+        if arr.ndim == 0:
+            raise SimplydataError(f"sdata.number_block() needs a list of numbers (one number has no directions).\n"
+                                  f"For example:  {_EXAMPLE}")
+    if directions_named is not None:
+        new_names = check_names(directions_named, arr.ndim, "number_block", _EXAMPLE)
+        old = names or []
+        labels = {new: labels[o] for o, new in zip(old, new_names) if labels and o in labels}
+        names, named = new_names, [True] * arr.ndim
+    return NumberBlock(arr, names, named, labels)
+
+
+@friendly
+def stack_up(blocks=None, as_new_direction=None, only_show_new_shape=False) -> NumberBlock:
+    """Stack blocks of the same shape into one, along a new first direction (NumPy stack). sdata.stack_up([a, b, c], as_new_direction="image")
+
+    Lists of numbers, grids and blocks all work; they keep their direction names.
+    """
+    example = 'sdata.stack_up([a, b, c], as_new_direction="image")'
+    if not isinstance(blocks, (list, tuple)) or len(blocks) < 2:
+        raise SimplydataError(f"sdata.stack_up() needs a list of two or more blocks in square brackets.\nFor example:  {example}")
+    if not isinstance(as_new_direction, str) or not as_new_direction.strip():
+        raise SimplydataError(f"as_new_direction= needs a name for the new direction, in quotes.\nFor example:  {example}")
+    arrays, first = [], blocks[0]
+    for block in blocks:
+        arrays.append(block._values if isinstance(block, BaseNumbers) else to_array(block, "sdata.stack_up()", example))
+    names = list(first._names) if _is_block(first) else default_names(arrays[0].ndim)
+    named = list(first._named) if _is_block(first) else [False] * arrays[0].ndim
+    if as_new_direction in names:
+        raise SimplydataError(f'The blocks already have a direction called "{as_new_direction}".')
+    turned = []
+    for index, (block, arr) in enumerate(zip(blocks, arrays)):
+        if _is_block(block) and all(block._named) and all(named) and block._names != names:
+            if sorted(block._names) != sorted(names):
+                raise SimplydataError(
+                    f"The blocks have different direction names ({', '.join(names)} against "
+                    f"{', '.join(block._names)}), so they cannot be stacked.")
+            # the same names in another order: put the directions in the first block's order (lined up by name)
+            arrays[index] = np.transpose(arr, [block._names.index(n) for n in names])
+            turned.append(index + 1)
+    if turned:
+        print(f"Block{'s' if len(turned) > 1 else ''} {', '.join(map(str, turned))} named the directions in another "
+              f"order; lined up by name first ({', '.join(names)}; NumPy transpose).")
+    shapes = {a.shape for a in arrays}
+    if len(shapes) != 1:
+        raise SimplydataError("Every block needs the same shape to be stacked: " + "; ".join(
+            say_shape(a.shape, default_names(a.ndim)) for a in arrays) + f".\nFor example:  {example}")
+    new_names = [as_new_direction] + names
+    call = f"np.stack([...], axis=0)"
+    if only_show_new_shape:
+        shape = np.stack([np.broadcast_to(0, a.shape) for a in arrays]).shape
+        print(f"{len(arrays)} blocks of {say_shape(arrays[0].shape, names)} -> {say_shape(shape, new_names)} "
+              f"(nothing changed). NumPy: {call}")
+        return None
+    new = np.stack(arrays, axis=0)
+    print(f"{len(arrays)} blocks of {say_shape(arrays[0].shape, names)} -> {say_shape(new.shape, new_names)}. "
+          f"NumPy: {call}")
+    return NumberBlock(new, new_names, [True] + named)
+
+
+@friendly
+def stretch_to_same_shape(first=None, second=None) -> tuple:
+    """Two blocks stretched to one shape, as a sum would line them up; gives back two new blocks (NumPy broadcast_arrays).
+
+    a2, b2 = sdata.stretch_to_same_shape(a, b)
+    """
+    example = "a2, b2 = sdata.stretch_to_same_shape(a, b)"
+    if first is None or second is None:
+        raise SimplydataError(f"sdata.stretch_to_same_shape() needs two blocks.\nFor example:  {example}")
+    a = first if _is_block(first) else NumberBlock(first._values if isinstance(first, BaseNumbers)
+                                                  else to_array(first, "stretch_to_same_shape()", example))
+    b, b_names, b_named = a._other_parts(second, "stretch_to_same_shape")
+    lined = line_up(a._values, a._names, a._named, b, b_names, b_named, step="add", owner="a")
+    if lined.how == "by name":
+        x, y = np.broadcast_arrays(lined.a, lined.b)
+    else:
+        x, y = np.broadcast_arrays(a._values, b)
+    print(f"Both are now {say_shape(x.shape, lined.names)} (lined up {lined.how}). NumPy: np.broadcast_arrays(a, b)")
+    return (NumberBlock(np.array(x), lined.names, lined.named), NumberBlock(np.array(y), lined.names, lined.named))
+
+
+@friendly
+def hide_stretching_notes() -> None:
+    """Stop the notes that say which numbers were used again when blocks are combined. sdata.hide_stretching_notes()"""
+    SETTINGS["stretching_notes"] = False
+    print("Stretching notes are off; sdata.show_stretching_notes() turns them on again.")
+
+
+@friendly
+def show_stretching_notes() -> None:
+    """Print the notes that say which numbers were used again when blocks are combined (the default). sdata.show_stretching_notes()"""
+    SETTINGS["stretching_notes"] = True
+    print("Stretching notes are on.")

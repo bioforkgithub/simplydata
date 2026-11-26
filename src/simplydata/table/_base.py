@@ -109,6 +109,8 @@ class BaseTable:
     _OLD_WORDS = {
         "done": ("as_pandas", "_done"),  # done() gave back Polars for Polars tables, so it still does
         # renamed 2026-11-15 (fit_straight_line, compare_to_random_order) and 2026-11-16 (talking rewrite)
+        # NumPy + SciPy phase, batch 1 (decision 7, approved by Manish 2026-11-25): a verb, as find_value_at
+        "values_at": "find_values_at",
         "show_first": "show_first_rows", "show_last": "show_last_rows", "count_empty": "count_empty_cells_in",
         "remove_empty_rows": "remove_rows_with_empty_cells_in", "fill_empty": "fill_empty_cells_in",
         "fit_straight_line": "fit_line", "compare_to_random_order": "check_if_random_order",

@@ -122,7 +122,14 @@ GROUPS = [
                 # S3a-2 (lines and curves): core, then "more"
                 "table.fit_dose_response", "table.find_best_power_of"]),
     ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
-    ("Values between points", ["table.values_at", "table.make_map_of"]),
+    # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
+    # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
+    ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
+                                    "f.find_slope_formula", "f.find_area_formula", "f.find_value_at", "f.put_in",
+                                    "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo"]),
+    ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
+                                   "nums.turn_into_running_area"]),
+    ("Values between points", ["table.find_values_at", "table.make_map_of"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
     ("Distributions", ["sdata.distribution", "table.fit_distribution_to", "table.compare_distributions_for",
                        "nums.fit_distribution", "dist.find_chance_that_value", "dist.find_density_at", "dist.find_percentile", "dist.find_cut_off",
@@ -134,7 +141,8 @@ GROUPS = [
                 # S3a-3 (checking and comparing): "more"
                 "table.find_columns_that_predict", "table.find_group_levels_of"]),
     ("Patterns across columns", ["table.add_principal_components", "table.find_principal_components_of",
-                                 "table.add_clusters", "table.find_distances_between_rows", "table.add_nmds",
+                                 "table.add_clusters", "table.find_distances_between_rows",
+                                 "table.find_distances_to_rows_of", "table.add_nmds",
                                  "table.compare_profiles_of",
                                  # S3c-1 (communities and resistomes): core, then "more"
                                  "table.add_diversity_columns", "table.add_log_ratio_columns",
@@ -145,7 +153,9 @@ GROUPS = [
                                  "table.find_hidden_factors_behind", "table.check_hidden_factors"]),
     # S3c-3: directions, places and extremes (core, then "more")
     ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
-                                         "table.find_variogram_of"]),
+                                         "table.find_variogram_of",
+                                         # numbers phase, batch 3: nearest rows and the fence around points
+                                         "table.find_nearest_rows_to", "table.find_fence_around"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -164,7 +174,9 @@ GROUPS = [
                             "table.find_spectrum_of", "nums.find_spectrum", "draw_spectrum", "draw_spectrum_over_time",
                             "nums.keep_each_frequency_that", "nums.remove_each_frequency_that", "table.add_filtered_column",
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
-                            "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform"]),
+                            "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform",
+                            # numbers phase, batch 3
+                            "nums.find_coherence_with", "nums.take_cosine_transform"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
@@ -182,7 +194,9 @@ GROUPS = [
                                 "nums.count_empty_numbers"]),
     ("Numbers: maths in words", ["nums.add", "nums.subtract", "nums.times", "nums.divide_by", "nums.raise_to_power",
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
-                                 "nums.take_exp", "nums.turn_into_running_total"]),
+                                 "nums.take_exp", "nums.turn_into_running_total",
+                                 # numbers phase, batch 3
+                                 "nums.take_cube_root", "nums.show_as_fraction"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
@@ -196,8 +210,42 @@ GROUPS = [
                           "grid.get_row", "grid.get_column", "grid.get_all_numbers", "grid.keep_rows_by_position",
                           "grid.keep_columns_by_position", "grid.remove_rows_by_position",
                           "grid.remove_columns_by_position", "grid.replace_each_number_that", "grid.swap_rows_and_columns"]),
+    # numbers phase, batch 3 (approved by Manish 2026-11-25)
+    ("Grids: pairs, patches and matrices", ["grid.get_numbers_at_pairs", "grid.get_numbers_from_each_row_at",
+                                            "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
+                                            "grid.take_matrix_exp", "grid.find_null_space"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
+    # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
+    # and blocks of numbers with any number of directions. "block.name" is a step on a block of numbers.
+    ("Numbers: yes or no", ["nums.turn_into_yes_or_no", "nums.keep_numbers_where", "nums.remove_numbers_where",
+                            "nums.replace_numbers_where", "nums.count_numbers_that", "nums.check_if_any_number",
+                            "nums.check_if_all_numbers", "nums.check_if_same_as", "grid.keep_rows_where",
+                            "grid.remove_rows_where"]),
+    ("Numbers: rounding, angles and positions", ["nums.round_down", "nums.round_up", "nums.take_whole_part",
+                                                 "nums.take_sin", "nums.take_cos", "nums.take_tan",
+                                                 "nums.change_angles_to", "nums.find_where_biggest",
+                                                 "nums.find_where_smallest", "nums.make_pair_table_with"]),
+    ("Blocks of numbers", ["sdata.number_block", "block.find_shape", "block.count_directions",
+                           "block.find_direction_names", "block.get_number_at", "block.find_average",
+                           "block.keep_by_position_in", "block.remove_by_position_in", "block.keep_where",
+                           "block.remove_where"]),
+    ("Blocks: shape and directions", ["block.change_shape_to", "block.add_direction",
+                                      "block.remove_directions_of_size_one", "block.swap_directions",
+                                      "block.move_direction", "block.rotate", "block.reverse", "block.move_round_by",
+                                      "block.insert_numbers", "block.repeat_each_number", "block.repeat_whole_block",
+                                      "block.add_numbers_from", "block.split_into_pieces",
+                                      "block.split_into_one_block_per", "sdata.stack_up"]),
+    ("Blocks: stretching", ["block.show_how_it_lines_up_with", "block.stretch_to", "sdata.stretch_to_same_shape",
+                            "sdata.hide_stretching_notes", "sdata.show_stretching_notes"]),
+    # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25): netCDF files, labels, dates and places on blocks,
+    # smoothing grids and blocks, chances and random picks
+    ("Blocks: files", ["sdata.show_whats_inside", "block.save"]),
+    ("Blocks: labels, dates and places", ["block.get_labels_of", "block.add_labels_to", "block.find_values_at",
+                                          "block.get_numbers_nearest_to", "block.turn_into_change_from_average",
+                                          "block.smooth", "block.change_size_to", "grid.smooth"]),
+    ("Numbers: chances and random picks", ["nums.make_random_picks", "nums.take_log_odds", "nums.turn_into_chances",
+                                           "sdata.count_ways_to_choose", "sdata.count_ways_to_order"]),
     # "system.name" is a step on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then system.poles().
     ("Waves and systems", ["nums.convolve_with", "nums.deconvolve_by", "nums.change_time_step", "sdata.make_wave",
                            "sdata.make_window_shape", "sdata.system", "system.step_response", "system.impulse_response",
@@ -332,6 +380,37 @@ def _gx(body: str) -> str:
 def _bx(body: str) -> str:
     """A runnable example on a bigger grid (4 rows, 6 columns), for choosing parts of it."""
     lines = ["import simplydata as sdata", "grid = sdata.numbers(1, to=24).make_number_grid(columns=6)"]
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _kx(body: str) -> str:
+    """A runnable block example: a plate of 24 hours x 8 rows x 12 columns, then the steps (NumPy + SciPy batch 1)."""
+    lines = ["import simplydata as sdata",
+             'block = sdata.number_block(of_shape=(24, 8, 12), filled_with=0.5, directions_named=["hour", "row", "column"])']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+_SEA = ('block = sdata.number_block(sdata.make_random_numbers(of_shape=(36, 4, 5), average=12, standard_deviation=2, '
+        'with_seed=1), directions_named=["time", "latitude", "longitude"], with_labels={"time": dates, '
+        '"latitude": [62, 61, 60, 59], "longitude": [1, 2, 3, 4, 5]})')
+
+
+def _seax(body: str) -> str:
+    """A runnable example on a block with dates: 36 months x 4 latitudes x 5 longitudes of made-up sea temperatures
+    (NumPy + SciPy batch 2)."""
+    lines = ["import simplydata as sdata", 'dates = sdata.make_run_of_dates("2010-01", how_many=36, every="month")',
+             _SEA]
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _lx(body: str) -> str:
+    """A runnable example on a labelled block: the island's heights by east and north (labels from the table)."""
+    lines = ["import simplydata as sdata",
+             'block = sdata.number_block(sdata.get_example("island"), directions_named=["east", "north"], '
+             'values="height")']
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -497,15 +576,15 @@ HELP_EXAMPLES = {
         marks = sdata.get_example("marks")
         a = sdata.chart(marks).draw_bars(x="class", y="marks").write_title_on_top("Average")
         b = sdata.chart(marks).draw_boxes(x="class", y="marks").write_title_on_top("Spread")
-        page = sdata.put_side_by_side(a, b, same_y=True)
-        page.save("side_by_side.png")"""),
+        charts = sdata.put_side_by_side(a, b, same_y=True)
+        charts.save("side_by_side.png")"""),
     "sdata.put_one_above_other": textwrap.dedent("""\
         import simplydata as sdata
         weather = sdata.get_example("weather")
         a = sdata.chart(weather).draw_lines(x="month", y="temperature", colour="city")
         b = sdata.chart(weather).draw_bars(x="month", y="rain", colour="city")
-        page = sdata.put_one_above_other(a, b)
-        page.save("one_above_other.png")"""),
+        charts = sdata.put_one_above_other(a, b)
+        charts.save("one_above_other.png")"""),
     "sdata.put_in_rows_and_columns": textwrap.dedent("""\
         import simplydata as sdata
         marks = sdata.get_example("marks")
@@ -513,9 +592,9 @@ HELP_EXAMPLES = {
         b = sdata.chart(marks).draw_histogram(x="marks")
         c = sdata.chart(marks).draw_dots(x="hours", y="marks")
         d = sdata.chart(marks).draw_boxes(x="subject", y="marks")
-        page = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
-        page.write_title_on_top("Four ways to look at the marks")
-        page.save("grid.png")"""),
+        charts = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2)
+        charts.write_title_on_top("Four ways to look at the marks")
+        charts.save("grid.png")"""),
     "add_zoom_box": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
                     'chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60], where="top left")', "add_zoom_box"),
     "animate": textwrap.dedent("""\
@@ -725,9 +804,9 @@ HELP_EXAMPLES = {
         sdata.solve("x**2 - 2*x + 5 = 0")
         sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1})"""),
     # values between points
-    "table.values_at": _tx("growth", 'estimates = table.values_at("population", at={"year": [2001, 2003, 2011]}, '
+    "table.find_values_at": _tx("growth", 'estimates = table.find_values_at("population", at={"year": [2001, 2003, 2011]}, '
                                      'for_each_group_in="country")\nestimates.show()\n'
-                                     'table.values_at("population", at={"year": [2001, 2003, 2011]}, '
+                                     'table.find_values_at("population", at={"year": [2001, 2003, 2011]}, '
                                      'joined_by="smooth curve", for_each_group_in="country")'),
     "table.make_map_of": _tx("island", 'heights = table.make_map_of("height", across=["east", "north"], steps=60, '
                                   'joined_by="smooth surface")\nchart = heights.start_chart()\n'
@@ -899,8 +978,8 @@ HELP_EXAMPLES = {
         table.find_model_averages_of("marks", for_each_group_in="breakfast", using=["hours", "school"])
         table.find_model_averages_of("passed", for_each_group_in="breakfast", using=["hours"], outcome="yes or no")"""),
     "table.check_model_of": _tx("school", """\
-        page = table.check_model_of("marks", using=["hours", "breakfast"])
-        page.save("model_checks.png")
+        charts = table.check_model_of("marks", using=["hours", "breakfast"])
+        charts.save("model_checks.png")
         table.check_model_of("marks", using=["hours", "breakfast"], grouped_by="school")"""),
     "table.show_rows_that_pull_model": _tx("school", """\
         table.show_rows_that_pull_model("marks", using=["hours", "breakfast"])"""),
@@ -1183,6 +1262,132 @@ HELP_EXAMPLES = {
     "grid.get_column": _gx("left = grid.get_column(1)\nleft.show()"),
     "grid.get_all_numbers": _gx("nums = grid.get_all_numbers()\nnums.show()"),
     "grid.swap_rows_and_columns": _gx("grid.swap_rows_and_columns()\nprint(grid)"),
+    # NumPy + SciPy phase, batch 1: yes or no
+    "nums.turn_into_yes_or_no": _nx("warm = nums.turn_into_yes_or_no(is_above=13)\nprint(warm)\nprint(~warm)"),
+    "nums.keep_numbers_where": _nx("deep = sdata.numbers([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)\n"
+                                   "nums.keep_numbers_where(deep)\nnums.show()"),
+    "nums.remove_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+                                     "nums.remove_numbers_where(land)\nnums.show()"),
+    "nums.replace_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+                                      'nums.replace_numbers_where(land, with_value="empty")\nnums.show()'),
+    "nums.count_numbers_that": _nx("print(nums.count_numbers_that(is_above=13))"),
+    "nums.check_if_any_number": _nx("print(nums.check_if_any_number(is_above=30))"),
+    "nums.check_if_all_numbers": _nx("print(nums.check_if_all_numbers(is_at_least=0))"),
+    "nums.check_if_same_as": _nx("other = sdata.numbers([12, 15, 9, 20, 14.0001])\n"
+                                 "print(nums.check_if_same_as(other, within=0.001))"),
+    "grid.keep_rows_where": _gx("grid.keep_rows_where(column=3, is_above=0.5)\ngrid.keep_rows_where(column=1, is_above=5)\n"
+                                "print(grid)"),
+    "grid.remove_rows_where": _gx("grid.remove_rows_where(column=1, is_empty=True)\n"
+                                  "grid.remove_rows_where(column=2, is_below=6)\nprint(grid)"),
+    # rounding, angles and positions
+    "nums.round_down": _nx("nums.round_down()\nnums.show()", "[2.7, -2.3, 0.5]"),
+    "nums.round_up": _nx("nums.round_up()\nnums.show()", "[2.1, -2.7, 0.5]"),
+    "nums.take_whole_part": _nx("nums.take_whole_part()\nnums.show()", "[2.7, -2.7, 0.5]"),
+    "nums.take_sin": _nx("nums.take_sin(degrees=True)\nnums.show()", "[0, 30, 90]"),
+    "nums.take_cos": _nx("nums.take_cos(degrees=True)\nnums.show()", "[0, 60, 90]"),
+    "nums.take_tan": _nx("nums.take_tan(degrees=True)\nnums.show()", "[0, 45, 60]"),
+    "nums.change_angles_to": _nx('nums.change_angles_to("degrees")\nnums.show()', "[0, 1.5708, 3.14159]"),
+    "nums.find_where_biggest": _nx("print(nums.find_where_biggest())"),
+    "nums.find_where_smallest": _nx("print(nums.find_where_smallest())"),
+    "nums.make_pair_table_with": _nx("depths = sdata.numbers([0, 10, 50])\n"
+                                     "table = nums.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
+                                     "[0, 10, 50]"),
+    # blocks of numbers
+    "sdata.number_block": textwrap.dedent("""\
+        import simplydata as sdata
+        plate = sdata.number_block(of_shape=(24, 8, 12), filled_with=0, directions_named=["hour", "row", "column"])
+        print(plate.find_shape())
+        cube = sdata.number_block([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+        print(cube)"""),
+    "block.find_shape": _kx("print(block.find_shape())"),
+    "block.count_directions": _kx("print(block.count_directions())"),
+    "block.find_direction_names": _kx("print(block.find_direction_names())"),
+    "block.get_number_at": _kx("print(block.get_number_at(hour=1, row=2, column=3))"),
+    "block.find_average": _kx('wells = block.find_average(over="hour")\nprint(wells.find_shape())\n'
+                              'print(block.find_average(in_each="row"))'),
+    "block.keep_by_position_in": _kx('block.keep_by_position_in("hour", [1, 3])\nprint(block.find_shape())'),
+    "block.remove_by_position_in": _kx('block.remove_by_position_in("hour", 24)\nprint(block.find_shape())'),
+    "block.keep_where": _lx('block.keep_where("east", is_between=[2, 5])\nprint(block.find_shape())'),
+    "block.remove_where": _lx('block.remove_where("north", is_one_of=[0, 1])\nprint(block.find_shape())'),
+    "block.change_shape_to": _kx('block.change_shape_to(one_row_per="hour")\nprint(block.find_shape())'),
+    "block.add_direction": _kx('block.add_direction("plate", at_position=1)\nprint(block.find_shape())'),
+    "block.remove_directions_of_size_one": _kx('block.add_direction("plate", at_position=1)\n'
+                                               "block.remove_directions_of_size_one()"),
+    "block.swap_directions": _kx('block.swap_directions("row", "column")\nprint(block.find_direction_names())'),
+    "block.move_direction": _kx('block.move_direction("column", to_position=1)\nprint(block.find_direction_names())'),
+    "block.rotate": _kx("block.rotate(by_quarter_turns=1)\nprint(block.find_shape())"),
+    "block.reverse": _kx('block.reverse(over="row")\nprint(block.find_shape())'),
+    "block.move_round_by": _kx('block.move_round_by(3, over="hour")'),
+    "block.insert_numbers": _kx('block.insert_numbers(0, at_position=2, over="row")\nprint(block.find_shape())'),
+    "block.repeat_each_number": _kx('block.repeat_each_number(3, over="hour")\nprint(block.find_shape())'),
+    "block.repeat_whole_block": _kx('block.repeat_whole_block(2, over="hour")\nprint(block.find_shape())'),
+    "block.add_numbers_from": _kx('other = sdata.number_block(of_shape=(6, 8, 12), filled_with=1, '
+                                  'directions_named=["hour", "row", "column"])\n'
+                                  'block.add_numbers_from(other, over="hour")\nprint(block.find_shape())'),
+    "block.split_into_pieces": _kx('pieces = block.split_into_pieces(3, over="hour")\nprint(len(pieces))'),
+    "block.split_into_one_block_per": _kx('hours = block.split_into_one_block_per("hour")\nprint(len(hours))'),
+    "sdata.stack_up": textwrap.dedent("""\
+        import simplydata as sdata
+        a = sdata.number_grid([[1, 2], [3, 4]])
+        b = sdata.number_grid([[5, 6], [7, 8]])
+        c = sdata.number_grid([[9, 10], [11, 12]])
+        images = sdata.stack_up([a, b, c], as_new_direction="image")
+        print(images.find_shape())"""),
+    # stretching
+    "block.show_how_it_lines_up_with": _kx('other = sdata.number_block(of_shape=(8, 12), filled_with=0.05)\n'
+                                           "block.show_how_it_lines_up_with(other)"),
+    "block.stretch_to": _kx("block.stretch_to((2, 24, 8, 12))"),
+    "sdata.stretch_to_same_shape": textwrap.dedent("""\
+        import simplydata as sdata
+        a = sdata.number_block([[1], [2], [3]])
+        b = sdata.numbers([10, 20])
+        a2, b2 = sdata.stretch_to_same_shape(a, b)
+        print(a2)
+        print(b2)"""),
+    # NumPy + SciPy phase, batch 2: files
+    "sdata.show_whats_inside": _seax('block.save("sst_monthly.nc")\nsdata.show_whats_inside("sst_monthly.nc")'),
+    "block.save": _seax('block.save("sst.nc")\nsst = sdata.number_block("sst.nc", values="values")\n'
+                      'print(sst.find_shape())'),
+    # labels, dates and places
+    "block.get_labels_of": _seax('times = block.get_labels_of("time")\ntimes.show()'),
+    "block.add_labels_to": _seax('block.add_labels_to("latitude", [60, 61, 62, 63])\n'
+                               'print(block.get_labels_of("latitude"))'),
+    "block.find_values_at": _seax("between = block.find_values_at(latitude=60.5, longitude=2.5)\n"
+                                "print(between.find_shape())"),
+    "block.get_numbers_nearest_to": _seax("station = block.get_numbers_nearest_to(latitude=60.4, longitude=5.3)\n"
+                                        "print(station.find_shape())"),
+    "block.turn_into_change_from_average": _seax('block.turn_into_change_from_average(in_each="month")\n'
+                                               'block.undo()\n'
+                                               'block.turn_into_change_from_average(in_each="month", '
+                                               'from_years=["2010", "2011"])'),
+    "block.smooth": _seax('block.smooth(over=["latitude", "longitude"], window=3)\nblock.undo()\n'
+                        'block.smooth(over="time", test_method="gaussian", width=2)'),
+    "block.change_size_to": _seax("block.change_size_to(latitude=8, longitude=10)\nprint(block.find_shape())"),
+    "grid.smooth": textwrap.dedent("""\
+        import simplydata as sdata
+        grid = sdata.make_random_numbers(rows=6, columns=8, average=20, standard_deviation=3, with_seed=1)
+        grid.smooth(window=3)
+        print(grid)"""),
+    # chances and random picks
+    "nums.make_random_picks": _nx("again = nums.make_random_picks(how_many=40, with_seed=1)\n"
+                                  "print(again.find_average())\n"
+                                  "dice = sdata.numbers([1, 2, 3]).make_random_picks(how_many=10, "
+                                  "with_chances=[0.5, 0.3, 0.2], with_seed=1)"),
+    "nums.take_log_odds": _nx("nums.take_log_odds()\nnums.show()", "[0.1, 0.5, 0.8]"),
+    "nums.turn_into_chances": _nx("nums.turn_into_chances()\nnums.show()", "[-2.2, 0, 1.386]"),
+    "sdata.count_ways_to_choose": textwrap.dedent("""\
+        import simplydata as sdata
+        print(sdata.count_ways_to_choose(3, out_of=10))"""),
+    "sdata.count_ways_to_order": textwrap.dedent("""\
+        import simplydata as sdata
+        print(sdata.count_ways_to_order(3, out_of=10))"""),
+    "sdata.hide_stretching_notes": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.hide_stretching_notes()
+        sdata.show_stretching_notes()"""),
+    "sdata.show_stretching_notes": textwrap.dedent("""\
+        import simplydata as sdata
+        sdata.show_stretching_notes()"""),
     "grid.keep_rows_by_position": _bx("grid.keep_rows_by_position(2, to=3)\nprint(grid)"),
     "grid.keep_columns_by_position": _bx("grid.keep_rows_by_position(2, to=3)\n"
                                          "grid.keep_columns_by_position(1, to=3)\nprint(grid)"),
@@ -1336,6 +1541,65 @@ HELP_EXAMPLES.update({
 })
 
 
+def _fx(body: str, formula: str = "(x + 2)**2 - 4") -> str:
+    """A runnable formula example: make a formula (needs simplydata[exact], SymPy), then the steps."""
+    lines = ["import simplydata as sdata", f'f = sdata.formula("{formula}")']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _lines(*lines: str) -> str:
+    return "\n".join(["import simplydata as sdata", *lines])
+
+
+# numbers phase, batch 3 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "sdata.formula": _lines('f = sdata.formula("(x + 2)**2 - 4")', "print(f)"),
+    "f.make_simpler": _fx("f.make_simpler()", "(x**2 - 1) / (x - 1)"),
+    "f.turn_into_sum": _fx("f.turn_into_sum()"),
+    "f.turn_into_product": _fx("f.turn_into_product()", "x**2 + 4*x"),
+    "f.find_slope_formula": _fx("slope = f.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
+    "f.find_area_formula": _fx("area = f.find_area_formula()", "x**3 - 2*x"),
+    "f.find_value_at": _fx("f.find_value_at(x=2)\nf.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
+    "f.put_in": _fx('f.put_in(x="y + 1")', "x**2"),
+    "f.show_as_latex": _fx("f.show_as_latex()", "x**3 - 2*x"),
+    "f.find_limit_as": _fx('f.find_limit_as("x", goes_to=0)', "sin(x) / x"),
+    "f.find_taylor_series": _fx("f.find_taylor_series(around=0, up_to_power=4)", "exp(x)"),
+    "f.undo": _fx("f.turn_into_sum()\nf.undo()"),
+    "sdata.find_area_under": _lines('sdata.find_area_under("x**2", between=[0, 3])',
+                                    'sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])'),
+    "sdata.find_volume_under": _lines('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})'),
+    "sdata.find_path_over_time": _lines(
+        'growth = sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, between=[0, 50], '
+        'known={"r": 0.3, "K": 1000}, time_step=0.5)', "growth.show_last_rows(3)"),
+    "nums.turn_into_running_area": _nx("nums.turn_into_running_area(time_step=60)\nnums.show()", "[2, 4, 4, 3, 1]"),
+    "nums.take_cube_root": _nx("nums.take_cube_root()\nnums.show()", "[27, -8, 1000]"),
+    "nums.show_as_fraction": _nx("nums.show_as_fraction()", "[0.5, 0.25, 0.3333333333333333, 1.75]"),
+    "nums.find_coherence_with": _lines('nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=500)',
+                                       'other = sdata.make_wave("square", frequency=5, time_step=0.01, how_many=500)',
+                                       "together = nums.find_coherence_with(other, time_step=0.01)",
+                                       "together.show_first_rows(5)"),
+    "nums.take_cosine_transform": _nx("nums.take_cosine_transform()\nnums.show()", "[1, 2, 3, 4]"),
+    "grid.get_numbers_at_pairs": _gx("grid.get_numbers_at_pairs(rows=[1, 2], columns=[3, 3])"),
+    "grid.get_numbers_from_each_row_at": _gx("grid.get_numbers_from_each_row_at(columns=[2, 1])"),
+    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)"),
+    "grid.change_size_to": _gx("grid.change_size_to(rows=4, columns=6)\nprint(grid)"),
+    "grid.rotate": _gx("grid.rotate(by_degrees=15)\nprint(grid)"),
+    "grid.take_matrix_exp": _lines("grid = sdata.number_grid([[0, 1], [-1, 0]])", "grid.take_matrix_exp()",
+                                   "print(grid)"),
+    "grid.find_null_space": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])",
+                                   "directions = grid.find_null_space()", "print(directions)"),
+    "table.find_nearest_rows_to": _tx("stations", 'nearest = table.find_nearest_rows_to({"east": 4000, "north": 1000}, '
+                                                  "how_many=3)\nprint(nearest)"),
+    "table.find_distances_to_rows_of": _tx("stations", 'other = sdata.table(sdata.get_example("stations"))\n'
+                                                       "table.keep_first_rows(3)\nother.keep_last_rows(2)\n"
+                                                       'table.find_distances_to_rows_of(other, using=["east", "north"], '
+                                                       'names="station")'),
+    "table.find_fence_around": _tx("stations", 'corners = table.find_fence_around(x="east", y="north")\n'
+                                               "print(corners)"),
+})
+
+
 # ---------------------------------------------------------------- finding words
 def _ps():
     import simplydata  # late import: simplydata imports this file
@@ -1369,7 +1633,13 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "dist": "dist", "system": "system"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+
+
+def _block_class():
+    from .numbers.blocks import NumberBlock
+
+    return NumberBlock
 
 
 def _distribution_class():
@@ -1384,10 +1654,18 @@ def _system_class():
     return System
 
 
+def _formula_class():
+    from ._formula import Formula
+
+    return Formula
+
+
 def _classes():
     """(class, kind) for every object with steps."""
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
-            (_grid_class(), "grid"), (_distribution_class(), "dist"), (_system_class(), "system")]
+            (_grid_class(), "grid"), (_block_class(), "block"), (_distribution_class(), "dist"),
+            (_system_class(), "system"),
+            (_formula_class(), "formula")]
 
 
 def _kind(key: str) -> str:
@@ -1466,11 +1744,14 @@ def _call_form(key: str) -> str:
 
 def _prefixes(key: str) -> str:
     """What may come before the word in an example: table.keep_rows_where(...), chart.draw_bars(...)."""
-    return _PREFIX.get(_kind(key), "chart|sdata|page")
+    return _PREFIX.get(_kind(key), "chart|charts|sdata|page")
 
 
-def _find_call(text: str, prefix_word: str, prefixes: str = "chart|sdata|page|table|nums|grid|dist|system") -> str | None:
+def _find_call(text: str, prefix_word: str,
+               prefixes: str = "chart|charts|sdata|page|table|nums|grid|block|dist|system|f") -> str | None:
     """Find the first call like chart.draw_bars(...) in text, brackets and quotes included."""
+    # "f" (a formula) only as a whole name: not the f at the end of "pdf." or "self."
+    prefixes = "|".join(r"(?<![\w.])f" if p == "f" else p for p in prefixes.split("|"))
     m = re.search(rf"(?:{prefixes})\.{re.escape(prefix_word)}\(", text)
     if not m:
         return None
@@ -1547,6 +1828,7 @@ def show_all_words() -> None:
           "dist.find_chance_that_value(is_above=2).")
     print('System words are steps on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then '
           "system.step_response().")
+    print('Formula words are steps on a formula: f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum().')
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1564,7 +1846,7 @@ def show_all_words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("sdata.", "chart.", "table.", "page.", "nums.", "grid.", "dist.", "system.", "."):
+    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "nums.", "grid.", "block.", "dist.", "system.", "f.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -1631,8 +1913,9 @@ def _lookup_all(word) -> list[str]:
 # How an object is written before a word, and the kind of object it is: "dist.chart" names the
 # chart word of a distribution only. "sdata." is written in front of anything (sdata.help("sdata.bars")),
 # so it narrows nothing.
-_TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "table": {"table"}, "nums": {"numbers"},
-                "grid": {"grid", "numbers"}, "dist": {"dist"}, "system": {"system"}}
+_TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
+                "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
+                "system": {"system"}, "f": {"formula"}}
 
 
 def _old_names(word) -> list[tuple[str, str, str]]:
@@ -2553,9 +2836,9 @@ LESSONS = [
                  "Make a first chart, called a. Steps can also be joined with dots on one line."),
                 ('b = sdata.chart(weather).draw_bars(x="month", y="rain", colour="city")',
                  "Make a second chart, called b."),
-                ("page = sdata.put_one_above_other(a, b)", "Put a above b on one page."),
-                ('page.write_title_on_top("A year of weather")', "Give the whole page a title."),
-                ('page.save("lesson7_page.png")', "Save the page."),
+                ("charts = sdata.put_one_above_other(a, b)", "Put a above b on one page."),
+                ('charts.write_title_on_top("A year of weather")', "Give the whole page a title."),
+                ('charts.save("lesson7_page.png")', "Save the page."),
             ]),
             ("A grid holds many charts in rows and columns. with_letters=True writes A, B, C and D on "
              "them, as figures in papers have.", [
@@ -2565,9 +2848,9 @@ LESSONS = [
                 ('b = sdata.chart(marks).draw_histogram(x="marks").write_title_on_top("All marks")', "Chart b."),
                 ('c = sdata.chart(marks).draw_dots(x="height", y="marks").write_title_on_top("Height")', "Chart c."),
                 ('d = sdata.chart(marks).draw_boxes(x="subject", y="marks").write_title_on_top("Subjects")', "Chart d."),
-                ("page = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2, with_letters=True)", "All four in a grid, 2 charts "
+                ("charts = sdata.put_in_rows_and_columns(a, b, c, d, per_row=2, with_letters=True)", "All four in a grid, 2 charts "
                                                                         "per row, with a letter on each."),
-                ('page.save("lesson7_grid.png")', "Save it."),
+                ('charts.save("lesson7_grid.png")', "Save it."),
             ]),
             ("Charts from different tables can share a page too.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2575,9 +2858,9 @@ LESSONS = [
                  "A chart of the weather table, called rain."),
                 ('forest = sdata.chart(sdata.get_example("growth")).draw_lines(x="year", y="forest", colour="country")',
                  "A chart of the growth table, called forest."),
-                ("page = sdata.put_side_by_side(rain, forest, with_letters=True)", "Put the two charts next to "
+                ("charts = sdata.put_side_by_side(rain, forest, with_letters=True)", "Put the two charts next to "
                                                                        "each other, with A and B."),
-                ('page.save("lesson7_two_tables.png")', "Save the page."),
+                ('charts.save("lesson7_two_tables.png")', "Save the page."),
             ]),
             ("sdata.draw_all_pairs draws every number column against every other, in one go.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2615,9 +2898,9 @@ LESSONS = [
                 weather = sdata.get_example("weather")
                 a = sdata.chart(weather).draw_lines(x="month", y="temperature", colour="city")
                 b = sdata.chart(weather).draw_bars(x="month", y="rain", colour="city")
-                page = sdata.put_side_by_side(a, b)
-                page.write_title_on_top("A year of weather")
-                page.save("lesson7_side_by_side.png")"""),
+                charts = sdata.put_side_by_side(a, b)
+                charts.write_title_on_top("A year of weather")
+                charts.save("lesson7_side_by_side.png")"""),
              "The same two charts, now next to each other instead of one above the other."),
             (_sx("""\
                 import simplydata as sdata
@@ -2803,8 +3086,8 @@ LESSONS = [
                 people.label_y("People (millions)")
                 forest = sdata.chart(growth).draw_lines(x="year", y="forest", colour="country")
                 forest.label_y("Forest (% of the land)")
-                page = sdata.put_side_by_side(people, forest, with_letters=True)
-                page.save("lesson8_page.pdf")"""),
+                charts = sdata.put_side_by_side(people, forest, with_letters=True)
+                charts.save("lesson8_page.pdf")"""),
              "Two charts of one table on one page, saved as a PDF because the name ends in .pdf."),
         ],
         words=["add_second_y", "add_zoom_box", "draw_heatmap", "label_colour_bar", "set_size", "animate",
@@ -3311,10 +3594,10 @@ LESSONS = [
                 ("maths = table.start_chart()", "A second chart, of the table as it is now: only the Maths "
                                           "tests of class A."),
                 ('maths.draw_dots(x="hours", y="marks")', "Draw the same thing again."),
-                ("page = sdata.put_side_by_side(all_tests, maths, same_y=True)", "Both charts on one page, "
+                ("charts = sdata.put_side_by_side(all_tests, maths, same_y=True)", "Both charts on one page, "
                                                                           "with the same y-axis, so "
                                                                           "you can compare them."),
-                ('page.save("lesson12_maths.png")', "Save the page."),
+                ('charts.save("lesson12_maths.png")', "Save the page."),
             ]),
             ("Two tables can be joined: their rows are matched on a column they share.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -3522,6 +3805,74 @@ LESSONS = [
                                                 "written in."),
                 ('chart.save("lesson13_grid.png")', "Save it."),
             ]),
+            ("Yes or no values, rounding and where the biggest is.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ("temps = sdata.numbers([4.6, 6.2, 9.8, 13.1, 17.5, 20.4])", "Six temperatures."),
+                ("warm = temps.turn_into_yes_or_no(is_above=10)", "A yes or no value for each one: yes where it is "
+                                                                   "above 10. temps does not change."),
+                ("print(warm)", "No, no, no, yes, yes, yes."),
+                ("temps.count_numbers_that(is_above=10)", "How many are above 10: 3."),
+                ("temps.check_if_all_numbers(is_above=0)", "Yes: all six are above 0. It also gives back True."),
+                ("print(temps.find_where_biggest())", "The biggest is at position 6, counting from 1 (NumPy, "
+                                                      "which counts from 0, says index 5)."),
+                ("temps.round_down()", "Every temperature rounded down to a whole number: 4, 6, 9 ..."),
+            ]),
+            ("A block has more than two directions: a plate read every hour for a day.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('plate = sdata.number_block(of_shape=(24, 8, 12), filled_with=0.5, directions_named=["hour", "row", '
+                 '"column"])', "24 hours x 8 rows x 12 columns, all 0.5 for now. Each direction has a name."),
+                ("plate.find_shape()", "The shape in words and as NumPy says it: (24, 8, 12)."),
+                ('blank = sdata.number_block(of_shape=(8, 12), filled_with=0.05, directions_named=["row", "column"])',
+                 "A blank reading for each well: 8 rows x 12 columns."),
+                ("plate.show_how_it_lines_up_with(blank)", "See how they line up before combining them: the blank "
+                                                           "is used again for each of the 24 hours."),
+                ("plate.subtract(blank)", "Take the blank away from every hour (NumPy calls this broadcasting)."),
+                ('wells = plate.find_average(over="hour")', "One average per well: the hours go, 8 rows x 12 "
+                                                             "columns remain."),
+                ('plate.change_shape_to(one_row_per="hour")', "One row per hour, 96 numbers in each: the shape "
+                                                               "scikit-learn wants."),
+                ("table = wells.turn_into_table()", "A block as a long table: one column per direction and a "
+                                                     "column value."),
+                ("chart = wells.start_chart()", "Two directions make a grid, so it can be drawn."),
+                ('chart.draw_heatmap()', "One square for each well."),
+                ('chart.save("lesson13_wells.png")', "Save it."),
+            ]),
+            ("Sea temperatures by month: a block with dates, saved and read as a netCDF file.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('dates = sdata.make_run_of_dates("2010-01", how_many=36, every="month")', "36 months, one date each."),
+                ("temps = sdata.make_random_numbers(of_shape=(36, 4, 5), average=12, standard_deviation=2, "
+                 "with_seed=1)", "Made-up sea temperatures: 36 months x 4 latitudes x 5 longitudes."),
+                ('sst = sdata.number_block(temps, directions_named=["time", "latitude", "longitude"], '
+                 'with_labels={"time": dates, "latitude": [62, 61, 60, 59], "longitude": [1, 2, 3, 4, 5]})',
+                 "Name the directions and give them labels: dates, and degrees north and east."),
+                ('sst.save("lesson13_sst.nc")', "Save it as a netCDF file, the usual file of ocean and climate "
+                                               "grids."),
+                ('sdata.show_whats_inside("lesson13_sst.nc")', "See what the file holds, without reading the numbers."),
+                ('sst = sdata.number_block("lesson13_sst.nc", values="values")', "Read it back: one block for one "
+                                                                                 "variable of the file."),
+                ('usual = sst.find_average(in_each="month")', "12 maps: the usual temperature of each month, all "
+                                                              "years together."),
+                ("station = sst.get_numbers_nearest_to(latitude=60.4, longitude=2.2)", "The 36 months at the grid "
+                                                                                      "cell nearest a station."),
+                ('sst.turn_into_change_from_average(in_each="month")', "Each value minus the usual value of its "
+                                                                       "month: the anomalies."),
+                ("again = station.get_all_numbers().make_random_picks(how_many=36, with_seed=1)",
+                 "36 random picks from the station's months, each put back: a bootstrap sample."),
+            ]),
+            ("More with a grid: numbers at pairs of places, patches of high values, and a finer grid.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ("grid = sdata.number_grid([[1, 8, 9, 2], [0, 7, 1, 1], [6, 0, 0, 9]])",
+                 "A grid of 3 rows and 4 columns, like readings on a small map."),
+                ("grid.get_numbers_at_pairs(rows=[1, 2, 3], columns=[2, 2, 4])",
+                 "Three numbers, one at each pair of a row and a column: (1, 2), (2, 2) and (3, 4) give 8, 7 and "
+                 "9. Not the rectangle of those rows and columns: the sentence says which words give that."),
+                ("grid.find_each_patch_that(is_above=5)",
+                 "The cells above 5 that touch by a side form patches: 3 patches here. The table gives the cells, "
+                 "total, average and centre of each (SciPy ndimage.label underneath)."),
+                ("grid.change_size_to(rows=6, columns=8)",
+                 "Twice as many rows and columns, filled in with straight lines between neighbouring cells "
+                 "(SciPy ndimage.zoom)."),
+            ]),
         ],
         notes=[
             "The words follow the table words, with numbers in place of rows: keep_first_numbers, "
@@ -3564,7 +3915,8 @@ LESSONS = [
         ],
         words=["sdata.numbers", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
                "nums.keep_each_number_that", "nums.find_average", "nums.find_standard_deviation", "nums.find_median",
-               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps"],
+               "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks",
+               "grid.get_numbers_at_pairs", "grid.find_each_patch_that", "grid.change_size_to"],
     ),
     dict(
         title="Statistical tests: real difference, or chance?",
@@ -3859,9 +4211,9 @@ LESSONS = [
                 ("forest = growth.start_chart()", "A chart of it, called forest."),
                 ('forest.draw_lines(x="year", y="forest", colour="country")', "Their forest over the years."),
                 ('forest.label_y("Forest (% of the land)")', "Name the y-axis."),
-                ("page = sdata.put_in_rows_and_columns(rain, forest, per_row=2, with_letters=True)", "Both charts on one page, "
+                ("charts = sdata.put_in_rows_and_columns(rain, forest, per_row=2, with_letters=True)", "Both charts on one page, "
                                                                           "with letters."),
-                ('page.save("lesson15_two_tables.png")', "Save the page."),
+                ('charts.save("lesson15_two_tables.png")', "Save the page."),
             ]),
             ("A table goes to pandas or Polars and back whenever another Python tool needs it.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -3883,7 +4235,7 @@ LESSONS = [
             "The table and the charts are separate objects, as in pandas and matplotlib: one cleaned "
             "table can feed many charts, and each chart keeps the rows the table had when the chart "
             "was made.",
-            "table.save saves the table, and chart.save or page.save the picture. Save both, so "
+            "table.save saves the table, and chart.save or charts.save the picture. Save both, so "
             "anyone can check the figure against its data.",
             "table.show_steps() lists the table steps. Together with the chart lines of your program, it "
             "says everything you did.",
@@ -3922,8 +4274,8 @@ LESSONS = [
                 warmth = table.start_chart()
                 warmth.draw_lines(x="month", y="temperature", colour="city")
                 warmth.label_y("Temperature (°C)")
-                page = sdata.put_side_by_side(rain, warmth, with_letters=True)
-                page.save("lesson15_weather_page.png")"""),
+                charts = sdata.put_side_by_side(rain, warmth, with_letters=True)
+                charts.save("lesson15_weather_page.png")"""),
              "Two charts of one table, side by side, with A and B so a report can point to each."),
             (_sx("""\
                 import simplydata as sdata
@@ -4332,6 +4684,29 @@ LESSONS = [
                  "The same data with another growth curve (one change in the call). Compare the levels the two "
                  "curves give."),
             ]),
+            ("Exact answers with a formula (needs the extra simplydata[exact], SymPy: "
+             "pip install \"simplydata[exact]\"). The letters stay letters, so the answers are formulas.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('f = sdata.formula("(x + 2)**2 - 4")', "A formula with the letter x."),
+                ("f.turn_into_sum()", "Multiply out the brackets: x**2 + 4*x."),
+                ("f.turn_into_product()", "Write it as a product: x*(x + 4). f.undo() would take it back."),
+                ("slope = f.find_slope_formula()", "The formula of its slope (the derivative): 2*x + 4."),
+                ("f.find_value_at(x=3)", "Its value at x = 3: 21."),
+                ('sdata.solve("x**2 = 2", exactly=True)',
+                 "The exact solutions, -sqrt(2) and sqrt(2), with their decimals in the table."),
+            ]),
+            ("Areas and paths over time: the area under a curve, and the values over time from how fast they "
+             "change.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])',
+                 "The area under the bell curve from 0 to infinity: 0.886227, half the square root of pi "
+                 "(SciPy integrate.quad, as R integrate())."),
+                ('growth = sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, '
+                 'between=[0, 50], known={"r": 0.3, "K": 1000}, time_step=0.5, stop_when="N >= 900")',
+                 "Logistic growth from 10 cells, at rate 0.3 towards 1000: the table holds N every half hour. "
+                 "stop_when= stops when N reaches 900, at t = 22.64 (SciPy integrate.solve_ivp)."),
+                ("growth.show_last_rows(3)", "The last times before it stopped."),
+            ]),
             ("If you have R: a dose-response curve. A toxicity test grows seedlings at eight concentrations. "
              "fit_dose_response finds the dose that halves the effect (the ED50, or EC50) with its 95 % "
              "interval, from the fitted curve, not from the raw averages.", [
@@ -4413,6 +4788,8 @@ LESSONS = [
         ],
         words=["table.fit_line", "table.fit_curve", "table.fit_formula", "fit_line", "fit_curve", "fit_formula",
                "sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+               "sdata.formula", "f.turn_into_sum", "f.turn_into_product", "f.find_slope_formula", "f.find_value_at",
+               "sdata.find_area_under", "sdata.find_path_over_time",
                "table.fit_dose_response", "fit_dose_response"],
         needs_r=needs_r_text("Only the last example part and the fourth task (fit_dose_response, R drc)",
                              packages=("drc",)),
@@ -4456,12 +4833,12 @@ LESSONS = [
                 ('chart.fit_distribution("negative binomial")', "The fitted chance of each count, on top."),
                 ('chart.save("lesson20_absent.png")', "Save it."),
             ]),
-            ("Values between points: you measured every two years, but you need 2001. values_at joins "
+            ("Values between points: you measured every two years, but you need 2001. find_values_at joins "
              "the dots (straight lines, or a smooth curve) and reads off the value; make_map_of does it across "
              "a whole map.", [
                 ("import simplydata as sdata", "Load simplydata."),
                 ('table = sdata.table(sdata.get_example("growth"))', "Population every two years."),
-                ('estimates = table.values_at("population", at={"year": [2001, 2011]}, for_each_group_in="country")',
+                ('estimates = table.find_values_at("population", at={"year": [2001, 2011]}, for_each_group_in="country")',
                  "Straight lines between the known points (linear interpolation, as R approx()), for "
                  "each country."),
                 ("estimates.show()", "A new table with the estimates."),
@@ -4486,7 +4863,7 @@ LESSONS = [
             'swing above or below the points (joined_by="curve without overshoot" never does). Outside '
             "the measured range the cells stay empty unless you ask for outside=.",
             "Names from other tools point to these words: pnorm and cdf to chance, qnorm and ppf to "
-            "percentile, dnorm and pdf to find_density_at, interpolate and approx to values_at.",
+            "percentile, dnorm and pdf to find_density_at, interpolate and approx to find_values_at.",
         ],
         task=[
             'Ten coins are thrown. With sdata.distribution("binomial", tries=10, chance=0.5), what is the '
@@ -4512,13 +4889,13 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("weather"))
-                estimates = table.values_at("temperature", at={"month_number": [6.5]},
+                estimates = table.find_values_at("temperature", at={"month_number": [6.5]},
                                             joined_by="smooth curve", for_each_group_in="city")
                 estimates.show()"""),
-             "values_at joins the months with a smooth curve and reads off each city at 6.5."),
+             "find_values_at joins the months with a smooth curve and reads off each city at 6.5."),
         ],
         words=["sdata.distribution", "dist.find_chance_that_value", "dist.find_percentile", "dist.find_cut_off", "dist.draw_chart",
-               "table.compare_distributions_for", "table.fit_distribution_to", "fit_distribution", "table.values_at",
+               "table.compare_distributions_for", "table.fit_distribution_to", "fit_distribution", "table.find_values_at",
                "table.make_map_of", "draw_curve"],
     ),
     dict(
@@ -4541,12 +4918,12 @@ LESSONS = [
                  "The model to check: 2.82 more marks for each hour of study and 3.21 more with breakfast. "
                  "The line under the effects says how well it fits: AIC 1292 and BIC 1305, numbers that only "
                  "mean something when you compare two models."),
-                ('page = table.check_model_of("marks", using=["hours", "breakfast"])',
+                ('charts = table.check_model_of("marks", using=["hours", "breakfast"])',
                  "Four pictures of the same model. Here the residuals lie in an even band around 0, the dots "
                  "follow the Q-Q line, the scale-location line is flat, and the dashed Cook's distance lines lie "
                  "outside the leverage picture: no row comes near them. The variance inflation factors are "
                  "1.00: hours and breakfast are not linked."),
-                ('page.save("lesson21_checks.png")', "Save the page of pictures."),
+                ('charts.save("lesson21_checks.png")', "Save the page of pictures."),
             ]),
             ("Some rows pull a model more than others. show_rows_that_pull_model lists them, the strongest "
              "first, so you can look at them before you trust the model.", [
@@ -4652,8 +5029,8 @@ LESSONS = [
             (_sx("""\
                 import simplydata as sdata
                 table = sdata.table(sdata.get_example("school"))
-                page = table.check_model_of("marks", using=["hours", "school"])
-                page.save("model_checks.png")
+                charts = table.check_model_of("marks", using=["hours", "school"])
+                charts.save("model_checks.png")
                 table.show_rows_that_pull_model("marks", using=["hours", "school"])
                 table.compare_models("marks", using=["hours", "school"], against=["hours", "school", "breakfast"])"""),
              "The pictures look fine, and no row comes near the Cook's distance lines (the largest is 0.0457, "
