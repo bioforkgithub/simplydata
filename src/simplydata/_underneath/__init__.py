@@ -41,6 +41,8 @@ numbers_2.py (NumPy + SciPy phase, batch 2: netCDF files, labels, dates and plac
 chances, random picks and counting).
 numbers_3.py (numbers phase, batch 3: formulas with SymPy, areas, volumes and paths over time, and the new words on
 numbers, grids and tables).
+numbers_4.py (numbers phase, batch 4: the SymPy words, sums of series, exact volumes and paths, and the matrix words
+of a grid in decimals and exactly).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -154,13 +156,15 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, checking, combining, communities,
-                   hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_batch1, places, planning,
+                   hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_4, numbers_batch1, places,
+                   planning,
                    planning_surveys, signals, small_additions, starting, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
-                   more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3):
+                   more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3,
+                   numbers_4):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

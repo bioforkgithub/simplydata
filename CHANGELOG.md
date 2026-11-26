@@ -19,6 +19,44 @@ working for one release and prints a one-line note with its new name.
 - Tests compare both options with SciPy and R (`stats::filter` on the padded readings), and two new reliability cases
   check them on the Lake Huron levels.
 
+### Added: numbers phase, batch 4 (the SymPy words; approved by Manish 2026-11-26)
+
+- Formulas: `f.find_slope_formula(how_many_times=2)` (up to 20 times) and `for_letter=["x", "y"]` for a mixed
+  slope; `f.find_limit_as("x", goes_to=0, from_side="above")` (or `"below"`; `"right"`, `"left"`, `"+"` and `"-"`
+  work too); `f.show_as_decimal(digits=50)` (text, up to 10,000 digits); `f.group_by_powers_of("x")` (expand, then
+  collect) and `f.turn_into_partial_fractions()` (apart), both undo-able; `f.as_sympy()` gives the SymPy expression
+  to carry on in SymPy itself. In Jupyter a formula is shown typeset (`_repr_latex_`).
+- `letters_are={"k": "positive"}` on `sdata.formula` and on `sdata.solve(..., exactly=True)`: "positive", "zero or
+  more", "negative", "real", "whole number", "positive whole number" (SymPy's assumptions), so `sqrt(k**2)` is `k`,
+  `log(k*t)` splits, and `c**2 = 4` gives only `c = 2`.
+- `sdata.solve(..., exactly=True)`: `for_letter="T"` rearranges for one letter and keeps the others as letters
+  (`p*V = n*R*T` gives `T = V*p/(R*n)`); rules (`<`, `>`, `<=`, `>=`) give the ranges where they hold (SymPy solveset
+  over the real numbers, reduce_inequalities for several), as a table of `from`, `to` and whether each end is in; a
+  formula made with `sdata.formula` means formula = 0, so `sdata.solve(f.find_slope_formula(), exactly=True)` finds
+  the flat points. Without `exactly=True` a rule now points to it.
+- `chart.draw_curve(f, between=[0, 10])` draws a formula made with `sdata.formula`.
+- `sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])` (SymPy summation): an exact sum, the formula of a
+  sum up to a letter (`between=[1, "n"]`), a plain sentence when the sum grows without end or does not settle, and
+  the decimal when SymPy finds no exact formula but the series settles.
+- `sdata.find_volume_under(..., exactly=True)` (SymPy integrate). `sdata.find_path_over_time(..., exactly=True)`
+  without `at_start=` gives the general formula with its free constants (C1, C2); one second-order equation,
+  `"d2x/dt2 = -k*x - c*dx/dt"`, is solved exactly (dsolve) or in numbers (solve_ivp with `dx/dt` as a second changing
+  value, shown in the table); `at_start=` then needs `x` and `dx/dt`.
+- Grids: `find_determinant()` (SciPy linalg.det), `take_inverse()` (linalg.inv, undo-able) and `find_eigenvalues()`
+  (linalg.eigvalsh for a symmetric grid, else eigvals; biggest first), each with `exactly=True` (SymPy Matrix with
+  the numbers as fractions: det, inv, eigenvals with how many times each comes); `find_null_space(exactly=True)`
+  (SymPy nullspace). Exact work takes grids up to 12 x 12 (6 x 6 for eigenvalues).
+- Safety: every heavy SymPy call (simplify, factor, expand, integrate, limit, series, solve, solveset, dsolve,
+  summation, apart, collect and the exact grid words) runs under one time limit of 60 seconds, in one local helper
+  process that is kept alive between calls (multiprocessing, started with "spawn"; it imports SymPy only, and talks
+  to Python through a pipe, never the network; it writes nothing and stops when Python exits). A call that runs
+  longer is stopped with a plain sentence, and the next call starts a fresh helper. Where no helper process can be
+  started, SymPy runs without the limit and simplydata says so once (`SIMPLYDATA_SYMPY_HELPER=0` turns the helper
+  off). A sum with letters raised to a whole power above 100 is refused before it is multiplied out (`(x + y + z +
+  1)**200` would have about 1.4 million terms).
+- Other names from SymPy, MATLAB and R point to the new words (apart, collect, vpa, summation, Sum, symsum,
+  reduce_inequalities, refine, det, inv, eig, eigenvals ...).
+
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 
 - Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with

@@ -826,8 +826,9 @@ def _read_solve_equation(text, known):
                               'To find where a formula is smallest, use sdata.find_where_smallest("...").')
     formula, sign = read_equation(text, known=known)
     if sign != "=":
-        raise SimplydataError(f'solve() works with = only; "{text}" is a rule. To keep to rules, use '
-                              'sdata.find_where_smallest(formula, rules=["..."]).')
+        raise SimplydataError(f'solve() works with = only; "{text}" is a rule. For the values where it holds, add '
+                              f'exactly=True: sdata.solve("{text}", exactly=True). To keep to rules while finding the '
+                              'smallest value, use sdata.find_where_smallest(formula, rules=["..."]).')
     return formula
 
 
@@ -862,7 +863,8 @@ def _solve_one_range(text, name, gap, low, high, chosen):
 
 
 @friendly(renamed={"method": "test_method"})
-def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False):
+def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False,
+          for_letter=None, letters_are=None):
     """Find the values that make an equation true.
 
     sdata.solve("x**3 - 2*x = 5", between=[0, 3])   (x = 2.09455)
@@ -877,11 +879,16 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     Gives back a table with one row per solution: each name, "left minus right" at the
     solution (the check: close to 0) and the method. fast=True gives a Polars table.
     exactly=True gives the exact solutions from SymPy solve (simplydata[exact]): sdata.solve("x**2 = 2",
-    exactly=True) prints x = -sqrt(2) or x = sqrt(2); the table has each decimal and its exact form.
+    exactly=True) prints x = -sqrt(2) or x = sqrt(2); the table has each decimal and its exact form. With
+    exactly=True, for_letter="T" solves for that letter and leaves the others as letters
+    (sdata.solve("p*V = n*R*T", for_letter="T", exactly=True) gives T = V*p/(R*n)); rules (<, >, <=, >=) give the
+    ranges where they hold (sdata.solve("x**2 - 4 > 0", exactly=True): x < -2 or x > 2, SymPy solveset over the
+    real numbers); letters_are={"c": "positive"} says what a letter is. A formula made with sdata.formula() means
+    formula = 0: sdata.solve(f.find_slope_formula(), exactly=True) finds where the slope is flat.
     """
     if not isinstance(exactly, bool):
         raise SimplydataError("exactly= should be True or False.")
-    if isinstance(equations, str):
+    if isinstance(equations, str) or hasattr(equations, "_formula_text"):
         texts = [equations]
     elif isinstance(equations, (list, tuple)) and equations:
         texts = list(equations)
@@ -893,7 +900,12 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
                                   "start= or test_method=. Leave them out, or leave out exactly=True.")
         from ._formula import solve_exactly
 
-        return solve_exactly(texts, known, fast)
+        return solve_exactly(texts, known, fast, for_letter=for_letter, letters_are=letters_are)
+    if letters_are is not None:
+        raise SimplydataError("letters_are= tells SymPy what a letter is, so it works with exactly=True: "
+                              'sdata.solve("c**2 = 4", exactly=True, letters_are={"c": "positive"}).')
+    # a formula made with sdata.formula() means formula = 0 (numbers phase, batch 4)
+    texts = [f"{t._formula_text()} = 0" if hasattr(t, "_formula_text") else t for t in texts]
     formulas = [_read_solve_equation(t, known) for t in texts]
     names: list[str] = []
     for f in formulas:
@@ -907,6 +919,17 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
         print("Using " + ", ".join(f"{k} = {_show(v)}" for k, v in used_known.items()) + " from known=.")
     if not names:
         raise SimplydataError(f'"{texts[0]}" has no name to find, such as x. For example {_solve_example()}.')
+    if for_letter is not None:
+        if isinstance(for_letter, str):
+            wanted = [for_letter]
+        else:
+            wanted = list(for_letter) if isinstance(for_letter, (list, tuple)) else None
+        if wanted is None or sorted(map(str, wanted)) != sorted(names):
+            raise SimplydataError(
+                f"for_letter= without exactly=True finds decimals, so every other letter needs a number from known= "
+                f"(the letters left to find are {', '.join(names)}). To rearrange the equation for {for_letter} with "
+                "the other letters kept, use exactly=True: "
+                'sdata.solve("p*V = n*R*T", for_letter="T", exactly=True).')
     if len(names) > len(formulas):
         raise SimplydataError(
             f"There are more names to find ({', '.join(names)}) than equations ({len(formulas)}), so there are "

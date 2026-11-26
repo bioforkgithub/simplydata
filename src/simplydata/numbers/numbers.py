@@ -32,6 +32,7 @@ from .more_number_words import MoreNumberWords, _short
 from .numbers_2 import ChanceWords, RandomPickWords, SmoothOverWords  # NumPy + SciPy phase, batch 2
 from ._base import NOT_GIVEN
 from .numbers_3 import GridWords3, NumberWords3, SharedWords3
+from .numbers_4 import GridWords4
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
@@ -88,7 +89,7 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 GridWords3, SharedWords3, BaseNumbers):
+                 GridWords3, GridWords4, SharedWords3, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -111,7 +112,12 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
               "bwconncomp": "find_each_patch_that", "clump": "find_each_patch_that", "zoom": "change_size_to",
               "resize": "change_size_to", "imresize": "change_size_to", "imrotate": "rotate",
               "expm": "take_matrix_exp", "matrix_exp": "take_matrix_exp", "null_space": "find_null_space",
-              "null": "find_null_space"}
+              "null": "find_null_space",
+              # numbers phase, batch 4: the matrix words
+              "det": "find_determinant", "determinant": "find_determinant", "inv": "take_inverse",
+              "inverse": "take_inverse", "solve_matrix": "take_inverse", "eig": "find_eigenvalues",
+              "eigvals": "find_eigenvalues", "eigvalsh": "find_eigenvalues", "eigenvals": "find_eigenvalues",
+              "eigen": "find_eigenvalues", "eigenvalues": "find_eigenvalues", "nullspace": "find_null_space"}
     # Words that cannot work on a grid, with the reason and what to write instead.
     _POINTERS = {"keep_each_number_that": _GRID_KEEP_NUMBERS, "remove_each_number_that": _GRID_KEEP_NUMBERS,
                  "keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}

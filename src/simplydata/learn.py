@@ -126,9 +126,14 @@ GROUPS = [
     # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
     ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
                                     "f.find_slope_formula", "f.find_area_formula", "f.find_value_at", "f.put_in",
-                                    "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo"]),
+                                    "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo",
+                                    # numbers phase, batch 4 (approved by Manish 2026-11-26)
+                                    "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
+                                    "f.as_sympy"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
-                                   "nums.turn_into_running_area"]),
+                                   "nums.turn_into_running_area",
+                                   # numbers phase, batch 4
+                                   "sdata.find_sum_of_series"]),
     ("Values between points", ["table.find_values_at", "table.make_map_of"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
     ("Distributions", ["sdata.distribution", "table.fit_distribution_to", "table.compare_distributions_for",
@@ -213,7 +218,9 @@ GROUPS = [
     # numbers phase, batch 3 (approved by Manish 2026-11-25)
     ("Grids: pairs, patches and matrices", ["grid.get_numbers_at_pairs", "grid.get_numbers_from_each_row_at",
                                             "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
-                                            "grid.take_matrix_exp", "grid.find_null_space"]),
+                                            "grid.take_matrix_exp", "grid.find_null_space",
+                                            # numbers phase, batch 4 (approved by Manish 2026-11-26)
+                                            "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -1596,6 +1603,23 @@ HELP_EXAMPLES.update({
                                                        'names="station")'),
     "table.find_fence_around": _tx("stations", 'corners = table.find_fence_around(x="east", y="north")\n'
                                                "print(corners)"),
+})
+
+# numbers phase, batch 4 (approved by Manish 2026-11-26): the SymPy words
+HELP_EXAMPLES.update({
+    "f.show_as_decimal": _fx("f.show_as_decimal(digits=50)", "sqrt(2)"),
+    "f.group_by_powers_of": _fx('f.group_by_powers_of("x")\nf.undo()', "a*x**2 + b*x**2 + a*x - x"),
+    "f.turn_into_partial_fractions": _fx("f.turn_into_partial_fractions()", "(3*x + 5) / ((x + 1)*(x + 2))"),
+    "f.as_sympy": _fx("expr = f.as_sympy()\nprint(type(expr))"),
+    "sdata.find_sum_of_series": _lines('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
+                                       'sdata.find_sum_of_series("k", between=[1, "n"])',
+                                       'sdata.find_sum_of_series("1/k", between=[1, "infinity"])'),
+    "grid.find_determinant": _lines("grid = sdata.number_grid([[2, 1], [1, 2]])", "grid.find_determinant()",
+                                    "grid.find_determinant(exactly=True)"),
+    "grid.take_inverse": _lines("grid = sdata.number_grid([[2, 1], [1, 2]])", "grid.take_inverse()", "print(grid)",
+                                "grid.undo()", "grid.take_inverse(exactly=True)"),
+    "grid.find_eigenvalues": _lines("grid = sdata.number_grid([[2, 1], [1, 2]])", "values = grid.find_eigenvalues()",
+                                    "print(values)", "grid.find_eigenvalues(exactly=True)"),
 })
 
 

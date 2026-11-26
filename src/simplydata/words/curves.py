@@ -96,6 +96,8 @@ def read_curve_formula(word, text):
     from .._maths_formula import read_formula
 
     example = 'draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])'
+    if hasattr(text, "_formula_text"):  # a formula made with sdata.formula() (numbers phase, batch 4)
+        text = text._formula_text()
     if not isinstance(text, str) or not text.strip():
         raise SimplydataError(f".{word}() needs a formula in quotes or a distribution.\nFor example chart.{example}")
     left = None
@@ -400,7 +402,8 @@ class CurveWords:
                    thickness=None, show="density") -> _Same:
         """Draw a formula, or a distribution, as a curve. chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])
 
-        The formula uses one name (x, or any other) and the functions of table.add_column;
+        The formula uses one name (x, or any other) and the functions of table.add_column; a formula made with
+        sdata.formula("x**3 - 3*x") can be drawn too;
         between=[low, high] says where along x (normally the x range of the chart).
         chart.draw_curve(sdata.distribution("normal", average=50, standard_deviation=10)) draws a
         distribution: its density curve, or for whole-number distributions (binomial,

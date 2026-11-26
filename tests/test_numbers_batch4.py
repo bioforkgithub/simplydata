@@ -1,0 +1,570 @@
+"""Numbers phase, batch 4 (approved by Manish 2026-11-26): the SymPy words.
+
+Each answer is compared with SymPy (or SciPy) doing the same, and with the answer worked out by hand where there is
+one. The time limit is tested with a SymPy call that really does not finish, and the helper process is checked to be
+gone when Python exits, even when Python is stopped without a goodbye.
+"""
+
+from __future__ import annotations
+
+import math
+import os
+import subprocess
+import sys
+import textwrap
+import time
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+import simplydata as sdata
+from simplydata import _time_limit
+
+pytestmark = pytest.mark.usefixtures("needs_sympy")
+SRC = Path(__file__).resolve().parents[1] / "src"
+
+
+def _sp():
+    import sympy as sp
+
+    return sp, sp.Symbol("x")
+
+
+def _listed(table, column) -> list:
+    """A column as a plain list (a column of numbers comes back as sdata.numbers, any other as a list)."""
+    found = table.get_column(column)
+    return found if isinstance(found, list) else found.as_numpy().tolist()
+
+
+# ---------------------------------------------------------------- P1: slopes
+def test_slope_how_many_times_and_mixed_slopes_are_sympy_diff(capsys):
+    sp, x = _sp()
+    y = sp.Symbol("y")
+    third = sdata.formula("sin(x)").find_slope_formula(how_many_times=3)
+    assert third._expr == sp.diff(sp.sin(x), x, 3) == -sp.cos(x)
+    assert "3 times over: -cos(x)   (the 3rd derivative; SymPy diff)" in capsys.readouterr().out
+    mixed = sdata.formula("x**2 * y**3").find_slope_formula(for_letter=["x", "y"])
+    assert mixed._expr == sp.diff(x ** 2 * y ** 3, x, y) == 6 * x * y ** 2
+    assert "mixed partial derivative" in capsys.readouterr().out
+    twice = sdata.formula("x**2 * y**3").find_slope_formula(for_letter=["y", "y"])
+    assert twice._expr == sp.diff(x ** 2 * y ** 3, y, 2)
+    assert sdata.formula("x**5").find_slope_formula(how_many_times=2)._expr == 20 * x ** 3
+
+
+@pytest.mark.parametrize("call, problem", [
+    (lambda f: f.find_slope_formula(how_many_times=0), "whole number from 1 to 20"),
+    (lambda f: f.find_slope_formula(how_many_times=21), "whole number from 1 to 20"),
+    (lambda f: f.find_slope_formula(how_many_times=2.5), "whole number"),
+    (lambda f: f.find_slope_formula(how_many_times=True), "whole number"),
+    (lambda f: f.find_slope_formula(for_letter=["x", "y"], how_many_times=2), "works with one letter"),
+    (lambda f: f.find_slope_formula(for_letter=["x", "z"]), "one of the letters"),
+    (lambda f: f.find_slope_formula(for_letter=[]), "list of 1 to 20"),
+    (lambda f: f.find_slope_formula(for_letter=["__import__('os')"]), "one of the letters"),
+])
+def test_slope_options_are_checked(call, problem):
+    with pytest.raises(sdata.SimplydataError, match=problem):
+        call(sdata.formula("x**2 * y"))
+
+
+# ---------------------------------------------------------------- P2: one-sided limits
+def test_limit_from_one_side_is_sympy_dir(capsys):
+    sp, x = _sp()
+    f = sdata.formula("1/x")
+    assert f.find_limit_as("x", goes_to=0, from_side="above") == math.inf
+    assert "from above" in capsys.readouterr().out
+    assert f.find_limit_as("x", goes_to=0, from_side="below") == -math.inf
+    g = sdata.formula("abs(x) / x")
+    for side, sign, value in [("above", "+", 1.0), ("right", "+", 1.0), ("+", "+", 1.0), ("below", "-", -1.0),
+                              ("left", "-", -1.0), ("-", "-", -1.0)]:
+        assert g.find_limit_as("x", goes_to=0, from_side=side) == float(sp.limit(sp.Abs(x) / x, x, 0, dir=sign)) == value
+    with pytest.raises(sdata.SimplydataError, match='from_side="above"'):  # both sides differ: points to from_side=
+        g.find_limit_as("x", goes_to=0)
+
+
+def test_limit_from_side_is_checked():
+    f = sdata.formula("1/x")
+    with pytest.raises(sdata.SimplydataError, match="does not know from_side"):
+        f.find_limit_as("x", goes_to=0, from_side="up")
+    with pytest.raises(sdata.SimplydataError, match="only one side"):
+        f.find_limit_as("x", goes_to="infinity", from_side="below")
+
+
+# ---------------------------------------------------------------- P3, P4, P5: decimal, grouping, partial fractions
+def test_show_as_decimal_is_sympy_n(capsys):
+    sp, _ = _sp()
+    text = sdata.formula("sqrt(2)").show_as_decimal(digits=50)
+    assert text == str(sp.N(sp.sqrt(2), 50)) == "1.4142135623730950488016887242096980785696718753769"
+    assert text in capsys.readouterr().out
+    assert sdata.formula("pi").show_as_decimal() == str(sp.N(sp.pi, 15))
+    assert sdata.formula("x**2").put_in(x=3).show_as_decimal(digits=3) == "9.00"
+    with pytest.raises(sdata.SimplydataError, match="still has letters"):
+        sdata.formula("x + 1").show_as_decimal()
+    with pytest.raises(sdata.SimplydataError, match="from 1 to 10,000"):
+        sdata.formula("sqrt(2)").show_as_decimal(digits=10_001)
+    with pytest.raises(sdata.SimplydataError, match="no value among the ordinary numbers"):
+        sdata.formula("1/(1 - 1)").show_as_decimal()
+
+
+def test_group_by_powers_of_is_expand_then_collect(capsys):
+    sp, x = _sp()
+    a, b = sp.symbols("a b")
+    f = sdata.formula("a*x**2 + b*x**2 + a*x - x")
+    f.group_by_powers_of("x")
+    assert f._expr == sp.collect(sp.expand(a * x ** 2 + b * x ** 2 + a * x - x), x) == x ** 2 * (a + b) + x * (a - 1)
+    assert "grouped by powers of x" in capsys.readouterr().out
+    f.undo()
+    assert f._expr == a * x ** 2 + b * x ** 2 + a * x - x
+    g = sdata.formula("(a + x)*(b + x) - x").group_by_powers_of("x")  # brackets are multiplied out first
+    assert g._expr == sp.collect(sp.expand((a + x) * (b + x) - x), x)
+    with pytest.raises(sdata.SimplydataError, match="one of the letters"):
+        sdata.formula("a*x").group_by_powers_of("z")
+
+
+def test_partial_fractions_is_sympy_apart():
+    sp, x = _sp()
+    f = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))").turn_into_partial_fractions()
+    assert f._expr == sp.apart((3 * x + 5) / ((x + 1) * (x + 2)), x) == 1 / (x + 2) + 2 / (x + 1)
+    f.undo()
+    assert f._expr == (3 * x + 5) / ((x + 1) * (x + 2))
+    with pytest.raises(sdata.SimplydataError, match="fraction of polynomials"):
+        sdata.formula("sin(x) / (x + 1)").turn_into_partial_fractions()
+    with pytest.raises(sdata.SimplydataError, match="for_letter="):
+        sdata.formula("1 / ((x + a)*(x + 1))").turn_into_partial_fractions()
+    a = sp.Symbol("a")
+    found = sdata.formula("1 / ((x + a)*(x + 1))").turn_into_partial_fractions(for_letter="x")
+    assert found._expr == sp.apart(1 / ((x + a) * (x + 1)), x)
+
+
+@pytest.mark.parametrize("word", ["turn_into_sum", "group_by_powers_of", "turn_into_partial_fractions"])
+def test_a_sum_with_letters_to_a_big_power_is_refused_before_expand(word):
+    f = sdata.formula("(x + y + z + 1)**200" if word != "turn_into_partial_fractions" else "1/(x + 1)**101")
+    with pytest.raises(sdata.SimplydataError, match="far too many terms"):
+        getattr(f, word)(*(["x"] if word == "group_by_powers_of" else []))
+    sdata.formula("(x + 1)**100").turn_into_sum()  # up to 100 is fine
+    sdata.formula("x**500").turn_into_sum()  # a single letter to a big power is nothing to multiply out
+
+
+# ---------------------------------------------------------------- P6: letters_are=
+def test_letters_are_gives_sympy_assumptions(capsys):
+    sp, _ = _sp()
+    k, t = sp.symbols("k t", positive=True)
+    f = sdata.formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
+    assert "letters k (positive), t (positive)" in capsys.readouterr().out
+    assert f._expr == sp.sqrt(k ** 2) + sp.log(k * t) == k + sp.log(k * t)
+    assert f.turn_into_sum()._expr == sp.expand(k + sp.log(k * t)) == k + sp.log(k) + sp.log(t)
+    assert "k (positive)" in repr(f)
+    plain = sdata.formula("sqrt(k**2)")
+    assert plain._expr != sp.Symbol("k")  # without the option SymPy may not drop the root
+    n = sdata.formula("cos(pi*n)", letters_are={"n": "whole number"})
+    assert n.make_simpler()._expr == (-1) ** sp.Symbol("n", integer=True)
+    # the letters keep what they are through the other words
+    assert f.find_slope_formula(for_letter="k").find_value_at(k=2) == pytest.approx(1.5)
+    assert f.put_in(t=1)._expr == k + sp.log(k)
+    assert f.find_value_at(k=2, t=3) == pytest.approx(2 + math.log(6))
+
+
+@pytest.mark.parametrize("option, problem", [
+    ({"q": "positive"}, "not a letter of the formula"), ({"k": "huge"}, "does not know letters_are for k"),
+    ("positive", "dict of letter"), ({}, "dict of letter"), ({"k": 1}, "does not know"),
+    ({"__import__('os')": "positive"}, "not a letter of the formula"),
+])
+def test_letters_are_is_checked_against_the_letters_and_a_fixed_list(option, problem):
+    with pytest.raises(sdata.SimplydataError, match=problem):
+        sdata.formula("sqrt(k**2)", letters_are=option)
+
+
+def test_letters_are_spellings():
+    sp, _ = _sp()
+    assert sdata.formula("k", letters_are={"k": "non-negative"})._expr.is_nonnegative
+    assert sdata.formula("k", letters_are={"k": "integer"})._expr.is_integer
+    assert sdata.formula("k", letters_are={"k": "positive whole number"})._expr.is_positive
+
+
+# ---------------------------------------------------------------- P7, P8, P9: solve
+def test_solve_for_one_letter_keeps_the_others(capsys):
+    sp, _ = _sp()
+    p, V, n, R, T = sp.symbols("p V n R T")
+    found = sdata.solve("p*V = n*R*T", for_letter="T", exactly=True)
+    assert _listed(found, "T exactly") == [str(s[T]) for s in sp.solve([sp.Eq(p * V, n * R * T)], [T],
+                                                                                    dict=True)] == ["V*p/(R*n)"]
+    assert found.get_cell_at(row=1, column="T") is None  # an empty decimal
+    out = capsys.readouterr().out
+    assert "T = V*p/(R*n)" in out and "stay letters" in out
+    with pytest.raises(sdata.SimplydataError, match="not a letter of the equations"):
+        sdata.solve("p*V = n*R*T", for_letter="Q", exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="for_letter="):  # still more letters than equations
+        sdata.solve("p*V = n*R*T", exactly=True)
+    two = sdata.solve(["x + y = a", "x - y = b"], for_letter=["x", "y"], exactly=True)
+    assert _listed(two, "x exactly") == ["a/2 + b/2"]
+
+
+def test_solve_for_letter_without_exactly_needs_the_others_known():
+    found = sdata.solve("p*V = n*R*T", for_letter="T", known={"p": 101325, "V": 0.0224, "n": 1, "R": 8.314},
+                        between=[0, 1000])
+    assert found.get_cell_at(row=1, column="T") == pytest.approx(101325 * 0.0224 / 8.314)
+    with pytest.raises(sdata.SimplydataError, match="exactly=True"):
+        sdata.solve("p*V = n*R*T", for_letter="T", between=[0, 1000])
+
+
+def test_solve_letters_are(capsys):
+    sp, _ = _sp()
+    c = sp.Symbol("c", positive=True)
+    found = sdata.solve("c**2 = 4", exactly=True, letters_are={"c": "positive"})
+    assert _listed(found, "c exactly") == [str(s[c]) for s in sp.solve([sp.Eq(c ** 2, 4)], [c],
+                                                                                    dict=True)] == ["2"]
+    assert "These are all the solutions" in capsys.readouterr().out
+    assert sdata.solve("c**2 = 4", exactly=True).count_rows() == 2
+    with pytest.raises(sdata.SimplydataError, match="works with exactly=True"):
+        sdata.solve("c**2 = 4", between=[0, 3], letters_are={"c": "positive"})
+
+
+def test_solve_rules_are_sympy_solveset_over_the_reals(capsys):
+    sp, x = _sp()
+    found = sdata.solve("x**2 - 4 > 0", exactly=True)
+    whole = sp.solveset(x ** 2 - 4 > 0, x, sp.S.Reals)
+    assert _listed(found, "to exactly") == [str(piece.end) for piece in whole.args] == ["-2", "oo"]
+    assert _listed(found, "from") == [-math.inf, 2.0]
+    assert _listed(found, "includes to") == [False, False]
+    assert "x**2 - 4 > 0 when x < -2 or x > 2   (SymPy solveset over the real numbers)" in capsys.readouterr().out
+    closed = sdata.solve("x**2 <= 9", exactly=True)
+    assert _listed(closed, "from") == [-3.0] and _listed(closed, "includes from") == [True]
+    several = sdata.solve(["x > 1", "x <= 3"], exactly=True)
+    reduced = sp.reduce_inequalities([x > 1, x <= 3], x).as_set()
+    assert (several.get_cell_at(row=1, column="from"), several.get_cell_at(row=1, column="to")) == (
+        float(reduced.start), float(reduced.end)) == (1.0, 3.0)
+    assert "1 < x <= 3" in capsys.readouterr().out
+    point = sdata.solve("x**2 <= 0", exactly=True)
+    assert _listed(point, "from") == [0.0] == _listed(point, "to")
+    never = sdata.solve("x**2 < 0", exactly=True)
+    assert "is never true" in capsys.readouterr().out and never.get_cell_at(row=1, column="from") is None
+    with pytest.raises(sdata.SimplydataError, match="not both at once"):
+        sdata.solve(["x = 1", "x > 0"], exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="in one letter"):
+        sdata.solve("x + y > 0", exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="works with = only.*exactly=True"):
+        sdata.solve("x**2 - 4 > 0", between=[0, 3])
+
+
+def test_a_formula_means_formula_equals_zero(capsys):
+    sp, x = _sp()
+    f = sdata.formula("x**3 - 3*x")
+    found = sdata.solve(f.find_slope_formula(), exactly=True)
+    assert _listed(found, "x") == [-1.0, 1.0]
+    assert "3*x**2 - 3 = 0 when x = -1 or x = 1" in capsys.readouterr().out
+    numeric = sdata.solve(f.find_slope_formula(), between=[0, 3])
+    assert numeric.get_cell_at(row=1, column="x") == pytest.approx(1.0)
+    k = sdata.formula("k**2 - 4", letters_are={"k": "positive"})
+    assert _listed(sdata.solve(k, exactly=True), "k") == [2.0]  # the letter keeps what it is
+    assert _listed(sdata.solve([sdata.formula("x + y - 3"), "x - y = 1"], exactly=True), "y") == [1.0]
+
+
+def test_draw_curve_takes_a_formula(tmp_path):
+    f = sdata.formula("x**3 - 3*x")
+    chart = sdata.chart()
+    chart.draw_curve(f, between=[-2, 2])
+    chart.save(str(tmp_path / "curve.png"))
+    assert (tmp_path / "curve.png").stat().st_size > 0
+    line = chart._render().axes[0].get_lines()[0]
+    xs, ys = line.get_data()
+    assert np.allclose(ys, xs ** 3 - 3 * xs)
+
+
+# ---------------------------------------------------------------- P10: sums of series
+def test_sum_of_series_is_sympy_summation(capsys):
+    sp, _ = _sp()
+    k, n = sp.Symbol("k", integer=True), sp.Symbol("n", integer=True)
+    basel = sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])
+    assert basel._expr == sp.summation(1 / k ** 2, (k, 1, sp.oo)) == sp.pi ** 2 / 6
+    assert "pi**2/6 (about 1.644934067)   (SymPy summation)" in capsys.readouterr().out
+    assert sdata.find_sum_of_series("k", between=[1, "n"])._expr == sp.summation(k, (k, 1, n)) == n ** 2 / 2 + n / 2
+    assert sdata.find_sum_of_series("1/2**k", between=[0, "infinity"])._expr == 2
+    assert sdata.find_sum_of_series("k**2", between=[1, 10])._expr == 385
+    big = sdata.find_sum_of_series("k**2", between=[1, 10**9])  # never added term by term
+    assert big._expr == sp.Integer(10**9) * (10**9 + 1) * (2 * 10**9 + 1) / 6
+
+
+def test_sum_of_series_says_when_it_does_not_settle(capsys):
+    sp, _ = _sp()
+    assert sdata.find_sum_of_series("1/k", between=[1, "infinity"]) == math.inf
+    assert "grows without end" in capsys.readouterr().out
+    assert math.isnan(sdata.find_sum_of_series("(-1)**k", between=[0, "infinity"]))
+    assert "does not settle" in capsys.readouterr().out
+    k = sp.Symbol("k", integer=True)
+    settles = sdata.find_sum_of_series("1/(k**3 + k + 1)", between=[1, "infinity"])
+    assert settles == pytest.approx(float(sp.Sum(1 / (k ** 3 + k + 1), (k, 1, sp.oo)).evalf()), rel=1e-12)
+    assert "no exact formula; it settles at about 0.49472" in capsys.readouterr().out
+    geometric = sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k")
+    assert str(geometric) == "1/(1 - r)"
+    assert "when Abs(r) < 1; otherwise it does not settle" in capsys.readouterr().out
+    assert sdata.find_sum_of_series("r**k", between=[0, "infinity"], for_letter="k", known={"r": 0.5})._expr == 2
+
+
+@pytest.mark.parametrize("kwargs, problem", [
+    ({"between": [1]}, "first and the last"), ({"between": [1.5, 3]}, "whole numbers"),
+    ({"between": [5, 1]}, "smaller end"), ({"between": [1, "__import__('os')"]}, "not a function"),
+    ({"between": [1, "n + 1"]}, "whole numbers"), ({"between": [1, "k"]}, "letter that counts"),
+    ({"between": [1, 10], "for_letter": "q"}, "one of the letters"),
+])
+def test_sum_of_series_checks_its_options(kwargs, problem):
+    with pytest.raises(sdata.SimplydataError, match=problem):
+        sdata.find_sum_of_series("1/k**2", **kwargs)
+
+
+def test_a_long_finite_sum_without_a_formula_is_refused():
+    with pytest.raises(sdata.SimplydataError, match="does not add more than 10,000 terms"):
+        sdata.find_sum_of_series("log(k)/k**2", between=[1, 10**9])
+
+
+# ---------------------------------------------------------------- P11, P12: volumes and paths exactly
+def test_volume_exactly_is_sympy_integrate_inner_letter_first(capsys):
+    sp, _ = _sp()
+    x, y = sp.symbols("x y")
+    v = sdata.find_volume_under("x * y**2", between={"x": [0, 1], "y": [0, 2]}, exactly=True)
+    assert v._expr == sp.integrate(x * y ** 2, (y, 0, 2), (x, 0, 1)) == sp.Rational(4, 3)
+    assert "y first (the inner letter)" in capsys.readouterr().out
+    triangle = sdata.find_volume_under("x + y + z", between={"x": [0, 1], "y": [0, 1], "z": [0, 1]}, exactly=True)
+    assert triangle._expr == sp.Rational(3, 2)
+    assert sdata.find_volume_under("exp(-x**2 - y**2)", between={"x": ["-infinity", "infinity"],
+                                                                 "y": ["-infinity", "infinity"]},
+                                   exactly=True)._expr == sp.pi
+    with pytest.raises(sdata.SimplydataError, match="does not settle|infinite"):
+        sdata.find_volume_under("1/(x*y)", between={"x": [0, 1], "y": [0, 1]}, exactly=True)
+
+
+def test_path_general_formula_and_second_order(capsys):
+    sp, _ = _sp()
+    t, r, C1, C2 = sp.symbols("t r C1 C2")
+    N, X = sp.Function("N"), sp.Function("x")
+    general = sdata.find_path_over_time("dN/dt = r * N", exactly=True)
+    assert general._expr == sp.simplify(sp.dsolve(sp.Eq(N(t).diff(t), r * N(t)), N(t)).rhs) == C1 * sp.exp(r * t)
+    assert "C1 is a constant" in capsys.readouterr().out
+    spring = sdata.find_path_over_time("d2x/dt2 = -k*x", at_start={"x": 1, "dx/dt": 0}, known={"k": 4},
+                                       exactly=True)
+    assert spring._expr == sp.cos(2 * t)
+    free = sdata.find_path_over_time("d^2x/dt^2 = -k*x", known={"k": 4}, exactly=True)
+    assert free._expr == C1 * sp.sin(2 * t) + C2 * sp.cos(2 * t)
+    assert "C1 and C2 are constants" in capsys.readouterr().out
+    damped = sdata.find_path_over_time("d2x/dt2 = -k*x - c*dx/dt", at_start={"x": 1, "dx/dt": 0},
+                                       known={"k": 4, "c": 1}, exactly=True)
+    solved = sp.dsolve(sp.Eq(X(t).diff(t, 2), -4 * X(t) - X(t).diff(t)), X(t),
+                       ics={X(0): 1, X(t).diff(t).subs(t, 0): 0})
+    assert sp.simplify(damped._expr - solved.rhs) == 0
+
+
+def test_second_order_in_numbers_is_two_first_order_equations():
+    from scipy.integrate import solve_ivp
+
+    path = sdata.find_path_over_time("d2x/dt2 = -k*x - c*dx/dt", at_start={"x": 1, "dx/dt": 0}, between=[0, 10],
+                                     known={"k": 4, "c": 0.5}, time_step=0.5)
+    assert path.get_column_names() == ["time", "x", "dx/dt"]
+    s = solve_ivp(lambda t, y: [y[1], -4 * y[0] - 0.5 * y[1]], (0, 10), [1, 0], t_eval=np.linspace(0, 10, 21),
+                  rtol=1e-6, atol=1e-6)
+    assert np.allclose(path.get_column("x").as_numpy(), s.y[0], rtol=0, atol=1e-12)
+    assert np.allclose(path.get_column("dx/dt").as_numpy(), s.y[1], rtol=0, atol=1e-12)
+    w = math.sqrt(4 - 0.0625)
+    assert path.get_cell_at(row=21, column="x") == pytest.approx(
+        math.exp(-2.5) * (math.cos(10 * w) + 0.25 / w * math.sin(10 * w)), abs=1e-4)
+
+
+@pytest.mark.parametrize("kwargs, problem", [
+    ({"equations": ["d2x/dt2 = -x", "dy/dt = y"], "at_start": {"x": 1, "dx/dt": 0, "y": 1}, "between": [0, 1]},
+     "works on its own"),
+    ({"equations": "d2x/dt2 = -x", "at_start": {"x": 1}, "between": [0, 1]}, "missing: dx/dt"),
+    ({"equations": "d2x/dt2 = -dx_dt", "at_start": {"x": 1, "dx/dt": 0}, "between": [0, 1]}, "use another letter"),
+    ({"equations": "dN/dt = r * N", "between": [0, 1], "known": {"r": 0.3}}, "general formula"),
+])
+def test_path_options_are_checked(kwargs, problem):
+    with pytest.raises(sdata.SimplydataError, match=problem):
+        sdata.find_path_over_time(**kwargs)
+
+
+# ---------------------------------------------------------------- P13: the matrix words
+GRID = [[4, 3, 2], [3, 5, 1], [2, 1, 6]]
+
+
+def test_determinant_inverse_and_eigenvalues_are_scipy(capsys):
+    from scipy import linalg
+
+    g = np.array(GRID, dtype=float)
+    assert sdata.number_grid(GRID).find_determinant() == float(linalg.det(g))
+    grid = sdata.number_grid(GRID)
+    grid.take_inverse()
+    assert np.array_equal(grid.as_numpy(), linalg.inv(g))
+    grid.undo()
+    assert np.array_equal(grid.as_numpy(), g)
+    values = sdata.number_grid(GRID).find_eigenvalues()
+    assert np.array_equal(values.get_column("eigenvalue").as_numpy(), linalg.eigvalsh(g)[::-1])
+    assert "eigvalsh, for a symmetric grid" in capsys.readouterr().out
+    turn = sdata.number_grid([[0, -1], [1, 0]]).find_eigenvalues()
+    assert _listed(turn, "imaginary part") == [1.0, -1.0]
+    assert "linalg.eigvals)" in capsys.readouterr().out
+
+
+def test_matrix_words_refuse_what_has_no_answer():
+    with pytest.raises(sdata.SimplydataError, match="has no inverse"):
+        sdata.number_grid([[1, 2], [2, 4]]).take_inverse()
+    with pytest.raises(sdata.SimplydataError, match="exactly 0"):
+        sdata.number_grid([[1, 2], [2, 4]]).take_inverse(exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="square grid"):
+        sdata.number_grid([[1, 2, 3], [4, 5, 6]]).find_determinant()
+    with pytest.raises(sdata.SimplydataError, match="up to 6 rows"):
+        sdata.number_grid(np.eye(7).tolist()).find_eigenvalues(exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="up to 12 rows"):
+        sdata.number_grid(np.eye(13).tolist()).find_determinant(exactly=True)
+    with pytest.raises(sdata.SimplydataError, match="True or False"):
+        sdata.number_grid(GRID).find_determinant(exactly="yes")
+
+
+def test_matrix_words_exactly_are_sympy_matrix(capsys):
+    sp, _ = _sp()
+    d = sdata.number_grid([[0.5, 0.25], [0.2, 0.4]]).find_determinant(exactly=True)
+    assert d._expr == sp.Matrix([[sp.Rational(1, 2), sp.Rational(1, 4)], [sp.Rational(1, 5), sp.Rational(2, 5)]]).det()
+    assert d._expr == sp.Rational(3, 20)
+    grid = sdata.number_grid([[2, 1], [1, 2]])
+    grid.take_inverse(exactly=True)
+    assert "[2/3, -1/3]" in capsys.readouterr().out
+    assert np.array_equal(grid.as_numpy(), np.array(sp.Matrix([[2, 1], [1, 2]]).inv().evalf(), dtype=float))
+    exact = sdata.number_grid([[2, 1, 0], [0, 2, 0], [0, 0, 3]]).find_eigenvalues(exactly=True)
+    assert _listed(exact, "eigenvalue exactly") == ["3", "2"]
+    assert _listed(exact, "times") == [1, 2]
+    assert sp.Matrix([[2, 1, 0], [0, 2, 0], [0, 0, 3]]).eigenvals() == {3: 1, 2: 2}
+    roots = sdata.number_grid([[1, 1], [1, 0]]).find_eigenvalues(exactly=True)
+    assert _listed(roots, "eigenvalue exactly") == ["1/2 + sqrt(5)/2", "1/2 - sqrt(5)/2"]
+    null = sdata.number_grid([[1, 2], [2, 4]]).find_null_space(exactly=True)
+    assert null.as_numpy().tolist() == [[-2.0], [1.0]]
+    assert "not of length 1" in capsys.readouterr().out
+    none = sdata.number_grid([[1, 0], [0, 1]]).find_null_space(exactly=True)
+    assert none.as_numpy().shape == (2, 0)
+
+
+# ---------------------------------------------------------------- P14: display, the bridge and the time limit
+def test_repr_latex_and_as_sympy():
+    sp, x = _sp()
+    f = sdata.formula("x**3 - 2*x")
+    assert f._repr_latex_() == "$\\displaystyle " + sp.latex(x ** 3 - 2 * x) + "$"
+    expr = f.as_sympy()
+    assert expr == x ** 3 - 2 * x and isinstance(expr, sp.Expr)
+    assert "_repr_latex_" not in dir(f) and "as_sympy" in dir(f)
+
+
+def test_the_new_words_have_other_names():
+    with pytest.raises(sdata.MissingWordError if hasattr(sdata, "MissingWordError") else Exception,
+                       match="turn_into_partial_fractions"):
+        sdata.formula("x").apart()
+    with pytest.raises(Exception, match="group_by_powers_of"):
+        sdata.formula("x").collect()
+    with pytest.raises(Exception, match="find_sum_of_series"):
+        sdata.summation
+    with pytest.raises(Exception, match="find_determinant"):
+        sdata.det
+    with pytest.raises(Exception, match="find_eigenvalues"):
+        sdata.number_grid([[1, 0], [0, 1]]).eigvals()
+
+
+def test_heavy_sympy_calls_run_in_one_kept_alive_helper():
+    sp, x = _sp()
+    sdata.formula("x**2 - 1").turn_into_product()
+    first = _time_limit.helper_process_id()
+    assert first is not None and first != os.getpid()
+    sdata.formula("sin(x)**2 + cos(x)**2").make_simpler()
+    sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], exactly=True)
+    assert _time_limit.helper_process_id() == first  # the same helper, kept alive
+    with pytest.raises(ValueError, match="direction"):  # SymPy's own errors come back as they are
+        _time_limit.run_with_time_limit(sp.limit, 1 / x, x, 0, dir="up")
+
+
+def test_a_call_that_does_not_finish_is_stopped_and_the_helper_restarts(monkeypatch):
+    sp, x = _sp()
+    monkeypatch.setattr(_time_limit, "TIME_LIMIT", 3.0)
+    sdata.formula("x").make_simpler()
+    before = _time_limit.helper_process_id()
+    started = time.monotonic()
+    with pytest.raises(sdata.SimplydataError, match="SymPy integrate did not finish in 3 seconds"):
+        sdata.formula("exp(sin(x))*log(x)**3/(1 + x**7)").find_area_formula()  # SymPy works on this for minutes
+    assert time.monotonic() - started < 30
+    assert not _time_limit.helper_is_running()
+    with pytest.raises(sdata.SimplydataError, match="did not finish"):  # a big number SymPy cannot factor quickly
+        _time_limit.run_with_time_limit(sp.factorint, 2 ** 512 + 1, what="SymPy factorint")
+    assert sdata.formula("x**2 - 1").turn_into_product()._expr == (x - 1) * (x + 1)
+    after = _time_limit.helper_process_id()
+    assert after is not None and after != before
+
+
+def _alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        import ctypes
+
+        kernel = ctypes.windll.kernel32
+        handle = kernel.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        code = ctypes.c_ulong()
+        kernel.GetExitCodeProcess(handle, ctypes.byref(code))
+        kernel.CloseHandle(handle)
+        return code.value == 259  # STILL_ACTIVE
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:  # pragma: no cover
+        return True
+    try:  # a finished child of init that is not yet reaped counts as gone
+        with open(f"/proc/{pid}/stat") as stat:
+            return stat.read().split()[2] != "Z"
+    except OSError:
+        return True
+
+
+def _run_script(tmp_path, body: str, end: str = ""):
+    temp = tmp_path / "temp"
+    temp.mkdir()
+    script = tmp_path / "script.py"
+    script.write_text(textwrap.dedent(body) + end, encoding="utf-8")
+    env = {**os.environ, "PYTHONPATH": str(SRC), "SIMPLYDATA_NO_CITE_LIST": "1", "TEMP": str(temp), "TMP": str(temp),
+           "TMPDIR": str(temp)}
+    result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, cwd=tmp_path, env=env,
+                            timeout=300)
+    assert result.returncode == 0, result.stderr
+    return result, temp
+
+
+SCRIPT = """
+    print("top-level line")   # no if __name__ == "__main__": the helper must not run this again
+    import simplydata as sdata
+    from simplydata import _time_limit
+    sdata.formula("(x**2 - 1) / (x - 1)").make_simpler()
+    print("HELPER", _time_limit.helper_process_id())
+"""
+
+
+def _helper_gone(pid: int, seconds: float = 20.0) -> bool:
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if not _alive(pid):
+            return True
+        time.sleep(0.2)
+    return False
+
+
+def test_the_helper_is_stopped_when_python_exits_and_leaves_no_file(tmp_path):
+    result, temp = _run_script(tmp_path, SCRIPT)
+    assert result.stdout.count("top-level line") == 1
+    pid = int(result.stdout.split("HELPER")[1].split()[0])
+    assert _helper_gone(pid)
+    assert list(temp.iterdir()) == []  # no temporary file left behind
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["script.py", "temp"]  # and nothing else written
+
+
+def test_the_helper_stops_when_python_is_killed_without_a_goodbye(tmp_path):
+    result, _ = _run_script(tmp_path, SCRIPT, "import os, sys\nsys.stdout.flush()\nos._exit(0)\n")
+    pid = int(result.stdout.split("HELPER")[1].split()[0])
+    assert _helper_gone(pid)  # the helper sees its pipe close and ends
+
+
+def test_without_a_helper_sympy_runs_here_and_says_so(monkeypatch, capsys):
+    monkeypatch.setattr(_time_limit, "_start", lambda: None)
+    monkeypatch.setitem(_time_limit._STATE, "said_no_helper", False)
+    sp, x = _sp()
+    assert sdata.formula("x**2 - 1").turn_into_product()._expr == (x - 1) * (x + 1)
+    assert "without the 60-second time limit" in capsys.readouterr().out

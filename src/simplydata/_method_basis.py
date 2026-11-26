@@ -4761,7 +4761,8 @@ REFERENCES.update({
 BASIS["sdata.formula"] = _b(
     "Every letter of the formula is handed to SymPy as a plain Symbol of its own (no assumptions such as positive or "
     "real), so E, I, N, S and beta stay letters.",
-    "None: write pi for 3.14159... and exp(1) for e.",
+    "letters_are= gives a letter SymPy's assumptions (positive, zero or more, negative, real, whole number); write "
+    "pi for 3.14159... and exp(1) for e.",
     "SymPy's parser alone reads E as the number e, I as the imaginary unit and N, S, beta as its own functions, which "
     "would change a researcher's formula without a word (Meurer et al. 2017 describe the parser).", ("meurer2017",),
     "P4", "The text is checked with Python's ast first: numbers, letters, + - * / ** ^, brackets and the functions "
@@ -4775,7 +4776,8 @@ BASIS["f.find_value_at"] = _b(
     "convention")
 BASIS["f.find_limit_as"] = _b(
     "At a number, the limit from both sides (SymPy limit(dir=\"+-\")); at infinity, from below.",
-    "None: when the two sides differ, simplydata says so and gives the value from each.",
+    "from_side=\"above\" or \"below\" for one side only (SymPy dir=\"+\" or \"-\"); when the two sides differ, "
+    "simplydata says so and gives the value from each.",
     "A limit in school maths and in most textbooks is two-sided; SymPy's own default (from above only) would give a "
     "value where the limit does not exist, such as 1/x at 0.", ("meurer2017",), "P4",
     "goes_to= is a number, \"infinity\" or \"-infinity\".", "convention")
@@ -4888,3 +4890,82 @@ BASIS["table.find_fence_around"] = _b(
     "None: R chull() gives the same corners, clockwise.",
     "Quickhull (Barber et al. 1996) is the standard convex-hull algorithm in SciPy, MATLAB and R geometry.",
     ("barber1996",), "P3", "At least 3 points that are not on one line.", "published")
+
+# ---------------------------------------------------------------- numbers phase, batch 4 (approved by Manish 2026-11-26)
+REFERENCES.update({
+    "anderson1999": _ref("Anderson et al. 1999", "Anderson E, Bai Z, Bischof C et al. (1999). LAPACK Users' Guide (3rd ed.). Society for Industrial and Applied Mathematics, Philadelphia.", doi="10.1137/1.9780898719604"),
+})
+
+BASIS["f.group_by_powers_of"] = _b(
+    "The formula is multiplied out first (SymPy expand), then the terms are gathered by the powers of the letter "
+    "(collect).",
+    "None: f.turn_into_product() or f.make_simpler() write it in other ways; f.undo() takes the step back.",
+    "SymPy collect gathers only the terms it can see, so (a + x)*(b + x) would stay as it is; expanding first gives "
+    "the grouping a reader expects from the name, as in textbooks.", ("meurer2017",), "P5",
+    "The letter must be a letter of the formula; a sum with letters raised to a whole power above 100 is refused "
+    "before it is multiplied out.", "convention")
+BASIS["sdata.solve exactly=True with a rule"] = _b(
+    "Rules (<, >, <=, >=) are solved over the real numbers (SymPy solveset with domain S.Reals; reduce_inequalities "
+    "for several rules in one letter).",
+    "None: equations (=) give every solution, complex ones too.",
+    "< and > compare real numbers only; SymPy solveset's own default domain is the complex numbers, where a rule has "
+    "no meaning.", ("meurer2017",), "P4",
+    "One letter only; equations and rules are not mixed; the answer is written as ranges with their ends.",
+    "convention")
+BASIS["sdata.find_sum_of_series"] = _b(
+    "The letter that counts is a whole number (a SymPy Symbol with integer=True), summed with SymPy summation; with "
+    "no closed form, Sum.is_convergent decides whether it settles and evalf gives the decimal.",
+    "for_letter= says which letter counts; known= fixes the others; between= may end at a letter for the formula "
+    "of the partial sum.",
+    "A series counts in whole numbers, and SymPy can simplify terms such as (-1)**(2*k) only when it knows that; "
+    "the convergence test says plainly when a sum does not settle instead of giving a meaningless decimal.",
+    ("meurer2017",), "P4",
+    "A finite sum with no closed form and more than 10,000 terms is refused rather than added term by term.",
+    "convention")
+BASIS["sdata.find_volume_under exactly="] = _b(
+    "SymPy integrate over each letter in turn, the inner letter (the last of between=) first, as without "
+    "exactly=True.",
+    "Without exactly=True: the volume in numbers (SciPy dblquad, tplquad, nquad).",
+    "The same order of letters as the numeric word, so the two agree; integrate is SymPy's exact integrator.",
+    ("meurer2017",), "P5", "An answer that is infinite, does not converge or cannot be found exactly is refused, "
+    "with a sentence.", "convention")
+BASIS['sdata.find_path_over_time equations="d2x/dt2 = ..."'] = _b(
+    "A second-order equation becomes two first-order ones, with the speed dx/dt as a second changing value, solved "
+    "by SciPy solve_ivp (RK45, tolerances 1e-6 as R deSolve).",
+    "exactly=True: SymPy dsolve; test_method= as for first-order equations.",
+    "Writing an equation of order n as n first-order equations is the standard route of every initial-value solver "
+    "(Soetaert et al. 2010 for R deSolve; SciPy solve_ivp takes first-order systems only).",
+    ("soetaert2010", "dormand1980"), "P3", "One second-order equation on its own; at_start= needs x and dx/dt.",
+    "published")
+BASIS["grid.find_determinant exactly="] = _b(
+    "Each number of the grid becomes the fraction it stands for (SymPy nsimplify, rational=True: 0.2 is 1/5), then "
+    "SymPy Matrix.det works exactly.",
+    "Without exactly=True: SciPy linalg.det (LU decomposition, LAPACK).",
+    "A decimal such as 0.2 cannot be held exactly by a float; the fraction it was typed as is what the reader "
+    "means.", ("meurer2017",), "P5", "Grids up to 12 x 12 with a number in every cell.", "convention")
+BASIS["grid.take_inverse exactly="] = _b(
+    "The exact inverse from SymPy (the numbers as fractions) is printed as fractions; the grid keeps their "
+    "decimals, so the other grid words work on it.",
+    "Without exactly=True: SciPy linalg.inv (LAPACK).",
+    "A grid holds numbers, so the fractions are shown for reading and the decimals kept for working on.",
+    ("meurer2017",), "P5", "A grid whose determinant is exactly 0 is refused; grids up to 12 x 12.", "convention")
+BASIS["grid.find_eigenvalues"] = _b(
+    "A symmetric grid uses SciPy linalg.eigvalsh (real eigenvalues always); any other grid linalg.eigvals; biggest "
+    "first, as R eigen().",
+    "exactly=True: SymPy eigenvals, for grids up to 6 x 6.",
+    "LAPACK's symmetric eigensolver (Anderson et al. 1999) is faster and more accurate for symmetric grids and never "
+    "gives a tiny imaginary part by rounding; biggest first matches R and the order readers expect.",
+    ("anderson1999",), "P3", "A square grid with no empty cells.", "published")
+BASIS["grid.find_eigenvalues exactly="] = _b(
+    "SymPy Matrix.eigenvals on the numbers as fractions, biggest first, with how many times each comes.",
+    "Without exactly=True: SciPy linalg.eigvalsh or eigvals.",
+    "SymPy gives the eigenvalues as a dict without an order; biggest first is the order of the numeric word and "
+    "R eigen().", ("meurer2017",), "P5",
+    "Grids up to 6 x 6: the roots of a polynomial of higher degree seldom have an exact formula.", "convention")
+BASIS["grid.find_null_space exactly="] = _b(
+    "SymPy Matrix.nullspace on the numbers as fractions; each direction is one column of the new grid, as without "
+    "exactly=True.",
+    "Without exactly=True: SciPy linalg.null_space (columns of length 1 at right angles).",
+    "SymPy's directions are its simplest whole numbers and fractions, easy to read; the sentence says they are not "
+    "of length 1, so they are not mistaken for SciPy's.", ("meurer2017",), "P5",
+    "Grids up to 12 x 12 with a number in every cell.", "convention")

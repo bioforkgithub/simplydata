@@ -578,7 +578,7 @@ UNDERNEATH = {
     "f.undo": "simplydata itself: a formula keeps its earlier forms",
     "sdata.find_area_under": "SciPy (integrate.quad, QUADPACK; fixed_quad for test_method=\"gauss\"); SymPy integrate "
                              "for exactly=True",
-    "sdata.find_volume_under": "SciPy (integrate.dblquad, tplquad, nquad)",
+    "sdata.find_volume_under": "SciPy (integrate.dblquad, tplquad, nquad); SymPy integrate for exactly=True",
     "sdata.find_path_over_time": "SciPy (integrate.solve_ivp); SymPy dsolve for exactly=True",
     "nums.turn_into_running_area": "SciPy (integrate.cumulative_trapezoid, cumulative_simpson)",
     "nums.take_cube_root": "NumPy (cbrt)",
@@ -591,10 +591,20 @@ UNDERNEATH = {
     "grid.change_size_to": "SciPy (ndimage.zoom)",
     "grid.rotate": "SciPy (ndimage.rotate)",
     "grid.take_matrix_exp": "SciPy (linalg.expm)",
-    "grid.find_null_space": "SciPy (linalg.null_space)",
+    "grid.find_null_space": "SciPy (linalg.null_space); SymPy nullspace for exactly=True",
     "table.find_nearest_rows_to": "SciPy (spatial.KDTree: query, query_ball_point; spatial.distance.cdist)",
     "table.find_distances_to_rows_of": "SciPy (spatial.distance.cdist)",
     "table.find_fence_around": "SciPy (spatial.ConvexHull, Qhull)",
+    # numbers phase, batch 4 (each also has a tested entry in simplydata._underneath)
+    "f.show_as_decimal": "SymPy (N, evalf with the digits asked for)",
+    "f.group_by_powers_of": "SymPy (expand, then collect)",
+    "f.turn_into_partial_fractions": "SymPy (apart)",
+    "f.as_sympy": "SymPy (the expression itself)",
+    "sdata.find_sum_of_series": "SymPy (summation; Sum.is_convergent and evalf when there is no closed form)",
+    "grid.find_determinant": "SciPy (linalg.det); SymPy Matrix.det for exactly=True",
+    "grid.take_inverse": "SciPy (linalg.inv); SymPy Matrix.inv for exactly=True",
+    "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals); SymPy eigenvals for "
+                             "exactly=True",
 }
 
 # ---------------------------------------------------------------- hand-written text
