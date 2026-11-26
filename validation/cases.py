@@ -457,7 +457,7 @@ CASES = [
              {"dots": len(data), "sum of x": data["x"].sum(), "sum of y": data["y"].sum()}
          """, parent_label="the data themselves (every point drawn once)"),
     # ---- the R word: real published data, against R pROC itself
-    Case("trade_off_curve", "ROC curve of s100b for a poor outcome", "aSAH (pROC)", "real data",
+    Case("draw_trade_off_curve", "ROC curve of s100b for a poor outcome", "aSAH (pROC)", "real data",
          ours="""
              from simplydata._underneath.check import chart_facts
              ax = sdata.chart(data).trade_off_curve(score="s100b", truth="outcome",

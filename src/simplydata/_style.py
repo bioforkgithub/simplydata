@@ -33,6 +33,11 @@ _BASE = {
     "lines.linewidth": 2.0,
     "lines.markersize": 7,
     "image.cmap": "viridis",
+    # Fonts kept as real text in saved files (decision D6, 2026-11-25): TrueType (Type 42) inside .pdf and .eps,
+    # which journal checkers accept (they refuse matplotlib's own Type 3), and text that stays text in .svg
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+    "svg.fonttype": "none",
 }
 
 STYLES = {
@@ -71,6 +76,19 @@ STYLES = {
             color=["#56B4E9", "#E69F00", "#009E73", "#F0E442", "#CC79A7", "#D55E00", "#0072B2", "#FFFFFF"]
         ),
     },
+    # For print in black and white (charts phase, batch 1): greys between about 25 % and 75 % lightness, so that
+    # no fill is black and no line nearly white, with black edges round fills. The groups also differ in a second
+    # way, set while drawing (simplydata.words.second_cues): patterns in black or white (whichever shows) on bars,
+    # boxes, violins, areas and pies, dashes on lines and density curves, shapes on dots; colour maps (heat maps,
+    # contour maps, surfaces) run in greys
+    "black and white": {
+        "axes.prop_cycle": matplotlib.cycler(
+            color=["#404040", "#bfbfbf", "#808080", "#5a5a5a", "#a6a6a6", "#737373"]
+        ),
+        "patch.edgecolor": "black",
+        "image.cmap": "Greys",
+        "hatch.linewidth": 0.8,
+    },
 }
 
 _FONT_KEYS = ("font.size", "axes.titlesize", "axes.labelsize", "xtick.labelsize", "ytick.labelsize", "legend.fontsize")
@@ -84,6 +102,10 @@ def rc_for(settings: dict) -> dict:
         scale = size / rc["font.size"]
         for key in _FONT_KEYS:
             rc[key] = rc[key] * scale
+    if settings.get("title_size"):  # use_font_size(title=) (charts phase, batch 2)
+        rc["axes.titlesize"] = settings["title_size"]
+    if settings.get("ticks_size"):  # use_font_size(ticks=)
+        rc["xtick.labelsize"] = rc["ytick.labelsize"] = settings["ticks_size"]
     if settings.get("font_name"):
         rc["font.family"] = settings["font_name"]
     if settings.get("grid") is False:

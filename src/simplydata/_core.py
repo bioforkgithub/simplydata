@@ -94,12 +94,44 @@ def chart_note(key, make, count=0):
     _NOTES["lines"][key] = ((old[0] if old else 0) + count, make)
 
 
+def _drawn_artists(ctx) -> set:
+    """The ids of everything drawn on the chart's panels so far (marks, lines, patches, collections)."""
+    found = set()
+    for ax in list(ctx.axes or []) + [ctx.ax]:
+        for each in [ax] + list(getattr(ax, "child_axes", [])):
+            found.update(id(a) for a in each.get_children())
+    return found
+
+
+def _tag_new_artists(ctx, before, step):
+    """Each artist a step drew remembers the step (simplydata_step): a web page then knows whether a mark is one
+    row of the table or a summary of several (show_when_pointing, simplydata._web.raw_step)."""
+    for ax in list(ctx.axes or []) + [ctx.ax]:
+        for each in [ax] + list(getattr(ax, "child_axes", [])):
+            for artist in each.get_children():
+                if id(artist) not in before and getattr(artist, "simplydata_step", None) is None:
+                    try:
+                        artist.simplydata_step = step
+                    except AttributeError:
+                        pass
+
+
 def _quoted(names):
     names = [f'"{n}"' for n in names]
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " or " + names[-1]
 
 
-SAVE_FORMATS = ("png", "pdf", "svg", "jpg", "jpeg", "tif", "tiff", "gif")
+SAVE_FORMATS = ("png", "pdf", "svg", "eps", "jpg", "jpeg", "tif", "tiff", "gif")
+WEB_FORMATS = ("html",)  # a web page drawn by plotly from what matplotlib drew (simplydata._web; simplydata[web])
+
+# The word that changes each setting, for the line chart.undo() prints (charts phase, batch 1)
+_SETTING_WORDS = {"style": "use_style", "width": "set_size", "height": "set_size", "pixels": "set_size",
+                  "size_set": "set_size", "colour": "use_colour", "colours": "use_colours",
+                  "colour_scale": "use_colour_scale", "grid": "show_grid", "font_size": "use_font_size",
+                  "font_name": "use_font", "legend_title": "label_legend", "split": "draw_one_chart_for_each_group_in",
+                  "animate": "animate", "shapes": "use_shapes", "title": "write_title_on_top",
+                  # charts phase, batch 3
+                  "y_break": "break_between_y", "pointing": "show_when_pointing", "range_bar_x": "add_range_bar_x"}
 
 
 @dataclass
@@ -154,6 +186,12 @@ class BaseChart:
         "color_scale": "use_color_scale", "all_points": "draw_all_dots",
         "colour_bar_label": "label_colour_bar", "color_bar_label": "label_colour_bar",
         "one_per": "draw_one_chart_for_each_group_in",
+        # charts phase, batch 1 (decision D11, approved by Manish 2026-11-25): every chart type starts with draw_
+        "sticks": "draw_sticks", "spectrum": "draw_spectrum", "spectrum_over_time": "draw_spectrum_over_time",
+        "lag_dots": "draw_lag_dots", "peak_dots": "draw_peak_dots", "difference_dots": "draw_difference_dots",
+        "forecast": "draw_forecast", "trend_and_season": "draw_trend_and_season",
+        "autocorrelation_bars": "draw_autocorrelation_bars", "cross_correlation_bars": "draw_cross_correlation_bars",
+        "trade_off_curve": "draw_trade_off_curve", "forest_plot": "draw_forest_plot",
     }
 
     def __init__(self, data=None, sheet=None, fast: bool = False):
@@ -169,19 +207,44 @@ class BaseChart:
             "projection": None,  # "polar" or "3d" for charts that need special axes
         }
         self._cache: Figure | None = None
+        self._history: list = []  # chart.undo(): the steps and settings before each word
 
     # ------------------------------------------------------------------ recording
+    def _remember_for_undo(self, what: str):
+        """Keep the steps and settings as they are before a word changes them, for chart.undo().
+
+        A word that changes several things (a setting and a step) is one step back: everything changed while
+        one word runs (the outermost word the user called) shares one memory."""
+        from ._cite import _frames, outermost_word
+
+        history = self.__dict__.get("_history")
+        if history is None:  # a page of charts, or a chart made before undo existed
+            history = []
+            object.__setattr__(self, "_history", history)
+        frames = _frames()
+        word_running = frames[0] if frames else None
+        if word_running is not None and history and history[-1][0] is word_running:
+            return
+        settings = {k: (dict(v) if isinstance(v, dict) else list(v) if isinstance(v, list) else v)
+                    for k, v in self._settings.items()}
+        what = outermost_word() or what  # the word the user called, not the step it adds ("legend")
+        history.append((word_running, what, list(self._steps), settings))
+
     def _add(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):
+        self._remember_for_undo(self._public_name(name))
         self._steps.append(Step(name, PHASES[phase], func, kwargs, scope, len(self._steps)))
         self._cache = None
         return self
 
     def _replace(self, name: str, phase: str, func: Callable, scope: str = "axes", **kwargs):
         """Like _add, but a step with this name replaces an earlier one (e.g. write_title_on_top)."""
+        self._remember_for_undo(self._public_name(name))
         self._steps = [s for s in self._steps if s.name != name]
         return self._add(name, phase, func, scope, **kwargs)
 
     def _set(self, **settings):
+        words = [_SETTING_WORDS[k] for k in settings if k in _SETTING_WORDS]
+        self._remember_for_undo(words[0] if words else "a setting")
         self._settings.update(settings)
         self._cache = None
         return self
@@ -194,8 +257,10 @@ class BaseChart:
     # ------------------------------------------------------------------ drawing
     def _run(self, steps, ctx: Context):
         for step in sorted(steps, key=lambda s: (s.phase, s.order)):
+            before = _drawn_artists(ctx)
             try:
                 step.func(ctx, **step.kwargs)
+                _tag_new_artists(ctx, before, step)
             except SimplydataError as exc:
                 if exc.args and isinstance(exc.args[0], str):  # the words as they are written now
                     exc.args = (public_words(exc.args[0]), *exc.args[1:])
@@ -274,7 +339,15 @@ class BaseChart:
         with _style.context(s):
             fig = Figure(figsize=(s["width"], s["height"]), layout="constrained")
             split = s["split"]
-            if not split:
+            if s.get("y_break"):  # chart.break_between_y(...) (charts phase, batch 3)
+                from .words.extra_charts import render_broken
+
+                if split or s["projection"] is not None:
+                    raise SimplydataError(".break_between_y() works on a flat chart with one panel, not on round or "
+                                          "3D charts or charts split into panels.")
+                axes, ctx = render_broken(self, fig)
+                self._draw_figure_steps(fig, axes, ctx)
+            elif not split:
                 ax = fig.add_subplot(projection=s["projection"])
                 ctx = self._draw_panel(fig, ax)
                 self._draw_figure_steps(fig, [ax], ctx)
@@ -324,25 +397,47 @@ class BaseChart:
         return list(grid.flat), ctx
 
     # ------------------------------------------------------------------ output
-    def save(self, file_name, quality: str = "normal", resolution=None, dpi=None):
+    def save(self, file_name, quality: str = "normal", resolution=None, dpi=None, see_through=False):
         """Save the chart. chart.save("marks.png") or chart.save("marks.tif", resolution=600)
 
-        The end of the file name decides the format: "marks.png", "marks.pdf".
+        The end of the file name decides the format: "marks.png", "marks.pdf", "marks.svg", "marks.eps", or
+        "marks.html" for a web page in which you can point at marks, zoom and click the legend (it needs
+        simplydata[web] and works with no internet; the numbers are the picture's own).
         resolution= is the sharpness in dots per inch (dpi); normally 300.
+        see_through=True saves the page with no background (the marks keep their colours), for a logo or a slide
+        of another colour. Text in a .pdf, .svg or .eps file stays real text that editors and journals can read.
         """
         self._check_choice("save", "quality", quality, ("normal", "high"))
+        if not isinstance(see_through, bool):
+            raise SimplydataError(f".save() needs see_through=True or see_through=False, not {see_through!r}.")
         path = Path(file_name)
         fmt = path.suffix.lower().lstrip(".")
         if not fmt:
             raise SimplydataError(
                 f'Add a file type to the name, for example "{path.name}.png" or "{path.name}.pdf".'
             )
-        if fmt not in SAVE_FORMATS:
-            raise choice_error("save", "file type", fmt, SAVE_FORMATS)
+        if fmt not in SAVE_FORMATS + WEB_FORMATS:
+            raise choice_error("save", "file type", fmt, SAVE_FORMATS + WEB_FORMATS)
         if path.parent and not path.parent.exists():
             raise SimplydataError(f'The folder "{path.parent}" does not exist. Create it first.')
+        if fmt in WEB_FORMATS:  # a web page (charts phase, batch 3)
+            from ._web import need_plotly, save_page
+
+            if resolution is not None or dpi is not None or quality != "normal":
+                raise SimplydataError("A web page (.html) has no resolution: it is drawn sharp at any size. Leave "
+                                      "out resolution=, dpi= and quality=, or save a picture (.png, .tif) instead.")
+            need_plotly()
+            return save_page(self, path, see_through=see_through)
+        from ._web import picture_note
+
+        picture_note(self)
         resolution = self._save_resolution(fmt, quality, resolution, dpi)
+        if fmt == "eps" and self._draws_see_through():
+            print("Note: an .eps file cannot hold see-through colours, so the see-through parts of this chart "
+                  "(bands, shading, marks drawn with transparency=) are saved solid. Save as .pdf or .svg to keep "
+                  "them see-through.")
         s = self._settings
+        self._see_through = see_through
         if not s.get("size_set"):
             return self._save_now(path, fmt, resolution)
         # chart.set_size() was used: the file is exactly that size (no trimming of the edges)
@@ -386,16 +481,64 @@ class BaseChart:
                 "Choose a smaller chart.set_size() or a lower resolution=."
             )
 
+    def _draws_see_through(self) -> bool:
+        """Whether anything drawn on the chart's panels is partly see-through (a band, shading, a mark drawn with
+        transparency=): read from the drawn artists' colours and alpha (grid lines and words left out)."""
+        import numpy as np
+
+        from ._numbers_drawn import _all_axes
+
+        def partly(colours) -> bool:
+            try:
+                array = np.asarray(colours, dtype=float).reshape(-1, 4)
+            except (TypeError, ValueError):
+                return False
+            return bool(((array[:, 3] > 0) & (array[:, 3] < 1)).any())
+
+        for ax in _all_axes(self._render()):
+            for artist in list(ax.collections) + list(ax.patches) + list(ax.lines) + list(ax.images):
+                if not artist.get_visible():
+                    continue
+                alpha = artist.get_alpha()
+                if alpha is not None and 0 < np.min(alpha) < 1:
+                    return True
+                for getter in ("get_facecolor", "get_edgecolor", "get_color"):
+                    if hasattr(artist, getter) and partly(getattr(artist, getter)()):
+                        return True
+        return False
+
+    def _saved_pixels(self, resolution=300) -> tuple[int, int]:
+        """The width and height in pixels of the picture chart.save("x.png") writes at this resolution: the same
+        drawing written to memory (without set_size, matplotlib trims the page to what is drawn)."""
+        import struct
+
+        buffer = io.BytesIO()
+        s = self._settings
+        before = (s.get("width"), s.get("height"))
+        if s.get("size_set") and s.get("pixels"):
+            s["width"], s["height"] = s["pixels"][0] / resolution, s["pixels"][1] / resolution
+            self._cache = None
+        try:
+            self._save_now(buffer, "png", resolution, exact=bool(s.get("size_set")))
+        finally:
+            if s.get("size_set") and s.get("pixels"):
+                s["width"], s["height"] = before
+                self._cache = None
+        width, height = struct.unpack(">II", buffer.getvalue()[16:24])  # the PNG header
+        return width, height
+
     def _save_now(self, path, fmt, resolution, exact=False):
         if fmt == "gif":
             return self._save_animation(path, resolution)
         fig = self._render()
         # .tif files are compressed without losing anything (LZW), as journals ask
         extra = {"pil_kwargs": {"compression": "tiff_lzw"}} if fmt in ("tif", "tiff") else {}
+        if self.__dict__.get("_see_through"):
+            extra["transparent"] = True  # chart.save(..., see_through=True): no page or panel background
         if exact:
             extra["bbox_inches"] = fig.bbox_inches  # the whole page, exactly the size asked for
         with _style.context(self._settings):
-            fig.savefig(path, dpi=resolution, **extra)
+            fig.savefig(path, dpi=resolution, format={"jpg": "jpeg", "tif": "tiff"}.get(fmt, fmt), **extra)
         return self
 
     def _save_animation(self, path, resolution=100):
@@ -408,6 +551,9 @@ class BaseChart:
         """
         import matplotlib.pyplot as plt
 
+        from ._web import picture_note
+
+        picture_note(self)
         self._cache = None
         fig = self._render()
         holder = plt.figure()

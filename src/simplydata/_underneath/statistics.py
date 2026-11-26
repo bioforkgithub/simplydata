@@ -1003,7 +1003,7 @@ ENTRIES += [
         python_note="statsmodels mean_diff_plot draws the limits but gives no intervals (and uses n in the standard "
                     "deviation), so the numbers come from R.",
         also="simplydata also says how much the first reads higher or lower in words, and that whether the limits are "
-             "close enough is a question for the field. chart.difference_dots() draws it.",
+             "close enough is a question for the field. chart.draw_difference_dots() draws it.",
     ),
     Entry(
         word="table.reliability_of",
@@ -1044,15 +1044,15 @@ ENTRIES += [
              "show that the items measure one thing.",
     ),
     Entry(
-        word="difference_dots",
+        word="draw_difference_dots",
         data="clinic",
         ours="""
             chart = sdata.chart(sdata.get_example("clinic"))
-            chart.difference_dots(first="device_a", second="device_b")
+            chart.draw_difference_dots(first="device_a", second="device_b")
         """,
         code={
             "R": """
-                # difference_dots(first="device_a", second="device_b"): the limits of agreement
+                # draw_difference_dots(first="device_a", second="device_b"): the limits of agreement
                 s <- BlandAltmanLeh::bland.altman.stats(a, b)                    # (1)
                 list(lower = s$lower.limit, upper = s$upper.limit)
             """,

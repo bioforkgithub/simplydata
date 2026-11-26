@@ -223,7 +223,7 @@ def cases(Case):
             {"empty cells": cells.get_column("value").find_total(), "rows": cells.count_rows() / 4,
              "bmi empty": float(f["ticks"][0][1].split()[1])}
         """, facts="the names under the x-axis"),
-        _pair(Case, "sticks", "Lake Huron: the level of each year as a stick", "Lake Huron", """
+        _pair(Case, "draw_sticks", "Lake Huron: the level of each year as a stick", "Lake Huron", """
             chart = sdata.chart(data).sticks(x="year", y="level")
         """, """
             fig, ax = plt.subplots()
@@ -680,7 +680,7 @@ def cases(Case):
             {"box from x": f["insets"][0][1][8][0], "box to x": f["insets"][0][1][8][1],
              "dots in view": inside.count_rows(), "box width (share of the chart)": f["insets"][0][0][2]}
         """, facts="the place or the ends of the axes of a zoom box"),
-        Case("forest_plot", "warpbreaks: Tukey's differences between the three tensions, as a forest plot",
+        Case("draw_forest_plot", "warpbreaks: Tukey's differences between the three tensions, as a forest plot",
              "warpbreaks", "real data",
              ours=_ours_drawn("""
                  pairs = sdata.table(data).compare_each_pair_of("breaks", for_each_group_in="tension",

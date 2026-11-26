@@ -40,6 +40,10 @@ ALLOWED = {
                                         "kept, decided 2026-11-14)",
     "distributions.py::_nbinom_size": "negative binomial size with brentq (statsmodels NegativeBinomial planned)",
     "finding.py": "find/solve words: the user's own equation handed to scipy.optimize (glue by design)",
+    "words/more_charts.py::_second_scale.inverse": "add_second_x / add_second_y(formula=): inverts the user's own "
+                                                   "second-scale formula for tick positions with SciPy brentq "
+                                                   "(matplotlib secondary_xaxis needs both directions); no "
+                                                   "statistical method of our own",
     "table/columns.py": "digamma offered as a formula function users can type",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",

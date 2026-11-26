@@ -5,6 +5,164 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: charts phase, batch 1 (the priority-1 matplotlib and seaborn words; approved by Manish 2026-11-25)
+
+- Reading a chart back: `chart.get_text_drawn()` (a table of every piece of text: title, axis names, legend title and
+  entries, notes, captions, panel letters, tick words, numbers on bars, names next to dots, with where each legend or
+  note is), `chart.get_scales_drawn()` (a table of every scale: x, y, second y, z and colour, with its name, range,
+  kind, whether it is flipped, its ticks and tick words, the panels sharing its range, and a colour scale's map and
+  middle) and `chart.get_size(unit="cm")` (the pair of `set_size`). All three read what matplotlib drew, as
+  `get_numbers_drawn()` does; pages of charts have them too.
+- `get_numbers_drawn()` gives each drawn point its `colour` ("#0072b2") and, when a named colour has exactly that
+  code, its `colour name` ("blue").
+- `chart.get_size()` gives the size `chart.save()` writes at 300 dots per inch (read from the picture itself): exactly the size `set_size` asked for, or without it the page trimmed to what is drawn.
+- `with_one_legend=True` stops with a message naming the chart that differs unless every chart shows the same legend (name, groups in the same order, colours, kind of mark, shapes, dashes and patterns).
+- In black and white the greys stay between about 25 % and 75 % with black edges; patterns are drawn in black or white, whichever shows; boxes, violins and density curves get patterns or dashes too, box medians are white with a black rim, heat maps, contour maps and surfaces use greys (a two-sided scale prints a note), and a page in black and white gets the patterns.
+- `chart.undo()`: takes the last word back (a layer, a title, the style, the size), as `table.undo()` does.
+- `chart.put_legend_inside("top left")` (or "top right", "bottom left", "bottom right", "top", "bottom", "left",
+  "right", "middle", "best").
+- `sdata.put_in_rows_and_columns([[a, a], [b, c]], widths=[2, 1], heights=[2, 1])`: rows given as lists, a chart
+  named in several places spans them, `None` leaves a place empty; `widths=` and `heights=` also work on a plain
+  grid. `with_one_legend=True` on `put_side_by_side`, `put_one_above_other` and `put_in_rows_and_columns`: one
+  legend for the whole page.
+- `chart.write_letter("B")`: a panel letter on a chart that is not on a page.
+- `write_note(..., where="top left")` (a fixed place in the plot), `with_box=True` (a frame round the note) and
+  `with_curved_arrow=True`.
+- Second cues besides colour: `hatched=True` on `draw_bars`, `draw_histogram`, `draw_area` and `draw_pie` (each group
+  its own pattern, in the legend too), `hollow=True` on `draw_dots`, `dashed="city"` (each group its own dashes) and
+  `dotted=True` on `draw_lines`, and `chart.use_shapes("circle", "square", "triangle")`.
+- `use_style("black and white")`: greys, with patterns, dashes and shapes for the groups; "greyscale" and
+  "grayscale" mean the same.
+- `use_colours("Set2")`, `use_colours("colour-blind safe")` and `use_colours("viridis", how_many=5)`: named colour
+  sets (seaborn's `color_palette`).
+- `save("logo.png", see_through=True)`: no background. `.eps` files can be saved (see-through marks are saved solid,
+  with a note).
+- Other names point to the new words: `get_title`, `get_xlim`, `get_size_inches`, `move_legend`, `tag_levels` ...
+
+### Changed: charts phase, batch 1
+
+- matplotlib 3.11 or newer is needed (`matplotlib>=3.11,<4`; it was `>=3.10`): patterns are drawn in white on dark
+  fills with matplotlib's `set_hatchcolor`, which 3.10 does not have (there a pattern always takes the edge
+  colour, so in black and white, with black edges, it could not be seen on dark greys).
+- Text in saved `.pdf`, `.eps` and `.svg` files stays real text: fonts are kept as TrueType (Type 42) in PDF and
+  PostScript, which journal checkers accept, and as text in SVG (decision D6). Files get a little bigger.
+- Every chart type starts with `draw_` (decision D11): `draw_sticks`, `draw_spectrum`, `draw_spectrum_over_time`,
+  `draw_lag_dots`, `draw_peak_dots`, `draw_difference_dots`, `draw_forecast`, `draw_trend_and_season`,
+  `draw_autocorrelation_bars`, `draw_cross_correlation_bars`, `draw_trade_off_curve` and `draw_forest_plot`. The old
+  names still work for one release, with a note.
+
+### Fixed: charts phase, batch 1
+
+- `get_numbers_drawn()` no longer stops on lines drawn at named x positions (error bars on dots at groups, as on
+  iris): the numbers matplotlib turned the names into are read, and given back as the names.
+- `get_numbers_drawn()` on a surface gives each drawn grid point once (kind "surface"), with its height in `value`,
+  instead of every corner of every piece.
+- `get_numbers_drawn()`: 3D dots coloured by a number keep each dot's colour (matplotlib sorts the drawn colours by depth); colours that cannot be matched to the points are left empty, never guessed.
+- `get_scales_drawn()` gives the `middle=` asked for on every colour scale, names heat-map axes as groups, and gives log-axis tick words as shown ("10²", with the small ticks 30, 40 ...); `get_text_drawn()` reads a page title once. `.eps` notes every see-through part (seaborn's bands too), not only `transparency=`.
+- `get_numbers_drawn()`: what is drawn on a second y-axis belongs to the panel it is on (panel 1 of a single
+  chart), its layers after the panel's own, as the docstring always said.
+
+### Added: charts phase, batch 2 (priority-2 matplotlib and seaborn words; approved by Manish 2026-11-25)
+
+- New chart words: `draw_wind_rose(direction=, speed=, every=30)` (NumPy histogram2d counts as bars round a
+  compass), `draw_rug_lines(x=)` (seaborn rugplot), `draw_arrow(start=, end=)`, `put_chart_inside(other_chart,
+  where=, size=)`, `add_second_x(...)` (a column, or `formula=` for the same places in other units), `hide_frame()`,
+  `hide_ticks_x()` / `_y()`, `show_small_ticks_x()` / `_y()`, `use_true_shape()`, `make_square()`,
+  `put_colour_bar_at_bottom()` / `_at_top()` / `_at_left()`, `hide_colour_bar()`, `put_ticks_colour_bar(...)`, the
+  3D words `draw_lines_3d()`, `label_z()`, `set_range_z()`, `put_ticks_z()`, `look_from(height=, around=)`
+  (`view_from` works too), and `say_what_it_shows()`, which prints and gives back what a chart shows: each chart
+  type you drew with its columns and groups ("3 lines, one for each city: ..."), error bars, lines on top, and the
+  axes, legend and colour bar read from the drawn figure; nothing is counted or worked out (`describe` points to
+  it).
+- New options: `y=` on `draw_histogram` and `draw_density` (two-way), `in_halves=True` on `draw_violins`,
+  `show=` and `error=` on `draw_dots` (one dot per group, seaborn pointplot; number x keeps its spacing),
+  `stacked="percent"` on `draw_bars` and `draw_area` (shares of totals, with the axis named "percent of total";
+  values below 0 are refused, and empty places and stacks with a total of 0 get a note), `hole=` on `draw_pie`, `as_wires=` and `with_height_lines=` on `draw_surface`, `between=` on
+  `draw_line_at_y` and `draw_line_at_x`, `title=` and `ticks=` on `use_font_size`, `per_row=` on
+  `put_legend_at_bottom`, `put_legend_at_top` and `put_legend_inside`, and `formula=` on `add_second_y` (the way back by SciPy brentq).
+- One option, one meaning: `value=` and `z=` are the same option on `draw_heatmap`, `draw_contour` and
+  `draw_surface`; `x=` and `y=` mean `labels=` and `values=` on `draw_pie`.
+
+- Both batches together: `chart.undo()` takes back every batch-2 word and names the word you used
+  ("Undone: chart.draw_wind_rose()", not the step inside it); in black and white, wind roses get greys and a pattern
+  for each speed band, 3D lines get dashes, average dots (`show=`) get shapes (`use_shapes` works on them too) and
+  two-way histograms get greys; `say_what_it_shows()` names a panel letter (not as a title), notes with their text,
+  where a legend was put, patterns, hollow dots, dashes, dot shapes and the black-and-white style; pages have
+  `page.say_what_it_shows()` (each chart by its letter and place); `hatched=True` and `drawn_as="outline"` on
+  `draw_histogram` are refused together, as `hatched=` with `y=`.
+
+### Changed: charts phase, batch 2
+
+- `draw_histogram(steps=True)` is now `draw_histogram(drawn_as="outline")`; `steps=True` works for one release with
+  a note.
+- The other name `windrose` now points to `draw_wind_rose` (it pointed to `draw_polar`).
+
+### Added: charts phase, batch 3 (web pages and the priority-3 words; approved by Manish 2026-11-25)
+
+- Web pages: `chart.save("marks.html")` and `chart.show_in_web_page()`. The chart is drawn by matplotlib and seaborn
+  as for a picture, and what they drew is copied into plotly (decision D3): the same numbers, words and scales as
+  the picture, nothing worked out again. Point at marks, zoom, click the legend. Lines, dots, bars, bands, error
+  bars, stems, shapes, contour lines, heat maps, hexagons, pies, round charts, 3D lines, dots, surfaces and bars,
+  notes, legends, colour bars, pages of charts and animations (a play button and a slider) all go to the web page.
+  Needs the new extra `pip install "simplydata[web]"` (plotly); without it the two words say how to install it.
+- Privacy: plotly.js is written inside the page, so it opens with no internet and loads nothing (no web address, no
+  MathJax, no web fonts, plotly's links and picture button switched off); pictures still come from matplotlib
+  (decision D4). `show_in_web_page()` writes the page to a file on this computer and opens it in the browser (no
+  server), or shows it below the cell in a notebook. Saving says once that the page holds the numbers drawn.
+- `chart.show_when_pointing("name", "class")`: the columns shown when pointing at a dot or a line (only those, never
+  the whole row); `all_lines=True` shows every line at that x. `chart.add_range_bar_x()`: a bar under the x-axis to
+  choose the range shown. A picture leaves both out, with a note once.
+- Refused in web pages with one sentence (decision D5): `chart.break_between_y(50, 500)` (a broken y-axis, drawn on
+  two panels as in the matplotlib gallery), `chart.use_scale_y("square root")` / `use_scale_x` (also "logit" and
+  "asinh") and `use_log_scale_y(through_zero=True)` / `use_log_scale_x(through_zero=True)` (matplotlib's symlog);
+  all three work in pictures.
+- `chart.use_background_colour("ivory")`, `chart.draw_hexagon_bins(x=, y=)` (matplotlib hexbin, with a colour bar
+  of the counts), `draw_side_histograms(drawn_as="density")` (seaborn kdeplot on the edges),
+  `chart.draw_time_bars(start=, end=, y=)` (bars from a start to an end, dates or numbers),
+  `chart.draw_rectangle(x_between=, y_between=)`, `chart.draw_circle(centre=, radius=)`,
+  `chart.draw_residual_dots(x=, y=)` (seaborn residplot), `chart.draw_event_lines(x=, y=)` (matplotlib eventplot) and
+  `chart.draw_bars_3d(x=, y=, z=)` (matplotlib bar3d, with a note that a heat map is often clearer).
+- `get_numbers_drawn()` reads hexagons (kind "hexagon": the centre and the count of each), circles and 3D bars;
+  `get_scales_drawn()` names a square-root scale "square root". `say_what_it_shows()` describes the new words, a
+  broken axis and the other scales.
+- `interactive=True` on `sdata.chart()` and `table.start_chart()`, and plotly names (`write_html`, `iplot`,
+  `hovertemplate`, `rangeslider`, `hexbin`, `bar3d` ...) point to the simplydata words. `sdata.show_packages_used()`
+  lists plotly when a web page was made.
+
+### Fixed: charts phase, batch 3 (after the independent review)
+
+- `show_when_pointing()` shows a row's columns only on marks that are single rows of the table (dots drawn from the
+  rows, and lines with one row at each point), decided from the step that drew the mark; averages, bars, error
+  bars, bands, fitted lines, histograms, densities and hexagons say what they are ("the average of several rows")
+  and are never matched to a row by their value. A note says so. Groups with the same x and y keep their own rows.
+- A second scale (`add_second_x` / `add_second_y`, with `formula=` or a column) is drawn on the web page: it
+  overlays its panel's axis on the far side, and its marks use the panel's other axis.
+- `break_between_y` refuses a break that would hide drawn values (it says how many, and their range) or leave a part
+  empty, checked on the drawn data; `get_numbers_drawn()` lists each point once, on the part that shows it (panel 1
+  the upper part, panel 2 the lower).
+- What a web page cannot draw is said in a note. Pages fit the window (no sideways scrolling; a chart wider than
+  1100 pixels is drawn smaller, text with it); legends are held at matplotlib's corner and show patterns;
+  contour maps get a banded colour bar; the animation's buttons sit beside the slider; 3D charts keep their tick
+  words inside the scene.
+- `show_in_web_page()` in a notebook says once that the page holds the numbers; from a script it says where the
+  temporary file is and that it holds the data.
+- `get_numbers_drawn()` reads a second y-axis's marks on its panel's x-axis (names of groups, not their places), and
+  `get_text_drawn()` lists no tick words of an axis that is not drawn.
+- Found by the reliability study of the charts phase: `get_numbers_drawn()` read a band drawn sideways
+  (`fill_betweenx`: violins, the density curve on the right of `draw_side_histograms`) with x and y swapped, so the
+  web page left the violin bodies out. Each row is now its place on y and its ends along x.
+- Web pages: a log axis draws grid lines only where the picture does (at its big ticks, not at the small ticks it
+  writes words at); a legend that only just misses a mark in the picture goes outside the chart on the right, the
+  page made wider for it, so it covers nothing in a narrow window; marks are given to plotly in matplotlib's
+  drawing order, so a violin's box shows over its body.
+
+### Added: the reliability study of the charts phase
+
+- `validation/cases_underneath_charts_2.py`: 56 cases on real data (mtcars, iris, warpbreaks, Seatbelts, Lake Huron,
+  birthwt, airquality, the Stanford heart transplant data) for the new chart words and options of batches 1 to 3,
+  each against the same chart drawn with matplotlib, seaborn or pandas and, where it is plain base R, against R;
+  the web-page words are checked on the plotly figure's own data.
+
 ### Changed: Polars and pyarrow are now installed with simplydata (decided by Manish 2026-11-25)
 
 - Polars and pyarrow are now installed with simplydata (`polars>=1.43.2,<3`, `pyarrow>=19,<27`), because several

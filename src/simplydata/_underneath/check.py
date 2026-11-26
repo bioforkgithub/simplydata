@@ -199,6 +199,9 @@ def chart_facts(ax) -> dict:
                       its slope
     tick_places       where the ticks are, along the x axis and along the y axis (in the axis's own numbers: names
                       under bars sit at 0, 1, 2 ...)
+    background        the colour behind the plot area (as #rrggbbaa)
+    hexagons          each set of hexagons (matplotlib hexbin): their centres and the count in each
+    faces_3d          the corners of the pieces of each one-colour 3D shape (3D bars), each corner once, sorted
     """
     from .._numbers_drawn import dots_of, rectangles_of  # the readers of chart.get_numbers_drawn()
 
@@ -259,13 +262,27 @@ def chart_facts(ax) -> dict:
         "segments": [(_sized(np.concatenate(c.get_segments()) if c.get_segments() else []),
                       list(np.asarray(c.get_linewidths(), dtype=float)))
                      for c in ax.collections if c.__class__.__name__ == "LineCollection"],
-        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible()],
+        "insets": [(_inset_place(ax, a), _panel(a)) for a in ax.child_axes if a.get_visible() and _is_panel(a)],
         "colour_bars": [(a.get_ylabel() or a.get_xlabel(),
                          tuple(map(float, a.get_ylim() if a.get_ylabel() or not a.get_xlabel() else a.get_xlim())))
                         for a in (fig.axes if fig is not None else []) if a.get_label() == "<colorbar>"],
         "ax_lines": [_ax_line(line) for line in ax.get_lines() if _is_ax_line(line)],
         "tick_places": ([float(v) for v in ax.get_xticks()], [float(v) for v in ax.get_yticks()]),
+        # charts phase, batch 3
+        "background": _hex(ax.get_facecolor()),
+        "hexagons": [(_sized(np.asarray(c.get_offsets(), dtype=float)),
+                      _sized(np.ma.filled(np.ma.asarray(c.get_array(), dtype=float), np.nan).ravel()))
+                     for c in ax.collections if _is_hexagons(c)],
+        "faces_3d": [_sized(np.unique(np.asarray(c._faces, dtype=float).reshape(-1, 3), axis=0)) for c in ax.collections
+                     if c.__class__.__name__ == "Poly3DCollection" and c.get_array() is None
+                     and getattr(c, "_faces", None) is not None],
     }
+
+
+def _is_hexagons(coll) -> bool:
+    from .._numbers_drawn import _is_hexagons as hexagons
+
+    return coll.__class__.__name__ == "PolyCollection" and hexagons(coll)
 
 
 def _is_ax_line(line) -> bool:
@@ -411,8 +428,14 @@ def _panels(ax) -> list:
     for a in root.axes:
         if a.get_label() != "<colorbar>" and a.get_visible():
             found.append(a)
-            found += [c for c in getattr(a, "child_axes", []) if c.get_visible() and c not in found]
+            found += [c for c in getattr(a, "child_axes", []) if c.get_visible() and c not in found and _is_panel(c)]
     return found
+
+
+def _is_panel(ax) -> bool:
+    """A second scale drawn with secondary_xaxis / secondary_yaxis (add_second_x(formula=)) is a child of the axes
+    but not a panel: it has no title and no marks of its own."""
+    return ax.__class__.__name__ != "SecondaryAxis"
 
 
 def _text_place(t) -> tuple:

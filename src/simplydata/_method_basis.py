@@ -1154,7 +1154,7 @@ BASIS["table.compare_accuracy"] = _b(
     "DeLong's method compares correlated ROC curves without assuming a shape (DeLong, DeLong & Clarke-Pearson "
     "1988).",
     ("delong1988",), "P2", "Exactly two number columns.")
-BASIS["trade_off_curve"] = _b(
+BASIS["draw_trade_off_curve"] = _b(
     "Higher scores count as positive; the AUC with DeLong's 95 % interval in the legend; the best cut-off by "
     "Youden's index marked with a dot.",
     "positive_when=\"lower\"; several scores, or colour= groups.",
@@ -1189,7 +1189,7 @@ BASIS["table.limits_of_agreement"] = _b(
     "1986); the intervals of the limits are their approximate ones (Bland & Altman 1999), which are a little too "
     "narrow in small samples, where exact intervals exist (Carkeet 2015).",
     ("bland1986", "bland1999", "carkeet2015", "lin1989"), "P1", "Needs R; both columns must hold numbers.")
-BASIS["difference_dots"] = _b(
+BASIS["draw_difference_dots"] = _b(
     "The Bland-Altman picture: differences against averages, with the limits (n - 1 standard deviation) and their "
     "95 % intervals shaded.",
     "There is no option for the limits.",
@@ -2058,7 +2058,7 @@ BASIS["table.combine_studies using="] = _b(
     "Knapp & Hartung 2003 give the test for meta-regression; Thompson & Higgins 2002 warn that few studies make "
     "chance links likely and that the link is between studies, not within them.",
     ("knapp2003", "thompson2002"), "P2", "Number columns only; fewer than 10 studies per column get a note.")
-BASIS["forest_plot"] = _b(
+BASIS["draw_forest_plot"] = _b(
     "Ratios on a log scale with the line of no effect at 1, other effects on a plain scale with the line at 0; "
     "on combine_studies results, squares sized by weight, diamonds for the combined effects and a line for the "
     "prediction interval.",
@@ -2318,28 +2318,28 @@ BASIS["nums.find_autocorrelation"] = _b(
     "As table.find_autocorrelation_of: 10 x log10(n) rows back, the white-noise band, Ljung-Box.",
     "show=, band=, rows_back=.", "As table.find_autocorrelation_of.", ("bartlett1946", "ljung1978"), "P3",
     "As table.find_autocorrelation_of.", "convention")
-BASIS["autocorrelation_bars"] = _b(
+BASIS["draw_autocorrelation_bars"] = _b(
     "As table.find_autocorrelation_of, drawn with the dashed white-noise band of R plot(acf()).",
     "show=, band=\"bartlett\", rows_back=.", "As table.find_autocorrelation_of.", ("bartlett1946",), "P3",
     "As table.find_autocorrelation_of.", "convention")
-BASIS["cross_correlation_bars"] = _b(
+BASIS["draw_cross_correlation_bars"] = _b(
     "The cross-correlation of two columns (as R ccf(), with the lag sign turned round) for 10 rows back each way, "
     "with the band +-1.96 / sqrt(n).",
     "rows_back=. table.find_correlation_between(rows_back=) uses R's 10 x log10(n) instead.",
     "These are R ccf()'s band and a fixed starting number of lags; the printout says a correlation does not show "
     "that one thing causes the other.",
     (), "P5", "Exactly two columns, filled and evenly spaced.", "starting value")
-BASIS["trend_and_season"] = _b(
+BASIS["draw_trend_and_season"] = _b(
     "STL as table.add_trend_and_season.", "test_method=, repeats_every=.", "As table.add_trend_and_season (Cleveland "
     "et al. 1990).", ("cleveland1990",), "P5", "As table.add_trend_and_season.", "starting value")
-BASIS["forecast"] = _b(
+BASIS["draw_forecast"] = _b(
     "Holt-Winters exponential smoothing as table.forecast, 12 steps ahead, the 95 % interval as a band.",
     "As table.forecast.", "As table.forecast.", ("winters1960", "fpp3"), "P3", "As table.forecast.", "convention")
-BASIS["spectrum"] = _b(
+BASIS["draw_spectrum"] = _b(
     "The periodogram as table.find_spectrum_of, on a log scale, the 3 strongest peaks labelled.",
     "test_method=\"welch\", show=, log_scale=False.", "As table.find_spectrum_of (Welch 1967 for the averaged form).",
     ("welch1967",), "P3", "As table.find_spectrum_of.", "convention")
-BASIS["spectrum_over_time"] = _b(
+BASIS["draw_spectrum_over_time"] = _b(
     "Pieces of 256 readings with a Hann window and half overlap (SciPy spectrogram), in decibels.",
     "window=, window_shape=.",
     "SciPy's spectrogram with its usual window; 256 is a starting value that trades time against frequency detail.",
@@ -2355,7 +2355,7 @@ BASIS["nums.remove_each_frequency_that"] = _b(
 BASIS["nums.find_each_peak_that"] = _b(
     "Every local maximum, as table.find_each_peak_that.", "As table.find_each_peak_that.",
     "As table.find_each_peak_that.", (), "P3", "", "convention")
-BASIS["peak_dots"] = _b(
+BASIS["draw_peak_dots"] = _b(
     "Every local maximum marked, as table.find_each_peak_that.", "is_at_least=, apart=, stands_out_by=, dips=.",
     "As table.find_each_peak_that.", (), "P3", "", "convention")
 BASIS["table.compare_each_pair_of matched_by="] = _b(
@@ -3686,7 +3686,7 @@ BASIS["system.table"] = _b(
     "form=\"state space\" (SciPy tf2ss, as R control::tf2ss) or \"poles and zeros\".",
     "Highest power first is how SciPy, R control and MATLAB write the coefficients; padding puts the top and bottom "
     "of each power on one row.", (), "P3", "", "convention")
-BASIS["lag_dots"] = _b(
+BASIS["draw_lag_dots"] = _b(
     "Each value against the value rows_back=1 earlier, in the order of sorted_by=, with a dashed 1:1 line from the "
     "smallest to the biggest value.",
     "rows_back= a number or a list (one colour each), transparency=.",
@@ -3749,7 +3749,7 @@ BASIS["draw_map_of_empty_cells"] = _b(
     "columns= for some columns only.",
     "Showing results: the same rule for an empty cell as the table words; the Okabe-Ito vermilion stands out for "
     "readers with colour blindness.", (), "P5", "", "convention")
-BASIS["sticks"] = _b(
+BASIS["draw_sticks"] = _b(
     "A stick 1.5 points wide from 0 to each value with a small dot on top, and a thin line at 0.",
     "colour= for groups, thickness=.",
     "Showing results: a stick from 0 shows each value at its own place without joining places that are apart.",
@@ -4227,7 +4227,7 @@ BASIS["table.find_correlation_between allowing_for=, show=\"result table\""] = _
     "nothing is worked out again. The partial correlation is the correlation of what is left of the two columns "
     "after the third is taken out (Fisher 1915 for the distribution of r).", ("fisher1915",), "P3",
     "Exactly two columns and one to allow for; sides=, p_value_by= and interval_by= are refused.", "convention")
-BASIS["trade_off_curve get_numbers_drawn()"] = _b(
+BASIS["draw_trade_off_curve get_numbers_drawn()"] = _b(
     "The row of the marked dot holds the best cut-off by Youden's index in its value column (R pROC::coords(roc, "
     "\"best\", best.method = \"youden\") threshold), the sensitivity there as y and the false alarms (1 - "
     "specificity) as x, as drawn.",
@@ -4527,3 +4527,121 @@ BASIS["table.save in_table="] = _b(
     "in_sheet= for Excel; sdata.table(table_name=) to read it back.",
     "Data preparation: mirrors in_sheet=, so several tables go into one file and saving again never removes the "
     "others.", (), "P4", "A database file without in_table= is refused with an example.", "convention")
+
+# ---------------------------------------------------------------- charts phase, batch 2 (approved by Manish 2026-11-25)
+BASIS["draw_wind_rose"] = _b(
+    "A compass (north at the top, clockwise); bars every 30 degrees centred on their direction, counted by NumPy "
+    "histogram2d; about five speed bands at round numbers (matplotlib MaxNLocator), stacked slowest first.",
+    "every= for the width of the bars; without speed= one count per direction.",
+    "Showing results: wind and current roses are read as compasses; a bar centred on north holds the winds from "
+    "345 to 15 degrees, as in meteorology.", (), "P5", "every= must go into 360 evenly; directions are degrees.",
+    "convention")
+BASIS["draw_arrow"] = _b(
+    "A plain arrow 1.5 points wide from start to end, in the text colour; words from labelled= centred on the "
+    "start.",
+    "colour=, thickness=, labelled=.",
+    "Showing results: an arrow that starts and ends exactly at the places given points at what it means to.",
+    (), "P5", "start= and end= must be two different [x, y] places.", "starting value")
+BASIS["put_chart_inside"] = _b(
+    "The other chart in the top-left corner, 0.4 of this chart's size, 0.03 in from the edges, with small text.",
+    "where= another corner; size= from 0.1 to 0.6.",
+    "Showing results: a small overview or close-up in a corner keeps the main chart readable.", (), "P5",
+    "Only a flat chart with one panel goes inside; a chart cannot go inside itself.", "starting value")
+BASIS["draw_histogram y="] = _b(
+    "10 bins along each axis, coloured with viridis as heatmaps are, with a colour bar named after what is counted.",
+    "with_bins= one number; show=\"percent\" or \"density\"; use_colour_scale().",
+    "Showing results: viridis is readable in grey and by readers with colour blindness.", (), "P5",
+    "stacked=, cumulative=, bin_width= and drawn_as= do not go with y=.", "starting value")
+BASIS["draw_violins in_halves="] = _b(
+    "seaborn violinplot(split=True): the two groups of colour= as the two halves, cut at the smallest and largest "
+    "value, with a small gap.",
+    "in_halves=False for two whole violins side by side.",
+    "Showing results: two halves put two shapes face to face, so they are easy to compare.", (), "P5",
+    "Needs colour= a column.", "convention")
+BASIS["draw_dots show="] = _b(
+    "seaborn pointplot with no line between the dots; caps on error bars; colour groups side by side.",
+    "show= as on bars; error=\"standard deviation\", \"standard error\" or \"confidence interval\".",
+    "Showing results: a line between groups would suggest a trend that groups do not have; side by side, error "
+    "bars do not cover each other.", (), "P5", "show=\"count\" is refused (use draw_count_bars).", "starting value")
+BASIS["draw_bars stacked="] = _b(
+    "stacked=\"percent\": each group's total as a percent of the stack's total (pandas div and sum), with the axis "
+    "named \"percent of total\" the column; a group with no rows at an x counts as 0, with a note.",
+    "show=\"average\" for shares of averages (with a note); stacked=True for the values themselves; also on "
+    "draw_area.",
+    "Showing results: shares are compared better when every stack has the same height, and a share means a part of "
+    "a total, so totals are the normal.", (), "P5",
+    "Needs colour= a column to stack; values below 0 are refused; a stack whose total is 0 is drawn empty, with a "
+    "note.", "convention")
+BASIS["draw_pie hole="] = _b(
+    "A ring whose width is 1 - hole of the radius (matplotlib wedgeprops width), the percents in the middle of "
+    "the ring.",
+    "No hole for a full pie.",
+    "Showing results: percents inside the ring stay readable whatever the hole.", (), "P5",
+    "hole= between 0 and 0.9.", "starting value")
+BASIS["draw_surface with_height_lines="] = _b(
+    "Ten height lines on the floor of the box (at the lowest height), in the surface's colours (matplotlib "
+    "contour with zdir=\"z\").",
+    "as_wires=True for a wire frame instead of a filled surface.",
+    "Showing results: lines on the floor show the shape without hiding any part of the surface.", (), "P5", "",
+    "starting value")
+BASIS["draw_line_at_y between="] = _b(
+    "From the low to the high value only (matplotlib hlines), grey, dashed and 1.5 points wide as the full line.",
+    "between= on draw_line_at_x too (vlines).",
+    "Showing results: a target that holds for part of the range is drawn only there.", (), "P5",
+    "The low end must come first.", "convention")
+BASIS["use_font_size title="] = _b(
+    "title= and ticks= replace only those sizes; the other sizes follow the first number as before.",
+    "use_font_size(12) alone scales every size together.",
+    "Showing results: journals often ask for one size for tick words and another for titles.", (), "P5",
+    "Sizes from 4 to 60.", "convention")
+
+# ---------------------------------------------------------------- charts phase, batch 3 (approved by Manish 2026-11-25)
+BASIS["break_between_y"] = _b(
+    "The matplotlib gallery's broken axis: the chart drawn twice on two panels of equal height that share x, the "
+    "lower one up to the first number and the upper one from the second, with short slanted lines at the break.",
+    "Leave the break out and use use_log_scale_y() or a second chart when the values are far apart.",
+    "Showing results: a broken axis hides how far apart the two parts are, so simplydata prints a note to say in the "
+    "caption what is left out, and a web page refuses it.", (), "P5",
+    "Both numbers inside the drawn range: something must be drawn below the first and above the second.",
+    "convention")
+BASIS["draw_hexagon_bins"] = _b(
+    "About 20 hexagons across the x range (matplotlib hexbin gridsize=20); hexagons with no rows left out "
+    "(mincnt=1); viridis, with a colour bar named \"count\".",
+    "with_bins= another number of hexagons across; use_colour_scale() for other colours.",
+    "Showing results: viridis is readable in grey and by readers with colour blindness, as on heat maps; empty "
+    "hexagons drawn in the lowest colour would look like a count of 1.", (), "P5",
+    "with_bins= a whole number from 3 to 200.", "starting value")
+BASIS["draw_side_histograms drawn_as="] = _b(
+    "drawn_as=\"density\": seaborn's density curve (kdeplot: Gaussian kernel, Scott's bandwidth) on each edge, "
+    "filled; with colour groups one outline per group, each with an area of 1.",
+    "drawn_as=\"bars\" (normal) for histograms.",
+    "Showing results: each group's own curve shows its shape whatever its size, as draw_density() does.", (), "P5",
+    "drawn_as= is \"bars\" or \"density\".", "convention")
+BASIS["draw_time_bars"] = _b(
+    "Bars 0.8 of a row high, the first row of the table at the top, one colour (or one per group of colour=).",
+    "colour= a column for groups; label_x / label_y for the axis names.",
+    "Showing results: a plan is read from the top down, in the order the rows were written.", (), "P5",
+    "start= and end= both dates or both numbers; no row may end before it starts.", "convention")
+BASIS["draw_rectangle"] = _b(
+    "Filled with a quarter of the colour (see-through), with a solid edge 1.5 points wide, in the first colour.",
+    "hollow=True for the outline only; colour= and transparency= for another look.",
+    "Showing results: a see-through fill marks an area without hiding the marks inside it.", (), "P5",
+    "x_between= and y_between= each two numbers (or dates), the low end first.", "starting value")
+BASIS["draw_residual_dots"] = _b(
+    "seaborn residplot (a straight line by least squares, a dotted line at 0), with the y-axis named \"residual "
+    "of\" the column.",
+    "fit_line() on the dots themselves to see the line.",
+    "Showing results: the axis name says the dots are what is left after the line, not the column itself.", (),
+    "P5", "x= and y= columns of numbers.", "convention")
+BASIS["draw_event_lines"] = _b(
+    "One row of lines for each group of y=, in the order they first appear; lines 0.8 of a row long and 1.5 points "
+    "wide (matplotlib eventplot).",
+    "Without y= all lines on one row; thickness= for the width.",
+    "Showing results: rows in the table's order keep the groups where the reader expects them.", (), "P5",
+    "colour= is the column of y= or one colour.", "starting value")
+BASIS["draw_bars_3d"] = _b(
+    "One bar per row, standing on 0, 0.8 of the smallest gap between two places wide and deep; names along an axis "
+    "at 0, 1, 2 ... in the order they first appear; a note that a heat map is often clearer.",
+    "draw_heatmap() for the same numbers in two dimensions.",
+    "Showing results: 3D bars hide each other and their heights are hard to read, so simplydata says so once.", (),
+    "P5", "Each place (x and y) needs one row.", "starting value")

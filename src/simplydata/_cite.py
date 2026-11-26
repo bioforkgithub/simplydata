@@ -51,7 +51,7 @@ SIMPLYDATA_YEAR = "2026"
 
 # Python packages whose work can be behind a word (the import name)
 WORK_PACKAGES = ("pandas", "polars", "narwhals", "numpy", "scipy", "statsmodels", "patsy", "matplotlib", "seaborn",
-                 "lifelines", "control", "pyreadstat", "docx", "openpyxl", "pyarrow", "duckdb")
+                 "lifelines", "control", "pyreadstat", "docx", "openpyxl", "pyarrow", "duckdb", "plotly")
 # R's own packages: they are cited as R itself (citation("stats") gives R's reference)
 R_BASE = {"base", "stats", "utils", "methods", "graphics", "grDevices", "splines", "grid", "tools", "parallel",
           "stats4", "tcltk", "datasets", "compiler"}
@@ -78,6 +78,12 @@ def _frames() -> list:
     if frames is None:
         frames = _LOCAL.frames = []
     return frames
+
+
+def outermost_word() -> str | None:
+    """The word the user called (the outermost word running), as "draw_bars", or None: chart.undo() names it."""
+    keys = getattr(_LOCAL, "keys", None)
+    return keys[0].rsplit(".", 1)[-1] if keys else None
 
 
 def _commit(found: list) -> None:
@@ -122,11 +128,17 @@ def _wrap(func, key: str):
     def word(*args, **kwargs):
         frames = _frames()
         frames.append([])
+        keys = getattr(_LOCAL, "keys", None)
+        if keys is None:
+            keys = _LOCAL.keys = []
+        keys.append(key)
         try:
             result = func(*args, **kwargs)
         except BaseException:
             frames.pop()
             raise
+        finally:
+            keys.pop()
         found = frames.pop()
         found.append(("word", (key, tuple(sorted(k for k, v in kwargs.items() if v is not None)))))
         if table_word:

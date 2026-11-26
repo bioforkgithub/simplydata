@@ -64,8 +64,8 @@ except ImportError:  # pragma: no cover
 _CHART_KINDS = {
     "bars", "lines", "dots", "area", "histogram", "boxes", "violins", "heatmap", "pie",
     "polar", "contour", "surface", "dots_3d", "density", "count_bars", "all_dots",
-    "qq_dots", "cumulative_share", "sticks", "autocorrelation_bars", "cross_correlation_bars", "lag_dots",
-    "trend_and_season", "spectrum", "spectrum_over_time",
+    "qq_dots", "cumulative_share", "draw_sticks", "draw_autocorrelation_bars", "draw_cross_correlation_bars", "draw_lag_dots",
+    "draw_trend_and_season", "spectrum", "draw_spectrum_over_time",
 }
 _EXAMPLE = {
     "dots": 'chart.draw_dots(x="hours", y="marks")',
@@ -562,7 +562,7 @@ def _draw_dose_response(ctx, kind, colour, thickness=None):
     ctx.ax.legend(fontsize="small")
 
 
-def _draw_side_histograms(ctx):
+def _draw_side_histograms(ctx, drawn_as="bars"):
     last = _layer(ctx, "side_histograms", {"dots"})
     table, x, y, group = last["table"], last["x"], last["y"], last["colour"]
     _numeric_xy("draw_side_histograms", table, x, y)
@@ -576,7 +576,11 @@ def _draw_side_histograms(ctx):
         edges[col] = e if len(e) <= 51 else np.histogram_bin_edges(values, bins=50)
     many = group is not None
     fixed = None if many else default_colour(ctx.settings)
-    for _, part, colour in _groups(ctx, table, group, fixed):
+    if drawn_as == "density":  # seaborn kdeplot on the edges (charts phase, batch 3)
+        from .extra_charts import side_densities
+
+        side_densities(ctx, top, right, list(_groups(ctx, table, group, fixed)), x, y, many)
+    for _, part, colour in ([] if drawn_as == "density" else _groups(ctx, table, group, fixed)):
         if many:  # outlines, so overlapping groups stay readable
             kw = dict(color=colour, histtype="step", linewidth=1.5)
         else:
@@ -591,11 +595,15 @@ def _draw_side_histograms(ctx):
     right.tick_params(labelleft=False, left=False, bottom=False, labelbottom=False)
 
 
-def _draw_line_at(ctx, axis, value, dashed, colour, label, thickness=None):
+def _draw_line_at(ctx, axis, value, dashed, colour, label, thickness=None, between=None):
     ax = ctx.ax
     style = dict(color=colour, linestyle="--" if dashed else "-",
                  linewidth=1.5 if thickness is None else thickness, zorder=2.5)
     size = rcParams["legend.fontsize"]
+    if between is not None:  # only from one value to another (charts phase, batch 2)
+        from .more_charts import draw_line_between
+
+        return draw_line_between(ctx, axis, value, between[0], between[1], style, label, size)
     back = dict(boxstyle="round,pad=0.15", fc=rcParams["axes.facecolor"], ec="none", alpha=0.85)
     if axis == "x":
         ax.axvline(value, **style)
@@ -845,34 +853,53 @@ class StatsWords:
                          method=test_method, smoothness=smoothness)
 
     @friendly
-    def draw_side_histograms(self: _Same) -> _Same:
-        """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()"""
+    def draw_side_histograms(self: _Same, drawn_as="bars") -> _Same:
+        """Small histograms along the top and right edges of a dots chart. chart.draw_side_histograms()
+
+        drawn_as="density" draws smooth density curves on the edges instead of bars (seaborn kdeplot,
+        one curve for each colour group).
+        """
+        if isinstance(drawn_as, str) and drawn_as.strip().lower() in ("bars", "density"):
+            drawn_as = drawn_as.strip().lower()
+        self._check_choice("draw_side_histograms", "drawn_as", drawn_as, ("bars", "density"))
         self._check_layer_now("draw_side_histograms", {"dots"})
-        return self._add("side_histograms", "extra", _draw_side_histograms)
+        return self._add("side_histograms", "extra", _draw_side_histograms, drawn_as=drawn_as)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
+    def draw_line_at_x(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None,
+                       between=None) -> _Same:
         """A straight up-and-down line at one x value. chart.draw_line_at_x(2010, labelled="2010")
 
         thickness=3 draws a thicker line (normal is 1.5).
+        between=[20, 60] draws it only from y = 20 to y = 60 instead of right across the chart.
         """
+        from .more_charts import check_between
+
         _check_position("draw_line_at_x", "value", value, "draw_line_at_x(10)")
         _fixed_colour("draw_line_at_x", colour)
         thickness = check_thickness("draw_line_at_x", thickness)
+        between = check_between("draw_line_at_x", between, "draw_line_at_x(10, between=[20, 60])")
         return self._add("line_at_x", "extra", _draw_line_at, axis="x", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness,
+                         between=between)
 
     @friendly(renamed={"label": "labelled"})
-    def draw_line_at_y(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None) -> _Same:
+    def draw_line_at_y(self: _Same, value, dashed=True, colour="grey", labelled=None, thickness=None,
+                       between=None) -> _Same:
         """A straight side-to-side line at one y value. chart.draw_line_at_y(50, labelled="pass mark")
 
         thickness=3 draws a thicker line (normal is 1.5).
+        between=[2, 6] draws it only from x = 2 to x = 6 instead of right across the chart.
         """
+        from .more_charts import check_between
+
         _check_position("draw_line_at_y", "value", value, "draw_line_at_y(50)")
         _fixed_colour("draw_line_at_y", colour)
         thickness = check_thickness("draw_line_at_y", thickness)
+        between = check_between("draw_line_at_y", between, "draw_line_at_y(50, between=[2, 6])")
         return self._add("line_at_y", "extra", _draw_line_at, axis="y", value=value, dashed=bool(dashed),
-                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness)
+                         colour=colour, label=None if labelled is None else str(labelled), thickness=thickness,
+                         between=between)
 
     @friendly(renamed={"label": "labelled"})
     def draw_line_with_slope(self: _Same, slope, through=None, intercept=None, dashed=True, colour="grey", labelled=None,

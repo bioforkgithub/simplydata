@@ -268,7 +268,8 @@ class BaseTable:
         """The old done(): the table as it is stored (pandas, or Polars for Polars tables)."""
         return self._frame.to_native()
 
-    @friendly
+    @friendly(pointers={"interactive": 'chart.show_in_web_page(), or chart.save("marks.html") for a web page '
+                                       "file: a chart becomes a web page where it goes"})
     def start_chart(self) -> Chart:
         """Start a chart from this table. chart = table.start_chart()"""
         from ..chart import chart

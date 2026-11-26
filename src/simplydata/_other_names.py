@@ -496,12 +496,19 @@ _TABLE = [
 # chart.<name>
 _CHART = [
     ("chart.get_numbers_drawn()", "get_xydata get_offsets layer_data ggplot_build plot_data"),
+    # charts phase, batch 1 (approved by Manish 2026-11-25)
+    ("chart.get_text_drawn()", "get_title get_xlabel get_ylabel get_legend get_texts get_xticklabels get_labs"),
+    ("chart.get_scales_drawn()", "get_xlim get_ylim get_xscale get_yscale get_xticks get_yticks get_clim layer_scales"),
+    ('chart.get_size(unit="cm")', "get_size_inches get_figwidth get_figheight"),
+    ('chart.write_letter("B")', "tag_levels plot_annotation panel_letter"),
+    ('chart.put_legend_inside("top left")', "move_legend legend_loc"),
+    ('chart.use_shapes("circle", "square", "triangle")', "scale_shape_manual symbol_sequence markers"),
     ('chart.draw_answer_bars(columns=["teaching", "pace"], in_order=["strongly disagree", "disagree", "neutral", '
      '"agree", "strongly agree"])', "draw_likert_bars plot_likert likert_plot diverging_bars diverging_stacked_bars"),
     ('chart.draw_lines(x="year", y="population")', "plot geom_line line"),
-    ('chart.trade_off_curve(score="crp", truth="infected")', "roc_curve roc plot_roc ggroc roc_plot"),
-    ('chart.difference_dots(first="device_a", second="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),
-    ('chart.forest_plot(x="estimate", y="measure")', "forestplot interval_dots coefplot"),
+    ('chart.draw_trade_off_curve(score="crp", truth="infected")', "roc_curve roc plot_roc ggroc roc_plot"),
+    ('chart.draw_difference_dots(first="device_a", second="device_b")', "bland_altman mean_diff_plot bland_altman_plot"),
+    ('chart.draw_forest_plot(x="estimate", y="measure")', "forestplot interval_dots coefplot"),
     ('chart.draw_dots(x="hours", y="marks")', "geom_point scatterplot scatter"),
     ('chart.draw_bars(x="class", y="marks")', "barplot geom_bar geom_col bar"),
     ('chart.draw_bars(x="class", y="marks", sideways=True)', "barh"),
@@ -548,15 +555,15 @@ _CHART = [
     ('chart.draw_count_bars(x="fruit")', "countplot"),
     ('chart.use_colour_scale("magma")', "cmap colormap scale_fill_viridis_c"),
     ('chart.set_size(width=17, height=8, unit="cm")', "figsize set_size_inches"),
-    ('chart.sticks(x="rows back", y="correlation")', "stem stems stemplot lollipop"),
-    ('chart.autocorrelation_bars("visitors", sorted_by="month")', "plot_acf plot_pacf acorr"),
-    ('chart.cross_correlation_bars("signal", "vibration", sorted_by="time")', "plot_ccf xcorr"),
-    ('chart.lag_dots("visitors", sorted_by="month", rows_back=1)', "lag_plot lagplot"),
-    ('chart.trend_and_season(x="month", y="visitors", repeats_every="year")', "plot_stl plot_decompose"),
-    ("chart.forecast(steps_ahead=12)", "plot_predict plot_forecast autoplot"),
-    ('chart.spectrum("signal", sorted_by="time")', "psd magnitude_spectrum plot_spectrum periodogram"),
-    ('chart.spectrum_over_time("signal", sorted_by="time")', "spectrogram specgram stft"),
-    ("chart.peak_dots(is_at_least=1)", "mark_peaks plot_peaks"),
+    ('chart.draw_sticks(x="rows back", y="correlation")', "stem stems stemplot lollipop"),
+    ('chart.draw_autocorrelation_bars("visitors", sorted_by="month")', "plot_acf plot_pacf acorr"),
+    ('chart.draw_cross_correlation_bars("signal", "vibration", sorted_by="time")', "plot_ccf xcorr"),
+    ('chart.draw_lag_dots("visitors", sorted_by="month", rows_back=1)', "lag_plot lagplot"),
+    ('chart.draw_trend_and_season(x="month", y="visitors", repeats_every="year")', "plot_stl plot_decompose"),
+    ("chart.draw_forecast(steps_ahead=12)", "plot_predict plot_forecast autoplot"),
+    ('chart.draw_spectrum("signal", sorted_by="time")', "psd magnitude_spectrum plot_spectrum periodogram"),
+    ('chart.draw_spectrum_over_time("signal", sorted_by="time")', "spectrogram specgram stft"),
+    ("chart.draw_peak_dots(is_at_least=1)", "mark_peaks plot_peaks"),
     # S3a-3
     ('chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")', "interaction.plot interaction_plot pointplot"),
     # S3b-3
@@ -573,7 +580,54 @@ _CHART = [
     ('chart.draw_variogram("zinc", x="east", y="north")', "plot_variogram variogram_plot"),
     ('chart.draw_threshold_check(x="rain", between=[20, 40])',
      "mrlplot mrl_plot mean_residual_life threshrange threshrange_plot mean_excess_plot"),
-    ('chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)', "rose rose_diagram windrose"),
+    ('chart.draw_polar(angle="current_direction", distance="depth", full_turn=360)', "rose rose_diagram"),
+]
+
+# chart.<name>, charts phase batch 2 (approved by Manish 2026-11-25)
+_CHART_2 = [
+    ('chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")', "windrose wind_rose bar_polar barpolar"),
+    ('chart.draw_rug_lines(x="marks")', "rugplot geom_rug rug"),
+    ("chart.draw_arrow(start=[2, 40], end=[4, 60])", "arrow FancyArrow geom_segment"),
+    ('chart.put_chart_inside(detail, where="top right")', "inset_axes add_axes inset_element annotation_custom"),
+    ('chart.add_second_x(formula="x * 9 / 5 + 32")', "twiny secondary_xaxis sec_axis dup_axis"),
+    ('chart.add_second_y(formula="y * 9 / 5 + 32")', "secondary_yaxis"),
+    ("chart.hide_frame()", "set_axis_off axis_off theme_void"),
+    ("chart.show_small_ticks_x()", "minorticks_on minor_ticks AutoMinorLocator"),
+    ("chart.use_true_shape()", "set_aspect coord_equal coord_fixed"),
+    ("chart.make_square()", "set_box_aspect"),
+    ("chart.say_what_it_shows()", "describe alt_text get_alt_text"),
+    ('chart.draw_lines_3d(x="east", y="north", z="height")', "plot3D plot3d line_3d"),
+    ('chart.label_z("Height (m)")', "zlabel set_zlabel zlab"),
+    ("chart.set_range_z(-10, 20)", "zlim set_zlim"),
+    ("chart.put_ticks_z(-10, 0, 10, 20)", "zticks set_zticks"),
+    ("chart.look_from(height=20, around=45)", "view_init camera persp"),
+    ('chart.draw_histogram(x="hours", y="marks")', "hist2d histogram2d geom_bin_2d"),
+    ('chart.draw_density(x="hours", y="marks")', "kde2d geom_density_2d"),
+    ('chart.draw_pie(labels="fruit", values="count", hole=0.4)', "donut doughnut"),
+    ("chart.draw_line_at_y(50, between=[2, 6])", "hlines"),
+    ("chart.draw_line_at_x(4, between=[20, 60])", "vlines"),
+]
+
+# chart.<name>, charts phase batch 3 (approved by Manish 2026-11-25): web pages and the priority-3 words
+_CHART_3 = [
+    ('chart.save("marks.html")', "write_html to_html write_json saveWidget"),
+    ("chart.show_in_web_page()", "iplot ggplotly mpld3 show_in_browser show_interactive"),
+    ('chart.show_when_pointing("name", "marks")',
+     "hovertemplate hover_data hover_name hover tooltip tooltips mplcursors on_hover show_on_hover"),
+    ("chart.add_range_bar_x()", "rangeslider range_slider add_range_slider_x dyRangeSelector"),
+    ("chart.break_between_y(50, 500)", "brokenaxes broken_axis scale_y_break gap_plot break_y"),
+    ('chart.use_scale_y("square root")', "set_yscale scale_y_sqrt scale_y_continuous"),
+    ('chart.use_scale_x("square root")', "set_xscale scale_x_sqrt scale_x_continuous"),
+    ("chart.use_log_scale_y(through_zero=True)", "symlog pseudo_log_trans"),
+    ('chart.use_background_colour("ivory")', "set_facecolor plot_bgcolor panel_background"),
+    ('chart.draw_hexagon_bins(x="hours", y="height")', "hexbin geom_hex density_heatmap"),
+    ('chart.draw_time_bars(start=[1, 3, 6], end=[4, 7, 9], y=["plan", "build", "test"])',
+     "broken_barh timeline gantt gantt_chart"),
+    ("chart.draw_rectangle(x_between=[4, 6], y_between=[60, 80])", "Rectangle add_patch geom_rect rect"),
+    ("chart.draw_circle(centre=[5, 70], radius=1)", "Circle add_circle"),
+    ('chart.draw_residual_dots(x="hours", y="marks")', "residplot resid_plot residuals_plot"),
+    ('chart.draw_event_lines(x="hours", y="class")', "eventplot event_plot raster_plot"),
+    ('chart.draw_bars_3d(x="month", y="city", z="rain")', "bar3d bar_3d"),
 ]
 
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
@@ -611,5 +665,5 @@ def _build(groups):
     return table
 
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART),
+OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2 + _CHART_3),
                "numbers": _build(_NUMBERS)}

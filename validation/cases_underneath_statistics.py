@@ -340,7 +340,7 @@ def cases(Case):
                  f <- psych::alpha.ci(a$total$raw_alpha, n.obs = length(x1), n.var = 3, p.val = 0.05)
                  list(alpha = a$total$raw_alpha, `95 % CI low` = f$lower.ci)
              """, r_packages=("psych",), r_tolerance=1e-12),
-        Case("difference_dots", "creatinine: serum minus plasma against their average, with the limits",
+        Case("draw_difference_dots", "creatinine: serum minus plasma against their average, with the limits",
              "creatinine (mcr)", "real data", ours_r=("BlandAltmanLeh",),
              ours="""
                  drawn = sdata.chart(data).difference_dots(first="serum", second="plasma").get_numbers_drawn()

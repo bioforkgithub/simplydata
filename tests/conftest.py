@@ -270,6 +270,32 @@ def needs_r_4_6(needs_r):
 
 
 @pytest.fixture
+def needs_plotly():
+    """For tests of web pages (simplydata[web]): skipped where plotly is not installed, except when
+    SIMPLYDATA_REQUIRE_PLOTLY=1 (CI), where they must run."""
+    try:
+        import plotly  # noqa: F401
+    except ImportError:
+        if os.environ.get("SIMPLYDATA_REQUIRE_PLOTLY") == "1":
+            pytest.fail("SIMPLYDATA_REQUIRE_PLOTLY=1 but plotly is missing (pip install 'simplydata[web]')")
+        pytest.skip("needs plotly (pip install 'simplydata[web]')")
+
+
+@pytest.fixture(autouse=True)
+def no_browser(tmp_path, monkeypatch):
+    """chart.show_in_web_page() never opens a browser in the tests: the opener only records the address, and the
+    page is written to the test's own temporary folder (simplydata._web)."""
+    import webbrowser
+
+    from simplydata import _web
+
+    opened = []
+    monkeypatch.setattr(webbrowser, "open", lambda address, *args, **kwargs: opened.append(address) or True)
+    monkeypatch.setitem(_web.WEB_PAGE_FOLDER, "folder", str(tmp_path))
+    yield opened
+
+
+@pytest.fixture
 def needs_control():
     """For tests of the measures that come from python-control (simplydata[systems]): skipped where it is
     not installed, except when SIMPLYDATA_REQUIRE_CONTROL=1 (CI), where they must run."""
@@ -295,8 +321,8 @@ R_ENTRY_POINTS = {
     ("table/risk_words.py", "_prop_test_one_sided"), ("table/agreement_words.py", "_icc"),
     ("table/agreement_words.py", "_krippendorff"), ("table/agreement_words.py", "_ccc"),
     ("table/agreement_words.py", "limits_of_agreement"), ("table/agreement_words.py", "reliability_of"),
-    ("words/agreement_charts.py", "_roc_points"), ("words/agreement_charts.py", "trade_off_curve"),
-    ("words/agreement_charts.py", "_draw_difference_dots"), ("words/agreement_charts.py", "difference_dots"),
+    ("words/agreement_charts.py", "_roc_points"), ("words/agreement_charts.py", "draw_trade_off_curve"),
+    ("words/agreement_charts.py", "_draw_difference_dots"), ("words/agreement_charts.py", "draw_difference_dots"),
     ("table/stat_tests.py", "_z_test"), ("table/stat_tests.py", "_trend_test"), ("table/stat_tests.py", "_counts_engine"),
     ("table/summaries.py", "_ordinal_association"), ("table/summaries.py", "_partial_correlation"),
     ("table/correlation_words.py", "compare_correlations"), ("table/rows.py", "_test_outliers"),

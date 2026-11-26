@@ -306,7 +306,7 @@ def test_underneath_line_is_read_from_the_code():
     assert underneath_line(UNDERNEATH["table.find_average_of"]) == (
         "pandas groupby().mean().reset_index() · Polars group_by().agg().sort(), col().mean()")
     assert underneath_line(UNDERNEATH["table.keep_rows_where"]) == "pandas boolean indexing · Polars filter(), col()"
-    assert underneath_line(UNDERNEATH["trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
+    assert underneath_line(UNDERNEATH["draw_trade_off_curve"]).startswith("R pROC::roc(), pROC::ci.auc(), pROC::coords()")
 
 
 # ---------------------------------------------------------------- the rename helper
@@ -414,8 +414,8 @@ def test_a_simplydata_side_that_gives_no_chart_is_an_error_not_a_match():
 
 
 def test_legend_numbers_are_compared_to_the_printed_digits():
-    entry = Entry(word="trade_off_curve", ours="", compare="chart", check=("lines",),
-                  legend_pattern=UNDERNEATH["trade_off_curve"].legend_pattern,
+    entry = Entry(word="draw_trade_off_curve", ours="", compare="chart", check=("lines",),
+                  legend_pattern=UNDERNEATH["draw_trade_off_curve"].legend_pattern,
                   legend_numbers=("auc", "auc_low", "auc_high"))
     fig, ax = plt.subplots()
     ax.plot([0, 1], [0, 1], label="crp: AUC 0.831 (95 % CI 0.750 to 0.912)")

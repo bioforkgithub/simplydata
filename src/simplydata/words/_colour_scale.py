@@ -199,7 +199,14 @@ def scale_for(ctx, values, word, diverge_at_zero=False):
         if lo < 0 < hi:
             middle = 0.0
     if cmap is None:
-        cmap = matplotlib.colormaps[DEFAULT_DIVERGING if middle is not None else DEFAULT_MAP]
+        from .second_cues import in_black_and_white, no_middle_in_grey
+
+        if in_black_and_white(ctx):  # chart.use_style("black and white"): greys (a map the user named is kept)
+            if middle is not None:
+                no_middle_in_grey(word)
+            cmap = matplotlib.colormaps["Greys"]
+        else:
+            cmap = matplotlib.colormaps[DEFAULT_DIVERGING if middle is not None else DEFAULT_MAP]
     lo, hi = between or (lo_data, hi_data)
     levels = None
     if log:
@@ -241,6 +248,8 @@ def scale_for(ctx, values, word, diverge_at_zero=False):
         if between is not None:
             levels = np.linspace(lo, hi, 11)
     extend = _extend(lo_data, hi_data, norm.vmin, norm.vmax)
+    if middle is not None:
+        norm.simplydata_middle = float(middle)  # the middle asked for, read back by get_scales_drawn()
     return cmap, norm, extend, levels
 
 

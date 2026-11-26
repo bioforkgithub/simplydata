@@ -78,42 +78,65 @@ def _caption_bottom(ctx, text):
     if len(ctx.axes) == 1:
         # Hang the caption under the x-axis label. It belongs to the axes, so constrained
         # layout makes room for it, and it moves down when labels are turned or get bigger.
-        ctx.ax.annotate(text, xy=(0.5, 0), xycoords=ctx.ax.xaxis.label, xytext=(0, -4),
-                        textcoords="offset points", ha="center", va="top",
-                        annotation_clip=False, **style)
+        caption = ctx.ax.annotate(text, xy=(0.5, 0), xycoords=ctx.ax.xaxis.label, xytext=(0, -4),
+                                  textcoords="offset points", ha="center", va="top",
+                                  annotation_clip=False, **style)
+        caption.simplydata_part = "caption"
         return
     # Several panels: the figure's bottom line (supxlabel) is the only text that constrained
     # layout keeps below every panel.
     shared = ctx.fig.get_supxlabel()
     if not shared:
-        ctx.fig.supxlabel(text, **style)
+        ctx.fig.supxlabel(text, **style).simplydata_part = "caption"
         return
     # Both a shared x label and a caption: the label gets an empty second line and the
     # caption sits in it, so layout has made room for both.
     label = ctx.fig.supxlabel(shared + "\n", fontweight="bold")
-    ctx.fig.add_artist(Annotation(text, xy=(0.5, 0), xycoords=label, ha="center", va="bottom",
-                                  annotation_clip=False, **style))
+    caption = Annotation(text, xy=(0.5, 0), xycoords=label, ha="center", va="bottom", annotation_clip=False,
+                         **style)
+    caption.simplydata_part = "caption"
+    ctx.fig.add_artist(caption)
 
 
 # ---------------------------------------------------------------- note
-def _note(ctx, text, x, y, arrow):
+# Fixed places for write_note(where=): (x, y) as parts of the plot area, and how the text is aligned there
+NOTE_PLACES = {"top left": (0.02, 0.98, "left", "top"), "top right": (0.98, 0.98, "right", "top"),
+               "bottom left": (0.02, 0.02, "left", "bottom"), "bottom right": (0.98, 0.02, "right", "bottom"),
+               "top": (0.5, 0.98, "center", "top"), "bottom": (0.5, 0.02, "center", "bottom"),
+               "left": (0.02, 0.5, "left", "center"), "right": (0.98, 0.5, "right", "center"),
+               "middle": (0.5, 0.5, "center", "center")}
+
+
+def _note(ctx, text, x, y, arrow, where=None, box=False, curved=False):
     ax = ctx.ax
     # a soft background in the chart's own colour keeps the words readable over lines and bars
     back = dict(boxstyle="round,pad=0.2", fc=mpl.rcParams["axes.facecolor"], ec="none", alpha=0.85)
+    if box:  # with_box=True: a frame round the note
+        back = dict(boxstyle="round,pad=0.3", fc=mpl.rcParams["axes.facecolor"], ec=mpl.rcParams["text.color"],
+                    lw=0.8)
+    if where is not None:  # a fixed place in the plot area, whatever the data (matplotlib's transAxes)
+        fx, fy, ha, va = NOTE_PLACES[where]
+        note = ax.text(fx, fy, text, transform=ax.transAxes, ha=ha, va=va, bbox=back, zorder=5)
+        note.simplydata_part, note.simplydata_where = "note", where
+        return
     px, py = tick_position(ax, "x", x), tick_position(ax, "y", y)
     if not arrow:
-        ax.annotate(text, xy=(px, py), xytext=(0, 4), textcoords="offset points",
-                    ha="center", va="bottom", bbox=back)
+        note = ax.annotate(text, xy=(px, py), xytext=(0, 4), textcoords="offset points",
+                           ha="center", va="bottom", bbox=back)
+        note.simplydata_part = "note"
         return
     # Put the text on the side that points into the chart, so it stays inside.
     data = (ax.xaxis.convert_units(px), ax.yaxis.convert_units(py))
     fx, fy = ax.transAxes.inverted().transform(ax.transData.transform(data))
     dx = -ARROW_OFFSET if fx > 0.6 else ARROW_OFFSET
     dy = -ARROW_OFFSET if fy > 0.6 else ARROW_OFFSET
-    ax.annotate(text, xy=(px, py), xytext=(dx, dy), textcoords="offset points",
-                ha="right" if dx < 0 else "left", va="top" if dy < 0 else "bottom", bbox=back,
-                arrowprops=dict(arrowstyle="->", color=mpl.rcParams["text.color"], lw=1.2,
-                                shrinkA=2, shrinkB=3))
+    arrow_look = dict(arrowstyle="->", color=mpl.rcParams["text.color"], lw=1.2, shrinkA=2, shrinkB=3)
+    if curved:  # with_curved_arrow=True: the arrow bends on its way (matplotlib's connectionstyle arc3)
+        arrow_look["connectionstyle"] = "arc3,rad=0.3"
+    note = ax.annotate(text, xy=(px, py), xytext=(dx, dy), textcoords="offset points",
+                       ha="right" if dx < 0 else "left", va="top" if dy < 0 else "bottom", bbox=back,
+                       arrowprops=arrow_look)
+    note.simplydata_part = "note"
 
 
 # ---------------------------------------------------------------- numbers on bars
@@ -152,6 +175,7 @@ def _numbers_on_bars(ctx, decimals):
             colour = _text_colour_on(c.patches[0].get_facecolor())
             for t in ax.bar_label(c, labels=labels, label_type="center"):
                 t.set_color(colour)
+                t.simplydata_part = "number on bar"
         return
 
     # Error bars: write the number just past the end of the error bar, not across it.
@@ -182,12 +206,14 @@ def _numbers_on_bars(ctx, decimals):
             up = v >= 0
             end = np.nanmax(span) if up else np.nanmin(span)
             if sideways:
-                ax.annotate(lab, xy=(end, where(patch)), xytext=(3 if up else -3, 0),
-                            textcoords="offset points", ha="left" if up else "right", va="center")
+                number = ax.annotate(lab, xy=(end, where(patch)), xytext=(3 if up else -3, 0),
+                                     textcoords="offset points", ha="left" if up else "right", va="center")
             else:
-                ax.annotate(lab, xy=(where(patch), end), xytext=(0, 3 if up else -3),
-                            textcoords="offset points", ha="center", va="bottom" if up else "top")
-        ax.bar_label(c, labels=plain, padding=3)
+                number = ax.annotate(lab, xy=(where(patch), end), xytext=(0, 3 if up else -3),
+                                     textcoords="offset points", ha="center", va="bottom" if up else "top")
+            number.simplydata_part = "number on bar"
+        for t in ax.bar_label(c, labels=plain, padding=3):
+            t.simplydata_part = "number on bar"
     # a little more room at the end of the bars, so the numbers stay inside the chart
     ax.margins(**({"x": 0.12} if sideways else {"y": 0.12}))
     ax.autoscale_view()
@@ -287,10 +313,11 @@ def _names_on_dots(ctx, column, colour):
                 continue
             if _overlaps(box, others):
                 continue
-            ax.annotate(text, xy=(px, py), xytext=(ox, oy), textcoords="offset points",
-                        ha="left" if dx > 0 else "right" if dx < 0 else "center",
-                        va="bottom" if dy > 0 else "top" if dy < 0 else "center",
-                        fontsize=size, color=colour or mpl.rcParams["text.color"], zorder=4, bbox=back)
+            name = ax.annotate(text, xy=(px, py), xytext=(ox, oy), textcoords="offset points",
+                               ha="left" if dx > 0 else "right" if dx < 0 else "center",
+                               va="bottom" if dy > 0 else "top" if dy < 0 else "center",
+                               fontsize=size, color=colour or mpl.rcParams["text.color"], zorder=4, bbox=back)
+            name.simplydata_part = "name on dot"
             taken.append((box[0] - NAME_ROOM, box[1] - NAME_ROOM, box[2] + NAME_ROOM, box[3] + NAME_ROOM))
             break
         else:
@@ -336,13 +363,32 @@ class TextWords:
         return self._replace("caption_bottom", "finish", _caption_bottom, scope="figure", text=text)
 
     @friendly(renamed={"arrow": "with_arrow"})
-    def write_note(self: _Same, text, x=None, y=None, with_arrow=False) -> _Same:
+    def write_note(self: _Same, text, x=None, y=None, with_arrow=False, where=None, with_box=False,
+                   with_curved_arrow=False) -> _Same:
         """A note on the chart at a place x, y. chart.write_note("Biggest", x=2024, y=49)
 
-        with_arrow=True puts the note a little away, with an arrow pointing at x, y.
+        with_arrow=True puts the note a little away, with an arrow pointing at x, y;
+        with_curved_arrow=True makes the arrow bend.
         On bar charts x can be a name: chart.write_note("Best", x="Ben", y=90) on bars of names.
+        where="top left" puts the note at a fixed place in the chart instead of at x, y: "top left",
+        "top right", "bottom left", "bottom right", "top", "bottom", "left", "right" or "middle",
+        for example chart.write_note("n = 30", where="top left").
+        with_box=True draws a frame round the note.
         """
         text = _check_text("write_note", text, 'chart.write_note("Highest!", x=5, y=98)')
+        for name, value in (("with_box", with_box), ("with_curved_arrow", with_curved_arrow)):
+            if not isinstance(value, bool):
+                raise SimplydataError(f".write_note() needs {name}=True or {name}=False, not {value!r}.")
+        if where is not None:
+            if x is not None or y is not None:
+                raise SimplydataError('.write_note() takes a place by x= and y=, or by where=, not both. For example '
+                                      'chart.write_note("n = 30", where="top left").')
+            if with_arrow or with_curved_arrow:
+                raise SimplydataError(".write_note() draws an arrow to a point x, y; a note at where= has no point "
+                                      "to point at. Give x= and y= for an arrow.")
+            self._check_choice("write_note", "where", where, list(NOTE_PLACES))
+            return self._add("note", "extra", _note, text=text, x=None, y=None, arrow=False, where=where,
+                             box=with_box)
         if x is None or y is None:
             raise SimplydataError(
                 '.write_note() needs a place: x= and y=, for example chart.write_note("Highest!", x=5, y=98).')
@@ -353,7 +399,8 @@ class TextWords:
                     f'.write_note() needs a number for {name}=, not {v!r}. For example chart.write_note("Highest!", x=5, y=98).')
         if not isinstance(with_arrow, bool):
             raise SimplydataError(".write_note() needs with_arrow=True or with_arrow=False.")
-        return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=with_arrow)
+        return self._add("note", "extra", _note, text=text, x=x, y=y, arrow=with_arrow or with_curved_arrow,
+                         box=with_box, curved=with_curved_arrow)
 
     @friendly(renamed={"decimals": "with_decimals"})
     def write_numbers_on_bars(self: _Same, with_decimals=0) -> _Same:
@@ -392,16 +439,32 @@ class TextWords:
         return self._replace("names_on_dots", "text", _names_on_dots, column=column, colour=colour)
 
     @friendly
-    def use_font_size(self: _Same, size) -> _Same:
-        """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)"""
-        if isinstance(size, bool) or not isinstance(size, numbers.Real) or size <= 0:
-            raise SimplydataError(
-                f".use_font_size() needs a number bigger than 0, not {size!r}. For example chart.use_font_size(14).")
-        if not 4 <= size <= 60:
-            raise SimplydataError(
-                f"Font size {size} is very {'small' if size < 4 else 'big'}. "
-                "Try a number between 8 and 24, for example chart.use_font_size(14).")
-        return self._set(font_size=float(size))
+    def use_font_size(self: _Same, size=None, title=None, ticks=None) -> _Same:
+        """Make all the text bigger or smaller. chart.use_font_size(14) (normal is 12)
+
+        title=16 sets the size of the title and ticks=10 the numbers and names along the axes,
+        whatever the size of the rest: chart.use_font_size(12, title=16, ticks=10). Each size you
+        give replaces the one given before.
+        """
+        if size is None and title is None and ticks is None:
+            raise SimplydataError(".use_font_size() needs a size, for example chart.use_font_size(14) or "
+                                  "chart.use_font_size(title=16).")
+        sizes = {}
+        for name, value, key in (("size", size, "font_size"), ("title", title, "title_size"),
+                                 ("ticks", ticks, "ticks_size")):
+            if value is None:
+                continue
+            option = "" if name == "size" else f" for {name}="
+            if isinstance(value, bool) or not isinstance(value, numbers.Real) or value <= 0:
+                raise SimplydataError(
+                    f".use_font_size() needs a number bigger than 0{option}, not {value!r}. "
+                    "For example chart.use_font_size(14).")
+            if not 4 <= value <= 60:
+                raise SimplydataError(
+                    f"Font size {value}{option} is very {'small' if value < 4 else 'big'}. "
+                    "Try a number between 8 and 24, for example chart.use_font_size(14).")
+            sizes[key] = float(value)
+        return self._set(**sizes)
 
     @friendly
     def use_font(self: _Same, name) -> _Same:

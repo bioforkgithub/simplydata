@@ -17,14 +17,24 @@ import math
 
 import numpy as np
 
-COLUMNS = ("panel", "layer", "kind", "series", "x", "y", "low", "high", "value")
+COLUMNS = ("panel", "layer", "kind", "series", "x", "y", "low", "high", "value", "colour", "colour name")
 
 
 # ---------------------------------------------------------------- shared readers (chart_facts uses these)
 def lines_of(ax) -> list:
-    """Every line on the axes, as drawn: [(line, x values, y values)]."""
-    return [(line, np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float))
-            for line in ax.get_lines()]
+    """Every line on the axes, as drawn: [(line, x values, y values)].
+
+    A line drawn at named places (seaborn's error bars on an axis of groups) keeps the names as its data;
+    then the numbers matplotlib turned them into (Line2D.get_xydata) are read instead."""
+    found = []
+    for line in ax.get_lines():
+        try:
+            xs, ys = np.asarray(line.get_xdata(), dtype=float), np.asarray(line.get_ydata(), dtype=float)
+        except (TypeError, ValueError):
+            xy = np.asarray(line.get_xydata(), dtype=float).reshape(-1, 2)
+            xs, ys = xy[:, 0], xy[:, 1]
+        found.append((line, xs, ys))
+    return found
 
 
 def dots_of(ax) -> list:
@@ -51,6 +61,76 @@ def _label(artist) -> str:
     text = artist.get_label() if hasattr(artist, "get_label") else ""
     text = "" if text is None else str(text)
     return "" if text.startswith("_") else text
+
+
+# ---------------------------------------------------------------- colours (the colour column)
+def _colour_names() -> dict:
+    """Named colours by their code ("#0000ff" -> "blue"); where two names share a code, the plainer one."""
+    from matplotlib import colors as mcolors
+
+    names = {}
+    for name in sorted(mcolors.CSS4_COLORS, key=lambda n: ("gray" in n, len(n), n)):
+        names.setdefault(mcolors.CSS4_COLORS[name].lower(), name)
+    for plain in ("cyan", "magenta"):  # rather than aqua and fuchsia
+        names[mcolors.CSS4_COLORS[plain].lower()] = plain
+    return names
+
+
+_NAMES_BY_CODE: dict = {}
+
+
+def colour_code(colour) -> str:
+    """A drawn colour as matplotlib keeps it, written as a code: "#0072b2" ("#0072b280" when see-through).
+    Empty when there is none (a dot with no fill and no edge)."""
+    from matplotlib.colors import to_hex, to_rgba
+
+    if colour is None:
+        return ""
+    try:
+        if not isinstance(colour, str):
+            array = np.asarray(colour, dtype=float)
+            if array.ndim == 2:
+                if not len(array):
+                    return ""
+                array = array[0]
+            colour = tuple(array)
+        rgba = to_rgba(colour)
+    except (TypeError, ValueError):
+        return ""
+    if rgba[3] == 0:
+        return ""
+    return to_hex(rgba, keep_alpha=rgba[3] < 1)
+
+
+def colour_name(code: str) -> str:
+    """The name of a colour code when a named colour has exactly that code ("#0000ff" -> "blue"), else empty."""
+    if not _NAMES_BY_CODE:
+        _NAMES_BY_CODE.update(_colour_names())
+    return _NAMES_BY_CODE.get((code or "").lower(), "")
+
+
+def _each_colour(colours, n) -> list:
+    """n colour codes from matplotlib's list of colours of a collection (one for all, or one each)."""
+    try:
+        array = np.asarray(colours, dtype=float)
+    except (TypeError, ValueError):
+        return [colour_code(colours)] * n
+    if array.ndim == 1 and array.size in (3, 4):
+        array = array[None, :]
+    if array.ndim != 2 or not len(array):
+        return [""] * n
+    if len(array) == n:
+        return [colour_code(c) for c in array]
+    if len(array) == 1:
+        return [colour_code(array[0])] * n
+    return [""] * n  # colours that cannot be matched to the points: none rather than a wrong one
+
+
+def _mapped(coll):
+    """A collection coloured by numbers (a colour scale) gets its colours the way drawing gives them."""
+    if hasattr(coll, "get_array") and coll.get_array() is not None:
+        coll.update_scalarmappable()
+    return coll
 
 
 def _colour_key(artist):
@@ -128,6 +208,20 @@ def _axis_reader(axis):
     return (lambda v: v), "number"
 
 
+def _codes(path) -> list:
+    """The code of each point of a path (matplotlib Path.codes; 0 when the path has none, a plain line)."""
+    codes = path.codes
+    return [0] * len(path.vertices) if codes is None else [int(c) for c in codes]
+
+
+def _is_hexagons(coll) -> bool:
+    """matplotlib hexbin's collection: one shape placed at many centres, coloured by a count."""
+    offsets = np.asarray(coll.get_offsets(), dtype=float)
+    values = coll.get_array()
+    return (len(coll.get_paths()) == 1 and offsets.ndim == 2 and len(offsets) > 1 and values is not None
+            and len(np.ravel(values)) == len(offsets))
+
+
 def _num(v):
     if v is None:
         return math.nan
@@ -142,9 +236,15 @@ class _Rows:
     def __init__(self):
         self.rows = []
 
-    def add(self, panel, layer, kind, series, x=math.nan, y=math.nan, low=math.nan, high=math.nan, value=math.nan):
+    def add(self, panel, layer, kind, series, x=math.nan, y=math.nan, low=math.nan, high=math.nan, value=math.nan,
+            colour="", artist=None, piece=0, code=0):
+        """One row. artist, piece and code are kept for the web page (simplydata._web), which draws each row with
+        the matplotlib artist it came from: piece is the path or segment of the artist the row belongs to, code
+        the path code of the point (or how a bar or segment lies); they are not columns of the table."""
+        colour = colour if isinstance(colour, str) else colour_code(colour)
         self.rows.append(dict(panel=panel, layer=layer, kind=kind, series=series, x=_num(x), y=_num(y),
-                              low=_num(low), high=_num(high), value=_num(value)))
+                              low=_num(low), high=_num(high), value=_num(value), colour=colour,
+                              **{"colour name": colour_name(colour)}, _artist=artist, _piece=piece, _code=code))
 
 
 def _containers(ax):
@@ -170,34 +270,43 @@ def _containers(ax):
 def _band_rows(rows, panel, layer, coll, series):
     """fill_between: per path, the forward edge and the backward edge share their x values."""
     sideways = getattr(coll, "t_direction", "x") == "y"
-    for path in coll.get_paths():
+    colour = _each_colour(coll.get_facecolor(), 1)[0]
+    for piece, path in enumerate(coll.get_paths()):
         v = np.asarray(path.vertices, dtype=float)
         n = (len(v) - 3) // 2
         if n < 1 or len(v) != 2 * n + 3:
             continue
         first, second = v[1:n + 1], v[n + 2:2 * n + 2][::-1]
+        if sideways:  # fill_betweenx (violins): each point is (x, y), the position is y and the band runs along x
+            first, second = first[:, ::-1], second[:, ::-1]
         for (t, a), (_, b) in zip(first, second):
-            if sideways:  # fill_betweenx (violins): the position is y, the band runs along x
-                rows.add(panel, layer, "band", series, y=t, low=min(a, b), high=max(a, b))
+            if sideways:
+                rows.add(panel, layer, "band", series, y=t, low=min(a, b), high=max(a, b), colour=colour,
+                         artist=coll, piece=piece, code="sideways")
             else:
-                rows.add(panel, layer, "band", series, x=t, low=min(a, b), high=max(a, b))
+                rows.add(panel, layer, "band", series, x=t, low=min(a, b), high=max(a, b), colour=colour,
+                         artist=coll, piece=piece)
 
 
 def _segment_rows(rows, panel, layer, coll, kind, series):
     """Stems, error bars and other line segments: an upright segment gives its x, its end (y) and its
     low and high ends; a level one its y and its left and right ends (low, high)."""
-    for seg in coll.get_segments():
+    segments = coll.get_segments()
+    colours = _each_colour(coll.get_colors(), len(segments))
+    for piece, (seg, colour) in enumerate(zip(segments, colours)):
         seg = np.asarray(seg, dtype=float)
         if len(seg) < 2:
             continue
         (x0, y0), (x1, y1) = seg[0], seg[-1]
         if x0 == x1:
-            rows.add(panel, layer, kind, series, x=x0, y=y1, low=min(y0, y1), high=max(y0, y1))
+            rows.add(panel, layer, kind, series, x=x0, y=y1, low=min(y0, y1), high=max(y0, y1), colour=colour,
+                     artist=coll, piece=piece, code="upright" if y1 >= y0 else "upright down")
         elif y0 == y1:
-            rows.add(panel, layer, kind, series, x=x1, y=y0, low=min(x0, x1), high=max(x0, x1))
+            rows.add(panel, layer, kind, series, x=x1, y=y0, low=min(x0, x1), high=max(x0, x1), colour=colour,
+                     artist=coll, piece=piece, code="level" if x1 >= x0 else "level back")
         else:
             for x, y in seg:
-                rows.add(panel, layer, kind, series, x=x, y=y)
+                rows.add(panel, layer, kind, series, x=x, y=y, colour=colour, artist=coll, piece=piece)
 
 
 def numbers_of_panel(ax, panel: int):
@@ -206,7 +315,7 @@ def numbers_of_panel(ax, panel: int):
     from matplotlib.collections import LineCollection, PolyCollection, QuadMesh
     from matplotlib.contour import ContourSet
     from matplotlib.image import AxesImage
-    from matplotlib.patches import PathPatch, Polygon, Wedge
+    from matplotlib.patches import Ellipse, PathPatch, Polygon, Wedge
 
     rows = _Rows()
     layer = 0
@@ -232,10 +341,13 @@ def numbers_of_panel(ax, panel: int):
             if not p.get_visible():
                 continue
             x, y, w, h = (float(p.get_x()), float(p.get_y()), float(p.get_width()), float(p.get_height()))
+            colour = colour_code(p.get_facecolor())
             if upright:
-                rows.add(panel, layer, "bar", series, x=x + w / 2, y=h, low=min(y, y + h), high=max(y, y + h))
+                rows.add(panel, layer, "bar", series, x=x + w / 2, y=h, low=min(y, y + h), high=max(y, y + h),
+                         colour=colour, artist=p, code="upright")
             else:
-                rows.add(panel, layer, "bar", series, x=w, y=y + h / 2, low=min(x, x + w), high=max(x, x + w))
+                rows.add(panel, layer, "bar", series, x=w, y=y + h / 2, low=min(x, x + w), high=max(x, x + w),
+                         colour=colour, artist=p, code="sideways")
     for p in rectangles_of(ax):
         if id(p) in in_bars or not p.get_visible() or (p.get_width() == 0 and p.get_height() == 0):
             continue  # an empty rectangle is a stand-in for a legend entry (seaborn), not drawn data
@@ -243,13 +355,14 @@ def numbers_of_panel(ax, panel: int):
         x, y, w, h = (float(p.get_x()), float(p.get_y()), float(p.get_width()), float(p.get_height()))
         xs, ys = _data_axes(p, ax)
         rows.add(panel, layer, "rectangle", name_of(p), x=x + w / 2 if xs else math.nan, y=h if ys else math.nan,
-                 low=min(y, y + h) if ys else math.nan, high=max(y, y + h) if ys else math.nan)
+                 low=min(y, y + h) if ys else math.nan, high=max(y, y + h) if ys else math.nan,
+                 colour=colour_code(p.get_facecolor()), artist=p)
     for line, _, _ in lines_of(ax):
         # get_xydata: the numbers drawn, after matplotlib turned dates or group names into numbers
         xy = np.asarray(line.get_xydata(), dtype=float).reshape(-1, 2)
         xv, yv = xy[:, 0], xy[:, 1]
-        if not line.get_visible() or len(xv) == 0:
-            continue
+        if not line.get_visible() or len(xv) == 0 or getattr(line, "simplydata_decoration", False):
+            continue  # simplydata_decoration: a mark that is not data (the slanted lines of a broken axis)
         layer += 1
         only_markers = (str(line.get_linestyle()).lower() in ("none", "", " ")
                         and str(line.get_marker()).lower() not in ("none", "", " "))  # dots drawn by plot()
@@ -257,8 +370,12 @@ def numbers_of_panel(ax, panel: int):
         xs, ys = _data_axes(line, ax)
         # a number simplydata wrote next to a point (the best cut-off of trade_off_curve), kept on the line
         value = getattr(line, "simplydata_value", math.nan)
+        colour = colour_code(line.get_markerfacecolor() if only_markers else line.get_color())
+        if only_markers and not colour:  # hollow dots: the edge is the colour
+            colour = colour_code(line.get_markeredgecolor())
         for x, y in zip(xv, yv):
-            rows.add(panel, layer, kind, series, x=x if xs else math.nan, y=y if ys else math.nan, value=value)
+            rows.add(panel, layer, kind, series, x=x if xs else math.nan, y=y if ys else math.nan, value=value,
+                     colour=colour, artist=line)
     dot_ids = set()
     for coll, offsets in dots_of(ax):
         if not coll.get_visible():
@@ -266,16 +383,24 @@ def numbers_of_panel(ax, panel: int):
         dot_ids.add(id(coll))
         layer += 1
         series = name_of(coll)
-        for x, y in offsets:
-            rows.add(panel, layer, "dot", series, x=x, y=y)
+        _mapped(coll)
+        colours = _each_colour(coll.get_facecolors(), len(offsets))
+        if not any(colours):  # hollow dots: the edge is the colour
+            colours = _each_colour(coll.get_edgecolors(), len(offsets))
+        for piece, ((x, y), colour) in enumerate(zip(offsets, colours)):
+            rows.add(panel, layer, "dot", series, x=x, y=y, colour=colour, artist=coll, piece=piece)
     for coll in ax.collections:
         if id(coll) in dot_ids or not coll.get_visible():
             continue
         if isinstance(coll, ContourSet):
             layer += 1
-            for level, path in zip(np.atleast_1d(coll.layers), coll.get_paths()):
-                for x, y in np.asarray(path.vertices, dtype=float):
-                    rows.add(panel, layer, "contour", name_of(coll), x=x, y=y, value=level)
+            paths = coll.get_paths()
+            _mapped(coll)
+            colours = _each_colour(coll.get_facecolor() if coll.filled else coll.get_edgecolor(), len(paths))
+            for piece, (level, path, colour) in enumerate(zip(np.atleast_1d(coll.layers), paths, colours)):
+                for (x, y), code in zip(np.asarray(path.vertices, dtype=float), _codes(path)):
+                    rows.add(panel, layer, "contour", name_of(coll), x=x, y=y, value=level, colour=colour,
+                             artist=coll, piece=piece, code=code)
         elif isinstance(coll, fill_between):
             layer += 1
             _band_rows(rows, panel, layer, coll, name_of(coll))
@@ -288,15 +413,32 @@ def numbers_of_panel(ax, panel: int):
             values = np.ma.filled(np.ma.asarray(coll.get_array(), dtype=float), np.nan).ravel()
             corners = np.asarray(coll.get_coordinates(), dtype=float)
             centres = (corners[:-1, :-1] + corners[1:, 1:]) / 2
-            if values.size != centres.size // 2:  # shading="gouraud": one value at each corner
+            gouraud = values.size != centres.size // 2
+            if gouraud:  # shading="gouraud": one value at each corner, coloured in between
                 centres = corners
-            for (x, y), v in zip(centres.reshape(-1, 2), values):
-                rows.add(panel, layer, "cell", _label(coll), x=x, y=y, value=v)
+            _mapped(coll)
+            colours = [""] * values.size if gouraud else _each_colour(coll.get_facecolors(), values.size)
+            for piece, ((x, y), v, colour) in enumerate(zip(centres.reshape(-1, 2), values, colours)):
+                rows.add(panel, layer, "cell", _label(coll), x=x, y=y, value=v, colour=colour, artist=coll,
+                         piece=piece, code="gouraud" if gouraud else 0)
+        elif isinstance(coll, PolyCollection) and _is_hexagons(coll):
+            # matplotlib hexbin (draw_hexagon_bins): one hexagon shape placed at many centres (the offsets), each
+            # with its count in the array
+            layer += 1
+            offsets = np.asarray(coll.get_offsets(), dtype=float)
+            counts = np.ma.filled(np.ma.asarray(_mapped(coll).get_array(), dtype=float), np.nan).ravel()
+            colours = _each_colour(coll.get_facecolors(), len(offsets))
+            for piece, ((x, y), v, colour) in enumerate(zip(offsets, counts, colours)):
+                rows.add(panel, layer, "hexagon", _label(coll), x=x, y=y, value=v, colour=colour, artist=coll,
+                         piece=piece)
         elif isinstance(coll, PolyCollection):
             layer += 1
-            for path in coll.get_paths():
-                for x, y in np.asarray(path.vertices, dtype=float):
-                    rows.add(panel, layer, "shape", _label(coll), x=x, y=y)
+            paths = coll.get_paths()
+            colours = _each_colour(_mapped(coll).get_facecolors(), len(paths))
+            for piece, (path, colour) in enumerate(zip(paths, colours)):
+                for (x, y), code in zip(np.asarray(path.vertices, dtype=float), _codes(path)):
+                    rows.add(panel, layer, "shape", _label(coll), x=x, y=y, colour=colour, artist=coll, piece=piece,
+                             code=code)
     for image in ax.get_images():
         if not isinstance(image, AxesImage) or not image.get_visible():
             continue
@@ -306,34 +448,54 @@ def numbers_of_panel(ax, panel: int):
         layer += 1
         left, right, bottom, top = image.get_extent()
         n_rows, n_cols = values.shape
+        colours = image.to_rgba(values)  # the colour matplotlib gives each cell
         for i in range(n_rows):
             for j in range(n_cols):
                 x = left + (j + 0.5) * (right - left) / n_cols
                 y = (top + (i + 0.5) * (bottom - top) / n_rows) if image.origin == "upper" else \
                     (bottom + (i + 0.5) * (top - bottom) / n_rows)
-                rows.add(panel, layer, "cell", _label(image), x=x, y=y, value=values[i, j])
-    for p in ax.patches:  # outlines: step histograms (Polygon), filled boxes (PathPatch)
-        if not p.get_visible() or not isinstance(p, (Polygon, PathPatch)) or id(p) in in_bars:
+                rows.add(panel, layer, "cell", _label(image), x=x, y=y, value=values[i, j],
+                         colour=colour_code(colours[i, j]) if np.isfinite(values[i, j]) else "", artist=image,
+                         piece=i * n_cols + j)
+    for p in ax.patches:  # outlines: step histograms (Polygon), filled boxes (PathPatch), circles (Ellipse)
+        if not p.get_visible() or not isinstance(p, (Polygon, PathPatch, Ellipse)) or id(p) in in_bars:
             continue
         xs, ys = _data_axes(p, ax)
         if not (xs or ys):
             continue
         layer += 1
-        corners = p.get_xy() if isinstance(p, Polygon) else p.get_path().vertices
-        for x, y in np.asarray(corners, dtype=float):
-            rows.add(panel, layer, "shape", name_of(p), x=x if xs else math.nan, y=y if ys else math.nan)
+        if isinstance(p, Ellipse):  # draw_circle: the circle's outline in the units of the axes, as drawn
+            path = p.get_patch_transform().transform_path(p.get_path())
+            # matplotlib draws a circle as curves (Bezier pieces): each is read at 8 points along it
+            points = [segment(np.linspace(0, 1, 9))[:-1] for segment, _ in path.iter_bezier()]
+            corners = np.concatenate(points + [points[0][:1]]) if points else np.empty((0, 2))
+            codes = [0] * len(corners)
+        elif isinstance(p, Polygon):
+            corners = p.get_xy()
+            codes = [0] * len(corners)
+        else:
+            corners, codes = p.get_path().vertices, _codes(p.get_path())
+        colour = colour_code(p.get_facecolor()) or colour_code(p.get_edgecolor())  # an outline has no fill
+        for (x, y), code in zip(np.asarray(corners, dtype=float), codes):
+            rows.add(panel, layer, "shape", name_of(p), x=x if xs else math.nan, y=y if ys else math.nan,
+                     colour=colour, artist=p, code=code)
     wedges = [p for p in ax.patches if isinstance(p, Wedge) and p.get_visible()]
     if wedges:
         layer += 1
         for p in wedges:
             rows.add(panel, layer, "slice", _label(p), low=p.theta1, high=p.theta2,
-                     value=(p.theta2 - p.theta1) / 360.0)
+                     value=(p.theta2 - p.theta1) / 360.0, colour=colour_code(p.get_facecolor()), artist=p)
     return rows.rows, _axis_reader(ax.xaxis), _axis_reader(ax.yaxis)
 
 
 def _numbers_of_3d(ax, panel, name_of):
     """A 3D chart: lines (Line3D.get_data_3d), dots and surfaces with their height (z) in the value column.
-    The 2D positions matplotlib keeps for these are the projection on the screen, so the 3D data are read."""
+    The 2D positions matplotlib keeps for these are the projection on the screen, so the 3D data are read.
+
+    A surface (Poly3DCollection) keeps its pieces as four or more corners each, in the data's own x, y and z, so
+    every grid point is a corner of up to four pieces. Each drawn grid point is given once (kind "surface"), in
+    the order of y and then x: the grid matplotlib drew. (matplotlib draws at most 50 x 50 pieces, so a finer
+    grid is drawn, and read, at every second or third point.)"""
     rows = _Rows()
     layer = 0
     for line in ax.get_lines():
@@ -341,8 +503,9 @@ def _numbers_of_3d(ax, panel, name_of):
             continue
         layer += 1
         xs, ys, zs = (np.asarray(v, dtype=float) for v in line.get_data_3d())
+        colour = colour_code(line.get_color())
         for x, y, z in zip(xs, ys, zs):
-            rows.add(panel, layer, "line", name_of(line), x=x, y=y, value=z)
+            rows.add(panel, layer, "line", name_of(line), x=x, y=y, value=z, colour=colour, artist=line)
     for coll in ax.collections:
         if not coll.get_visible():
             continue
@@ -351,14 +514,43 @@ def _numbers_of_3d(ax, panel, name_of):
         if dots is not None:
             layer += 1
             xs, ys, zs = (np.ma.filled(np.ma.asarray(v, dtype=float), np.nan).ravel() for v in dots)
-            for x, y, z in zip(xs, ys, zs):
-                rows.add(panel, layer, "dot", name_of(coll), x=x, y=y, value=z)
+            colours = _colours_3d(coll, len(xs))
+            for piece, (x, y, z, colour) in enumerate(zip(xs, ys, zs, colours)):
+                rows.add(panel, layer, "dot", name_of(coll), x=x, y=y, value=z, colour=colour, artist=coll,
+                         piece=piece)
+        elif faces is not None and getattr(coll, "simplydata_bars_3d", None):
+            # draw_bars_3d: matplotlib bar3d keeps six faces for each bar, in the order of the bars; each bar is
+            # read as where it stands (the middle of its floor), its low and high ends, and its height (value)
+            layer += 1
+            boxes = np.asarray(faces, dtype=float).reshape(int(coll.simplydata_bars_3d), -1, 3)
+            faces_colours = _each_colour(getattr(coll, "_facecolor3d", None), len(boxes) * (boxes.shape[1] // 4))
+            colours = faces_colours[::boxes.shape[1] // 4]
+            for piece, (box, colour) in enumerate(zip(boxes, colours)):
+                (x0, y0, z0), (x1, y1, z1) = box.min(axis=0), box.max(axis=0)
+                rows.add(panel, layer, "bar", name_of(coll), x=(x0 + x1) / 2, y=(y0 + y1) / 2, low=z0, high=z1,
+                         value=z1 - z0, colour=colour, artist=coll, piece=piece)
         elif faces is not None:
             layer += 1
-            for face in np.asarray(faces, dtype=float):
-                for x, y, z in face:
-                    rows.add(panel, layer, "shape", name_of(coll), x=x, y=y, value=z)
+            corners = np.asarray(faces, dtype=float).reshape(-1, 3)
+            corners = corners[np.isfinite(corners).all(axis=1)]
+            corners = np.unique(corners, axis=0)  # each drawn grid point once
+            corners = corners[np.lexsort((corners[:, 0], corners[:, 1]))]
+            for x, y, z in corners:
+                rows.add(panel, layer, "surface", name_of(coll), x=x, y=y, value=z, artist=coll)
     return rows.rows
+
+
+def _colours_3d(coll, n) -> list:
+    """The colour of each 3D dot in the order of the data. matplotlib sorts the colours it draws by depth, so they
+    are read from what it keeps in the data's order: the numbers coloured through the colour map
+    (ScalarMappable.to_rgba of the array), or the colours given (_facecolor3d)."""
+    values = coll.get_array()
+    if values is not None:
+        values = np.ma.asarray(values, dtype=float).ravel()
+        if len(values) == n:
+            return [colour_code(c) for c in coll.to_rgba(values, alpha=coll.get_alpha())]
+        return [""] * n
+    return _each_colour(getattr(coll, "_facecolor3d", None), n)
 
 
 def _all_axes(fig) -> list:
@@ -386,18 +578,76 @@ def panels_of(fig) -> list:
     return [a for a in _all_axes(fig) if a.get_label() != "<colorbar>" and a.get_visible()]
 
 
+def main_of(ax, axes) -> tuple:
+    """(the panel's own axes, the role) of a set of axes: a second y-axis (chart.add_second_y, twinx), a second
+    x-axis (twiny) and a secondary axis belong to the panel they are drawn on; other axes are their own ("")."""
+    if type(ax).__name__ == "SecondaryAxis":
+        return getattr(ax, "_parent", ax), "second " + getattr(ax, "_orientation", "y")
+    twins = getattr(ax, "_twinned_axes", None)
+    siblings = twins.get_siblings(ax) if twins is not None else [ax]
+    if len(siblings) > 1:
+        first = next((a for a in axes if any(a is s for s in siblings)), ax)
+        if first is not ax:
+            return first, "second y" if ax.get_shared_x_axes().joined(ax, first) else "second x"
+    return ax, ""
+
+
+def numbered_panels(fig) -> list:
+    """[(axes, panel number, role, what numbers_of_panel read)] in the order of get_numbers_drawn(). A panel is a
+    set of axes on which something was drawn; a second axis (role "second y" ...) has the number of its panel.
+    Axes with nothing drawn on them or their second axes (an empty frame, the base of a chart drawn in parts)
+    get 0: what is written on them belongs to the whole chart."""
+    axes = panels_of(fig)
+    read = {id(ax): numbers_of_panel(ax, 0) for ax in axes}
+    mains = {id(ax): main_of(ax, axes) for ax in axes}
+    with_rows = {id(mains[id(ax)][0]) for ax in axes if read[id(ax)][0]}
+    number, numbers = 0, {}
+    for ax in axes:
+        main = mains[id(ax)][0]
+        if id(main) in with_rows and id(main) not in numbers:
+            number += 1
+            numbers[id(main)] = number
+    return [(ax, numbers.get(id(mains[id(ax)][0]), 0), mains[id(ax)][1], read[id(ax)]) for ax in axes]
+
+
+def _on_part(row, side, low, high) -> bool:
+    """Whether a row of a broken chart (break_between_y) is shown on this part: a bar or band by its high end."""
+    value = row["high"] if row["kind"] in ("bar", "band", "error bar", "stem", "rectangle") else row["y"]
+    if value is None or not np.isfinite(value):
+        return side == "lower"  # a mark with no height of its own (a line across) is read once, on the lower part
+    return value >= high if side == "upper" else value <= low
+
+
 def numbers_drawn(fig):
     """A pandas table of every number drawn on the figure (COLUMNS), panel by panel. On a date axis x (or y)
-    is given as dates, on an axis of named groups as the group names."""
+    is given as dates, on an axis of named groups as the group names. What is drawn on a second y-axis
+    belongs to the panel it is drawn on, its layers after the panel's own."""
     import pandas as pd
 
     rows = []
-    panel = 0
-    for ax in panels_of(fig):
-        found, (read_x, x_kind), (read_y, y_kind) = numbers_of_panel(ax, panel + 1)
-        if not found:
+    last_layer = {}
+    panels = numbered_panels(fig)
+    axes = [ax for ax, _, _, _ in panels]
+    for ax, panel, role, (found, (read_x, x_kind), (read_y, y_kind)) in panels:
+        if not found or not panel:
             continue  # an empty frame (the base of a chart drawn in parts) is not a chart
-        panel += 1
+        if role in ("second y", "second x"):  # a second axis shares the other axis of its panel: read it there
+            main = main_of(ax, axes)[0]
+            if role == "second y":
+                read_x, x_kind = _axis_reader(main.xaxis)
+            else:
+                read_y, y_kind = _axis_reader(main.yaxis)
+        part = getattr(ax, "simplydata_break", None)
+        if part is not None:
+            # break_between_y: each point is read once, on the part of the chart that shows it (panel 1 is the upper
+            # part, panel 2 the lower), with the layer number of the step that drew it
+            side, low, high = part
+            found = [r for r in found if _on_part(r, side, low, high)]
+        before = last_layer.get(panel, 0)
+        for r in found:
+            r["panel"] = panel
+            r["layer"] += before
+        last_layer[panel] = max([before] + [r["layer"] for r in found])
         for r in found:
             if r["kind"] == "slice":
                 continue
@@ -409,6 +659,8 @@ def numbers_drawn(fig):
     frame = pd.DataFrame(rows, columns=list(COLUMNS))
     for column in ("low", "high", "value"):
         frame[column] = frame[column].astype(float)
+    for column in ("colour", "colour name"):
+        frame[column] = frame[column].astype(object).fillna("")
     return frame
 
 
@@ -419,8 +671,9 @@ LAYER_WORDS = {"line": ("line", "lines"), "dot": ("group of dots", "groups of do
                "stem base": ("base line", "base lines"), "error bar": ("set of error bars", "sets of error bars"),
                "segment": ("set of line pieces", "sets of line pieces"), "rectangle": ("rectangle", "rectangles"),
                "cell": ("heat map", "heat maps"), "slice": ("pie", "pies"), "shape": ("shape", "shapes"),
-               "contour": ("set of contour lines", "sets of contour lines"),
-               "error bar cap": ("set of error bar caps", "sets of error bar caps")}
+               "contour": ("set of contour lines", "sets of contour lines"), "surface": ("surface", "surfaces"),
+               "error bar cap": ("set of error bar caps", "sets of error bar caps"),
+               "hexagon": ("set of hexagons", "sets of hexagons")}
 
 
 def summary(frame) -> str:

@@ -36,9 +36,9 @@ TEST_METHOD_WORDS = [
     "table.add_log_ratio_columns", "table.explain_profiles_of", "table.find_correlation_between_profiles",
     "table.find_hidden_factors_behind", "table.find_survival_over_time", "table.explain_survival",
     "table.combine_studies", "table.add_smoothed_column", "nums.smooth", "nums.remove_trend",
-    "table.add_trend_and_season", "table.check_steady_over_time", "trend_and_season", "table.forecast",
-    "nums.forecast", "forecast", "table.compare_forecasts_for", "table.find_spectrum_of", "nums.find_spectrum",
-    "spectrum", "nums.keep_each_frequency_that", "nums.remove_each_frequency_that", "table.add_filtered_column",
+    "table.add_trend_and_season", "table.check_steady_over_time", "draw_trend_and_season", "table.forecast",
+    "nums.forecast", "draw_forecast", "table.compare_forecasts_for", "table.find_spectrum_of", "nums.find_spectrum",
+    "draw_spectrum", "nums.keep_each_frequency_that", "nums.remove_each_frequency_that", "table.add_filtered_column",
     "sdata.frequency_filter", "sdata.find_how_many_needed", "sdata.find_chance_of_finding",
     "nums.change_time_step", "system.in_steps",
 ]

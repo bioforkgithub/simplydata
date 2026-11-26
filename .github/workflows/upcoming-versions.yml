@@ -31,11 +31,11 @@ jobs:
         # the next major releases before simplydata allows them.
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,systems,files,sql]"
-          python -m pip install --pre --upgrade pandas numpy scipy statsmodels matplotlib seaborn polars
+          python -m pip install -e ".[test,systems,files,sql,web]"
+          python -m pip install --pre --upgrade pandas numpy scipy statsmodels matplotlib seaborn polars plotly
       - name: Record the versions
         run: |
-          python -m pip list 2>/dev/null | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|polars|narwhals|pyarrow) ' > versions.txt
+          python -m pip list 2>/dev/null | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|polars|narwhals|pyarrow|plotly) ' > versions.txt
           cat versions.txt
           { echo '### Versions tried'; echo '```'; cat versions.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Run tests
@@ -48,6 +48,7 @@ jobs:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"
           SIMPLYDATA_REQUIRE_CONTROL: "1"
+          SIMPLYDATA_REQUIRE_PLOTLY: "1"
       - name: Open or update the warning issue
         if: failure() && github.event_name != 'pull_request'
         uses: actions/github-script@v7

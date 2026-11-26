@@ -24,9 +24,11 @@ WIDTH = 78
 # numbers. Other spellings of a word (bar, scatter, color ...) are found by themselves and
 # shown next to it. Old names (kept for one release) are never listed here.
 GROUPS = [
-    ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save", "get_numbers_drawn"]),
+    ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save", "get_numbers_drawn",
+                              # charts phase, batch 1: reading a chart back, and a step back
+                              "get_text_drawn", "get_scales_drawn", "get_size", "undo"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
-                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "sticks"]),
+                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "fit_dose_response", "draw_curve", "draw_smooth_line",
                     # S3a-3 (checking and comparing)
@@ -41,16 +43,31 @@ GROUPS = [
                     "draw_cumulative_share", "sdata.draw_all_pairs"]),
     ("Lines and shading", ["draw_line_at_x", "draw_line_at_y", "draw_line_with_slope", "shade_between_x", "shade_between_y"]),
     ("Words on the chart", ["write_title_on_top", "write_caption_at_bottom", "label_x", "label_y", "write_note",
-                            "write_numbers_on_bars", "write_names_on_dots", "use_font_size", "use_font"]),
+                            "write_numbers_on_bars", "write_names_on_dots", "use_font_size", "use_font",
+                            "write_letter"]),
     ("Axes", ["set_range_x", "set_range_y", "use_log_scale_x", "use_log_scale_y", "put_ticks_x", "put_ticks_y",
               "rotate_labels_x", "rotate_labels_y", "write_ticks_x_as", "write_ticks_y_as", "add_second_y",
               "flip_x", "flip_y"]),
     ("Colours and look", ["use_colour", "use_colours", "use_colour_scale", "use_style", "set_size", "show_grid", "hide_grid",
                           "put_legend_at_top", "put_legend_at_bottom", "put_legend_on_left", "put_legend_on_right",
-                          "hide_legend", "show_legend", "label_legend", "label_colour_bar"]),
+                          "hide_legend", "show_legend", "label_legend", "label_colour_bar",
+                          "put_legend_inside", "use_shapes"]),
     ("Order of groups", ["order_x", "order_y", "order_legend"]),
     ("Several charts", ["draw_one_chart_for_each_group_in", "sdata.put_side_by_side", "sdata.put_one_above_other", "sdata.put_in_rows_and_columns",
                         "add_zoom_box", "animate"]),
+    # charts phase, batch 2 (approved by Manish 2026-11-25)
+    ("More chart types", ["draw_rug_lines", "draw_wind_rose", "draw_arrow", "put_chart_inside", "add_second_x"]),
+    ("Frame, ticks and shape", ["hide_frame", "hide_ticks_x", "hide_ticks_y", "show_small_ticks_x",
+                                "show_small_ticks_y", "use_true_shape", "make_square"]),
+    ("Colour bar", ["put_colour_bar_at_bottom", "put_colour_bar_at_top", "put_colour_bar_at_left", "hide_colour_bar",
+                    "put_ticks_colour_bar"]),
+    ("3D charts", ["draw_lines_3d", "label_z", "set_range_z", "put_ticks_z", "look_from"]),
+    ("Describing a chart", ["say_what_it_shows"]),
+    # charts phase, batch 3 (approved by Manish 2026-11-25)
+    ("Web pages", ["show_in_web_page", "show_when_pointing", "add_range_bar_x"]),
+    ("Breaks and other scales", ["break_between_y", "use_scale_x", "use_scale_y", "use_background_colour"]),
+    ("More marks", ["draw_hexagon_bins", "draw_time_bars", "draw_rectangle", "draw_circle", "draw_residual_dots",
+                    "draw_event_lines", "draw_bars_3d"]),
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
@@ -98,9 +115,9 @@ GROUPS = [
                          # S3d-2 (epidemiology and cause and effect): "more"
                          "table.compare_balanced_groups_of"]),
     ("Diagnostic tests", ["table.compare_to_truth", "table.compare_accuracy", "sdata.compare_to_truth",
-                          "trade_off_curve"]),
+                          "draw_trade_off_curve"]),
     ("Agreement and reliability", ["table.agreement_between", "table.limits_of_agreement", "table.reliability_of",
-                                   "difference_dots"]),
+                                   "draw_difference_dots"]),
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula",
                 # S3a-2 (lines and curves): core, then "more"
                 "table.fit_dose_response", "table.find_best_power_of"]),
@@ -135,16 +152,16 @@ GROUPS = [
                   "table.add_time_and_event_columns", "table.find_risk_over_time", "draw_risk_curves"]),
     # S3b-1: combining studies (meta-analysis); forest_plot draws any result table with intervals, and the combined
     # effect of combine_studies as a diamond
-    ("Combining studies", ["table.combine_studies", "forest_plot", "draw_funnel_plot"]),
+    ("Combining studies", ["table.combine_studies", "draw_forest_plot", "draw_funnel_plot"]),
     # Time series and signals: the core words first in each group, then the "more" words.
     ("Dates and time windows", ["sdata.make_run_of_dates", "table.add_missing_dates"]),
     ("Smoothing and trend", ["table.add_smoothed_column", "nums.smooth", "table.find_trend_of", "nums.remove_trend",
                              "table.add_trend_and_season", "table.find_autocorrelation_of", "nums.find_autocorrelation",
-                             "table.check_steady_over_time", "table.find_change_points_in", "trend_and_season",
-                             "autocorrelation_bars", "cross_correlation_bars", "lag_dots"]),
-    ("Forecasts", ["table.forecast", "nums.forecast", "forecast", "table.compare_forecasts_for"]),
-    ("Cycles and filters", ["table.find_each_peak_that", "nums.find_each_peak_that", "peak_dots", "table.find_each_dip_that", "nums.find_each_dip_that",
-                            "table.find_spectrum_of", "nums.find_spectrum", "spectrum", "spectrum_over_time",
+                             "table.check_steady_over_time", "table.find_change_points_in", "draw_trend_and_season",
+                             "draw_autocorrelation_bars", "draw_cross_correlation_bars", "draw_lag_dots"]),
+    ("Forecasts", ["table.forecast", "nums.forecast", "draw_forecast", "table.compare_forecasts_for"]),
+    ("Cycles and filters", ["table.find_each_peak_that", "nums.find_each_peak_that", "draw_peak_dots", "table.find_each_dip_that", "nums.find_each_dip_that",
+                            "table.find_spectrum_of", "nums.find_spectrum", "draw_spectrum", "draw_spectrum_over_time",
                             "nums.keep_each_frequency_that", "nums.remove_each_frequency_that", "table.add_filtered_column",
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform"]),
@@ -241,10 +258,12 @@ EXTRA_NOTES = {
     ),
     "save": (
         'File types: .png (a picture), .pdf and .svg (sharp at any size, good for printing), '
-        '.jpg, .tif, and .gif for animations. resolution= is how sharp a picture is, in dots '
-        'per inch (dpi): 300 is normal, journals often ask for 300 or 600 (dpi= means the same). '
-        'quality="high" is the same as resolution=600. .tif files are compressed without losing '
-        'anything. To choose the size of the file in cm, mm or pixels, use chart.set_size() first.'
+        '.eps (for journals that ask for it), .jpg, .tif, and .gif for animations. resolution= is how '
+        'sharp a picture is, in dots per inch (dpi): 300 is normal, journals often ask for 300 or 600 (dpi= '
+        'means the same). quality="high" is the same as resolution=600. .tif files are compressed without '
+        'losing anything. Text in .pdf, .svg and .eps files stays real text (fonts kept as TrueType), as '
+        'journals ask. see_through=True leaves out the white background, for a logo or a coloured slide. '
+        'To choose the size of the file in cm, mm or pixels, use chart.set_size() first.'
     ),
     "set_size": (
         'unit= is "inches" (the normal choice), "cm", "mm" or "pixels". A saved file is exactly '
@@ -338,7 +357,24 @@ HELP_EXAMPLES = {
         chart.draw_bars(x="name", y="marks")
         chart.save("marks.png")
         chart.save("marks.pdf")
-        chart.save("marks.tif", resolution=600)"""),
+        chart.save("marks.tif", resolution=600)
+        chart.save("marks_for_a_slide.png", see_through=True)"""),
+    # charts phase, batch 1
+    "get_text_drawn": _ex("marks", 'chart.draw_dots(x="hours", y="marks", colour="class")\n'
+                                   'chart.write_title_on_top("More study, higher marks")\n'
+                                   'text = chart.get_text_drawn()\n'
+                                   'print(text.keep_rows_where("part", is_equal_to="title"))', "text_drawn"),
+    "get_scales_drawn": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_log_scale_y()\n'
+                                     'scales = chart.get_scales_drawn()\n'
+                                     'print(scales.get_cell_at(row=2, column="kind"))', "scales_drawn"),
+    "get_size": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.set_size(width=17, height=12, unit="cm")\n'
+                             'width, height = chart.get_size(unit="cm")', "get_size"),
+    "undo": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_log_scale_y()\nchart.undo()', "undo"),
+    "write_letter": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.write_letter("B")', "write_letter"),
+    "put_legend_inside": _ex("weather", 'chart.draw_lines(x="month", y="temperature", colour="city")\n'
+                                        'chart.put_legend_inside("top left")', "put_legend_inside"),
+    "use_shapes": _ex("marks", 'chart.draw_dots(x="hours", y="marks", colour="class")\n'
+                               'chart.use_shapes("circle", "square", "triangle")', "use_shapes"),
     # chart types
     "draw_bars": _ex("marks", 'chart.draw_bars(x="name", y="marks", colour="class")\nchart.rotate_labels_x()', "draw_bars"),
     "draw_lines": _ex("weather", 'chart.draw_lines(x="month", y="temperature", colour="city", with_dots=True)', "draw_lines"),
@@ -966,15 +1002,15 @@ HELP_EXAMPLES = {
     "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'nums = sdata.make_window_shape("hann", how_many=64)']),
     "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
     "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
-    "sticks": _ex("weather", 'chart.sticks(x="month_number", y="rain", colour="city")', "sticks"),
-    "autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
-    "cross_correlation_bars": _ex("sensor", 'chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "cross_correlation_bars"),
-    "lag_dots": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])', 'chart.save("lag_dots.png")']),
-    "trend_and_season": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.trend_and_season(x="month", y="visitors", repeats_every="year")', 'chart.save("trend_and_season.png")']),
-    "forecast": _ex("visitors", 'chart.draw_lines(x="month", y="visitors", colour="museum")\nchart.forecast(steps_ahead=12, repeats_every="year")', "forecast"),
-    "spectrum": _ex("sensor", 'chart.spectrum("signal", sorted_by="time")', "spectrum"),
-    "spectrum_over_time": _ex("sensor", 'chart.spectrum_over_time("signal", sorted_by="time", window=100)', "spectrum_over_time"),
-    "peak_dots": _ex("sensor", 'chart.draw_lines(x="time", y="signal")\nchart.peak_dots(is_at_least=1, apart=0.05)', "peak_dots"),
+    "draw_sticks": _ex("weather", 'chart.draw_sticks(x="month_number", y="rain", colour="city")', "draw_sticks"),
+    "draw_autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.draw_autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
+    "draw_cross_correlation_bars": _ex("sensor", 'chart.draw_cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "draw_cross_correlation_bars"),
+    "draw_lag_dots": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.draw_lag_dots("visitors", sorted_by="month", rows_back=[1, 12])', 'chart.save("lag_dots.png")']),
+    "draw_trend_and_season": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.draw_trend_and_season(x="month", y="visitors", repeats_every="year")', 'chart.save("trend_and_season.png")']),
+    "draw_forecast": _ex("visitors", 'chart.draw_lines(x="month", y="visitors", colour="museum")\nchart.draw_forecast(steps_ahead=12, repeats_every="year")', "forecast"),
+    "draw_spectrum": _ex("sensor", 'chart.draw_spectrum("signal", sorted_by="time")', "spectrum"),
+    "draw_spectrum_over_time": _ex("sensor", 'chart.draw_spectrum_over_time("signal", sorted_by="time", window=100)', "draw_spectrum_over_time"),
+    "draw_peak_dots": _ex("sensor", 'chart.draw_lines(x="time", y="signal")\nchart.draw_peak_dots(is_at_least=1, apart=0.05)', "draw_peak_dots"),
     "sdata.system": "\n".join(['import simplydata as sdata', 'system = sdata.system("1 / (s**2 + 2*s + 5)")']),
     "system.step_response": _system_x("system.step_response(until=10)"),
     "system.impulse_response": _system_x("system.impulse_response(until=10)"),
@@ -1023,15 +1059,15 @@ HELP_EXAMPLES = {
         'chart.draw_risk_curves(time="time", event="event", value="first_esbl", competing_with="discharged", '
         'colour="ward")',
         'chart.save("draw_risk_curves.png")']),
-    "trade_off_curve": _ex("clinic", 'chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
-                           "trade_off_curve"),
-    "difference_dots": _ex("clinic", 'chart.difference_dots(first="device_a", second="device_b")', "difference_dots"),
-    "forest_plot": textwrap.dedent("""\
+    "draw_trade_off_curve": _ex("clinic", 'chart.draw_trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                           "draw_trade_off_curve"),
+    "draw_difference_dots": _ex("clinic", 'chart.draw_difference_dots(first="device_a", second="device_b")', "draw_difference_dots"),
+    "draw_forest_plot": textwrap.dedent("""\
         import simplydata as sdata
         table = sdata.table(sdata.get_example("marks"))
         pairs = table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")
         chart = pairs.start_chart()
-        chart.forest_plot(x="difference", y="group 1")
+        chart.draw_forest_plot(x="difference", y="group 1")
         chart.save("forest_plot.png")"""),
     # combining studies (S3b-1)
     "table.combine_studies": _tx("bcg", 'table.combine_studies(names="trial", events=["tb_vaccinated", '
@@ -1216,6 +1252,88 @@ HELP_EXAMPLES = {
                                                      'table.spread_into_yes_no_columns("shop")\n'
                                                      'print(table.get_column_names())'),
 }
+
+# charts phase, batch 2 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "draw_rug_lines": _ex("marks", 'chart.draw_density(x="marks")\nchart.draw_rug_lines(x="marks")', "draw_rug_lines"),
+    "draw_wind_rose": _ex("weather", 'chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")',
+                          "draw_wind_rose"),
+    "draw_arrow": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                      'chart.draw_arrow(start=[2, 40], end=[4, 60], labelled="more hours")', "draw_arrow"),
+    "put_chart_inside": _ex("weather", 'chart.draw_lines(x="month_number", y="temperature", colour="city")\n'
+                            'detail = sdata.chart(weather).draw_bars(x="city", y="rain")\n'
+                            'detail.write_title_on_top("Rain")\n'
+                            'chart.put_chart_inside(detail, where="bottom right", size=0.35)', "put_chart_inside"),
+    "add_second_x": _ex("weather", 'chart.draw_dots(x="temperature", y="rain")\n'
+                        'chart.add_second_x(formula="x * 9 / 5 + 32", labelled="Temperature (°F)")', "add_second_x"),
+    "hide_frame": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_frame()', "hide_frame"),
+    "hide_ticks_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_ticks_x()', "hide_ticks_x"),
+    "hide_ticks_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.hide_ticks_y()', "hide_ticks_y"),
+    "show_small_ticks_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_small_ticks_x()',
+                              "show_small_ticks_x"),
+    "show_small_ticks_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_small_ticks_y()',
+                              "show_small_ticks_y"),
+    "use_true_shape": _ex("island", 'chart.draw_contour(x="east", y="north", z="height")\nchart.use_true_shape()',
+                          "use_true_shape"),
+    "make_square": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.make_square()', "make_square"),
+    "put_colour_bar_at_bottom": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                    'chart.put_colour_bar_at_bottom()', "put_colour_bar_at_bottom"),
+    "put_colour_bar_at_top": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                 'chart.put_colour_bar_at_top()', "put_colour_bar_at_top"),
+    "put_colour_bar_at_left": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                  'chart.put_colour_bar_at_left()', "put_colour_bar_at_left"),
+    "hide_colour_bar": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain", with_numbers=True)\n'
+                           'chart.hide_colour_bar()', "hide_colour_bar"),
+    "put_ticks_colour_bar": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\n'
+                                'chart.put_ticks_colour_bar(0, 10, 20, 30)', "put_ticks_colour_bar"),
+    "draw_lines_3d": _ex("island", 'chart.draw_lines_3d(x="east", y="north", z="height")', "draw_lines_3d"),
+    "label_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\nchart.label_z("Height (m)")',
+                   "label_z"),
+    "set_range_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\nchart.set_range_z(-10, 20)',
+                       "set_range_z"),
+    "put_ticks_z": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\n'
+                       'chart.put_ticks_z(-10, 0, 10, 20)', "put_ticks_z"),
+    "look_from": _ex("island", 'chart.draw_surface(x="east", y="north", z="height")\n'
+                     'chart.look_from(height=20, around=45)', "look_from"),
+    "say_what_it_shows": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.say_what_it_shows()',
+                             "say_what_it_shows"),
+})
+
+
+def _web_ex(table: str, body: str, file: str) -> str:
+    """A runnable example that ends with a web page: chart.save("....html") (needs simplydata[web])."""
+    return _ex(table, body, file).rsplit("\n", 1)[0] + f'\nchart.save("{file}.html")'
+
+
+# charts phase, batch 3 (approved by Manish 2026-11-25)
+HELP_EXAMPLES.update({
+    "show_in_web_page": "\n".join(["import simplydata as sdata", 'marks = sdata.get_example("marks")',
+                                   "chart = sdata.chart(marks)", 'chart.draw_dots(x="hours", y="marks")',
+                                   "chart.show_in_web_page()"]),
+    "show_when_pointing": _web_ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                                  'chart.show_when_pointing("name", "class")', "marks_pointing"),
+    "add_range_bar_x": _web_ex("visitors", 'chart.draw_lines(x="month", y="visitors", colour="museum")\n'
+                               "chart.add_range_bar_x()", "visitors_range_bar"),
+    "break_between_y": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.break_between_y(5, 50)',
+                           "break_between_y"),
+    "use_scale_x": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_scale_x("square root")',
+                       "use_scale_x"),
+    "use_scale_y": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_scale_y("square root")',
+                       "use_scale_y"),
+    "use_background_colour": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                                 'chart.use_background_colour("ivory")', "use_background_colour"),
+    "draw_hexagon_bins": _ex("marks", 'chart.draw_hexagon_bins(x="hours", y="height")', "draw_hexagon_bins"),
+    "draw_time_bars": "\n".join(["import simplydata as sdata", "chart = sdata.chart()",
+                                 'chart.draw_time_bars(start=[1, 3, 6], end=[4, 7, 9], y=["plan", "build", "test"])',
+                                 'chart.label_x("Week")', 'chart.save("draw_time_bars.png")']),
+    "draw_rectangle": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                          "chart.draw_rectangle(x_between=[4, 6], y_between=[60, 80])", "draw_rectangle"),
+    "draw_circle": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\n'
+                       "chart.draw_circle(centre=[5, 70], radius=1)", "draw_circle"),
+    "draw_residual_dots": _ex("marks", 'chart.draw_residual_dots(x="hours", y="marks")', "draw_residual_dots"),
+    "draw_event_lines": _ex("marks", 'chart.draw_event_lines(x="hours", y="class")', "draw_event_lines"),
+    "draw_bars_3d": _ex("weather", 'chart.draw_bars_3d(x="month", y="city", z="rain")', "draw_bars_3d"),
+})
 
 
 # ---------------------------------------------------------------- finding words
@@ -2515,6 +2633,8 @@ LESSONS = [
         learn=[
             "a second y-axis, a zoom box and a moving chart",
             "a heatmap that sorts itself",
+            "a wind rose, a map in its true shape, a 3D view, and words that say what a chart shows",
+            "a web page you can point at, and dots counted in hexagons",
             "how to write your own program from start to end",
         ],
         parts=[
@@ -2552,6 +2672,63 @@ LESSONS = [
                 ('chart.label_colour_bar("Rain (mm)")', "Name the colour bar."),
                 ("chart.set_size(width=12, height=4)", "Make the chart wide and low."),
                 ('chart.save("lesson8_heatmap.png")', "Save it."),
+            ]),
+            ("A wind rose shows how often the wind blows from each direction, and how hard: one bar "
+             "for every 30 degrees of the compass, split into bands of wind speed.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('weather = sdata.get_example("weather")', "Get the weather table."),
+                ("chart = sdata.chart(weather)", "Start a chart."),
+                ('chart.draw_wind_rose(direction="wind_direction", speed="wind_speed")',
+                 "Count the months for each direction (north at the top) and stack them by wind speed, "
+                 "the calmest in the middle."),
+                ('chart.save("lesson8_wind_rose.png")', "Save it."),
+            ]),
+            ("A map should keep its true shape, and a chart can say in words what it shows, for a "
+             "caption or for a reader who cannot see it.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('island = sdata.get_example("island")', "Get the island table."),
+                ("chart = sdata.chart(island)", "Start a chart."),
+                ('chart.draw_contour(x="east", y="north", z="height")', "A map of the heights."),
+                ("chart.use_true_shape()", "One km east is as long as one km north, so the island is not "
+                                          "stretched."),
+                ("chart.put_colour_bar_at_bottom()", "Lay the colour bar under the map."),
+                ("chart.say_what_it_shows()", "Print what the chart shows: what is drawn, the axes and the "
+                                             "colour bar, read from the chart itself."),
+                ('chart.save("lesson8_true_shape.png")', "Save it."),
+            ]),
+            ("A chart can also be a web page: point at a dot to read its row, zoom with the mouse, click the "
+             "legend to hide a group. The numbers are the picture's own: matplotlib draws the chart, and the web "
+             "page shows what it drew.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('marks = sdata.get_example("marks")', "Get the marks table."),
+                ("chart = sdata.chart(marks)", "Start a chart."),
+                ('chart.draw_dots(x="hours", y="marks", colour="class")', "One dot per student, coloured by class."),
+                ('chart.show_when_pointing("name", "subject")', "Pointing at a dot shows the student's name and "
+                                                                "subject, and nothing else of the row."),
+                ('chart.save("lesson8_marks.html")', "The end .html makes a web page; it works with no internet. "
+                                                     "Open it in your browser."),
+            ]),
+            ("When many dots cover each other, count them in hexagons; a rectangle marks the part you write "
+             "about.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('marks = sdata.get_example("marks")', "Get the marks table."),
+                ("chart = sdata.chart(marks)", "Start a chart."),
+                ('chart.draw_hexagon_bins(x="hours", y="height", with_bins=8)',
+                 "About 8 hexagons across; the darker, the more students."),
+                ("chart.draw_rectangle(x_between=[5, 7], y_between=[145, 155], hollow=True)",
+                 "An outline round the busiest part."),
+                ('chart.use_background_colour("ivory")', "A soft colour behind the hexagons."),
+                ('chart.save("lesson8_hexagons.png")', "Save it."),
+            ]),
+            ("A 3D chart can be turned to look at it from any side.", [
+                ("import simplydata as sdata", "Load simplydata."),
+                ('island = sdata.get_example("island")', "Get the island table."),
+                ("chart = sdata.chart(island)", "Start a chart."),
+                ('chart.draw_surface(x="east", y="north", z="height", with_height_lines=True)',
+                 "The island as a landscape, with lines of equal height on the floor of the box."),
+                ("chart.look_from(height=20, around=45)", "Look from 20 degrees above the ground, after "
+                                                         "walking 45 degrees round it."),
+                ('chart.save("lesson8_3d.png")', "Save it."),
             ]),
             ("An animation is a chart that moves: one picture for each value of a column.", [
                 ("import simplydata as sdata", "Load simplydata."),
@@ -2631,7 +2808,12 @@ LESSONS = [
              "Two charts of one table on one page, saved as a PDF because the name ends in .pdf."),
         ],
         words=["add_second_y", "add_zoom_box", "draw_heatmap", "label_colour_bar", "set_size", "animate",
-               "draw_contour", "write_note", "use_style", "sdata.show_all_words", "sdata.help"],
+               "draw_contour", "write_note", "use_style", "sdata.show_all_words", "sdata.help",
+               # charts phase, batch 2
+               "draw_wind_rose", "use_true_shape", "put_colour_bar_at_bottom", "say_what_it_shows", "draw_surface",
+               "look_from",
+               # charts phase, batch 3
+               "show_when_pointing", "draw_hexagon_bins", "draw_rectangle", "use_background_colour"],
     ),
     dict(
         title="Tables: open one and look at it",
@@ -4527,7 +4709,7 @@ LESSONS = [
                  "The same comparison as in example 1, kept as a table named risks."),
                 ('risks.keep_rows_where("measure", is_one_of=["risk ratio", "odds ratio"])', "Keep the two ratios."),
                 ("chart = risks.start_chart()", "Start a chart of the result table."),
-                ('chart.forest_plot(x="estimate", y="measure")',
+                ('chart.draw_forest_plot(x="estimate", y="measure")',
                  "Each ratio as a dot with its 95 % interval, on a log scale, with a line at 1 (no effect). Both "
                  "intervals lie above the line."),
                 ('chart.save("risk_ratios.png")', "Save it."),
@@ -4560,7 +4742,7 @@ LESSONS = [
                  "AUC 0.893 against 0.715, a difference of 0.177 (0.085 to 0.270), on the same patients: CRP "
                  "tells better who has it (DeLong's test, p = 0.0002)."),
                 ("chart = table.start_chart()", "Start a chart."),
-                ('chart.trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
+                ('chart.draw_trade_off_curve(score=["crp", "procalcitonin"], truth="infected")',
                  "Both trade-off (ROC) curves: CRP climbs faster to the top left than procalcitonin."),
                 ('chart.save("trade_off.png")', "Save it."),
             ]),
@@ -4570,7 +4752,7 @@ LESSONS = [
                 ('table.limits_of_agreement("device_a", "device_b")',
                  "Device A reads on average 2.18 lower, and 95 % of the differences lie between -11.7 and 7.33."),
                 ("chart = table.start_chart()", "Start a chart."),
-                ('chart.difference_dots(first="device_a", second="device_b")',
+                ('chart.draw_difference_dots(first="device_a", second="device_b")',
                  "The Bland-Altman chart: each difference (first minus second) against the average of the two, "
                  "with the limits of agreement."),
                 ('chart.save("devices.png")', "Save it."),
@@ -4620,7 +4802,7 @@ LESSONS = [
             "really have it?",
             'Complete the started lines to draw the two ratios of task 1: risks = table.compare_risks("infected", '
             'for_each_group_in="ward", against="ward A"), then risks.keep_rows_where("measure", is_one_of=[...]), then '
-            "chart = risks.start_chart() and chart.forest_plot(...).",
+            "chart = risks.start_chart() and chart.draw_forest_plot(...).",
         ],
         solutions=[
             (_sx("""\
@@ -4641,12 +4823,12 @@ LESSONS = [
                 risks = table.compare_risks("infected", for_each_group_in="ward", against="ward A")
                 risks.keep_rows_where("measure", is_one_of=["risk ratio", "odds ratio"])
                 chart = risks.start_chart()
-                chart.forest_plot(x="estimate", y="measure")
+                chart.draw_forest_plot(x="estimate", y="measure")
                 chart.save("infected_ratios.png")"""),
              "Both intervals cross the line at 1, as the interval of the difference includes 0."),
         ],
-        words=["table.compare_risks", "forest_plot", "table.compare_to_truth", "table.agreement_between",
-               "trade_off_curve", "table.compare_accuracy", "table.limits_of_agreement", "difference_dots",
+        words=["table.compare_risks", "draw_forest_plot", "table.compare_to_truth", "table.agreement_between",
+               "draw_trade_off_curve", "table.compare_accuracy", "table.limits_of_agreement", "draw_difference_dots",
                "table.reliability_of", "table.rate_of"],
     ),
     dict(
@@ -4809,7 +4991,7 @@ LESSONS = [
                  "Gallery: 947 (887 to 1008). R's HoltWinters() and forecast() give the same numbers."),
                 ("chart = table.start_chart()", "Start a chart."),
                 ('chart.draw_lines(x="month", y="visitors", colour="museum")', "The data, one line per museum."),
-                ('chart.forecast(steps_ahead=12, repeats_every="year")',
+                ('chart.draw_forecast(steps_ahead=12, repeats_every="year")',
                  "The forecast as a dashed line after the data, with its interval band."),
                 ('chart.save("visitor_forecast.png")', "Save it."),
             ]),
@@ -4846,7 +5028,7 @@ LESSONS = [
              "It follows the rise but not the season: far worse than exponential smoothing (MASE 3.08 against "
              "0.515 in compare_forecasts_for, which scales by the error of the same season last time)."),
         ],
-        words=["draw_lines", "table.add_column_with_part_of_date", "table.forecast", "table.compare_forecasts_for", "forecast"],
+        words=["draw_lines", "table.add_column_with_part_of_date", "table.forecast", "table.compare_forecasts_for", "draw_forecast"],
     ),
     dict(
         title=CYCLES_LESSON,
@@ -4867,7 +5049,7 @@ LESSONS = [
                  "The strongest cycle has frequency 5 per second (it repeats every 0.2 seconds); next come 20 "
                  "per second and a 50-per-second hum."),
                 ("chart = table.start_chart()", "Start a chart."),
-                ('chart.spectrum("signal", sorted_by="time")',
+                ('chart.draw_spectrum("signal", sorted_by="time")',
                  "The same numbers as a chart: power against frequency on a log scale, the three strongest "
                  "cycles labelled with how often they repeat."),
                 ('chart.save("spectrum.png")', "Save it."),
@@ -4899,7 +5081,7 @@ LESSONS = [
                  "find_each_dip_that is find_each_peak_that upside down: one dip goes down to -2 or lower, -2.36 at time 0.94."),
                 ("chart = table.start_chart()", "Start a chart."),
                 ('chart.draw_lines(x="time", y="signal")', "The signal."),
-                ("chart.peak_dots(is_at_least=2.5)", "A mark on the peak."),
+                ("chart.draw_peak_dots(is_at_least=2.5)", "A mark on the peak."),
                 ('chart.save("peaks.png")', "Save it."),
             ]),
             ("More (if you want it): Welch's method averages the spectra of overlapping pieces of the "
@@ -4957,8 +5139,8 @@ LESSONS = [
                 table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1.5)"""),
              "Many more dips now, each with its time and value; the lowest is still -2.36 at time 0.94."),
         ],
-        words=["table.find_spectrum_of", "spectrum", "table.add_filtered_column", "table.find_each_peak_that", "table.find_each_dip_that",
-               "peak_dots", "table.check_steady_over_time"],
+        words=["table.find_spectrum_of", "draw_spectrum", "table.add_filtered_column", "table.find_each_peak_that", "table.find_each_dip_that",
+               "draw_peak_dots", "table.check_steady_over_time"],
     ),
     dict(
         title=SYSTEMS_LESSON,
@@ -5416,7 +5598,7 @@ LESSONS = [
                  "compared with. Read the first lines: the combined risk ratio is 0.47 (95 % CI 0.36 to 0.62): on "
                  "average the vaccine about halves the risk."),
                 ("chart = result.start_chart()", "A chart of the result table."),
-                ('chart.forest_plot(x="estimate", y="study", size="weight %")',
+                ('chart.draw_forest_plot(x="estimate", y="study", size="weight %")',
                  "One square per trial, as big as its weight, with its 95 % interval; the diamond is the combined "
                  "effect. The line at 1 is no effect."),
                 ('chart.save("lesson30_forest.png")', "Save the picture."),
@@ -5495,7 +5677,7 @@ LESSONS = [
              "The prediction interval: in a new setting like these studies, the true odds ratio would lie between "
              "about 1.22 and 1.45."),
         ],
-        words=["table.combine_studies", "forest_plot", "draw_funnel_plot"],
+        words=["table.combine_studies", "draw_forest_plot", "draw_funnel_plot"],
     ),
     # S3c-1 (communities and resistomes): lessons 31 and 32, found by title
     dict(

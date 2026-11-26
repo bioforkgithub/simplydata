@@ -1,6 +1,6 @@
-"""The same work in the packages underneath: tested entries for 431 of simplydata's 431 words.
+"""The same work in the packages underneath: tested entries for 475 of simplydata's 475 words.
 
-Every word has an entry. There are 563 entries: one for each of 431 words, plus one for each option of those
+Every word has an entry. There are 621 entries: one for each of 475 words, plus one for each option of those
 words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
 Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
@@ -18,7 +18,7 @@ The library code holds no simplydata names: it reads the practice table from its
 (pd.read_csv("marks.csv"); check.py runs it in the folder of the practice files), so a rename only touches the
 key and the ours= line; docs/rename_underneath_keys.py rewrites both.
 
-The entries are split by area: charts.py, tables.py, numbers.py, statistics.py, models.py (the options of
+The entries are split by area: charts.py, charts_more.py (the charts phase, batch 2), tables.py, numbers.py, statistics.py, models.py (the options of
 explain()), lines.py (the lines-and-curves words and their options), checking.py (the checking-and-comparing
 words and their options), survival.py (S3b-3: the survival and person-time words and options),
 combining.py (S3b-1: combining studies), planning.py (S3b-2: the power words and their options) and
@@ -31,6 +31,10 @@ causal.py (S3d-2: balancing groups, attributable fractions, standardised rates, 
 multiple imputation for other words), bayesian.py (S3d-3: test_method="bayesian" on the tests, explain and check_model_of)
 and more_words.py (2026-11-21: get_numbers_drawn, repeat_each_row_by, the table of show_rows_that_pull_model,
 check_model_of show="numbers", get_example from_r_package= and find_correlation_between show="result table").
+charts_batch1.py (charts phase, batch 1: the read-back words, undo, write_letter, put_legend_inside and
+use_shapes).
+charts_batch3.py (charts phase, batch 3: web pages, broken and other scales, hexagons, time bars, shapes, residual
+dots, event lines and 3D bars).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -59,7 +63,7 @@ CHART_FACTS = ("bars", "bar_colour_groups", "dots", "dot_size_shares", "dot_colo
                "ticks", "legend", "limits", "scales", "panels", "texts", "font_sizes", "size", "legend_place",
                "colours", "tick_angles", "shapes", "cells", "every_panel", "line_styles", "text_places",
                "shape_colours", "panel_styles", "grid", "fonts", "polar_start", "in_3d", "segments", "insets",
-               "colour_bars", "ax_lines", "tick_places")
+               "colour_bars", "ax_lines", "tick_places", "background", "hexagons", "faces_3d")
 
 R_LABEL = "R (simplydata runs this in R for you, through rpy2)"
 
@@ -143,14 +147,14 @@ class Entry:
 
 
 def _join() -> dict[str, Entry]:
-    from . import (bayesian, causal, charts, checking, combining, communities, hidden_factors, lines, models,
-                   more_words, numbers, places, planning, planning_surveys, signals, small_additions, starting,
-                   statistics, survival, tables)
+    from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, checking, combining, communities,
+                   hidden_factors, lines, models, more_words, numbers, places, planning, planning_surveys, signals,
+                   small_additions, starting, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
-    for module in (charts, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
+    for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
-                   more_words, signals, starting):
+                   more_words, signals, starting, charts_batch1, charts_batch3):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

@@ -172,7 +172,7 @@ def _cases(Case):
                  p <- spec.pgram(sunspots, taper = 0, detrend = FALSE, fast = FALSE, plot = FALSE)
                  list(`power at 1 / 103 years` = 2 * p$spec[3], `total power` = 2 * sum(p$spec))
              """, r_tolerance=1e-9),
-        Case("spectrum", "the yearly sunspot numbers: the periodogram the chart draws", SUNSPOTS, "real data",
+        Case("draw_spectrum", "the yearly sunspot numbers: the periodogram the chart draws", SUNSPOTS, "real data",
              ours=f"""
                  drawn = {sun}.start_chart().spectrum("sunspots", sorted_by="year").get_numbers_drawn()
                  power = drawn.get_column("y")
@@ -187,7 +187,7 @@ def _cases(Case):
                  p <- spec.pgram(sunspots, taper = 0, detrend = FALSE, fast = FALSE, plot = FALSE)
                  list(points = length(p$spec), `first power` = 2 * p$spec[1], `total power` = 2 * sum(p$spec))
              """, r_tolerance=1e-9, note="The chart leaves out frequency 0 (log scale)."),
-        Case("spectrum_over_time", "the yearly sunspot numbers in pieces of 64 years: the heat map", SUNSPOTS,
+        Case("draw_spectrum_over_time", "the yearly sunspot numbers in pieces of 64 years: the heat map", SUNSPOTS,
              "real data",
              ours=f"""
                  chart = {sun}.start_chart().spectrum_over_time("sunspots", sorted_by="year", window=64)
@@ -252,7 +252,7 @@ def _cases(Case):
                  years = data["year"].to_numpy()[found]
                  {"dips": len(found), "first year": years[0], "last year": years[-1]}
              """, parent_label="SciPy signal.find_peaks on minus the numbers", parent_tolerance=0),
-        Case("peak_dots", "the yearly sunspot numbers: dots on the maxima of at least 150", SUNSPOTS, "real data",
+        Case("draw_peak_dots", "the yearly sunspot numbers: dots on the maxima of at least 150", SUNSPOTS, "real data",
              ours=f"""
                  chart = {sun}.start_chart().draw_lines(x="year", y="sunspots").peak_dots(is_at_least=150)
                  dots = sdata.table(chart.get_numbers_drawn()).keep_rows_where("kind", is_equal_to="dot")
@@ -455,7 +455,7 @@ def _cases(Case):
                  list(poles = n, `smallest distance` = min(Mod(z)), `biggest distance` = max(Mod(z)))
              """, r_tolerance=1e-9, note="R: Butterworth's poles and the bilinear transform written out in base R."),
         # ---- the time-series chart words
-        Case("autocorrelation_bars", "the yearly sunspot numbers: the correlation with 1 to 24 years back",
+        Case("draw_autocorrelation_bars", "the yearly sunspot numbers: the correlation with 1 to 24 years back",
              SUNSPOTS, "real data",
              ours=f"""
                  chart = {sun}.start_chart().autocorrelation_bars("sunspots", sorted_by="year")
@@ -472,7 +472,7 @@ def _cases(Case):
                  a <- acf(sunspots, lag.max = 24, plot = FALSE)$acf
                  list(bars = length(a) - 1, `1 year back` = a[2], `11 years back` = a[12], `24 years back` = a[25])
              """, r_tolerance=1e-9),
-        Case("cross_correlation_bars", "US inflation and unemployment: shifts of -4 to 4 quarters", MACRO,
+        Case("draw_cross_correlation_bars", "US inflation and unemployment: shifts of -4 to 4 quarters", MACRO,
              "real data",
              ours="""
                  chart = sdata.table(data).start_chart().cross_correlation_bars("infl", "unemp", sorted_by="quarter",
@@ -493,7 +493,7 @@ def _cases(Case):
                      (x[-s:] * y[:n + s]).sum() / n / (x.std() * y.std())
                  {"bars": 9, "shift -4": c(-4), "shift 0": c(0), "shift 4": c(4)}
              """, parent_label="the cross-correlation written out in NumPy (as R ccf)", parent_tolerance=1e-9),
-        Case("lag_dots", "the yearly sunspot numbers against the year before", SUNSPOTS, "real data",
+        Case("draw_lag_dots", "the yearly sunspot numbers against the year before", SUNSPOTS, "real data",
              ours=f"""
                  chart = {sun}.start_chart().lag_dots("sunspots", sorted_by="year", rows_back=1)
                  dots = sdata.table(chart.get_numbers_drawn()).keep_rows_where("kind", is_equal_to="dot")
@@ -508,7 +508,7 @@ def _cases(Case):
                  n <- length(sunspots)
                  list(dots = n - 1, `sum of the year before` = sum(sunspots[-n]), `sum of the year itself` = sum(sunspots[-1]))
              """, r_tolerance=1e-12),
-        Case("trend_and_season", "El Nino sea temperatures: the trend panel (season window 7)", ELNINO, "real data",
+        Case("draw_trend_and_season", "El Nino sea temperatures: the trend panel (season window 7)", ELNINO, "real data",
              ours="""
                  chart = sdata.table(data).start_chart().trend_and_season(x="month", y="temperature", repeats_every=12)
                  trend = sdata.table(chart.get_numbers_drawn()).keep_rows_where("panel", is_equal_to=2)
@@ -521,11 +521,11 @@ def _cases(Case):
                  list(`trend points` = nrow(s), `first trend` = s[1, "trend"], `total trend` = sum(s[, "trend"]),
                       `first season` = s[1, "seasonal"])
              """, r_tolerance=1e-9),
-        Case("forecast", "El Nino sea temperatures: the next 12 months by Holt-Winters, drawn after the line",
+        Case("draw_forecast", "El Nino sea temperatures: the next 12 months by Holt-Winters, drawn after the line",
              ELNINO, "real data", ours_r=("forecast",),
              ours="""
                  chart = sdata.table(data).start_chart().draw_lines(x="month", y="temperature")
-                 chart.forecast(steps_ahead=12, repeats_every=12)
+                 chart.draw_forecast(steps_ahead=12, repeats_every=12)
                  drawn = sdata.table(chart.get_numbers_drawn()).keep_rows_where("x", is_above=732)
                  line = sdata.table(drawn).keep_rows_where("kind", is_equal_to="line")
                  {"forecast points": len(line), "first month": line.get_cell_at(row=1, column="y"),

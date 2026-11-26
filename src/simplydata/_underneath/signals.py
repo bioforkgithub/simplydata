@@ -1001,13 +1001,13 @@ ENTRIES += [
 ENTRIES += [
     # ------------------------------------------------------------------ chart words
     Entry(
-        word="autocorrelation_bars",
+        word="draw_autocorrelation_bars",
         data="visitors",
         ours="""
             table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
-            chart.autocorrelation_bars("visitors", sorted_by="month")
+            chart.draw_autocorrelation_bars("visitors", sorted_by="month")
         """,
         code={"matplotlib": """
             import pandas as pd
@@ -1015,7 +1015,7 @@ ENTRIES += [
             from statsmodels.tsa.stattools import acf
             df = pd.read_csv("visitors.csv", parse_dates=["month"])
             y = df[df["museum"] == "Harbour Museum"].sort_values("month")["visitors"]
-            # autocorrelation_bars("visitors", sorted_by="month")
+            # draw_autocorrelation_bars("visitors", sorted_by="month")
             k = int(np.floor(10 * np.log10(len(y))))                       # (1)
             lags, r = np.arange(1, k + 1), acf(y, nlags=k, adjusted=False, fft=False)[1:]
             half = np.full(k, 1.959963984540054 / np.sqrt(len(y)))        # (2)
@@ -1034,11 +1034,11 @@ ENTRIES += [
              "lines); that is left out here.",
     ),
     Entry(
-        word="cross_correlation_bars",
+        word="draw_cross_correlation_bars",
         data="sensor",
         ours="""
             chart = sdata.chart(sdata.get_example("sensor"))
-            chart.cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
+            chart.draw_cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
         """,
         code={"matplotlib": """
             import pandas as pd
@@ -1046,7 +1046,7 @@ ENTRIES += [
             from statsmodels.tsa.stattools import ccf
             df = pd.read_csv("sensor.csv").sort_values("time")
             a, b = df["signal"], df["vibration"]
-            # cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
+            # draw_cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)
             later, earlier = ccf(b, a, adjusted=False, fft=False)[:21], ccf(a, b, adjusted=False, fft=False)[:21]
             s, r = np.arange(-20, 21), np.concatenate([earlier[1:][::-1], later])   # (1)
             half = np.full(41, 1.959963984540054 / np.sqrt(len(a)))                # (2)
@@ -1065,13 +1065,13 @@ ENTRIES += [
              "chart its paper look; that is left out here.",
     ),
     Entry(
-        word="lag_dots",
+        word="draw_lag_dots",
         data="visitors",
         ours="""
             table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
-            chart.lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
+            chart.draw_lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
         """,
         code={"matplotlib": """
             import pandas as pd
@@ -1079,7 +1079,7 @@ ENTRIES += [
             df = pd.read_csv("visitors.csv", parse_dates=["month"])
             y = df[df["museum"] == "Harbour Museum"].sort_values("month")["visitors"].reset_index(drop=True)
             fig, ax = plt.subplots()
-            # lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
+            # draw_lag_dots("visitors", sorted_by="month", rows_back=[1, 12])
             for k, label in ((1, "1 row back"), (12, "12 rows back")):
                 ax.scatter(y.shift(k)[k:], y[k:], label=label)          # (1)
             ax.plot([y.min(), y.max()], [y.min(), y.max()], "--")      # (2)
@@ -1095,12 +1095,12 @@ ENTRIES += [
              "out here.",
     ),
     Entry(
-        word="peak_dots",
+        word="draw_peak_dots",
         data="sensor",
         ours="""
             chart = sdata.chart(sdata.get_example("sensor"))
             chart.draw_lines(x="time", y="signal")
-            chart.peak_dots(is_at_least=1, apart=0.035)
+            chart.draw_peak_dots(is_at_least=1, apart=0.035)
         """,
         code={"matplotlib": """
             import pandas as pd
@@ -1110,7 +1110,7 @@ ENTRIES += [
             t, y = df["time"].to_numpy(), df["signal"].to_numpy()
             fig, ax = plt.subplots()
             ax.plot(t, y)
-            # peak_dots(is_at_least=1, apart=0.035)
+            # draw_peak_dots(is_at_least=1, apart=0.035)
             peaks, _ = signal.find_peaks(y, height=1, distance=round(0.035 / 0.005, 9))   # (1)
             ax.scatter(t[peaks], y[peaks], marker="^")
         """},
@@ -1124,18 +1124,18 @@ ENTRIES += [
              "left out here.",
     ),
     Entry(
-        word="spectrum",
+        word="draw_spectrum",
         data="sensor",
         ours="""
             chart = sdata.chart(sdata.get_example("sensor"))
-            chart.spectrum("signal", sorted_by="time")
+            chart.draw_spectrum("signal", sorted_by="time")
         """,
         code={"matplotlib": """
             import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from scipy import signal
             y = pd.read_csv("sensor.csv").sort_values("time")["signal"].to_numpy()
-            # spectrum("signal", sorted_by="time")
+            # draw_spectrum("signal", sorted_by="time")
             f, p = signal.periodogram(y, fs=1 / 0.005, detrend="constant", window="boxcar", scaling="density")  # (1)
             fig, ax = plt.subplots()
             ax.plot(f[1:], p[1:])                                         # (2)
@@ -1155,18 +1155,18 @@ ENTRIES += [
              "simplydata also gives the chart its paper look; that is left out here.",
     ),
     Entry(
-        word="spectrum_over_time",
+        word="draw_spectrum_over_time",
         data="sensor",
         ours="""
             chart = sdata.chart(sdata.get_example("sensor"))
-            chart.spectrum_over_time("signal", sorted_by="time", window=100)
+            chart.draw_spectrum_over_time("signal", sorted_by="time", window=100)
         """,
         code={"matplotlib": """
             import pandas as pd
             import numpy as np, matplotlib.pyplot as plt
             from scipy import signal
             df = pd.read_csv("sensor.csv").sort_values("time")
-            # spectrum_over_time("signal", sorted_by="time", window=100)
+            # draw_spectrum_over_time("signal", sorted_by="time", window=100)
             f, t, p = signal.spectrogram(df["signal"].to_numpy(), fs=1 / 0.005, window="hann",   # (1)
                                          nperseg=100, noverlap=50, detrend="constant")      # (2)
             fig, ax = plt.subplots()
@@ -1189,20 +1189,20 @@ ENTRIES += [
 
 ENTRIES += [
     Entry(
-        word="trend_and_season",
+        word="draw_trend_and_season",
         data="visitors",
         ours="""
             table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart()
-            chart.trend_and_season(x="month", y="visitors", repeats_every="year")
+            chart.draw_trend_and_season(x="month", y="visitors", repeats_every="year")
         """,
         code={"matplotlib": """
             import matplotlib.pyplot as plt, pandas as pd
             from statsmodels.tsa.seasonal import STL
             df = pd.read_csv("visitors.csv", parse_dates=["month"])
             df = df[df["museum"] == "Harbour Museum"].sort_values("month")
-            # trend_and_season(x="month", y="visitors", repeats_every="year")
+            # draw_trend_and_season(x="month", y="visitors", repeats_every="year")
             fit = STL(df["visitors"].to_numpy(dtype=float), period=12, seasonal=7, trend=23, low_pass=13,
                       seasonal_deg=0, seasonal_jump=1, trend_jump=3, low_pass_jump=2).fit(inner_iter=2, outer_iter=0)  # (1)
             fig, ax = plt.subplots(); ax.set_axis_off()
@@ -1226,17 +1226,17 @@ ENTRIES += [
              "the last panel); that is left out here.",
     ),
     Entry(
-        word="forecast",
+        word="draw_forecast",
         data="visitors",
         ours="""
             table = sdata.get_example("visitors")
             table.keep_rows_where("museum", is_equal_to="Harbour Museum")
             chart = table.start_chart().draw_lines(x="month", y="visitors")
-            chart.forecast(steps_ahead=12, repeats_every="year")
+            chart.draw_forecast(steps_ahead=12, repeats_every="year")
         """,
         code={
             "R": """
-                # forecast(steps_ahead=12, repeats_every="year"), after draw_lines(x="month", y="visitors")
+                # draw_forecast(steps_ahead=12, repeats_every="year"), after draw_lines(x="month", y="visitors")
                 fit <- stats::HoltWinters(stats::ts(x, frequency = 12), seasonal = "additive")   # (1)
                 f <- forecast::forecast(fit, h = 12, level = 95)                                # (2)
                 list(mean = as.numeric(f$mean), low = as.numeric(f$lower), high = as.numeric(f$upper))

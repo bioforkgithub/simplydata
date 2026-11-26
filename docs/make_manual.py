@@ -108,6 +108,58 @@ UNDERNEATH = {
     "sdata.get_example": "pandas (read_csv of a small file inside simplydata), as a simplydata table",
     "show": "matplotlib (pyplot.show)",
     "save": "matplotlib (Figure.savefig); Pillow writes .gif animations",
+    # charts phase, batch 1
+    "get_text_drawn": "matplotlib (the drawn Text artists: Axes.get_title, get_xlabel, get_ylabel, Figure.get_suptitle, "
+                      "the legend's texts, Axes.texts, the tick labels, the colour bar's label)",
+    "get_scales_drawn": "matplotlib (Axes.get_xlim, get_xscale, xaxis_inverted, the major ticks and their labels; the "
+                        "colour map and norm of a colour scale)",
+    "get_size": "matplotlib (Figure.get_size_inches)",
+    "undo": "simplydata itself: a chart is a list of steps, drawn only when it is shown or saved",
+    "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
+    "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
+    "use_shapes": "seaborn (scatterplot style= and markers=)",
+    # charts phase, batch 2
+    "draw_rug_lines": "seaborn (rugplot)",
+    "draw_wind_rose": "NumPy (histogram2d counts the rows in each direction and speed band); matplotlib draws the "
+                      "counts as stacked bars on a polar axis",
+    "draw_arrow": "matplotlib (Axes.annotate with an arrow)",
+    "put_chart_inside": "matplotlib (Axes.inset_axes); the inner chart is drawn there with its own steps",
+    "add_second_x": "matplotlib (Axes.secondary_xaxis with functions= for formula=; Axes.twiny for a column)",
+    "hide_frame": "matplotlib (Axes.set_axis_off)",
+    "hide_ticks_x": "matplotlib (Axes.tick_params(axis=\"x\", length=0, labelbottom=False))",
+    "hide_ticks_y": "matplotlib (Axes.tick_params(axis=\"y\", length=0, labelleft=False))",
+    "show_small_ticks_x": "matplotlib (Axis.minorticks_on)",
+    "show_small_ticks_y": "matplotlib (Axis.minorticks_on)",
+    "use_true_shape": "matplotlib (Axes.set_aspect(\"equal\"))",
+    "make_square": "matplotlib (Axes.set_box_aspect(1))",
+    "put_colour_bar_at_bottom": "matplotlib (Figure.colorbar(location=\"bottom\"))",
+    "put_colour_bar_at_top": "matplotlib (Figure.colorbar(location=\"top\"))",
+    "put_colour_bar_at_left": "matplotlib (Figure.colorbar(location=\"left\"))",
+    "hide_colour_bar": "matplotlib (the colour bar is not drawn: no Figure.colorbar)",
+    "put_ticks_colour_bar": "matplotlib (Colorbar.set_ticks)",
+    "draw_lines_3d": "matplotlib (Axes3D.plot)",
+    "label_z": "matplotlib (Axes3D.set_zlabel)",
+    "set_range_z": "matplotlib (Axes3D.set_zlim)",
+    "put_ticks_z": "matplotlib (Axes3D.set_zticks)",
+    "look_from": "matplotlib (Axes3D.view_init(elev=, azim=))",
+    "say_what_it_shows": "simplydata itself: the chart's steps and their columns; the axes, legend and colour bar "
+                         "are read from what matplotlib drew",
+    # charts phase, batch 3
+    "show_in_web_page": "plotly (a Figure built from what matplotlib drew; plotly.io.to_html with plotly.js inside the "
+                        "page), opened from a file on this computer",
+    "show_when_pointing": "plotly (hover text and hovertemplate; hovermode=\"x unified\" for all_lines=True)",
+    "add_range_bar_x": "plotly (the x-axis's rangeslider)",
+    "break_between_y": "matplotlib (two Axes sharing x, as the gallery's broken axis)",
+    "use_scale_x": "matplotlib (Axes.set_xscale: \"function\" with a square root, \"logit\", \"asinh\")",
+    "use_scale_y": "matplotlib (Axes.set_yscale: \"function\" with a square root, \"logit\", \"asinh\")",
+    "use_background_colour": "matplotlib (Axes.set_facecolor)",
+    "draw_hexagon_bins": "matplotlib (Axes.hexbin)",
+    "draw_time_bars": "matplotlib (Axes.barh with left=)",
+    "draw_rectangle": "matplotlib (patches.Rectangle, Axes.add_patch)",
+    "draw_circle": "matplotlib (patches.Circle, Axes.add_patch)",
+    "draw_residual_dots": "seaborn (residplot)",
+    "draw_event_lines": "matplotlib (Axes.eventplot)",
+    "draw_bars_3d": "matplotlib (Axes3D.bar3d)",
     "get_numbers_drawn": "matplotlib (the drawn artists: Line2D.get_xydata, PathCollection.get_offsets, BarContainer, "
                          "LineCollection.get_segments, fill_between paths, QuadMesh arrays, Wedge)",
     # chart types
@@ -137,10 +189,10 @@ UNDERNEATH = {
                    "test_method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
                    "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "draw_density": "seaborn (kdeplot)",
-    "trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
-    "difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
+    "draw_trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
+    "draw_difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
                        "BlandAltmanLeh::bland.altman.stats for the limits and their intervals (simplydata[r])",
-    "forest_plot": "matplotlib (errorbar), from the interval columns of a result table; on combine_studies' result "
+    "draw_forest_plot": "matplotlib (errorbar), from the interval columns of a result table; on combine_studies' result "
                    "squares (scatter), diamonds (fill) and the prediction interval (plot)",
     "draw_qq_dots": "SciPy (stats.probplot, against a fitted scipy.stats distribution for distribution=) for the points "
                "and the line; matplotlib draws them",
@@ -330,15 +382,15 @@ UNDERNEATH = {
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
                                  "phase margins (simplydata[systems])",
-    "sticks": "matplotlib (vlines and plot)",
-    "autocorrelation_bars": "statsmodels (as table.find_autocorrelation_of), drawn with matplotlib",
-    "cross_correlation_bars": "statsmodels (as table.find_correlation_between with rows_back=), drawn with matplotlib",
-    "lag_dots": "pandas (shift), drawn with matplotlib",
-    "trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
-    "forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
-    "spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
-    "spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
-    "peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
+    "draw_sticks": "matplotlib (vlines and plot)",
+    "draw_autocorrelation_bars": "statsmodels (as table.find_autocorrelation_of), drawn with matplotlib",
+    "draw_cross_correlation_bars": "statsmodels (as table.find_correlation_between with rows_back=), drawn with matplotlib",
+    "draw_lag_dots": "pandas (shift), drawn with matplotlib",
+    "draw_trend_and_season": "statsmodels (as table.add_trend_and_season), drawn with matplotlib",
+    "draw_forecast": "R (as table.forecast, through rpy2: simplydata[r]), drawn with matplotlib",
+    "draw_spectrum": "SciPy (as table.find_spectrum_of; lomb-scargle from R lomb), drawn with matplotlib",
+    "draw_spectrum_over_time": "SciPy (signal.spectrogram), drawn with matplotlib (pcolormesh)",
+    "draw_peak_dots": "SciPy (as table.find_each_peak_that), drawn with matplotlib",
     "table.forecast": "R (forecast::naive, snaive, meanf, rwf; stats::HoltWinters, stats::arima, forecast::auto.arima "
                       "for order=\"automatic\"; forecast::forecast and accuracy, through rpy2: simplydata[r])",
     "nums.forecast": "R (as table.forecast, through rpy2: simplydata[r])",
@@ -1075,7 +1127,10 @@ _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colo
                "grid": "the grid lines", "fonts": "the fonts", "polar_start": "where a round chart starts and which way it goes",
                "in_3d": "the 3D dots, the surface and the z axis", "segments": "the short lines drawn as one set",
                "insets": "the small charts inside the chart", "colour_bars": "the colour bar",
-               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are"}
+               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are",
+               "background": "the background colour of the plot",
+               "hexagons": "the places and counts of the hexagons",
+               "faces_3d": "the corners of the 3D shapes"}
 
 
 def _checked(entry) -> str:
