@@ -590,7 +590,7 @@ def _cases_axes_and_look(Case):
                     f'ax.tick_params(axis="{a}", which="both", length=0, label{side}=False, label{other}=False)',
                     hidden_ticks.format(a=a), "matplotlib tick_params(length=0, labels off)",
                     "the ticks themselves", tolerance=0.0)
-          for a, side, other in (("x", "bottom", "top"), ("y", "left", "right"))],
+          for a, (side, other) in {"x": ("bottom", "top"), "y": ("left", "right")}.items()],
         *[dots_case(f"show_small_ticks_{a}", f"Fisher's iris: sepal length against width, small ticks on the {a}-axis",
                     f"show_small_ticks_{a}()", f"ax.{a}axis.minorticks_on()", small_ticks.format(a=a, i=i),
                     "matplotlib minorticks_on (AutoMinorLocator)", "the small ticks", tolerance=1e-12)
