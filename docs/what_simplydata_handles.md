@@ -11,9 +11,9 @@ Approximate: the names counted on 2026-11-21, the code per task on 2026-11-23.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 829 names: 431 commands and 398 options, about 92 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 894 names: 475 commands and 419 options, about 92 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 3527 lines and 3151 function calls in the 547 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1453 lines and 1471 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 3945 lines and 3485 function calls in the 600 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1602 lines and 1678 calls (median 2 lines a task), about 59 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](how_simplydata_chooses.md) (you can also choose the method you want) |
 
 ## Packages underneath

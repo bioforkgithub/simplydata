@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 433 commands in 48 cards, version 0.2.0.\par}
+work. 477 commands in 56 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -82,9 +82,17 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}show()}}{Show the chart in a window.}{matplotlib \code{barplot()}, \code{show()}}
 
-\cmd{\code{chart.\allowbreak{}save(\textquotedbl{}marks.\allowbreak{}png\textquotedbl{})}\opts{\code{file\_\allowbreak{}name}, \code{quality=}, \code{resolution=}, \code{dpi=}}}{Save the chart.}{matplotlib \code{barplot()}, \code{savefig()}, \code{path.\allowbreak{}join()}, \code{gettempdir()}}
+\cmd{\code{chart.\allowbreak{}save(\textquotedbl{}marks.\allowbreak{}png\textquotedbl{})}\opts{\code{file\_\allowbreak{}name}, \code{quality=}, \code{resolution=}, \code{dpi=}, \code{see\_\allowbreak{}through=}}}{Save the chart.}{matplotlib \code{barplot()}, \code{savefig()}, \code{path.\allowbreak{}join()}, \code{gettempdir()}}
 
 \cmd{\code{chart.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}drawn()}}{A table of the numbers the chart drew.}{matplotlib \code{scatter()}, \code{collections.\allowbreak{}get\_\allowbreak{}offsets()}, \code{DataFrame()}}
+
+\cmd{\code{chart.\allowbreak{}get\_\allowbreak{}text\_\allowbreak{}drawn()}}{A table of every piece of text the chart drew.}{matplotlib \code{scatterplot()}, \code{DataFrame()}, \code{get\_\allowbreak{}text()}, \code{get\_\allowbreak{}legend().\allowbreak{}get\_\allowbreak{}texts()}}
+
+\cmd{\code{chart.\allowbreak{}get\_\allowbreak{}scales\_\allowbreak{}drawn()}}{A table of the scales the chart drew: x, y and colour.}{matplotlib \code{scatter()}, \code{get\_\allowbreak{}xlim()}, \code{get\_\allowbreak{}ylim()}, \code{DataFrame()}}
+
+\cmd{\code{chart.\allowbreak{}get\_\allowbreak{}size(unit=\textquotedbl{}cm\textquotedbl{})}\opts{\code{unit=}}}{The size of the saved chart as (width, height).}{matplotlib \code{figure()}, \code{BytesIO()}, \code{savefig()}, \code{open()}, \code{round()}}
+
+\cmd{\code{chart.\allowbreak{}undo()}}{Take the last step back.}{simplydata's own: a chart is a list of steps drawn only when it is shown or saved, so undo takes the last word's steps and settings back before anything is drawn again. In matplotlib you would draw the chart again without that line.}
 
 \end{cardtable}
 
@@ -92,29 +100,29 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \begin{cardtable}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}name\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{show=}, \code{error=}, \code{stacked=}, \code{sideways=}, \code{transparency=}}}{Bars.}{seaborn \code{barplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}name\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{show=}, \code{error=}, \code{stacked=}, \code{sideways=}, \code{transparency=}, \code{hatched=}}}{Bars.}{seaborn \code{barplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{show=}, \code{error=}, \code{with\_\allowbreak{}dots=}, \code{dashed=}, \code{thickness=}, \code{transparency=}, \code{joined\_\allowbreak{}by=}}}{Lines.}{seaborn \code{lineplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{show=}, \code{error=}, \code{with\_\allowbreak{}dots=}, \code{dashed=}, \code{thickness=}, \code{transparency=}, \code{joined\_\allowbreak{}by=} and 1 more}}{Lines.}{seaborn \code{lineplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{size=}, \code{shape=}, \code{transparency=}}}{Dots (a scatter chart).}{seaborn \code{scatterplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{size=}, \code{shape=}, \code{transparency=}, \code{hollow=}, \code{show=}, \code{error=}}}{Dots (a scatter chart).}{seaborn \code{scatterplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}area(x=\textquotedbl{}year\textquotedbl{},\allowbreak{} y=\textquotedbl{}population\textquotedbl{},\allowbreak{} colour=\textquotedbl{}country\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{stacked=}, \code{transparency=}, \code{thickness=}}}{A line with the space under it coloured in.}{matplotlib \code{groupby().\allowbreak{}mean()}, \code{fill\_\allowbreak{}between()}, \code{plot()}, \code{set()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}area(x=\textquotedbl{}year\textquotedbl{},\allowbreak{} y=\textquotedbl{}population\textquotedbl{},\allowbreak{} colour=\textquotedbl{}country\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{stacked=}, \code{transparency=}, \code{thickness=}, \code{hatched=}}}{A line with the space under it coloured in.}{matplotlib \code{groupby().\allowbreak{}mean()}, \code{fill\_\allowbreak{}between()}, \code{plot()}, \code{set()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}histogram(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} with\_\allowbreak{}bins=10)}\opts{\code{x=}, \code{with\_\allowbreak{}bins=}, \code{colour=}, \code{show=}, \code{stacked=}, \code{steps=}, \code{cumulative=}, \code{bin\_\allowbreak{}width=}, \code{transparency=}, \code{thickness=}}}{Bars that count how many values fall in each range.}{seaborn \code{histplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}histogram(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} with\_\allowbreak{}bins=10)}\opts{\code{x=}, \code{with\_\allowbreak{}bins=}, \code{colour=}, \code{show=}, \code{stacked=}, \code{drawn\_\allowbreak{}as=}, \code{cumulative=}, \code{bin\_\allowbreak{}width=}, \code{transparency=}, \code{thickness=} and 2 more}}{Bars that count how many values fall in each range.}{seaborn \code{histplot()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}boxes(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}, \code{thickness=}}}{Boxes that show the middle half of the values and the median.}{seaborn \code{boxplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}violins(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}, \code{thickness=}}}{Shapes that are wide where many values are.}{seaborn \code{violinplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}violins(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}, \code{thickness=}, \code{in\_\allowbreak{}halves=}}}{Shapes that are wide where many values are.}{seaborn \code{violinplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}heatmap(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}city\textquotedbl{},\allowbreak{} value=\textquotedbl{}rain\textquotedbl{},\allowbreak{} with\_\allowbreak{}numbers=True)}\opts{\code{x=}, \code{y=}, \code{value=}, \code{with\_\allowbreak{}numbers=}, \code{cluster=}, \code{transparency=}}}{A grid of coloured squares, one colour for each number.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{str()}, \code{max()}, \code{min()}, \code{floor()}, \code{log10()}, \code{abs()}, \code{rstrip().\allowbreak{}rstrip()}, \code{heatmap()}, \code{map().\allowbreak{}to\_\allowbreak{}numpy()}, \code{tick\_\allowbreak{}params()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}heatmap(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}city\textquotedbl{},\allowbreak{} value=\textquotedbl{}rain\textquotedbl{},\allowbreak{} with\_\allowbreak{}numbers=True)}\opts{\code{x=}, \code{y=}, \code{value=}, \code{with\_\allowbreak{}numbers=}, \code{cluster=}, \code{transparency=}, \code{z=}}}{A grid of coloured squares, one colour for each number.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{str()}, \code{max()}, \code{min()}, \code{floor()}, \code{log10()}, \code{abs()}, \code{rstrip().\allowbreak{}rstrip()}, \code{heatmap()}, \code{map().\allowbreak{}to\_\allowbreak{}numpy()}, \code{tick\_\allowbreak{}params()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}pie(labels=\textquotedbl{}fruit\textquotedbl{},\allowbreak{} values=\textquotedbl{}count\textquotedbl{})}\opts{\code{labels=}, \code{values=}, \code{transparency=}}}{A circle cut into slices, one slice per group.}{matplotlib \code{groupby().\allowbreak{}sum()}, \code{pie()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}pie(labels=\textquotedbl{}fruit\textquotedbl{},\allowbreak{} values=\textquotedbl{}count\textquotedbl{})}\opts{\code{labels=}, \code{values=}, \code{transparency=}, \code{hatched=}, \code{x=}, \code{y=}, \code{hole=}}}{A circle cut into slices, one slice per group.}{matplotlib \code{groupby().\allowbreak{}sum()}, \code{pie()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}polar(angle=\textquotedbl{}wind\_\allowbreak{}direction\textquotedbl{},\allowbreak{} distance=\textquotedbl{}wind\_\allowbreak{}speed\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})}\opts{\code{angle=}, \code{distance=}, \code{colour=}, \code{degrees=}, \code{transparency=}, \code{full\_\allowbreak{}turn=}}}{Dots on a round chart: how far round, and how far out.}{matplotlib \code{set\_\allowbreak{}theta\_\allowbreak{}zero\_\allowbreak{}location()}, \code{set\_\allowbreak{}theta\_\allowbreak{}direction()}, \code{zip()}, \code{groupby()}, \code{scatter()}, \code{deg2rad()}, \code{legend()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}contour(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{},\allowbreak{} z=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{filled=}, \code{transparency=}, \code{thickness=}}}{A map where each colour band joins places with the same height.}{matplotlib \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{contourf()}, \code{to\_\allowbreak{}numpy()}, \code{contour()}, \code{colorbar()}, \code{set()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}contour(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{},\allowbreak{} z=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{filled=}, \code{transparency=}, \code{thickness=}, \code{value=}}}{A map where each colour band joins places with the same height.}{matplotlib \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{contourf()}, \code{to\_\allowbreak{}numpy()}, \code{contour()}, \code{colorbar()}, \code{set()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}surface(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{},\allowbreak{} z=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{transparency=}}}{A 3D landscape: \code{z=} is how high the ground is.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{to\_\allowbreak{}numpy()}, \code{plot\_\allowbreak{}surface()}, \code{min()}, \code{max()}, \code{colorbar()}, \code{set()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}surface(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{},\allowbreak{} z=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{transparency=}, \code{as\_\allowbreak{}wires=}, \code{with\_\allowbreak{}height\_\allowbreak{}lines=}, \code{value=}}}{A 3D landscape: \code{z=} is how high the ground is.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{to\_\allowbreak{}numpy()}, \code{plot\_\allowbreak{}surface()}, \code{min()}, \code{max()}, \code{colorbar()}, \code{set()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}dots\_\allowbreak{}3d(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}height\textquotedbl{},\allowbreak{} z=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{colour=}, \code{transparency=}}}{Dots floating in a 3D box.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{zip()}, \code{groupby()}, \code{scatter()}, \code{legend()}, \code{set()}}
 
@@ -122,7 +130,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}map\_\allowbreak{}of\_\allowbreak{}empty\_\allowbreak{}cells()}\opts{\code{columns=}}}{A map of the empty cells: one row of the chart for each row of the table, one strip for each column, with empty cells coloured.}{pandas \code{DataFrame()}, \code{isna()}, \code{map()}, \code{isinstance()}, \code{strip()}, \code{imshow()}, \code{to\_\allowbreak{}numpy()}, \code{ListedColormap()}, \code{set\_\allowbreak{}xticks()}, \code{sum().\allowbreak{}items()}, \code{set\_\allowbreak{}ylabel()}, \code{legend()}, \code{Patch()}, \code{sum().\allowbreak{}sum()}}
 
-\cmd{\code{chart.\allowbreak{}sticks(x=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{},\allowbreak{} y=\textquotedbl{}rain\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{thickness=}}}{A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).}{matplotlib \code{zip()}, \code{groupby()}, \code{vlines()}, \code{plot()}, \code{axhline()}, \code{legend()}, \code{set()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}sticks(x=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{},\allowbreak{} y=\textquotedbl{}rain\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{thickness=}}}{A thin line from 0 up (or down) to each value, with a dot on top (a stem chart).}{matplotlib \code{zip()}, \code{groupby()}, \code{vlines()}, \code{plot()}, \code{axhline()}, \code{legend()}, \code{set()}}
 
 \end{cardtable}
 
@@ -162,13 +170,13 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}answer\_\allowbreak{}bars(columns=[\textquotedbl{}teaching\textquotedbl{},\allowbreak{} \textquotedbl{}materials\textquotedbl{},\allowbreak{} \textquotedbl{}pace\textquotedbl{}],\allowbreak{} in\_\allowbreak{}order=[\textquotedbl{}strongly disagree\textquotedbl{},\allowbreak{} \textquotedbl{}disagree\textquotedbl{},\allowbreak{} \textquotedbl{}neutral\textquotedbl{},\allowbreak{} \textquotedbl{}agree\textquotedbl{},\allowbreak{} \textquotedbl{}strongly agree\textquotedbl{}])}\opts{\code{columns=}, \code{in\_\allowbreak{}order=}}}{Bars of answers on a scale (Likert items): one bar per question, centred on the middle answer.}{matplotlib \code{dropna().\allowbreak{}value\_\allowbreak{}counts().\allowbreak{}reindex()}, \code{cumsum()}, \code{range()}, \code{barh()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}\opts{\code{x=}, \code{colour=}, \code{transparency=}, \code{thickness=}}}{A smooth curve that is high where many values are.}{seaborn \code{kdeplot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}density(x=\textquotedbl{}marks\textquotedbl{},\allowbreak{} colour=\textquotedbl{}class\textquotedbl{})}\opts{\code{x=}, \code{colour=}, \code{transparency=}, \code{thickness=}, \code{y=}}}{A smooth curve that is high where many values are.}{seaborn \code{kdeplot()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}count\_\allowbreak{}bars(x=\textquotedbl{}fruit\textquotedbl{},\allowbreak{} colour=\textquotedbl{}shop\textquotedbl{})}\opts{\code{x=}, \code{colour=}, \code{sideways=}, \code{transparency=}}}{Bars that count how many rows each group has.}{seaborn \code{countplot()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}all\_\allowbreak{}dots(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}}}{Every value as a dot, spread out so no dot hides another.}{seaborn \code{Figure()}, \code{boxplot()}, \code{swarmplot()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}side\_\allowbreak{}histograms()}}{Small histograms along the top and right edges of a dots chart.}{matplotlib \code{scatterplot()}, \code{inset\_\allowbreak{}axes()}, \code{hist()}, \code{histogram\_\allowbreak{}bin\_\allowbreak{}edges()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}side\_\allowbreak{}histograms()}\opts{\code{drawn\_\allowbreak{}as=}}}{Small histograms along the top and right edges of a dots chart.}{matplotlib \code{scatterplot()}, \code{inset\_\allowbreak{}axes()}, \code{hist()}, \code{histogram\_\allowbreak{}bin\_\allowbreak{}edges()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}qq\_\allowbreak{}dots(\textquotedbl{}marks\textquotedbl{})}\opts{\code{column=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, \code{transparency=}, \code{thickness=}, \code{distribution=}}}{Dots that lie on a straight line when the values follow a normal (bell) curve.}{SciPy \code{probplot()}, \code{dropna()}, \code{scatter()}, \code{plot()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
 
@@ -182,9 +190,9 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \begin{cardtable}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x(2010,\allowbreak{} labelled=\textquotedbl{}2010\textquotedbl{})}\opts{\code{value}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}}}{A straight up-and-down line at one x value.}{matplotlib \code{scatterplot()}, \code{axvline()}, \code{text()}, \code{get\_\allowbreak{}xaxis\_\allowbreak{}transform()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}x(2010,\allowbreak{} labelled=\textquotedbl{}2010\textquotedbl{})}\opts{\code{value}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}, \code{between=}}}{A straight up-and-down line at one x value.}{matplotlib \code{scatterplot()}, \code{axvline()}, \code{text()}, \code{get\_\allowbreak{}xaxis\_\allowbreak{}transform()}}
 
-\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(50,\allowbreak{} labelled=\textquotedbl{}pass mark\textquotedbl{})}\opts{\code{value}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}}}{A straight side-to-side line at one y value.}{matplotlib \code{barplot()}, \code{axhline()}, \code{text()}, \code{get\_\allowbreak{}yaxis\_\allowbreak{}transform()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}at\_\allowbreak{}y(50,\allowbreak{} labelled=\textquotedbl{}pass mark\textquotedbl{})}\opts{\code{value}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}, \code{between=}}}{A straight side-to-side line at one y value.}{matplotlib \code{barplot()}, \code{axhline()}, \code{text()}, \code{get\_\allowbreak{}yaxis\_\allowbreak{}transform()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}line\_\allowbreak{}with\_\allowbreak{}slope(1,\allowbreak{} through=(0,\allowbreak{} 0))}\opts{\code{slope}, \code{through=}, \code{intercept=}, \code{dashed=}, \code{colour=}, \code{labelled=}, \code{thickness=}}}{A straight line with a given slope, right across the chart.}{matplotlib \code{scatterplot()}, \code{axline()}, \code{legend()}}
 
@@ -206,15 +214,17 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}label\_\allowbreak{}y(\textquotedbl{}Marks\textquotedbl{})}\opts{\code{text}}}{The name beside the y-axis.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}ylabel()}}
 
-\cmd{\code{chart.\allowbreak{}write\_\allowbreak{}note(\textquotedbl{}Biggest\textquotedbl{},\allowbreak{} x=2024,\allowbreak{} y=49)}\opts{\code{text}, \code{x=}, \code{y=}, \code{with\_\allowbreak{}arrow=}}}{A note on the chart at a place x, y.}{matplotlib \code{lineplot()}, \code{annotate()}}
+\cmd{\code{chart.\allowbreak{}write\_\allowbreak{}note(\textquotedbl{}Biggest\textquotedbl{},\allowbreak{} x=2024,\allowbreak{} y=49)}\opts{\code{text}, \code{x=}, \code{y=}, \code{with\_\allowbreak{}arrow=}, \code{where=}, \code{with\_\allowbreak{}box=}, \code{with\_\allowbreak{}curved\_\allowbreak{}arrow=}}}{A note on the chart at a place x, y.}{matplotlib \code{lineplot()}, \code{annotate()}}
 
 \cmd{\code{chart.\allowbreak{}write\_\allowbreak{}numbers\_\allowbreak{}on\_\allowbreak{}bars()}\opts{\code{with\_\allowbreak{}decimals=}}}{Write the value of each bar on it.}{matplotlib \code{barplot()}, \code{bar\_\allowbreak{}label()}, \code{margins()}, \code{autoscale\_\allowbreak{}view()}}
 
 \cmd{\code{chart.\allowbreak{}write\_\allowbreak{}names\_\allowbreak{}on\_\allowbreak{}dots(\textquotedbl{}name\textquotedbl{})}\opts{\code{column}, \code{colour=}}}{Write a name next to each dot.}{matplotlib \code{scatterplot()}, \code{zip()}, \code{annotate()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size(14)}\opts{\code{size}}}{Make all the text bigger or smaller.}{matplotlib \code{rc\_\allowbreak{}context()}, \code{barplot()}, \code{set\_\allowbreak{}title()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}font\_\allowbreak{}size(14)}\opts{\code{size=}, \code{title=}, \code{ticks=}}}{Make all the text bigger or smaller.}{matplotlib \code{rc\_\allowbreak{}context()}, \code{barplot()}, \code{set\_\allowbreak{}title()}}
 
 \cmd{\code{chart.\allowbreak{}use\_\allowbreak{}font(\textquotedbl{}DejaVu Serif\textquotedbl{})}\opts{\code{name}}}{The font for all the text on the chart.}{matplotlib \code{rc\_\allowbreak{}context()}, \code{barplot()}}
+
+\cmd{\code{chart.\allowbreak{}write\_\allowbreak{}letter(\textquotedbl{}B\textquotedbl{})}\opts{\code{text}, \code{where=}}}{A bold letter at the top left of the chart, as figures in papers have.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}title()}}
 
 \end{cardtable}
 
@@ -226,9 +236,9 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}y(0,\allowbreak{} 100)}\opts{\code{low=}, \code{high=}}}{From where to where the y-axis goes.}{matplotlib \code{barplot()}, \code{set\_\allowbreak{}ylim()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}x()}}{A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced.}{matplotlib \code{set\_\allowbreak{}xscale()}, \code{scatterplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}x()}\opts{\code{through\_\allowbreak{}zero=}}}{A log scale on the x-axis: 1, 10, 100, 1000 are evenly spaced.}{matplotlib \code{set\_\allowbreak{}xscale()}, \code{scatterplot()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}}{A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced.}{matplotlib \code{set\_\allowbreak{}yscale()}, \code{lineplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}log\_\allowbreak{}scale\_\allowbreak{}y()}\opts{\code{through\_\allowbreak{}zero=}}}{A log scale on the y-axis: 1, 10, 100, 1000 are evenly spaced.}{matplotlib \code{set\_\allowbreak{}yscale()}, \code{lineplot()}}
 
 \cmd{\code{chart.\allowbreak{}put\_\allowbreak{}ticks\_\allowbreak{}x(1,\allowbreak{} 4,\allowbreak{} 7,\allowbreak{} 10)}\opts{\code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{labels=}, \code{every=}, \code{how\_\allowbreak{}many=}, \code{whole\_\allowbreak{}numbers=}}}{Where the marks on the x-axis go.}{matplotlib \code{barplot()}, \code{set\_\allowbreak{}xticks()}}
 
@@ -242,7 +252,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}write\_\allowbreak{}ticks\_\allowbreak{}y\_\allowbreak{}as(\textquotedbl{}percent\textquotedbl{})}\opts{\code{style=}, \code{with\_\allowbreak{}decimals=}, \code{out\_\allowbreak{}of=}}}{How the numbers beside the y-axis are written.}{matplotlib \code{lineplot()}, \code{yaxis.\allowbreak{}set\_\allowbreak{}major\_\allowbreak{}formatter()}, \code{PercentFormatter()}}
 
-\cmd{\code{chart.\allowbreak{}add\_\allowbreak{}second\_\allowbreak{}y(\textquotedbl{}rain\textquotedbl{},\allowbreak{} drawn\_\allowbreak{}as=\textquotedbl{}bars\textquotedbl{},\allowbreak{} labelled=\textquotedbl{}Rain (mm)\textquotedbl{})}\opts{\code{y}, \code{drawn\_\allowbreak{}as=}, \code{labelled=}, \code{colour=}}}{A second y-axis on the right, for a column measured in other units.}{matplotlib \code{lineplot()}, \code{groupby().\allowbreak{}mean()}, \code{twinx()}, \code{bar()}, \code{range()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zorder()}, \code{get\_\allowbreak{}zorder()}, \code{patch.\allowbreak{}set\_\allowbreak{}visible()}}
+\cmd{\code{chart.\allowbreak{}add\_\allowbreak{}second\_\allowbreak{}y(\textquotedbl{}rain\textquotedbl{},\allowbreak{} drawn\_\allowbreak{}as=\textquotedbl{}bars\textquotedbl{},\allowbreak{} labelled=\textquotedbl{}Rain (mm)\textquotedbl{})}\opts{\code{y=}, \code{drawn\_\allowbreak{}as=}, \code{labelled=}, \code{colour=}, \code{formula=}}}{A second y-axis on the right, for a column measured in other units.}{matplotlib \code{lineplot()}, \code{groupby().\allowbreak{}mean()}, \code{twinx()}, \code{bar()}, \code{range()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zorder()}, \code{get\_\allowbreak{}zorder()}, \code{patch.\allowbreak{}set\_\allowbreak{}visible()}}
 
 \cmd{\code{chart.\allowbreak{}flip\_\allowbreak{}x()}}{Turn the x-axis around, so numbers grow from right to left.}{matplotlib \code{scatterplot()}, \code{invert\_\allowbreak{}xaxis()}}
 
@@ -256,7 +266,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour(\textquotedbl{}blue\textquotedbl{})}\opts{\code{name}}}{One colour for the whole chart.}{seaborn \code{barplot()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}blue\textquotedbl{},\allowbreak{} \textquotedbl{}orange\textquotedbl{},\allowbreak{} \textquotedbl{}green\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}}}{Your own colours for the groups, in order.}{seaborn \code{barplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}blue\textquotedbl{},\allowbreak{} \textquotedbl{}orange\textquotedbl{},\allowbreak{} \textquotedbl{}green\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{how\_\allowbreak{}many=}}}{Your own colours for the groups, in order.}{seaborn \code{barplot()}}
 
 \cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}magma\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{middle=}, \code{log=}, \code{steps=}, \code{between=}}}{The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{min().\allowbreak{}min()}, \code{max().\allowbreak{}max()}, \code{tick\_\allowbreak{}params()}}
 
@@ -268,9 +278,9 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}hide\_\allowbreak{}grid()}}{No grid lines.}{matplotlib \code{scatterplot()}, \code{grid()}}
 
-\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}}{The legend above the chart, in one row.}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{Rectangle()}, \code{legend()}}
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}top()}\opts{\code{per\_\allowbreak{}row=}}}{The legend above the chart, in one row.}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{Rectangle()}, \code{legend()}}
 
-\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}}{The legend below the chart, in one row under the x-axis name.}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{legend()}}
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}at\_\allowbreak{}bottom()}\opts{\code{per\_\allowbreak{}row=}}}{The legend below the chart, in one row under the x-axis name.}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{legend()}}
 
 \cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}on\_\allowbreak{}left()}}{The legend to the left of the chart.}{matplotlib \code{lineplot()}, \code{get\_\allowbreak{}legend\_\allowbreak{}handles\_\allowbreak{}labels()}, \code{get\_\allowbreak{}legend().\allowbreak{}remove()}, \code{legend()}}
 
@@ -283,6 +293,10 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 \cmd{\code{chart.\allowbreak{}label\_\allowbreak{}legend(\textquotedbl{}Class\textquotedbl{})}\opts{\code{text}}}{The name above the legend.}{matplotlib \code{scatterplot()}, \code{get\_\allowbreak{}legend().\allowbreak{}set\_\allowbreak{}title()}}
 
 \cmd{\code{chart.\allowbreak{}label\_\allowbreak{}colour\_\allowbreak{}bar(\textquotedbl{}Height (m)\textquotedbl{})}\opts{\code{text}}}{The name beside the colour bar of a heatmap or contour.}{matplotlib \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{meshgrid()}, \code{contourf()}, \code{to\_\allowbreak{}numpy()}, \code{colorbar()}, \code{set\_\allowbreak{}label()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}inside(\textquotedbl{}top left\textquotedbl{})}\opts{\code{where=}, \code{per\_\allowbreak{}row=}}}{The legend inside the chart, in a corner.}{seaborn \code{lineplot()}, \code{move\_\allowbreak{}legend()}}
+
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}shapes(\textquotedbl{}circle\textquotedbl{},\allowbreak{} \textquotedbl{}square\textquotedbl{},\allowbreak{} \textquotedbl{}triangle\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}}}{Your own shapes for the dots of each group, in order.}{seaborn \code{scatterplot()}}
 
 \end{cardtable}
 
@@ -304,11 +318,11 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}one\_\allowbreak{}chart\_\allowbreak{}for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in(\textquotedbl{}class\textquotedbl{},\allowbreak{} per\_\allowbreak{}row=3)}\opts{\code{by=}, \code{down=}, \code{across=}, \code{per\_\allowbreak{}row=}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}}}{One small chart for each group.}{matplotlib \code{figure()}, \code{zip()}, \code{groupby()}, \code{scatterplot()}, \code{set\_\allowbreak{}title()}}
 
-\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side(a,\allowbreak{} b)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}}}{Charts next to each other.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{barplot()}, \code{set\_\allowbreak{}title()}, \code{boxplot()}, \code{get\_\allowbreak{}ylim()}, \code{set\_\allowbreak{}ylim()}, \code{min()}, \code{max()}}
+\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}side\_\allowbreak{}by\_\allowbreak{}side(a,\allowbreak{} b)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}, \code{with\_\allowbreak{}one\_\allowbreak{}legend=}}}{Charts next to each other.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{barplot()}, \code{set\_\allowbreak{}title()}, \code{boxplot()}, \code{get\_\allowbreak{}ylim()}, \code{set\_\allowbreak{}ylim()}, \code{min()}, \code{max()}}
 
-\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}one\_\allowbreak{}above\_\allowbreak{}other(a,\allowbreak{} b)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}}}{Charts on top of each other.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{lineplot()}, \code{barplot()}}
+\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}one\_\allowbreak{}above\_\allowbreak{}other(a,\allowbreak{} b)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}, \code{with\_\allowbreak{}one\_\allowbreak{}legend=}}}{Charts on top of each other.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{lineplot()}, \code{barplot()}}
 
-\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}in\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns(a,\allowbreak{} b,\allowbreak{} c,\allowbreak{} d,\allowbreak{} per\_\allowbreak{}row=2)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{per\_\allowbreak{}row=}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}}}{Charts in rows and columns.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{barplot()}, \code{histplot()}, \code{set\_\allowbreak{}ylabel()}, \code{scatterplot()}, \code{boxplot()}, \code{suptitle()}}
+\cmd{\code{sdata.\allowbreak{}put\_\allowbreak{}in\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns(a,\allowbreak{} b,\allowbreak{} c,\allowbreak{} d,\allowbreak{} per\_\allowbreak{}row=2)}\opts{\code{charts.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{per\_\allowbreak{}row=}, \code{same\_\allowbreak{}x=}, \code{same\_\allowbreak{}y=}, \code{with\_\allowbreak{}letters=}, \code{widths=}, \code{heights=}, \code{with\_\allowbreak{}one\_\allowbreak{}legend=}}}{Charts in rows and columns.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{subfigures()}, \code{barplot()}, \code{histplot()}, \code{set\_\allowbreak{}ylabel()}, \code{scatterplot()}, \code{boxplot()}, \code{suptitle()}}
 
 \cmd{\code{chart.\allowbreak{}add\_\allowbreak{}zoom\_\allowbreak{}box(x\_\allowbreak{}between=[2,\allowbreak{} 4],\allowbreak{} y\_\allowbreak{}between=[40,\allowbreak{} 60])}\opts{\code{x\_\allowbreak{}between=}, \code{y\_\allowbreak{}between=}, \code{where=}}}{A small box showing part of the chart close up.}{matplotlib \code{scatterplot()}, \code{inset\_\allowbreak{}axes()}, \code{set()}, \code{set\_\allowbreak{}zorder()}, \code{indicate\_\allowbreak{}inset\_\allowbreak{}zoom()}}
 
@@ -316,7 +330,129 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Tables: start and look}{10}
+\card{More chart types}{10}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}rug\_\allowbreak{}lines(x=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}, \code{thickness=}}}{A short line at each value along the axis, so every value shows.}{seaborn \code{kdeplot()}, \code{rugplot()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}wind\_\allowbreak{}rose(direction=\textquotedbl{}wind\_\allowbreak{}direction\textquotedbl{},\allowbreak{} speed=\textquotedbl{}wind\_\allowbreak{}speed\textquotedbl{})}\opts{\code{direction=}, \code{speed=}, \code{every=}, \code{transparency=}}}{Bars round a compass: how often each direction (and speed) occurs.}{NumPy and matplotlib \code{set\_\allowbreak{}theta\_\allowbreak{}zero\_\allowbreak{}location()}, \code{set\_\allowbreak{}theta\_\allowbreak{}direction()}, \code{mod()}, \code{MaxNLocator().\allowbreak{}tick\_\allowbreak{}values()}, \code{min()}, \code{max()}, \code{histogram2d()}, \code{arange()}, \code{zeros()}, \code{bar()}, \code{deg2rad()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}arrow(start=[2,\allowbreak{} 40],\allowbreak{} end=[4,\allowbreak{} 60])}\opts{\code{start=}, \code{end=}, \code{colour=}, \code{labelled=}, \code{thickness=}}}{An arrow from one place to another.}{matplotlib \code{scatterplot()}, \code{annotate()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}chart\_\allowbreak{}inside(detail,\allowbreak{} where=\textquotedbl{}top right\textquotedbl{})}\opts{\code{other\_\allowbreak{}chart}, \code{where=}, \code{size=}}}{Draw another chart small, inside this one.}{seaborn \code{lineplot()}, \code{inset\_\allowbreak{}axes()}, \code{barplot()}, \code{tick\_\allowbreak{}params()}}
+
+\cmd{\code{chart.\allowbreak{}add\_\allowbreak{}second\_\allowbreak{}x(formula=\textquotedbl{}x * 9 / 5 + 32\textquotedbl{},\allowbreak{} labelled=\textquotedbl{}Temperature (\textdegree{}F)\textquotedbl{})}\opts{\code{x=}, \code{drawn\_\allowbreak{}as=}, \code{labelled=}, \code{colour=}, \code{formula=}}}{A second x-axis at the top.}{matplotlib \code{scatterplot()}, \code{secondary\_\allowbreak{}xaxis()}, \code{set\_\allowbreak{}xlabel()}}
+
+\end{cardtable}
+
+\card{Frame, ticks and shape}{11}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}hide\_\allowbreak{}frame()}}{Only the marks: no axes, ticks, numbers or frame.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}axis\_\allowbreak{}off()}}
+
+\cmd{\code{chart.\allowbreak{}hide\_\allowbreak{}ticks\_\allowbreak{}x()}}{No tick marks and no numbers (or names) under the x-axis.}{matplotlib \code{scatterplot()}, \code{tick\_\allowbreak{}params()}}
+
+\cmd{\code{chart.\allowbreak{}hide\_\allowbreak{}ticks\_\allowbreak{}y()}}{No tick marks and no numbers beside the y-axis.}{matplotlib \code{scatterplot()}, \code{tick\_\allowbreak{}params()}}
+
+\cmd{\code{chart.\allowbreak{}show\_\allowbreak{}small\_\allowbreak{}ticks\_\allowbreak{}x()}}{Small ticks between the numbered ticks of the x-axis.}{matplotlib \code{scatterplot()}, \code{xaxis.\allowbreak{}minorticks\_\allowbreak{}on()}}
+
+\cmd{\code{chart.\allowbreak{}show\_\allowbreak{}small\_\allowbreak{}ticks\_\allowbreak{}y()}}{Small ticks between the numbered ticks of the y-axis.}{matplotlib \code{scatterplot()}, \code{yaxis.\allowbreak{}minorticks\_\allowbreak{}on()}}
+
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}true\_\allowbreak{}shape()}}{One unit along x is as long as one unit along y, so maps and shapes are not stretched.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}aspect()}}
+
+\cmd{\code{chart.\allowbreak{}make\_\allowbreak{}square()}}{A square plot area, whatever the numbers on the axes.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}box\_\allowbreak{}aspect()}}
+
+\end{cardtable}
+
+\card{Colour bar}{12}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}colour\_\allowbreak{}bar\_\allowbreak{}at\_\allowbreak{}bottom()}}{The colour bar under the chart, lying down.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{colorbar()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}colour\_\allowbreak{}bar\_\allowbreak{}at\_\allowbreak{}top()}}{The colour bar above the chart, lying down.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{colorbar()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}colour\_\allowbreak{}bar\_\allowbreak{}at\_\allowbreak{}left()}}{The colour bar on the left of the chart.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{colorbar()}}
+
+\cmd{\code{chart.\allowbreak{}hide\_\allowbreak{}colour\_\allowbreak{}bar()}}{No colour bar beside a heatmap, contour map or surface.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}ticks\_\allowbreak{}colour\_\allowbreak{}bar(0,\allowbreak{} 10,\allowbreak{} 20,\allowbreak{} 30)}\opts{\code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{labels=}}}{Where the marks on the colour bar go.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{colorbar()}, \code{set\_\allowbreak{}ticks()}}
+
+\end{cardtable}
+
+\card{3D charts}{13}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}lines\_\allowbreak{}3d(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{},\allowbreak{} z=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{colour=}, \code{transparency=}, \code{thickness=}}}{Lines in a 3D box, through the points in the order of the table.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{plot()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zlabel()}}
+
+\cmd{\code{chart.\allowbreak{}label\_\allowbreak{}z(\textquotedbl{}Height (m)\textquotedbl{})}\opts{\code{text}}}{The name of the z-axis (the height) of a 3D chart.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{scatter()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zlabel()}}
+
+\cmd{\code{chart.\allowbreak{}set\_\allowbreak{}range\_\allowbreak{}z(-10,\allowbreak{} 20)}\opts{\code{low=}, \code{high=}}}{From where to where the z-axis of a 3D chart goes.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{scatter()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zlabel()}, \code{set\_\allowbreak{}zlim()}}
+
+\cmd{\code{chart.\allowbreak{}put\_\allowbreak{}ticks\_\allowbreak{}z(-10,\allowbreak{} 0,\allowbreak{} 10,\allowbreak{} 20)}\opts{\code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{labels=}}}{Where the marks on the z-axis of a 3D chart go.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{scatter()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zlabel()}, \code{set\_\allowbreak{}zticks()}}
+
+\cmd{\code{chart.\allowbreak{}look\_\allowbreak{}from(height=20,\allowbreak{} around=45)}\opts{\code{height=}, \code{around=}}}{The angle a 3D chart is seen from.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{scatter()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}zlabel()}, \code{view\_\allowbreak{}init()}}
+
+\end{cardtable}
+
+\card{Describing a chart}{14}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}say\_\allowbreak{}what\_\allowbreak{}it\_\allowbreak{}shows()}}{Say in words what the chart shows, for a caption or for readers who cannot see it.}{simplydata's own words, read back from the drawn matplotlib figure (Axes.get\_title, \code{get\_\allowbreak{}xlabel}, \code{get\_\allowbreak{}xlim}, the tick names, the legend's texts, the colour bar, and the marks \code{chart.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}drawn()} reads). Nothing is worked out: write what the chart means in your own words.}
+
+\end{cardtable}
+
+\card{Web pages}{15}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}show\_\allowbreak{}in\_\allowbreak{}web\_\allowbreak{}page()}}{Show the chart as a web page: point at marks to read them, zoom, click the legend.}{simplydata's own: the chart is drawn by matplotlib and seaborn, as for a picture, and what they drew (the numbers of \code{get\_\allowbreak{}numbers\_\allowbreak{}drawn()}, the words of \code{get\_\allowbreak{}text\_\allowbreak{}drawn()}, the scales of \code{get\_\allowbreak{}scales\_\allowbreak{}drawn()}) is copied into a plotly figure, which nothing works out again. plotly then shows it: \code{plotly.\allowbreak{}io.\allowbreak{}to\_\allowbreak{}html(fig,\allowbreak{} include\_\allowbreak{}plotlyjs=True)} writes plotly.js into a file on this computer, which the browser opens (a notebook shows the same page below the cell); nothing is loaded from the internet.}
+
+\cmd{\code{chart.\allowbreak{}show\_\allowbreak{}when\_\allowbreak{}pointing(\textquotedbl{}name\textquotedbl{},\allowbreak{} \textquotedbl{}class\textquotedbl{})}\opts{\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{all\_\allowbreak{}lines=}}}{The columns shown when the pointer rests on a dot or a line in a web page.}{simplydata's own: the chart is drawn by matplotlib and seaborn, as for a picture, and what they drew (the numbers of \code{get\_\allowbreak{}numbers\_\allowbreak{}drawn()}, the words of \code{get\_\allowbreak{}text\_\allowbreak{}drawn()}, the scales of \code{get\_\allowbreak{}scales\_\allowbreak{}drawn()}) is copied into a plotly figure, which nothing works out again. The columns you name go into each mark's hover text (plotly's text and hovertemplate, the job of \code{hover\_\allowbreak{}data} in plotly express); each dot's row is found by its x and y; \code{all\_\allowbreak{}lines=True} is plotly's \code{hovermode=\textquotedbl{}x unified\textquotedbl{}}.}
+
+\cmd{\code{chart.\allowbreak{}add\_\allowbreak{}range\_\allowbreak{}bar\_\allowbreak{}x()}}{A small bar under the x-axis of a web page, to choose the part of the x-axis shown.}{simplydata's own: the chart is drawn by matplotlib and seaborn, as for a picture, and what they drew (the numbers of \code{get\_\allowbreak{}numbers\_\allowbreak{}drawn()}, the words of \code{get\_\allowbreak{}text\_\allowbreak{}drawn()}, the scales of \code{get\_\allowbreak{}scales\_\allowbreak{}drawn()}) is copied into a plotly figure, which nothing works out again. The bar is plotly's range slider: \code{fig.\allowbreak{}update\_\allowbreak{}xaxes(rangeslider\_\allowbreak{}visible=True)}.}
+
+\end{cardtable}
+
+\card{Breaks and other scales}{16}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}break\_\allowbreak{}between\_\allowbreak{}y(5,\allowbreak{} 50)}\opts{\code{low}, \code{high}}}{Leave out the part of the y-axis between two values, with break marks.}{seaborn \code{barplot()}, \code{set\_\allowbreak{}ylim()}, \code{get\_\allowbreak{}ylim()}, \code{spines.\allowbreak{}set\_\allowbreak{}visible()}, \code{tick\_\allowbreak{}params()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{plot()}}
+
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}scale\_\allowbreak{}x(\textquotedbl{}square root\textquotedbl{})}\opts{\code{scale}}}{Another scale on the x-axis: \code{\textquotedbl{}square root\textquotedbl{}}, \code{\textquotedbl{}logit\textquotedbl{}} or \code{\textquotedbl{}asinh\textquotedbl{}}.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}xscale()}}
+
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}scale\_\allowbreak{}y(\textquotedbl{}square root\textquotedbl{})}\opts{\code{scale}}}{Another scale on the y-axis: \code{\textquotedbl{}square root\textquotedbl{}}, \code{\textquotedbl{}logit\textquotedbl{}} or \code{\textquotedbl{}asinh\textquotedbl{}}.}{matplotlib \code{scatterplot()}, \code{get\_\allowbreak{}ylim()}, \code{set\_\allowbreak{}yscale()}, \code{sqrt()}, \code{clip()}, \code{set\_\allowbreak{}ylim()}, \code{max()}}
+
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}background\_\allowbreak{}colour(\textquotedbl{}ivory\textquotedbl{})}\opts{\code{colour}}}{The colour behind the plot area.}{matplotlib \code{scatterplot()}, \code{set\_\allowbreak{}facecolor()}}
+
+\end{cardtable}
+
+\card{More marks}{17}
+
+\begin{cardtable}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}hexagon\_\allowbreak{}bins(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}height\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{with\_\allowbreak{}bins=}, \code{transparency=}}}{Many dots counted in hexagons: the darker, the more dots.}{matplotlib \code{hexbin()}, \code{colorbar()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}time\_\allowbreak{}bars(start=[1,\allowbreak{} 3,\allowbreak{} 6],\allowbreak{} end=[4,\allowbreak{} 7,\allowbreak{} 9],\allowbreak{} y=[\textquotedbl{}plan\textquotedbl{},\allowbreak{} \textquotedbl{}build\textquotedbl{},\allowbreak{} \textquotedbl{}test\textquotedbl{}])}\opts{\code{start=}, \code{end=}, \code{y=}, \code{colour=}, \code{transparency=}}}{A bar from a start to an end on each row, as in a plan or a timeline.}{matplotlib \code{barh()}, \code{zip()}, \code{invert\_\allowbreak{}yaxis()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}rectangle(x\_\allowbreak{}between=[4,\allowbreak{} 6],\allowbreak{} y\_\allowbreak{}between=[60,\allowbreak{} 80])}\opts{\code{x\_\allowbreak{}between=}, \code{y\_\allowbreak{}between=}, \code{colour=}, \code{transparency=}, \code{hollow=}}}{A rectangle on the chart, to mark an area.}{matplotlib \code{scatterplot()}, \code{add\_\allowbreak{}patch()}, \code{Rectangle()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}circle(centre=[5,\allowbreak{} 70],\allowbreak{} radius=1)}\opts{\code{centre=}, \code{radius=}, \code{colour=}, \code{transparency=}, \code{hollow=}}}{A circle on the chart, to mark a place.}{matplotlib \code{scatterplot()}, \code{add\_\allowbreak{}patch()}, \code{Circle()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}residual\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{transparency=}}}{What is left of y after a straight line on x, as dots round a line at 0.}{seaborn \code{residplot()}, \code{set\_\allowbreak{}ylabel()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}event\_\allowbreak{}lines(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}class\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{colour=}, \code{thickness=}}}{A short upright line at each value, so every time something happened shows.}{matplotlib \code{unique()}, \code{eventplot()}, \code{loc[]}, \code{range()}, \code{set\_\allowbreak{}yticks()}}
+
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}bars\_\allowbreak{}3d(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}city\textquotedbl{},\allowbreak{} z=\textquotedbl{}rain\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{z=}, \code{colour=}, \code{transparency=}}}{Bars standing in a 3D box: one bar for each row, as high as z.}{matplotlib \code{figure()}, \code{add\_\allowbreak{}subplot()}, \code{unique()}, \code{map().\allowbreak{}to\_\allowbreak{}numpy()}, \code{bar3d()}, \code{set\_\allowbreak{}xticks()}, \code{range()}, \code{set\_\allowbreak{}yticks()}}
+
+\end{cardtable}
+
+\card{Tables: start and look}{18}
 
 \begin{cardtable}
 
@@ -346,7 +482,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Choose columns}{11}
+\card{Choose columns}{19}
 
 \begin{cardtable}
 
@@ -368,7 +504,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Choose rows}{12}
+\card{Choose rows}{20}
 
 \begin{cardtable}
 
@@ -408,7 +544,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Empty cells}{13}
+\card{Empty cells}{21}
 
 \begin{cardtable}
 
@@ -430,7 +566,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Fix columns}{14}
+\card{Fix columns}{22}
 
 \begin{cardtable}
 
@@ -456,7 +592,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Sort and new columns}{15}
+\card{Sort and new columns}{23}
 
 \begin{cardtable}
 
@@ -476,7 +612,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Dates and text}{16}
+\card{Dates and text}{24}
 
 \begin{cardtable}
 
@@ -498,7 +634,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Row after row}{17}
+\card{Row after row}{25}
 
 \begin{cardtable}
 
@@ -515,7 +651,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Summaries}{18}
+\card{Summaries}{26}
 
 \begin{cardtable}
 
@@ -551,7 +687,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Statistical tests}{19}
+\card{Statistical tests}{27}
 
 \begin{cardtable}
 
@@ -589,7 +725,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Risks and rates}{20}
+\card{Risks and rates}{28}
 
 \begin{cardtable}
 
@@ -608,7 +744,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Diagnostic tests}{21}
+\card{Diagnostic tests}{29}
 
 \begin{cardtable}
 
@@ -618,11 +754,11 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{sdata.\allowbreak{}compare\_\allowbreak{}to\_\allowbreak{}truth(found=45,\allowbreak{} missed=5,\allowbreak{} false\_\allowbreak{}alarms=30,\allowbreak{} correct\_\allowbreak{}negatives=920)}\opts{\code{found=}, \code{missed=}, \code{false\_\allowbreak{}alarms=}, \code{correct\_\allowbreak{}negatives=}, \code{sensitivity=}, \code{specificity=}, \code{prevalence=}, \code{interval=}}}{How well does a test find what is really there? From the four counts, or from percents.}{R \code{epiR::epi.\allowbreak{}tests()}}
 
-\cmd{\code{chart.\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve(score=\textquotedbl{}crp\textquotedbl{},\allowbreak{} truth=\textquotedbl{}infected\textquotedbl{})}\opts{\code{score=}, \code{truth=}, \code{positive=}, \code{colour=}, \code{positive\_\allowbreak{}when=}, \code{transparency=}, \code{thickness=}}}{How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).}{R \code{pROC::roc()}, \code{pROC::ci.\allowbreak{}auc()}, \code{pROC::coords()} \textperiodcentered{} matplotlib \code{plot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}trade\_\allowbreak{}off\_\allowbreak{}curve(score=\textquotedbl{}crp\textquotedbl{},\allowbreak{} truth=\textquotedbl{}infected\textquotedbl{})}\opts{\code{score=}, \code{truth=}, \code{positive=}, \code{colour=}, \code{positive\_\allowbreak{}when=}, \code{transparency=}, \code{thickness=}}}{How a score trades found cases against false alarms, cut-off by cut-off (the ROC curve).}{R \code{pROC::roc()}, \code{pROC::ci.\allowbreak{}auc()}, \code{pROC::coords()} \textperiodcentered{} matplotlib \code{plot()}}
 
 \end{cardtable}
 
-\card{Agreement and reliability}{22}
+\card{Agreement and reliability}{30}
 
 \begin{cardtable}
 
@@ -632,11 +768,11 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{table.\allowbreak{}reliability\_\allowbreak{}of([\textquotedbl{}item\_\allowbreak{}1\textquotedbl{},\allowbreak{} \textquotedbl{}item\_\allowbreak{}2\textquotedbl{},\allowbreak{} \textquotedbl{}item\_\allowbreak{}3\textquotedbl{},\allowbreak{} \textquotedbl{}item\_\allowbreak{}4\textquotedbl{},\allowbreak{} \textquotedbl{}item\_\allowbreak{}5\textquotedbl{}])}\opts{\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{interval=}}}{Do the items of a questionnaire hang together (Cronbach's alpha)?}{R \code{psych::alpha()}, \code{psych::alpha.\allowbreak{}ci()}}
 
-\cmd{\code{chart.\allowbreak{}difference\_\allowbreak{}dots(first=\textquotedbl{}device\_\allowbreak{}a\textquotedbl{},\allowbreak{} second=\textquotedbl{}device\_\allowbreak{}b\textquotedbl{})}\opts{\code{first=}, \code{second=}, \code{transparency=}}}{Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).}{R \code{BlandAltmanLeh::bland.\allowbreak{}altman.\allowbreak{}stats()} \textperiodcentered{} statsmodels \code{mean\_\allowbreak{}diff\_\allowbreak{}plot()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}title()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}difference\_\allowbreak{}dots(first=\textquotedbl{}device\_\allowbreak{}a\textquotedbl{},\allowbreak{} second=\textquotedbl{}device\_\allowbreak{}b\textquotedbl{})}\opts{\code{first=}, \code{second=}, \code{transparency=}}}{Do two ways of measuring agree? The difference of each pair against its average (Bland-Altman).}{R \code{BlandAltmanLeh::bland.\allowbreak{}altman.\allowbreak{}stats()} \textperiodcentered{} statsmodels \code{mean\_\allowbreak{}diff\_\allowbreak{}plot()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{set\_\allowbreak{}title()}}
 
 \end{cardtable}
 
-\card{Fitting}{23}
+\card{Fitting}{31}
 
 \begin{cardtable}
 
@@ -652,7 +788,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Finding and solving}{24}
+\card{Finding and solving}{32}
 
 \begin{cardtable}
 
@@ -664,7 +800,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Values between points}{25}
+\card{Values between points}{33}
 
 \begin{cardtable}
 
@@ -674,7 +810,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Distributions}{26}
+\card{Distributions}{34}
 
 \begin{cardtable}
 
@@ -716,7 +852,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Models}{27}
+\card{Models}{35}
 
 \begin{cardtable}
 
@@ -738,7 +874,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Patterns across columns}{28}
+\card{Patterns across columns}{36}
 
 \begin{cardtable}
 
@@ -775,7 +911,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Directions, places and extremes}{29}
+\card{Directions, places and extremes}{37}
 
 \begin{cardtable}
 
@@ -787,7 +923,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Survival}{30}
+\card{Survival}{38}
 
 \begin{cardtable}
 
@@ -807,20 +943,20 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Combining studies}{31}
+\card{Combining studies}{39}
 
 \begin{cardtable}
 
 \cmd{\code{table.\allowbreak{}combine\_\allowbreak{}studies(names=\textquotedbl{}trial\textquotedbl{},\allowbreak{} events=[\textquotedbl{}tb\_\allowbreak{}vaccinated\textquotedbl{},\allowbreak{} \textquotedbl{}tb\_\allowbreak{}unvaccinated\textquotedbl{}],\allowbreak{}
 out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \textquotedbl{}unvaccinated\textquotedbl{}])}\opts{\code{names=}, \code{events=}, \code{out\_\allowbreak{}of=}, \code{estimates=}, \code{standard\_\allowbreak{}errors=}, \code{averages=}, \code{standard\_\allowbreak{}deviations=}, \code{counts=}, \code{time=}, \code{correlations=} and 6 more}}{Combine the results of several studies into one (a meta-analysis), with how much they differ.}{R \code{metafor::escalc()}, \code{metafor::rma()}}
 
-\cmd{\code{chart.\allowbreak{}forest\_\allowbreak{}plot(x=\textquotedbl{}difference\textquotedbl{},\allowbreak{} y=\textquotedbl{}group 1\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{line\_\allowbreak{}at=}, \code{log\_\allowbreak{}scale=}, \code{colour=}, \code{thickness=}, \code{size=}}}{Many results with their intervals, one line each (a forest plot).}{matplotlib \code{arange()}, \code{errorbar()}, \code{axvline()}, \code{set\_\allowbreak{}yticks()}, \code{set\_\allowbreak{}xscale()}, \code{set\_\allowbreak{}xlabel()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}forest\_\allowbreak{}plot(x=\textquotedbl{}difference\textquotedbl{},\allowbreak{} y=\textquotedbl{}group 1\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{line\_\allowbreak{}at=}, \code{log\_\allowbreak{}scale=}, \code{colour=}, \code{thickness=}, \code{size=}}}{Many results with their intervals, one line each (a forest plot).}{matplotlib \code{arange()}, \code{errorbar()}, \code{axvline()}, \code{set\_\allowbreak{}yticks()}, \code{set\_\allowbreak{}xscale()}, \code{set\_\allowbreak{}xlabel()}}
 
 \cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}funnel\_\allowbreak{}plot(x=\textquotedbl{}estimate\textquotedbl{},\allowbreak{} y=\textquotedbl{}standard error\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{log\_\allowbreak{}scale=}, \code{colour=}}}{A funnel plot: each study's effect against its standard error, to look for small-study effects.}{R \code{metafor::escalc()}, \code{metafor::rma()} \textperiodcentered{} matplotlib \code{scatter()}, \code{max()}, \code{lognorm.\allowbreak{}interval()}, \code{plot()}, \code{axvline()}, \code{set\_\allowbreak{}ylim()}, \code{set\_\allowbreak{}xscale()}}
 
 \end{cardtable}
 
-\card{Dates and time windows}{32}
+\card{Dates and time windows}{40}
 
 \begin{cardtable}
 
@@ -830,7 +966,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Smoothing and trend}{33}
+\card{Smoothing and trend}{41}
 
 \begin{cardtable}
 
@@ -852,17 +988,17 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{table.\allowbreak{}find\_\allowbreak{}change\_\allowbreak{}points\_\allowbreak{}in(\textquotedbl{}nitrate\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}date\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}station\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{change=}, \code{penalty=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}}{Find the points where the average of a column jumps to a new level (R changepoint, PELT).}{R \code{stats::mad()}, \code{changepoint::cpt.\allowbreak{}mean()}, \code{changepoint::cpts()} \textperiodcentered{} Python \code{DataFrame()}, \code{range()}}
 
-\cmd{\code{chart.\allowbreak{}trend\_\allowbreak{}and\_\allowbreak{}season(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}visitors\textquotedbl{},\allowbreak{} repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{repeats\_\allowbreak{}every=}, \code{test\_\allowbreak{}method=}}}{Four panels sharing x: the column itself, its trend, its season and the rest (as R \code{plot(stl(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}, which labels the first panel \code{\textquotedbl{}data\textquotedbl{}}).}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{STL().\allowbreak{}fit()}, \code{to\_\allowbreak{}numpy()}, \code{set\_\allowbreak{}axis\_\allowbreak{}off()}, \code{enumerate()}, \code{append()}, \code{inset\_\allowbreak{}axes()}, \code{set\_\allowbreak{}ylabel()}, \code{vlines()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{plot()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}trend\_\allowbreak{}and\_\allowbreak{}season(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}visitors\textquotedbl{},\allowbreak{} repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{repeats\_\allowbreak{}every=}, \code{test\_\allowbreak{}method=}}}{Four panels sharing x: the column itself, its trend, its season and the rest (as R \code{plot(stl(.\allowbreak{}.\allowbreak{}.\allowbreak{}))}, which labels the first panel \code{\textquotedbl{}data\textquotedbl{}}).}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{STL().\allowbreak{}fit()}, \code{to\_\allowbreak{}numpy()}, \code{set\_\allowbreak{}axis\_\allowbreak{}off()}, \code{enumerate()}, \code{append()}, \code{inset\_\allowbreak{}axes()}, \code{set\_\allowbreak{}ylabel()}, \code{vlines()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{plot()}}
 
-\cmd{\code{chart.\allowbreak{}autocorrelation\_\allowbreak{}bars(\textquotedbl{}visitors\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}month\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}, \code{show=}, \code{band=}}}{Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{floor()}, \code{log10()}, \code{arange()}, \code{acf()}, \code{full()}, \code{sqrt()}, \code{vlines()}, \code{plot()}, \code{step()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}autocorrelation\_\allowbreak{}bars(\textquotedbl{}visitors\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}month\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}, \code{show=}, \code{band=}}}{Sticks for the correlation of a column with itself 1, 2, ... rows back, with the noise band.}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{floor()}, \code{log10()}, \code{arange()}, \code{acf()}, \code{full()}, \code{sqrt()}, \code{vlines()}, \code{plot()}, \code{step()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
 
-\cmd{\code{chart.\allowbreak{}cross\_\allowbreak{}correlation\_\allowbreak{}bars(\textquotedbl{}signal\textquotedbl{},\allowbreak{} \textquotedbl{}vibration\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} rows\_\allowbreak{}back=20)}\opts{\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}}}{Sticks for the correlation of two columns when the second is shifted by -k to k rows.}{matplotlib \code{ccf()}, \code{arange()}, \code{concatenate()}, \code{full()}, \code{sqrt()}, \code{vlines()}, \code{plot()}, \code{step()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}cross\_\allowbreak{}correlation\_\allowbreak{}bars(\textquotedbl{}signal\textquotedbl{},\allowbreak{} \textquotedbl{}vibration\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} rows\_\allowbreak{}back=20)}\opts{\code{columns.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}}}{Sticks for the correlation of two columns when the second is shifted by -k to k rows.}{matplotlib \code{ccf()}, \code{arange()}, \code{concatenate()}, \code{full()}, \code{sqrt()}, \code{vlines()}, \code{plot()}, \code{step()}, \code{axhline()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
 
-\cmd{\code{chart.\allowbreak{}lag\_\allowbreak{}dots(\textquotedbl{}visitors\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}month\textquotedbl{},\allowbreak{} rows\_\allowbreak{}back=[1,\allowbreak{} 12])}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}, \code{transparency=}}}{Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values().\allowbreak{}reset\_\allowbreak{}index()}, \code{scatter()}, \code{shift()}, \code{plot()}, \code{min()}, \code{max()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{legend()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}lag\_\allowbreak{}dots(\textquotedbl{}visitors\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}month\textquotedbl{},\allowbreak{} rows\_\allowbreak{}back=[1,\allowbreak{} 12])}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{rows\_\allowbreak{}back=}, \code{transparency=}}}{Dots of each value against the value some rows back, with the 1:1 line (as R lag.plot).}{matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values().\allowbreak{}reset\_\allowbreak{}index()}, \code{scatter()}, \code{shift()}, \code{plot()}, \code{min()}, \code{max()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}, \code{legend()}}
 
 \end{cardtable}
 
-\card{Forecasts}{34}
+\card{Forecasts}{42}
 
 \begin{cardtable}
 
@@ -870,13 +1006,13 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}forecast(steps\_\allowbreak{}ahead=12,\allowbreak{} repeats\_\allowbreak{}every=12)}\opts{\code{steps\_\allowbreak{}ahead=}, \code{test\_\allowbreak{}method=}, \code{repeats\_\allowbreak{}every=}, \code{trend=}, \code{season=}, \code{order=}, \code{seasonal\_\allowbreak{}order=}, \code{interval=}, \code{check\_\allowbreak{}on\_\allowbreak{}last=}, \code{show=}}}{Forecast the next numbers, with an interval for each (R forecast and stats, run in R).}{R \code{stats::HoltWinters()}, \code{stats::ts()}, \code{forecast::forecast()} \textperiodcentered{} Python \code{DataFrame()}, \code{arange()}}
 
-\cmd{\code{chart.\allowbreak{}forecast(steps\_\allowbreak{}ahead=12,\allowbreak{} repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{steps\_\allowbreak{}ahead=}, \code{test\_\allowbreak{}method=}, \code{repeats\_\allowbreak{}every=}, \code{trend=}, \code{season=}, \code{order=}, \code{seasonal\_\allowbreak{}order=}, \code{interval=}}}{The forecast after the data: a dashed line and its interval band, per colour group.}{R \code{stats::HoltWinters()}, \code{stats::ts()}, \code{forecast::forecast()} \textperiodcentered{} matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{lineplot()}, \code{date\_\allowbreak{}range()}, \code{max()}, \code{plot()}, \code{fill\_\allowbreak{}between()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}forecast(steps\_\allowbreak{}ahead=12,\allowbreak{} repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{})}\opts{\code{x=}, \code{y=}, \code{steps\_\allowbreak{}ahead=}, \code{test\_\allowbreak{}method=}, \code{repeats\_\allowbreak{}every=}, \code{trend=}, \code{season=}, \code{order=}, \code{seasonal\_\allowbreak{}order=}, \code{interval=}}}{The forecast after the data: a dashed line and its interval band, per colour group.}{R \code{stats::HoltWinters()}, \code{stats::ts()}, \code{forecast::forecast()} \textperiodcentered{} matplotlib \code{boolean indexing}, \code{sort\_\allowbreak{}values()}, \code{lineplot()}, \code{date\_\allowbreak{}range()}, \code{max()}, \code{plot()}, \code{fill\_\allowbreak{}between()}}
 
 \cmd{\code{table.\allowbreak{}compare\_\allowbreak{}forecasts\_\allowbreak{}for(\textquotedbl{}visitors\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}month\textquotedbl{},\allowbreak{} repeats\_\allowbreak{}every=\textquotedbl{}year\textquotedbl{},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}museum\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{test\_\allowbreak{}method=}, \code{check\_\allowbreak{}on\_\allowbreak{}last=}, \code{repeats\_\allowbreak{}every=}, \code{order=}, \code{seasonal\_\allowbreak{}order=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}}{Which forecast method would have done best on the last rows? (R forecast::accuracy)}{R \code{stats::ts()}, \code{forecast::naive()}, \code{forecast::snaive()}, \code{forecast::rwf()}, \code{forecast::forecast()}, \code{stats::HoltWinters()}, \code{forecast::accuracy()}, \code{stats::tsp()} \textperiodcentered{} Python \code{DataFrame()}, \code{sort\_\allowbreak{}values()}, \code{assign()}, \code{range()}}
 
 \end{cardtable}
 
-\card{Cycles and filters}{35}
+\card{Cycles and filters}{43}
 
 \begin{cardtable}
 
@@ -884,7 +1020,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that(is\_\allowbreak{}at\_\allowbreak{}least=1,\allowbreak{} apart=10)}\opts{\code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{apart=}, \code{stands\_\allowbreak{}out\_\allowbreak{}by=}, \code{wide\_\allowbreak{}at\_\allowbreak{}least=}, \code{time\_\allowbreak{}step=}}}{Find the peaks: numbers higher than both neighbours, with conditions.}{SciPy \code{find\_\allowbreak{}peaks()}, \code{peak\_\allowbreak{}prominences()}, \code{peak\_\allowbreak{}widths()}, \code{DataFrame()}}
 
-\cmd{\code{chart.\allowbreak{}peak\_\allowbreak{}dots(is\_\allowbreak{}at\_\allowbreak{}least=1,\allowbreak{} apart=0.\allowbreak{}05)}\opts{\code{x=}, \code{y=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{apart=}, \code{stands\_\allowbreak{}out\_\allowbreak{}by=}, \code{dips=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}}}{Dots on the peaks of the line (and on the dips with \code{dips=True}).}{matplotlib \code{to\_\allowbreak{}numpy()}, \code{plot()}, \code{find\_\allowbreak{}peaks()}, \code{round()}, \code{scatter()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}peak\_\allowbreak{}dots(is\_\allowbreak{}at\_\allowbreak{}least=1,\allowbreak{} apart=0.\allowbreak{}05)}\opts{\code{x=}, \code{y=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{apart=}, \code{stands\_\allowbreak{}out\_\allowbreak{}by=}, \code{dips=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}}}{Dots on the peaks of the line (and on the dips with \code{dips=True}).}{matplotlib \code{to\_\allowbreak{}numpy()}, \code{plot()}, \code{find\_\allowbreak{}peaks()}, \code{round()}, \code{scatter()}}
 
 \cmd{\code{table.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}dip\_\allowbreak{}that(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} is\_\allowbreak{}at\_\allowbreak{}most=-1,\allowbreak{} apart=0.\allowbreak{}05)}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{apart=}, \code{stands\_\allowbreak{}out\_\allowbreak{}by=}, \code{wide\_\allowbreak{}at\_\allowbreak{}least=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}}{Find the dips of a column: readings lower than both neighbours (\code{find\_\allowbreak{}each\_\allowbreak{}peak\_\allowbreak{}that} upside down).}{SciPy \code{to\_\allowbreak{}numpy()}, \code{find\_\allowbreak{}peaks()}, \code{round()}, \code{peak\_\allowbreak{}prominences()}, \code{peak\_\allowbreak{}widths()}, \code{DataFrame()}}
 
@@ -894,9 +1030,9 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}find\_\allowbreak{}spectrum(time\_\allowbreak{}step=0.\allowbreak{}01)}\opts{\code{time\_\allowbreak{}step=}, \code{test\_\allowbreak{}method=}, \code{window=}, \code{window\_\allowbreak{}shape=}, \code{show=}, \code{between=}, \code{time\_\allowbreak{}points=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}}}{Which repeating cycles (frequencies) the numbers hold, and how strong each is.}{SciPy \code{periodogram()}, \code{errstate()}, \code{DataFrame()}}
 
-\cmd{\code{chart.\allowbreak{}spectrum(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{test\_\allowbreak{}method=}, \code{show=}, \code{window=}, \code{log\_\allowbreak{}scale=}}}{Power against frequency: which cycles a column holds, the 3 strongest peaks labelled with their period.}{matplotlib \code{periodogram()}, \code{plot()}, \code{argsort()}, \code{annotate()}, \code{set\_\allowbreak{}yscale()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}spectrum(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{})}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{test\_\allowbreak{}method=}, \code{show=}, \code{window=}, \code{log\_\allowbreak{}scale=}}}{Power against frequency: which cycles a column holds, the 3 strongest peaks labelled with their period.}{matplotlib \code{periodogram()}, \code{plot()}, \code{argsort()}, \code{annotate()}, \code{set\_\allowbreak{}yscale()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
 
-\cmd{\code{chart.\allowbreak{}spectrum\_\allowbreak{}over\_\allowbreak{}time(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} window=100)}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{window=}, \code{window\_\allowbreak{}shape=}}}{How the cycles in a column change over time: a heat map of time, frequency and power (decibels).}{matplotlib \code{spectrogram()}, \code{to\_\allowbreak{}numpy()}, \code{pcolormesh()}, \code{iloc[]}, \code{log10()}, \code{colorbar()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
+\cmd{\code{chart.\allowbreak{}draw\_\allowbreak{}spectrum\_\allowbreak{}over\_\allowbreak{}time(\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{},\allowbreak{} window=100)}\opts{\code{column=}, \code{sorted\_\allowbreak{}by=}, \code{window=}, \code{window\_\allowbreak{}shape=}}}{How the cycles in a column change over time: a heat map of time, frequency and power (decibels).}{matplotlib \code{spectrogram()}, \code{to\_\allowbreak{}numpy()}, \code{pcolormesh()}, \code{iloc[]}, \code{log10()}, \code{colorbar()}, \code{set\_\allowbreak{}xlabel()}, \code{set\_\allowbreak{}ylabel()}}
 
 \cmd{\code{nums.\allowbreak{}keep\_\allowbreak{}each\_\allowbreak{}frequency\_\allowbreak{}that(is\_\allowbreak{}below=5,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}01)}\opts{\code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{time\_\allowbreak{}step=}, \code{test\_\allowbreak{}method=}, \code{steepness=}, \code{both\_\allowbreak{}ways=}, \code{ripple=}, \code{removed\_\allowbreak{}by=} and 4 more}}{Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).}{SciPy \code{butter()}, \code{sosfiltfilt()}}
 
@@ -916,7 +1052,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Planning a study}{36}
+\card{Planning a study}{44}
 
 \begin{cardtable}
 
@@ -926,7 +1062,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Planning and surveys}{37}
+\card{Planning and surveys}{45}
 
 \begin{cardtable}
 
@@ -938,7 +1074,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Join and reshape}{38}
+\card{Join and reshape}{46}
 
 \begin{cardtable}
 
@@ -968,7 +1104,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Undo and finish}{39}
+\card{Undo and finish}{47}
 
 \begin{cardtable}
 
@@ -992,7 +1128,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: make and look}{40}
+\card{Numbers: make and look}{48}
 
 \begin{cardtable}
 
@@ -1014,7 +1150,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: maths in words}{41}
+\card{Numbers: maths in words}{49}
 
 \begin{cardtable}
 
@@ -1042,7 +1178,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: choose, sort and fill}{42}
+\card{Numbers: choose, sort and fill}{50}
 
 \begin{cardtable}
 
@@ -1074,7 +1210,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: summaries}{43}
+\card{Numbers: summaries}{51}
 
 \begin{cardtable}
 
@@ -1096,7 +1232,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Grids of numbers}{44}
+\card{Grids of numbers}{52}
 
 \begin{cardtable}
 
@@ -1136,7 +1272,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: undo and finish}{45}
+\card{Numbers: undo and finish}{53}
 
 \begin{cardtable}
 
@@ -1156,7 +1292,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Waves and systems}{46}
+\card{Waves and systems}{54}
 
 \begin{cardtable}
 
@@ -1202,7 +1338,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Help}{47}
+\card{Help}{55}
 
 \begin{cardtable}
 
@@ -1216,7 +1352,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{30 days of simplydata}{48}
+\card{30 days of simplydata}{56}
 
 \begin{cardtable}
 
