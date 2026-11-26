@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 477 commands in 56 cards, version 0.2.0.\par}
+work. 572 commands in 67 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -796,21 +796,65 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}biggest(\textquotedbl{}3*x + 2*y\textquotedbl{},\allowbreak{} rules=[\textquotedbl{}x + y \textless{}= 4\textquotedbl{},\allowbreak{} \textquotedbl{}x + 3*y \textless{}= 6\textquotedbl{},\allowbreak{} \textquotedbl{}x \textgreater{}= 0\textquotedbl{},\allowbreak{} \textquotedbl{}y \textgreater{}= 0\textquotedbl{}])}\opts{\code{formula=}, \code{between=}, \code{start=}, \code{rules=}, \code{whole\_\allowbreak{}numbers=}, \code{search=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}}}{Find where a formula is biggest, and its value there.}{SciPy \code{linprog()}}
 
-\cmd{\code{sdata.\allowbreak{}solve(\textquotedbl{}x**3 - 2*x = 5\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{equations=}, \code{between=}, \code{start=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}}}{Find the values that make an equation true.}{SciPy \code{linspace()}, \code{gap()}, \code{brentq()}, \code{zip()}, \code{DataFrame()}}
+\cmd{\code{sdata.\allowbreak{}solve(\textquotedbl{}x**3 - 2*x = 5\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{equations=}, \code{between=}, \code{start=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}, \code{exactly=}}}{Find the values that make an equation true.}{SciPy \code{linspace()}, \code{gap()}, \code{brentq()}, \code{zip()}, \code{DataFrame()}}
 
 \end{cardtable}
 
-\card{Values between points}{33}
+\card{Formulas and exact answers}{33}
 
 \begin{cardtable}
 
-\cmd{\code{table.\allowbreak{}values\_\allowbreak{}at(\textquotedbl{}population\textquotedbl{},\allowbreak{} at=\{\textquotedbl{}year\textquotedbl{}: [2001,\allowbreak{} 2003,\allowbreak{} 2011]\},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}country\textquotedbl{})}\opts{\code{column=}, \code{at=}, \code{joined\_\allowbreak{}by=}, \code{smoothness=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, \code{outside=}}}{Estimate a column at places between the known points, by joining the dots.}{pandas \code{DataFrame()}, \code{groupby()}, \code{groupby().\allowbreak{}mean()}, \code{interp()}, \code{to\_\allowbreak{}numpy()}, \code{append()}, \code{concat()}}
+\cmd{\code{sdata.\allowbreak{}formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{})}\opts{\code{text=}}}{A formula to work with exactly (SymPy): simpler, multiplied out, slopes, areas, limits.}{SymPy \code{Symbol()}, \code{str()}, \code{parse\_\allowbreak{}expr()}}
+
+\cmd{\code{f.\allowbreak{}make\_\allowbreak{}simpler()}}{Write the formula in a simpler way (SymPy simplify).}{SymPy \code{Symbol()}, \code{str()}, \code{simplify()}}
+
+\cmd{\code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}sum()}}{Multiply out the brackets, so the formula is a sum of terms (SymPy expand).}{SymPy \code{Symbol()}, \code{str()}, \code{expand()}}
+
+\cmd{\code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}product()}}{Write the formula as a product of factors (SymPy factor).}{SymPy \code{Symbol()}, \code{str()}, \code{factor()}}
+
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}slope\_\allowbreak{}formula()}\opts{\code{for\_\allowbreak{}letter=}}}{The formula of the slope (the derivative), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{diff()}}
+
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}formula()}\opts{\code{for\_\allowbreak{}letter=}}}{The formula of the area under the curve (the integral), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{integrate()}}
+
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}value\_\allowbreak{}at(x=2)}}{The value of the formula when each letter has a value.}{SymPy \code{Symbol()}, \code{subs().\allowbreak{}evalf()}, \code{Rational()}}
+
+\cmd{\code{f.\allowbreak{}put\_\allowbreak{}in(x=\textquotedbl{}y + 1\textquotedbl{})}}{Put a number or another formula in place of a letter, as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{subs()}}
+
+\cmd{\code{f.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}latex()}}{Show the formula as LaTeX, to paste into a paper; also gives the text back.}{SymPy \code{Symbol()}, \code{latex()}}
+
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as(\textquotedbl{}x\textquotedbl{},\allowbreak{} goes\_\allowbreak{}to=0)}\opts{\code{letter=}, \code{goes\_\allowbreak{}to=}}}{The value the formula comes close to as a letter goes to a value (the limit).}{SymPy \code{Symbol()}, \code{limit()}, \code{sin()}}
+
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}taylor\_\allowbreak{}series(around=0,\allowbreak{} up\_\allowbreak{}to\_\allowbreak{}power=4)}\opts{\code{around=}, \code{up\_\allowbreak{}to\_\allowbreak{}power=}, \code{for\_\allowbreak{}letter=}}}{The formula as a sum of powers near one value (the Taylor series), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{series().\allowbreak{}removeO()}, \code{exp()}}
+
+\cmd{\code{f.\allowbreak{}undo()}}{Take the last change of the formula back.}{simplydata's own: a formula keeps its earlier forms. A SymPy expression never changes, so in SymPy you keep the old one in a variable yourself.}
+
+\end{cardtable}
+
+\card{Areas and paths over time}{34}
+
+\begin{cardtable}
+
+\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under(\textquotedbl{}x**2\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{formula=}, \code{between=}, \code{test\_\allowbreak{}method=}, \code{exactly=}, \code{known=}}}{The area under a formula's curve between two values (the definite integral).}{SciPy \code{quad()}, \code{exp()}}
+
+\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}volume\_\allowbreak{}under(\textquotedbl{}x * y\textquotedbl{},\allowbreak{} between=\{\textquotedbl{}x\textquotedbl{}: [0,\allowbreak{} 1],\allowbreak{} \textquotedbl{}y\textquotedbl{}: [0,\allowbreak{} 2]\})}\opts{\code{formula=}, \code{between=}, \code{known=}}}{The volume under a formula of two or more letters, over a range of each (a double or triple integral).}{SciPy \code{dblquad()}}
+
+\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time(\textquotedbl{}dN/dt = r * N * (1 - N / K)\textquotedbl{},\allowbreak{} at\_\allowbreak{}start=\{\textquotedbl{}N\textquotedbl{}: 10\},\allowbreak{} between=[0,\allowbreak{} 50],\allowbreak{} known=\{\textquotedbl{}r\textquotedbl{}: 0.\allowbreak{}3,\allowbreak{} \textquotedbl{}K\textquotedbl{}: 1000\},\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}5)}\opts{\code{equations=}, \code{at\_\allowbreak{}start=}, \code{between=}, \code{known=}, \code{time\_\allowbreak{}step=}, \code{stop\_\allowbreak{}when=}, \code{test\_\allowbreak{}method=}, \code{exactly=}}}{The values over time from how fast they change (an ordinary differential equation).}{SciPy \code{linspace()}, \code{solve\_\allowbreak{}ivp()}, \code{DataFrame()}}
+
+\cmd{\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}area(time\_\allowbreak{}step=60)}\opts{\code{time\_\allowbreak{}step=}, \code{test\_\allowbreak{}method=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}}}{Turn readings into the area so far under their curve (a running integral).}{SciPy \code{cumulative\_\allowbreak{}trapezoid()}}
+
+\end{cardtable}
+
+\card{Values between points}{35}
+
+\begin{cardtable}
+
+\cmd{\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at(\textquotedbl{}population\textquotedbl{},\allowbreak{} at=\{\textquotedbl{}year\textquotedbl{}: [2001,\allowbreak{} 2003,\allowbreak{} 2011]\},\allowbreak{} for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}country\textquotedbl{})}\opts{\code{column=}, \code{at=}, \code{joined\_\allowbreak{}by=}, \code{smoothness=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}, \code{outside=}}}{Estimate a column at places between the known points, by joining the dots.}{pandas \code{DataFrame()}, \code{groupby()}, \code{groupby().\allowbreak{}mean()}, \code{interp()}, \code{to\_\allowbreak{}numpy()}, \code{append()}, \code{concat()}}
 
 \cmd{\code{table.\allowbreak{}make\_\allowbreak{}map\_\allowbreak{}of(\textquotedbl{}height\textquotedbl{},\allowbreak{} across=[\textquotedbl{}east\textquotedbl{},\allowbreak{} \textquotedbl{}north\textquotedbl{}],\allowbreak{} steps=100)}\opts{\code{column=}, \code{across=}, \code{steps=}, \code{joined\_\allowbreak{}by=}, \code{smoothness=}}}{Estimate a column at evenly spaced places across one or more columns (a map), ready for a contour or heatmap.}{SciPy \code{groupby().\allowbreak{}mean().\allowbreak{}unstack()}, \code{index.\allowbreak{}to\_\allowbreak{}numpy()}, \code{columns.\allowbreak{}to\_\allowbreak{}numpy()}, \code{RegularGridInterpolator()}, \code{to\_\allowbreak{}numpy()}, \code{meshgrid()}, \code{linspace()}, \code{min()}, \code{max()}, \code{DataFrame()}, \code{ravel()}, \code{reader()}, \code{column\_\allowbreak{}stack()}}
 
 \end{cardtable}
 
-\card{Distributions}{34}
+\card{Distributions}{36}
 
 \begin{cardtable}
 
@@ -852,7 +896,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Models}{35}
+\card{Models}{37}
 
 \begin{cardtable}
 
@@ -874,7 +918,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Patterns across columns}{36}
+\card{Patterns across columns}{38}
 
 \begin{cardtable}
 
@@ -885,6 +929,8 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 \cmd{\code{table.\allowbreak{}add\_\allowbreak{}clusters(how\_\allowbreak{}many=3)}\opts{\code{columns=}, \code{how\_\allowbreak{}many=}, \code{test\_\allowbreak{}method=}, \code{same\_\allowbreak{}scale=}, \code{with\_\allowbreak{}seed=}, \code{name=}, \code{linkage=}, \code{measure=}, \code{show=}}}{Sort the rows into groups of similar rows (clusters), in a new column.}{R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for \code{test\_\allowbreak{}method=\textquotedbl{}hierarchical\textquotedbl{}}); the silhouette width from R cluster::silhouette}
 
 \cmd{\code{table.\allowbreak{}find\_\allowbreak{}distances\_\allowbreak{}between\_\allowbreak{}rows(names=\textquotedbl{}plot\textquotedbl{})}\opts{\code{columns=}, \code{measure=}, \code{names=}}}{How different each row is from every other row: a square table of distances.}{SciPy (spatial.distance.pdist); R vegan::vegdist for the Aitchison, robust Aitchison and Hellinger distances}
+
+\cmd{\code{table.\allowbreak{}find\_\allowbreak{}distances\_\allowbreak{}to\_\allowbreak{}rows\_\allowbreak{}of(other,\allowbreak{} using=[\textquotedbl{}east\textquotedbl{},\allowbreak{} \textquotedbl{}north\textquotedbl{}])}\opts{\code{other=}, \code{using=}, \code{test\_\allowbreak{}method=}, \code{names=}}}{How far each row is from each row of another table: a table of distances.}{SciPy \code{head()}, \code{tail()}, \code{cdist()}, \code{DataFrame()}, \code{tolist()}, \code{insert()}}
 
 \cmd{\code{table.\allowbreak{}add\_\allowbreak{}nmds()}\opts{\code{columns=}, \code{measure=}, \code{dimensions=}, \code{tries=}, \code{with\_\allowbreak{}seed=}, \code{show=}}}{Draw the rows as points on a map where close points are similar rows (NMDS), in new columns.}{R \code{vegan::vegdist()}, \code{vegan::metaMDS()} \textperiodcentered{} pandas \code{assign()}}
 
@@ -911,7 +957,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Directions, places and extremes}{37}
+\card{Directions, places and extremes}{39}
 
 \begin{cardtable}
 
@@ -921,9 +967,13 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{table.\allowbreak{}find\_\allowbreak{}variogram\_\allowbreak{}of(\textquotedbl{}zinc\textquotedbl{},\allowbreak{} x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{})}\opts{\code{column=}, \code{x=}, \code{y=}, \code{of\_\allowbreak{}kind=}, \code{between=}}}{A variogram: how different two values are, on average, at each distance apart.}{R \code{gstat::variogram()}, \code{gstat::fit.\allowbreak{}variogram()}, \code{gstat::vgm()}}
 
+\cmd{\code{table.\allowbreak{}find\_\allowbreak{}nearest\_\allowbreak{}rows\_\allowbreak{}to(\{\textquotedbl{}east\textquotedbl{}: 4000,\allowbreak{} \textquotedbl{}north\textquotedbl{}: 1000\},\allowbreak{} how\_\allowbreak{}many=3)}\opts{\code{point=}, \code{using=}, \code{how\_\allowbreak{}many=}, \code{within=}}}{The rows nearest to a point, with their distance.}{SciPy \code{KDTree().\allowbreak{}query()}, \code{to\_\allowbreak{}numpy()}, \code{iloc.\allowbreak{}assign()}, \code{iloc[]}}
+
+\cmd{\code{table.\allowbreak{}find\_\allowbreak{}fence\_\allowbreak{}around(x=\textquotedbl{}east\textquotedbl{},\allowbreak{} y=\textquotedbl{}north\textquotedbl{})}\opts{\code{x=}, \code{y=}}}{The shortest fence around all the points (the convex hull): its corner rows, in order.}{SciPy \code{ConvexHull()}, \code{to\_\allowbreak{}numpy()}, \code{iloc[]}}
+
 \end{cardtable}
 
-\card{Survival}{38}
+\card{Survival}{40}
 
 \begin{cardtable}
 
@@ -943,7 +993,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \end{cardtable}
 
-\card{Combining studies}{39}
+\card{Combining studies}{41}
 
 \begin{cardtable}
 
@@ -956,7 +1006,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Dates and time windows}{40}
+\card{Dates and time windows}{42}
 
 \begin{cardtable}
 
@@ -966,7 +1016,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Smoothing and trend}{41}
+\card{Smoothing and trend}{43}
 
 \begin{cardtable}
 
@@ -998,7 +1048,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Forecasts}{42}
+\card{Forecasts}{44}
 
 \begin{cardtable}
 
@@ -1012,7 +1062,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Cycles and filters}{43}
+\card{Cycles and filters}{45}
 
 \begin{cardtable}
 
@@ -1046,13 +1096,17 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{table.\allowbreak{}add\_\allowbreak{}envelope\_\allowbreak{}column(\textquotedbl{}signal\_\allowbreak{}envelope\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}signal\textquotedbl{},\allowbreak{} sorted\_\allowbreak{}by=\textquotedbl{}time\textquotedbl{})}\opts{\code{name=}, \code{from\_\allowbreak{}column=}, \code{show=}, \code{sorted\_\allowbreak{}by=}, \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}}}{Add the envelope of a column: how big its wave is at each moment (from the Hilbert transform).}{SciPy \code{sort\_\allowbreak{}values()}, \code{hilbert()}, \code{to\_\allowbreak{}numpy()}, \code{assign()}, \code{Series()}, \code{abs()}}
 
-\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}fourier\_\allowbreak{}transform(time\_\allowbreak{}step=0.\allowbreak{}005)}\opts{\code{time\_\allowbreak{}step=}, \code{show=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}}}{The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).}{SciPy \code{rfft()}, \code{rfftfreq()}, \code{DataFrame()}, \code{abs()}, \code{degrees()}, \code{angle()}}
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}fourier\_\allowbreak{}transform(time\_\allowbreak{}step=0.\allowbreak{}005)}\opts{\code{time\_\allowbreak{}step=}, \code{show=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}, \code{with\_\allowbreak{}zero\_\allowbreak{}in\_\allowbreak{}middle=}}}{The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).}{SciPy \code{rfft()}, \code{rfftfreq()}, \code{DataFrame()}, \code{abs()}, \code{degrees()}, \code{angle()}}
 
 \cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}inverse\_\allowbreak{}fourier\_\allowbreak{}transform(table)}\opts{\code{table=}}}{Numbers back from a Fourier transform table (its real and imaginary parts).}{SciPy \code{rfft()}, \code{irfft()}}
 
+\cmd{\code{nums.\allowbreak{}find\_\allowbreak{}coherence\_\allowbreak{}with(other,\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}01)}\opts{\code{other=}, \code{time\_\allowbreak{}step=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}}}{How closely two recordings follow each other at each frequency, from 0 to 1 (the coherence).}{SciPy \code{arange()}, \code{sin()}, \code{cos()}, \code{coherence()}, \code{DataFrame()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}cosine\_\allowbreak{}transform()}}{The numbers as a sum of cosine waves: the size of each (the discrete cosine transform).}{SciPy \code{dct()}}
+
 \end{cardtable}
 
-\card{Planning a study}{44}
+\card{Planning a study}{46}
 
 \begin{cardtable}
 
@@ -1062,7 +1116,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Planning and surveys}{45}
+\card{Planning and surveys}{47}
 
 \begin{cardtable}
 
@@ -1074,7 +1128,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Join and reshape}{46}
+\card{Join and reshape}{48}
 
 \begin{cardtable}
 
@@ -1104,7 +1158,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Undo and finish}{47}
+\card{Undo and finish}{49}
 
 \begin{cardtable}
 
@@ -1128,13 +1182,13 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: make and look}{48}
+\card{Numbers: make and look}{50}
 
 \begin{cardtable}
 
-\cmd{\code{sdata.\allowbreak{}numbers([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])}\opts{\code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{to=}, \code{step=}, \code{how\_\allowbreak{}many=}, \code{channel=}}}{Make a list of numbers.}{NumPy \code{floor()}, \code{arange()}}
+\cmd{\code{sdata.\allowbreak{}numbers([3,\allowbreak{} 5,\allowbreak{} 2,\allowbreak{} 8])}\opts{\code{values.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{to=}, \code{step=}, \code{how\_\allowbreak{}many=}, \code{channel=}, \code{empty\_\allowbreak{}values=}}}{Make a list of numbers.}{NumPy \code{floor()}, \code{arange()}}
 
-\cmd{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers(how\_\allowbreak{}many=10,\allowbreak{} between=[0,\allowbreak{} 1],\allowbreak{} with\_\allowbreak{}seed=1)}\opts{\code{how\_\allowbreak{}many=}, \code{between=}, \code{average=}, \code{standard\_\allowbreak{}deviation=}, \code{whole\_\allowbreak{}numbers=}, \code{with\_\allowbreak{}seed=}, \code{rows=}, \code{columns=}}}{Make random numbers; give \code{with\_\allowbreak{}seed=} to get the same numbers every time.}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{integers()}}
+\cmd{\code{sdata.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}numbers(how\_\allowbreak{}many=10,\allowbreak{} between=[0,\allowbreak{} 1],\allowbreak{} with\_\allowbreak{}seed=1)}\opts{\code{how\_\allowbreak{}many=}, \code{between=}, \code{average=}, \code{standard\_\allowbreak{}deviation=}, \code{whole\_\allowbreak{}numbers=}, \code{with\_\allowbreak{}seed=}, \code{rows=}, \code{columns=}, \code{of\_\allowbreak{}shape=}}}{Make random numbers; give \code{with\_\allowbreak{}seed=} to get the same numbers every time.}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{integers()}}
 
 \cmd{\code{nums.\allowbreak{}show()}}{Show every number.}{NumPy \code{arange()}, \code{array2string()}}
 
@@ -1150,7 +1204,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: maths in words}{49}
+\card{Numbers: maths in words}{51}
 
 \begin{cardtable}
 
@@ -1160,7 +1214,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}times(2)}\opts{\code{number=}}}{Multiply every number by a number.}{NumPy \code{array()}}
 
-\cmd{\code{nums.\allowbreak{}divide\_\allowbreak{}by(4)}\opts{\code{number=}}}{Divide every number by a number.}{NumPy \code{errstate()}, \code{where()}}
+\cmd{\code{nums.\allowbreak{}divide\_\allowbreak{}by(4)}\opts{\code{number=}, \code{rounding\_\allowbreak{}down=}}}{Divide every number by a number.}{NumPy \code{errstate()}, \code{where()}}
 
 \cmd{\code{nums.\allowbreak{}raise\_\allowbreak{}to\_\allowbreak{}power(2)}\opts{\code{number=}}}{Raise every number to a power: \code{raise\_\allowbreak{}to\_\allowbreak{}power(2)} squares, \code{raise\_\allowbreak{}to\_\allowbreak{}power(3)} cubes.}{NumPy \code{errstate()}, \code{power()}, \code{astype()}, \code{where()}}
 
@@ -1176,9 +1230,13 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}total()}}{Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.}{NumPy \code{nancumsum()}, \code{where()}, \code{isnan()}}
 
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}cube\_\allowbreak{}root()}}{The cube root of every number: 27 becomes 3, and -8 becomes -2.}{NumPy \code{cbrt()}}
+
+\cmd{\code{nums.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}fraction()}}{Show each number as a fraction, such as 0.25 as 1/4; the numbers do not change.}{SymPy \code{join()}, \code{str()}, \code{nsimplify()}}
+
 \end{cardtable}
 
-\card{Numbers: choose, sort and fill}{50}
+\card{Numbers: choose, sort and fill}{52}
 
 \begin{cardtable}
 
@@ -1200,7 +1258,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{nums.\allowbreak{}remove\_\allowbreak{}numbers\_\allowbreak{}by\_\allowbreak{}position(\textquotedbl{}last\textquotedbl{})}\opts{\code{positions=}, \code{to=}, \code{step=}}}{Remove numbers by their position, counting from 1: a run, every n-th number, or a list.}{NumPy \code{delete()}, \code{arange()}}
 
-\cmd{\code{nums.\allowbreak{}replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that(-999,\allowbreak{} with\_\allowbreak{}value=None)}\opts{\code{old=}, \code{with\_\allowbreak{}value=}, \code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=} and 1 more}}{Replace a number, or every number that meets one condition; \code{with\_\allowbreak{}value=None} makes them empty.}{NumPy \code{where()}}
+\cmd{\code{nums.\allowbreak{}replace\_\allowbreak{}each\_\allowbreak{}number\_\allowbreak{}that(-999,\allowbreak{} with\_\allowbreak{}value=None)}\opts{\code{old=}, \code{with\_\allowbreak{}value=}, \code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=} and 1 more}}{Replace a number, or every number that meets one condition; \code{with\_\allowbreak{}value=\textquotedbl{}empty\textquotedbl{}} (or None) makes them empty.}{NumPy \code{where()}}
 
 \cmd{\code{nums.\allowbreak{}fill\_\allowbreak{}empty\_\allowbreak{}numbers(with\_\allowbreak{}value=0)}\opts{\code{with\_\allowbreak{}value=}, \code{with\_\allowbreak{}the=}}}{Fill the empty values with a number, or with the average, median, value above or value below.}{NumPy \code{arange()}, \code{isnan()}, \code{interp()}, \code{where()} \textperiodcentered{} pandas \code{Series().\allowbreak{}interpolate()}, \code{to\_\allowbreak{}numpy()}}
 
@@ -1210,7 +1268,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: summaries}{51}
+\card{Numbers: summaries}{53}
 
 \begin{cardtable}
 
@@ -1232,7 +1290,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Grids of numbers}{52}
+\card{Grids of numbers}{54}
 
 \begin{cardtable}
 
@@ -1272,7 +1330,27 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Numbers: undo and finish}{53}
+\card{Grids: pairs, patches and matrices}{55}
+
+\begin{cardtable}
+
+\cmd{\code{grid.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}at\_\allowbreak{}pairs(rows=[1,\allowbreak{} 2],\allowbreak{} columns=[3,\allowbreak{} 3])}\opts{\code{rows=}, \code{columns=}}}{The numbers at pairs of a row and a column, counting from 1.}{NumPy \code{array()}}
+
+\cmd{\code{grid.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}from\_\allowbreak{}each\_\allowbreak{}row\_\allowbreak{}at(columns=[2,\allowbreak{} 1])}\opts{\code{columns=}}}{From each row, the numbers at its own columns, counting from 1.}{NumPy \code{take\_\allowbreak{}along\_\allowbreak{}axis()}}
+
+\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}each\_\allowbreak{}patch\_\allowbreak{}that(is\_\allowbreak{}above=5)}\opts{\code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{touching=}}}{Find each patch of touching cells that meet a condition.}{SciPy \code{label()}, \code{arange()}, \code{center\_\allowbreak{}of\_\allowbreak{}mass()}, \code{DataFrame()}, \code{sum\_\allowbreak{}labels().\allowbreak{}astype()}, \code{ones\_\allowbreak{}like()}, \code{sum\_\allowbreak{}labels()}, \code{mean()}}
+
+\cmd{\code{grid.\allowbreak{}change\_\allowbreak{}size\_\allowbreak{}to(rows=4,\allowbreak{} columns=6)}\opts{\code{rows=}, \code{columns=}, \code{test\_\allowbreak{}method=}}}{Make the grid bigger or smaller, filling in between the cells (resampling).}{SciPy \code{zoom()}}
+
+\cmd{\code{grid.\allowbreak{}rotate(by\_\allowbreak{}degrees=15)}\opts{\code{by\_\allowbreak{}degrees=}, \code{test\_\allowbreak{}method=}}}{Turn the picture of the grid round its centre, anticlockwise, by some degrees.}{SciPy \code{rotate()}}
+
+\cmd{\code{grid.\allowbreak{}take\_\allowbreak{}matrix\_\allowbreak{}exp()}}{The matrix exponential of a square grid (as used for rates of change between states).}{SciPy \code{expm()}}
+
+\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}null\_\allowbreak{}space()}}{The directions the grid turns into zeros (its null space), one in each column of a new grid.}{SciPy \code{null\_\allowbreak{}space()}}
+
+\end{cardtable}
+
+\card{Numbers: undo and finish}{56}
 
 \begin{cardtable}
 
@@ -1292,7 +1370,185 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Waves and systems}{54}
+\card{Numbers: yes or no}{57}
+
+\begin{cardtable}
+
+\cmd{\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}yes\_\allowbreak{}or\_\allowbreak{}no(is\_\allowbreak{}above=20)}\opts{\code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{is\_\allowbreak{}empty=}}}{New yes or no values, one for each number: yes where the number passes the test.}{NumPy \code{array()}}
+
+\cmd{\code{nums.\allowbreak{}keep\_\allowbreak{}numbers\_\allowbreak{}where(deep)}\opts{\code{yes\_\allowbreak{}no=}}}{Keep the numbers where the yes or no values say yes.}{NumPy \code{boolean indexing}}
+
+\cmd{\code{nums.\allowbreak{}remove\_\allowbreak{}numbers\_\allowbreak{}where(land)}\opts{\code{yes\_\allowbreak{}no=}}}{Remove the numbers where the yes or no values say yes.}{NumPy \code{array()}}
+
+\cmd{\code{nums.\allowbreak{}replace\_\allowbreak{}numbers\_\allowbreak{}where(land,\allowbreak{} with\_\allowbreak{}value=\textquotedbl{}empty\textquotedbl{})}\opts{\code{yes\_\allowbreak{}no=}, \code{with\_\allowbreak{}value=}}}{Replace the numbers where the yes or no values say yes.}{NumPy \code{where()}}
+
+\cmd{\code{nums.\allowbreak{}count\_\allowbreak{}numbers\_\allowbreak{}that(is\_\allowbreak{}above=25)}\opts{\code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{is\_\allowbreak{}empty=}, \code{over=} and 1 more}}{How many numbers pass a test, for all of them or along a direction.}{NumPy \code{count\_\allowbreak{}nonzero()}}
+
+\cmd{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}any\_\allowbreak{}number(is\_\allowbreak{}above=30)}\opts{\code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{over=}}}{Check whether at least one number passes a test: it says so and gives back True or False.}{NumPy \code{bool()}, \code{any()}}
+
+\cmd{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}all\_\allowbreak{}numbers(is\_\allowbreak{}at\_\allowbreak{}least=0)}\opts{\code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{over=}}}{Check whether every number passes a test: it says so and gives back True or False.}{NumPy \code{bool()}, \code{all()}, \code{isnan()}}
+
+\cmd{\code{nums.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}same\_\allowbreak{}as(other,\allowbreak{} within=0.\allowbreak{}001)}\opts{\code{other=}, \code{within=}}}{Check whether these numbers and others are the same: it says so and gives back True or False.}{NumPy \code{bool()}, \code{allclose()}}
+
+\cmd{\code{grid.\allowbreak{}keep\_\allowbreak{}rows\_\allowbreak{}where(column=3,\allowbreak{} is\_\allowbreak{}above=0.\allowbreak{}5)}\opts{\code{column=}, \code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{is\_\allowbreak{}empty=}}}{Keep the rows whose number in one column passes a test.}{NumPy \code{boolean indexing}}
+
+\cmd{\code{grid.\allowbreak{}remove\_\allowbreak{}rows\_\allowbreak{}where(column=1,\allowbreak{} is\_\allowbreak{}empty=True)}\opts{\code{column=}, \code{is\_\allowbreak{}above=}, \code{is\_\allowbreak{}below=}, \code{is\_\allowbreak{}at\_\allowbreak{}least=}, \code{is\_\allowbreak{}at\_\allowbreak{}most=}, \code{is\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}, \code{is\_\allowbreak{}empty=}}}{Remove the rows whose number in one column passes a test.}{NumPy \code{array()}}
+
+\end{cardtable}
+
+\card{Numbers: rounding, angles and positions}{58}
+
+\begin{cardtable}
+
+\cmd{\code{nums.\allowbreak{}round\_\allowbreak{}down()}}{Round every number down to a whole number: 2.7 becomes 2 and -2.3 becomes -3 (NumPy floor).}{NumPy \code{floor()}}
+
+\cmd{\code{nums.\allowbreak{}round\_\allowbreak{}up()}}{Round every number up to a whole number: 2.1 becomes 3 and -2.7 becomes -2 (NumPy ceil).}{NumPy \code{ceil()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}whole\_\allowbreak{}part()}}{Keep the whole part of every number, dropping the decimals: 2.7 becomes 2 and -2.7 becomes -2 (NumPy trunc).}{NumPy \code{trunc()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}sin(degrees=True)}\opts{\code{degrees=}}}{The sine of every number; angles in radians, as NumPy, or \code{degrees=True}.}{NumPy \code{sin()}, \code{deg2rad()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}cos(degrees=True)}\opts{\code{degrees=}}}{The cosine of every number; angles in radians, as NumPy, or \code{degrees=True}.}{NumPy \code{cos()}, \code{deg2rad()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}tan(degrees=True)}\opts{\code{degrees=}}}{The tangent of every number; angles in radians, as NumPy, or \code{degrees=True}.}{NumPy \code{tan()}, \code{deg2rad()}}
+
+\cmd{\code{nums.\allowbreak{}change\_\allowbreak{}angles\_\allowbreak{}to(\textquotedbl{}degrees\textquotedbl{})}\opts{\code{unit=}}}{Change angles from radians to degrees, or back (NumPy rad2deg, deg2rad).}{NumPy \code{rad2deg()}}
+
+\cmd{\code{nums.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}biggest()}\opts{\code{over=}}}{Where the biggest number is, counting from 1 (NumPy argmax + 1).}{NumPy \code{nanargmax()}}
+
+\cmd{\code{nums.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}smallest()}\opts{\code{over=}}}{Where the smallest number is, counting from 1 (NumPy argmin + 1).}{NumPy \code{nanargmin()}}
+
+\cmd{\code{nums.\allowbreak{}make\_\allowbreak{}pair\_\allowbreak{}table\_\allowbreak{}with(depths,\allowbreak{} by\_\allowbreak{}subtracting=True)}\opts{\code{other=}, \code{by\_\allowbreak{}adding=}, \code{by\_\allowbreak{}subtracting=}, \code{by\_\allowbreak{}multiplying=}, \code{by\_\allowbreak{}dividing=}, \code{as\_\allowbreak{}blocks=}}}{A new table of every pair: each number with each of the other numbers (NumPy outer).}{NumPy \code{subtract.\allowbreak{}outer()}}
+
+\end{cardtable}
+
+\card{Blocks of numbers}{59}
+
+\begin{cardtable}
+
+\cmd{\code{sdata.\allowbreak{}number\_\allowbreak{}block(of\_\allowbreak{}shape=(24,\allowbreak{} 8,\allowbreak{} 12),\allowbreak{} filled\_\allowbreak{}with=0,\allowbreak{} directions\_\allowbreak{}named=[\textquotedbl{}hour\textquotedbl{},\allowbreak{} \textquotedbl{}row\textquotedbl{},\allowbreak{} \textquotedbl{}column\textquotedbl{}])}\opts{\code{source=}, \code{of\_\allowbreak{}shape=}, \code{filled\_\allowbreak{}with=}, \code{like=}, \code{directions\_\allowbreak{}named=}, \code{values=}, \code{keep\_\allowbreak{}on\_\allowbreak{}disk=}, \code{empty\_\allowbreak{}values=}, \code{with\_\allowbreak{}labels=}}}{Make a block of numbers with any number of directions (NumPy's n-D array, PyTorch's tensor).}{pandas \code{sort()}, \code{unique()}, \code{MultiIndex.\allowbreak{}from\_\allowbreak{}product()}, \code{set\_\allowbreak{}index().\allowbreak{}reindex().\allowbreak{}to\_\allowbreak{}numpy().\allowbreak{}reshape()}}
+
+\cmd{\code{block.\allowbreak{}find\_\allowbreak{}shape()}}{The size of each direction, in words and as NumPy's shape: (24, 8, 12).}{NumPy \code{arange().\allowbreak{}reshape()}}
+
+\cmd{\code{block.\allowbreak{}count\_\allowbreak{}directions()}}{How many directions the block has (NumPy ndim).}{NumPy \code{arange().\allowbreak{}reshape()}}
+
+\cmd{\code{block.\allowbreak{}find\_\allowbreak{}direction\_\allowbreak{}names()}}{The names of the directions, in order.}{simplydata's own: the names of the directions, kept next to the NumPy array (NumPy arrays have no names; xarray's DataArray.dims holds them).}
+
+\cmd{\code{block.\allowbreak{}get\_\allowbreak{}number\_\allowbreak{}at(hour=1,\allowbreak{} row=2,\allowbreak{} column=3)}\opts{\code{positions.\allowbreak{}.\allowbreak{}.\allowbreak{}}}}{The number at one position in every direction, counting from 1.}{NumPy \code{arange().\allowbreak{}reshape()}}
+
+\cmd{\code{block.\allowbreak{}find\_\allowbreak{}average(over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{over=}, \code{in\_\allowbreak{}each=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}, \code{every=}, \code{in\_\allowbreak{}groups\_\allowbreak{}of=}}}{The average (mean) of the numbers; empty values are skipped.}{NumPy \code{arange().\allowbreak{}reshape()}, \code{nanmean()}}
+
+\cmd{\code{block.\allowbreak{}keep\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in(\textquotedbl{}hour\textquotedbl{},\allowbreak{} [1,\allowbreak{} 3])}\opts{\code{direction=}, \code{positions=}, \code{to=}, \code{step=}}}{Keep some positions along one direction, counting from 1, both ends included.}{NumPy \code{arange().\allowbreak{}reshape()}, \code{take()}}
+
+\cmd{\code{block.\allowbreak{}remove\_\allowbreak{}by\_\allowbreak{}position\_\allowbreak{}in(\textquotedbl{}hour\textquotedbl{},\allowbreak{} 24)}\opts{\code{direction=}, \code{positions=}, \code{to=}, \code{step=}}}{Remove some positions along one direction, counting from 1.}{NumPy \code{arange().\allowbreak{}reshape()}, \code{delete()}}
+
+\cmd{\code{block.\allowbreak{}keep\_\allowbreak{}where(\textquotedbl{}east\textquotedbl{},\allowbreak{} is\_\allowbreak{}between=[2,\allowbreak{} 5])}\opts{\code{direction=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}}}{Keep the part of a labelled direction whose labels pass (xarray sel).}{xarray \code{set\_\allowbreak{}index().\allowbreak{}to\_\allowbreak{}xarray()}, \code{sel()}, \code{slice()}}
+
+\cmd{\code{block.\allowbreak{}remove\_\allowbreak{}where(\textquotedbl{}north\textquotedbl{},\allowbreak{} is\_\allowbreak{}one\_\allowbreak{}of=[0,\allowbreak{} 1])}\opts{\code{direction=}, \code{is\_\allowbreak{}between=}, \code{is\_\allowbreak{}one\_\allowbreak{}of=}}}{Remove the part of a labelled direction whose labels pass.}{xarray \code{set\_\allowbreak{}index().\allowbreak{}to\_\allowbreak{}xarray()}, \code{drop\_\allowbreak{}sel()}}
+
+\end{cardtable}
+
+\card{Blocks: shape and directions}{60}
+
+\begin{cardtable}
+
+\cmd{\code{block.\allowbreak{}change\_\allowbreak{}shape\_\allowbreak{}to(one\_\allowbreak{}row\_\allowbreak{}per=\textquotedbl{}hour\textquotedbl{})}\opts{\code{sizes.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{one\_\allowbreak{}row\_\allowbreak{}per=}, \code{fill=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Give the numbers a new shape, row by row (NumPy reshape).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{reshape()}}
+
+\cmd{\code{block.\allowbreak{}add\_\allowbreak{}direction(\textquotedbl{}plate\textquotedbl{},\allowbreak{} at\_\allowbreak{}position=1)}\opts{\code{name=}, \code{at\_\allowbreak{}position=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Add a direction of size 1, with a name (NumPy \code{expand\_\allowbreak{}dims}).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{expand\_\allowbreak{}dims()}}
+
+\cmd{\code{block.\allowbreak{}remove\_\allowbreak{}directions\_\allowbreak{}of\_\allowbreak{}size\_\allowbreak{}one()}\opts{\code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Remove every direction that has size 1 (NumPy squeeze).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{squeeze()}}
+
+\cmd{\code{block.\allowbreak{}swap\_\allowbreak{}directions(\textquotedbl{}row\textquotedbl{},\allowbreak{} \textquotedbl{}column\textquotedbl{})}\opts{\code{first=}, \code{second=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Swap two directions (NumPy swapaxes).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{swapaxes()}}
+
+\cmd{\code{block.\allowbreak{}move\_\allowbreak{}direction(\textquotedbl{}column\textquotedbl{},\allowbreak{} to\_\allowbreak{}position=1)}\opts{\code{name=}, \code{to\_\allowbreak{}position=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Move one direction to another place (NumPy moveaxis).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{moveaxis()}}
+
+\cmd{\code{block.\allowbreak{}rotate(by\_\allowbreak{}quarter\_\allowbreak{}turns=1)}\opts{\code{by\_\allowbreak{}quarter\_\allowbreak{}turns=}, \code{over=}, \code{by\_\allowbreak{}degrees=}, \code{test\_\allowbreak{}method=}}}{Turn the block a quarter turn (or more) anticlockwise, as a picture (NumPy rot90).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{rot90()}}
+
+\cmd{\code{block.\allowbreak{}reverse(over=\textquotedbl{}row\textquotedbl{})}\opts{\code{over=}}}{Turn the order round along a direction, or along every direction (NumPy flip).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{flip()}}
+
+\cmd{\code{block.\allowbreak{}move\_\allowbreak{}round\_\allowbreak{}by(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{steps=}, \code{over=}}}{Move every number along a direction by some steps; the ones that fall off the end come round to the start (NumPy roll).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{roll()}}
+
+\cmd{\code{block.\allowbreak{}insert\_\allowbreak{}numbers(0,\allowbreak{} at\_\allowbreak{}position=2,\allowbreak{} over=\textquotedbl{}row\textquotedbl{})}\opts{\code{values=}, \code{at\_\allowbreak{}position=}, \code{over=}}}{Put new numbers in before a position along a direction (NumPy insert).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{insert()}}
+
+\cmd{\code{block.\allowbreak{}repeat\_\allowbreak{}each\_\allowbreak{}number(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Repeat each number along a direction: 1, 2 becomes 1, 1, 2, 2 (NumPy repeat).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{repeat()}}
+
+\cmd{\code{block.\allowbreak{}repeat\_\allowbreak{}whole\_\allowbreak{}block(2,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Repeat the whole block along a direction: 1, 2 becomes 1, 2, 1, 2 (NumPy tile).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{tile()}}
+
+\cmd{\code{block.\allowbreak{}add\_\allowbreak{}numbers\_\allowbreak{}from(other,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{other=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Add another block's numbers at the end of one direction (NumPy concatenate).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{concatenate()}}
+
+\cmd{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}pieces(3,\allowbreak{} over=\textquotedbl{}hour\textquotedbl{})}\opts{\code{how\_\allowbreak{}many=}, \code{over=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Split the block into pieces along a direction; gives back a list of new blocks (NumPy \code{array\_\allowbreak{}split}).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{array\_\allowbreak{}split()}}
+
+\cmd{\code{block.\allowbreak{}split\_\allowbreak{}into\_\allowbreak{}one\_\allowbreak{}block\_\allowbreak{}per(\textquotedbl{}hour\textquotedbl{})}\opts{\code{direction=}}}{One new block for each position of a direction, without that direction (NumPy unstack).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{unstack()}}
+
+\cmd{\code{sdata.\allowbreak{}stack\_\allowbreak{}up([a,\allowbreak{} b,\allowbreak{} c],\allowbreak{} as\_\allowbreak{}new\_\allowbreak{}direction=\textquotedbl{}image\textquotedbl{})}\opts{\code{blocks=}, \code{as\_\allowbreak{}new\_\allowbreak{}direction=}, \code{only\_\allowbreak{}show\_\allowbreak{}new\_\allowbreak{}shape=}}}{Stack blocks of the same shape into one, along a new first direction (NumPy stack).}{NumPy \code{stack()}}
+
+\end{cardtable}
+
+\card{Blocks: stretching}{61}
+
+\begin{cardtable}
+
+\cmd{\code{block.\allowbreak{}show\_\allowbreak{}how\_\allowbreak{}it\_\allowbreak{}lines\_\allowbreak{}up\_\allowbreak{}with(other)}\opts{\code{other=}}}{Show how this block and another line up before combining them; nothing changes.}{NumPy \code{broadcast\_\allowbreak{}shapes()}}
+
+\cmd{\code{block.\allowbreak{}stretch\_\allowbreak{}to((2,\allowbreak{} 24,\allowbreak{} 8,\allowbreak{} 12))}\opts{\code{shape=}}}{Stretch the block to a bigger shape by using its numbers again (NumPy \code{broadcast\_\allowbreak{}to}).}{NumPy \code{arange().\allowbreak{}reshape()}, \code{broadcast\_\allowbreak{}to().\allowbreak{}copy()}}
+
+\cmd{\code{sdata.\allowbreak{}stretch\_\allowbreak{}to\_\allowbreak{}same\_\allowbreak{}shape(a,\allowbreak{} b)}\opts{\code{first=}, \code{second=}}}{Two blocks stretched to one shape, as a sum would line them up; gives back two new blocks (NumPy \code{broadcast\_\allowbreak{}arrays}).}{NumPy \code{broadcast\_\allowbreak{}arrays()}}
+
+\cmd{\code{sdata.\allowbreak{}hide\_\allowbreak{}stretching\_\allowbreak{}notes()}}{Stop the notes that say which numbers were used again when blocks are combined.}{simplydata's own: a setting that stops the sentences saying which numbers were used again. NumPy says nothing when it broadcasts.}
+
+\cmd{\code{sdata.\allowbreak{}show\_\allowbreak{}stretching\_\allowbreak{}notes()}}{Print the notes that say which numbers were used again when blocks are combined (the default).}{simplydata's own: the sentences that say which numbers were used again are printed (the default).}
+
+\end{cardtable}
+
+\card{Blocks: files}{62}
+
+\begin{cardtable}
+
+\cmd{\code{sdata.\allowbreak{}show\_\allowbreak{}whats\_\allowbreak{}inside(\textquotedbl{}sst\_\allowbreak{}monthly.\allowbreak{}nc\textquotedbl{})}\opts{\code{file\_\allowbreak{}name=}}}{Show what a file holds without loading its numbers: its variables, directions, sizes and units.}{It only reads and prints what a file holds: for a netCDF file the names, directions, sizes, units and labels that xarray's \code{open\_\allowbreak{}dataset(path)} reads without loading the numbers (\code{print(ds)} shows the same facts); for .npz and .npy NumPy's np.lib.format header readers; for \code{.\allowbreak{}xlsx} openpyxl's sheet sizes. Nothing is worked out.}
+
+\cmd{\code{block.\allowbreak{}save(\textquotedbl{}plate.\allowbreak{}csv\textquotedbl{})}\opts{\code{file\_\allowbreak{}name}, \code{time\_\allowbreak{}step=}, \code{bits=}}}{Save the block; the end of the file name decides the type.}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{path.\allowbreak{}join()}, \code{mkdtemp()}, \code{rename().\allowbreak{}to\_\allowbreak{}netcdf()}, \code{open\_\allowbreak{}dataset().\allowbreak{}values.\allowbreak{}ravel()}}
+
+\end{cardtable}
+
+\card{Blocks: labels, dates and places}{63}
+
+\begin{cardtable}
+
+\cmd{\code{block.\allowbreak{}get\_\allowbreak{}labels\_\allowbreak{}of(\textquotedbl{}time\textquotedbl{})}\opts{\code{direction=}}}{The labels of one direction (numbers, or a table of dates or text).}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}}
+
+\cmd{\code{block.\allowbreak{}add\_\allowbreak{}labels\_\allowbreak{}to(\textquotedbl{}latitude\textquotedbl{},\allowbreak{} [60,\allowbreak{} 61,\allowbreak{} 62,\allowbreak{} 63])}\opts{\code{direction=}, \code{labels=}}}{Give a direction labels: one for each position, such as dates, depths or plate rows.}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{assign\_\allowbreak{}coords()}}
+
+\cmd{\code{block.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at(latitude=60.\allowbreak{}5,\allowbreak{} longitude=2.\allowbreak{}5)}\opts{\code{test\_\allowbreak{}method=}}}{Values between the labels of a block, by straight lines between neighbours.}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{moveaxis()}, \code{stack()}, \code{meshgrid()}, \code{interpn()} \textperiodcentered{} xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{interp()}}
+
+\cmd{\code{block.\allowbreak{}get\_\allowbreak{}numbers\_\allowbreak{}nearest\_\allowbreak{}to(latitude=60.\allowbreak{}4,\allowbreak{} longitude=5.\allowbreak{}3)}\opts{\code{within=}}}{The numbers at the labels nearest to the ones you give, such as the grid cell nearest a station.}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{sel()}}
+
+\cmd{\code{block.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}change\_\allowbreak{}from\_\allowbreak{}average(in\_\allowbreak{}each=\textquotedbl{}month\textquotedbl{})}\opts{\code{in\_\allowbreak{}each=}, \code{over=}, \code{from\_\allowbreak{}years=}}}{Take the usual value away from each number, so the numbers become anomalies.}{xarray \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{groupby().\allowbreak{}mean()}, \code{groupby()}}
+
+\cmd{\code{block.\allowbreak{}smooth(over=[\textquotedbl{}latitude\textquotedbl{},\allowbreak{} \textquotedbl{}longitude\textquotedbl{}],\allowbreak{} window=3)}\opts{\code{over=}, \code{test\_\allowbreak{}method=}, \code{window=}, \code{width=}, \code{ends=}}}{Smooth a block along some directions: each number becomes a summary of its neighbours.}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{uniform\_\allowbreak{}filter()}}
+
+\cmd{\code{block.\allowbreak{}change\_\allowbreak{}size\_\allowbreak{}to(latitude=8,\allowbreak{} longitude=10)}\opts{\code{test\_\allowbreak{}method=}}}{Give directions a new size by filling in between the numbers (as resizing a picture).}{SciPy \code{arange().\allowbreak{}reshape()}, \code{DataArray()}, \code{date\_\allowbreak{}range()}, \code{zoom()}}
+
+\cmd{\code{grid.\allowbreak{}smooth(window=3)}\opts{\code{over=}, \code{test\_\allowbreak{}method=}, \code{window=}, \code{width=}, \code{ends=}}}{Smooth along some directions: each number becomes a summary of its neighbours, as blurring a picture.}{SciPy \code{gaussian\_\allowbreak{}filter()}}
+
+\end{cardtable}
+
+\card{Numbers: chances and random picks}{64}
+
+\begin{cardtable}
+
+\cmd{\code{nums.\allowbreak{}make\_\allowbreak{}random\_\allowbreak{}picks(how\_\allowbreak{}many=40,\allowbreak{} with\_\allowbreak{}seed=1)}\opts{\code{how\_\allowbreak{}many=}, \code{putting\_\allowbreak{}back=}, \code{with\_\allowbreak{}chances=}, \code{with\_\allowbreak{}seed=}}}{Pick numbers at random from these ones; gives back new numbers.}{NumPy \code{random.\allowbreak{}default\_\allowbreak{}rng()}, \code{choice()}}
+
+\cmd{\code{nums.\allowbreak{}take\_\allowbreak{}log\_\allowbreak{}odds()}}{Turn chances (0 to 1) into log-odds, the logit: 0.8 becomes 1.386.}{SciPy \code{where()}, \code{logit()}}
+
+\cmd{\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}chances()}}{Turn log-odds back into chances from 0 to 1 (the logistic function): 1.386 becomes 0.8.}{SciPy \code{expit()}}
+
+\cmd{\code{sdata.\allowbreak{}count\_\allowbreak{}ways\_\allowbreak{}to\_\allowbreak{}choose(3,\allowbreak{} out\_\allowbreak{}of=10)}\opts{\code{how\_\allowbreak{}many=}, \code{out\_\allowbreak{}of=}}}{How many ways there are to choose some things out of more, when the order does not matter.}{SciPy \code{comb()}}
+
+\cmd{\code{sdata.\allowbreak{}count\_\allowbreak{}ways\_\allowbreak{}to\_\allowbreak{}order(3,\allowbreak{} out\_\allowbreak{}of=10)}\opts{\code{how\_\allowbreak{}many=}, \code{out\_\allowbreak{}of=}}}{How many ways there are to pick some things out of more in order (first, second ...).}{SciPy \code{perm()}}
+
+\end{cardtable}
+
+\card{Waves and systems}{65}
 
 \begin{cardtable}
 
@@ -1338,7 +1594,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{Help}{55}
+\card{Help}{66}
 
 \begin{cardtable}
 
@@ -1352,7 +1608,7 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \end{cardtable}
 
-\card{30 days of simplydata}{56}
+\card{30 days of simplydata}{67}
 
 \begin{cardtable}
 

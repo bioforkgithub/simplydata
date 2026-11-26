@@ -72,7 +72,7 @@ ENTRIES = [
             import os, tempfile
             import numpy as np, xarray as xr
             path = os.path.join(tempfile.mkdtemp(), "plate.nc")
-            xr.DataArray(np.arange(12.0).reshape(3, 4), dims=["row", "column"], name="values").to_netcdf(path)
+            xr.DataArray(np.arange(12.0).reshape(3, 4), dims=["row", "column"], name="values").to_netcdf(path, engine="h5netcdf")
             # number_block("plate.nc", values="values", keep_on_disk=True)
             lazy = xr.open_dataset(path, engine="h5netcdf")["values"]  # (1)
             lazy.isel(row=[1]).values.ravel()

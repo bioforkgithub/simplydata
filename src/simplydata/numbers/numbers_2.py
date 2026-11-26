@@ -134,7 +134,8 @@ def block_summary_by_time_or_groups(block, step: str, func, over, in_each, every
         da = to_xarray(block, word)
         extra = {"label": "left", "closed": "left"} if every == "week" else {}
         grouped = da.resample({name: freq}, **extra)
-        call = f'resample({name}="{freq}"{", label=\"left\", closed=\"left\"" if extra else ""})'
+        options = ', label="left", closed="left"' if extra else ""
+        call = f'resample({name}="{freq}"{options})'
         how = f"one for each {every} of the calendar"
     else:
         part = TIME_PARTS[in_each]

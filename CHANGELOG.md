@@ -5,6 +5,22 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: minimum versions
+
+- NumPy 2.1 or newer is needed (was 2.0): `block.split_into_one_block_per` uses NumPy's `np.unstack`, which
+  NumPy has from 2.1, and its printout names it.
+- The `simplydata[xarray]` extra needs xarray 2024.10 or newer (was 2024.6): pandas 3 refuses older xarray when a
+  block is turned into xarray, so `block.keep_where`, `block.remove_where`, `block.split_into_one_block_per` and
+  `sdata.number_block` failed with the oldest allowed versions.
+
+### Fixed
+
+- `find_where_smallest(..., start=...)` and `find_where_biggest(..., start=...)` raised a Python `AttributeError`
+  whenever SciPy could not find a dip or a peak from the start (for example `find_where_smallest("x", start=0)`).
+  They now say the formula keeps getting smaller (or bigger), so it may have no smallest (or biggest) value.
+- The dictionary lists the other names of block words (`reshape`, `squeeze`, `rot90`, `flip`, ...), and
+  `block.reverse(over=...)` has its own entry (NumPy `flip`).
+
 ### Changed: `ends="mirror"` now means SciPy's "mirror" everywhere (numbers phase)
 
 - `nums.smooth(ends="mirror")`, and with it `table.add_smoothed_column(ends="mirror")` and

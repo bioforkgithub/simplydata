@@ -263,7 +263,7 @@ def sort_key(word: str) -> tuple:
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
-    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|dist)\.(\w+)\(", written):
+    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|block|dist)\.(\w+)\(", written):
         base = f"{m.group(1)}.{m.group(2)}"
         end = make_manual._balanced(written, m.end() - 1, "(", ")")
         name = base
@@ -287,7 +287,7 @@ def other_names() -> dict[str, list[str]]:
     """
     words = set(entries()) | {a for names in learn._aliases().values() for a in names}
     found: dict[str, list[str]] = {}
-    for kind in ("sdata", "table", "chart", "numbers"):
+    for kind in OTHER_NAMES:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"

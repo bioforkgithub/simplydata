@@ -1,0 +1,12 @@
+24 hours x 8 rows x 12 columns (NumPy shape (24, 8, 12)).
+this block: 24 hours x 8 rows x 12 columns
+other:      8 rows x 12 columns
+lined up by name (both blocks name every direction):
+  hour         24   (the other has no hour: its numbers are used again for each of the 24 hours)
+  row           8 = 8
+  column       12 = 12
+result: 24 hours x 8 rows x 12 columns. Nothing is copied; the numbers are only read again.
+xarray lines up by name the same way (xarray.broadcast).
+The other numbers (8 rows x 12 columns) were used again for each of the 24 hours (lined up by name; NumPy: broadcasting).
+Averaged over the 24 hours; 8 rows x 12 columns remain. NumPy: np.nanmean(block, axis=0)
+24 hours x 8 rows x 12 columns -> 24 rows x 96 columns. NumPy: block.reshape(24, -1)

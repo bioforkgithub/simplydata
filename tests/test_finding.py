@@ -174,6 +174,15 @@ def test_no_smallest_from_a_start():
         find_where_smallest("x**3", start=0)
 
 
+def test_a_bracket_that_scipy_cannot_find_is_said_not_crashed():
+    # SciPy raises its BracketError here (a RuntimeError); scipy.optimize has no public BracketError, so naming it
+    # in the except clause turned this sentence into an AttributeError (fourth review of sympy-4, N4)
+    with pytest.raises(SimplydataError, match="keeps getting smaller"):
+        find_where_smallest("x", start=0)
+    with pytest.raises(SimplydataError, match="keeps getting bigger"):
+        find_where_biggest("x", start=0)
+
+
 # ---------------------------------------------------------------------------- several names
 ROSENBROCK = "100*(y - x**2)**2 + (1 - x)**2"
 

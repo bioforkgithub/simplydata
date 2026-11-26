@@ -339,6 +339,8 @@ def cases(Case):
         block_case("block.rotate", "iris: each species' 50 x 4 table turned a quarter turn",
                    "block.rotate(by_quarter_turns=1)", "x = np.rot90(a, k=1, axes=(1, 2))",
                    "x <- array(0, dim = c(3, 4, 50))\nfor (s in 1:3) x[s, , ] <- t(a[s, , ])[4:1, ]"),
+        block_case("block.reverse", "iris: the 50 flowers of each species in the opposite order",
+                   'block.reverse(over="flower")', "x = np.flip(a, axis=1)", "x <- a[, 50:1, ]"),
         block_case("block.move_round_by", "iris: the flowers moved round by 3 (the last 3 come first)",
                    'block.move_round_by(3, over="flower")', "x = np.roll(a, 3, axis=1)", "x <- a[, c(48:50, 1:47), ]"),
         block_case("block.insert_numbers", "iris: a measurement of 0 put in at position 2",
