@@ -60,7 +60,7 @@ jobs:
     outputs:
       sha: ${{ steps.sha.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || inputs.ref }}
       - id: sha
@@ -74,7 +74,7 @@ jobs:
       matrix:
         part: ${{ fromJSON(inputs.whole && '["1/1", "underneath"]' || '["1/4", "2/4", "3/4", "4/4", "underneath"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
       - uses: ./.github/actions/setup-simplydata
@@ -100,7 +100,7 @@ jobs:
     needs: plan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
       - uses: ./.github/actions/setup-simplydata
@@ -121,7 +121,7 @@ jobs:
     needs: [plan, examples]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
       - uses: ./.github/actions/setup-simplydata
@@ -189,7 +189,7 @@ jobs:
     needs: [plan, report, manual]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
       - uses: ./.github/actions/setup-simplydata
