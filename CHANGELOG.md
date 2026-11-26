@@ -15,16 +15,20 @@ working for one release and prints a one-line note with its new name.
   `sdata.show_whats_inside("file")` shows the variables, sizes, units and labels of a .nc file (and the arrays of
   .npz/.npy, the sheets of .xlsx) without reading the numbers. xarray with h5netcdf (and SciPy's engine for classic
   netCDF-3) is the extra `simplydata[xarray]` (decision 3); without it, a plain error with the install line.
-- Privacy: the file words read and write files on this computer only. Web addresses and every `scheme://` path
-  (http, https, s3, OPeNDAP ...) are refused before anything is opened; xarray gets an absolute local path with the
-  engine named; `show_whats_inside` writes nothing. Tests run with the network blocked.
+- Privacy: simplydata opens only the file you name; it never downloads or sends anything. A file on a network share
+  or a mapped drive is read like any file you name (as `sdata.table` does). Web addresses and every `scheme://` path
+  (http, https, s3, OPeNDAP, file:// ...) and `::` tool chains are refused before anything is opened, and so are
+  variables that come from another file through a hidden link (HDF5 external links, virtual datasets, soft links to
+  nothing). xarray gets an absolute path with the engine named; `show_whats_inside` writes nothing. Tests run with
+  the network blocked.
 - Dates, labels and places on blocks: `find_average(in_each="month")` (all Januaries together; also "season",
   "year", "quarter", "day of year", "hour") and `find_average(every="month")` (each calendar month) on every block
   summary (P26, xarray groupby and resample); `find_average(in_groups_of={"latitude": 4})` for a coarser grid (P46);
   `block.find_values_at(latitude=60.5, longitude=5.25)` (P27, SciPy interpn as xarray interp);
   `block.get_numbers_nearest_to(latitude=60.4, within=0.5)` (P28); `block.turn_into_change_from_average(
   in_each="month", from_years=["1991", "2020"])` (P29; decision 8: the reference-period option was scored at build
-  time, `from_years=` 99.3 against `baseline=` 37.2, and `baseline=` is accepted as its other name);
+  time, `from_years=` 99.3 against `baseline=` 37.2; confirmed by Manish 2026-11-26, and `baseline=` works as its
+  other name);
   `block.get_labels_of("time")` and `block.add_labels_to("time", dates)` (P47).
 - `smooth(over=[...])` on grids and blocks (P30): moving average, gaussian and median (SciPy ndimage filters with
   axes=); `block.change_size_to(latitude=90)` (SciPy ndimage.zoom; number labels follow) and

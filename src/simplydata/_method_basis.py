@@ -4693,7 +4693,7 @@ BASIS["block.save"] = _b(
     "Another ending (.csv, .xlsx, .parquet ...) writes the block's long table instead.",
     "netCDF-4 is the usual file of ocean and climate grids and keeps names, labels and units with the numbers; "
     "compression loses nothing (the numbers come back exactly) and level 4 is the middle of zlib's range.", (), "P3",
-    "Web addresses are refused: the file is written on this computer only.", "convention")
+    "Web addresses are refused: simplydata opens only the file you name; it never downloads or sends anything.", "convention")
 BASIS["sdata.number_block keep_on_disk="] = _b(
     "Off: the numbers of a file are read at once. keep_on_disk=True leaves them in the file; keep_where, "
     "keep_by_position_in and get_numbers_nearest_to cut it there (xarray isel), and any other word reads them once, "

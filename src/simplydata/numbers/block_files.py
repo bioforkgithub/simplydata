@@ -11,8 +11,10 @@ Every reading and writing step is xarray's (open_dataset, combine_by_coords, to_
 netCDF-4 files and SciPy's engine for classic netCDF-3 files; NumPy reads .npy and .npz headers, openpyxl the sheets
 of an Excel file. xarray and h5netcdf are the optional extra simplydata[xarray] (decision 3).
 
-Privacy (sensitive data): these words read and write local files only. A web address or any "scheme://" path
-(http, https, s3, OPeNDAP ...) is refused before anything is opened, so nothing goes over the network; the file is
+Privacy (sensitive data): simplydata opens only the file you name; it never downloads or sends anything. A file on a network share or a mapped drive is read as any other
+file you name (as sdata.table does). A web address or any "scheme://" path (http, https, s3, OPeNDAP, file:// ...) and
+a chain of other tools ("simplecache::x.nc") are refused before anything is opened, and so are variables that come
+from another file through a hidden link (external links, virtual datasets, soft links to nothing); the file is
 handed to xarray as an absolute local path with the engine named, so xarray never guesses a remote backend, and
 nothing is cached or downloaded.
 """
@@ -41,33 +43,29 @@ def is_file_name(value) -> bool:
 
 
 def refuse_network_path(text: str, step: str) -> None:
-    """Refuse, before anything is opened or resolved, every name that could reach another computer: a web address or
-    any scheme:// (http, s3, OPeNDAP, file:// ...), a network share (\\\\server\\share or //server/share) and an fsspec
-    chain ("simplecache::x.nc")."""
+    """Refuse, before anything is opened or resolved, a web address or any scheme:// (http, s3, OPeNDAP, file:// ...)
+    and an fsspec chain ("simplecache::x.nc"): a tool would download or fetch them. A file on a network share or a
+    mapped drive is a file the user names, read as sdata.table reads it (Manish, 2026-11-26)."""
     stripped = text.strip()
     why = None
     if _SCHEME.match(stripped) or stripped.lower().startswith(("http:", "https:", "s3:", "gs:", "ftp:")):
         why = "web addresses"
-    elif stripped.startswith(("\\\\", "//", "\\/", "/\\")):
-        why = "network shares (\\\\server\\share or //server/share)"
     elif "::" in stripped:
         why = 'chains of other tools ("simplecache::...")'
     if why:
         raise SimplydataError(
-            f"{step} reads and writes files on this computer only, so it does not open {why} (\"{text}\"). This keeps "
-            "sensitive data off the network. Copy the file to this computer yourself, then give its name, such as "
-            "\"sst.nc\".")
+            f"{step} opens only the file you name; it never downloads or sends anything, so it does not open {why} "
+            f"(\"{text}\"). Download the file yourself, then give its name, such as \"sst.nc\" (a file on a network "
+            "share works too).")
 
 
 def local_path(name, step: str) -> Path:
-    """The file as an absolute local path; network names are refused first (no network)."""
+    """The file as an absolute path; web addresses and tool chains are refused first."""
     text = os.fspath(name)
     if not isinstance(text, str):
         raise SimplydataError(f"{step} needs a file name in quotes, such as \"sst.nc\".")
     refuse_network_path(text, step)
-    path = Path(text).expanduser().resolve()
-    refuse_network_path(str(path), step)  # a mapped name that resolves to a share
-    return path
+    return Path(text).expanduser().resolve()
 
 
 def _existing(path: Path, step: str) -> Path:
@@ -395,7 +393,7 @@ def show_whats_inside(file_name=None) -> None:
     netCDF files (.nc): each variable with its directions, sizes, units and description, the labels' first and last
     values, then the file's own notes (xarray open_dataset reads only these). .npz and .npy: each array's name, shape
     and number type (NumPy reads the headers). .xlsx: each sheet with its rows and columns (openpyxl, read only).
-    Nothing is written and nothing goes over the network.
+    Nothing is written: simplydata opens only the file you name; it never downloads or sends anything.
     """
     step = "sdata.show_whats_inside()"
     if file_name is None:

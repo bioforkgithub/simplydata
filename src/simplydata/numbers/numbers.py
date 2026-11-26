@@ -444,7 +444,7 @@ def _read_text_numbers(file_name, empty_values=None) -> Numbers:
     """One column of numbers from a local text file: pandas read_csv(header=None, na_values=empty_values).
 
     Separated by commas (.csv), tabs (.tsv) or spaces (.txt, .dat). A first line that is not a number is taken as the
-    column's name. Web addresses are refused: the file is read from this computer only.
+    column's name. Web addresses are refused: simplydata opens only the file you name; it never downloads or sends anything.
     """
     import pandas as pd
 

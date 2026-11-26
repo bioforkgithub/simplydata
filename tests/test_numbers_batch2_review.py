@@ -83,11 +83,10 @@ def test_virtual_datasets_are_refused(xr, tmp_path):
         sdata.number_block(str(tmp_path / "vds.nc"), values="v")
 
 
-# ---------------------------------------------------------------------- 2. network shares and tool chains
-@pytest.mark.parametrize("name", [r"\\server\share\x.nc", "//server/share/x.nc", "simplecache::x.nc",
-                                  "zip::archive.nc", r"\\?\UNC\server\share\x.nc", "//server/share/x_*.nc",
-                                  r"\\server\share\x.txt"])
-def test_network_shares_and_chains_are_refused_before_opening(name, no_network, monkeypatch):
+# ---------------------------------------------------------------------- 2. tool chains refused, shares allowed
+@pytest.mark.parametrize("name", ["simplecache::x.nc", "zip::archive.nc", "simplecache::x_*.nc",
+                                  "https://example.org/x.nc", "file://C:/x.nc", "dap://server/x.nc"])
+def test_tool_chains_and_schemes_are_refused_before_opening(name, no_network, monkeypatch):
     import builtins
 
     def no_open(*args, **kwargs):
@@ -95,10 +94,21 @@ def test_network_shares_and_chains_are_refused_before_opening(name, no_network, 
 
     monkeypatch.setattr(builtins, "open", no_open)
     for call in (lambda: sdata.number_block(name, values="v"), lambda: sdata.show_whats_inside(name),
-                 lambda: sdata.number_block([[1.0]]).save(name.replace("*", "1").replace(".txt", ".nc")),
+                 lambda: sdata.number_block([[1.0]]).save(name.replace("*", "1")),
                  lambda: sdata.numbers(name.replace(".nc", ".txt").replace("*", "1"))):
-        with pytest.raises(sdata.SimplydataError, match="files on this computer only"):
+        with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
             call()
+
+
+@pytest.mark.parametrize("name", [r"\\server\share\x.nc", "//server/share/x.nc", r"\\?\UNC\server\share\x.nc",
+                                  r"N:\data\sst.nc"])
+def test_files_on_network_shares_and_mapped_drives_are_allowed(name):
+    """Manish, 2026-11-26: a file the user names on a share or a mapped drive is read like any other file (as
+    sdata.table reads it); only web addresses, scheme:// paths and :: chains are refused. Checked on the name alone,
+    so the test needs no share."""
+    from simplydata.numbers.block_files import refuse_network_path
+
+    refuse_network_path(name, "sdata.number_block()")  # no error
 
 
 # ---------------------------------------------------------------------- 3, 4. joining files

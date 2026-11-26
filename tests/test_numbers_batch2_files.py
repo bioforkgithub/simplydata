@@ -245,13 +245,13 @@ def test_show_whats_inside_npz_npy_and_excel(tmp_path, capsys, monkeypatch):
                                      "s3://bucket/sst.nc", "dap://server/sst.nc", "file://C:/sst.nc",
                                      "https://example.org/argo_*.nc"])
 def test_file_words_refuse_web_addresses_before_opening(address, no_network, tmp_path):
-    with pytest.raises(sdata.SimplydataError, match="files on this computer only"):
+    with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
         sdata.number_block(address, values="sst")
-    with pytest.raises(sdata.SimplydataError, match="files on this computer only"):
+    with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
         sdata.show_whats_inside(address)
-    with pytest.raises(sdata.SimplydataError, match="files on this computer only"):
+    with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
         sdata.number_block([[1.0, 2.0]]).save(address.replace("*", "x"))
-    with pytest.raises(sdata.SimplydataError, match="files on this computer only"):
+    with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
         sdata.numbers(address.replace(".nc", ".txt").replace("*", "x"))
 
 
