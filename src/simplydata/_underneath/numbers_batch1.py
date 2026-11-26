@@ -364,6 +364,14 @@ ENTRIES = [
             # rotate(by_quarter_turns=1)
             np.rot90(a, k=1, axes=(1, 2))
         """, "The last two directions turn, as a picture, anticlockwise; over= names two others."),
+    _e("block.reverse", f"""
+            {_PLATE_OURS}
+            block.reverse(over="row")
+        """, f"""
+            {_PLATE_NUMPY}
+            # reverse(over="row")
+            np.flip(a, axis=1)
+        """, "Without over=, every direction is turned round (np.flip(a)); labels turn round with their direction."),
     _e("block.move_round_by", f"""
             {_PLATE_OURS}
             block.move_round_by(1, over="column")
