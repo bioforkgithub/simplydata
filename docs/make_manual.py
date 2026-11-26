@@ -1127,7 +1127,10 @@ _FACT_WORDS = {"bars": "the bars", "bar_colour_groups": "which bars share a colo
                "grid": "the grid lines", "fonts": "the fonts", "polar_start": "where a round chart starts and which way it goes",
                "in_3d": "the 3D dots, the surface and the z axis", "segments": "the short lines drawn as one set",
                "insets": "the small charts inside the chart", "colour_bars": "the colour bar",
-               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are"}
+               "ax_lines": "the straight lines right across the chart", "tick_places": "where the ticks are",
+               "background": "the background colour of the plot",
+               "hexagons": "the places and counts of the hexagons",
+               "faces_3d": "the corners of the 3D shapes"}
 
 
 def _checked(entry) -> str:
