@@ -1317,6 +1317,11 @@ _STATS = [
     ('sdata.distribution("normal", average=50, standard_deviation=10).find_standard_deviation()', "std"),
     ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()', "var"),
     ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary()', "stats"),
+    ('table.compare_survival(time="days", event="died", for_each_group_in="treatment")', "logrank"),
+    ('table.add_adjusted_p_value_column("p_adjusted", test_method="benjamini-hochberg")', "false_discovery_control"),
+    ('table.add_rank_column("rank", from_column="marks")', "rankdata"),
+    ('table.compare_shape_to("marks", "normal"), on one subject (one row per child)', "kstest ks_1samp jarque_bera"),
+    ('chart.draw_cumulative_share(x="marks")', "ecdf"),
 ]
 
 # special.<name>: scipy.special (the functions; a formula can use gamma, lgamma, digamma, beta, erf, erfc, besselJ)
@@ -1335,6 +1340,9 @@ _SPECIAL = [
 # scipy.<name>, optimize., integrate., interpolate., signal., ndimage. and spatial.: names whose word the sdata,
 # numbers, table and block lists do not already give
 _SCIPY = [
+    ("numbers.find_envelope()", "envelope"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.step_response() (impulse_response, response_to and '
+     "frequency_response for the others)", "step impulse lsim bode freqresp dstep dimpulse dlsim dbode"),
     ("grid.solve_for([4, 1, 2, 5], between=[0, None]) for answers of 0 or above, on a grid of 4 rows",
      "nnls lsqnonneg"),
     ("grid.solve_for([4, 1, 2, 5], between=[0, 1]) for answers between limits, on a grid of 4 rows", "lsq_linear"),

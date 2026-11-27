@@ -2205,8 +2205,9 @@ def _print_other_names(word) -> bool:
     if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter, ax.hist
         kind, w = parts
         space = NAMESPACE_SHOWN.get(kind) or other_name_space(_normalise(str(word)))
-        if other_name_pointer(kind, w) is None:  # Str.Replace is str.replace: pandas and Polars names are lowercase
-            w = w.lower()
+        kinds = (kind, *NAMESPACE_FALLBACK.get(kind, ()))
+        if all(other_name_pointer(k, w) is None for k in kinds):
+            w = w.lower()  # Str.Replace is str.replace (pandas and Polars names are lowercase); CubicSpline stays
         pointer = other_name_pointer(kind, w)
         for other in NAMESPACE_FALLBACK.get(kind, ()):  # groupby().mean() means what mean means on a table
             if pointer is None:

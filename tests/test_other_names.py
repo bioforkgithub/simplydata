@@ -764,6 +764,11 @@ NUMBER_AUDIT_POINTERS = [
     ("sympy.Matrix", "sdata.number_grid("), ("sympy.Matrix.det", "grid.find_determinant(exactly=True)"),
     ("sp.Matrix.LUsolve", "grid.solve_for([5, 10], exactly=True)"), ("sympy.dsolve", "exactly=True"),
     ("sp.srepr", "formula.as_sympy()"),
+    # a name in capitals keeps them when a list has it (scipy.interpolate.CubicSpline was not found, as cubicspline)
+    ("scipy.interpolate.CubicSpline", "table.find_values_at("), ("scipy.spatial.KDTree", "find_nearest_rows_to"),
+    ("scipy.signal.TransferFunction", "sdata.system("), ("scipy.stats.logrank", "compare_survival"),
+    ("scipy.stats.kstest", "compare_shape_to"), ("scipy.signal.step", "step_response()"),
+    ("scipy.signal.envelope", "numbers.find_envelope()"),
 ]
 
 
