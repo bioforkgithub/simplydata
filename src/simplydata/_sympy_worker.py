@@ -65,8 +65,11 @@ def memory_limit() -> int:
     return max(LEAST_MEMORY, min(MOST_MEMORY, _memory_free_now() // 2))
 
 
-def _limit_memory() -> None:
-    """Give the helper a memory limit: a Job object on Windows, RLIMIT_AS elsewhere (where the system honours it)."""
+def _limit_memory() -> int:
+    """Give the helper a memory limit: a Job object on Windows, RLIMIT_AS elsewhere (where the system honours it).
+
+    Returns the limit, which the helper reports to the parent when it is ready: macOS does not honour RLIMIT_AS,
+    so there the parent watches the helper's memory itself and stops it at this limit."""
     limit = memory_limit()
     try:
         if sys.platform == "win32":
@@ -104,6 +107,7 @@ def _limit_memory() -> None:
             resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     except (AttributeError, OSError, ValueError, ImportError, TypeError, ArithmeticError):  # pragma: no cover
         pass
+    return limit
 
 
 def _quiet_output() -> None:
@@ -146,10 +150,10 @@ def serve(jobs, answers) -> None:
         pass
     _watch_parent()
     _quiet_output()
-    _limit_memory()
+    limit = _limit_memory()
     import sympy  # noqa: F401  - loaded once, so the first job does not wait for it
 
-    answers.send(("ready", None))
+    answers.send(("ready", limit))
     while True:
         try:
             job = jobs.recv()

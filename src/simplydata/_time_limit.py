@@ -10,7 +10,9 @@ system; on Linux and macOS multiprocessing also starts its own small resource-tr
 _sympy_worker.py on its own: it imports SymPy only, never simplydata and never your script, and gets each job as a
 SymPy function with its values (pickled; never text to run). When the time is up the helper is stopped and a new
 one starts at the next call. The helper has a memory limit (half the memory free when it starts, at least 1 GB and
-at most 4 GB), so a sum whose numbers grow without end stops with MemoryError instead of filling the computer.
+at most 4 GB), so a sum whose numbers grow without end stops with MemoryError instead of filling the computer. macOS
+does not honour that limit inside the helper, so there this process looks at the helper's memory (its physical
+footprint, read with proc_pid_rusage) every WATCH_EVERY seconds while it waits, and stops the helper at the limit.
 
 Privacy: the helper is a local process. It talks to this one through two one-way multiprocessing pipes (named pipes
 on Windows, os.pipe elsewhere; never a socket, so no network), writes no file, logs nothing, sends its own output
@@ -40,7 +42,8 @@ FORMULA_HINT = ("Try f.make_simpler() first, or carry on in SymPy itself, which 
 EXACTLY_HINT = "Leave out exactly=True for the answer in decimals (SciPy and NumPy)."
 
 _LOCK = threading.RLock()
-_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False}
+_STATE: dict = {"process": None, "jobs": None, "answers": None, "said_no_helper": False, "memory_limit": None}
+WATCH_EVERY = 0.05  # seconds between two looks at the helper's memory on macOS
 # per thread: the deadline of the word running in this thread, and whether this thread is starting the helper
 _LOCAL = threading.local()
 
@@ -155,7 +158,7 @@ def _start():
         _kill()
         raise SimplydataError(f"The helper process for SymPy did not start in {START_LIMIT:g} seconds.")
     try:
-        answers.recv()  # ("ready", None)
+        _, _STATE["memory_limit"] = answers.recv()  # ("ready", the helper's memory limit in bytes)
     except (EOFError, OSError):
         _stop()
         raise SimplydataError("The helper process for SymPy stopped while starting; is SymPy installed "
@@ -226,6 +229,53 @@ def _send(jobs, job, what: str) -> None:
         raise SimplydataError(f"{what} could not be handed to the helper process ({error}).") from None
 
 
+def _memory_message(what: str, hint: str) -> str:
+    return (f"{what} needed more memory than the helper may use, so simplydata stopped it. The numbers grow too big "
+            f"to work with exactly.\n{hint}")
+
+
+def _memory_in_use(pid: int):
+    """The memory the process pid uses now on macOS (its physical footprint, compressed pages included), or None."""
+    try:
+        import ctypes
+
+        class Usage(ctypes.Structure):  # struct rusage_info_v0 of <sys/resource.h>
+            _fields_ = [("uuid", ctypes.c_uint8 * 16), ("user_time", ctypes.c_uint64),
+                        ("system_time", ctypes.c_uint64), ("idle_wakeups", ctypes.c_uint64),
+                        ("interrupt_wakeups", ctypes.c_uint64), ("pageins", ctypes.c_uint64),
+                        ("wired_size", ctypes.c_uint64), ("resident_size", ctypes.c_uint64),
+                        ("phys_footprint", ctypes.c_uint64), ("start_time", ctypes.c_uint64),
+                        ("exit_time", ctypes.c_uint64)]
+
+        library = _STATE.get("libproc")
+        if library is None:
+            library = _STATE["libproc"] = ctypes.CDLL("/usr/lib/libproc.dylib")
+        usage = Usage()
+        if library.proc_pid_rusage(ctypes.c_int(pid), ctypes.c_int(0), ctypes.byref(usage)) != 0:  # RUSAGE_INFO_V0
+            return None
+        return int(usage.phys_footprint)
+    except (AttributeError, OSError, ValueError):  # pragma: no cover - not macOS, or no libproc
+        return None
+
+
+def _wait(process, answers, seconds: float):
+    """Wait up to seconds for the helper's answer: True when it is there, False when the time is up, None when (on
+    macOS, which ignores the helper's own memory limit) the helper went over its memory limit."""
+    limit = _STATE["memory_limit"]
+    if sys.platform != "darwin" or not limit:
+        return answers.poll(seconds)
+    end = time.monotonic() + seconds
+    while True:
+        left = end - time.monotonic()
+        if answers.poll(max(0.0, min(WATCH_EVERY, left))):
+            return True
+        used = _memory_in_use(process.pid)
+        if used is not None and used > limit:
+            return None
+        if left <= WATCH_EVERY:
+            return False
+
+
 def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_HINT, **named):
     """call(*values, **named) in the helper process, stopped after TIME_LIMIT seconds with a plain sentence.
 
@@ -253,10 +303,13 @@ def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_
         deadline = current_deadline()
         seconds = TIME_LIMIT if deadline is None else max(0.0, deadline - time.monotonic())
         try:
-            finished = answers.poll(seconds)
+            finished = _wait(process, answers, seconds)
         except BaseException:  # Ctrl+C while waiting: the helper is mid-job, so stop it too
             _kill()
             raise
+        if finished is None:  # macOS: the helper went over its memory limit
+            _kill()
+            raise SimplydataError(_memory_message(what, hint))
         if not finished:
             _kill()
             raise SimplydataError(_stop_message(what, TIME_LIMIT, hint))
@@ -268,7 +321,6 @@ def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_
                                   f"simpler formula.\n{hint}") from None
     if status == "error":
         if isinstance(answer, MemoryError):
-            raise SimplydataError(f"{what} needed more memory than the helper may use, so simplydata stopped it. "
-                                  f"The numbers grow too big to work with exactly.\n{hint}")
+            raise SimplydataError(_memory_message(what, hint))
         raise answer
     return answer

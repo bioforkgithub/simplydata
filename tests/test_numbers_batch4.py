@@ -885,6 +885,41 @@ def test_review_suspected_the_helper_has_a_memory_limit():
         sdata.find_sum_of_series("2**(2**k)", between=[1, 36])
 
 
+def test_the_helper_reports_its_memory_limit_when_it_is_ready():
+    _sp()
+    _time_limit.run_with_time_limit(operator.add, 1, 2)  # starts the helper
+    limit = _time_limit._STATE["memory_limit"]
+    assert isinstance(limit, int) and 2 ** 30 <= limit <= 4 * 2 ** 30
+
+
+def test_on_macos_the_parent_stops_a_helper_over_its_memory_limit(monkeypatch):
+    # macOS ignores RLIMIT_AS, so 1 << 2**37 (16 GB) ran in the helper there and only failed when the answer was
+    # sent back ("OverflowError: int too large to pickle", PR #72 macOS 3.12 and 3.13): the parent now watches the
+    # helper's memory itself on macOS
+    class Waiting:  # an answers pipe with no answer yet
+        def poll(self, seconds):
+            time.sleep(seconds)
+            return False
+
+    class Helper:
+        pid = 12345
+
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setitem(_time_limit._STATE, "memory_limit", 2 ** 30)
+    monkeypatch.setattr(_time_limit, "_memory_in_use", lambda pid: 2 ** 31)
+    assert _time_limit._wait(Helper(), Waiting(), 5.0) is None
+    monkeypatch.setattr(_time_limit, "_memory_in_use", lambda pid: 2 ** 20)
+    started = time.monotonic()
+    assert _time_limit._wait(Helper(), Waiting(), 0.3) is False  # under the limit: waits for the time limit
+    assert time.monotonic() - started >= 0.25
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="proc_pid_rusage is part of macOS")
+def test_on_macos_the_memory_of_a_process_can_be_read():
+    used = _time_limit._memory_in_use(os.getpid())
+    assert used is not None and 10 * 2 ** 20 < used < 64 * 2 ** 30
+
+
 def test_the_helper_starts_when_multiprocessing_keeps_the_executable_as_bytes(monkeypatch):
     # Linux and macOS: multiprocessing.spawn keeps the executable as os.fsencode(sys.executable), so comparing it
     # with text raised TypeError and no SymPy word could start its helper there (PR #72, test-without-r)
