@@ -131,11 +131,22 @@ def test_true_and_false_are_written_alike(tmp_path):
 
 
 def test_durations_are_written_alike(tmp_path):
-    """Polars cannot write durations to a .csv file (a raw ComputeError); simplydata writes pandas' text."""
-    data = {"wait": [dt.timedelta(hours=1), None, dt.timedelta(days=1, seconds=1, microseconds=500000)],
-            "n": [1, 2, 3]}
+    """Polars cannot write durations to a .csv file (a raw ComputeError); simplydata writes pandas' text.
+
+    That text is not the same in every pandas: next to a value with decimals, pandas 3.0 writes 0 days 01:00:00 and
+    pandas 3.1 writes 0 days 01:00:00.000000. So the check is the rule that holds on every supported pandas: both
+    engines write the same bytes, those bytes are what the installed pandas writes for the same table, and the
+    durations read back are the ones saved."""
+    import pandas as pd
+
+    waits = [dt.timedelta(hours=1), None, dt.timedelta(days=1, seconds=1, microseconds=500000)]
+    data = {"wait": waits, "n": [1, 2, 3]}
     files = _saved_on_both_engines(data, "csv", tmp_path)
-    assert files[0] == files[1] == b'wait,n\n0 days 01:00:00.000000,1\n,2\n1 days 00:00:01.500000,3\n'
+    assert files[0] == files[1]
+    assert files[0] == pd.DataFrame(data).to_csv(index=False, lineterminator="\n").encode()
+    for fast in (False, True):
+        back = pd.to_timedelta(sdata.table(str(tmp_path / f"saved_{fast}.csv"), fast=fast).as_pandas()["wait"])
+        assert [None if pd.isna(v) else v.to_pytimedelta() for v in back] == waits, fast
 
 
 # ---------------------------------------------------------------- spread_into_columns says what it did

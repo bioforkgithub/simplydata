@@ -64,11 +64,13 @@ def _clock_text(native):
 
 def _duration_text(native):
     """The text pandas to_csv writes for a Polars column of durations (0 days 01:00:00); Polars write_csv cannot write
-    durations at all. pandas makes the text, from the same values."""
+    durations at all. pandas to_csv itself writes the column, so the text is that of the pandas installed (pandas
+    3.0 writes 0 days 01:00:00 where a later pandas writes 0 days 01:00:00.000000 next to a value with decimals)."""
     import polars as pl
 
     values = native.to_pandas()
-    texts = [None if empty else text for text, empty in zip(values.astype(str).tolist(), values.isna().tolist())]
+    lines = values.to_frame().to_csv(index=False, header=False, lineterminator="\n").split("\n")[:len(values)]
+    texts = [None if empty else text for text, empty in zip(lines, values.isna().tolist())]
     return pl.Series(native.name, texts, dtype=pl.String)
 
 
