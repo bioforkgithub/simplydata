@@ -460,7 +460,7 @@ ENTRIES += [
                 df = pd.read_csv("marks.csv")
                 with tempfile.TemporaryDirectory() as folder:
                     # save as marks.csv
-                    df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
+                    df.to_csv(os.path.join(folder, "marks.csv"), index=False, lineterminator="\\n")   # (1) (2)
                     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
                 saved
             """,
@@ -478,7 +478,9 @@ ENTRIES += [
             """,
         },
         compare="table",
-        choices=("no row labels are written (index=False): the file holds only your columns.",),
+        choices=("no row labels are written (index=False): the file holds only your columns.",
+                 "each line ends with a line feed on every computer, as Polars writes it (pandas would end lines "
+                 "with a carriage return and a line feed on Windows), so both engines write the same file."),
         also="The end of the file name chooses the type: .xlsx (pandas to_excel), .tsv, .parquet and .json too. "
              "The test saves both files in a folder that is deleted afterwards and reads them back.",
     ),
