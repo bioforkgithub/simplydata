@@ -1683,7 +1683,10 @@ def run_underneath_figures() -> None:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             chart, _ = run_ours(entry)
-            chart.save(str(MANUAL / underneath_figure(key)))
+            if hasattr(chart, "save"):
+                chart.save(str(MANUAL / underneath_figure(key)))
+            else:  # chart.as_matplotlib() ends with matplotlib's own Figure
+                chart.savefig(str(MANUAL / underneath_figure(key)))
         plt.close("all")
         print(f"  drew {underneath_figure(key)}")
 
