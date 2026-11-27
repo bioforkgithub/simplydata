@@ -56,6 +56,11 @@ working for one release and prints a one-line note with its new name.
   (`0 days 01:00:00`). The one difference left: an empty text (`""`) is `""` on Polars and nothing on pandas.
 - A one-column table saved as .csv with `fast=True` wrote an empty cell as an empty line, so reading the file back
   lost that row. It is now written as `""`, as pandas does.
+- Reading a .csv or .tsv file with `fast=True` (Polars) took a quoted `""` as empty text, so a column of numbers
+  with one such cell came back as text. It is now an empty cell, as pandas reads it: both engines read the same
+  numbers, True/False values, text and times back.
+- `sdata.help("simplydata.table")` and `sdata.help("sd.table")` explain `sdata.table`, and a name of your own in
+  front of a word (`sdata.help("weather.draw_bars")`) explains the word.
 - A table of one column said "1 columns" (in `describe_columns`, `check_if_same_as`, `show_differences_from`, its
   printout and the cross tables of `across=`); it now says "1 column" and "1 row".
 - `spread_into_columns`: its help says to keep only the needed columns first, and with `show=` its sentence names

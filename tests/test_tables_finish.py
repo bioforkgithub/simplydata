@@ -90,16 +90,31 @@ def _saved_on_both_engines(data, kind, tmp_path):
     return files
 
 
+ONE_COLUMN = {
+    "number": ([1.5, None, 3.0], "float64", [1.5, None, 3.0]),
+    "true/false": ([True, None, False], "object", [True, None, False]),
+    "text": (["a", None, "b"], "str", ["a", None, "b"]),
+    "time": ([dt.datetime(2024, 7, 1, 23, 45), None, dt.datetime(2024, 7, 2, 1, 0)], "str",
+             ["2024-07-01 23:45:00", None, "2024-07-02 01:00:00"]),
+}
+
+
 @pytest.mark.parametrize("kind", ["csv", "tsv", "csv.gz"])
-def test_one_column_with_an_empty_cell_keeps_every_row(kind, tmp_path):
+@pytest.mark.parametrize("case", list(ONE_COLUMN))
+def test_one_column_with_an_empty_cell_keeps_every_row(case, kind, tmp_path):
     """Polars wrote the empty cell of a one-column table as an empty line, which a reader skips: 2 rows came back
-    instead of 3. Both engines now write "" there, as pandas does."""
-    data = {"t": [dt.datetime(2024, 7, 1, 23, 45), None, dt.datetime(2024, 7, 2, 1, 0)]}
-    files = _saved_on_both_engines(data, kind, tmp_path)
+    instead of 3. Both engines now write "" there, as pandas does, and both readers read "" as an empty cell (the
+    Polars reader read it as empty text, so a column of numbers came back as text)."""
+    values, kind_read, expected = ONE_COLUMN[case]
+    files = _saved_on_both_engines({"x": values}, kind, tmp_path)
     assert files[0] == files[1]
-    for fast in (False, True):
-        back = sdata.table(str(tmp_path / f"saved_{fast}.{kind}"), fast=fast)
-        assert back.count_rows() == 3, fast
+    for fast_save in (False, True):
+        for fast in (False, True):
+            back = sdata.table(str(tmp_path / f"saved_{fast_save}.{kind}"), fast=fast,
+                               separator="\t" if kind == "tsv" else ",")
+            frame = back.as_pandas()
+            assert str(frame.dtypes["x"]) == kind_read, (fast_save, fast)
+            assert [None if v != v else v for v in frame["x"].tolist()] == expected, (fast_save, fast)
 
 
 def test_times_of_day_are_written_alike(tmp_path):

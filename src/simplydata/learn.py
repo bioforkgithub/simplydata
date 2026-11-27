@@ -1897,8 +1897,8 @@ def show_all_words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.", "block.", "distribution.",
-                  "dist.", "system.", "formula.", "f.", "."):
+    for start in ("simplydata.", "sdata.", "sd.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.",
+                  "block.", "distribution.", "dist.", "system.", "formula.", "f.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -2220,6 +2220,13 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
         return None
     if isinstance(word, str):
         keys = _lookup_all(word)
+        if not keys:  # weather.draw_bars, students.save: a name of your own in front of a simplydata word
+            from ._other_names import QUALIFIERS, other_name_parts
+
+            parts = other_name_parts(_normalise(word))
+            own = str(word).strip().split(".", 1)[0]
+            if parts is not None and parts[0] is None and own not in QUALIFIERS:
+                keys = _lookup_all(parts[1])
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)

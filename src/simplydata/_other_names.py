@@ -1026,8 +1026,8 @@ NAMESPACE_FALLBACK = {"groups": "table"}
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
               "data", "dplyr", "tidyr", "base", "stats"}
 # How simplydata's own objects are written: chart.draw_bars is a simplydata word, not a name from another tool
-SIMPLYDATA_OBJECTS = {"sdata", "table", "chart", "charts", "page", "numbers", "nums", "grid", "block", "distribution",
-                      "dist", "formula", "f", "system"}
+SIMPLYDATA_OBJECTS = {"simplydata", "sd", "sdata", "table", "chart", "charts", "page", "numbers", "nums", "grid",
+                      "block", "distribution", "dist", "formula", "f", "system"}
 
 
 def other_name_parts(typed: str) -> tuple[str | None, str] | None:

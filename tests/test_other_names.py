@@ -343,6 +343,20 @@ def test_other_name_parts():
     assert other_name_parts('pl.col("a").STR.contains("x"') == ("text", "contains")
     assert other_name_parts("marks.merge") == (None, "merge")
     assert other_name_parts("a.b.merge") is None  # two names of your own: not read as a qualifier
+    assert other_name_parts("simplydata.table") is None and other_name_parts("sd.table") is None
+
+
+@pytest.mark.parametrize("typed, heading", [
+    ("simplydata.table", "sdata.table()"), ("sd.table", "sdata.table()"),
+    ("weather.draw_bars", "chart.draw_bars()"), ("students.keep_rows_where", "table.keep_rows_where()"),
+])
+def test_a_name_of_your_own_in_front_of_a_word_finds_the_word(typed, heading, capsys):
+    """simplydata.table and sd.table are sdata.table; weather.draw_bars is the word draw_bars, not a name from another
+    tool (sdata.help("simplydata.table") said "table" was an other name, pointing to count_each)."""
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(heading), out[:200]
+    assert "name from other tools" not in out
 
 
 # ---------------------------------------------------------------- every pointer's call is a call that works
@@ -356,12 +370,12 @@ def test_other_name_parts():
 
 OWNERS = {"sdata": sdata, "table": Table, "chart": Chart, "numbers": Numbers, "nums": Numbers, "grid": NumberGrid,
           "block": NumberBlock}
-# Pointers whose calls name what no practice table has (your own function, another table you have, a list "..."):
-# only the static check applies to them, on purpose.
-# "bmi" and "chl" are columns of R's mice::nhanes, loaded with sdata.get_example("nhanes", from_r_package="mice").
-NOT_RUN = {"make_label", "my_function", "national", "rain", "other_table, keep=", "...", '"bmi"'}
+# A call is not run when it writes "..." (a shortened list), or uses a name of yours the pointer does not make
+# (your own function make_label, another table called rain or national): KNOWN_NAMES are the ones the test gives.
+KNOWN_NAMES = {"table", "sdata", "other_table", "other", "True", "False", "None"}
 # Calls that need a step first, which the pointer leaves out to stay short (they are checked by name only):
 NEEDS_PREP = {
+    'find_correlation_between("bmi", "chl"': 'R mice::nhanes: sdata.get_example("nhanes", from_r_package="mice")',
     'compare_counts_of("result"': 'a "result" column, made with add_group_column first',
     'explain("case", using=["smoker"]': "a matched case-control table (R survival::infert or your own)",
     'explain("germinated"': "seed germination counts (R's orobanche data)",
@@ -377,6 +391,7 @@ NEEDS_PREP = {
     'find_change_points_in("nitrate"': "one station kept first (the river table has two)",
     'add_correspondence_axes(columns=["blaTEM", "sul1"])': "counts of more genes than the resistome table names",
     'find_hidden_factors_behind(["q1"': "a questionnaire with answers q1 to q6",
+    'values_above=30, sorted_by="date"': 'the "date" of the rain table turned into dates first (it is read as text)',
 }
 
 
@@ -400,7 +415,7 @@ def _all_pointer_calls():
     return [(kind, name, written) for written, (kind, name) in seen.items()]
 
 
-@pytest.mark.parametrize("kind, name, written", _all_pointer_calls())
+@pytest.mark.parametrize("kind, name, written", [pytest.param(*c, id=f"{c[0]}.{c[1]}") for c in _all_pointer_calls()])
 def test_every_pointer_call_names_a_word_and_its_options(kind, name, written):
     for owner_name, word, call in _pointer_calls(written):
         owner = OWNERS[owner_name]
@@ -421,8 +436,6 @@ def test_every_pointer_call_names_a_word_and_its_options(kind, name, written):
         assert not unknown, f"{kind}.{name}: {call} gives {unknown}, which {word}() does not have"
 
 
-
-
 def _pointer_table():
     """One small table with the columns the data-handling pointers name."""
     day = _dt.datetime
@@ -441,7 +454,7 @@ def _pointer_table():
         "weight": [41.0, 45.5, 39.9, 50.2], "factor": [1.1, 1.2, 0.9, 1.0], "population": [12.0, 12.6, 3.1, 3.3],
         "country": ["Applia", "Applia", "Bananda", "Bananda"], "temperature": [8.3, 10.3, 11.0, 9.2],
         "signal": [0.1, 0.4, 0.2, 0.3], "fruit": ["apple", "pear", "apple|pear", "plum"],
-        "school": ["X", "X", "Y", "Y"], "week": [1, 1, 2, 2],
+        "school": ["X", "X", "Y", "Y"], "week": [1, 1, 2, 2], "people": [3, 1, 2, 5],
     })
 
 
@@ -449,20 +462,24 @@ EXAMPLES = sorted(p.stem for p in (Path(sdata.__file__).parent / "data").glob("*
 BAD = ("has no option called", "does not know", "SyntaxError", "TypeError", "is not a Python call")
 
 
+def _runs_here(call: str) -> bool:
+    """A call this test can run: a whole call, with no "...", no step left out (NEEDS_PREP) and no name of yours."""
+    if call.endswith("=)") or "..." in call or any(prep in call for prep in NEEDS_PREP):
+        return False
+    names = {node.id for node in ast.walk(ast.parse(call, mode="eval")) if isinstance(node, ast.Name)}
+    return names <= KNOWN_NAMES
+
+
 def _runnable_pointers():
     out = []
     for kind, name, written in _all_pointer_calls():
         calls = [c for o, w, c in _pointer_calls(written) if o == "table"]
-        if not calls:
-            continue
-        if any(prep in call for call in calls for prep in NEEDS_PREP):
-            continue
-        if any(skip in written for skip in NOT_RUN) or any(c.endswith("=)") for c in calls):
-            continue
         if " then " in written or "count first" in written:  # one call after the other, on one table
-            out.append(pytest.param(calls, id=f"{kind}.{name}"))
+            if calls and all(_runs_here(call) for call in calls):
+                out.append(pytest.param(calls, id=f"{kind}.{name}"))
         else:  # "a, or b": each call on its own
-            out += [pytest.param([call], id=f"{kind}.{name}-{i}") for i, call in enumerate(calls, 1)]
+            out += [pytest.param([call], id=f"{kind}.{name}-{i}") for i, call in enumerate(calls, 1)
+                    if _runs_here(call)]
     return out
 
 
