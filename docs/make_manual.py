@@ -3,10 +3,11 @@
 Everything in the manual comes from simplydata itself: the lessons, their solutions and the
 word list from simplydata/learn.py (LESSONS, HELP_EXAMPLES, GROUPS), each word's options and
 text from its docstring and signature, and the practice tables from simplydata.data. Only
-five things are written by hand: the short "Getting started" text below, UNDERNEATH (which
+seven things are written by hand: the short "Getting started" text below, UNDERNEATH (which
 library each word uses), docs/manual/ideas.tex (the data science ideas), docs/manual/from_pandas.tex (the
-chapter for readers who come from pandas and Polars) and docs/manual/from_matplotlib.tex (the chapter for readers
-who come from matplotlib and seaborn).
+chapter for readers who come from pandas and Polars), docs/manual/from_matplotlib.tex (the chapter for readers
+who come from matplotlib and seaborn), docs/manual/from_numpy.tex (the chapter for readers who come from NumPy and
+SciPy) and docs/manual/from_sympy.tex (the chapter for readers who come from SymPy).
 
     python docs/make_manual.py            # write the .tex, run every example, compile the PDF
     python docs/make_manual.py --tex      # only write the .tex (fast; no LaTeX needed)
@@ -664,7 +665,12 @@ can write it up in a report or a paper.
   \item[{\hyperref[part:from-matplotlib]{Part VI: From matplotlib and seaborn}}] For readers who know
     matplotlib or seaborn: each topic of their guides, the simplydata words for it, and how to hand a chart
     over with \code{chart.as\_matplotlib()} for the jobs simplydata leaves to them.
-  \item[{\hyperref[part:solutions]{Part VII: Solutions}}] A worked solution for every
+  \item[{\hyperref[part:from-numpy]{Part VII: From NumPy and SciPy}}] For readers who know NumPy or
+    SciPy: each topic of their guides, the simplydata words for it, and how to hand numbers over with
+    \code{numbers.as\_numpy()} for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:from-sympy]{Part VIII: From SymPy}}] For readers who know SymPy: each page of its
+    tutorial, the simplydata words for it, and how to hand a formula over with \code{formula.as\_sympy()}.
+  \item[{\hyperref[part:solutions]{Part IX: Solutions}}] A worked solution for every
     ``Try it yourself'' task.
 \end{description}
 Keep the \href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet}
@@ -1555,6 +1561,10 @@ def make() -> str:
         r"\input{from_pandas}",
         r"\part{From matplotlib and seaborn}\label{part:from-matplotlib}",
         r"\input{from_matplotlib}",
+        r"\part{From NumPy and SciPy}\label{part:from-numpy}",
+        r"\input{from_numpy}",
+        r"\part{From SymPy}\label{part:from-sympy}",
+        r"\input{from_sympy}",
         r"\part{Solutions}\label{part:solutions}",
         _solutions(),
         r"\part{How simplydata chooses methods}\label{part:basis}",

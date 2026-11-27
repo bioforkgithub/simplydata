@@ -1,0 +1,235 @@
+% From SymPy to simplydata: written by hand, read by docs/make_manual.py (\input{from_sympy}).
+% The topics follow the order of the SymPy introductory tutorial, used as a checklist only: the text and the examples
+% are our own, and each section links to the official page. Every example in a py box is run by
+% tests/test_from_sympy_chapter.py (with "import simplydata as sdata" in front), so it cannot go out of date.
+
+\unchapter{From SymPy to simplydata}{from-sympy}
+
+This chapter is for you if you already know SymPy, or if you want to learn it after simplydata. It
+follows the pages of the
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/index.html}{SymPy introductory tutorial},
+in their order. For each topic it says what the job is, which simplydata words do it, and a short
+example. Some jobs are left to SymPy on purpose. For those, the chapter shows how to hand a formula
+over with \code{formula.as\_sympy()} and how to bring the answer back.
+
+simplydata's exact maths needs SymPy: \code{pip install "simplydata[exact]"}. Every example starts
+with \code{import simplydata as sdata}. It is written once here, not in each box.
+
+\unsection{Five things to know first}{from-sympy:first}
+
+\begin{enumerate}
+  \item \textbf{A formula is text.} \code{sdata.formula("(x + 2)**2 - 4")} reads the text and finds the
+    letters by itself. You never write \code{symbols("x")}.
+  \item \textbf{A word changes the formula, and \code{undo} takes it back.} \code{formula.turn\_into\_sum()}
+    multiplies out the formula itself and prints the new form. \code{formula.undo()} brings back the
+    form before.
+  \item \textbf{Exact answers, with their decimals.} An exact answer, such as \code{sqrt(2)}, is printed
+    with its decimal, so you can read both.
+  \item \textbf{One time limit.} Some exact questions take SymPy very long. simplydata stops a SymPy
+    call after 60 seconds and says so, so your program never hangs.
+  \item \textbf{The door is always open.} \code{expr = formula.as\_sympy()} gives the SymPy expression,
+    for any SymPy code. \code{sdata.formula(str(expr))} brings an answer back.
+\end{enumerate}
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("(x + 2)**2 - 4")
+expr = formula.as_sympy()                # a SymPy expression: use any SymPy code here
+import sympy as sp
+rewritten = sp.horner(sp.expand(expr))   # SymPy's Horner form
+back = sdata.formula(str(rewritten))     # and back to simplydata
+back.find_value_at(x=1)
+\end{lstlisting}
+
+Do you know a SymPy name, but not the simplydata word? Ask: \code{sdata.help("sp.solve")},
+\code{sdata.help("sympy.integrate")} or \code{sdata.help("sympy.Matrix.det")}. The name can have
+\code{sp.} or \code{sympy.} in front.
+
+\unsection{What exact maths is}{from-sympy:intro}
+
+\textbf{The job.} Work with formulas as formulas, not as decimals: \code{sqrt(8)} stays
+\code{2*sqrt(2)}, and \code{x*(x + 2)} can be multiplied out. In the tutorial:
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/intro.html}{Introduction}.
+
+\textbf{In simplydata.} \code{sdata.formula(...)} makes the formula; printing it shows it. The words of
+a formula change it, as the words of a table change a table.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("x*(x + 2)")
+formula.turn_into_sum()                  # x**2 + 2*x
+root = sdata.formula("sqrt(8)")
+print(root)                              # 2*sqrt(2)
+\end{lstlisting}
+
+\unsection{Things that catch people out}{from-sympy:gotchas}
+
+\textbf{The job.} The tutorial warns about letters that must be made first, about \code{=} and
+\code{==}, about \code{\^{}}, and about \code{1/3} becoming a decimal. In the tutorial:
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/gotchas.html}{Gotchas}.
+
+\textbf{In simplydata.} The letters are found in the text, so there is nothing to make first; a letter
+such as \code{E}, \code{I}, \code{N} or \code{S} stays a letter. An equation is written with one
+\code{=} inside the text of \code{sdata.solve}. \code{\^{}} is a power, as \code{**}. Whole numbers
+divided, such as \code{1/3}, stay exact fractions. A decimal such as \code{0.2} stays a decimal in a
+formula; the grid words with \code{exactly=True} read it as the fraction it stands for, 1/5.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("x^2 + E*x")     # ^ is a power, and E is a letter here
+print(formula)
+sdata.solve("x**2 = 2", exactly=True)    # one = inside the text
+third = sdata.formula("1/3 + 1/5")
+print(third)                             # 8/15
+\end{lstlisting}
+
+\unsection{Putting in values}{from-sympy:basic-operations}
+
+\textbf{The job.} Put a number or another formula in place of a letter, work out the decimal, and work
+out a formula at many values at once (SymPy's \code{subs}, \code{evalf} and \code{lambdify}). In the
+tutorial: \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/basic_operations.html}{Basic
+Operations}.
+
+\textbf{In simplydata.} \code{formula.put\_in(x="y + 1")} is \code{subs} and gives a new formula;
+\code{formula.find\_value\_at(x=2)} gives a number, and with a list it gives the value at each one,
+as \code{lambdify} does; \code{formula.show\_as\_decimal(digits=50)} is \code{evalf(50)}.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("x**3 - 2*x")
+formula.find_value_at(x=2)               # 4
+formula.find_value_at(x=[0, 1, 2, 3])
+moved = formula.put_in(x="y + 1")       # a new formula: formula itself stays as it was
+root = sdata.formula("sqrt(2)")
+root.show_as_decimal(digits=50)
+\end{lstlisting}
+
+\unsection{Printing}{from-sympy:printing}
+
+\textbf{The job.} Show a formula in a readable form or as LaTeX for a paper (SymPy's \code{pprint} and
+\code{latex}). In the tutorial: \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/printing.html}%
+{Printing}.
+
+\textbf{In simplydata.} \code{print(formula)} shows the text; \code{formula.show\_as\_latex()} gives
+the LaTeX. In Jupyter a formula is shown as typeset maths by itself.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("sqrt(x) / (x**2 + 1)")
+print(formula)
+latex = formula.show_as_latex()
+\end{lstlisting}
+
+\unsection{Simpler forms}{from-sympy:simplification}
+
+\textbf{The job.} Make a formula simpler, multiply it out, write it as a product, gather the terms by
+the powers of a letter, and split a fraction into partial fractions (SymPy's \code{simplify},
+\code{expand}, \code{factor}, \code{collect} and \code{apart}). In the tutorial:
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/simplification.html}{Simplification}.
+
+\textbf{In simplydata.} \code{make\_simpler}, \code{turn\_into\_sum}, \code{turn\_into\_product},
+\code{group\_by\_powers\_of} and \code{turn\_into\_partial\_fractions}. Each changes the formula and
+\code{undo} takes it back.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("(x**2 - 1) / (x - 1)")
+formula.make_simpler()                   # x + 1
+formula = sdata.formula("x**2 - 5*x + 6")
+formula.turn_into_product()              # (x - 3)*(x - 2)
+formula = sdata.formula("a*x**2 + b*x**2 + a*x - x")
+formula.group_by_powers_of("x")
+formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
+formula.turn_into_partial_fractions()
+\end{lstlisting}
+
+\unsection{Slopes, areas, limits and series}{from-sympy:calculus}
+
+\textbf{The job.} The derivative and the integral of a formula, the area between two ends, a limit,
+a Taylor series and the sum of a series (SymPy's \code{diff}, \code{integrate}, \code{limit},
+\code{series} and \code{summation}). In the tutorial:
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/calculus.html}{Calculus}.
+
+\textbf{In simplydata.} \code{find\_slope\_formula} (with \code{how\_many\_times=} for the second
+derivative), \code{find\_area\_formula}, \code{sdata.find\_area\_under(..., exactly=True)},
+\code{find\_limit\_as}, \code{find\_taylor\_series} and \code{sdata.find\_sum\_of\_series}.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("x**3 - 2*x")
+slope = formula.find_slope_formula()     # 3*x**2 - 2
+area = formula.find_area_formula()
+sdata.find_area_under("x**2", between=[0, 3], exactly=True)            # 9
+wave = sdata.formula("sin(x) / x")
+wave.find_limit_as("x", goes_to=0)       # 1
+cosine = sdata.formula("cos(x)")
+cosine.find_taylor_series(around=0, up_to_power=4)
+sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])            # pi**2/6
+\end{lstlisting}
+
+\unsection{Solving equations}{from-sympy:solvers}
+
+\textbf{The job.} Solve an equation or several, find where a rule holds, and solve an equation of
+change over time (SymPy's \code{solveset}, \code{linsolve}, \code{solve} and \code{dsolve}). In the
+tutorial: \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/solvers.html}{Solvers}.
+
+\textbf{In simplydata.} \code{sdata.solve(..., exactly=True)} solves one equation or a list of them;
+\code{for\_letter=} solves for one letter and leaves the others; a rule with \code{<} or \code{>} gives
+the ranges where it holds. \code{sdata.find\_path\_over\_time(..., exactly=True)} is \code{dsolve}.
+
+\begin{lstlisting}[style=py]
+sdata.solve("x**2 - 5*x + 6 = 0", exactly=True)                        # x = 2 or x = 3
+sdata.solve(["x + y = 3", "x - y = 1"], exactly=True)
+sdata.solve("p*V = n*R*T", for_letter="T", exactly=True)               # T = V*p/(R*n)
+sdata.solve("x**2 - 4 > 0", exactly=True)                              # x < -2 or x > 2
+sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 5], known={"r": 0.3},
+                          exactly=True)
+\end{lstlisting}
+
+\unsection{Exact matrices}{from-sympy:matrices}
+
+\textbf{The job.} The determinant, inverse, eigenvalues and null space of a matrix, exactly, and
+solving its equations (SymPy's \code{Matrix} with \code{det}, \code{inv}, \code{eigenvals},
+\code{nullspace} and \code{LUsolve}). In the tutorial:
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/matrices.html}{Matrices}.
+
+\textbf{In simplydata.} A matrix is a grid, \code{sdata.number\_grid([[...], [...]])}. The grid words
+take \code{exactly=True} for SymPy's exact answer: \code{find\_determinant}, \code{take\_inverse},
+\code{find\_eigenvalues}, \code{find\_null\_space} and \code{solve\_for}. The fractions are printed, and
+the grid keeps their decimals.
+
+\begin{lstlisting}[style=py]
+grid = sdata.number_grid([[2, 1], [1, 2]])
+grid.find_determinant(exactly=True)      # 3
+grid.find_eigenvalues(exactly=True)      # 3 and 1
+grid.solve_for([1, 0], exactly=True)     # [2/3, -1/3]
+flat = sdata.number_grid([[1, 2, 3], [2, 4, 6]])
+flat.find_null_space(exactly=True)
+\end{lstlisting}
+
+\unsection{The jobs left to SymPy}{from-sympy:left-out}
+
+simplydata does the exact maths most people need in research and teaching, with one word each. These
+jobs are left out on purpose. Each one is a hand-over: \code{expr = formula.as\_sympy()}, then SymPy
+code, then \code{sdata.formula(str(...))} to come back. The tutorial's
+\href{https://docs.sympy.org/latest/tutorials/intro-tutorial/manipulation.html}{Advanced Expression
+Manipulation} and \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/next.html}{What's
+Next} pages lead to most of them.
+\begin{itemize}
+  \item \textbf{The tree of an expression} (\code{srepr}, \code{args}, \code{func}) and rewriting it by
+    hand.
+  \item \textbf{More simplification by kind} (\code{trigsimp}, \code{powsimp}, \code{logcombine},
+    \code{rewrite}); \code{make\_simpler} is \code{simplify}, which tries these.
+  \item \textbf{Functions a formula cannot use} (Bessel functions other than \code{besselJ}, Legendre
+    polynomials, the zeta function).
+  \item \textbf{Matrices with letters in them} and matrix forms (\code{rref}, \code{jordan\_form});
+    the grid words work on numbers.
+  \item \textbf{Sets, logic, number theory, geometry and physics} (\code{sympy.sets},
+    \code{sympy.logic}, \code{factorint}, \code{sympy.geometry}, \code{sympy.physics}).
+  \item \textbf{Code generation} (\code{codegen}, \code{ccode}) and SymPy's own plots; a chart of a
+    formula is \code{chart.draw\_curve}.
+\end{itemize}
+
+One more example: a Legendre polynomial, and back.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("x")
+x = formula.as_sympy()                   # the letter x as SymPy has it
+import sympy as sp
+p3 = sp.legendre(3, x)                   # the Legendre polynomial of degree 3
+back = sdata.formula(str(p3))            # back to simplydata
+back.find_value_at(x=0.5)
+\end{lstlisting}

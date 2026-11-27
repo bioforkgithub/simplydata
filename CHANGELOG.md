@@ -20,6 +20,25 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: NumPy, SciPy and SymPy names point to the simplydata word (numbers finishing)
+
+- `sdata.help("np.mean")`, `sdata.help("np.linalg.solve")`, `sdata.help("rng.normal")`,
+  `sdata.help("scipy.stats.gamma")`, `sdata.help("optimize.nnls")` and `sdata.help("sp.solve")` name the word for
+  that package's meaning: `np.mean` is `numbers.find_average()` (a bare `mean` is still the table word),
+  `np.zeros` makes a grid, `np.linalg.norm` hands the numbers to NumPy, `scipy.special.gamma` is the gamma
+  function in a formula and `scipy.stats.gamma` the gamma distribution. The names may have `np.`, `numpy.`,
+  `np.linalg.`, `np.random.`, `rng.`, `np.fft.`, `scipy.`, `stats.`, `optimize.`, `integrate.`, `interpolate.`,
+  `signal.`, `ndimage.`, `spatial.`, `special.`, `sp.` or `sympy.` in front. A test runs every call these
+  pointers write.
+
+### Added: manual chapters for readers who know NumPy, SciPy or SymPy (numbers finishing)
+
+- Two new parts after the matplotlib one: "From NumPy and SciPy to simplydata" follows the NumPy absolute
+  beginners guide, the NumPy fundamentals and the SciPy user guide; "From SymPy to simplydata" follows the SymPy
+  introductory tutorial. For each topic: the job, the simplydata words with a short example, and for the jobs left
+  to the library, the hand-over (`numbers.as_numpy()`, `formula.as_sympy()`) and the way back. A test runs every
+  example and checks every link.
+
 ### Added: `grid.solve_for(b)` and `grid.break_down(test_method=)` (numbers finishing)
 
 - `x = grid.solve_for([5, 10])` solves grid times x = b: SciPy `linalg.solve` for a square grid, least squares
