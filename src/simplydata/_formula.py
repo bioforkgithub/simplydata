@@ -116,7 +116,8 @@ def _formula_error(problem: str) -> SimplydataError:
 
 
 MAX_DIGITS = 1000  # a whole number made by powers of numbers may have at most this many digits
-LONG_SUM = 100  # SymPy reads a longer sum this many terms at a time (_sum_pieces)
+LONG_SUM = 100  # SymPy reads a longer sum this many terms at a time (_pieces)
+LONG_PRODUCT = 100  # and a longer product (a * b / c ...) this many factors at a time
 # gamma(10**7) is a whole number of 65 million digits and digamma(10**6) a fraction of millions: SymPy works them
 # out exactly while it reads the text. A number inside these functions may be at most this big (gamma(1000) has
 # 2565 digits).
@@ -180,38 +181,74 @@ def _sum_terms(node) -> list:
     return terms[::-1]
 
 
-def _sum_pieces(text: str) -> list:
-    """The formula text in pieces of LONG_SUM terms each, when it is a longer sum: Python's own reader (ast) and
-    SymPy's follow a + b + c + ... down by recursion, and stop after about 1,000 to 3,000 terms. The text is cut by
-    Python's tokenize (no recursion) just before a + or - that joins two terms outside every bracket, so each piece
-    after the first starts with its sign ("- b + c") and the pieces added up are the formula. Text that tokenize
-    cannot read is left whole (ast then says what is wrong with it)."""
+def _pieces(text: str) -> list:
+    """The formula text in pieces that Python's own reader (ast) and SymPy's can read: both follow a + b + c + ...
+    and a * b * c * ... down by recursion, and stop after about 1,000 to 3,000 terms or factors (fewer on newer
+    Pythons). The text is cut by Python's tokenize (no recursion), outside every bracket:
+
+    - a sum into groups of LONG_SUM terms, just before the + or - that joins two terms, so each group after the
+      first starts with its sign ("- b + c") and the groups added up are the formula;
+    - a term with more than LONG_PRODUCT factors (a * b / c ..., ** never cut) into a group of its own, cut just
+      before every LONG_PRODUCT-th * or /. A later piece that starts with * loses it ("b*c"), one that starts with /
+      is written 1/... ("1/c*d"), so / stays division and the pieces multiplied together are the term. A term with
+      any other sign or word outside brackets (% // @ , not ...) is never cut (ast then says what is wrong with it).
+
+    Returns the groups, each a list of pieces (one piece unless it is a long product). Text that tokenize cannot
+    read is left whole."""
     import io
+    import keyword
     import tokenize
 
     starts = [0]  # where each line of the text starts
     for line in text.splitlines(keepends=True):
         starts.append(starts[-1] + len(line))
-    cuts, depth, count, before = [0], 0, 0, None
+    closing = (")", "]", "}")
+    terms = [[0, [], True]]  # each term outside brackets: where it starts, where its * and / are, whether it may be cut
+    depth, before = 0, None
     try:
         for token in tokenize.generate_tokens(io.StringIO(text).readline):
             if token.type in (tokenize.NL, tokenize.NEWLINE, tokenize.ENDMARKER, tokenize.COMMENT):
                 continue
+            at = starts[token.start[0] - 1] + token.start[1]
             if token.type == tokenize.OP and token.string in ("(", "[", "{"):
                 depth += 1
-            elif token.type == tokenize.OP and token.string in (")", "]", "}"):
+            elif token.type == tokenize.OP and token.string in closing:
                 depth -= 1
-            elif token.type == tokenize.OP and token.string in ("+", "-") and depth == 0 and before is not None \
-                    and (before.type in (tokenize.NAME, tokenize.NUMBER) or before.string in (")", "]", "}")):
-                count += 1  # a sign between two terms (not a sign in front of a number, as in 2*-3 or x**-2)
-                if count == LONG_SUM:
-                    cuts.append(starts[token.start[0] - 1] + token.start[1])
-                    count = 0
+            elif depth != 0:
+                pass
+            elif token.type == tokenize.OP and token.string in ("+", "-") and before is not None \
+                    and (before.type in (tokenize.NAME, tokenize.NUMBER) or before.string in closing):
+                terms.append([at, [], True])  # a sign between two terms (not one in front, as in 2*-3 or x**-2)
+            elif token.type == tokenize.OP and token.string in ("*", "/"):
+                terms[-1][1].append(at)  # tokenize gives ** and // as tokens of their own
+            elif (token.type == tokenize.NAME and keyword.iskeyword(token.string)) or \
+                    token.type not in (tokenize.NAME, tokenize.NUMBER, tokenize.OP) or \
+                    (token.type == tokenize.OP and token.string not in ("+", "-", "**", "^")):
+                terms[-1][2] = False
             before = token
     except (tokenize.TokenError, SyntaxError):
-        return [text]
-    cuts.append(len(text))
-    return [text[a:b].strip() for a, b in zip(cuts, cuts[1:])]
+        return [[text]]
+    groups, group_start, count = [], 0, 0
+    for i, (start, signs, may_cut) in enumerate(terms):
+        end = terms[i + 1][0] if i + 1 < len(terms) else len(text)
+        if may_cut and len(signs) >= LONG_PRODUCT:  # a long product: a group of its own, cut into pieces
+            if count:
+                groups.append([text[group_start:start].strip()])
+            bounds = [start] + signs[LONG_PRODUCT - 1::LONG_PRODUCT] + [end]
+            pieces = [text[bounds[0]:bounds[1]].strip()]
+            for a, b in zip(bounds[1:], bounds[2:]):
+                piece = text[a:b].strip()
+                pieces.append(piece[1:].strip() if piece.startswith("*") else "1" + piece)
+            groups.append(pieces)
+            group_start, count = end, 0
+            continue
+        count += 1
+        if count == LONG_SUM:
+            groups.append([text[group_start:end].strip()])
+            group_start, count = end, 0
+    if count:
+        groups.append([text[group_start:].strip()])
+    return groups
 
 
 def _check_node(node, text: str, letters: list, functions: set):
@@ -633,8 +670,9 @@ def letters_of(text, what: str = "sdata.formula()") -> list[str]:
         return []
     letters: list = []
     try:
-        for piece in _sum_pieces(text.strip()):  # a long sum a piece at a time, as parse() reads it
-            _check_node(ast.parse(piece, mode="eval"), piece, letters, set())
+        for group in _pieces(text.strip()):  # a long sum or product a piece at a time, as parse() reads it
+            for piece in group:
+                _check_node(ast.parse(piece, mode="eval"), piece, letters, set())
     except (SyntaxError, RecursionError, SimplydataError):  # parse() says what is wrong with the text
         return []
     return letters
@@ -699,25 +737,24 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
             raise _formula_error(
                 f'"{text}" has {sign} in it, so it is an equation, not a formula. Give only the formula here, such as '
                 '"x**2 - 2"; to solve an equation exactly use sdata.solve("x**2 = 2", exactly=True).')
-    pieces = _sum_pieces(text.strip())  # a long sum is read LONG_SUM terms at a time
+    groups = _pieces(text.strip())  # a long sum is read LONG_SUM terms, a long product LONG_PRODUCT factors at a time
+    pieces = [piece for group in groups for piece in group]
     trees = []
     for piece in pieces:
         try:
             trees.append(ast.parse(piece, mode="eval"))
-        except SyntaxError:
+        except SyntaxError as error:
             if len(pieces) > 1:  # never expected: then the text is read whole, as any other
-                pieces, trees = [text.strip()], []
+                groups, pieces, trees = [[text.strip()]], [text.strip()], []
                 break
-            raise _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 '
-                                 "times x.") from None
+            raise _unreadable(text, error) from None
         except RecursionError:
             raise _too_deep(text) from None
     if not trees:
         try:
             trees = [ast.parse(text.strip(), mode="eval")]
-        except SyntaxError:
-            raise _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 '
-                                 "times x.") from None
+        except SyntaxError as error:
+            raise _unreadable(text, error) from None
         except RecursionError:
             raise _too_deep(text) from None
     letters: list = []
@@ -745,15 +782,34 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     try:
         parts = [parse_expr(piece, local_dict=unevaluated, transformations=transformations, evaluate=False,
                             global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}) for piece in pieces]
-        tree = parts[0] if len(parts) == 1 else sp.Add(*parts, evaluate=False)
-        worked_out = _work_out(sp, tree, text.strip())
+        worked_out = _work_out(sp, _joined(sp, groups, parts, evaluate=False), text.strip())
         if worked_out is not None:
             return worked_out
         parts = [parse_expr(piece, local_dict=local, global_dict=safe, transformations=transformations)
                  for piece in pieces]
     except RecursionError:  # SymPy's reader goes into brackets in brackets, and down a * b * c ..., by recursion
         raise _too_deep(text) from None
-    return parts[0] if len(parts) == 1 else sp.Add(*parts)
+    return _joined(sp, groups, parts, evaluate=True)
+
+
+def _joined(sp, groups: list, parts: list, evaluate: bool):
+    """The pieces SymPy has read put back together: the pieces of each group multiplied, the groups added up
+    (unevaluated with evaluate=False, else as SymPy Mul and Add always do)."""
+    unevaluated = {} if evaluate else {"evaluate": False}
+    read = iter(parts)
+    terms = []
+    for group in groups:
+        factors = [next(read) for _ in group]
+        terms.append(factors[0] if len(factors) == 1 else sp.Mul(*factors, **unevaluated))
+    return terms[0] if len(terms) == 1 else sp.Add(*terms, **unevaluated)
+
+
+def _unreadable(text: str, error: SyntaxError) -> SimplydataError:
+    """The sentence for text Python's reader cannot read. Brackets nested more than 200 deep stop Python's
+    tokenizer itself on every Python version (MAXLEVEL 200, "too many nested parentheses"): too deep, not wrong."""
+    if "too many nested parentheses" in str(error.msg):
+        return _too_deep(text)
+    return _formula_error(f'"{text}" cannot be read as a formula. Check the brackets, and write 2*x for 2 times x.')
 
 
 def _too_deep(text: str) -> SimplydataError:

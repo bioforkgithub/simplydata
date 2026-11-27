@@ -1501,8 +1501,21 @@ def test_review5_new_a_long_sums_of_small_terms_are_read(capsys):
     signs = " - ".join(f"{k}*x**{k % 7}/{k + 1}" for k in range(1, 401))  # read 100 terms at a time, signs kept
     assert sdata.formula(signs).as_sympy() == sp.Rational(1, 2) * x - sp.Add(
         *[sp.Rational(k, k + 1) * x ** (k % 7) for k in range(2, 401)])
+    # a long product is read 100 factors at a time, so every Python gives the exact answer (7df315c: refused on
+    # Python 3.12 and 3.13, whose reader gives up on 1,200 factors; read on 3.11)
+    assert sdata.formula("*".join(["x"] * 1200)).as_sympy() == x ** 1200
+    division = "x/" + "/".join(str(k) for k in range(2, 301))  # / stays division: x/300!
+    assert sdata.formula(division).as_sympy() == x / sp.factorial(300)
+    assert sdata.formula("*".join(["x"] * 150) + "/" + "/".join(["y"] * 150)).as_sympy() == x ** 150 / \
+        sp.Symbol("y") ** 150
+    assert sdata.formula("y - " + "*".join(["x"] * 250) + " + 3*y").as_sympy() == 4 * sp.Symbol("y") - x ** 250
+    assert sdata.formula(" + ".join(["*".join(["x"] * 300)] * 5)).as_sympy() == 5 * x ** 300  # a sum of long products
+    assert sdata.formula("*".join(["999"] * 300)).as_sympy() == sp.Integer(999) ** 300  # 900 digits: allowed
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula("*".join(["999"] * 340))  # 1,020 digits: the digit rule holds across the pieces
+    # brackets 250 deep: Python's tokenizer stops at 200 nested brackets on every version (3.11, 3.12, 3.13)
     with pytest.raises(sdata.SimplydataError, match="too many steps one inside another to be read"):
-        sdata.formula("*".join(["x"] * 1200))  # 4c306e1: RecursionError
+        sdata.formula("(" * 250 + "x" + ")" * 250)
     capsys.readouterr()
 
 
