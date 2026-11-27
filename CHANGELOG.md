@@ -20,6 +20,60 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: a manual chapter for readers who know pandas or Polars (tables finishing)
+
+- The manual has a new part, "From pandas (and Polars) to simplydata". It follows the topics of the pandas
+  User Guide and the Polars User Guide, with a link to each official page: for each topic, the job, the
+  simplydata words that do it with a short example on the practice tables, and, for the jobs simplydata leaves
+  to pandas and Polars (the row index, a function for each group, memory, lazy plans and more), how to hand the
+  table over with `table.as_pandas()` or `table.as_polars()` and come back with `sdata.table(...)`. It also
+  shows the different values of a column, different measures for different columns, the next value, a yes/no
+  column from a text match, text joined for each group, and a table saved as Markdown or LaTeX. A test runs
+  every example in it.
+
+### Changed: names from pandas and Polars point to the right word (tables finishing)
+
+- 246 more names from pandas and Polars point to their simplydata word: `ffill`, `idxmax`, `top_k`,
+  `rolling_mean`, `ewm_mean`, `case_when`, `insert`, `kurt`, `to_json`, `values`, `from_dict` and more on a
+  table or on `sdata`, and the text, date and group steps typed with their namespace: `sdata.help("str.replace")`
+  gives `table.replace_text_in`, `sdata.help("dt.round")` gives `table.round_dates_in` and
+  `sdata.help("groupby.filter")` gives `table.keep_groups_where`, not the table words with the same short name.
+  `Series.str.contains`, `df["name"].str.split(";")` and `pd.read_csv` work too. A short name lists every
+  meaning (`sdata.help("replace")` shows `table.replace` and `str.replace`).
+- 14 pointers led to the wrong or a half word and are fixed: `cummax`, `cummin` and `cumprod` give
+  `show="biggest"`, `"smallest"` and `"product"`; `filter` also gives `keep_columns(contains=)` (pandas
+  `DataFrame.filter` keeps columns); `where` gives `replace_values_in` (pandas `where` replaces values); `isin`
+  gives `keep_rows_where(is_one_of=)`; `to_excel` saves .xlsx; `count` names the filled cells of each column;
+  `astype` names all four `turn_into_` words; and `unique` gives `keep_columns` then `remove_duplicate_rows`, with
+  the manual chapter.
+
+### Fixed (tables finishing)
+
+- A .csv file saved with `fast=True` (Polars) wrote times without a time zone as `2024-07-01T23:45:00.000000`,
+  which `turn_into_dates` could not read back, while pandas wrote `2024-07-01 23:45:00`. Both engines now write
+  pandas' text for times, times of day (`01:02:03`, not `01:02:03.000000000`) and True/False (not true/false).
+  Polars could not save durations to .csv at all (a raw error); they are now written as pandas writes them
+  (`0 days 01:00:00`). The one difference left: an empty text (`""`) is `""` on Polars and nothing on pandas.
+- A one-column table saved as .csv with `fast=True` wrote an empty cell as an empty line, so reading the file back
+  lost that row. It is now written as `""`, as pandas does.
+- Reading a .csv or .tsv file with `fast=True` (Polars) took a quoted `""` as empty text, so a column of numbers
+  with one such cell came back as text. It is now an empty cell, as pandas reads it: both engines read the same
+  numbers, True/False values, text and times back.
+- `sdata.help("simplydata.table")` and `sdata.help("sd.table")` explain `sdata.table`, and a name of your own in
+  front of a word (`sdata.help("weather.draw_bars")`) explains the word.
+- A table of one column said "1 columns" (in `describe_columns`, `check_if_same_as`, `show_differences_from`, its
+  printout and the cross tables of `across=`); it now says "1 column" and "1 row".
+- `spread_into_columns`: its help says to keep only the needed columns first, and with `show=` its sentence names
+  the columns in quotes and counts the cells that combine more than one row (it said "for its fruit and day,
+  shop, price"). When several columns differ so that no row merges (the weather table without `keep_columns`),
+  a note now says why the new columns are mostly empty.
+
+### Changed: line ends in text files (tables finishing)
+
+- Text files (.csv, .tsv, .csv.gz, .tsv.gz) now end their lines the same way on every computer (a line feed, as
+  Polars writes them). On Windows pandas wrote a carriage return and a line feed; now the same table gives the same
+  file on Windows, macOS and Linux, on both engines.
+
 ### Changed: minimum versions
 
 - NumPy 2.1 or newer is needed (was 2.0): `block.split_into_one_block_per` uses NumPy's `np.unstack`, which

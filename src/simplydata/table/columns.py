@@ -2399,18 +2399,23 @@ class ColumnWords:
     def spread_into_columns(self: _Same, names_from=None, values_from=None, show=None) -> _Same:
         """Turn rows into columns: each different value in names_from= becomes a new column, filled from values_from=.
 
-        This makes a "wide" table, the opposite of gather_into_rows(). All the other
-        columns say which row is which, so rows only merge when those all agree; when another
-        column differs between rows that would merge (hours in the marks table), a note says so
-        and how to keep only the columns you need. As pandas df.pivot() and Polars df.pivot().
         table.spread_into_columns(names_from="city", values_from="temperature")   (with sdata.get_example("weather"))
+        This makes a "wide" table, the opposite of gather_into_rows(): one column for each city,
+        filled with its temperatures. As pandas df.pivot() and Polars df.pivot().
+        Every other column says which row is which: rows become one row only when all the other
+        columns agree. So keep only the columns you need first. In the weather table,
+        table.keep_columns("month", "city", "temperature") before spreading gives one row for each
+        month; without it, rain and wind differ from city to city, the rows do not merge, and the
+        new columns are mostly empty. A note says so whenever this leaves empty cells, and names the
+        column that differs when one column is the cause (hours in the marks table).
         When several rows would fill the same cell (the fruit table sells apples on Monday in two
         shops), simplydata stops and names them, and nothing is averaged without your word. show=
         says how to combine them: "average", "total", "median", "smallest", "biggest" or "count" (the filled cells)
         (pandas pivot_table(aggfunc=), Polars pivot(aggregate_function=)):
           table.spread_into_columns(names_from="fruit", values_from="count", show="total")
-        A pair that never appears stays an empty cell, for every show=. Rows with an empty cell in
-        names_from go into a column called "(empty)" (as in the cross tables of across=), and a note says how many.
+        A pair that never appears stays an empty cell, for every show=. The values of rows with an
+        empty cell in names_from go into a new column called "(empty)" (as in the cross tables of
+        across=), and a note says how many rows that was.
         How it differs from swap_rows_and_columns: swap flips the whole table; spread turns one
         column's values into new columns. For a table of name, subject and marks:
           table.spread_into_columns(names_from="subject", values_from="marks")   one row per name, a column per subject
@@ -2504,9 +2509,11 @@ class ColumnWords:
         if show is None:
             self._staircase_note(frame, index, names_from, values_from)
         else:
-            n = int(repeated.sum())
-            print(f"Each new cell is the {show} of {values_from} for its {names_from} and "
-                  f"{', '.join(map(str, index))}" + (f"; {n} rows shared a cell with another row." if n else "."))
+            shared = len(self._frame.select([*index, names_from]).filter(repeated).unique())
+            same = ", ".join(f'"{c}"' for c in [names_from, *index][:-1]) + f' and "{[names_from, *index][-1]}"'
+            print(f'Each new cell is the {show} of "{values_from}" over the rows with the same {same}'
+                  + (f"; {shared} {'cell combines' if shared == 1 else 'cells combine'} more than one row."
+                     if shared else "; no cell combines more than one row."))
         said = f", the {show} of each" if show is not None else ""
         return self._change(f"turn rows into columns ({names_from} becomes columns, filled from {values_from}{said})",
                             frame)
@@ -2522,7 +2529,17 @@ class ColumnWords:
             return
         whole = len(self._frame.select(index).unique())
         varying = [c for c in index if len(self._frame.select([o for o in index if o != c]).unique()) < whole]
-        if not varying:
+        if not varying:  # more than one column differs (rain and wind in the weather table): say so in general,
+            # but only when no row merged at all (each new row has one filled cell), not for pairs that never appear
+            filled = wide.select(nw.sum_horizontal(*[(~nw.col(c).is_null()).cast(nw.Int64) for c in new]).alias("n"))
+            if len(new) < 2 or int(filled["n"].max()) > 1:
+                return
+            others = ", ".join(f'"{c}"' for c in index)
+            print(f"Note: {_cells_word(empty)} of the new columns are empty because the rows did not merge: rows "
+                  f"merge only when all the other columns ({others}) agree, and here some of them differ. To get "
+                  f"one row for each, keep only the columns that say which row is which, then "
+                  f'"{names_from}" and "{values_from}": table.undo(), then table.keep_columns(...) with those '
+                  f"columns, and spread_into_columns again.")
             return
         keep = ", ".join(f'"{c}"' for c in [*[c for c in index if c not in varying], names_from, values_from])
         named = ", ".join(f'"{c}"' for c in varying)

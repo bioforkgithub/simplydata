@@ -695,7 +695,7 @@ def test_fjord_tables_are_messy_on_purpose():
 
 
 @pytest.mark.parametrize("name, word", [
-    ("semi_join", "keep_rows_found_in"), ("isin", "keep_rows_found_in"), ("anti_join", "remove_rows_found_in"),
+    ("semi_join", "keep_rows_found_in"), ("isin", "keep_rows_where"), ("anti_join", "remove_rows_found_in"),
     ("clean_names", "clean_column_names"), ("remove_empty", "remove_rows_that_are_all_empty"),
     ("duplicated", "show_duplicate_rows"), ("get_dupes", "show_duplicate_rows"), ("rowMeans", "add_row_summary_column"),
     ("mean_horizontal", "add_row_summary_column"), ("factor", "turn_into_categories"),

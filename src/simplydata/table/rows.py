@@ -740,7 +740,7 @@ class RowWords:
                 row["different values"] = str(filled.select(col.n_unique()).item() if len(filled) else 0)
             rows_out.append(row)
         rows, cols = self._frame.shape
-        print(f"The table has {_rows(rows)} and {cols} columns.\n")
+        print(f"The table has {_rows(rows)} and {_columns_count(cols)}.\n")
         print(pd.DataFrame(rows_out).to_string(index=False))
         return None
 

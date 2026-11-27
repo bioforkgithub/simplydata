@@ -142,7 +142,9 @@ def from_r_package(name, package):
     made = table(frame)
     texts = sum(k == "text" for k in kinds)
     empty = int(frame.isna().sum().sum())
-    print(f'Loaded "{name}" from the R package {package}: {len(frame):,} rows, {frame.shape[1]} columns (R utils::data('
+    rows, columns = len(frame), frame.shape[1]
+    print(f'Loaded "{name}" from the R package {package}: {rows:,} row{"" if rows == 1 else "s"}, '
+          f'{columns} column{"" if columns == 1 else "s"} (R utils::data('
           f'{name}, package = "{package}")).'
           + (" Groups (factors) became text." if texts else "")
           + (f" {empty:,} empty cell{'s' if empty != 1 else ''} (R's NA)." if empty else "")

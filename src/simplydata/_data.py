@@ -541,8 +541,9 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
             extra = {}
             if options.get("decimal_mark") == ",":
                 extra["decimal_comma"] = True
-            if "empty_values" in options:
-                extra["null_values"] = options["empty_values"]
+            # a quoted "" is an empty cell, as pandas reads it (Polars would read it as empty text); pandas
+            # na_values= adds the markers of empty_values= to that
+            extra["null_values"] = [*options.get("empty_values", []), ""]
             if "skip_rows" in options:
                 extra["skip_rows"] = options["skip_rows"]
             if "read_as_text" in options:  # Polars read_csv(schema_overrides={"sample_id": pl.String})

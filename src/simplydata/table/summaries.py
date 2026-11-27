@@ -50,6 +50,7 @@ import numpy as np
 from .. import _zone_clock
 from .._errors import SimplydataError, choice_error, friendly
 from .._stats import _plain_name
+from ._base import counted
 from .conditions import _empty_in
 from .rows import _NOT_GIVEN
 
@@ -844,7 +845,8 @@ class SummaryWords:
                                          with_totals=with_totals)
             self._note_empty(frame, columns)
             print(f'The {said} of "{columns[0]}" for each {_each(groups, periods)} (rows) and each "{across}" '
-                  f"(columns): a new table with {len(result)} rows and {len(labels)} columns of numbers.")
+                  f"(columns): a new table with {counted(len(result), 'row')} and {counted(len(labels), 'column')} "
+                  "of numbers.")
             self._say_cross(result, groups, labels, periods=periods)
             _period_note(periods)
             return result

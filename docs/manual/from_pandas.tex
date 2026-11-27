@@ -1,0 +1,812 @@
+% From pandas (and Polars) to simplydata: written by hand, read by docs/make_manual.py (\input{from_pandas}).
+% The topics follow the order of the pandas User Guide and the Polars User Guide, used as a checklist only: the text
+% and the examples are our own, and each section links to the official page. Every example in a py box is run by
+% tests/test_from_pandas_chapter.py (with "import simplydata as sdata" in front), so it cannot go out of date.
+% A line "% needs: duckdb" just before a box says the box needs that package (pip install "simplydata[sql]").
+
+\unchapter{From pandas (and Polars) to simplydata}{from-pandas}
+
+This chapter is for you if you already know pandas or Polars, or if you want to learn them after
+simplydata. It walks through the topics of the two official guides, in their order:
+the \href{https://pandas.pydata.org/docs/user_guide/index.html}{pandas User Guide} and the
+\href{https://docs.pola.rs/user-guide/getting-started/}{Polars User Guide}. For each topic it says
+what the job is, which simplydata words do it, and a short example on the practice tables. Some jobs
+are left to pandas and Polars on purpose. For those, the chapter shows how to hand the table over and
+how to come back.
+
+Every example starts with \code{import simplydata as sdata}. It is written once here, not in each
+box. The examples use the practice tables of \code{sdata.get\_example}, so you can run them as they
+are.
+
+\unsection{Five things to know first}{from-pandas:first}
+
+\begin{enumerate}
+  \item \textbf{A word changes the table.} In pandas and Polars a method gives back a new table, so you
+    write \code{df = df.dropna()}. In simplydata, \code{table.remove\_rows\_with\_empty\_cells\_in()}
+    changes \code{table} itself, and \code{table.undo()} takes the step back. When you want to keep the
+    old table too, make a copy first with \code{table.make\_copy()}. Words that find an answer
+    (\code{find\_average\_of}, \code{find\_summary\_of}, \code{run\_sql} and the other
+    \code{find\_} words) leave the table as it is: they say the answer and give back a new table with it,
+    as in \code{averages = table.find\_average\_of("marks", for\_each\_group\_in="class")}.
+  \item \textbf{Rows are numbered from 1.} pandas \code{iloc} and Polars \code{row} count from 0.
+    In simplydata the first row is row 1, as people count.
+  \item \textbf{There is no row index.} A table is only its columns. Polars works the same way. Where
+    pandas uses the index (to select, to sort, to line up two tables), simplydata uses a column.
+  \item \textbf{Each word says what it did.} Most words print a sentence: how many rows were kept,
+    which rows did not match in a join, what the average is. Read it; it often answers the next
+    question.
+  \item \textbf{The door is always open.} \code{table.as\_pandas()} gives a pandas DataFrame and
+    \code{table.as\_polars()} a Polars DataFrame. \code{sdata.table(df)} turns either one back into a
+    simplydata table. Use this for any job this chapter leaves to pandas or Polars.
+\end{enumerate}
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+df = table.as_pandas()                   # a pandas DataFrame: use any pandas code here
+df["marks_out_of_10"] = df["marks"] / 10
+table = sdata.table(df)                  # back to simplydata
+table.show_first_rows(3)
+\end{lstlisting}
+
+Do you know a pandas or Polars name, but not the simplydata word? Ask: \code{sdata.help("groupby")}.
+Names inside the text and date steps work too: \code{sdata.help("str.replace")},
+\code{sdata.help("dt.year")} and \code{sdata.help("groupby.filter")} each name the simplydata word.
+The full list is in the section ``Coming from another tool?'' of the simplydata dictionary
+(\href{https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf}%
+{simplydataDictionary.pdf}).
+
+\unsection{A first look at a table}{from-pandas:first-look}
+
+\textbf{The job.} Open a table, look at the first rows, see its size, the kinds of its columns and a
+short summary. In the guides: \href{https://pandas.pydata.org/docs/user_guide/10min.html}{10 minutes
+to pandas}, \href{https://pandas.pydata.org/docs/user_guide/dsintro.html}{Intro to data structures},
+\href{https://pandas.pydata.org/docs/user_guide/basics.html}{Essential basic functionality};
+\href{https://docs.pola.rs/user-guide/getting-started/}{Getting started} and
+\href{https://docs.pola.rs/user-guide/concepts/data-types-and-structures/}{Data types and structures}
+in Polars.
+
+\textbf{In simplydata.} \code{show\_first\_rows} is pandas \code{head}; \code{count\_rows} and
+\code{count\_columns} are \code{shape}; \code{describe\_columns} is a mix of \code{info} and
+\code{describe}; \code{find\_summary\_of} gives the measures you choose.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.show_first_rows(5)
+table.count_rows()
+table.count_columns()
+table.get_column_names()
+table.describe_columns()
+table.find_summary_of("marks", show=["average", "median", "standard deviation"])
+\end{lstlisting}
+
+A pandas Series is one column. In simplydata, \code{table.get\_column("marks")} gives the column as a
+list of numbers with its own words (\code{find\_average}, \code{find\_percentile} and more), or as a
+plain Python list when the column holds text.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+marks = table.get_column("marks")
+marks.find_average()
+names = table.get_column("name")         # text: a plain Python list
+print(names[:3])
+\end{lstlisting}
+
+\unsection{Kinds of columns}{from-pandas:kinds}
+
+\textbf{The job.} Make a column hold numbers, text, dates or categories. pandas calls this
+\code{astype} and \code{to\_numeric}; Polars calls it \code{cast}
+(\href{https://docs.pola.rs/user-guide/expressions/casting/}{Casting}).
+
+\textbf{In simplydata.} One word for each kind: \code{turn\_into\_numbers},
+\code{turn\_into\_text}, \code{turn\_into\_dates} and \code{turn\_into\_categories}. Each says how
+many cells could not be turned and became empty, so nothing is lost without a word.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("shop")
+table.turn_into_dates("date")
+table.turn_into_text("customers")
+table.turn_into_numbers("customers")
+table.describe_columns()
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} simplydata chooses the storage type for you (64-bit numbers,
+pandas' nullable types, Arrow text). Two jobs about storage are left out on purpose:
+\begin{itemize}
+  \item \textbf{Smaller types to save memory} (pandas \code{to\_numeric(downcast=)}, Polars
+    \code{shrink\_dtype}). A research table rarely needs it.
+  \item \textbf{Memory use} (pandas \code{memory\_usage(deep=True)}, Polars \code{estimated\_size}).
+\end{itemize}
+Hand the table over when you need them:
+
+\begin{lstlisting}[style=py]
+import polars as pl
+
+table = sdata.get_example("river")
+df = table.as_polars()
+print(df.estimated_size("kb"), "kB")
+small = pl.DataFrame([df[name].shrink_dtype() if df[name].dtype.is_numeric() else df[name]
+                      for name in df.columns])
+print(small.estimated_size("kb"), "kB")
+table = sdata.table(small)
+\end{lstlisting}
+
+\unsection{Reading and saving files}{from-pandas:files}
+
+\textbf{The job.} Read a file into a table and save a table to a file. pandas has one function for each
+file type (\href{https://pandas.pydata.org/docs/user_guide/io.html}{IO tools}); so has Polars
+(\href{https://docs.pola.rs/user-guide/io/}{IO}).
+
+\textbf{In simplydata.} One word each way. \code{sdata.table("file")} reads .csv, .tsv, .xlsx,
+.parquet, .json, .jsonl, .feather, SPSS (.sav), Stata (.dta), database files and more: the end of the
+name says the type. \code{table.save("file")} writes them. \code{sdata.run\_sql} and
+\code{table.run\_sql} run SQL with DuckDB.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.save("marks.csv")
+table.save("marks.xlsx", in_sheet="2026")
+table.save("marks.parquet")
+again = sdata.table("marks.parquet")
+again.count_rows()
+\end{lstlisting}
+
+% needs: duckdb
+\begin{lstlisting}[style=py]
+river = sdata.get_example("river")
+averages = river.run_sql("SELECT station, avg(nitrate) AS nitrate FROM data GROUP BY station ORDER BY station")
+averages.show()
+\end{lstlisting}
+
+\textbf{A table for a report (Markdown or LaTeX).} simplydata saves .html tables, but not Markdown
+(.md) or LaTeX (.tex). pandas has \code{to\_markdown}, which needs the package tabulate, and
+\code{to\_latex}, which needs jinja2. You can make both without extra packages: Polars prints a
+Markdown table, and a few lines of Python write a LaTeX one.
+
+\begin{lstlisting}[style=py]
+import polars as pl
+
+table = sdata.get_example("marks")
+averages = table.find_average_of("marks", for_each_group_in="class")    # one row for each class
+df = averages.as_polars()
+with pl.Config(tbl_formatting="MARKDOWN", tbl_hide_column_data_types=True,
+               tbl_hide_dataframe_shape=True, tbl_rows=-1):
+    markdown = str(df)
+with open("averages.md", "w", encoding="utf-8") as file:
+    file.write(markdown + "\n")
+print(markdown)
+\end{lstlisting}
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+averages = table.find_average_of("marks", for_each_group_in="class")
+columns = averages.get_column_names()
+lines = [r"\begin{tabular}{" + "l" * len(columns) + "}", " & ".join(columns) + r" \\ \hline"]
+for row in averages.as_list():            # one dict for each row
+    lines.append(" & ".join(str(row[name]) for name in columns) + r" \\")
+lines.append(r"\end{tabular}")
+with open("averages.tex", "w", encoding="utf-8") as file:
+    file.write("\n".join(lines) + "\n")
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} These reading jobs are rare in research, so the manual covers them
+here instead of a word:
+\begin{itemize}
+  \item \textbf{Skip broken lines} (pandas \code{on\_bad\_lines="skip"}). simplydata stops and names the
+    broken line instead, because skipping loses data without a word. If you must skip, read with pandas
+    and give the result to \code{sdata.table}.
+  \item \textbf{Nested JSON} (pandas \code{json\_normalize}, Polars \code{unnest}).
+  \item \textbf{The tables of a web page} (pandas \code{read\_html}). simplydata reads files at a web
+    address, but not the tables inside a page.
+  \item \textbf{The clipboard} (pandas \code{read\_clipboard}).
+  \item \textbf{A file too big for memory}, read in pieces or lazily (pandas \code{chunksize=}, Polars
+    \code{scan\_csv} and the \href{https://docs.pola.rs/user-guide/concepts/lazy-api/}{Lazy API}).
+    simplydata works on tables that fit in memory; \code{fast=True} makes it use Polars underneath.
+\end{itemize}
+
+\begin{lstlisting}[style=py]
+import pandas as pd
+
+records = [{"station": "St.1", "depth": {"top": 1, "bottom": 10}},
+           {"station": "St.2", "depth": {"top": 2, "bottom": 25}}]
+flat = pd.json_normalize(records)        # columns station, depth.top, depth.bottom
+table = sdata.table(flat)
+table.rename_columns({"depth.top": "top", "depth.bottom": "bottom"})
+table.show()
+\end{lstlisting}
+
+\unsection{Choosing rows and columns}{from-pandas:choosing}
+
+\textbf{The job.} Keep some rows, some columns, or one cell. In pandas this is
+\href{https://pandas.pydata.org/docs/user_guide/indexing.html}{Indexing and selecting data}
+(\code{loc}, \code{iloc}, \code{query}); in Polars it is \code{filter} and \code{select}
+(\href{https://docs.pola.rs/user-guide/expressions/basic-operations/}{Basic operations} and
+\href{https://docs.pola.rs/user-guide/expressions/expression-expansion/}{Expression expansion}).
+
+\textbf{In simplydata.} \code{keep\_rows\_where} keeps rows by a condition (or a written condition in
+quotes); \code{keep\_columns} keeps columns by name, by kind or by a part of the name;
+\code{keep\_rows\_by\_position} is \code{iloc} with rows from 1; \code{get\_cell\_at} is one cell.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.keep_rows_where("subject", is_equal_to="Maths")
+table.keep_rows_where("marks > 60 and class == 'A'")
+table.keep_columns("name", "class", "marks")
+table.show()
+table.get_cell_at(row=1, column="marks")
+\end{lstlisting}
+
+\begin{lstlisting}[style=py]
+weather = sdata.get_example("weather")
+weather.keep_columns(starts_with="wind")      # pandas df.filter(regex="^wind"), Polars pl.col("^wind.*$")
+weather.keep_rows_by_position(1, to=3)        # pandas iloc[0:3]
+weather.show()
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars: the row index.} simplydata has no row index, so these jobs are left
+out on purpose. Each has a route with a column.
+\begin{itemize}
+  \item \textbf{Set or reset an index, choose rows by label, slice labels} (pandas \code{set\_index},
+    \code{reset\_index}, \code{loc["a":"c"]},
+    \href{https://pandas.pydata.org/docs/user_guide/advanced.html}{MultiIndex}).
+    Route: keep the labels in a column and use \code{keep\_rows\_where}.
+  \item \textbf{Sort by the index} (pandas \code{sort\_index}). Route: \code{sort\_by} the column.
+  \item \textbf{Repeated labels} (pandas \href{https://pandas.pydata.org/docs/user_guide/duplicates.html}{Duplicate
+    Labels}). Route: \code{show\_duplicate\_rows(columns=[...])} on the column.
+  \item \textbf{Choose rows with a function inside a chain} (pandas \code{loc[lambda d: ...]}). Each
+    simplydata word is its own line, so the table you pass is always the table as it is now; a written
+    condition, \code{keep\_rows\_where("marks > hours * 10")}, does the same job.
+\end{itemize}
+When you need the index itself, hand the table over:
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("weather")
+df = table.as_pandas().set_index(["city", "month"])     # a MultiIndex
+cold = df.loc["Frostby"].sort_index()                   # rows by label, sorted by the index
+table = sdata.table(cold.reset_index())                 # the index becomes a column again
+table.show_first_rows(3)
+\end{lstlisting}
+
+\unsection{Joining and stacking tables}{from-pandas:joining}
+
+\textbf{The job.} Put two tables together: side by side by a key (a join), or one under the other
+(stacking). In the guides: \href{https://pandas.pydata.org/docs/user_guide/merging.html}{Merge, join,
+concatenate and compare};
+\href{https://docs.pola.rs/user-guide/transformations/joins/}{Joins} and
+\href{https://docs.pola.rs/user-guide/transformations/concatenation/}{Concatenation} in Polars.
+
+\textbf{In simplydata.} \code{join\_with} is \code{merge} and \code{join}. It checks the key for repeats
+and says how many rows found a partner, the two most common surprises of a join. \code{keep=} says
+which rows stay (\code{how=} in pandas). \code{keep\_rows\_found\_in} and \code{remove\_rows\_found\_in}
+are the semi and anti joins. \code{add\_rows\_from} is \code{concat}. \code{show\_differences\_from} is
+pandas \code{compare}.
+
+\begin{lstlisting}[style=py]
+samples = sdata.get_example("fjord_samples")
+stations = sdata.get_example("fjord_stations")
+stations.clean_column_names()                # "Station" becomes "station"
+samples.join_with(stations, using="station", keep="all rows from this table")
+samples.show_first_rows(3)
+\end{lstlisting}
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+more = sdata.get_example("marks")
+more.keep_rows_where("class", is_equal_to="A")
+marks.add_rows_from(more)                    # pandas pd.concat([marks, more])
+marks.count_rows()
+marks.show_duplicate_rows()
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars, with a route.}
+\begin{itemize}
+  \item \textbf{Add two tables cell by cell, with 0 for a missing partner} (pandas
+    \code{add(other, fill\_value=0)}). This lines up rows by the index, which simplydata does not have.
+    Route: \code{join\_with} on the key, \code{fill\_empty\_cells\_in(..., with\_value=0)}, then
+    \code{add\_column} with the sum.
+  \item \textbf{Stack and keep only the shared columns} (pandas \code{concat(join="inner")}). Route:
+    \code{keep\_columns} on both, then \code{add\_rows\_from}.
+  \item \textbf{Put tables side by side by row position} (pandas \code{concat(axis=1)}, Polars
+    \code{hstack}). Route: \code{add\_row\_number\_column} on both and \code{join\_with} on it; it is
+    safer, because it fails loudly when the tables have different lengths.
+  \item \textbf{Join on a condition}, such as a time between a start and an end (Polars
+    \code{join\_where}). Route: \code{join\_with(..., keep="every combination")}, then
+    \code{keep\_rows\_where} with the condition.
+\end{itemize}
+
+\begin{lstlisting}[style=py]
+first = sdata.table({"fruit": ["apple", "pear"], "count": [3, 5]})
+second = sdata.table({"fruit": ["apple", "plum"], "count": [4, 1]})
+second.rename_column("count", to="count_other")
+first.join_with(second, using="fruit", keep="all rows from both")
+first.fill_empty_cells_in("count", with_value=0)
+first.fill_empty_cells_in("count_other", with_value=0)
+first.add_column("total", "count + count_other")       # pandas a.add(b, fill_value=0)
+first.show()
+\end{lstlisting}
+
+\unsection{Reshaping: long and wide}{from-pandas:reshaping}
+
+\textbf{The job.} Turn rows into columns (wide) or columns into rows (long), flip a table, split a cell
+into rows, or make yes/no columns. In the guides:
+\href{https://pandas.pydata.org/docs/user_guide/reshaping.html}{Reshaping and pivot tables};
+\href{https://docs.pola.rs/user-guide/transformations/pivot/}{Pivot} and
+\href{https://docs.pola.rs/user-guide/transformations/unpivot/}{Unpivot} in Polars.
+
+\textbf{In simplydata.} \code{spread\_into\_columns} is \code{pivot} (with \code{show=} it is
+\code{pivot\_table}); \code{gather\_into\_rows} is \code{melt} and \code{unpivot};
+\code{swap\_rows\_and\_columns} is the transpose; \code{split\_into\_rows} is \code{explode};
+\code{spread\_into\_yes\_no\_columns} is \code{get\_dummies}. Keep only the columns you need before
+spreading: every other column says which row is which.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.keep_columns("name", "subject", "marks")
+table.spread_into_columns(names_from="subject", values_from="marks")   # one row for each child
+table.show_first_rows(3)
+table.gather_into_rows(["Maths", "Science", "English"], names_to="subject", values_to="marks")
+table.show_first_rows(3)
+\end{lstlisting}
+
+\begin{lstlisting}[style=py]
+fruit = sdata.get_example("fruit")
+fruit.keep_columns("day", "fruit", "count")
+fruit.spread_into_columns(names_from="fruit", values_from="count", show="total")   # pivot_table
+fruit.show()
+\end{lstlisting}
+
+\unsection{Text}{from-pandas:text}
+
+\textbf{The job.} Clean, search, cut and join text. pandas keeps these steps under \code{.str}
+(\href{https://pandas.pydata.org/docs/user_guide/text.html}{Working with text data}); Polars too
+(\href{https://docs.pola.rs/user-guide/expressions/strings/}{Strings}).
+
+\textbf{In simplydata.} The text steps are table words that take the column name:
+\code{replace\_text\_in} (\code{str.replace}), \code{remove\_extra\_spaces\_in} (\code{str.strip}),
+\code{turn\_into\_lowercase} (\code{str.lower}), \code{add\_column\_with\_part\_of\_text}
+(\code{str.slice}, \code{str.extract}), \code{split\_column} (\code{str.split}),
+\code{add\_zeros\_in\_front\_of} (\code{str.zfill}), and the conditions \code{contains=},
+\code{starts\_with=} and \code{matches\_pattern=} of \code{keep\_rows\_where} (\code{str.contains},
+\code{str.match}). In a formula, \code{length(name)} is \code{str.len} and
+\code{count\_text(name, ";")} is \code{str.count}.
+
+\begin{lstlisting}[style=py]
+samples = sdata.get_example("fjord_samples")
+samples.replace_text_in("station", "St.", with_value="Station ")
+samples.add_column("crew_size", "count_text(crew, ';') + 1")
+samples.keep_rows_where("crew", contains="KL")
+samples.add_column_with_part_of_text("first_crew", from_column="crew", before=";")
+samples.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{A yes/no column from a text match} (pandas \code{np.where(df["name"].str.contains("an"), ...)},
+Polars \code{pl.when(pl.col("name").str.contains("an"))}). Rules of \code{add\_group\_column} take
+numbers and dates, so count first, then label:
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.add_column("an_count", "count_text(name, 'an')")
+table.add_group_column("has_an", rules={"an_count > 0": "yes"}, otherwise="no")
+table.count_each("has_an")
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} Title Case (\code{str.title}), Unicode forms (\code{str.normalize}),
+every match of a pattern (\code{str.findall}) and the position of a piece of text (\code{str.find}). The
+Unicode form matters when the same letter was typed in two ways, such as an ``{\aa}'' typed on a Mac and
+on Windows: the two look the same but are different text, so a join on them fails. The
+\code{fjord\_samples} practice table has this on purpose.
+
+\begin{lstlisting}[style=py]
+table = sdata.table({"name": ["asha ali", "ben  BERG"], "code": ["S12-x", "S7-y"]})
+df = table.as_pandas()
+df["name"] = df["name"].str.title().str.normalize("NFC")
+df["numbers"] = df["code"].str.findall(r"\d+").str.join(",")
+df["dash_at"] = df["code"].str.find("-") + 1          # count from 1, as simplydata does
+table = sdata.table(df)
+table.show()
+\end{lstlisting}
+
+\unsection{Empty cells}{from-pandas:missing}
+
+\textbf{The job.} Find, count, remove and fill empty cells. In the guides:
+\href{https://pandas.pydata.org/docs/user_guide/missing_data.html}{Working with missing data};
+\href{https://docs.pola.rs/user-guide/expressions/missing-data/}{Missing data} in Polars. pandas mixes
+\code{NaN} and \code{None}; Polars keeps \code{null} (empty) apart from \code{NaN} (not a number).
+simplydata calls both an empty cell and says so.
+
+\textbf{In simplydata.} \code{count\_empty\_cells\_in} (\code{isna().sum()}),
+\code{show\_rows\_with\_empty\_cells\_in}, \code{remove\_rows\_with\_empty\_cells\_in} (\code{dropna}),
+\code{fill\_empty\_cells\_in} (\code{fillna}, \code{ffill}, \code{interpolate}) and
+\code{add\_is\_empty\_column} (\code{isna}).
+
+\begin{lstlisting}[style=py]
+shop = sdata.get_example("shop")
+shop.count_empty_cells_in()
+shop.fill_empty_cells_in("customers", with_the="line between neighbours", sorted_by="date",
+                         for_each_group_in="shop")
+shop.fill_empty_cells_in("sales", with_the="value above")
+shop.count_empty_cells_in()
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} Keep rows with at least some filled cells (pandas
+\code{dropna(thresh=)}), sort empty cells first (\code{na\_position="first"}), and infinite values
+(\code{np.isinf}). They are rare in research tables:
+
+\begin{lstlisting}[style=py]
+import numpy as np
+
+table = sdata.table({"a": [1.0, None, np.inf], "b": [None, None, 2.0], "c": [3.0, None, 4.0]})
+df = table.as_pandas()
+df = df.replace([np.inf, -np.inf], np.nan)       # infinite values become empty
+df = df.dropna(thresh=2)                         # keep rows with at least 2 filled cells
+table = sdata.table(df)
+table.show()
+\end{lstlisting}
+
+\unsection{Categories}{from-pandas:categories}
+
+\textbf{The job.} A text column with a fixed set of values in a set order, such as mild, moderate and
+severe. In the guides: \href{https://pandas.pydata.org/docs/user_guide/categorical.html}{Categorical
+data}; \href{https://docs.pola.rs/user-guide/expressions/categorical-data-and-enums/}{Categorical data
+and enums} in Polars.
+
+\textbf{In simplydata.} \code{turn\_into\_categories("column", in\_order=[...])}. Charts and summaries
+then follow that order.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.turn_into_categories("class", in_order=["C", "B", "A"])
+table.find_average_of("marks", for_each_group_in="class")    # C, then B, then A
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} Adding or removing unused categories and reading the codes behind
+them (pandas \code{cat.add\_categories}, \code{remove\_unused\_categories}, \code{cat.codes}). simplydata
+keeps the list of categories in step with the column for you. For the codes:
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.turn_into_categories("class", in_order=["C", "B", "A"])
+df = table.as_pandas()
+df["class_code"] = df["class"].cat.codes        # 0 for C, 1 for B, 2 for A
+table = sdata.table(df)
+table.show_first_rows(3)
+\end{lstlisting}
+
+\unsection{Groups}{from-pandas:groups}
+
+\textbf{The job.} Split the rows into groups, sum up each group, or keep some groups. In the guides:
+\href{https://pandas.pydata.org/docs/user_guide/groupby.html}{Group by: split-apply-combine};
+\href{https://docs.pola.rs/user-guide/expressions/aggregation/}{Aggregation} in Polars.
+
+\textbf{In simplydata.} There is no separate group object. Each summary word takes
+\code{for\_each\_group\_in=}: \code{find\_average\_of} (\code{groupby().mean()}),
+\code{find\_summary\_of} (\code{agg} with several measures), \code{count\_rows} (\code{size}),
+\code{count\_each} (\code{value\_counts}). \code{keep\_groups\_where} is \code{groupby().filter}. A
+formula with \code{for\_each\_group\_in=} is \code{transform}.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.find_average_of("marks", for_each_group_in=["class", "subject"])
+summary = table.find_summary_of(["marks", "hours"], show=["average", "count"], for_each_group_in="class")
+summary.show()
+table.add_column("share_of_class", "marks / total(marks) * 100", for_each_group_in="class")
+table.keep_groups_where("average(marks) >= 65", for_each_group_in="class")
+table.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{The different values of a column} (pandas \code{unique}, Polars \code{unique} on a column).
+Keep the column, remove the repeated rows, and take the column. \code{count\_different\_values\_in}
+counts them (\code{nunique}).
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.count_different_values_in("name")
+table.keep_columns("class")
+table.remove_duplicate_rows()
+classes = table.get_column("class")      # ["A", "B", "C"], in the order they first appear
+print(classes)
+\end{lstlisting}
+
+\textbf{Different measures for different columns, one row for each group} (pandas
+\code{agg(average=("marks", "mean"), most=("hours", "max"))}, Polars \code{group\_by().agg([...])}),
+such as a ``Table 1'' of a paper. \code{find\_summary\_of} gives the same measures for every column.
+For different ones, make one table for each measure and join them:
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+averages = marks.find_average_of("marks", for_each_group_in="class")
+most_hours = marks.find_biggest_of("hours", for_each_group_in="class")
+averages.join_with(most_hours, using="class")
+averages.show()
+\end{lstlisting}
+
+or hand it over:
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+df = table.as_pandas()
+summary = df.groupby("class", as_index=False).agg(average_marks=("marks", "mean"),
+                                                  most_hours=("hours", "max"))
+summary_table = sdata.table(summary)
+summary_table.show()
+\end{lstlisting}
+
+\textbf{Join the text of each group into one cell} (pandas \code{agg(";".join)}, Polars
+\code{str.join} inside \code{agg}). It is the mirror of \code{split\_into\_rows}, and it is left to
+pandas and Polars:
+
+\begin{lstlisting}[style=py]
+import polars as pl
+
+lab = sdata.get_example("fjord_lab")
+df = lab.as_polars()
+genes = df.group_by("sample_id", maintain_order=True).agg(pl.col("gene").str.join(";"))
+genes_table = sdata.table(genes)
+genes_table.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.}
+\begin{itemize}
+  \item \textbf{Your own function on each group} (pandas \code{groupby().apply(f)}, Polars
+    \code{map\_groups}). A function per row is \code{add\_column(..., by\_running=f)}; per group, hand
+    the table over, as in the example below.
+  \item \textbf{A number for each group} (pandas \code{ngroup}). Route:
+    \code{add\_rank\_column(..., from\_column="class", biggest\_first=False, when\_tied="no gaps")}.
+\end{itemize}
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+df = table.as_pandas()
+
+def best_subject(group):
+    return group.loc[group["marks"].idxmax(), "subject"]
+
+best = df.groupby("name").apply(best_subject, include_groups=False).reset_index(name="best_subject")
+best_table = sdata.table(best)
+best_table.show_first_rows(3)
+\end{lstlisting}
+
+\unsection{Windows: running, rolling and the rows before}{from-pandas:windows}
+
+\textbf{The job.} Work out a value from the rows around each row: a running total, a moving average,
+the value of the row before or after. In the guides:
+\href{https://pandas.pydata.org/docs/user_guide/window.html}{Windowing operations};
+\href{https://docs.pola.rs/user-guide/expressions/window-functions/}{Window functions} in Polars.
+
+\textbf{In simplydata.} \code{add\_running\_column} (\code{cumsum}, \code{cummax},
+\code{expanding}), \code{add\_rolling\_column} (\code{rolling}), \code{add\_smoothed\_column}
+(\code{ewm} and more), \code{add\_previous\_value\_column} (\code{shift}) and \code{add\_change\_column}
+(\code{diff}, \code{pct\_change}). Each takes \code{for\_each\_group\_in=} and \code{sorted\_by=}.
+
+\begin{lstlisting}[style=py]
+shop = sdata.get_example("shop")
+shop.add_running_column("sales_so_far", from_column="sales", for_each_group_in="shop", sorted_by="date")
+shop.add_rolling_column("sales_week", from_column="sales", window=7, show="average",
+                        for_each_group_in="shop", sorted_by="date")
+shop.add_previous_value_column("sales_yesterday", from_column="sales", for_each_group_in="shop",
+                               sorted_by="date")
+shop.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{The next value} (pandas \code{shift(-1)}, Polars \code{shift(-1)}, R \code{lead}).
+\code{add\_previous\_value\_column} looks back. To look ahead, turn the rows upside down, look back,
+and turn them again:
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+growth.reverse_rows()
+growth.add_previous_value_column("next_population", from_column="population", for_each_group_in="country")
+growth.reverse_rows()
+growth.show_first_rows(3)
+\end{lstlisting}
+
+or hand it over:
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+df = growth.as_pandas()
+df["next_population"] = df.groupby("country")["population"].shift(-1)
+growth = sdata.table(df)
+growth.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} A rolling window that starts with fewer rows (pandas
+\code{min\_periods=}, Polars \code{min\_samples=}): simplydata leaves the first cells empty until the
+window is full. Runs of the same value (Polars \code{rle\_id}) are rare outside time series:
+
+\begin{lstlisting}[style=py]
+import polars as pl
+
+table = sdata.table({"state": ["dry", "dry", "wet", "wet", "wet", "dry"]})
+df = table.as_polars().with_columns(pl.col("state").rle_id().alias("run"))
+table = sdata.table(df)
+table.show()
+\end{lstlisting}
+
+\unsection{Dates and times}{from-pandas:dates}
+
+\textbf{The job.} Read dates, take parts of them, round them, add a month, change the time zone and sum
+up by week or month. pandas keeps the date steps under \code{.dt}
+(\href{https://pandas.pydata.org/docs/user_guide/timeseries.html}{Time series / date functionality},
+\href{https://pandas.pydata.org/docs/user_guide/timedeltas.html}{Time deltas}); Polars too
+(\href{https://docs.pola.rs/user-guide/transformations/time-series/parsing/}{Parsing},
+\href{https://docs.pola.rs/user-guide/transformations/time-series/rolling/}{Grouping},
+\href{https://docs.pola.rs/user-guide/transformations/time-series/timezones/}{Time zones}).
+
+\textbf{In simplydata.} \code{turn\_into\_dates} (\code{to\_datetime}),
+\code{add\_column\_with\_part\_of\_date} (\code{dt.year}, \code{dt.month}, \code{dt.day\_name}),
+\code{round\_dates\_in} (\code{dt.floor}, \code{dt.truncate}), \code{add\_column(..., plus="1 month")}
+(\code{DateOffset}, \code{dt.offset\_by}), \code{change\_time\_zone\_in} (\code{tz\_localize} and
+\code{tz\_convert}), \code{add\_missing\_dates} (\code{asfreq}) and \code{every=} on every summary word
+(\code{resample}, \code{group\_by\_dynamic}).
+
+\begin{lstlisting}[style=py]
+shop = sdata.get_example("shop")
+shop.turn_into_dates("date")
+shop.add_column_with_part_of_date("weekday", from_column="date", part="weekday name")
+shop.add_column("check_on", from_column="date", plus="1 month")
+shop.find_total_of("sales", for_each_group_in=["shop", "date"], every="month")
+\end{lstlisting}
+
+\begin{lstlisting}[style=py]
+logger = sdata.get_example("fjord_logger")
+logger.turn_into_dates("time_utc")
+logger.change_time_zone_in("time_utc", to="Europe/Oslo", recorded_in="UTC")
+logger.round_dates_in("time_utc", down_to="hour")
+logger.show_first_rows(3)
+\end{lstlisting}
+
+\textbf{A date from year, month and day columns} (pandas \code{to\_datetime} of three columns, Polars
+\code{pl.date}). Join the parts with a dash, then turn the text into dates:
+
+\begin{lstlisting}[style=py]
+table = sdata.table({"year": [2026, 2026], "month": [5, 6], "day": [12, 3]})
+table.add_column("date", by_joining_text=["year", "month", "day"], separator="-")
+table.turn_into_dates("date", written_like="2026-5-31")
+table.show()
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.}
+\begin{itemize}
+  \item \textbf{Periods} such as ``2026-03'' as one month (pandas \code{to\_period}). Use
+    \code{every="month"} in the summary words, or the part \code{"year and month"}.
+  \item \textbf{Times of day on their own} (``08:30''), and rows at a time of day (pandas
+    \code{between\_time}).
+  \item \textbf{Working days} (NumPy \code{busday\_count}, Polars \code{business\_day\_count}).
+  \item \textbf{Unix time}, seconds since 1970 (pandas \code{to\_datetime(unit="s")}).
+\end{itemize}
+
+\begin{lstlisting}[style=py]
+import numpy as np
+import pandas as pd
+
+table = sdata.table({"start": ["2026-05-04", "2026-05-11"], "end": ["2026-05-15", "2026-05-22"],
+                     "logged": [1778140800, 1778745600]})
+df = table.as_pandas()
+df["working_days"] = np.busday_count(df["start"].to_numpy("datetime64[D]"),
+                                     df["end"].to_numpy("datetime64[D]"))
+df["logged"] = pd.to_datetime(df["logged"], unit="s")
+df["month"] = pd.to_datetime(df["start"]).dt.to_period("M").astype(str)
+table = sdata.table(df)
+table.show()
+\end{lstlisting}
+
+\unsection{Your own functions}{from-pandas:functions}
+
+\textbf{The job.} Run a Python function that no word has. In the guides:
+\href{https://pandas.pydata.org/docs/user_guide/user_defined_functions.html}{User-Defined Functions};
+\href{https://docs.pola.rs/user-guide/expressions/user-defined-python-functions/}{User-defined Python
+functions} in Polars.
+
+\textbf{In simplydata.} \code{add\_column(..., by\_running=f)} runs your function on each row (pandas
+\code{apply(axis=1)}, Polars \code{map\_elements}). The function gets the row as a dict.
+
+\begin{lstlisting}[style=py]
+def grade(row):
+    return "top" if row["marks"] >= 80 else "other"
+
+table = sdata.get_example("marks")
+table.add_column("grade", by_running=grade)
+table.count_each("grade")
+\end{lstlisting}
+
+\textbf{Left to pandas and Polars.} \code{pipe(f)}, a function on the whole table inside a chain.
+simplydata words are already a chain of lines; a plain function that takes the table does the same:
+
+\begin{lstlisting}[style=py]
+def clean(table):
+    table.clean_column_names()
+    table.remove_rows_that_are_all_empty()
+    return table
+
+stations = clean(sdata.get_example("fjord_stations"))
+stations.get_column_names()
+\end{lstlisting}
+
+\unsection{Charts and styled tables}{from-pandas:charts}
+
+pandas draws charts with \code{df.plot}
+(\href{https://pandas.pydata.org/docs/user_guide/visualization.html}{Chart visualization}). In
+simplydata, \code{table.start\_chart()} gives a chart and its \code{draw\_} words; the charts part of
+this manual has them all. Styled tables (pandas
+\href{https://pandas.pydata.org/docs/user_guide/style.html}{Table Visualization}: colours, highlights,
+number formats) are left to pandas; it needs the package jinja2. \code{table.save("table.html")} saves a
+plain web page table.
+
+\unsection{Speed, memory and copies}{from-pandas:speed}
+
+\textbf{The job.} Work fast on big tables, keep memory low, and know when a table is a copy. In the
+guides: \href{https://pandas.pydata.org/docs/user_guide/enhancingperf.html}{Enhancing performance},
+\href{https://pandas.pydata.org/docs/user_guide/scale.html}{Scaling to large datasets},
+\href{https://pandas.pydata.org/docs/user_guide/copy_on_write.html}{Copy-on-Write}; the
+\href{https://docs.pola.rs/user-guide/concepts/lazy-api/}{Lazy API} in Polars.
+
+\textbf{In simplydata.} \code{sdata.table("file", fast=True)} runs the table on Polars; the words and
+the answers stay the same. A word changes its own table only: \code{backup = table.make\_copy()} keeps
+the old one, and \code{table.undo()} goes back one step.
+
+\textbf{Left to pandas and Polars.} Lazy plans and streaming (Polars \code{LazyFrame},
+\code{collect(engine="streaming")}), memory use and smaller types (see
+\hyperref[from-pandas:kinds]{Kinds of columns}), and sparse storage. Hand the table over for them:
+
+\begin{lstlisting}[style=py]
+import polars as pl
+
+river = sdata.get_example("river")
+plan = river.as_polars().lazy().filter(pl.col("nitrate") > 3).group_by("station").agg(pl.len())
+result = sdata.table(plan.collect())
+result.sort_by("station")
+result.show()
+\end{lstlisting}
+
+\textbf{The numbers as a NumPy array} (pandas and Polars \code{to\_numpy}). Keep the number columns and
+hand them over:
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.keep_columns(of_kind="number")
+grid = table.as_pandas().to_numpy()
+print(grid.shape)
+\end{lstlisting}
+
+\textbf{A correlation matrix} (pandas and Polars \code{corr}). This is a statistics word: name the
+columns, and \code{find\_correlation\_between} gives every pair with its test.
+
+\begin{lstlisting}[style=py]
+table = sdata.get_example("marks")
+table.keep_rows_where("subject", is_equal_to="Maths")      # one row for each child
+table.find_correlation_between("hours", "marks", "height")
+\end{lstlisting}
+
+\unsection{SQL}{from-pandas:sql}
+
+Polars runs SQL on its tables (\href{https://docs.pola.rs/user-guide/sql/intro/}{SQL}); pandas reads
+SQL from a database with \code{read\_sql}. In simplydata, \code{table.run\_sql} runs a query on the
+table, which is called \code{data} inside the query, and \code{sdata.run\_sql} runs one on files. DuckDB
+does the work (pip install ``simplydata[sql]'').
+
+% needs: duckdb
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+best = marks.run_sql("SELECT class, count(*) AS children, max(marks) AS best FROM data "
+                     "WHERE subject = 'Maths' GROUP BY class ORDER BY class")
+best.show()
+\end{lstlisting}
+
+\unsection{The jobs left out, in one list}{from-pandas:left-out}
+
+simplydata leaves these jobs to pandas and Polars on purpose. Each is shown above with the hand-over.
+\begin{description}[style=nextline,leftmargin=1.2em]
+  \item[The row index] set and reset an index, choose and slice rows by label, a MultiIndex, sort by the
+    index, repeated labels, and lining up two tables by the index (\code{add(fill\_value=0)}).
+    \hyperref[from-pandas:choosing]{Choosing rows and columns}, \hyperref[from-pandas:joining]{Joining}.
+  \item[Functions in a chain] choose rows with a function (\code{loc[lambda d: ...]}), your own function on
+    each group (\code{groupby().apply}), and \code{pipe}. \hyperref[from-pandas:groups]{Groups},
+    \hyperref[from-pandas:functions]{Your own functions}.
+  \item[Storage] memory use, smaller types, codes of categories, periods, lazy plans and streaming.
+    \hyperref[from-pandas:kinds]{Kinds of columns}, \hyperref[from-pandas:categories]{Categories},
+    \hyperref[from-pandas:dates]{Dates and times}, \hyperref[from-pandas:speed]{Speed}.
+  \item[Other packages] the numbers as a NumPy array; the correlation matrix is a statistics word.
+    \hyperref[from-pandas:speed]{Speed, memory and copies}.
+\end{description}
+The Polars guide has a page for readers who move the other way, from pandas to Polars:
+\href{https://docs.pola.rs/user-guide/migration/pandas/}{Coming from pandas}.

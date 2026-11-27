@@ -26,7 +26,7 @@ import narwhals as nw
 
 from .._errors import SimplydataError, choice_error, friendly
 from .._typing import _Same
-from ._base import SHOW_LIMIT, numbered_at
+from ._base import SHOW_LIMIT, counted, numbered_at
 from ._base import show as _show_native
 from .columns import JOIN_SUFFIX, _as_list
 from .conditions import _rows
@@ -293,7 +293,8 @@ class MoreTableWordsThree:
             return None
         cells = self._cell_differences(here, there)
         if not cells:
-            print(f"No cell differs: both tables have the same {_rows(len(here))} and {len(here.columns)} columns, "
+            print(f"No cell differs: both tables have the same {_rows(len(here))} and "
+                  f"{counted(len(here.columns), 'column')}, "
                   "with the same values.")
             return None
         import pandas as pd
@@ -325,7 +326,8 @@ class MoreTableWordsThree:
         # columns are compared too, as pandas equals does (Polars equals leaves them out)
         same = bool(here_native.equals(there_native)) and self._frame.schema == there.schema
         if same:
-            print(f"The tables are the same: {_rows(len(self._frame))}, {len(self._columns)} columns, every cell "
+            print(f"The tables are the same: {_rows(len(self._frame))}, {counted(len(self._columns), 'column')}, "
+                  "every cell "
                   "equal.")
             return True
         here, other_pandas = self._frame.to_pandas(), there.to_pandas()
