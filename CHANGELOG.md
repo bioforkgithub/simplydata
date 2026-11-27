@@ -117,7 +117,7 @@ working for one release and prints a one-line note with its new name.
 
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 
-- Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
+- Exact maths with SymPy (1.14 or newer), the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
   `f.make_simpler()`, `f.turn_into_sum()`, `f.turn_into_product()`, `f.find_slope_formula()`, `f.find_area_formula()`,
   `f.find_value_at(x=2)`, `f.put_in(x="y + 1")`, `f.show_as_latex()`, `f.find_limit_as("x", goes_to=0)`,
   `f.find_taylor_series(around=0, up_to_power=4)` and `f.undo()`; `sdata.solve("x**2 = 2", exactly=True)`;
