@@ -1,0 +1,740 @@
+% From matplotlib and seaborn to simplydata: written by hand, read by docs/make_manual.py (\input{from_matplotlib}).
+% The topics follow the order of the matplotlib Quick start guide and User guide, then the seaborn tutorial, used as a
+% checklist only: the text and the examples are our own, and each section links to the official page. Every example in
+% a py box is run by tests/test_from_matplotlib_chapter.py (with "import simplydata as sdata" in front, and matplotlib's
+% Agg backend), so it cannot go out of date. A line "% needs: plotly" just before a box says the box needs that package.
+
+\unchapter{From matplotlib and seaborn to simplydata}{from-matplotlib}
+
+This chapter is for you if you already know matplotlib or seaborn, or if you want to learn them after
+simplydata. It walks through the topics of the official guides, in their order: the
+\href{https://matplotlib.org/stable/users/explain/quick_start.html}{matplotlib Quick start guide} and
+\href{https://matplotlib.org/stable/users/index.html}{User guide}, then the
+\href{https://seaborn.pydata.org/tutorial.html}{seaborn tutorial}. For each topic it says what the job
+is, which simplydata words do it, and a short example on the practice tables. Some jobs are left to
+matplotlib and seaborn on purpose. For those, the chapter shows how to hand the chart over and keep
+going in matplotlib.
+
+Every example starts with \code{import simplydata as sdata}. It is written once here, not in each
+box. The examples use the practice tables of \code{sdata.get\_example}, so you can run them as they
+are.
+
+\unsection{Five things to know first}{from-matplotlib:first}
+
+\begin{enumerate}
+  \item \textbf{A chart is a list of steps.} In matplotlib each call draws at once. In simplydata,
+    \code{chart.draw\_dots(...)} and \code{chart.label\_x(...)} only write down a step. The chart is
+    drawn when you save it, show it, or look at it in Jupyter. So the order of the steps rarely
+    matters, and \code{chart.undo()} takes the last step back.
+  \item \textbf{There is no figure and no axes to hold.} simplydata makes the matplotlib Figure and
+    its Axes for you each time it draws. You never write \code{fig, ax = plt.subplots()}.
+  \item \textbf{Columns by name.} You give the table once, to \code{sdata.chart(table)}, and then the
+    column names, as seaborn does with \code{data=}. A word works on a pandas or a Polars table.
+  \item \textbf{One word for one job.} matplotlib often has several ways to do the same thing
+    (\code{plt.title}, \code{ax.set\_title}, \code{fig.suptitle}). simplydata has one word,
+    \code{write\_title\_on\_top}, and \code{sdata.help("ax.set\_title")} names it.
+  \item \textbf{The door is always open.} \code{fig = chart.as\_matplotlib()} gives the chart as a
+    plain matplotlib Figure. Its charts are the Axes in \code{fig.axes}, so \code{ax = fig.axes[0]}.
+    Then any matplotlib code works. It is a copy: changing \code{fig} does not change the chart.
+    Save it with \code{fig.savefig(...)}.
+\end{enumerate}
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+fig = chart.as_matplotlib()              # a matplotlib Figure: use any matplotlib code here
+ax = fig.axes[0]
+ax.set_facecolor("whitesmoke")
+fig.savefig("handed_over.png", dpi=150)
+\end{lstlisting}
+
+Do you know a matplotlib or seaborn name, but not the simplydata word? Ask:
+\code{sdata.help("ax.set\_xlabel")}, \code{sdata.help("plt.hist")} or
+\code{sdata.help("sns.lineplot")}. The name can have \code{plt.}, \code{ax.}, \code{fig.} or
+\code{sns.} in front. The full list is in the section ``Coming from another tool?'' of the simplydata
+dictionary
+(\href{https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf}%
+{simplydataDictionary.pdf}).
+
+\unsection{A first chart}{from-matplotlib:first-chart}
+
+\textbf{The job.} Draw a line from two columns, give it a title and axis names, and save it as a
+picture. In the guide: \href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick
+start guide}, the simple example at its start.
+
+\textbf{In simplydata.} \code{draw\_lines} is \code{ax.plot}; \code{write\_title\_on\_top},
+\code{label\_x} and \code{label\_y} are \code{set\_title}, \code{set\_xlabel} and
+\code{set\_ylabel}; \code{save} is \code{fig.savefig}. Without \code{label\_x}, the column name is the
+axis name.
+
+\begin{lstlisting}[style=py]
+weather = sdata.get_example("weather")
+chart = sdata.chart(weather)
+chart.draw_lines(x="month", y="temperature", colour="city")
+chart.write_title_on_top("Temperature through the year")
+chart.label_y("Temperature (degrees C)")
+chart.save("first_chart.png")
+\end{lstlisting}
+
+\unsection{The parts of a figure}{from-matplotlib:parts}
+
+\textbf{The job.} Know the parts matplotlib draws: the Figure (the whole picture), the Axes (one
+chart inside it), each Axis (the x and y scales) and the Artists (every line, dot, bar and piece of
+text). In the guide: \href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start
+guide}, ``Parts of a Figure'', and
+\href{https://matplotlib.org/stable/users/explain/artists/index.html}{Artists}.
+
+\textbf{In simplydata.} A simplydata chart is one Figure with one Axes, or several Axes after
+\code{draw\_one\_chart\_for\_each\_group\_in}. You do not touch the parts. You can read them back as
+tables: \code{get\_numbers\_drawn} reads the lines, dots and bars, \code{get\_text\_drawn} the text,
+and \code{get\_scales\_drawn} each axis. \code{as\_matplotlib} gives the parts themselves.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_bars(x="class", y="marks")
+chart.get_numbers_drawn()                # one row for each bar: where it is and how high
+chart.get_scales_drawn()                 # the range and kind of each axis
+fig = chart.as_matplotlib()
+print(len(fig.axes), "Axes in the Figure")
+\end{lstlisting}
+
+\unsection{The data a chart takes}{from-matplotlib:data}
+
+\textbf{The job.} Give the numbers to draw. matplotlib takes lists or NumPy arrays, or column names
+with \code{data=}. In the guide: \href{https://matplotlib.org/stable/users/explain/quick_start.html}%
+{Quick start guide}, ``Types of inputs to plotting functions''.
+
+\textbf{In simplydata.} A table and column names is the usual way: \code{sdata.chart(table)} reads a
+table, a file name or a pandas or Polars DataFrame. Without a table, give lists to the step itself.
+Numbers made with \code{sdata.number\_list} start their own chart.
+
+\begin{lstlisting}[style=py]
+chart = sdata.chart()                    # no table: lists go to the step
+chart.draw_lines(x=[1, 2, 3, 4], y=[10, 12, 9, 14])
+chart.save("from_lists.png")
+
+numbers = sdata.number_list([4, 8, 15, 16, 23, 42])
+chart = numbers.start_chart()
+chart.draw_histogram(x="value")
+chart.save("from_numbers.png")
+\end{lstlisting}
+
+\unsection{Two ways of writing, one in simplydata}{from-matplotlib:styles}
+
+\textbf{The job.} matplotlib can be written in two styles: the explicit one (\code{fig, ax =
+plt.subplots()}, then \code{ax.plot(...)}) and the implicit one with \code{pyplot}
+(\code{plt.plot(...)}, which draws on the current Axes). In the guide:
+\href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start guide}, ``Coding
+styles''.
+
+\textbf{In simplydata.} There is one style. The chart is the object you name, as in the explicit style,
+and nothing is ``current''. So two charts never draw on each other. To make many charts the same way,
+write a small function that gives back a chart, as the guide suggests for matplotlib.
+
+\begin{lstlisting}[style=py]
+def marks_chart(subject):
+    marks = sdata.get_example("marks")
+    marks.keep_rows_where("subject", is_equal_to=subject)
+    chart = sdata.chart(marks)
+    chart.draw_dots(x="hours", y="marks")
+    chart.write_title_on_top(subject)
+    return chart
+
+
+marks_chart("Maths").save("maths.png")
+marks_chart("Science").save("science.png")
+\end{lstlisting}
+
+\unsection{Colours, lines and dots}{from-matplotlib:styling}
+
+\textbf{The job.} Choose the colour, width and dash of a line, and the size, shape and transparency of
+dots. In the guide: \href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start
+guide}, ``Styling Artists'', and
+\href{https://matplotlib.org/stable/users/explain/colors/colors.html}{Specifying colors}.
+
+\textbf{In simplydata.} Options with plain names on the draw words: \code{thickness=} is
+\code{linewidth}, \code{dashed=True} and \code{dotted=True} are \code{linestyle}, \code{size=} is the
+dot size (a column, for sizes that change), \code{transparency=} is one minus \code{alpha}.
+\code{use\_colour} sets one colour, \code{use\_colours} one colour for each group, and
+\code{use\_shapes} a shape for each group. The groups come from \code{colour="column"}, as seaborn's
+\code{hue=}.
+
+\begin{lstlisting}[style=py]
+weather = sdata.get_example("weather")
+chart = sdata.chart(weather)
+chart.draw_lines(x="month", y="temperature", colour="city", thickness=3, dashed="city")
+chart.use_colours("black", "darkorange")
+chart.save("styled_lines.png")
+
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks", colour="class", size="height", transparency=0.3)
+chart.use_shapes("circle", "square", "triangle")
+chart.save("styled_dots.png")
+\end{lstlisting}
+
+\unsection{Titles, labels, notes and legends}{from-matplotlib:labels}
+
+\textbf{The job.} Name the axes, write text on the chart, point at a place with an arrow, and place
+the legend. In the guide: \href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick
+start guide}, ``Labelling plots'';
+\href{https://matplotlib.org/stable/users/explain/text/text_intro.html}{Text in Matplotlib},
+\href{https://matplotlib.org/stable/users/explain/text/annotations.html}{Annotations} and the
+\href{https://matplotlib.org/stable/users/explain/axes/legend_guide.html}{Legend guide}.
+
+\textbf{In simplydata.} \code{label\_x}, \code{label\_y}, \code{write\_title\_on\_top} and
+\code{write\_caption\_at\_bottom} write the text around the chart. \code{write\_note} is
+\code{ax.text}, and with \code{with\_arrow=True} it is \code{ax.annotate}. The text goes to
+matplotlib as you write it, so matplotlib's maths between dollar signs works too. A legend appears by
+itself when \code{colour=} makes groups; \code{put\_legend\_inside}, \code{put\_legend\_at\_bottom}
+and the other \code{put\_legend\_} words place it, \code{label\_legend} names it,
+\code{order\_legend} orders it and \code{hide\_legend} hides it.
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+chart = sdata.chart(growth)
+chart.draw_lines(x="year", y="population", colour="country")
+chart.label_y("People (millions)")
+chart.label_x("Year, $t$")
+chart.write_note("fastest growth", x=2020, y=12, with_arrow=True)
+chart.write_caption_at_bottom("Made-up data")
+chart.put_legend_inside("top left")
+chart.label_legend("Country")
+chart.save("labels.png")
+\end{lstlisting}
+
+\textbf{Left to matplotlib.} Arrows with your own shape and connection, text along a path, and
+boxes of many styles. Hand the chart over:
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+chart = sdata.chart(growth)
+chart.draw_lines(x="year", y="population", colour="country")
+fig = chart.as_matplotlib()
+ax = fig.axes[0]
+ax.annotate("a bend", xy=(2010, 6), xytext=(2003, 10),
+            arrowprops={"arrowstyle": "-|>", "connectionstyle": "arc3,rad=0.3"},
+            bbox={"boxstyle": "round", "facecolor": "lightyellow"})
+fig.savefig("own_arrow.png")
+\end{lstlisting}
+
+\unsection{Scales, ticks, dates and groups on an axis}{from-matplotlib:axes}
+
+\textbf{The job.} Choose the range and the scale of an axis (log, square root), where the ticks go and
+how their numbers are written, dates and text on an axis, and a second axis. In the guide:
+\href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start guide}, ``Axis
+scales and ticks'';
+\href{https://matplotlib.org/stable/users/explain/axes/axes_scales.html}{Axis scales} and
+\href{https://matplotlib.org/stable/users/explain/axes/axes_ticks.html}{Axis ticks}.
+
+\textbf{In simplydata.} \code{set\_range\_x} and \code{set\_range\_y} are \code{set\_xlim} and
+\code{set\_ylim}; \code{use\_log\_scale\_y} and \code{use\_scale\_y("square root")} are
+\code{set\_yscale}; \code{put\_ticks\_x} is \code{set\_xticks} (with \code{labels=} it is
+\code{set\_xticklabels}, and \code{every=} a \code{MultipleLocator}); \code{write\_ticks\_y\_as}
+chooses a formatter; \code{rotate\_labels\_x} turns the labels; \code{flip\_y} is
+\code{invert\_yaxis}. Dates and text on an axis need nothing: simplydata finds them. Months and
+weekdays come in calendar order, and \code{order\_x} sets any other order. \code{add\_second\_y} is
+\code{twinx}, and \code{add\_second\_y(formula=...)} is \code{secondary\_yaxis}.
+
+\begin{lstlisting}[style=py]
+shop = sdata.get_example("shop")
+chart = sdata.chart(shop)
+chart.draw_lines(x="date", y="sales", colour="shop")
+chart.write_ticks_x_as("Jan 2026")
+chart.write_ticks_y_as("thousands")
+chart.rotate_labels_x(45)
+chart.save("dates.png")
+
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_bars(x="class", y="marks")
+chart.order_x("C", "B", "A")
+chart.set_range_y(0, 100)
+chart.put_ticks_y(0, 25, 50, 75, 100)
+chart.save("groups.png")
+
+weather = sdata.get_example("weather")
+chart = sdata.chart(weather)
+chart.draw_lines(x="month", y="temperature", colour="city")
+chart.add_second_y(formula="y * 9 / 5 + 32")
+chart.save("second_axis.png")
+\end{lstlisting}
+
+\textbf{Left to matplotlib.} A tick formatter written as your own function, and scales of your own
+(\code{FuncScale}). Hand the chart over:
+
+\begin{lstlisting}[style=py]
+from matplotlib.ticker import FuncFormatter
+
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+fig = chart.as_matplotlib()
+fig.axes[0].xaxis.set_major_formatter(FuncFormatter(lambda value, place: f"{value:.0f} h"))
+fig.savefig("own_ticks.png")
+\end{lstlisting}
+
+\unsection{Numbers as colours}{from-matplotlib:colour-maps}
+
+\textbf{The job.} Show a number as a colour (a heat map or a contour map), choose the colour map and
+how numbers map to colours, and add a colour bar. In the guide:
+\href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start guide}, ``Color
+mapped data''; \href{https://matplotlib.org/stable/users/explain/colors/colormaps.html}{Choosing
+Colormaps} and \href{https://matplotlib.org/stable/users/explain/colors/colormapnorms.html}{Colormap
+normalization}.
+
+\textbf{In simplydata.} \code{draw\_heatmap} is \code{imshow} or \code{pcolormesh} (seaborn
+\code{heatmap}), and \code{draw\_contour} is \code{contourf}, also for scattered points.
+\code{use\_colour\_scale} is \code{cmap=}: it chooses the colour map. Its options are the
+normalizations: \code{middle=0} puts the middle colour at 0 (a \code{TwoSlopeNorm}), \code{log=True}
+spreads the colours on a log scale, \code{steps=} cuts the scale into bands, and \code{between=} sets
+\code{vmin} and \code{vmax}. The colour bar comes by itself; \code{label\_colour\_bar} names it and
+\code{hide\_colour\_bar} hides it.
+
+\begin{lstlisting}[style=py]
+weather = sdata.get_example("weather")
+chart = sdata.chart(weather)
+chart.draw_heatmap(x="month", y="city", value="rain", with_numbers=True)
+chart.use_colour_scale("blues", between=[0, 300])
+chart.label_colour_bar("Rain (mm)")
+chart.save("heatmap.png")
+
+island = sdata.get_example("island")
+chart = sdata.chart(island)
+chart.draw_contour(x="east", y="north", z="height")
+chart.use_colour_scale("terrain", steps=8)
+chart.save("contour.png")
+\end{lstlisting}
+
+\unsection{Several charts in one picture}{from-matplotlib:several}
+
+\textbf{The job.} Put several Axes in one Figure: a grid of charts, one chart for each group, charts of
+different sizes, or a small chart inside a big one. In the guide:
+\href{https://matplotlib.org/stable/users/explain/quick_start.html}{Quick start guide}, ``Working
+with multiple Figures and Axes'';
+\href{https://matplotlib.org/stable/users/explain/axes/arranging_axes.html}{Arranging multiple Axes in
+a Figure} and the
+\href{https://matplotlib.org/stable/users/explain/axes/constrainedlayout_guide.html}{Constrained layout
+guide}.
+
+\textbf{In simplydata.} \code{draw\_one\_chart\_for\_each\_group\_in} is seaborn's
+\code{FacetGrid} (\code{col=}, \code{row=}, \code{col\_wrap=}). \code{sdata.put\_side\_by\_side},
+\code{sdata.put\_one\_above\_other} and \code{sdata.put\_in\_rows\_and\_columns} are
+\code{plt.subplots} and \code{subplot\_mosaic} for charts you made one by one; a nested list makes
+a chart span several places, and \code{with\_letters=True} writes A, B, C. \code{put\_chart\_inside} is
+\code{inset\_axes}, and \code{add\_zoom\_box} is \code{indicate\_inset\_zoom}. The layout is always
+matplotlib's constrained layout, so labels do not overlap.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+chart.draw_one_chart_for_each_group_in("subject", per_row=3)
+chart.save("one_per_group.png")
+
+dots = sdata.chart(marks).draw_dots(x="hours", y="marks")
+bars = sdata.chart(marks).draw_bars(x="class", y="marks")
+boxes = sdata.chart(marks).draw_boxes(x="subject", y="marks")
+page = sdata.put_in_rows_and_columns([[dots, dots], [bars, boxes]], with_letters=True)
+page.save("page.png")
+\end{lstlisting}
+
+\textbf{Left to matplotlib.} Axes placed by hand at any place in the Figure (\code{fig.add\_axes}).
+\code{page.as\_matplotlib()} gives the page as one Figure: each chart is a SubFigure in
+\code{fig.subfigs}, and \code{fig.axes} holds every Axes of every chart.
+
+\unsection{Looks and settings}{from-matplotlib:style}
+
+\textbf{The job.} Change the look of every chart at once: a style sheet, the fonts and the sizes of the
+text (matplotlib's \code{rcParams}). In the guide:
+\href{https://matplotlib.org/stable/users/explain/customizing.html}{Customizing Matplotlib with style
+sheets and rcParams}.
+
+\textbf{In simplydata.} \code{use\_style} picks one of five looks: \code{"paper"} (normal),
+\code{"school"}, \code{"presentation"}, \code{"dark"} and \code{"black and white"}.
+\code{use\_font} and \code{use\_font\_size} set the text. Each chart keeps its own look; nothing
+changes matplotlib's settings for other code.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_boxes(x="class", y="marks")
+chart.use_style("presentation")
+chart.use_font("serif")
+chart.use_font_size(16, title=22)
+chart.save("presentation.png")
+\end{lstlisting}
+
+\textbf{Left to matplotlib.} Any other setting of \code{rcParams}. A setting such as the colour of the
+axis lines is used while matplotlib draws, so change the drawn parts after the hand-over:
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_boxes(x="class", y="marks")
+fig = chart.as_matplotlib()
+for side in fig.axes[0].spines.values():
+    side.set_color("steelblue")
+fig.savefig("own_settings.png")
+\end{lstlisting}
+
+\unsection{Lines, bands and shapes on a chart}{from-matplotlib:marks}
+
+\textbf{The job.} Draw a reference line, shade a range, draw a rectangle, a circle or an arrow. In the
+guide: \href{https://matplotlib.org/stable/plot_types/index.html}{Plot types} and
+\href{https://matplotlib.org/stable/users/explain/text/annotations.html}{Annotations}.
+
+\textbf{In simplydata.} \code{draw\_line\_at\_y} is \code{axhline} (with \code{between=} it is
+\code{hlines}), \code{draw\_line\_at\_x} is \code{axvline}, \code{draw\_line\_with\_slope} is
+\code{axline}, \code{shade\_between\_x} is \code{axvspan}, \code{draw\_band} is
+\code{fill\_between}, \code{draw\_rectangle} and \code{draw\_circle} are the \code{Rectangle} and
+\code{Circle} patches, and \code{draw\_arrow} is an arrow from one point to another.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+chart.draw_line_at_y(50, labelled="pass mark")
+chart.shade_between_x(6, 8)
+chart.draw_rectangle(x_between=[3, 5], y_between=[60, 80])
+chart.draw_arrow(start=[2, 40], end=[4, 60])
+chart.save("shapes.png")
+\end{lstlisting}
+
+\textbf{Left to matplotlib.} Polygons, paths and other patches. Hand the chart over and add them:
+
+\begin{lstlisting}[style=py]
+from matplotlib.patches import Polygon
+
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+fig = chart.as_matplotlib()
+fig.axes[0].add_patch(Polygon([[2, 40], [5, 90], [8, 60]], alpha=0.2, color="purple"))
+fig.savefig("polygon.png")
+\end{lstlisting}
+
+\unsection{Charts in 3D}{from-matplotlib:3d}
+
+\textbf{The job.} Draw a surface, dots or lines in three dimensions and choose the view. In the guide:
+\href{https://matplotlib.org/stable/users/explain/toolkits/mplot3d.html}{The mplot3d toolkit}.
+
+\textbf{In simplydata.} \code{draw\_surface} is \code{plot\_surface} (with \code{as\_wires=True} it is
+\code{plot\_wireframe}), \code{draw\_dots\_3d} is \code{scatter} on 3D Axes, \code{draw\_lines\_3d}
+is \code{plot} in 3D and \code{draw\_bars\_3d} is \code{bar3d}. \code{look\_from} is
+\code{view\_init}, and \code{label\_z}, \code{set\_range\_z} and \code{put\_ticks\_z} work on the third
+axis.
+
+\begin{lstlisting}[style=py]
+island = sdata.get_example("island")
+chart = sdata.chart(island)
+chart.draw_surface(x="east", y="north", z="height")
+chart.look_from(height=40, around=30)
+chart.label_z("Height (m)")
+chart.save("surface.png")
+\end{lstlisting}
+
+\unsection{Moving charts}{from-matplotlib:animations}
+
+\textbf{The job.} Make a chart that moves, one picture after another. In the guide:
+\href{https://matplotlib.org/stable/users/explain/animations/animations.html}{Animations using
+Matplotlib}.
+
+\textbf{In simplydata.} \code{animate(over="year")} draws one picture for each value of a column:
+matplotlib draws each picture and Pillow writes them into a .gif file.
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+chart = sdata.chart(growth)
+chart.draw_bars(x="country", y="population")
+chart.animate(over="year")
+chart.save("growth.gif")
+\end{lstlisting}
+
+\unsection{Saving, showing and web pages}{from-matplotlib:saving}
+
+\textbf{The job.} Save the picture in a file type and size you need, show it in a window, or make a
+chart you can point at in a web page. In the guide:
+\href{https://matplotlib.org/stable/users/explain/figure/index.html}{Figures and backends}, with
+\href{https://matplotlib.org/stable/users/explain/figure/backends.html}{Backends} and
+\href{https://matplotlib.org/stable/users/explain/figure/interactive.html}{Interactive figures}.
+
+\textbf{In simplydata.} \code{save} is \code{savefig}: the end of the file name picks the type
+(.png, .pdf, .svg, .eps, .tif, .jpg, .gif or .html), the picture is 300 dots per inch and trimmed to
+what is drawn, \code{resolution=} is \code{dpi}, and \code{see\_through=True} is
+\code{transparent=True}. \code{set\_size} is \code{figsize}, in inches or cm. \code{show} is
+\code{plt.show}. A .html file and \code{show\_in\_web\_page} make a web page, drawn by plotly from
+what matplotlib drew; \code{show\_when\_pointing} chooses what it shows when the pointer rests on a
+dot. In Jupyter a chart shows by itself.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks", colour="class")
+chart.set_size(width=17, height=10, unit="cm")
+chart.save("for_the_journal.pdf")
+chart.save("for_a_slide.png", resolution=150, see_through=True)
+chart.get_size(unit="cm")
+\end{lstlisting}
+
+% needs: plotly
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks", colour="class")
+chart.show_when_pointing("name", "subject")
+chart.save("marks.html")
+\end{lstlisting}
+
+\textbf{The hand-over and web pages.} \code{chart.as\_matplotlib()} always gives the matplotlib
+Figure, also for a chart you save as a web page: the web page is a copy that plotly draws from it.
+Changes you make in matplotlib after the hand-over are not in \code{chart.save("marks.html")}.
+
+\textbf{Left to matplotlib.} Choosing the backend, windows that react to the mouse or the keyboard
+(events), and widgets such as sliders and buttons.
+
+\unsection{Relationships: dots and lines}{from-matplotlib:relational}
+
+\textbf{The job.} Show how one number goes with another: dots for each row, or a line through the
+average at each x, with groups by colour, size or shape. In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/relational.html}{Visualizing statistical relationships}
+(\code{relplot}, \code{scatterplot}, \code{lineplot}), and the overview of the
+\href{https://seaborn.pydata.org/tutorial/function_overview.html}{plotting functions} and the
+\href{https://seaborn.pydata.org/tutorial/data_structure.html}{data structures} seaborn takes.
+
+\textbf{In simplydata.} \code{draw\_dots} is \code{scatterplot}: \code{colour=} is \code{hue=},
+\code{size=} is \code{size=} and \code{shape=} is \code{style=}. \code{draw\_lines} is
+\code{lineplot}; it draws the average of the rows at each x, and \code{error=} adds the band.
+\code{relplot}'s panels are \code{draw\_one\_chart\_for\_each\_group\_in}.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks", colour="class", shape="subject")
+chart.save("relationship.png")
+
+school = sdata.get_example("school")
+chart = sdata.chart(school)
+chart.draw_lines(x="sleep", y="marks", colour="breakfast", error="confidence interval")
+chart.save("average_line.png")
+\end{lstlisting}
+
+\unsection{Distributions}{from-matplotlib:distributions}
+
+\textbf{The job.} Show how the values of a column are spread: a histogram, a smooth density, the
+share of values up to each point, a rug, and two columns together. In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/distributions.html}{Visualizing distributions of data}
+(\code{displot}, \code{histplot}, \code{kdeplot}, \code{ecdfplot}, \code{rugplot}).
+
+\textbf{In simplydata.} \code{draw\_histogram} is \code{histplot} (\code{with\_bins=},
+\code{show="density"}, \code{stacked=True}, \code{cumulative=True}); \code{draw\_density} is
+\code{kdeplot}; \code{draw\_cumulative\_share} is \code{ecdfplot}; \code{draw\_rug\_lines} is
+\code{rugplot}. With \code{y=} as well, \code{draw\_histogram} and \code{draw\_density} show two
+columns together, and \code{draw\_side\_histograms} adds the edges of \code{jointplot}.
+\code{fit\_distribution} draws a fitted curve over a histogram.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_histogram(x="marks", colour="class", show="density")
+chart.draw_density(x="marks", colour="class")
+chart.draw_rug_lines(x="marks")
+chart.save("spread.png")
+
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+chart.draw_side_histograms(drawn_as="density")
+chart.save("joint.png")
+\end{lstlisting}
+
+\unsection{Groups: categorical charts}{from-matplotlib:categorical}
+
+\textbf{The job.} Compare the values of groups: every dot, boxes, violins, bars of an average with
+an interval, points joined across groups, and counts. In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/categorical.html}{Visualizing categorical data}
+(\code{catplot}, \code{stripplot}, \code{swarmplot}, \code{boxplot}, \code{violinplot},
+\code{barplot}, \code{pointplot}, \code{countplot}).
+
+\textbf{In simplydata.} \code{draw\_all\_dots} is \code{stripplot} and \code{swarmplot};
+\code{draw\_boxes} is \code{boxplot}; \code{draw\_violins} is \code{violinplot} (\code{in\_halves=}
+is \code{split=True}); \code{draw\_bars} is \code{barplot}, with \code{show=} for the average,
+median, total or count; \code{draw\_interaction\_lines} is \code{pointplot}; \code{draw\_count\_bars}
+is \code{countplot}. \code{catplot}'s panels are \code{draw\_one\_chart\_for\_each\_group\_in}.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_boxes(x="subject", y="marks")
+chart.draw_all_dots(x="subject", y="marks")
+chart.save("boxes_and_dots.png")
+
+school = sdata.get_example("school")
+chart = sdata.chart(school)
+chart.draw_interaction_lines(x="class", y="marks", colour="breakfast")
+chart.save("points.png")
+
+chart = sdata.chart(school)
+chart.draw_count_bars(x="class", colour="breakfast")
+chart.save("counts.png")
+\end{lstlisting}
+
+\textbf{Left to seaborn.} \code{boxenplot}, the letter-value boxes for big tables. Hand an empty chart
+over and let seaborn draw on its Axes:
+
+\begin{lstlisting}[style=py]
+import seaborn as sns
+
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.label_x("subject")
+fig = chart.as_matplotlib()
+sns.boxenplot(marks.as_pandas(), x="subject", y="marks", ax=fig.axes[0])
+fig.savefig("boxen.png")
+\end{lstlisting}
+
+\unsection{Averages with error bars}{from-matplotlib:error-bars}
+
+\textbf{The job.} Show how sure an average is (a confidence interval or a standard error) or how
+spread the values are (a standard deviation). In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/error_bars.html}{Statistical estimation and error bars}.
+
+\textbf{In simplydata.} \code{error=} on \code{draw\_bars}, \code{draw\_lines} and \code{draw\_dots}
+takes \code{"confidence interval"}, \code{"standard error"} or \code{"standard deviation"}, as
+seaborn's \code{errorbar=("ci", 95)}, \code{"se"} and \code{"sd"}. \code{draw\_error\_bars} adds them
+to dots or lines. The interval is the t interval, not seaborn's bootstrap, so the same table always
+gives the same bars, and a line under the chart says which one was drawn.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_bars(x="class", y="marks", show="average", error="confidence interval")
+chart.save("error_bars.png")
+\end{lstlisting}
+
+\unsection{Lines that fit}{from-matplotlib:regression}
+
+\textbf{The job.} Draw the line that fits the dots best, with its confidence band, a curve, a smooth
+line, and what is left over. In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/regression.html}{Estimating regression fits}
+(\code{regplot}, \code{lmplot}, \code{residplot}).
+
+\textbf{In simplydata.} \code{fit\_line} is \code{regplot}; \code{show\_equation=True} writes the
+equation and $R^2$ on the chart. \code{fit\_curve(of\_degree=2)} is \code{order=2}.
+\code{draw\_smooth\_line} is \code{lowess=True}. \code{draw\_residual\_dots} is \code{residplot}.
+For \code{lmplot}'s panels, add \code{draw\_one\_chart\_for\_each\_group\_in}.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+chart.fit_line(show_equation=True)
+chart.save("fitted_line.png")
+
+chart = sdata.chart(marks)
+chart.draw_residual_dots(x="hours", y="marks")
+chart.save("left_over.png")
+\end{lstlisting}
+
+\unsection{Grids of charts}{from-matplotlib:grids}
+
+\textbf{The job.} One chart for each group in a grid, every column against every other, and a chart
+with its edges. In the tutorial: \href{https://seaborn.pydata.org/tutorial/axis_grids.html}{Building
+structured multi-plot grids} (\code{FacetGrid}, \code{PairGrid}, \code{pairplot}, \code{JointGrid},
+\code{jointplot}).
+
+\textbf{In simplydata.} \code{draw\_one\_chart\_for\_each\_group\_in} with \code{down=} and
+\code{across=} is \code{FacetGrid} with \code{row=} and \code{col=}; \code{same\_y=False} is
+\code{sharey=False}. \code{sdata.draw\_all\_pairs} is \code{pairplot}. \code{draw\_side\_histograms}
+is \code{jointplot}.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+chart.draw_one_chart_for_each_group_in(down="class", across="subject")
+chart.save("grid.png")
+
+pairs = sdata.draw_all_pairs(marks, colour="class")
+pairs.save("pairs.png")
+\end{lstlisting}
+
+\textbf{Left to seaborn.} Your own function mapped on each panel of a grid (\code{FacetGrid.map}), and
+different kinds of charts above and below the diagonal of a \code{PairGrid}.
+
+\unsection{The look of a chart}{from-matplotlib:aesthetics}
+
+\textbf{The job.} Choose the overall look, take away lines of the frame, and scale everything for a
+paper, a talk or a poster. In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/aesthetics.html}{Controlling figure aesthetics}
+(\code{set\_theme}, \code{set\_style}, \code{despine}, \code{set\_context}).
+
+\textbf{In simplydata.} The normal look (\code{"paper"}) already leaves out the top and right lines,
+as \code{despine} does. \code{use\_style} is \code{set\_style} and \code{set\_context} in one word:
+\code{"presentation"} is like seaborn's \code{"talk"}. \code{hide\_frame} takes the whole frame away,
+\code{show\_grid} and \code{hide\_grid} the grid lines, and \code{use\_background\_colour} the
+background.
+
+\begin{lstlisting}[style=py]
+weather = sdata.get_example("weather")
+chart = sdata.chart(weather)
+chart.draw_lines(x="month", y="rain", colour="city")
+chart.use_style("dark")
+chart.show_grid()
+chart.save("dark.png")
+\end{lstlisting}
+
+\unsection{Colour palettes}{from-matplotlib:palettes}
+
+\textbf{The job.} Choose colours for groups (a qualitative palette), for numbers that go from low to
+high (sequential) and for numbers on both sides of a middle (diverging). In the tutorial:
+\href{https://seaborn.pydata.org/tutorial/color_palettes.html}{Choosing color palettes}.
+
+\textbf{In simplydata.} The normal colours for groups are the Okabe-Ito set, safe for readers who do
+not see some colours. \code{use\_colours} is \code{color\_palette} and \code{set\_palette}: a named set
+(\code{"Set2"}, \code{"deep"}, \code{"colorblind"}), your own colours, or \code{how\_many=} colours
+from a colour map. \code{use\_colour\_scale} is the \code{cmap} of a heat map; \code{"blue to red"}
+with \code{middle=0} is a diverging palette centred on 0.
+
+\begin{lstlisting}[style=py]
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_bars(x="class", y="marks", colour="subject")
+chart.use_colours("viridis", how_many=3)
+chart.save("palette.png")
+\end{lstlisting}
+
+\unsection{The jobs left to matplotlib and seaborn}{from-matplotlib:left-out}
+
+simplydata draws the charts most people need in research and teaching, with one word each. These jobs
+are left out on purpose. Each one is a hand-over: \code{fig = chart.as\_matplotlib()}, then
+matplotlib or seaborn code on \code{fig.axes}, then \code{fig.savefig(...)}.
+\begin{itemize}
+  \item \textbf{Arrows and vector fields} (\code{quiver}, \code{barbs}, \code{streamplot}).
+  \item \textbf{Polygons, paths and other patches} (\code{fill}, \code{Polygon}), shown above.
+  \item \textbf{A table drawn inside a chart} (\code{ax.table}).
+  \item \textbf{Text of your own shape}: arrow styles, text along a path, many box styles (shown above).
+  \item \textbf{Tick formatters as your own function} and scales of your own (shown above).
+  \item \textbf{Axes placed by hand} (\code{fig.add\_axes}) and margins (\code{ax.margins}).
+  \item \textbf{Images} (\code{imread}, \code{imsave}, \code{figimage}); images get their own words in
+    a later phase.
+  \item \textbf{Interaction}: backends, mouse and key events, widgets (\code{Slider}, \code{Button}).
+  \item \textbf{More 3D}: voxels, arrows and contour sets in 3D.
+  \item \textbf{seaborn's letter-value boxes} (\code{boxenplot}, shown above), a function of your own on
+    each panel of a grid (\code{FacetGrid.map}) and the objects interface (\code{seaborn.objects}).
+  \item \textbf{Any \code{rcParams} setting} beyond the looks, fonts and sizes of \code{use\_style},
+    \code{use\_font} and \code{use\_font\_size} (shown above).
+\end{itemize}
+
+One more example: a vector field over a contour map.
+
+\begin{lstlisting}[style=py]
+island = sdata.get_example("island")
+chart = sdata.chart(island)
+chart.draw_contour(x="east", y="north", z="height")
+fig = chart.as_matplotlib()
+ax = fig.axes[0]
+ax.quiver([2000, 4000], [1000, 3000], [1, -1], [1, 0.5], color="white")
+fig.savefig("vectors.png")
+\end{lstlisting}
