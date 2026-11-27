@@ -251,16 +251,93 @@ def _pieces(text: str) -> list:
     return groups
 
 
-def _check_node(node, text: str, letters: list, functions: set):
-    """Check one piece of the formula (ast, never run); note the letters and functions it uses."""
+def _inner_pieces(text: str) -> tuple:
+    """A long sum or product inside round brackets (sin(x*x*...), (a + b + ...)*y), read in pieces as _pieces reads
+    one outside every bracket. Python's tokenize goes through the text once (no recursion); each value inside round
+    brackets (a function's values one by one, split at its commas) that has only letters, numbers, + - * / ** ^ and
+    round brackets, and that _pieces would cut, is given a name of its own that no formula can use (it starts with _,
+    which a letter may not) and is not in the text. Innermost first, so a value may hold the names of the values
+    inside it.
+
+    Returns the text with those names in it, and name -> the _pieces groups of its value, inner values first (the
+    text itself and {} when nothing inside brackets is long, or the text cannot be tokenized)."""
+    import io
+    import keyword
+    import tokenize
+
+    base = "_piece"
+    while base in text:
+        base += "_"
+    starts = [0]
+    for line in text.splitlines(keepends=True):
+        starts.append(starts[-1] + len(line))
+    inner: dict = {}
+    # each bracket open at this point (the first is the whole text): its bracket, where its text starts, the values
+    # finished before its last comma, the copied text of the value now read (with the names of the long values in
+    # it), where the text not yet copied starts, how many + - * / are directly in that value, whether it is plain
+    frames = [{"bracket": "", "start": 0, "values": [], "copied": [], "from": 0, "signs": 0, "plain": True}]
+
+    def finish(frame, at):
+        value = "".join(frame["copied"]) + text[frame["from"]:at]
+        if frame["bracket"] == "(" and frame["plain"] and frame["signs"] >= min(LONG_SUM - 1, LONG_PRODUCT):
+            groups = _pieces(value.strip())
+            if sum(len(group) for group in groups) > 1:
+                name = f"{base}{len(inner)}"
+                inner[name] = groups
+                value = name
+        frame["values"].append(value)
+        frame.update(copied=[], signs=0, plain=True)
+
+    try:
+        for token in tokenize.generate_tokens(io.StringIO(text).readline):
+            if token.type in (tokenize.NL, tokenize.NEWLINE, tokenize.ENDMARKER, tokenize.COMMENT):
+                continue
+            at = starts[token.start[0] - 1] + token.start[1]
+            top, sign = frames[-1], token.string
+            if token.type == tokenize.OP and sign in ("(", "[", "{"):
+                top["plain"] = top["plain"] and sign == "("
+                frames.append({"bracket": sign, "start": at + 1, "values": [], "copied": [], "from": at + 1,
+                               "signs": 0, "plain": True})
+            elif token.type == tokenize.OP and sign in (")", "]", "}"):
+                if len(frames) == 1:
+                    return text, {}
+                frame = frames.pop()
+                finish(frame, at)
+                parent = frames[-1]
+                parent["copied"].append(text[parent["from"]:frame["start"]] + ",".join(frame["values"]))
+                parent["from"] = at
+            elif token.type == tokenize.OP and sign == "," and len(frames) > 1:
+                finish(top, at)
+                top["from"] = at + 1
+            else:
+                if token.type == tokenize.OP and sign in ("+", "-", "*", "/"):
+                    top["signs"] += 1
+                if (token.type == tokenize.NAME and keyword.iskeyword(sign)) or \
+                        token.type not in (tokenize.NAME, tokenize.NUMBER, tokenize.OP) or \
+                        (token.type == tokenize.OP and sign not in ("+", "-", "*", "/", "**", "^")):
+                    top["plain"] = False
+    except (tokenize.TokenError, SyntaxError):
+        return text, {}
+    if not inner or len(frames) != 1:
+        return text, {}
+    return "".join(frames[0]["copied"]) + text[frames[0]["from"]:], inner
+
+
+def _check_node(node, text: str, letters: list, functions: set, inner=None):
+    """Check one piece of the formula (ast, never run); note the letters and functions it uses. inner: the name of
+    each long value inside brackets (_inner_pieces) -> its pieces with their trees, checked where the name stands."""
     if isinstance(node, ast.Expression):
-        return _check_node(node.body, text, letters, functions)
+        return _check_node(node.body, text, letters, functions, inner)
     if isinstance(node, ast.Constant):
         if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
             raise _formula_error(f"{node.value!r} is not allowed in a formula: only numbers and letters are.")
         return
     if isinstance(node, ast.Name):
         name = node.id
+        if inner and name in inner:  # a long value inside brackets: its pieces are checked here
+            for piece, tree in inner[name]:
+                _check_node(tree, piece, letters, functions, inner)
+            return
         if name.startswith("_"):
             raise _formula_error(f'"{name}" cannot be a letter in a formula (it starts with _).')
         if (name in FUNCTIONS or name in SPELLINGS) and name not in FREE_NAMES:
@@ -272,21 +349,21 @@ def _check_node(node, text: str, letters: list, functions: set):
             letters.append(name)
         return
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
-        return _check_node(node.operand, text, letters, functions)
+        return _check_node(node.operand, text, letters, functions, inner)
     if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub)):
         for term in _sum_terms(node):  # a long sum term by term, not by recursion down a + b + c + ...
-            _check_node(term, text, letters, functions)
+            _check_node(term, text, letters, functions, inner)
         return
     if isinstance(node, ast.BinOp):
         if not isinstance(node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.BitXor)):
             raise _formula_error(f'The sign in "{ast.get_source_segment(text, node)}" is not allowed in a formula.')
-        _check_node(node.left, text, letters, functions)
-        _check_node(node.right, text, letters, functions)
+        _check_node(node.left, text, letters, functions, inner)
+        _check_node(node.right, text, letters, functions, inner)
         if isinstance(node.op, (ast.Pow, ast.BitXor)):
             _check_power(node, text)
         return
     if isinstance(node, ast.Call):
-        if not isinstance(node.func, ast.Name):
+        if not isinstance(node.func, ast.Name) or (inner and node.func.id in inner):  # (a*b*...)(x) too
             raise _formula_error(f'"{ast.get_source_segment(text, node)}" is not allowed in a formula.')
         name = SPELLINGS.get(node.func.id, node.func.id)
         if name not in FUNCTIONS:
@@ -302,7 +379,7 @@ def _check_node(node, text: str, letters: list, functions: set):
                                  f"not {len(node.args)}.")
         functions.add(node.func.id)
         for arg in node.args:
-            _check_node(arg, text, letters, functions)
+            _check_node(arg, text, letters, functions, inner)
         if name in SPECIAL_FUNCTIONS:
             for arg in node.args:
                 size = _constant(arg)
@@ -670,12 +747,45 @@ def letters_of(text, what: str = "sdata.formula()") -> list[str]:
         return []
     letters: list = []
     try:
-        for group in _pieces(text.strip()):  # a long sum or product a piece at a time, as parse() reads it
+        groups, _, inner, trees = _text_pieces(text)  # a long sum or product a piece at a time, as parse() reads it
+        for group in groups:
             for piece in group:
-                _check_node(ast.parse(piece, mode="eval"), piece, letters, set())
+                _check_node(trees[piece], piece, letters, set(), inner)
     except (SyntaxError, RecursionError, SimplydataError):  # parse() says what is wrong with the text
         return []
     return letters
+
+
+def _text_pieces(text: str) -> tuple:
+    """The formula text in the pieces parse() reads, each read by Python's ast: (groups, named, inner, trees).
+
+    groups: the text in pieces (_pieces), with a name of its own for each long value inside brackets
+    (_inner_pieces); named: each such name -> the groups of its value, inner values first; inner: each name -> its
+    pieces with their trees; trees: each piece -> its ast tree. Raises ast's SyntaxError or RecursionError for the
+    text. Pieces that cannot be read alone (never expected) make the text read whole, as any other."""
+    text = text.strip()
+    outer, named = _inner_pieces(text)
+    groups = _pieces(outer)
+    pieces = [piece for found in [groups, *named.values()] for group in found for piece in group]
+    trees: dict = {}
+    try:
+        for piece in pieces:
+            if piece not in trees:
+                trees[piece] = ast.parse(piece, mode="eval")
+    except SyntaxError:
+        if len(pieces) == 1:
+            raise
+        groups, named, trees = [[text]], {}, {text: ast.parse(text, mode="eval")}
+    inner = {name: [(piece, trees[piece]) for group in found for piece in group] for name, found in named.items()}
+    return groups, named, inner, trees
+
+
+def _without_names(error: SimplydataError, named: dict) -> SimplydataError:
+    """The sentence about a formula with the names _inner_pieces gave its long values written as ... again."""
+    import re
+
+    names = "|".join(sorted(named, key=len, reverse=True))
+    return SimplydataError(re.sub(rf"\b(?:{names})\b", "...", str(error)))
 
 
 def letter_kind_symbols(letters_are, letters, what: str, example: str) -> dict:
@@ -737,34 +847,25 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
             raise _formula_error(
                 f'"{text}" has {sign} in it, so it is an equation, not a formula. Give only the formula here, such as '
                 '"x**2 - 2"; to solve an equation exactly use sdata.solve("x**2 = 2", exactly=True).')
-    groups = _pieces(text.strip())  # a long sum is read LONG_SUM terms, a long product LONG_PRODUCT factors at a time
-    pieces = [piece for group in groups for piece in group]
-    trees = []
-    for piece in pieces:
-        try:
-            trees.append(ast.parse(piece, mode="eval"))
-        except SyntaxError as error:
-            if len(pieces) > 1:  # never expected: then the text is read whole, as any other
-                groups, pieces, trees = [[text.strip()]], [text.strip()], []
-                break
-            raise _unreadable(text, error) from None
-        except RecursionError:
-            raise _too_deep(text) from None
-    if not trees:
-        try:
-            trees = [ast.parse(text.strip(), mode="eval")]
-        except SyntaxError as error:
-            raise _unreadable(text, error) from None
-        except RecursionError:
-            raise _too_deep(text) from None
+    try:  # a long sum is read LONG_SUM terms, a long product LONG_PRODUCT factors at a time, inside brackets too
+        groups, values, inner, trees = _text_pieces(text)
+    except SyntaxError as error:
+        raise _unreadable(text, error) from None
+    except RecursionError:
+        raise _too_deep(text) from None
     letters: list = []
     functions: set = set()
     try:
-        for piece, tree in zip(pieces, trees):
-            _check_node(tree, piece, letters, functions)
+        for group in groups:
+            for piece in group:
+                _check_node(trees[piece], piece, letters, functions, inner)
     except RecursionError:
         raise _too_deep(text) from None
-    from sympy.parsing.sympy_parser import convert_xor, parse_expr, standard_transformations
+    except SimplydataError as error:
+        if values:
+            raise _without_names(error, values) from None
+        raise
+    from sympy.parsing.sympy_parser import convert_xor, standard_transformations
 
     known = dict(letters_known or {})
     made = dict(symbols or {})
@@ -780,16 +881,34 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     kept = _unevaluated_functions(sp)
     unevaluated = {**local, **{name: kept[SPELLINGS.get(name, name)] for name in functions}}
     try:
-        parts = [parse_expr(piece, local_dict=unevaluated, transformations=transformations, evaluate=False,
-                            global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}) for piece in pieces]
-        worked_out = _work_out(sp, _joined(sp, groups, parts, evaluate=False), text.strip())
+        worked_out = _work_out(sp, _read_pieces(sp, groups, values, evaluate=False, local_dict=unevaluated,
+                                                transformations=transformations,
+                                                global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}),
+                               text.strip())
         if worked_out is not None:
             return worked_out
-        parts = [parse_expr(piece, local_dict=local, global_dict=safe, transformations=transformations)
-                 for piece in pieces]
+        return _read_pieces(sp, groups, values, evaluate=True, local_dict=local, global_dict=safe,
+                            transformations=transformations)
     except RecursionError:  # SymPy's reader goes into brackets in brackets, and down a * b * c ..., by recursion
         raise _too_deep(text) from None
-    return _joined(sp, groups, parts, evaluate=True)
+
+
+def _read_pieces(sp, groups: list, values: dict, evaluate: bool, local_dict: dict, **options):
+    """The pieces of the text (_text_pieces) read by SymPy's parse_expr and put back together (_joined). Each long
+    value inside brackets is read first, inner ones first, and given to the reader as what its name stands for, so
+    sin(name) is SymPy's sin of that value, read the same way (unevaluated with evaluate=False)."""
+    from sympy.parsing.sympy_parser import parse_expr
+
+    local = dict(local_dict)
+    flag = {} if evaluate else {"evaluate": False}
+
+    def read(found):
+        return _joined(sp, found, [parse_expr(piece, local_dict=local, **options, **flag)
+                                   for group in found for piece in group], evaluate)
+
+    for name, found in values.items():
+        local[name] = read(found)
+    return read(groups)
 
 
 def _joined(sp, groups: list, parts: list, evaluate: bool):

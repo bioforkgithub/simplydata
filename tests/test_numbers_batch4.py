@@ -1519,6 +1519,34 @@ def test_review5_new_a_long_sums_of_small_terms_are_read(capsys):
     capsys.readouterr()
 
 
+def test_review6_long_products_and_sums_inside_brackets_are_read_in_pieces(capsys):
+    # 25d4c26 read a long product in pieces only outside every bracket: inside brackets (or as a function's value)
+    # it was refused as "too many steps one inside another", while the same product without brackets was read
+    sp, x = _sp()
+    y, z = sp.Symbol("y"), sp.Symbol("z")
+    product = "*".join(["x"] * 1200)
+    assert sdata.formula("(" + product + ")").as_sympy() == x ** 1200
+    assert sdata.formula("sin(" + product + ")").as_sympy() == sp.sin(x ** 1200)
+    division = "x/" + "/".join(str(k) for k in range(2, 301))
+    assert sdata.formula("exp(-(" + division + "))").as_sympy() == sp.exp(-x / sp.factorial(300))
+    division += "/" + "/".join(["y"] * 900)  # / stays division in every piece
+    assert sdata.formula("exp(-(" + division + "))").as_sympy() == sp.exp(-x / (sp.factorial(300) * y ** 900))
+    long_sum = " + ".join(f"a{k}" for k in range(1, 1201))
+    assert sdata.formula("(" + long_sum + ")*y").as_sympy() == y * sp.Add(*sp.symbols("a1:1201"))
+    product_in_sum = product + "".join(f" + {k}*y" for k in range(1, 1201))
+    assert sdata.formula("z*(" + product_in_sum + ")").as_sympy() == z * (x ** 1200 + 720600 * y)
+    assert sdata.formula("atan2(y, " + product + ")").as_sympy() == sp.atan2(y, x ** 1200)  # both values kept
+    assert sdata.formula("sin(cos(" + product + ") + 1)").as_sympy() == sp.sin(sp.cos(x ** 1200) + 1)
+    assert sdata.formula("sin(" + "*".join(["999"] * 300) + ")").as_sympy() == sp.sin(sp.Integer(999) ** 300)
+    with pytest.raises(sdata.SimplydataError, match="more than 1000 digits"):
+        sdata.formula("sin(" + "*".join(["999"] * 340) + ")")  # 1,020 digits: the digit rule holds inside brackets
+    with pytest.raises(sdata.SimplydataError, match="too many steps one inside another to be read"):
+        sdata.formula("(" * 250 + "x" + ")" * 250)
+    with pytest.raises(sdata.SimplydataError, match=r'"\(\.\.\.\)%2"'):  # the sentence shows ... for the long value
+        sdata.formula("(" + product + ")%2")
+    capsys.readouterr()
+
+
 def test_review5_new_a_numbers_sympy_puts_together_are_still_refused():
     refused = ["999**100*999**100*999**100*999**100",  # multiplied: 1,200 digits
                "(999**100*x)*(999**100*y)*(999**100*z)*(999**100*w)",  # SymPy multiplies the numbers of a product
