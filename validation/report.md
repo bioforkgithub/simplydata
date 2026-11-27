@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-27. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**46059 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
+**46071 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
 
 ## Setup
 
@@ -2085,15 +2085,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528336674982 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735899168722 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.54277415834674 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193036141996 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877189611154 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215953769326 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.50220836122453 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549840056922 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.54324651918625 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528453679724 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.74873527154706 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774308844361 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193159510053 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877436862617 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215836852424 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208459916201 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549394140152 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246662329453 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
 | own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
@@ -5166,6 +5166,26 @@ Note: Only the named column is in the hover text; each car is named at its own d
 | years | R | 98 | 98 | relative 1e-12 | pass |
 | first level | R | 580.38 | 580.38 | relative 1e-12 | pass |
 | last level | R | 579.96 | 579.96 | relative 1e-12 | pass |
+
+### `as_matplotlib`
+
+**mtcars: fuel use against weight handed to matplotlib, which marks the heaviest car** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 32 | 32 | relative 1e-12 | pass |
+| sum of x | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 102.952 | 102.952 | relative 1e-12 | pass |
+| sum of y | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 642.9 | 642.9 | relative 1e-12 | pass |
+| x from | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 1.31745 | 1.31745 | relative 1e-12 | pass |
+| x to | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 5.61955 | 5.61955 | relative 1e-12 | pass |
+| notes in fig | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 1 | 1 | relative 1e-12 | pass |
+| note is the heaviest car | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 1 | 1 | relative 1e-12 | pass |
+| notes in the chart | seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts | 0 | 0 | relative 1e-12 | pass |
+| dots | R | 32 | 32 | relative 1e-12 | pass |
+| sum of x | R | 102.952 | 102.952 | relative 1e-12 | pass |
+| sum of y | R | 642.9 | 642.9 | relative 1e-12 | pass |
+
+Note: The Figure is a copy: the note written on it in matplotlib is not on the simplydata chart.
 
 ### `nums.show`
 
@@ -52326,6 +52346,7 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `get_text_drawn` | matplotlib | pandas | table | relative 1e-09 | pass |
 | `get_scales_drawn` | matplotlib | pandas | table | relative 1e-09 | pass |
 | `get_size` | matplotlib | pandas | value | relative 1e-09 | pass |
+| `as_matplotlib` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `undo` | - | - | none | relative 0 | pass |
 | `write_letter` | matplotlib | pandas | chart | relative 1e-09 | pass |
 | `put_legend_inside` | seaborn | pandas | chart | relative 1e-09 | pass |
@@ -52663,6 +52684,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.join_with` (1): a column found in both tables (other than using=) keeps its name in this table and gets "_other" in the other table's copy.
 - `table.add_z_score_column` (1): the standard deviation of a sample (n - 1, ddof=1), as R scale(); SciPy's zscore uses n unless told ddof=1.
 - `table.save` (1): no row labels are written (index=False): the file holds only your columns.
+- `table.save` (2): each line ends with a line feed on every computer, as Polars writes it (pandas would end lines with a carriage return and a line feed on Windows), so both engines write the same file.
 - `table.save in_sheet=` (1): mode="a" adds the sheet to the Excel file that is there and keeps its other sheets; if_sheet_exists="replace" replaces a sheet of the same name (simplydata prints that it did). A file that does not exist yet is made with pandas ExcelWriter and that one sheet.
 - `table.make_copy` (1): the copy keeps the steps so far, so backup.undo() and backup.show_steps() work on it; pandas df.copy() keeps only the data.
 - `table.add_missing_dates` (1): the table comes back sorted by the groups, then the dates; the group's name is copied into the new rows, and rows with an empty group cell are a group of their own (dropna=False).
@@ -53295,7 +53317,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `block.save` (1): netCDF-4 with the h5netcdf engine, every variable compressed (zlib, level 4); the numbers come back exactly.
 - `sdata.number_block keep_on_disk=` (1): the file stays open and only its labels are read; xarray isel cuts it in the file.
 - `block.find_values_at` (1): straight lines between the neighbours (test_method="linear"); places outside the labels are empty.
-- `block.smooth` (1): ends="empty": the places without a full window are left empty, as nums.smooth; ends="reflect" and "mirror" keep SciPy's edges of those names.
+- `block.smooth` (1): ends="empty": the places without a full window are left empty, as numbers.smooth; ends="reflect" and "mirror" keep SciPy's edges of those names.
 - `grid.smooth` (1): the bell curve is cut at 4 standard deviations and the edge number is repeated (mode "reflect"), SciPy's own defaults.
 - `block.change_size_to` (1): test_method="linear" (spline order 1); "nearest" is order 0 and "cubic" order 3.
 - `block.rotate by_degrees=` (1): the corners that come from outside are empty (cval=nan), and the size is kept (reshape=False).
