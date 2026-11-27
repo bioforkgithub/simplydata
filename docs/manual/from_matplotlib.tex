@@ -735,6 +735,6 @@ chart = sdata.chart(island)
 chart.draw_contour(x="east", y="north", z="height")
 fig = chart.as_matplotlib()
 ax = fig.axes[0]
-ax.quiver([2000, 4000], [1000, 3000], [1, -1], [1, 0.5], color="white")
+ax.quiver([4, 10], [4, 10], [1, -1], [1, 0.5], color="white")
 fig.savefig("vectors.png")
 \end{lstlisting}

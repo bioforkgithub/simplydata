@@ -153,3 +153,58 @@ def test_the_pointers_name_the_chapter_that_exists():
     named = [w for w in OTHER_NAMES["chart"].values() if "From matplotlib and seaborn" in w]
     assert named and all('"From matplotlib and seaborn to simplydata"' in w for w in named)
     assert OTHER_NAMES["chart"]["quiver"] in named and OTHER_NAMES["chart"]["boxenplot"] in named
+
+
+HAND_OVERS = [p for p in EXAMPLES if ".as_matplotlib()" in p.values[0]]
+
+
+def test_the_chapter_has_its_hand_over_examples():
+    assert len(HAND_OVERS) >= 7
+
+
+@pytest.mark.parametrize("code, needs", HAND_OVERS)
+def test_what_a_hand_over_adds_is_inside_the_chart(code, needs, tmp_path, monkeypatch):
+    """Everything matplotlib or seaborn adds after the hand-over shows inside its chart, so no hand-over example can
+    save an empty frame (a vector field at x = 2000 on an island 14 km wide did, before this test)."""
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.collections import PathCollection
+    from matplotlib.quiver import Quiver
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("SIMPLYDATA_NO_CITE_LIST", "1")
+    lines = code.splitlines()
+    cut = next(i for i, line in enumerate(lines) if ".as_matplotlib()" in line) + 1
+    scope = {"__name__": "__chapter__"}
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            exec("import simplydata as sdata\n" + "\n".join(lines[:cut]), scope)
+            fig = scope["fig"]
+            before = {id(child) for ax in fig.axes for child in ax.get_children()}
+            # the ranges the chart shows its data in, for each chart that has data already
+            ranges = {id(ax): (ax.get_xlim(), ax.get_ylim()) for ax in fig.axes
+                      if ax.lines or ax.collections or ax.patches or ax.images}
+            exec("\n".join(lines[cut:]), scope)
+        FigureCanvasAgg(fig)
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        for ax in fig.axes:  # what is added must not stretch an axis far past the data (the data would shrink)
+            for (low, high), (new_low, new_high) in zip(ranges.get(id(ax), ()), (ax.get_xlim(), ax.get_ylim())):
+                room = 0.5 * abs(high - low)
+                inside = (min(low, high) - room <= min(new_low, new_high)
+                          and max(new_low, new_high) <= max(low, high) + room)
+                assert inside, f"the hand-over stretched an axis from {low, high} to {new_low, new_high}"
+        added = [(ax, child) for ax in fig.axes for child in ax.get_children()
+                 if id(child) not in before and child.get_visible() and child is not ax.patch]
+        for ax, child in added:
+            frame = ax.get_window_extent(renderer)
+            offsets = child.get_offsets() if isinstance(child, (PathCollection, Quiver)) else None
+            if offsets is not None and len(offsets):  # dots, arrows of a vector field: where each one sits
+                points = child.get_offset_transform().transform(offsets)
+                assert any(frame.contains(x, y) for x, y in points), f"{child} is drawn outside its chart"
+                continue
+            box = child.get_window_extent(renderer)
+            if box.width == 0 and box.height == 0:  # nothing drawn (an empty helper artist)
+                continue
+            assert box.overlaps(frame), f"{child} is drawn outside its chart"
+    finally:
+        plt.close("all")
