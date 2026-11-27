@@ -793,8 +793,8 @@ FAMILY_TITLES = {
     "table": ("Table words", "Steps on a table: \\code{table = sdata.table(...)}, then "
                              "\\code{table.keep\\_rows\\_where(...)}. Table words work the same on pandas and Polars tables. "
                              "Words that start with \\code{sdata.} (finding and solving, planning a study) are "
-                             "called on simplydata itself, and words that start with \\code{distribution.} are steps on "
-                             "a distribution: \\code{distribution = sdata.distribution(\"normal\")}."),
+                             "called on simplydata itself, and words that start with \\code{distribution.} are "
+                             "steps on a distribution: \\code{distribution = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{numbers = sdata.number\\_list([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
                                 "on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}, "

@@ -153,8 +153,7 @@ class MoreNumberWords:
 
     @friendly
     def round_up(self: _Same) -> _Same:
-        """Round every number up to a whole number: 2.1 becomes 3 and -2.7 becomes -2 (NumPy ceil).
-        numbers.round_up()"""
+        """Round every number up to a whole number: 2.1 becomes 3, -2.7 becomes -2 (NumPy ceil). numbers.round_up()"""
         return self._whole("round_up", np.ceil, "round up to whole numbers")
 
     @friendly
@@ -198,8 +197,7 @@ class MoreNumberWords:
 
     @friendly
     def change_angles_to(self: _Same, unit=None) -> _Same:
-        """Change angles from radians to degrees, or back (NumPy rad2deg, deg2rad).
-        numbers.change_angles_to("degrees")"""
+        """Change angles between radians and degrees (NumPy rad2deg, deg2rad). numbers.change_angles_to("degrees")"""
         if unit not in ANGLE_UNITS:
             raise choice_error("change_angles_to", "unit", unit, list(ANGLE_UNITS))
         func = np.rad2deg if unit == "degrees" else np.deg2rad
@@ -326,8 +324,7 @@ class MoreNumberWords:
 
     @friendly
     def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN) -> _Same:
-        """Replace the numbers where the yes or no values say yes.
-        numbers.replace_numbers_where(land, with_value="empty")
+        """Replace the numbers where yes or no values say yes. numbers.replace_numbers_where(land, with_value="empty")
 
         with_value= a number, or "empty" (None works too). NumPy np.where(land, value, numbers).
         """

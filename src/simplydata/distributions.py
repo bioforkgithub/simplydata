@@ -1456,8 +1456,7 @@ class Distribution:
     def draw_chart(self, show="density", between=None):
         """A chart of the distribution: its density curve (or bars for counts).
 
-        distribution.draw_chart()   or   distribution.draw_chart(show="cumulative") for the chance of a value at or
-        below x.
+        distribution.draw_chart()   or   distribution.draw_chart(show="cumulative") for the chance at or below x.
         """
         from ._errors import choice_error
         from .chart import chart

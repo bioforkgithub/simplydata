@@ -1336,7 +1336,7 @@ class Formula:
         """Write the formula in a simpler way (SymPy simplify). formula.make_simpler()
 
         formula = sdata.formula("(x**2 - 1) / (x - 1)"), then formula.make_simpler() gives x + 1. The formula changes;
-        formula.undo() takes the step back. As SymPy simplify(); MATLAB simplify.
+        the step can be taken back with formula.undo(). As SymPy simplify(); MATLAB simplify.
         """
         sp = need_sympy("formula.make_simpler()")
         new = _guarded(sp.simplify, self._expr, what="SymPy simplify")
@@ -1348,8 +1348,8 @@ class Formula:
         """Multiply out the brackets, so the formula is a sum of terms (SymPy expand). formula.turn_into_sum()
 
         formula = sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum() gives x**2 + 4*x. The formula changes;
-        formula.undo() takes the step back. turn_into_product() goes the other way. As SymPy expand(). A sum with
-        letters raised to a whole power above 100 is refused (it would have far too many terms).
+        the step can be taken back with formula.undo(). turn_into_product() goes the other way. As SymPy expand(). A
+        sum with letters raised to a whole power above 100 is refused (it would have far too many terms).
         """
         sp = need_sympy("formula.turn_into_sum()")
         check_letter_powers(sp, self._expr, "turn_into_sum")
@@ -1362,7 +1362,7 @@ class Formula:
         """Write the formula as a product of factors (SymPy factor). formula.turn_into_product()
 
         formula = sdata.formula("x**2 + 4*x"), then formula.turn_into_product() gives x*(x + 4). The formula changes;
-        formula.undo() takes the step back. turn_into_sum() goes the other way. As SymPy factor().
+        the step can be taken back with formula.undo(). turn_into_sum() goes the other way. As SymPy factor().
         """
         sp = need_sympy("formula.turn_into_product()")
         new = _guarded(sp.factor, self._expr, what="SymPy factor")
@@ -1372,8 +1372,7 @@ class Formula:
     @friendly
     @one_deadline
     def group_by_powers_of(self, letter=None):
-        """Multiply out, then gather the terms by the powers of one letter (SymPy collect).
-        formula.group_by_powers_of("x")
+        """Multiply out, then gather the terms by powers of a letter (SymPy collect). formula.group_by_powers_of("x")
 
         formula = sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x") gives
         x**2*(a + b) + x*(a - 1). The formula changes; formula.undo() takes the step back. As SymPy
@@ -1389,8 +1388,7 @@ class Formula:
 
     @friendly
     def turn_into_partial_fractions(self, for_letter=None):
-        """Split a fraction of polynomials into a sum of simple fractions (SymPy apart).
-        formula.turn_into_partial_fractions()
+        """Split a fraction into a sum of simple fractions (SymPy apart). formula.turn_into_partial_fractions()
 
         formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions() gives
         1/(x + 2) + 2/(x + 1). for_letter= says which letter when there are several. The formula changes; formula.undo()
@@ -1658,8 +1656,7 @@ class Formula:
     @friendly
     @one_deadline
     def find_limit_as(self, letter=None, goes_to=0, from_side="both"):
-        """The value the formula comes close to as a letter goes to a value (the limit).
-        formula.find_limit_as("x", goes_to=0)
+        """The limit: the value the formula comes close to as a letter goes to a value. formula.find_limit_as("x")
 
         formula = sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to=0) gives 1. goes_to= takes a
         number, "infinity" or "-infinity". At a number the formula must come to the same value from both sides (as in

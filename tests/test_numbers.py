@@ -1,5 +1,7 @@
 """Numbers and number grids: every word checked against NumPy."""
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -460,11 +462,11 @@ def test_charts_and_tables_accept_numbers():
 
 def test_every_word_has_a_docstring_with_an_example():
     # words shared by lists and grids (add, log, undo ...) show the list example
-    for cls, name in ((Numbers, "numbers."), (NumberGrid, "grid.")):
+    for cls, name in ((Numbers, "numbers"), (NumberGrid, "grid")):
         for word in cls._word_names():
             doc = getattr(cls, word).__doc__ or ""
             assert doc.strip(), word
-            assert name in doc or "numbers." in doc, f"{cls.__name__}.{word} has no example"
+            assert re.search(rf"(?<![\w.])({name}|numbers)\.\w+\(", doc), f"{cls.__name__}.{word} has no example"
 
 
 def test_fill_empty_numbers_with_the_line_between_neighbours(capsys):

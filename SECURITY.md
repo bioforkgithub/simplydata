@@ -16,7 +16,7 @@ data never leaves your computer.
   `simplydata._r.r_call()` refuses R code that names a known network, install or file-writing function. This is a
   check of simplydata's own R code, not a sandbox: R also runs your own `.Rprofile` and the start-up code of the R
   packages, which simplydata does not control. R draws into nothing, never into an `Rplots.pdf` file.
-- **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `nums.save(...)` and `save_as=`.
+- **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `numbers.save(...)` and `save_as=`.
   The one exception holds no data: `sdata.start_30_days()` keeps the dates of your learning days in
   `.simplydata/progress.json` in your home folder (the environment variable `SIMPLYDATA_PROGRESS_FILE` chooses
   another file). An SPSS file read from a web address is put in a temporary folder for the moment pyreadstat
