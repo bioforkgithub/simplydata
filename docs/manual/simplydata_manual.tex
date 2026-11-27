@@ -285,7 +285,10 @@ can write it up in a report or a paper.
   \item[{\hyperref[part:ideas]{Part IV: Data science ideas}}] The ideas behind the numbers in plain
     words: average and median, standard deviation and standard error, confidence intervals,
     p-values, effect sizes, and a guide to which statistical test to use when.
-  \item[{\hyperref[part:solutions]{Part V: Solutions}}] A worked solution for every
+  \item[{\hyperref[part:from-pandas]{Part V: From pandas and Polars}}] For readers who know pandas or
+    Polars: each topic of their user guides, the simplydata words for it, and how to hand a table over
+    for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:solutions]{Part VI: Solutions}}] A worked solution for every
     ``Try it yourself'' task.
 \end{description}
 Keep the \href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet}
@@ -26501,11 +26504,12 @@ df.unpivot(on=cs.starts_with("pain_week_"), index="patient",
 \wordentry{table.spread\_into\_columns()}{word:table.spread-into-columns}
 Turn rows into columns: each different value in \code{names\_\allowbreak{}from=} becomes a new column, filled from \code{values\_\allowbreak{}from=}.
 
-This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \code{gather\_\allowbreak{}into\_\allowbreak{}rows()}. All the other columns say which row is which, so rows only merge when those all agree; when another column differs between rows that would merge (hours in the marks table), a note says so and how to keep only the columns you need. As pandas \code{df.\allowbreak{}pivot()} and Polars \code{df.\allowbreak{}pivot()}.\\
 \codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}city\textquotedbl{}, values\_from=\textquotedbl{}temperature\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}\\
-When several rows would fill the same cell (the fruit table sells apples on Monday in two shops), simplydata stops and names them, and nothing is averaged without your word. \code{show=} says how to combine them: \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}} or \code{\textquotedbl{}count\textquotedbl{}} (the filled cells) (pandas \code{pivot\_\allowbreak{}table(aggfunc=)}, Polars \code{pivot(aggregate\_\allowbreak{}function=)}):\\
+This makes a \code{\textquotedbl{}wide\textquotedbl{}} table, the opposite of \code{gather\_\allowbreak{}into\_\allowbreak{}rows()}: one column for each city, filled with its temperatures. As pandas \code{df.\allowbreak{}pivot()} and Polars \code{df.\allowbreak{}pivot()}. Every other column says which row is which: rows become one row only when all the other columns agree. So keep only the columns you need first. In the weather table,\\
+\codeline{table.keep\_columns(\textquotedbl{}month\textquotedbl{}, \textquotedbl{}city\textquotedbl{}, \textquotedbl{}temperature\textquotedbl{}) before spreading gives one row for each}\\
+month; without it, rain and wind differ from city to city, the rows do not merge, and the new columns are mostly empty. A note says so whenever this leaves empty cells, and names the column that differs when one column is the cause (hours in the marks table). When several rows would fill the same cell (the fruit table sells apples on Monday in two shops), simplydata stops and names them, and nothing is averaged without your word. \code{show=} says how to combine them: \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}} or \code{\textquotedbl{}count\textquotedbl{}} (the filled cells) (pandas \code{pivot\_\allowbreak{}table(aggfunc=)}, Polars \code{pivot(aggregate\_\allowbreak{}function=)}):\\
 \codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}fruit\textquotedbl{}, values\_from=\textquotedbl{}count\textquotedbl{}, show=\textquotedbl{}total\textquotedbl{})}\\
-A pair that never appears stays an empty cell, for every \code{show=}. Rows with an empty cell in \code{names\_\allowbreak{}from} go into a column called \code{\textquotedbl{}(empty)\textquotedbl{}} (as in the cross tables of \code{across=}), and a note says how many. How it differs from \code{swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns}: swap flips the whole table; spread turns one column's values into new columns. For a table of name, subject and marks:\\
+A pair that never appears stays an empty cell, for every \code{show=}. The values of rows with an empty cell in \code{names\_\allowbreak{}from} go into a new column called \code{\textquotedbl{}(empty)\textquotedbl{}} (as in the cross tables of \code{across=}), and a note says how many rows that was. How it differs from \code{swap\_\allowbreak{}rows\_\allowbreak{}and\_\allowbreak{}columns}: swap flips the whole table; spread turns one column's values into new columns. For a table of name, subject and marks:\\
 \codeline{table.spread\_into\_columns(names\_from=\textquotedbl{}subject\textquotedbl{}, values\_from=\textquotedbl{}marks\textquotedbl{})}\enspace one row per name, a column per subject\\
 \codeline{table.swap\_rows\_and\_columns()}\enspace a column per row, a row per column
 
@@ -26992,6 +26996,8 @@ Mind the two names: \code{sheet=} reads a sheet, \code{in\_\allowbreak{}sheet=} 
 \codeline{everything.keep\_rows\_where(\textquotedbl{}sheet\textquotedbl{}, is\_equal\_to=\textquotedbl{}2026\textquotedbl{})}\enspace just one sheet's rows\\
 (\code{keep\_\allowbreak{}rows\_\allowbreak{}where} changes everything; \code{everything.\allowbreak{}undo()} brings the other sheets back.) \code{sheet=\textquotedbl{}all\textquotedbl{}} stacks the sheets only when they have the same columns. Sheets that hold different data are read by name, each on its own: simplydata says which columns differ and prints a line to copy for each sheet, such as  patients = \code{sdata.\allowbreak{}table(\textquotedbl{}study.\allowbreak{}xlsx\textquotedbl{},\allowbreak{} sheet=\textquotedbl{}patients\textquotedbl{})}.
 
+A \code{.\allowbreak{}csv} file is written the way pandas writes it, on both engines: times without a time zone as 2024-07-01 23:45:00 (with decimals of a second only when the times have them, or just 2024-07-01 when every time is at midnight), times of day as 01:02:03, durations as 0 days 01:00:00, True and False with capitals, and an empty cell of a one-column table as \code{\textquotedbl{}\textquotedbl{}} (an empty line would be skipped when the file is read). One difference is left: an empty text (\code{\textquotedbl{}\textquotedbl{}}) is \code{\textquotedbl{}\textquotedbl{}} on Polars and nothing on pandas. Text files (\code{.\allowbreak{}csv}, \code{.\allowbreak{}tsv}) end each line the same way on every computer (a line feed, as on Linux and macOS).
+
 Times with a time zone: \code{.\allowbreak{}parquet} and .feather keep the zone. A \code{.\allowbreak{}csv} or \code{.\allowbreak{}tsv} file has no place for it, so the times are written with their UTC offset (2024-07-01 23:45:00-04:00, on both engines) and \code{sdata.\allowbreak{}table()} reads them back as the same moments on the UTC clock; a note names the zone, to put back with \code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in(\textquotedbl{}t\textquotedbl{},\allowbreak{} to=\textquotedbl{}America/New\_\allowbreak{}York\textquotedbl{})}. Excel and Stata have no time zones, so the clock times of the zone are saved (Polars \code{dt.\allowbreak{}replace\_\allowbreak{}time\_\allowbreak{}zone(None)}, on both engines), with a note naming the zone. Polars reads the clock of a time zone for every date word, on both engines: local clock times before 1970 follow the main world time-zone data (IANA), the same on every computer.
 
 More file types: \code{.\allowbreak{}csv}.gz and \code{.\allowbreak{}tsv}.gz (compressed), .feather (Arrow), .jsonl (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas. A database file (.sqlite, .db, .duckdb) holds tables by name, so it needs \code{in\_\allowbreak{}table=}, the mirror of \code{in\_\allowbreak{}sheet=}: \code{table.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}sqlite\textquotedbl{},\allowbreak{} in\_\allowbreak{}table=\textquotedbl{}river\textquotedbl{})} replaces that table and keeps the others (pandas \code{to\_\allowbreak{}sql(if\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{})}; DuckDB CREATE OR REPLACE TABLE). Read it back with \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}sqlite\textquotedbl{},\allowbreak{} table\_\allowbreak{}name=\textquotedbl{}river\textquotedbl{})}.
@@ -27022,7 +27028,7 @@ import pandas as pd
 df = pd.read_csv("marks.csv")
 with tempfile.TemporaryDirectory() as folder:
     # save as marks.csv
-    df.to_csv(os.path.join(folder, "marks.csv"), index=False)   # (1)
+    df.to_csv(os.path.join(folder, "marks.csv"), index=False, lineterminator="\n")   # (1) (2)
     saved = pd.read_csv(os.path.join(folder, "marks.csv"))
 saved
 \end{lstlisting}
@@ -27041,6 +27047,7 @@ saved
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) no row labels are written (\code{index=False}): the file holds only your columns.}
+\undertext{(2) each line ends with a line feed on every computer, as Polars writes it (pandas would end lines with a carriage return and a line feed on Windows), so both engines write the same file.}
 \undertext{The end of the file name chooses the type: \code{.\allowbreak{}xlsx} (pandas \code{to\_\allowbreak{}excel}), \code{.\allowbreak{}tsv}, \code{.\allowbreak{}parquet} and \code{.\allowbreak{}json} too. The test saves both files in a folder that is deleted afterwards and reads them back.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
@@ -32764,6 +32771,10 @@ sdata.go_to_next_day()
 \part{Data science ideas}\label{part:ideas}
 
 \input{ideas}
+
+\part{From pandas and Polars}\label{part:from-pandas}
+
+\input{from_pandas}
 
 \part{Solutions}\label{part:solutions}
 
