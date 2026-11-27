@@ -105,7 +105,7 @@ def test_kernel_density_matches_r(engine, capsys):
 
 def test_kernel_density_bandwidth_when_the_iqr_is_smaller(capsys):
     s = [31.2, 35.0, 36.1, 40.2, 41.0, 41.5, 42.0, 43.3, 60.1, 88.8, 95.5]
-    k = sdata.numbers(s).fit_distribution("kernel density")
+    k = sdata.number_list(s).fit_distribution("kernel density")
     # statsmodels bw_silverman divides the IQR by 1.349; R bw.nrd0 by 1.34 (5.63376165129813), as printed
     assert k.show_parameters()["bandwidth"] == pytest.approx(5.596175398620828, rel=1e-12)
     assert "divides the IQR by 1.34" in capsys.readouterr().out

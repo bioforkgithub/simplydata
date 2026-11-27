@@ -448,7 +448,7 @@ class BaseNumbers:
         File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables, and .wav (sound:
         time_step= the time between readings, or the one the numbers remember; bits=32 writes the numbers
         as they are (32-bit floating point), bits=16 writes 16-bit whole numbers: -1 to 1 times 32768,
-        rounded, clipped to -32768 to 32767, so a 16-bit file read with sdata.numbers comes back the same;
+        rounded, clipped to -32768 to 32767, so a 16-bit file read with sdata.number_list comes back the same;
         SciPy io.wavfile).
         """
         if isinstance(file_name, str) and file_name.lower().endswith(".wav"):
@@ -476,7 +476,7 @@ class BaseNumbers:
             clipped = int((np.abs(x) > 1).sum())
             if clipped:
                 print(f"Note: {clipped} values were beyond -1 to 1 and were clipped.")
-            # the scale sdata.numbers("file.wav") reads with: divided by 2^15
+            # the scale sdata.number_list("file.wav") reads with: divided by 2^15
             data = np.clip(np.round(x * 32768), -32768, 32767).astype(np.int16)
         else:
             raise SimplydataError("bits= is 32 (the numbers as they are) or 16.")

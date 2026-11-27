@@ -472,7 +472,7 @@ def cases(Case):
                   "fitdistrplus::gofstat(), written out in base R."),
         Case("nums.fit_distribution", "mtcars: a gamma distribution fitted to horsepower", "mtcars", "real data",
              ours="""
-                 fit = sdata.numbers(data["hp"].tolist()).fit_distribution("gamma")
+                 fit = sdata.number_list(data["hp"].tolist()).fit_distribution("gamma")
                  t = fit.turn_into_table()
                  {"shape": t.get_cell_at(row=1, column="shape"), "rate": t.get_cell_at(row=1, column="rate")}
              """,

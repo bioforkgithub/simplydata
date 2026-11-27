@@ -1492,7 +1492,7 @@ class Formula:
         """The value of the formula when each letter has a value. formula.find_value_at(x=2)
 
         formula = sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2) gives 4. Give every letter a value. Many
-        values at once (a list or numbers) give numbers back: formula.find_value_at(x=sdata.numbers(0, to=3,
+        values at once (a list or numbers) give numbers back: formula.find_value_at(x=sdata.number_list(0, to=3,
         how_many=50)). One value: SymPy subs and evalf; many: SymPy lambdify with NumPy and SciPy. An empty value
         (NaN) gives an empty answer, as in a list. lgamma(x) is the log of the size of gamma(x) (SciPy gammaln, as R
         lgamma), for one value and for many.

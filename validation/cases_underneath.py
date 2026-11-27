@@ -394,9 +394,9 @@ def _cases(Case):
                  sns.barplot(data[data["group"] == "drug 2"], x="group", y="extra", errorbar=None, ax=ax)
                  {"bar": chart_facts(ax)["bars"][0][3], "bars": len(chart_facts(ax)["bars"])}
              """, parent_label="seaborn barplot"),
-        Case("sdata.numbers", "Michelson's 100 measurements as numbers", "NIST Michelso", "published",
+        Case("sdata.number_list", "Michelson's 100 measurements as numbers", "NIST Michelso", "published",
              ours="""
-                 numbers = sdata.numbers(data["y"].tolist())
+                 numbers = sdata.number_list(data["y"].tolist())
                  {"mean": numbers.find_total() / numbers.count(), "count": numbers.count()}
              """,
              published={"mean": (299.8524, 1e-9, "NIST certified")},
@@ -455,7 +455,7 @@ def _cases(Case):
         Case("nums.find_average", "average of Michelson's 100 speed-of-light measurements", "NIST Michelso",
              "published",
              ours="""
-                 {"mean": sdata.numbers(data["y"].tolist()).find_average()}
+                 {"mean": sdata.number_list(data["y"].tolist()).find_average()}
              """,
              published={"mean": (299.8524, "lre", "NIST certified")},
              parent="""
@@ -466,7 +466,7 @@ def _cases(Case):
              """, r_tolerance=1e-14),
         Case("nums.find_percentile", "90th percentile of Michelson's measurements", "NIST Michelso", "real data",
              ours="""
-                 {"percentile 90": sdata.numbers(data["y"].tolist()).find_percentile(90)}
+                 {"percentile 90": sdata.number_list(data["y"].tolist()).find_percentile(90)}
              """,
              parent="""
                  {"percentile 90": np.nanpercentile(data["y"].to_numpy(), 90)}
@@ -476,7 +476,7 @@ def _cases(Case):
              """, r_tolerance=1e-14),
         Case("nums.keep_each_number_that", "Michelson's measurements above 299.9", "NIST Michelso", "real data",
              ours="""
-                 kept = sdata.numbers(data["y"].tolist()).keep_each_number_that(is_above=299.9)
+                 kept = sdata.number_list(data["y"].tolist()).keep_each_number_that(is_above=299.9)
                  {"kept": kept.count(), "total": kept.find_total()}
              """,
              parent="""

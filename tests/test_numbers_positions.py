@@ -12,7 +12,7 @@ VALUES = [12, 15, 9, 20, 14, 30, 7, 18, 11, 25]
 
 @pytest.fixture
 def nums():
-    return sdata.numbers(VALUES)
+    return sdata.number_list(VALUES)
 
 
 A = np.array(VALUES)
@@ -52,8 +52,8 @@ def test_keep_to_the_end_and_beyond(nums, capsys):
 
 
 def test_positions_are_not_values(nums):
-    by_position = sdata.numbers(VALUES).keep_numbers_by_position(9, to=12 - 2)
-    by_value = sdata.numbers(VALUES).keep_each_number_that(is_between=[9, 10])
+    by_position = sdata.number_list(VALUES).keep_numbers_by_position(9, to=12 - 2)
+    by_value = sdata.number_list(VALUES).keep_each_number_that(is_between=[9, 10])
     assert by_position.as_numpy().tolist() == A[8:10].tolist() == [11, 25]
     assert by_value.as_numpy().tolist() == [9]
 
@@ -82,7 +82,7 @@ def test_undo_and_steps(nums, capsys):
 
 
 def test_empty_numbers_keep_their_place():
-    nums = sdata.numbers([1, None, 3])
+    nums = sdata.number_list([1, None, 3])
     nums.keep_numbers_by_position(2, to=3)
     assert np.isnan(nums.as_numpy()[0]) and nums.as_numpy()[1] == 3
 
@@ -113,7 +113,7 @@ def test_position_errors(nums, call, message):
 
 def test_no_numbers_to_choose_from():
     with pytest.raises(SimplydataError, match="no numbers to choose from"):
-        sdata.numbers([1.0]).remove_empty_numbers().keep_each_number_that(is_above=5).keep_numbers_by_position(1)
+        sdata.number_list([1.0]).remove_empty_numbers().keep_each_number_that(is_above=5).keep_numbers_by_position(1)
 
 
 # ---------------------------------------------------------------- number_at("last")
@@ -133,7 +133,7 @@ def test_replace_numbers_cap(nums, capsys):
 
 
 def test_replace_a_missing_value_code():
-    nums = sdata.numbers([3, -999, 5, -999])
+    nums = sdata.number_list([3, -999, 5, -999])
     nums.replace_each_number_that(-999, with_value=None)
     a = np.array([3, -999, 5, -999], dtype=float)
     a[a == -999] = np.nan  # NumPy a[a == -999] = np.nan; pandas s.replace(-999, np.nan)
@@ -142,7 +142,7 @@ def test_replace_a_missing_value_code():
 
 
 def test_replace_a_list_of_old_numbers():
-    nums = sdata.numbers([3, -99, 5, -999])
+    nums = sdata.number_list([3, -99, 5, -999])
     nums.replace_each_number_that([-99, -999], with_value=0)
     assert nums.as_numpy().tolist() == [3, 0, 5, 0]
 
@@ -158,7 +158,7 @@ def test_replace_numbers_each_condition(nums, option, value, native):
 
 
 def test_empty_numbers_never_match_but_is_empty_does():
-    nums = sdata.numbers([1, None, 30])
+    nums = sdata.number_list([1, None, 30])
     nums.replace_each_number_that(is_not_equal_to=1, with_value=0)
     out = nums.as_numpy()
     assert out[0] == 1 and np.isnan(out[1]) and out[2] == 0

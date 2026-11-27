@@ -7,7 +7,7 @@ import pytest
 import simplydata as sdata
 from simplydata import SimplydataError
 from simplydata._data import frame_for, is_listlike, load
-from simplydata.numbers import NumberGrid, Numbers, number_grid, numbers, make_random_numbers
+from simplydata.numbers import NumberGrid, Numbers, number_grid, number_list, make_random_numbers
 
 NAN = np.nan
 
@@ -18,46 +18,46 @@ def same(a, b):
 
 # ====================================================================== making numbers
 def test_from_list_and_from_several_numbers():
-    assert isinstance(numbers([3, 5, 2, 8]), Numbers)
-    same(numbers([3, 5, 2, 8]), [3, 5, 2, 8])
-    same(numbers(3, 5, 2, 8), [3, 5, 2, 8])
-    assert numbers([3, 5]).as_numpy().dtype.kind == "i"  # whole numbers stay whole
-    same(numbers([1, None, 3]), [1, NAN, 3])
-    same(numbers(np.array([1.5, 2.5])), [1.5, 2.5])
-    same(numbers(pd.Series([1, 2])), [1, 2])
-    same(numbers(range(3)), [0, 1, 2])
-    assert numbers([]).count() == 0
+    assert isinstance(number_list([3, 5, 2, 8]), Numbers)
+    same(number_list([3, 5, 2, 8]), [3, 5, 2, 8])
+    same(number_list(3, 5, 2, 8), [3, 5, 2, 8])
+    assert number_list([3, 5]).as_numpy().dtype.kind == "i"  # whole numbers stay whole
+    same(number_list([1, None, 3]), [1, NAN, 3])
+    same(number_list(np.array([1.5, 2.5])), [1.5, 2.5])
+    same(number_list(pd.Series([1, 2])), [1, 2])
+    same(number_list(range(3)), [0, 1, 2])
+    assert number_list([]).count() == 0
 
 
 def test_counting_includes_the_end():
-    same(numbers(1, to=10), np.arange(1, 11))
-    same(numbers(0, to=100, step=25), [0, 25, 50, 75, 100])
-    same(numbers(10, to=1), np.arange(10, 0, -1))
-    same(numbers(0, to=1, step=0.1), np.linspace(0, 1, 11))
-    same(numbers(0, to=1, how_many=5), np.linspace(0, 1, 5))
-    same(numbers(1, to=10, step=4), [1, 5, 9])
-    assert numbers(1, to=10).as_numpy().dtype.kind == "i"
+    same(number_list(1, to=10), np.arange(1, 11))
+    same(number_list(0, to=100, step=25), [0, 25, 50, 75, 100])
+    same(number_list(10, to=1), np.arange(10, 0, -1))
+    same(number_list(0, to=1, step=0.1), np.linspace(0, 1, 11))
+    same(number_list(0, to=1, how_many=5), np.linspace(0, 1, 5))
+    same(number_list(1, to=10, step=4), [1, 5, 9])
+    assert number_list(1, to=10).as_numpy().dtype.kind == "i"
 
 
 def test_making_numbers_errors():
-    with pytest.raises(SimplydataError, match="sdata.numbers\\(1, to=5\\)"):
-        numbers(5)
+    with pytest.raises(SimplydataError, match="sdata.number_list\\(1, to=5\\)"):
+        number_list(5)
     with pytest.raises(SimplydataError, match="text"):
-        numbers(["a", 2])
+        number_list(["a", 2])
     with pytest.raises(SimplydataError, match="without quotes"):
-        numbers(["3", "4"])
+        number_list(["3", "4"])
     with pytest.raises(SimplydataError, match="True/False"):
-        numbers([True, False])
+        number_list([True, False])
     with pytest.raises(SimplydataError, match="number_grid"):
-        numbers([[1, 2], [3, 4]])
+        number_list([[1, 2], [3, 4]])
     with pytest.raises(SimplydataError, match="never gets there"):
-        numbers(1, to=10, step=-1)
+        number_list(1, to=10, step=-1)
     with pytest.raises(SimplydataError, match="not both"):
-        numbers(0, to=1, step=0.1, how_many=3)
+        number_list(0, to=1, step=0.1, how_many=3)
     with pytest.raises(SimplydataError, match="not 0"):
-        numbers(0, to=1, step=0)
+        number_list(0, to=1, step=0)
     with pytest.raises(SimplydataError, match="has no option called start="):
-        numbers(start=1, to=10)
+        number_list(start=1, to=10)
 
 
 def test_random_numbers_match_numpy():
@@ -96,7 +96,7 @@ def test_making_grids():
     same(number_grid(rows=1, columns=2, filled_with=None), [[NAN, NAN]])
     same(number_grid([1, 2, 3, 4, 5, 6], columns=3), np.arange(1, 7).reshape(2, 3))
     same(number_grid([1, 2, 3, 4, 5, 6], rows=3), np.arange(1, 7).reshape(3, 2))
-    same(numbers(1, to=6).make_number_grid(columns=2), np.arange(1, 7).reshape(3, 2))
+    same(number_list(1, to=6).make_number_grid(columns=2), np.arange(1, 7).reshape(3, 2))
     with pytest.raises(SimplydataError, match="same length"):
         number_grid([[1, 2], [3]])
     with pytest.raises(SimplydataError, match="cannot fill"):
@@ -107,7 +107,7 @@ def test_making_grids():
 
 # ====================================================================== looking and picking
 def test_positions_count_from_one():
-    nums = numbers([3, 5, 2, 8])
+    nums = number_list([3, 5, 2, 8])
     assert nums.get_number_at(1) == 3 and nums.get_number_at(4) == 8
     assert isinstance(nums.get_number_at(1), int)
     with pytest.raises(SimplydataError, match="from 1 to 4"):
@@ -126,7 +126,7 @@ def test_positions_count_from_one():
 
 
 def test_show_words(capsys):
-    nums = numbers(1, to=10)
+    nums = number_list(1, to=10)
     nums.show_first_numbers(3)
     nums.show_last_numbers(2)
     nums.show()
@@ -138,7 +138,7 @@ def test_show_words(capsys):
 
 def test_keep_and_remove_use_table_conditions(capsys):
     values = np.array([3, 50, 70, NAN, 51, 40])
-    nums = numbers(values)
+    nums = number_list(values)
     nums.keep_each_number_that(is_above=50)
     same(nums, [70, 51])
     assert "Kept 2 of 6 numbers." in capsys.readouterr().out
@@ -152,13 +152,13 @@ def test_keep_and_remove_use_table_conditions(capsys):
         (dict(is_one_of=[3, 40]), [3, 40]), (dict(is_empty=True), [NAN]),
         (dict(is_empty=False), [3, 50, 70, 51, 40]), (dict(is_between=[60, 40]), [50, 51, 40]),
     ]:
-        nums = numbers(values)
+        nums = number_list(values)
         nums.keep_each_number_that(**option)
         same(nums, expected)
 
 
 def test_keep_errors():
-    nums = numbers([1, 2, 3])
+    nums = number_list([1, 2, 3])
     with pytest.raises(SimplydataError, match="one condition"):
         nums.keep_each_number_that()
     with pytest.raises(SimplydataError, match="one condition at a time"):
@@ -174,7 +174,7 @@ def test_keep_errors():
 
 
 def test_first_last_random_empty_duplicate():
-    nums = numbers([4, 1, 4, NAN, 2, 1])
+    nums = number_list([4, 1, 4, NAN, 2, 1])
     nums.keep_first_numbers(3)
     same(nums, [4, 1, 4])
     nums.start_again()
@@ -185,7 +185,7 @@ def test_first_last_random_empty_duplicate():
     same(nums, [4, 1, 4, 2, 1])
     nums.remove_duplicate_numbers()
     same(nums, [4, 1, 2])
-    picked = numbers(1, to=20)
+    picked = number_list(1, to=20)
     picked.keep_random_numbers(5, with_seed=1)
     expected = np.sort(np.random.default_rng(1).choice(20, 5, replace=False)) + 1
     same(picked, expected)
@@ -198,14 +198,14 @@ def test_fill_empty_numbers(capsys):
         (dict(with_the="median"), [1, 2, 3, 2]), (dict(with_the="value above"), [1, 1, 3, 3]),
         (dict(with_the="value below"), [1, 3, 3, NAN]),
     ]:
-        nums = numbers(values)
+        nums = number_list(values)
         nums.fill_empty_numbers(**kw)
         same(nums, expected)
     assert "1 value stayed empty" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="exactly one"):
-        numbers(values).fill_empty_numbers()
+        number_list(values).fill_empty_numbers()
     with pytest.raises(SimplydataError, match="with_the"):
-        numbers(values).fill_empty_numbers(with_the="mode")
+        number_list(values).fill_empty_numbers(with_the="mode")
 
 
 # ====================================================================== maths words and symbols
@@ -217,7 +217,7 @@ def test_fill_empty_numbers(capsys):
 ])
 def test_words_change_and_symbols_make_new(word, symbol, other):
     base = np.array([3.0, 5.0, 2.0, 8.0])
-    nums = numbers(base)
+    nums = number_list(base)
     new = symbol(nums, other)
     assert isinstance(new, Numbers)
     same(nums, base)  # symbols leave the numbers alone
@@ -229,14 +229,14 @@ def test_words_change_and_symbols_make_new(word, symbol, other):
 
 
 def test_reflected_symbols_and_numbers_with_numbers():
-    nums = numbers([1, 2, 4])
+    nums = number_list([1, 2, 4])
     same(10 - nums, [9, 8, 6])
     same(8 / nums, [8, 4, 2])
     same(2 ** nums, [2, 4, 16])
     same([1, 1, 1] + nums, [2, 3, 5])
-    same(nums + numbers([1, 1, 1]), [2, 3, 5])
+    same(nums + number_list([1, 1, 1]), [2, 3, 5])
     same(-nums, [-1, -2, -4])
-    same(abs(numbers([-1, 2])), [1, 2])
+    same(abs(number_list([-1, 2])), [1, 2])
     same(np.array([1, 1, 1]) * nums, [1, 2, 4])
     assert isinstance(np.float64(2) * nums, Numbers)
     with pytest.raises(SimplydataError, match="3 numbers"):
@@ -248,24 +248,24 @@ def test_reflected_symbols_and_numbers_with_numbers():
 
 
 def test_division_by_zero_becomes_empty(capsys):
-    nums = numbers([4, 0, NAN])
+    nums = number_list([4, 0, NAN])
     same(nums / 0, [NAN, NAN, NAN])
     assert "dividing by 0 has no answer, so 2 numbers are now empty" in capsys.readouterr().out
     nums.divide_by([2, 0, 1])
     same(nums, [2, NAN, NAN])
     assert "1 number is now empty" in capsys.readouterr().out
-    same(1 / numbers([0, 2]), [NAN, 0.5])
+    same(1 / number_list([0, 2]), [NAN, 0.5])
 
 
 def test_power_edge_cases(capsys):
-    same(numbers([2, 3]) ** -1, [0.5, 1 / 3])
-    same(numbers([0, 4]) ** -1, [NAN, 0.25])
+    same(number_list([2, 3]) ** -1, [0.5, 1 / 3])
+    same(number_list([0, 4]) ** -1, [NAN, 0.25])
     assert "minus power" in capsys.readouterr().out
-    same(numbers([-4, 4]) ** 0.5, [NAN, 2])
+    same(number_list([-4, 4]) ** 0.5, [NAN, 2])
     assert "power with decimals" in capsys.readouterr().out
-    big = numbers([10]) ** 30
+    big = number_list([10]) ** 30
     assert big.get_number_at(1) == pytest.approx(1e30)  # no silent whole-number overflow
-    assert (numbers([2, 3]) ** 2).as_numpy().dtype.kind == "i"
+    assert (number_list([2, 3]) ** 2).as_numpy().dtype.kind == "i"
 
 
 def test_one_at_a_time_words(capsys):
@@ -280,18 +280,18 @@ def test_one_at_a_time_words(capsys):
         ("take_exp", {}, np.exp(v)),
     ]
     for word, kw, expected in checks:
-        nums = numbers(v)
+        nums = number_list(v)
         getattr(nums, word)(**kw)
         same(nums, expected)
     out = capsys.readouterr().out
     assert "a negative number has no square root, so 1 number is now empty" in out
     assert "the log only exists for numbers above 0, so 2 numbers are now empty" in out
     with pytest.raises(SimplydataError, match="base="):
-        numbers(v).take_log(base=1)
+        number_list(v).take_log(base=1)
 
 
 def test_round_half_to_even():
-    nums = numbers([0.5, 1.5, 2.5, 3.5, 2.675, 1234])
+    nums = number_list([0.5, 1.5, 2.5, 3.5, 2.675, 1234])
     nums.round_to(0)
     same(nums, np.round([0.5, 1.5, 2.5, 3.5, 2.675, 1234]))
     same(nums.as_numpy()[:4], [0, 2, 2, 4])
@@ -305,14 +305,14 @@ def test_round_half_to_even():
 
 
 def test_order_words():
-    nums = numbers([3, NAN, 1, 2])
+    nums = number_list([3, NAN, 1, 2])
     nums.sort()
     same(nums, [1, 2, 3, NAN])
     nums.sort(biggest_first=True)
     same(nums, [3, 2, 1, NAN])
     nums.reverse()
     same(nums, [NAN, 1, 2, 3])
-    nums = numbers([1, 2, NAN, 3])
+    nums = number_list([1, 2, NAN, 3])
     nums.turn_into_running_total()
     same(nums, pd.Series([1, 2, NAN, 3]).cumsum())
     with pytest.raises(SimplydataError, match="True or False"):
@@ -320,7 +320,7 @@ def test_order_words():
 
 
 def test_history_words(capsys):
-    nums = numbers([1, 2, 3])
+    nums = number_list([1, 2, 3])
     nums.add(1)
     nums.times(2)
     nums.show_steps()
@@ -339,7 +339,7 @@ def test_history_words(capsys):
 # ====================================================================== summaries
 def test_summaries_match_numpy(capsys):
     v = np.array([3.0, 5.0, NAN, 2.0, 8.0])
-    nums = numbers(v)
+    nums = number_list(v)
     assert nums.find_average() == pytest.approx(np.nanmean(v))
     assert nums.find_median() == pytest.approx(np.nanmedian(v))
     assert nums.find_total() == pytest.approx(np.nansum(v))
@@ -349,21 +349,21 @@ def test_summaries_match_numpy(capsys):
     assert nums.find_percentile(90) == pytest.approx(np.nanpercentile(v, 90))
     assert nums.count() == 5 and nums.count_empty_numbers() == 1 and len(nums) == 5
     assert "1 empty value was skipped" in capsys.readouterr().out
-    assert isinstance(numbers([1, 2]).find_total(), int)
+    assert isinstance(number_list([1, 2]).find_total(), int)
 
 
 def test_summaries_on_nothing(capsys):
-    empty = numbers([NAN, NAN])
+    empty = number_list([NAN, NAN])
     assert np.isnan(empty.find_average())
     assert empty.find_total() == 0
-    assert np.isnan(numbers([4]).find_standard_deviation())
+    assert np.isnan(number_list([4]).find_standard_deviation())
     assert "at least 2 numbers" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="0 to 100"):
-        numbers([1, 2]).find_percentile(120)
+        number_list([1, 2]).find_percentile(120)
 
 
 def test_count_each():
-    table = numbers([2, 1, 2, NAN, 2, 1]).count_each()
+    table = number_list([2, 1, 2, NAN, 2, 1]).count_each()
     plain = table._done()
     assert list(plain.columns) == ["number", "count", "percent"]
     assert plain["number"].tolist()[:2] == [2, 1]
@@ -372,7 +372,7 @@ def test_count_each():
 
 
 def test_summary_names_and_hints():
-    nums = numbers([1, 2])
+    nums = number_list([1, 2])
     with pytest.raises(SimplydataError, match=r"numbers\.find_average\(\)"):
         nums.find_average_of()
     with pytest.raises(SimplydataError, match=r"numbers\.find_average\(\)"):
@@ -405,7 +405,7 @@ def test_grid_maths_and_swap():
     same(grid * 2, g * 2)
     same(grid + grid, g + g)
     same(grid + [10, 20, 30], g + [10, 20, 30])  # one number per column
-    same(numbers([1, 1, 1]) + grid, g + 1)
+    same(number_list([1, 1, 1]) + grid, g + 1)
     assert isinstance(grid ** 2, NumberGrid)
     grid.take_square_root()
     same(grid, np.sqrt(g))
@@ -423,7 +423,7 @@ def test_grid_maths_and_swap():
 
 # ====================================================================== finishing and charts
 def test_done_table_save(tmp_path):
-    nums = numbers([1, 2, 3])
+    nums = number_list([1, 2, 3])
     plain = nums.as_numpy()
     assert isinstance(plain, np.ndarray)
     plain[0] = 99
@@ -441,7 +441,7 @@ def test_done_table_save(tmp_path):
 
 
 def test_charts_and_tables_accept_numbers():
-    nums = numbers([3, 5, 2])
+    nums = number_list([3, 5, 2])
     assert is_listlike(nums)
     assert load(nums)["value"].tolist() == [3, 5, 2]
     grid = number_grid([[1, 2], [3, 4]])
@@ -453,7 +453,7 @@ def test_charts_and_tables_accept_numbers():
     sdata.chart().draw_lines(nums).draw_dots(x=nums, y=nums * 2).draw_histogram(x=nums)._render()
     sdata.chart(grid).draw_heatmap(with_numbers=True)._render()
     grid.start_chart().draw_heatmap()._render()
-    nums.start_chart().draw_bars(x=numbers(1, to=3), y="value")._render()
+    nums.start_chart().draw_bars(x=number_list(1, to=3), y="value")._render()
     assert sdata.table(nums).get_column_names() == ["value"]
     assert sdata.table(grid).count_rows() == 2
 
@@ -469,10 +469,10 @@ def test_every_word_has_a_docstring_with_an_example():
 
 def test_fill_empty_numbers_with_the_line_between_neighbours(capsys):
     values = [np.nan, 1.0, np.nan, np.nan, 7.0, 8.0, np.nan]
-    nums = numbers(values)
+    nums = number_list(values)
     nums.fill_empty_numbers(with_the="line between neighbours")
     expected = pd.Series(values).interpolate(limit_area="inside")
     same(nums.as_numpy(), expected.to_numpy())
     out = capsys.readouterr().out
     assert "Filled 2 empty values. 2 values stayed empty (at the start or end" in out
-    numbers([1.0, np.nan, 3.0]).fill_empty_numbers(with_the="line between neighbors")  # US spelling too
+    number_list([1.0, np.nan, 3.0]).fill_empty_numbers(with_the="line between neighbors")  # US spelling too

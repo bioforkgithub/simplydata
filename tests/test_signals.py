@@ -42,7 +42,7 @@ def column(result, name):
 # ---------------------------------------------------------------------------- periodogram
 def test_periodogram_matches_r_spec_pgram(capsys):
     # s <- spec.pgram(ts(x, frequency = 100), taper = 0, detrend = FALSE, demean = TRUE, fast = FALSE)
-    got = sdata.numbers(X.tolist()).find_spectrum(time_step=0.01)
+    got = sdata.number_list(X.tolist()).find_spectrum(time_step=0.01)
     freq, power = column(got, "frequency"), column(got, "power")
     assert len(freq) == 101 and freq[0] == 0 and freq[-1] == pytest.approx(50)
     assert freq[10] == pytest.approx(5) and freq[40] == pytest.approx(20)
@@ -63,7 +63,7 @@ def test_periodogram_matches_r_spec_pgram(capsys):
 
 
 def test_spectrum_other_spellings_and_shows():
-    nums = sdata.numbers(X.tolist())
+    nums = sdata.number_list(X.tolist())
     base = column(nums.find_spectrum(time_step=0.01), "power")
     assert np.allclose(column(nums.find_spectrum(sampling_rate=100), "power"), base)
     assert np.allclose(column(nums.find_spectrum(fs=100), "power"), base)
@@ -83,7 +83,7 @@ def test_welch_matches_scipys_formula_written_in_r(capsys):
     # welch_r <- function(x, fs, m) { w <- 0.5 - 0.5 * cos(2 * pi * (0:(m - 1)) / m); pieces from
     #   seq(1, n - m + 1, by = m / 2), each mean removed, x w, Mod(fft)^2 / (fs * sum(w^2)), averaged,
     #   all but the first and last doubled };  W <- welch_r(x, 100, 64)
-    got = sdata.numbers(X.tolist()).find_spectrum(time_step=0.01, test_method="welch", window=64)
+    got = sdata.number_list(X.tolist()).find_spectrum(time_step=0.01, test_method="welch", window=64)
     power = column(got, "power")
     assert len(power) == 33
     assert power[3] == pytest.approx(0.202465540197663, rel=1e-10)  # W[4], freq 4.6875
@@ -96,7 +96,7 @@ def test_welch_matches_scipys_formula_written_in_r(capsys):
 # ---------------------------------------------------------------------------- lomb-scargle (R)
 def test_lomb_scargle_is_r_lsp(capsys, needs_r):
     # l <- lomb::lsp(yy, times = tt, type = "frequency", normalize = "standard", ofac = 1)
-    got = sdata.numbers(YY.tolist()).find_spectrum(test_method="lomb-scargle", time_points=TT.tolist())
+    got = sdata.number_list(YY.tolist()).find_spectrum(test_method="lomb-scargle", time_points=TT.tolist())
     freq, power = column(got, "frequency"), column(got, "power")
     assert len(freq) == 40
     assert freq[:3] == pytest.approx([0.126796120620927, 0.253592241241854, 0.380388361862780], rel=1e-12)
@@ -156,8 +156,8 @@ def test_spectrum_errors(engine):
     with pytest.raises(SimplydataError, match="method"):
         t.find_spectrum_of("level", test_method="fourier")
     with pytest.raises(SimplydataError, match="between="):
-        sdata.numbers(X.tolist()).find_spectrum(between=[5])
+        sdata.number_list(X.tolist()).find_spectrum(between=[5])
     with pytest.raises(SimplydataError, match="only one of"):
-        sdata.numbers(X.tolist()).find_spectrum(time_step=0.01, fs=100)
+        sdata.number_list(X.tolist()).find_spectrum(time_step=0.01, fs=100)
     with pytest.raises(SimplydataError, match="welch"):
-        sdata.numbers(X.tolist()).find_spectrum(window=64)
+        sdata.number_list(X.tolist()).find_spectrum(window=64)

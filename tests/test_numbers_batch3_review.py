@@ -97,7 +97,7 @@ def test_show_as_fraction_docstring_matches_what_it_shows(needs_sympy, capsys):
 
     doc = sdata.Numbers.show_as_fraction.__doc__
     assert "0.333333 as 1/3" not in doc and "333333/1000000" in doc
-    sdata.numbers([0.333333, 1 / 3, 0.25]).show_as_fraction()
+    sdata.number_list([0.333333, 1 / 3, 0.25]).show_as_fraction()
     expected = [str(sp.nsimplify(v, rational=True)) for v in (0.333333, 1 / 3, 0.25)]
     assert capsys.readouterr().out.splitlines()[0] == "[" + ", ".join(expected) + "]" == "[333333/1000000, 1/3, 1/4]"
 

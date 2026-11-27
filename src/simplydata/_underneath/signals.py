@@ -32,7 +32,7 @@ ENTRIES = [
     Entry(
         word="nums.smooth",
         ours="""
-            numbers = sdata.numbers([3, 5, 4, 30, 6, 7, 5, 8, 6, 9])
+            numbers = sdata.number_list([3, 5, 4, 30, 6, 7, 5, 8, 6, 9])
             numbers.smooth()
         """,
         code={"SciPy": """
@@ -57,7 +57,7 @@ ENTRIES = [
     Entry(
         word="nums.remove_trend",
         ours="""
-            numbers = sdata.numbers([2, 4, 3, 7, 6, 9, 8, 12])
+            numbers = sdata.number_list([2, 4, 3, 7, 6, 9, 8, 12])
             numbers.remove_trend()
         """,
         code={"SciPy": """
@@ -302,7 +302,7 @@ ENTRIES += [
     Entry(
         word="nums.find_each_peak_that",
         ours="""
-            numbers = sdata.numbers([0, 2, 1, 3, 3, 1, 5, 0, 4, 1])
+            numbers = sdata.number_list([0, 2, 1, 3, 3, 1, 5, 0, 4, 1])
             numbers.find_each_peak_that(is_at_least=2)
         """,
         code={"SciPy": """
@@ -329,7 +329,7 @@ ENTRIES += [
     Entry(
         word="nums.find_each_dip_that",
         ours="""
-            numbers = sdata.numbers([5, 2, 4, 1, 6, 3, 3, 7, 0, 4])
+            numbers = sdata.number_list([5, 2, 4, 1, 6, 3, 3, 7, 0, 4])
             numbers.find_each_dip_that(is_at_most=2)
         """,
         code={"SciPy": """
@@ -581,7 +581,7 @@ ENTRIES += [
     Entry(
         word="nums.take_fourier_transform",
         ours="""
-            numbers = sdata.numbers([1, 3, 2, 5, 4, 6, 5, 8])
+            numbers = sdata.number_list([1, 3, 2, 5, 4, 6, 5, 8])
             numbers.take_fourier_transform(time_step=0.5)
         """,
         code={"SciPy": """
@@ -605,7 +605,7 @@ ENTRIES += [
     Entry(
         word="sdata.find_inverse_fourier_transform",
         ours="""
-            numbers = sdata.numbers([1, 3, 2, 5, 4])
+            numbers = sdata.number_list([1, 3, 2, 5, 4])
             table = numbers.take_fourier_transform()
             sdata.find_inverse_fourier_transform(table)
         """,
@@ -626,7 +626,7 @@ ENTRIES += [
     Entry(
         word="nums.convolve_with",
         ours="""
-            numbers = sdata.numbers([1, 2, 3])
+            numbers = sdata.number_list([1, 2, 3])
             numbers.convolve_with([1, 2, 1])
         """,
         code={"SciPy": """
@@ -643,7 +643,7 @@ ENTRIES += [
     Entry(
         word="nums.deconvolve_by",
         ours="""
-            numbers = sdata.numbers([0, 1, 2.5, 4, 1.5])
+            numbers = sdata.number_list([0, 1, 2.5, 4, 1.5])
             numbers.deconvolve_by([1, 2, 3])
         """,
         code={"SciPy": """

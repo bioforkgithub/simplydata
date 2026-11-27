@@ -118,9 +118,9 @@ def test_old_method_on_adjusted_p_values(capsys):
 
 def test_old_method_on_numbers(capsys):
     values = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
-    new = sdata.numbers(values).smooth(test_method="median", window=3).as_numpy()
+    new = sdata.number_list(values).smooth(test_method="median", window=3).as_numpy()
     capsys.readouterr()
-    old = sdata.numbers(values).smooth(method="median", window=3).as_numpy()
+    old = sdata.number_list(values).smooth(method="median", window=3).as_numpy()
     assert np.array_equal(old, new, equal_nan=True)
     assert notes(capsys.readouterr().out) == [note("method=", "test_method=")]
 

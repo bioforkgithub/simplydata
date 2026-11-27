@@ -40,7 +40,7 @@ def cases(Case):
     return [
         # ---- looking
         Case("nums.show", "all 100 of Michelson's measurements shown", "NIST Michelso", "real data",
-             ours=_printed('sdata.numbers(data["y"].tolist()).show()', """
+             ours=_printed('sdata.number_list(data["y"].tolist()).show()', """
                  {"numbers shown": len(printed), "total shown": sum(printed)}
              """),
              parent="""
@@ -50,7 +50,7 @@ def cases(Case):
                  list(`numbers shown` = length(y), `total shown` = sum(y))
              """, r_tolerance=1e-12),
         Case("nums.show_first_numbers", "the first 5 months of AirPassengers shown", "AirPassengers", "real data",
-             ours=_printed('sdata.numbers(data["passengers"].tolist()).show_first_numbers(5)', """
+             ours=_printed('sdata.number_list(data["passengers"].tolist()).show_first_numbers(5)', """
                  {"numbers shown": len(printed), "total shown": sum(printed)}
              """),
              parent="""
@@ -60,7 +60,7 @@ def cases(Case):
                  list(`total shown` = sum(head(passengers, 5)))
              """, r_tolerance=0.0),
         Case("nums.show_last_numbers", "the 12 months of 1960 in AirPassengers shown", "AirPassengers", "real data",
-             ours=_printed('sdata.numbers(data["passengers"].tolist()).show_last_numbers(12)', """
+             ours=_printed('sdata.number_list(data["passengers"].tolist()).show_last_numbers(12)', """
                  {"numbers shown": len(printed), "total shown": sum(printed)}
              """),
              parent="""
@@ -72,7 +72,7 @@ def cases(Case):
         Case("nums.get_number_at", "the first and the last month of AirPassengers, counting from 1", "AirPassengers",
              "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  {"month 1": numbers.get_number_at(1), "month 144": numbers.get_number_at(144),
                   "last": numbers.get_number_at("last")}
              """,
@@ -85,7 +85,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.count", "NHANES body mass index: 25 places, empty ones included", "nhanes (mice)", "real data",
              ours="""
-                 {"count": sdata.numbers(data["bmi"].tolist()).count()}
+                 {"count": sdata.number_list(data["bmi"].tolist()).count()}
              """,
              parent="""
                  {"count": data["bmi"].to_numpy().size}
@@ -95,7 +95,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.count_empty_numbers", "the empty cells of NHANES body mass index", "nhanes (mice)", "real data",
              ours="""
-                 {"empty": sdata.numbers(data["bmi"].tolist()).count_empty_numbers()}
+                 {"empty": sdata.number_list(data["bmi"].tolist()).count_empty_numbers()}
              """,
              parent="""
                  {"empty": int(np.isnan(data["bmi"].to_numpy()).sum())}
@@ -107,7 +107,7 @@ def cases(Case):
         Case("nums.add", "1 added to NHANES body mass index: the empty cells stay empty", "nhanes (mice)",
              "real data",
              ours="""
-                 numbers = sdata.numbers(data["bmi"].tolist())
+                 numbers = sdata.number_list(data["bmi"].tolist())
                  numbers.add(1)
                  {"total": numbers.find_total(), "empty": numbers.count_empty_numbers()}
              """,
@@ -121,7 +121,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.subtract", "Michelson's measurements less 299 (thousand km/s)", "NIST Michelso", "real data",
              ours="""
-                 numbers = sdata.numbers(data["y"].tolist())
+                 numbers = sdata.number_list(data["y"].tolist())
                  numbers.subtract(299)
                  {"total": numbers.find_total(), "first": numbers.get_number_at(1)}
              """,
@@ -135,7 +135,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.times", "mtcars weights from thousands of pounds to pounds", "mtcars", "real data",
              ours="""
-                 numbers = sdata.numbers(data["wt"].tolist())
+                 numbers = sdata.number_list(data["wt"].tolist())
                  numbers.times(1000)
                  {"total pounds": numbers.find_total(), "heaviest": numbers.find_biggest()}
              """,
@@ -148,7 +148,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.divide_by", "mtcars horsepower per thousand pounds, car by car", "mtcars", "real data",
              ours="""
-                 numbers = sdata.numbers(data["hp"].tolist())
+                 numbers = sdata.number_list(data["hp"].tolist())
                  numbers.divide_by(data["wt"].tolist())
                  {"total": numbers.find_total(), "biggest": numbers.find_biggest(),
                   "empty": numbers.count_empty_numbers()}
@@ -162,7 +162,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.raise_to_power", "iris sepal lengths squared", "iris", "real data",
              ours="""
-                 numbers = sdata.numbers(data["Sepal.Length"].tolist())
+                 numbers = sdata.number_list(data["Sepal.Length"].tolist())
                  numbers.raise_to_power(2)
                  {"total": numbers.find_total()}
              """,
@@ -174,7 +174,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.take_square_root", "square roots of mtcars engine sizes", "mtcars", "real data",
              ours="""
-                 numbers = sdata.numbers(data["disp"].tolist())
+                 numbers = sdata.number_list(data["disp"].tolist())
                  numbers.take_square_root()
                  {"total": numbers.find_total(), "first": numbers.get_number_at(1)}
              """,
@@ -188,7 +188,7 @@ def cases(Case):
         Case("nums.take_absolute_value", "how far each of Michelson's measurements lies from their average",
              "NIST Michelso", "real data",
              ours="""
-                 numbers = sdata.numbers(data["y"].tolist())
+                 numbers = sdata.number_list(data["y"].tolist())
                  numbers.subtract(299.8524)
                  numbers.take_absolute_value()
                  {"total distance": numbers.find_total(), "biggest": numbers.find_biggest()}
@@ -204,7 +204,7 @@ def cases(Case):
         Case("nums.round_to", "mtcars miles per gallon to whole numbers: 21.5 and 15.5 go to the even neighbour",
              "mtcars", "real data",
              ours="""
-                 numbers = sdata.numbers(data["mpg"].tolist())
+                 numbers = sdata.number_list(data["mpg"].tolist())
                  numbers.round_to(0)
                  {"total": numbers.find_total(), "Toyota Corona (21.5)": numbers.get_number_at(21)}
              """,
@@ -217,7 +217,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.take_log", "natural logs of the 144 AirPassengers months", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.take_log()
                  {"total": numbers.find_total(), "first": numbers.get_number_at(1)}
              """,
@@ -230,7 +230,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.take_exp", "e to the power of each iris petal width", "iris", "real data",
              ours="""
-                 numbers = sdata.numbers(data["Petal.Width"].tolist())
+                 numbers = sdata.number_list(data["Petal.Width"].tolist())
                  numbers.take_exp()
                  {"total": numbers.find_total()}
              """,
@@ -242,7 +242,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.turn_into_running_total", "AirPassengers added up month by month", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.turn_into_running_total()
                  {"after 12 months": numbers.get_number_at(12), "after 144 months": numbers.get_number_at("last")}
              """,
@@ -257,7 +257,7 @@ def cases(Case):
         Case("nums.remove_each_number_that", "NHANES body mass index below 25 removed: the empty cells stay",
              "nhanes (mice)", "real data",
              ours="""
-                 numbers = sdata.numbers(data["bmi"].tolist())
+                 numbers = sdata.number_list(data["bmi"].tolist())
                  numbers.remove_each_number_that(is_below=25)
                  {"left": numbers.count(), "empty left": numbers.count_empty_numbers(), "total": numbers.find_total()}
              """,
@@ -272,7 +272,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.keep_first_numbers", "the 12 months of 1949 in AirPassengers", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.keep_first_numbers(12)
                  {"kept": numbers.count(), "total": numbers.find_total()}
              """,
@@ -284,7 +284,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.keep_last_numbers", "the 12 months of 1960 in AirPassengers", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.keep_last_numbers(12)
                  {"kept": numbers.count(), "total": numbers.find_total()}
              """,
@@ -297,7 +297,7 @@ def cases(Case):
         Case("nums.keep_random_numbers", "10 of Michelson's measurements picked at random (seed 1)", "NIST Michelso",
              "real data",
              ours="""
-                 numbers = sdata.numbers(data["y"].tolist())
+                 numbers = sdata.number_list(data["y"].tolist())
                  numbers.keep_random_numbers(10, with_seed=1)
                  {"kept": numbers.count(), "total": numbers.find_total(), "first kept": numbers.get_number_at(1)}
              """,
@@ -309,7 +309,7 @@ def cases(Case):
         Case("nums.remove_duplicate_numbers", "the different values among Michelson's measurements, in first-seen "
              "order", "NIST Michelso", "real data",
              ours="""
-                 numbers = sdata.numbers(data["y"].tolist())
+                 numbers = sdata.number_list(data["y"].tolist())
                  numbers.remove_duplicate_numbers()
                  {"different": numbers.count(), "total": numbers.find_total(), "third": numbers.get_number_at(3)}
              """,
@@ -323,7 +323,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.remove_empty_numbers", "NHANES cholesterol without its empty cells", "nhanes (mice)", "real data",
              ours="""
-                 numbers = sdata.numbers(data["chl"].tolist())
+                 numbers = sdata.number_list(data["chl"].tolist())
                  numbers.remove_empty_numbers()
                  {"left": numbers.count(), "total": numbers.find_total()}
              """,
@@ -338,7 +338,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.keep_numbers_by_position", "months 13 to 24 (1950) of AirPassengers", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.keep_numbers_by_position(13, to=24)
                  {"kept": numbers.count(), "total": numbers.find_total()}
              """,
@@ -351,7 +351,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.remove_numbers_by_position", "AirPassengers without its first year", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.remove_numbers_by_position(1, to=12)
                  {"left": numbers.count(), "total": numbers.find_total()}
              """,
@@ -366,7 +366,7 @@ def cases(Case):
         Case("nums.replace_each_number_that", "NHANES body mass index above 30 set to 30: the empty cells stay empty",
              "nhanes (mice)", "real data",
              ours="""
-                 numbers = sdata.numbers(data["bmi"].tolist())
+                 numbers = sdata.number_list(data["bmi"].tolist())
                  numbers.replace_each_number_that(is_above=30, with_value=30)
                  {"total": numbers.find_total(), "empty": numbers.count_empty_numbers(),
                   "biggest": numbers.find_biggest()}
@@ -384,7 +384,7 @@ def cases(Case):
         Case("nums.fill_empty_numbers", "NHANES body mass index: gaps filled on the line between neighbours",
              "nhanes (mice)", "real data",
              ours="""
-                 numbers = sdata.numbers(data["bmi"].tolist())
+                 numbers = sdata.number_list(data["bmi"].tolist())
                  numbers.fill_empty_numbers(with_the="line between neighbours")
                  {"total": numbers.find_total(), "empty left": numbers.count_empty_numbers()}
              """,
@@ -399,7 +399,7 @@ def cases(Case):
         # ---- order
         Case("nums.sort", "NHANES body mass index biggest first, the empty cells last", "nhanes (mice)", "real data",
              ours="""
-                 numbers = sdata.numbers(data["bmi"].tolist())
+                 numbers = sdata.number_list(data["bmi"].tolist())
                  numbers.sort(biggest_first=True)
                  {"first": numbers.get_number_at(1), "16th": numbers.get_number_at(16),
                   "empty at the end": numbers.count_empty_numbers()}
@@ -414,7 +414,7 @@ def cases(Case):
              """, r_tolerance=0.0),
         Case("nums.reverse", "AirPassengers from the last month back", "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.reverse()
                  {"first": numbers.get_number_at(1), "last": numbers.get_number_at("last")}
              """,
@@ -430,7 +430,7 @@ def cases(Case):
         Case("nums.find_total", "the total of NHANES body mass index, empty cells skipped", "nhanes (mice)",
              "real data",
              ours="""
-                 {"total": sdata.numbers(data["bmi"].tolist()).find_total()}
+                 {"total": sdata.number_list(data["bmi"].tolist()).find_total()}
              """,
              parent="""
                  {"total": np.nansum(data["bmi"].to_numpy())}
@@ -441,7 +441,7 @@ def cases(Case):
         Case("nums.find_smallest", "the smallest NHANES body mass index, empty cells skipped", "nhanes (mice)",
              "real data",
              ours="""
-                 {"smallest": sdata.numbers(data["bmi"].tolist()).find_smallest()}
+                 {"smallest": sdata.number_list(data["bmi"].tolist()).find_smallest()}
              """,
              parent="""
                  {"smallest": np.nanmin(data["bmi"].to_numpy())}
@@ -452,7 +452,7 @@ def cases(Case):
         Case("nums.find_biggest", "the biggest NHANES body mass index, empty cells skipped", "nhanes (mice)",
              "real data",
              ours="""
-                 {"biggest": sdata.numbers(data["bmi"].tolist()).find_biggest()}
+                 {"biggest": sdata.number_list(data["bmi"].tolist()).find_biggest()}
              """,
              parent="""
                  {"biggest": np.nanmax(data["bmi"].to_numpy())}
@@ -463,7 +463,7 @@ def cases(Case):
         Case("nums.find_standard_deviation", "the standard deviation of NHANES cholesterol, empty cells skipped",
              "nhanes (mice)", "real data",
              ours="""
-                 {"standard deviation": sdata.numbers(data["chl"].tolist()).find_standard_deviation()}
+                 {"standard deviation": sdata.number_list(data["chl"].tolist()).find_standard_deviation()}
              """,
              parent="""
                  {"standard deviation": np.nanstd(data["chl"].to_numpy(), ddof=1)}
@@ -473,7 +473,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.count_each", "how many mtcars cars have 4, 6 and 8 cylinders", "mtcars", "real data",
              ours="""
-                 counts = sdata.numbers(data["cyl"].tolist()).count_each()
+                 counts = sdata.number_list(data["cyl"].tolist()).count_each()
                  {"first number": counts.get_cell_at(row=1, column="number"),
                   "its count": counts.get_cell_at(row=1, column="count"),
                   "its percent": counts.get_cell_at(row=1, column="percent"),
@@ -491,7 +491,7 @@ def cases(Case):
         Case("nums.make_number_grid", "AirPassengers as a grid of 12 years by 12 months", "AirPassengers",
              "real data",
              ours="""
-                 grid = sdata.numbers(data["passengers"].tolist()).make_number_grid(columns=12)
+                 grid = sdata.number_list(data["passengers"].tolist()).make_number_grid(columns=12)
                  {"rows": grid.count_rows(), "all Julys": grid.get_column(7).find_total(),
                   "1955": grid.get_row(7).find_total()}
              """,
@@ -692,7 +692,7 @@ def cases(Case):
         Case("nums.turn_into_table", "Michelson's measurements as a table of one column", "NIST Michelso",
              "real data",
              ours="""
-                 table = sdata.numbers(data["y"].tolist()).turn_into_table()
+                 table = sdata.number_list(data["y"].tolist()).turn_into_table()
                  {"columns": len(table.get_column_names()), "total": table.get_column("value").find_total()}
              """,
              parent="""
@@ -702,7 +702,7 @@ def cases(Case):
         Case("nums.start_chart", "a histogram of Michelson's measurements, started from the numbers",
              "NIST Michelso", "real data",
              ours="""
-                 chart = sdata.numbers(data["y"].tolist()).start_chart()
+                 chart = sdata.number_list(data["y"].tolist()).start_chart()
                  heights = chart.draw_histogram(x="value").get_numbers_drawn().get_column("y")
                  {"bars": heights.count(), "numbers counted": heights.find_total(), "tallest": heights.find_biggest()}
              """,
@@ -724,7 +724,7 @@ def cases(Case):
                  import os
                  import tempfile
                  with tempfile.TemporaryDirectory() as folder:
-                     sdata.numbers(data["y"].tolist()).save(os.path.join(folder, "michelson.csv"))
+                     sdata.number_list(data["y"].tolist()).save(os.path.join(folder, "michelson.csv"))
                      back = sdata.table(os.path.join(folder, "michelson.csv"), separator=",")
                  values = back.get_column("value")
                  {"rows": values.count(), "total": values.find_total(), "columns": len(back.get_column_names())}
@@ -739,7 +739,7 @@ def cases(Case):
              """, parent_label="pandas to_csv and read_csv", parent_tolerance=1e-12),
         Case("nums.as_numpy", "Michelson's measurements handed on as a NumPy array", "NIST Michelso", "real data",
              ours="""
-                 back = sdata.numbers(sdata.numbers(data["y"].tolist()).as_numpy())
+                 back = sdata.number_list(sdata.number_list(data["y"].tolist()).as_numpy())
                  {"numbers": back.count(), "total": back.find_total()}
              """,
              parent="""

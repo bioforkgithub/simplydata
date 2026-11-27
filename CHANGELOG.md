@@ -5,13 +5,20 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: `sdata.numbers` is now `sdata.number_list` (check your code)
+
+- `sdata.number_list([3, 5, 2, 8])` makes a list of numbers, so the three makers read alike:
+  `sdata.number_list`, `sdata.number_grid` and `sdata.number_block`. `sdata.numbers(...)` still works for one
+  release and prints a one-line note with the new name; `sdata.help("numbers")` says the same.
+
 ### Changed: examples write names in full
 
 - Every example, help text, lesson and message now writes `formula = sdata.formula(...)`,
-  `numbers = sdata.numbers(...)` and `distribution = sdata.distribution(...)`, then `formula.turn_into_sum()`,
-  `numbers.find_average()` and `distribution.find_percentile(95)`, in place of the short names `f`, `nums` and
-  `dist`. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")` and
-  `sdata.help("distribution.find_median")` work, as the short names still do.
+  `numbers = sdata.number_list(...)` and `distribution = sdata.distribution(...)`, then
+  `formula.turn_into_sum()`, `numbers.find_average()` and `distribution.find_percentile(95)`, in place of the
+  short names `f`, `nums` and `dist`. Headings, the manual, the dictionary and `sdata.help()` show the words the
+  same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
+  and `sdata.help("distribution.find_median")` work, as the short names still do.
 
 ### Changed: minimum versions
 

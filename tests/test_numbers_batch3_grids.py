@@ -14,7 +14,7 @@ PLATE = [[1, 8, 9, 2], [0, 7, 1, 1], [6, 0, 0, 9]]
 
 def test_take_cube_root_is_numpy_cbrt_on_numbers_and_grids():
     values = [27, -8, 1000, 2, 0.001]
-    nums = sdata.numbers(values)
+    nums = sdata.number_list(values)
     nums.take_cube_root()
     np.testing.assert_array_equal(nums.as_numpy(), np.cbrt(np.array(values, dtype=float)))
     assert nums.get_number_at(2) == -2.0  # raise_to_power(1/3) would give an empty value here
@@ -28,27 +28,27 @@ def test_take_cube_root_is_numpy_cbrt_on_numbers_and_grids():
 
 def test_take_cosine_transform_is_scipy_dct_ortho():
     values = [1.0, 2, 3, 4, 7, 1]
-    nums = sdata.numbers(values)
+    nums = sdata.number_list(values)
     nums.take_cosine_transform()
     np.testing.assert_array_equal(nums.as_numpy(), fft.dct(values, type=2, norm="ortho"))
     assert (nums.as_numpy() ** 2).sum() == pytest.approx(sum(v * v for v in values), rel=1e-14)
     with pytest.raises(sdata.SimplydataError, match="fill the empty"):
-        sdata.numbers([1, None]).take_cosine_transform()
+        sdata.number_list([1, None]).take_cosine_transform()
 
 
 def test_find_coherence_with_is_scipy_coherence():
     t = 0.01 * np.arange(2000)
     a = np.sin(2 * np.pi * 5 * t) + 0.3 * np.cos(2 * np.pi * 17 * t)
     b = np.sin(2 * np.pi * 5 * t + 1) + np.cos(2 * np.pi * 13 * t)
-    table = sdata.numbers(a).find_coherence_with(b, time_step=0.01).as_pandas()
+    table = sdata.number_list(a).find_coherence_with(b, time_step=0.01).as_pandas()
     f, c = signal.coherence(a, b, fs=100, nperseg=256)  # long enough for SciPy's own segments
     np.testing.assert_array_equal(table["frequency"], f)
     np.testing.assert_allclose(table["coherence"], c, rtol=1e-13)
-    short = sdata.numbers(a[:300]).find_coherence_with(b[:300], time_step=0.01).as_pandas()
+    short = sdata.number_list(a[:300]).find_coherence_with(b[:300], time_step=0.01).as_pandas()
     f2, c2 = signal.coherence(a[:300], b[:300], fs=100, nperseg=int(300 // 4.5))  # eight half-overlapping segments
     np.testing.assert_allclose(short["coherence"], c2, rtol=1e-13)
     with pytest.raises(sdata.SimplydataError, match="same length"):
-        sdata.numbers(a).find_coherence_with(b[:10])
+        sdata.number_list(a).find_coherence_with(b[:10])
 
 
 def test_get_numbers_at_pairs_counts_from_1():
@@ -139,7 +139,7 @@ def test_grid_and_number_other_names_point_to_the_new_words():
                        ("take_along_axis", "get_numbers_from_each_row_at"), ("label", "find_each_patch_that")]:
         with pytest.raises(AttributeError, match=word):
             getattr(grid, name)
-    nums = sdata.numbers([1, 2])
+    nums = sdata.number_list([1, 2])
     for name in ("cbrt", "dct", "coherence", "cumulative_trapezoid", "nsimplify"):
         assert name in OTHER_NAMES["numbers"]
         with pytest.raises(AttributeError):

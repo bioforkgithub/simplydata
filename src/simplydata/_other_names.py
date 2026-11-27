@@ -20,7 +20,7 @@ _SDATA = [
     ('sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)', "chirp square sawtooth gausspulse unit_impulse"),
     ('sdata.make_window_shape("hann", how_many=64)', "hann hanning hamming blackman get_window"),
     ("sdata.find_inverse_fourier_transform(table)", "ifft irfft"),
-    ('sdata.numbers("call.wav")', "readWave wavread read_wav"),
+    ('sdata.number_list("call.wav")', "readWave wavread read_wav"),
     ('sdata.system("1 / (s**2 + 2*s + 5)")',
      "lti dlti tf ss zpk TransferFunction StateSpace ZerosPolesGain transfer_function state_space"),
     ("sdata.frequency_filter(keep_below=10, time_step=0.005)", "freqz sosfreqz iirfilter iirdesign"),
@@ -89,12 +89,12 @@ _SDATA = [
     ("sdata.number_grid([[2, 1], [1, 2]]), then grid.find_determinant()", "det"),
     ("sdata.number_grid([[2, 1], [1, 2]]), then grid.take_inverse()", "inv"),
     ("sdata.number_grid([[2, 1], [1, 2]]), then grid.find_eigenvalues()", "eig eigvals eigvalsh eigen eigenvals"),
-    ("sdata.numbers(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
+    ("sdata.number_list(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
     # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
     ('sdata.number_block("sst.nc", values="sst")',
      "open_dataset open_mfdataset open_dataarray Dataset nc_open ncvar_get rast read_stars ncread"),
     ('sdata.show_whats_inside("sst.nc")', "ncdump ncinfo ncdisp"),
-    ('sdata.numbers("readings.txt", empty_values=[-999])', "genfromtxt loadtxt"),
+    ('sdata.number_list("readings.txt", empty_values=[-999])', "genfromtxt loadtxt"),
     ("sdata.count_ways_to_choose(3, out_of=10)", "comb binom nchoosek choose"),
     ("sdata.count_ways_to_order(3, out_of=10)", "perm perms"),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25)

@@ -200,7 +200,7 @@ ENTRIES = [
        option="in_groups_of="),
     # ---- numbers
     _e("nums.make_random_picks", """
-            numbers = sdata.numbers([4.2, 5.1, 3.8, 6.0, 4.9])
+            numbers = sdata.number_list([4.2, 5.1, 3.8, 6.0, 4.9])
             numbers.make_random_picks(how_many=8, with_chances=[0.1, 0.2, 0.3, 0.2, 0.2], with_seed=3)
         """, {"NumPy": """
             import numpy as np
@@ -211,7 +211,7 @@ ENTRIES = [
         """}, "with_chances= must add up to 1, as NumPy asks; putting_back=False picks each number at most once.",
        choices=("putting each pick back is the default, as NumPy's choice and a bootstrap sample.",)),
     _e("nums.take_log_odds", """
-            numbers = sdata.numbers([0.1, 0.5, 0.8, 0.0])
+            numbers = sdata.number_list([0.1, 0.5, 0.8, 0.0])
             numbers.take_log_odds()
         """, {"SciPy": """
             import numpy as np
@@ -222,7 +222,7 @@ ENTRIES = [
         """}, "turn_into_chances() takes it back.",
        choices=("0 and 1 have no log-odds (SciPy gives -inf and inf): they become empty, with a note.",)),
     _e("nums.turn_into_chances", """
-            numbers = sdata.numbers([-2.2, 0.0, 1.386])
+            numbers = sdata.number_list([-2.2, 0.0, 1.386])
             numbers.turn_into_chances()
         """, {"SciPy": """
             import numpy as np
@@ -244,19 +244,19 @@ ENTRIES = [
             # count_ways_to_order(3, out_of=10)
             special.perm(10, 3, exact=True)
         """}, "Exact whole numbers however big (Python integers)."),
-    _e("sdata.numbers", """
+    _e("sdata.number_list", """
             import os, tempfile
             path = os.path.join(tempfile.mkdtemp(), "readings.txt")
             with open(path, "w") as f:
                 f.write("12.5\\n-999\\n13.1\\n-999.0\\n12.9\\n")
-            sdata.numbers(path, empty_values=[-999])
+            sdata.number_list(path, empty_values=[-999])
         """, {"pandas": """
             import os, tempfile
             import pandas as pd
             path = os.path.join(tempfile.mkdtemp(), "readings.txt")
             with open(path, "w") as f:
                 f.write("12.5\\n-999\\n13.1\\n-999.0\\n12.9\\n")
-            # numbers("readings.txt", empty_values=[-999])
+            # number_list("readings.txt", empty_values=[-999])
             pd.read_csv(path, sep=r"\\s+", header=None, na_values=[-999]).iloc[:, 0].to_numpy()
         """}, "A first line that is not a number is taken as the name; text among the numbers is refused with the "
                "markers to name.", option="empty_values="),

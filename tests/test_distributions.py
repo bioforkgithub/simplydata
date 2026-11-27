@@ -42,7 +42,7 @@ def make(data, engine):
 
 
 def nums(values):
-    return sdata.numbers(values)
+    return sdata.number_list(values)
 
 
 def row(result):
@@ -280,7 +280,7 @@ def test_lists_give_numbers(capsys):
     assert isinstance(dist.find_density_at([40, 50]), Numbers)
     assert isinstance(dist.find_cut_off(with_chance_above=[0.05, 0.025]), Numbers)
     assert isinstance(distribution("poisson", average=2).find_chance_that_value([0, 1, 2]), Numbers)
-    assert isinstance(dist.find_chance_that_value(is_below=sdata.numbers([1, 2])), Numbers)
+    assert isinstance(dist.find_chance_that_value(is_below=sdata.number_list([1, 2])), Numbers)
     assert isinstance(dist.find_chance_that_value(is_above=60), float)
 
 

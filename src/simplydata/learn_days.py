@@ -153,7 +153,7 @@ UNITS = {
     "py_lists": dict(
         lessons=[],
         manual=[("start:install", "Install and first steps")],
-        words=["sdata.numbers", "nums.find_average", "nums.keep_each_number_that"],
+        words=["sdata.number_list", "nums.find_average", "nums.keep_each_number_that"],
         do=["Type and run the example below, one line at a time.",
             "Look closely at the brackets: square brackets [ ] make a list, round brackets ( ) call a "
             "word, and curly brackets { } make a table by hand.",
@@ -168,8 +168,8 @@ UNITS = {
             ("print(round(3.14159, 2))", "Two things in the brackets, separated by a comma: round 3.14159 "
                                          "to 2 decimals."),
             ("import simplydata as sdata", 'Load simplydata. From now on we call it by its short name, sdata.'),
-            ("numbers = sdata.numbers(marks)", "sdata.numbers is a word of sdata: the point joins a thing and its "
-                                               "word. We call the result numbers."),
+            ("numbers = sdata.number_list(marks)", "sdata.number_list is a word of sdata: the point joins a thing "
+                                                   "and its word. We call the result numbers."),
             ("numbers.find_average()", "A step on the numbers: it prints the answer in a sentence. Empty brackets "
                                        "still have to be there."),
             ("numbers.keep_each_number_that(is_above=50)", "is_above=50 is an option with a name: the name, =, the value."),
@@ -191,7 +191,7 @@ UNITS = {
         solutions=[(_code('''
             import simplydata as sdata
             temperatures = [4, 9, 13, 17, 20]
-            numbers = sdata.numbers(temperatures)
+            numbers = sdata.number_list(temperatures)
             numbers.find_biggest()
             numbers.find_median()'''),
             "The biggest is 20 and the median (the middle value when they are in order) is 13.")],
@@ -212,7 +212,7 @@ UNITS = {
              "one, and so does every bracket."),
             ('sdata.get_example("wether")', 'Did you mean sdata.get_example("weather")',
              "simplydata's own errors say what went wrong and suggest the word you probably meant."),
-            ("numbers = sdata.numbers([3, 5, 2])\nnumbers.find_avrage()", "Did you mean .find_average()",
+            ("numbers = sdata.number_list([3, 5, 2])\nnumbers.find_avrage()", "Did you mean .find_average()",
              "A misspelt step: simplydata lists the steps you can use and the nearest one."),
         ],
         recall=[
@@ -224,10 +224,10 @@ UNITS = {
              "Quote marks and brackets: every one that opens must be closed."),
         ],
         task=['Find and fix the two mistakes in these lines, then run them: '
-              'numbers = sdata.numbers([4, 8, 6) and then numbers.averag()'],
+              'numbers = sdata.number_list([4, 8, 6) and then numbers.averag()'],
         solutions=[(_code('''
             import simplydata as sdata
-            numbers = sdata.numbers([4, 8, 6])
+            numbers = sdata.number_list([4, 8, 6])
             numbers.find_average()'''),
             "The list needs its closing ] before the ), and the word is average. The average is 6.")],
     ),
@@ -561,9 +561,9 @@ UNITS = {
     ),
     "lesson13": dict(
         lessons=[13],
-        words=["sdata.numbers", "sdata.make_random_numbers", "nums.find_median", "nums.find_percentile", "sdata.number_grid"],
+        words=["sdata.number_list", "sdata.make_random_numbers", "nums.find_median", "nums.find_percentile", "sdata.number_grid"],
         recall=[
-            ("How do you make simplydata numbers from a list?", "numbers = sdata.numbers([12, 15, 9, 20, 14])"),
+            ("How do you make simplydata numbers from a list?", "numbers = sdata.number_list([12, 15, 9, 20, 14])"),
             ("Which word gives the middle value of numbers?", "numbers.find_median()"),
             ("How do you make 100 random numbers with average 50 and standard deviation 10, the same every time?",
              "sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)"),

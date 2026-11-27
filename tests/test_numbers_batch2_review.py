@@ -95,7 +95,7 @@ def test_tool_chains_and_schemes_are_refused_before_opening(name, no_network, mo
     monkeypatch.setattr(builtins, "open", no_open)
     for call in (lambda: sdata.number_block(name, values="v"), lambda: sdata.show_whats_inside(name),
                  lambda: sdata.number_block([[1.0]]).save(name.replace("*", "1")),
-                 lambda: sdata.numbers(name.replace(".nc", ".txt").replace("*", "1"))):
+                 lambda: sdata.number_list(name.replace(".nc", ".txt").replace("*", "1"))):
         with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
             call()
 
@@ -141,8 +141,8 @@ def test_text_na_is_refused_unless_it_is_a_marker(tmp_path):
     path.write_text("12.5\n-999\nNA\n13.1\n")
     assert pd.read_csv(path, header=None, na_values=[-999]).iloc[:, 0].isna().sum() == 2  # pandas' own NA list
     with pytest.raises(sdata.SimplydataError, match='text among its numbers, such as "NA"'):
-        sdata.numbers(str(path), empty_values=[-999])
-    got = sdata.numbers(str(path), empty_values=[-999, "NA"])
+        sdata.number_list(str(path), empty_values=[-999])
+    got = sdata.number_list(str(path), empty_values=[-999, "NA"])
     expected = pd.read_csv(path, header=None, na_values=[-999, "NA"], keep_default_na=False).iloc[:, 0].to_numpy()
     np.testing.assert_array_equal(got.as_numpy(), expected)
 
@@ -180,7 +180,7 @@ def test_ends_mean_the_same_scipy_mode_on_numbers_tables_grids_and_blocks(ends):
     # and table.add_smoothed_column turned "mirror" into SciPy "reflect", so the "mirror" case fails on that mapping.
     row = np.array([1.0, 2, 3, 10, 5, 4, 8])
     expected = ndimage.convolve1d(row, np.ones(3) / 3, mode=ends)
-    nums = sdata.numbers(row.tolist())
+    nums = sdata.number_list(row.tolist())
     nums.smooth(window=3, ends=ends)
     np.testing.assert_allclose(nums.as_numpy(), expected, rtol=1e-12)
     table = sdata.table(pd.DataFrame({"t": range(7), "v": row}))
@@ -194,7 +194,7 @@ def test_ends_mean_the_same_scipy_mode_on_numbers_tables_grids_and_blocks(ends):
     np.testing.assert_allclose(block.as_numpy()[0, 0], expected, rtol=1e-12)
     if ends == "mirror":  # 1 2 3 ... mirrored about the end reading: (2 + 1 + 2) / 3
         assert nums.as_numpy()[0] == pytest.approx(5 / 3, rel=1e-12)
-    gauss = sdata.numbers(row.tolist())
+    gauss = sdata.number_list(row.tolist())
     gauss.smooth(test_method="gaussian", width=1, ends=ends)
     np.testing.assert_allclose(gauss.as_numpy(), ndimage.gaussian_filter1d(row, 1, truncate=4.0, mode=ends),
                                rtol=1e-12)

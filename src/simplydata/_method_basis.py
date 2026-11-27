@@ -3290,7 +3290,7 @@ BASIS["sdata.get_example"] = _b(
     "Date columns are read as dates.",
     "sdata.get_example() lists the tables.",
     "Practice data: dates read as dates let the date words work at once.", (), "P5", "", "convention")
-BASIS["sdata.numbers"] = _b(
+BASIS["sdata.number_list"] = _b(
     "With to=, the end is included; the count of steps allows a little room for rounding.",
     "step=, how_many= (evenly spaced, as np.linspace).",
     "Making numbers: \"1 to 10\" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end "

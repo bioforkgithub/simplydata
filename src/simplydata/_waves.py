@@ -26,7 +26,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
     from scipy import signal
 
     from ._time_axis import read_time_step
-    from .numbers import numbers
+    from .numbers import number_list
 
     if shape not in SHAPES:
         raise choice_error("wave", "shape", shape, list(SHAPES))
@@ -58,7 +58,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
             values = signal.sawtooth(angle, width=float(rising_share))
         else:
             values = signal.gausspulse(t - t[len(t) // 2], fc=float(frequency), bw=float(bandwidth))
-    nums = numbers(values)
+    nums = number_list(values)
     nums._time_step = step
     print(f"A {shape} wave of {how_many} readings ({words}).")
     return nums
@@ -74,7 +74,7 @@ def make_window_shape(name="hann", how_many=64, periodic=False):
     """
     from scipy import signal
 
-    from .numbers import numbers
+    from .numbers import number_list
 
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
         raise SimplydataError("make_window_shape() needs how_many= as a whole number of weights, such as how_many=64.")
@@ -84,7 +84,7 @@ def make_window_shape(name="hann", how_many=64, periodic=False):
         raise SimplydataError(f'make_window_shape() does not know the window {name!r} ({error}). Try "hann", "hamming", '
                               '"blackman" or ("kaiser", 5).') from None
     print(f"{how_many} weights of a {'periodic' if periodic else 'symmetric'} {name} window (SciPy get_window).")
-    return numbers(values)
+    return number_list(values)
 
 
 def _same_rows_as_made(info, frame):
@@ -117,7 +117,7 @@ def find_inverse_fourier_transform(table=None):
     """
     from scipy import fft
 
-    from .numbers import numbers
+    from .numbers import number_list
 
     info = getattr(table, "_fourier", None)
     if info is None:
@@ -129,7 +129,7 @@ def find_inverse_fourier_transform(table=None):
     if info.get("zero_in_middle"):
         z = fft.ifftshift(z)  # back to SciPy's own order before ifft
     values = fft.irfft(z, n=info["n"]) if info["show"] == "half" else fft.ifft(z).real
-    nums = numbers(values)
+    nums = number_list(values)
     nums._time_step = info["time_step"]
     print(f"{info['n']} numbers back from the Fourier transform (SciPy {'irfft' if info['show'] == 'half' else 'ifft'}).")
     return nums

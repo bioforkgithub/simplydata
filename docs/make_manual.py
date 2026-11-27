@@ -231,7 +231,7 @@ UNDERNEATH = {
     # tables
     "sdata.table": "pandas or Polars read the file; narwhals lets every table word run on both",
     "table.show": "pandas or Polars (printing the table)",
-    "table.get_column": "NumPy (a column of numbers becomes sdata.numbers)",
+    "table.get_column": "NumPy (a column of numbers becomes sdata.number_list)",
     "table.fill_empty_cells_in": "narwhals; NumPy (interp) for the line between neighbours; SciPy (CubicSpline, "
                               "PchipInterpolator) for the curves",
     "table.turn_into_dates": "pandas (to_datetime) or Polars (str.strptime), trying the date formats in a fixed order",
@@ -476,7 +476,7 @@ UNDERNEATH = {
     "table.as_polars": "Polars",
     # numbers
     "sdata.make_random_numbers": "NumPy (random.default_rng; of_shape= for a block)",
-    "sdata.numbers": "NumPy (arange, linspace); SciPy (io.wavfile) for .wav files; pandas (read_csv with na_values=) for "
+    "sdata.number_list": "NumPy (arange, linspace); SciPy (io.wavfile) for .wav files; pandas (read_csv with na_values=) for "
                      "text files",
     "nums.find_percentile": "NumPy (nanpercentile, the usual \"linear\" method, as pandas and R)",
     "sdata.number_block": "NumPy (asarray, full); pandas (reindex on every combination of the labels) for a table; "
@@ -795,7 +795,7 @@ FAMILY_TITLES = {
                              "Words that start with \\code{sdata.} (finding and solving, planning a study) are "
                              "called on simplydata itself, and words that start with \\code{distribution.} are steps on "
                              "a distribution: \\code{distribution = sdata.distribution(\"normal\")}."),
-    "numbers": ("Number words", "Steps on numbers, \\code{numbers = sdata.numbers([12, 15, 9, 20, 14])}, "
+    "numbers": ("Number words", "Steps on numbers, \\code{numbers = sdata.number\\_list([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
                                 "on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}, "
                                 "and on formulas, \\code{formula = sdata.formula(\"(x + 2)**2 - 4\")}."),

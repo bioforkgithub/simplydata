@@ -194,8 +194,8 @@ GROUPS = [
                          "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars",
                          "table.as_list"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
-    ("Numbers: make and look", ["sdata.numbers", "sdata.make_random_numbers", "nums.show", "nums.show_first_numbers",
-                                "nums.show_last_numbers", "nums.get_number_at", "nums.count",
+    ("Numbers: make and look", ["sdata.number_list", "sdata.make_random_numbers", "nums.show",
+                                "nums.show_first_numbers", "nums.show_last_numbers", "nums.get_number_at", "nums.count",
                                 "nums.count_empty_numbers"]),
     ("Numbers: maths in words", ["nums.add", "nums.subtract", "nums.times", "nums.divide_by", "nums.raise_to_power",
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
@@ -357,7 +357,7 @@ def _tx(name: str, body: str) -> str:
 
 def _nx(body: str, values: str = "[12, 15, 9, 20, 14]") -> str:
     """A runnable numbers example: make some numbers (or take a column of a practice table), then the steps."""
-    made = values if values.startswith("sdata.get_example(") else f"sdata.numbers({values})"
+    made = values if values.startswith("sdata.get_example(") else f"sdata.number_list({values})"
     lines = ["import simplydata as sdata", f"numbers = {made}"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
@@ -387,7 +387,7 @@ def _gx(body: str) -> str:
 
 def _bx(body: str) -> str:
     """A runnable example on a bigger grid (4 rows, 6 columns), for choosing parts of it."""
-    lines = ["import simplydata as sdata", "grid = sdata.numbers(1, to=24).make_number_grid(columns=6)"]
+    lines = ["import simplydata as sdata", "grid = sdata.number_list(1, to=24).make_number_grid(columns=6)"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -1200,12 +1200,12 @@ HELP_EXAMPLES = {
         sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
         sdata.find_chance_of_finding(effect_size=0.5, values_per_group=[20, 40], based_on="ranks")"""),
     # numbers: make and look
-    "sdata.numbers": textwrap.dedent("""\
+    "sdata.number_list": textwrap.dedent("""\
         import simplydata as sdata
-        numbers = sdata.numbers([3, 5, 2, 8])
+        numbers = sdata.number_list([3, 5, 2, 8])
         print(numbers)
-        print(sdata.numbers(1, to=10))
-        print(sdata.numbers(0, to=1, how_many=5))"""),
+        print(sdata.number_list(1, to=10))
+        print(sdata.number_list(0, to=1, how_many=5))"""),
     "sdata.make_random_numbers": textwrap.dedent("""\
         import simplydata as sdata
         dice = sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
@@ -1275,16 +1275,16 @@ HELP_EXAMPLES = {
     "grid.swap_rows_and_columns": _gx("grid.swap_rows_and_columns()\nprint(grid)"),
     # NumPy + SciPy phase, batch 1: yes or no
     "nums.turn_into_yes_or_no": _nx("warm = numbers.turn_into_yes_or_no(is_above=13)\nprint(warm)\nprint(~warm)"),
-    "nums.keep_numbers_where": _nx("deep = sdata.numbers([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)\n"
+    "nums.keep_numbers_where": _nx("deep = sdata.number_list([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)\n"
                                    "numbers.keep_numbers_where(deep)\nnumbers.show()"),
-    "nums.remove_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+    "nums.remove_numbers_where": _nx("land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
                                      "numbers.remove_numbers_where(land)\nnumbers.show()"),
-    "nums.replace_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+    "nums.replace_numbers_where": _nx("land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
                                       'numbers.replace_numbers_where(land, with_value="empty")\nnumbers.show()'),
     "nums.count_numbers_that": _nx("print(numbers.count_numbers_that(is_above=13))"),
     "nums.check_if_any_number": _nx("print(numbers.check_if_any_number(is_above=30))"),
     "nums.check_if_all_numbers": _nx("print(numbers.check_if_all_numbers(is_at_least=0))"),
-    "nums.check_if_same_as": _nx("other = sdata.numbers([12, 15, 9, 20, 14.0001])\n"
+    "nums.check_if_same_as": _nx("other = sdata.number_list([12, 15, 9, 20, 14.0001])\n"
                                  "print(numbers.check_if_same_as(other, within=0.001))"),
     "grid.keep_rows_where": _gx("grid.keep_rows_where(column=3, is_above=0.5)\ngrid.keep_rows_where(column=1, is_above=5)\n"
                                 "print(grid)"),
@@ -1300,7 +1300,7 @@ HELP_EXAMPLES = {
     "nums.change_angles_to": _nx('numbers.change_angles_to("degrees")\nnumbers.show()', "[0, 1.5708, 3.14159]"),
     "nums.find_where_biggest": _nx("print(numbers.find_where_biggest())"),
     "nums.find_where_smallest": _nx("print(numbers.find_where_smallest())"),
-    "nums.make_pair_table_with": _nx("depths = sdata.numbers([0, 10, 50])\n"
+    "nums.make_pair_table_with": _nx("depths = sdata.number_list([0, 10, 50])\n"
                                      "table = numbers.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
                                      "[0, 10, 50]"),
     # blocks of numbers
@@ -1351,7 +1351,7 @@ HELP_EXAMPLES = {
     "sdata.stretch_to_same_shape": textwrap.dedent("""\
         import simplydata as sdata
         a = sdata.number_block([[1], [2], [3]])
-        b = sdata.numbers([10, 20])
+        b = sdata.number_list([10, 20])
         a2, b2 = sdata.stretch_to_same_shape(a, b)
         print(a2)
         print(b2)"""),
@@ -1382,7 +1382,7 @@ HELP_EXAMPLES = {
     # chances and random picks
     "nums.make_random_picks": _nx("again = numbers.make_random_picks(how_many=40, with_seed=1)\n"
                                   "print(again.find_average())\n"
-                                  "dice = sdata.numbers([1, 2, 3]).make_random_picks(how_many=10, "
+                                  "dice = sdata.number_list([1, 2, 3]).make_random_picks(how_many=10, "
                                   "with_chances=[0.5, 0.3, 0.2], with_seed=1)"),
     "nums.take_log_odds": _nx("numbers.take_log_odds()\nnumbers.show()", "[0.1, 0.5, 0.8]"),
     "nums.turn_into_chances": _nx("numbers.turn_into_chances()\nnumbers.show()", "[-2.2, 0, 1.386]"),
@@ -1872,7 +1872,7 @@ def show_all_words() -> None:
     print("simplydata words. Type sdata.help(\"draw_bars\") to learn more about any of them.")
     print("Chart words are steps on a chart: chart = sdata.chart(table), then chart.draw_bars(...).")
     print("Table words are steps on a table: table = sdata.table(...), then table.keep_rows_where(...).")
-    print("Number words are steps on numbers: numbers = sdata.numbers([3, 5, 2]), then numbers.find_average();")
+    print("Number words are steps on numbers: numbers = sdata.number_list([3, 5, 2]), then numbers.find_average();")
     print("grid words are steps on a grid of numbers: grid = sdata.number_grid([[1, 2], [3, 4]]).")
     print('Distribution words are steps on a distribution: distribution = sdata.distribution("normal"), then '
           "distribution.find_chance_that_value(is_above=2).")
@@ -1996,7 +1996,8 @@ def _old_names(word) -> list[tuple[str, str, str]]:
             found.append((w, new, key))
     new = _ps()._OLD_WORDS.get(w)
     if new and f"sdata.{new}" in _all_keys() and kinds is None:
-        found.append((w, new, f"sdata.{new}"))
+        # "sdata.numbers" names the sdata word first (other objects' old words of that name follow)
+        found.insert(0 if head == "sdata" else len(found), (w, new, f"sdata.{new}"))
     if kinds is None:
         option = w.split("=", 1)[0].strip()
         for key, func in _words_with_options():
@@ -3812,7 +3813,8 @@ LESSONS = [
         parts=[
             ("Numbers are for when you have just numbers, not a table with named columns.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("numbers = sdata.numbers([12, 15, 9, 20, 14])", "Make a list of five numbers and call it numbers."),
+                ("numbers = sdata.number_list([12, 15, 9, 20, 14])",
+                 "Make a list of five numbers and call it numbers."),
                 ("print(numbers)", "Look at them. The first line says how many there are."),
                 ("bigger = numbers * 2", "Maths with symbols makes NEW numbers: every number times 2. "
                                       "numbers itself does not change."),
@@ -3828,8 +3830,8 @@ LESSONS = [
             ]),
             ("Counting, random numbers and a chart.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("months = sdata.numbers(1, to=12)", "Count from 1 to 12. The end is included."),
-                ("temps = sdata.numbers([4, 6, 9, 13, 17, 20, 22, 21, 17, 12, 8, 5])", "A temperature for "
+                ("months = sdata.number_list(1, to=12)", "Count from 1 to 12. The end is included."),
+                ("temps = sdata.number_list([4, 6, 9, 13, 17, 20, 22, 21, 17, 12, 8, 5])", "A temperature for "
                                                                                     "each month."),
                 ("chart = sdata.chart()", "Start an empty chart: the numbers go straight into the chart "
                                        "type."),
@@ -3862,7 +3864,7 @@ LESSONS = [
             ]),
             ("Yes or no values, rounding and where the biggest is.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("temps = sdata.numbers([4.6, 6.2, 9.8, 13.1, 17.5, 20.4])", "Six temperatures."),
+                ("temps = sdata.number_list([4.6, 6.2, 9.8, 13.1, 17.5, 20.4])", "Six temperatures."),
                 ("warm = temps.turn_into_yes_or_no(is_above=10)", "A yes or no value for each one: yes where it is "
                                                                    "above 10. temps does not change."),
                 ("print(warm)", "No, no, no, yes, yes, yes."),
@@ -3949,7 +3951,7 @@ LESSONS = [
         solutions=[
             (_sx("""\
                 import simplydata as sdata
-                numbers = sdata.numbers(1, to=10)
+                numbers = sdata.number_list(1, to=10)
                 squares = numbers ** 2
                 print(squares)
                 numbers.raise_to_power(2)
@@ -3968,7 +3970,7 @@ LESSONS = [
                 print(grid)"""),
              "Three rows of four zeros: a grid to fill in later."),
         ],
-        words=["sdata.numbers", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
+        words=["sdata.number_list", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
                "nums.keep_each_number_that", "nums.find_average", "nums.find_standard_deviation", "nums.find_median",
                "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks",
                "grid.get_numbers_at_pairs", "grid.find_each_patch_that", "grid.change_size_to"],

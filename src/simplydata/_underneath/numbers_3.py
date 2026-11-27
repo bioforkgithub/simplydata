@@ -295,7 +295,7 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_running_area",
         ours="""
-            numbers = sdata.numbers([2, 4, 4, 3, 1])
+            numbers = sdata.number_list([2, 4, 4, 3, 1])
             numbers.turn_into_running_area(time_step=60)
         """,
         code={"SciPy": """
@@ -313,7 +313,7 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_running_area", option="test_method=",
         ours="""
-            numbers = sdata.numbers([2, 4, 4, 3, 1])
+            numbers = sdata.number_list([2, 4, 4, 3, 1])
             numbers.turn_into_running_area(time_step=60, test_method="simpson")
         """,
         code={"SciPy": """
@@ -331,7 +331,7 @@ ENTRIES = [
     Entry(
         word="nums.take_cube_root",
         ours="""
-            numbers = sdata.numbers([27, -8, 1000, 2])
+            numbers = sdata.number_list([27, -8, 1000, 2])
             numbers.take_cube_root()
         """,
         code={"NumPy": """
@@ -347,7 +347,7 @@ ENTRIES = [
     Entry(
         word="nums.show_as_fraction",
         ours="""
-            numbers = sdata.numbers([0.5, 0.25, 0.3333333333333333, 1.75])
+            numbers = sdata.number_list([0.5, 0.25, 0.3333333333333333, 1.75])
             numbers.show_as_fraction()
         """,
         code={"SymPy": """
@@ -364,7 +364,7 @@ ENTRIES = [
         ours="""
             import numpy as np
             t = 0.01 * np.arange(500)
-            numbers = sdata.numbers(np.sin(2 * np.pi * 5 * t))
+            numbers = sdata.number_list(np.sin(2 * np.pi * 5 * t))
             numbers.find_coherence_with(np.sin(2 * np.pi * 5 * t + 1) + np.cos(2 * np.pi * 13 * t), time_step=0.01)
         """,
         code={"SciPy": """
@@ -387,7 +387,7 @@ ENTRIES = [
     Entry(
         word="nums.take_cosine_transform",
         ours="""
-            numbers = sdata.numbers([1, 2, 3, 4])
+            numbers = sdata.number_list([1, 2, 3, 4])
             numbers.take_cosine_transform()
         """,
         code={"SciPy": """

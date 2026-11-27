@@ -283,7 +283,7 @@ def cases(Case):
         Case("nums.turn_into_running_area", "AirPassengers: passengers so far, month by month (trapezoid rule)",
              "AirPassengers", "real data",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.turn_into_running_area(time_step=1)
                  {"after a year": numbers.get_number_at(13), "whole area": numbers.get_number_at("last")}
              """,
@@ -300,7 +300,7 @@ def cases(Case):
         Case("nums.turn_into_running_area", "AirPassengers: passengers so far by Simpson's rule",
              "AirPassengers", "real data", option="test_method=",
              ours="""
-                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers = sdata.number_list(data["passengers"].tolist())
                  numbers.turn_into_running_area(time_step=1, test_method="simpson")
                  {"after a year": numbers.get_number_at(13), "whole area": numbers.get_number_at("last")}
              """,
@@ -312,7 +312,7 @@ def cases(Case):
         Case("nums.take_cube_root", "the cube roots of Michelson's measurements less their average (some negative)",
              "NIST Michelso", "real data",
              ours="""
-                 numbers = sdata.numbers((data["y"] - 299.85).tolist())
+                 numbers = sdata.number_list((data["y"] - 299.85).tolist())
                  numbers.take_cube_root()
                  {"total": numbers.find_total(), "smallest": numbers.find_smallest()}
              """,
@@ -327,7 +327,8 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.show_as_fraction", "Michelson's first measurements as fractions give the numbers back exactly",
              "NIST Michelso", "real data",
-             ours=textwrap.dedent(PRINTED).format(call='sdata.numbers(data["y"].head(10).tolist()).show_as_fraction()')
+             ours=textwrap.dedent(PRINTED).format(
+                 call='sdata.number_list(data["y"].head(10).tolist()).show_as_fraction()')
              + textwrap.dedent("""
                  {"total": sum(printed), "shown": len(printed)}
              """),
@@ -342,7 +343,7 @@ def cases(Case):
         Case("nums.find_coherence_with", "Seatbelts: drivers killed or injured against drivers killed, by frequency",
              "Seatbelts", "real data",
              ours="""
-                 c = sdata.numbers(data["drivers"].tolist()).find_coherence_with(data["DriversKilled"].tolist(),
+                 c = sdata.number_list(data["drivers"].tolist()).find_coherence_with(data["DriversKilled"].tolist(),
                                                                                     time_step=1 / 12)
                  {"rows": c.count_rows(), "at a year": c.get_cell_at(row=4, column="coherence"),
                   "average": c.get_column("coherence").find_average()}
@@ -356,7 +357,7 @@ def cases(Case):
         Case("nums.take_cosine_transform", "the level of Lake Huron, 1875-1972, as cosine waves",
              "Lake Huron", "real data",
              ours="""
-                 numbers = sdata.numbers(data["level"].tolist())
+                 numbers = sdata.number_list(data["level"].tolist())
                  numbers.take_cosine_transform()
                  {"first": numbers.get_number_at(1), "second": numbers.get_number_at(2),
                   "sum of squares": (numbers ** 2).find_total()}

@@ -114,14 +114,14 @@ def test_chart_other_names(name, word):
 
 def test_number_other_names_and_grids():
     with pytest.raises(MissingWordError, match=r"In simplydata this is numbers\.fit_distribution\("):
-        sdata.numbers([1, 2, 3]).fit
+        sdata.number_list([1, 2, 3]).fit
     with pytest.raises(MissingWordError, match=r"In simplydata this is grid\.start_chart\(\)"):
         sdata.number_grid([[1, 2], [3, 4]]).plot  # the grid's own name
     with pytest.raises(MissingWordError) as info:
         sdata.number_grid([[1, 2], [3, 4]]).fit  # grids cannot fit a distribution: no pointer
     assert "In simplydata" not in str(info.value)
     with pytest.raises(MissingWordError, match=r"Did you mean numbers\.find_average\(\)"):
-        sdata.numbers([1, 2]).mean  # the older hints still work
+        sdata.number_list([1, 2]).mean  # the older hints still work
 
 
 def test_unknown_sdata_names_get_did_you_mean():

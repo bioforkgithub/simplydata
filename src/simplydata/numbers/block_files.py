@@ -239,7 +239,7 @@ def read_block(source, values=None, keep_on_disk=False, empty_values=None, direc
     if not text.lower().endswith(NETCDF_ENDINGS) and not any(ch in text for ch in "*?["):
         local_path(text, step)
         raise SimplydataError(f'sdata.number_block() reads netCDF files (.nc). "{Path(text).name}" is another kind: '
-                              'for a table use sdata.table(...), for one list of numbers sdata.numbers(...).')
+                              'for a table use sdata.table(...), for one list of numbers sdata.number_list(...).')
     files = _files(source, step)
     if keep_on_disk and len(files) > 1:
         raise SimplydataError(f"keep_on_disk=True keeps one file on disk; {len(files)} files match. Read them without "

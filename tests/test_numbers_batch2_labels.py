@@ -254,7 +254,7 @@ def test_smooth_along_one_direction_matches_nums_smooth():
     values = np.nan_to_num(VALUES)
     block = sdata.number_block(values, directions_named=["time", "latitude", "longitude"])
     block.smooth(over="time", window=5)
-    line = sdata.numbers(values[:, 2, 3].tolist())
+    line = sdata.number_list(values[:, 2, 3].tolist())
     line.smooth(window=5)
     np.testing.assert_allclose(block.as_numpy()[:, 2, 3], line.as_numpy(), rtol=1e-12, equal_nan=True)
 

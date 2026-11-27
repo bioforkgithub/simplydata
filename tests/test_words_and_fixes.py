@@ -109,7 +109,7 @@ def test_savitzky_golay_takes_of_degree(capsys):
                               sorted_by="time")
     expected = savgol_filter(sensor.sort_values("time")["signal"].to_numpy(), 11, 3, mode="interp")
     assert list(table.sort_by("time").get_column("smooth")) == pytest.approx(expected, rel=1e-12)
-    smoothed = sdata.numbers(sensor["signal"].tolist()).smooth(test_method="savitzky-golay", window=7, of_degree=4)
+    smoothed = sdata.number_list(sensor["signal"].tolist()).smooth(test_method="savitzky-golay", window=7, of_degree=4)
     assert list(smoothed) == pytest.approx(savgol_filter(sensor["signal"].to_numpy(), 7, 4, mode="interp"), rel=1e-12)
     capsys.readouterr()
 
@@ -120,7 +120,7 @@ def test_savitzky_golay_degree_is_an_old_name_with_a_note(capsys):
                                             degree=2, sorted_by="time")
     assert '"degree=" is now called "of_degree="' in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="of_degree= needs a whole number from 0 to 6"):
-        sdata.numbers(sensor["signal"].tolist()).smooth(test_method="savitzky-golay", window=7, of_degree=7)
+        sdata.number_list(sensor["signal"].tolist()).smooth(test_method="savitzky-golay", window=7, of_degree=7)
 
 
 # ---------------------------------------------------------------- A20: "in order" p-values on the full model's df

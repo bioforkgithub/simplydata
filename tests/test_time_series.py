@@ -146,7 +146,7 @@ def test_autocorrelation_matches_r_acf(engine, capsys):
 
 
 def test_autocorrelation_partial_covariance_and_bartlett():
-    nums = sdata.numbers(SEASONAL.tolist())
+    nums = sdata.number_list(SEASONAL.tolist())
     partial = acf_rows(nums.find_autocorrelation(rows_back=24, show="partial"))
     # pa <- pacf(x, lag.max = 24)
     assert partial["partial correlation"][:3].tolist() == pytest.approx(
@@ -167,7 +167,7 @@ def test_autocorrelation_partial_covariance_and_bartlett():
 
 def test_autocorrelation_finds_a_repeating_pattern(capsys):
     k = np.arange(120)
-    sdata.numbers((np.sin(2 * np.pi * k / 12) + 0.1 * lcg(120)).tolist()).find_autocorrelation(rows_back=24)
+    sdata.number_list((np.sin(2 * np.pi * k / 12) + 0.1 * lcg(120)).tolist()).find_autocorrelation(rows_back=24)
     assert "a pattern that repeats about every 12 rows" in capsys.readouterr().out
 
 
@@ -185,7 +185,7 @@ def test_autocorrelation_errors(engine):
 
 def test_partial_autocorrelation_of_few_readings_by_default(capsys):
     x = np.sin(np.arange(25.0)) + np.arange(25) * 0.01
-    got = acf_rows(sdata.numbers(list(x)).find_autocorrelation(show="partial"))
+    got = acf_rows(sdata.number_list(list(x)).find_autocorrelation(show="partial"))
     # R: pacf(x, lag.max = 11)$acf[1:3] (statsmodels needs fewer rows back than half the readings, so 11)
     assert len(got) == 11
     assert got["partial correlation"].to_numpy()[:3] == pytest.approx(
@@ -201,5 +201,5 @@ def test_time_words_with_r_on_sixty_readings(needs_r, capsys):
     t.add_smoothed_column("m", from_column="x", test_method="median", sorted_by="t")
     t.forecast("x", sorted_by="t", steps_ahead=3)
     t.find_change_points_in("x", sorted_by="t")
-    sdata.numbers(list(frame.x)).find_spectrum(test_method="lomb", time_points=list(frame.t))
+    sdata.number_list(list(frame.x)).find_spectrum(test_method="lomb", time_points=list(frame.t))
     assert "Method" in capsys.readouterr().out

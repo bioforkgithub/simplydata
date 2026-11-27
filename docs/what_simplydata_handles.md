@@ -26,7 +26,7 @@ Python packages:
 | Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()`; some table words run on Polars for every table, so that pandas and Polars tables give one answer | built in |
 | pyarrow | Parquet and Feather files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | built in |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
-| NumPy | the number words: `sdata.numbers`, `sdata.number_grid`, `sdata.number_block` (any number of directions), maths in words (`take_log`, `turn_into_running_total`), random numbers, `numbers.as_numpy()` | built in |
+| NumPy | the number words: `sdata.number_list`, `sdata.number_grid`, `sdata.number_block` (any number of directions), maths in words (`take_log`, `turn_into_running_total`), random numbers, `numbers.as_numpy()` | built in |
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`find_values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
 | statsmodels (with its formula helper patsy) | models in `explain`: linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, mixed models, GEE, robust regression, conditional logistic; Welch's ANOVA, corrections for many tests, kappa, exact intervals of percents and rates (`rate_of`, `compare_to_truth`), PCA, lowess and STL (`add_trend_and_season`), power of regression and of two percents, multiple-imputation fits | built in |
 | matplotlib | every chart's canvas (`sdata.chart`), pie, polar, contour, surface and 3D charts, titles, axes, legends, several charts on one page, `animate` | built in |
@@ -128,7 +128,7 @@ R users, not packages simplydata needs.
 | Patterns across many columns, communities and resistomes | principal components, clusters with silhouettes, distances (Bray-Curtis, Jaccard, Aitchison, Hellinger), diversity and rarefaction, log ratios, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER, RDA and CCA, Mantel and Procrustes, LDA, correspondence analysis | `add_principal_components`, `add_clusters`, `find_distances_between_rows`, `add_diversity_columns`, `add_log_ratio_columns`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`, `find_correlation_between_profiles`, `add_axes_that_separate_groups`, `add_correspondence_axes` |
 | Hidden factors (questionnaires, test batteries) | how many hidden factors lie behind many columns and which columns go with which (parallel analysis, minres, oblimin); whether a model of hidden factors written down beforehand fits the data, and paths between factors | `find_hidden_factors_behind`, `check_hidden_factors` |
 | Directions, places and extremes | the average direction of currents, winds or times of day, and the Rayleigh test; Moran's I for nearby places; variograms; return levels (the 100-year sea level) from yearly maxima or from values above a threshold, with profile-likelihood intervals, and the threshold check | `find_average_direction_of`, `compare_shape_to(shape="even around the circle")`, `find_autocorrelation_of(x=, y=)`, `find_variogram_of`, `find_return_levels_of`, `chart.draw_threshold_check` |
-| Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.numbers`, `numbers.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
+| Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.number_list`, `numbers.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
 | Learning and citing | every word with an example, help for one word, lessons, the 30-day course, the packages to cite | `sdata.show_all_words`, `sdata.help`, `sdata.show_lesson`, `sdata.start_30_days`, `sdata.show_packages_used` |
 | Coming next (not on main yet) | the next statistics phase (S3d) | planned |
 
@@ -207,7 +207,7 @@ chart = table.start_chart()                                    # draw it
 Plain words over NumPy for lists and grids of numbers:
 
 ```python
-numbers = sdata.numbers([12, 15, 9, 20, 14])
+numbers = sdata.number_list([12, 15, 9, 20, 14])
 bigger = numbers * 2                        # symbols make new numbers
 numbers.keep_each_number_that(is_above=10)  # words change the numbers you have ...
 numbers.undo()                              # ... and can be taken back
@@ -229,7 +229,7 @@ table.keep_columns("hours", to="height")                               # a run o
 table.keep_columns(of_kind="number")                                   # every number column
 table.get_cell_at(row=3, column="marks")                               # one cell
 table.replace_values_in("marks", is_above=90, with_value=90)
-grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
 grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)  # a block
 ```
 

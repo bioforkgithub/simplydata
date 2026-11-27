@@ -322,7 +322,7 @@ class System:
             t = np.asarray(getattr(time_points, "_values", time_points), dtype=float).ravel()
             if len(t) < 2 or np.any(np.diff(t) <= 0):
                 raise SimplydataError(f"{step_name}() needs time_points= as increasing times, such as "
-                                      "time_points=sdata.numbers(0, to=5, step=0.01).")
+                                      "time_points=sdata.number_list(0, to=5, step=0.01).")
             if not np.allclose(np.diff(t), t[1] - t[0], rtol=1e-6, atol=1e-12):
                 raise SimplydataError(f"{step_name}() needs evenly spaced time_points= (SciPy works out the response "
                                       "in equal steps).")
@@ -334,7 +334,7 @@ class System:
                                                                              rtol=1e-6, atol=0):
                 raise SimplydataError(f"{step_name}() needs time_points= {_g(self._time_step)} apart, the system's "
                                       f"time step (here they are {_g(t[1] - t[0])} apart), such as time_points="
-                                      f"sdata.numbers(0, to=5, step={_g(self._time_step)}).")
+                                      f"sdata.number_list(0, to=5, step={_g(self._time_step)}).")
             return t
         if isinstance(how_many, bool) or not isinstance(how_many, (int, np.integer)) or how_many < 2:
             raise SimplydataError(f"{step_name}() needs how_many= as a whole number of 2 or more.")

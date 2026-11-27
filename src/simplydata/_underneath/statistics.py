@@ -1272,7 +1272,7 @@ ENTRIES += [
     Entry(
         word="nums.fit_distribution",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             fit = numbers.fit_distribution("gamma")
             fit.turn_into_table()
         """,

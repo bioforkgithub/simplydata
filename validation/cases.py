@@ -333,7 +333,7 @@ CASES = [
     # ---- find_median: no certified medians; NumPy and R on the same certified data, and one exact by construction
     *[Case("nums.find_median", f"median of {what}", name, "real data",
            ours="""
-               {"median": sdata.numbers(data["y"].tolist()).find_median()}
+               {"median": sdata.number_list(data["y"].tolist()).find_median()}
            """,
            parent="""
                import numpy as np
@@ -348,7 +348,7 @@ CASES = [
     Case("nums.find_median", "median of NumAcc4 (exact by construction: 500 values .1 below and 500 .1 above "
                              "10000000.2)", "NIST NumAcc4", "published",
          ours="""
-             {"median": sdata.numbers(data["y"].tolist()).find_median()}
+             {"median": sdata.number_list(data["y"].tolist()).find_median()}
          """,
          published={"median": (10000000.2, 1e-9, "NIST NumAcc4 description (exact by construction)")},
          parent="""

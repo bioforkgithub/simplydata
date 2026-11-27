@@ -126,7 +126,7 @@ def test_a_formula_is_accepted_by_find_where_smallest_and_find_area_under():
 def test_show_as_fraction_matches_sympy_nsimplify(capsys):
     sp, _ = _sp()
     values = [0.5, 0.25, 1 / 3, 1.75, 2 / 7]
-    sdata.numbers(values).show_as_fraction()
+    sdata.number_list(values).show_as_fraction()
     first = capsys.readouterr().out.splitlines()[0]
     assert first == "[" + ", ".join(str(sp.nsimplify(v, rational=True)) for v in values) + "]"
     assert first == "[1/2, 1/4, 1/3, 7/4, 2/7]"
@@ -181,4 +181,4 @@ def test_without_sympy_the_words_say_how_to_install_it(monkeypatch):
     with pytest.raises(sdata.SimplydataError, match=r"simplydata\[exact\]"):
         sdata.solve("x**2 = 2", exactly=True)
     with pytest.raises(sdata.SimplydataError, match=r"simplydata\[exact\]"):
-        sdata.numbers([0.5]).show_as_fraction()
+        sdata.number_list([0.5]).show_as_fraction()

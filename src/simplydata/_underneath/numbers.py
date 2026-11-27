@@ -6,7 +6,7 @@ ENTRIES = [
     Entry(
         word="nums.find_median",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_median()
         """,
         code={"NumPy": """
@@ -23,7 +23,7 @@ ENTRIES = [
     Entry(
         word="nums.find_average",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_average()
         """,
         code={"NumPy": """
@@ -40,7 +40,7 @@ ENTRIES = [
     Entry(
         word="nums.find_percentile",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.find_percentile(90)
         """,
         code={"NumPy": """
@@ -58,7 +58,7 @@ ENTRIES = [
     Entry(
         word="nums.keep_each_number_that",
         ours="""
-            numbers = sdata.numbers([12, 15, None, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, None, 9, 20, 14])
             numbers.keep_each_number_that(is_above=12)
         """,
         code={"NumPy": """
@@ -78,7 +78,7 @@ ENTRIES = [
     Entry(
         word="nums.show",
         ours="""
-            numbers = sdata.numbers(1, to=1200)
+            numbers = sdata.number_list(1, to=1200)
             numbers.show()
         """,
         code={"NumPy": """
@@ -100,7 +100,7 @@ ENTRIES = [
     Entry(
         word="nums.show_first_numbers",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.show_first_numbers(3)
         """,
         code={"NumPy": """
@@ -118,7 +118,7 @@ ENTRIES = [
     Entry(
         word="nums.show_last_numbers",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.show_last_numbers(2)
         """,
         code={"NumPy": """
@@ -137,7 +137,7 @@ ENTRIES = [
     Entry(
         word="nums.get_number_at",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.get_number_at(2)
         """,
         code={"NumPy": """
@@ -156,7 +156,7 @@ ENTRIES = [
     Entry(
         word="nums.count",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.count()
         """,
         code={"NumPy": """
@@ -173,7 +173,7 @@ ENTRIES = [
     Entry(
         word="nums.count_empty_numbers",
         ours="""
-            numbers = sdata.numbers([12, None, 9, None, 14])
+            numbers = sdata.number_list([12, None, 9, None, 14])
             numbers.count_empty_numbers()
         """,
         code={"NumPy": """
@@ -191,7 +191,7 @@ ENTRIES = [
     Entry(
         word="nums.add",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.add(5)
         """,
         code={"NumPy": """
@@ -208,7 +208,7 @@ ENTRIES = [
     Entry(
         word="nums.subtract",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.subtract(2)
         """,
         code={"NumPy": """
@@ -224,7 +224,7 @@ ENTRIES = [
     Entry(
         word="nums.times",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.times(2)
         """,
         code={"NumPy": """
@@ -240,7 +240,7 @@ ENTRIES = [
     Entry(
         word="nums.divide_by",
         ours="""
-            numbers = sdata.numbers([8, None, 6, 4])
+            numbers = sdata.number_list([8, None, 6, 4])
             numbers.divide_by([2, 1, 0, 4])
         """,
         code={"NumPy": """
@@ -261,7 +261,7 @@ ENTRIES = [
     Entry(
         word="nums.raise_to_power",
         ours="""
-            numbers = sdata.numbers([2, 0, 4])
+            numbers = sdata.number_list([2, 0, 4])
             numbers.raise_to_power(-1)
         """,
         code={"NumPy": """
@@ -284,7 +284,7 @@ ENTRIES = [
     Entry(
         word="nums.take_square_root",
         ours="""
-            numbers = sdata.numbers([9, 16, None, 2])
+            numbers = sdata.number_list([9, 16, None, 2])
             numbers.take_square_root()
         """,
         code={"NumPy": """
@@ -301,7 +301,7 @@ ENTRIES = [
     Entry(
         word="nums.take_absolute_value",
         ours="""
-            numbers = sdata.numbers([-3, 5, None, -2.5])
+            numbers = sdata.number_list([-3, 5, None, -2.5])
             numbers.take_absolute_value()
         """,
         code={"NumPy": """
@@ -317,7 +317,7 @@ ENTRIES = [
     Entry(
         word="nums.round_to",
         ours="""
-            numbers = sdata.numbers([0.5, 1.5, 2.5, -2.5, 2.346])
+            numbers = sdata.number_list([0.5, 1.5, 2.5, -2.5, 2.346])
             numbers.round_to(0)
         """,
         code={"NumPy": """
@@ -337,7 +337,7 @@ ENTRIES = [
     Entry(
         word="nums.take_log",
         ours="""
-            numbers = sdata.numbers([1, 1000, 0, None, 0.01])
+            numbers = sdata.number_list([1, 1000, 0, None, 0.01])
             numbers.take_log(base=10)
         """,
         code={"NumPy": """
@@ -358,7 +358,7 @@ ENTRIES = [
     Entry(
         word="nums.take_exp",
         ours="""
-            numbers = sdata.numbers([0, 1, None, -2])
+            numbers = sdata.number_list([0, 1, None, -2])
             numbers.take_exp()
         """,
         code={"NumPy": """
@@ -375,7 +375,7 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_running_total",
         ours="""
-            numbers = sdata.numbers([1, None, 2, 3])
+            numbers = sdata.number_list([1, None, 2, 3])
             numbers.turn_into_running_total()
         """,
         code={"NumPy": """
@@ -395,7 +395,7 @@ ENTRIES = [
     Entry(
         word="nums.remove_each_number_that",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.remove_each_number_that(is_below=10)
         """,
         code={"NumPy": """
@@ -414,7 +414,7 @@ ENTRIES = [
     Entry(
         word="nums.keep_first_numbers",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.keep_first_numbers(3)
         """,
         code={"NumPy": """
@@ -430,7 +430,7 @@ ENTRIES = [
     Entry(
         word="nums.keep_last_numbers",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.keep_last_numbers(3)
         """,
         code={"NumPy": """
@@ -447,7 +447,7 @@ ENTRIES = [
     Entry(
         word="nums.keep_random_numbers",
         ours="""
-            numbers = sdata.numbers([10, 20, 30, 40, 50, 60])
+            numbers = sdata.number_list([10, 20, 30, 40, 50, 60])
             numbers.keep_random_numbers(3, with_seed=2)
         """,
         code={"NumPy": """
@@ -470,7 +470,7 @@ ENTRIES = [
     Entry(
         word="nums.remove_duplicate_numbers",
         ours="""
-            numbers = sdata.numbers([3, None, 5, 3, 8, None, 5])
+            numbers = sdata.number_list([3, None, 5, 3, 8, None, 5])
             numbers.remove_duplicate_numbers()
         """,
         code={"pandas": """
@@ -489,7 +489,7 @@ ENTRIES = [
     Entry(
         word="nums.remove_empty_numbers",
         ours="""
-            numbers = sdata.numbers([12, None, 9, None, 14])
+            numbers = sdata.number_list([12, None, 9, None, 14])
             numbers.remove_empty_numbers()
         """,
         code={"NumPy": """
@@ -505,7 +505,7 @@ ENTRIES = [
     Entry(
         word="nums.keep_numbers_by_position",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.keep_numbers_by_position(2, to=4)
         """,
         code={"NumPy": """
@@ -524,7 +524,7 @@ ENTRIES = [
     Entry(
         word="nums.remove_numbers_by_position",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.remove_numbers_by_position(2, to=3)
         """,
         code={"NumPy": """
@@ -543,7 +543,7 @@ ENTRIES = [
     Entry(
         word="nums.replace_each_number_that",
         ours="""
-            numbers = sdata.numbers([120, None, 80, 101])
+            numbers = sdata.number_list([120, None, 80, 101])
             numbers.replace_each_number_that(is_above=100, with_value=100)
         """,
         code={"NumPy": """
@@ -562,7 +562,7 @@ ENTRIES = [
     Entry(
         word="nums.fill_empty_numbers",
         ours="""
-            numbers = sdata.numbers([None, 12, None, 9, None, None, 18, None])
+            numbers = sdata.number_list([None, 12, None, 9, None, None, 18, None])
             numbers.fill_empty_numbers(with_the="line between neighbours")
         """,
         code={
@@ -598,7 +598,7 @@ ENTRIES = [
     Entry(
         word="nums.sort",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.sort(biggest_first=True)
         """,
         code={"NumPy": """
@@ -618,7 +618,7 @@ ENTRIES = [
     Entry(
         word="nums.reverse",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.reverse()
         """,
         code={"NumPy": """
@@ -635,7 +635,7 @@ ENTRIES = [
     Entry(
         word="nums.find_total",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_total()
         """,
         code={"NumPy": """
@@ -654,7 +654,7 @@ ENTRIES = [
     Entry(
         word="nums.find_smallest",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_smallest()
         """,
         code={"NumPy": """
@@ -672,7 +672,7 @@ ENTRIES = [
     Entry(
         word="nums.find_biggest",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_biggest()
         """,
         code={"NumPy": """
@@ -690,7 +690,7 @@ ENTRIES = [
     Entry(
         word="nums.find_standard_deviation",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.find_standard_deviation()
         """,
         code={"NumPy": """
@@ -710,7 +710,7 @@ ENTRIES = [
     Entry(
         word="nums.count_each",
         ours="""
-            numbers = sdata.numbers([3, None, 5, 3, None, 8, 5])
+            numbers = sdata.number_list([3, None, 5, 3, None, 8, 5])
             numbers.count_each()
         """,
         code={"pandas": """
@@ -735,7 +735,7 @@ ENTRIES = [
     Entry(
         word="nums.make_number_grid",
         ours="""
-            numbers = sdata.numbers([1, 2, 3, 4, 5, 6])
+            numbers = sdata.number_list([1, 2, 3, 4, 5, 6])
             numbers.make_number_grid(columns=3)
         """,
         code={"NumPy": """
@@ -800,7 +800,7 @@ ENTRIES = [
     Entry(
         word="grid.show_first_rows",
         ours="""
-            grid = sdata.numbers(1, to=12).make_number_grid(columns=3)
+            grid = sdata.number_list(1, to=12).make_number_grid(columns=3)
             grid.show_first_rows(2)
         """,
         code={"NumPy": """
@@ -818,7 +818,7 @@ ENTRIES = [
     Entry(
         word="grid.show_last_rows",
         ours="""
-            grid = sdata.numbers(1, to=12).make_number_grid(columns=3)
+            grid = sdata.number_list(1, to=12).make_number_grid(columns=3)
             grid.show_last_rows(2)
         """,
         code={"NumPy": """
@@ -909,7 +909,7 @@ ENTRIES = [
     Entry(
         word="grid.keep_rows_by_position",
         ours="""
-            grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+            grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
             grid.keep_rows_by_position(2, to=3)
         """,
         code={"NumPy": """
@@ -929,7 +929,7 @@ ENTRIES = [
     Entry(
         word="grid.keep_columns_by_position",
         ours="""
-            grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+            grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
             grid.keep_columns_by_position(2, to=4)
         """,
         code={"NumPy": """
@@ -948,7 +948,7 @@ ENTRIES = [
     Entry(
         word="grid.remove_rows_by_position",
         ours="""
-            grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+            grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
             grid.remove_rows_by_position(1)
         """,
         code={"NumPy": """
@@ -966,7 +966,7 @@ ENTRIES = [
     Entry(
         word="grid.remove_columns_by_position",
         ours="""
-            grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+            grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
             grid.remove_columns_by_position(1, step=2)
         """,
         code={"NumPy": """
@@ -1018,21 +1018,21 @@ ENTRIES = [
     ),
     # ---- steps, and passing the numbers on
     Entry(word="nums.undo", ours="""
-              numbers = sdata.numbers([12, 15, 9, 20, 14])
+              numbers = sdata.number_list([12, 15, 9, 20, 14])
               numbers.add(5)
               numbers.undo()
           """, compare="none",
           note="simplydata's own: it keeps the numbers as they were before each step (up to 30 steps) and puts back "
                "the last one. With NumPy you keep a copy yourself before a step (before = values.copy())."),
     Entry(word="nums.show_steps", ours="""
-              numbers = sdata.numbers([12, 15, 9, 20, 14])
+              numbers = sdata.number_list([12, 15, 9, 20, 14])
               numbers.add(5)
               numbers.show_steps()
           """, compare="none",
           note="simplydata's own: it writes down each step as you do it and lists them. A NumPy array keeps no list "
                "of steps; your script is the record."),
     Entry(word="nums.start_again", ours="""
-              numbers = sdata.numbers([12, 15, 9, 20, 14])
+              numbers = sdata.number_list([12, 15, 9, 20, 14])
               numbers.add(5)
               numbers.start_again()
           """, compare="none",
@@ -1041,7 +1041,7 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_table",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.turn_into_table()
         """,
         code={"pandas": """
@@ -1058,7 +1058,7 @@ ENTRIES = [
     Entry(
         word="nums.start_chart",
         ours="""
-            numbers = sdata.numbers([12, 15, 9, 20, 14, 18, 11, 16])
+            numbers = sdata.number_list([12, 15, 9, 20, 14, 18, 11, 16])
             chart = numbers.start_chart()
             chart.draw_histogram(x="value")
         """,
@@ -1085,7 +1085,7 @@ ENTRIES = [
         ours="""
             import os
             import tempfile
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             with tempfile.TemporaryDirectory() as folder:
                 numbers.save(os.path.join(folder, "numbers.csv"))
                 saved = sdata.table(os.path.join(folder, "numbers.csv"), separator=",")
@@ -1115,7 +1115,7 @@ ENTRIES = [
     Entry(
         word="nums.as_numpy",
         ours="""
-            numbers = sdata.numbers([12, None, 9, 20, 14])
+            numbers = sdata.number_list([12, None, 9, 20, 14])
             numbers.as_numpy()
         """,
         code={"NumPy": """

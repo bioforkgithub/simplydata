@@ -38,7 +38,7 @@ from .numbers_4 import GridWords4
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
               FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
-    """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: numbers.add(5)."""
+    """A list of numbers. Make one with sdata.number_list([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
     _name = "numbers"
@@ -394,22 +394,22 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
 
 
 # ====================================================================== making numbers
-_NUMBERS_EXAMPLE = "sdata.numbers([3, 5, 2, 8])   or   sdata.numbers(1, to=10)"
+_NUMBERS_EXAMPLE = "sdata.number_list([3, 5, 2, 8])   or   sdata.number_list(1, to=10)"
 
 
 @friendly
-def numbers(*values, to=None, step=None, how_many=None, channel=None, empty_values=None) -> Numbers:
+def number_list(*values, to=None, step=None, how_many=None, channel=None, empty_values=None) -> Numbers:
     """Make a list of numbers.
 
-    sdata.numbers([3, 5, 2, 8])              these numbers (or sdata.numbers(3, 5, 2, 8))
-    sdata.numbers(1, to=10)                  1, 2, 3 ... 10 (the end is included)
-    sdata.numbers(0, to=100, step=25)        0, 25, 50, 75, 100
-    sdata.numbers(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
-    sdata.numbers(10, to=1)                  counting down: 10, 9 ... 1
-    sdata.numbers("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
-    sdata.numbers("readings.txt", empty_values=[-999])   one column of numbers from a text file (.txt, .csv, .tsv,
-                                             .dat); empty_values= are the markers that mean "no reading" (only those:
-                                             other text, "NA" too, is refused; pandas read_csv)
+    sdata.number_list([3, 5, 2, 8])              these numbers (or sdata.number_list(3, 5, 2, 8))
+    sdata.number_list(1, to=10)                  1, 2, 3 ... 10 (the end is included)
+    sdata.number_list(0, to=100, step=25)        0, 25, 50, 75, 100
+    sdata.number_list(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
+    sdata.number_list(10, to=1)                  counting down: 10, 9 ... 1
+    sdata.number_list("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
+    sdata.number_list("readings.txt", empty_values=[-999])   one column of numbers from a text file (.txt, .csv, .tsv,
+                                                 .dat); empty_values= are the markers that mean "no reading" (only
+                                                 those: other text, "NA" too, is refused; pandas read_csv)
     None or NaN in a list is an empty (missing) value.
     """
     if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(_TEXT_ENDINGS):
@@ -417,40 +417,40 @@ def numbers(*values, to=None, step=None, how_many=None, channel=None, empty_valu
             raise SimplydataError("to=, step=, how_many= and channel= do not go with a text file.")
         return _read_text_numbers(values[0], empty_values)
     if empty_values is not None:
-        raise SimplydataError('empty_values= goes with a file, such as sdata.numbers("readings.txt", '
+        raise SimplydataError('empty_values= goes with a file, such as sdata.number_list("readings.txt", '
                               'empty_values=[-999]).')
     if len(values) == 1 and isinstance(values[0], str) and values[0].lower().endswith(".wav"):
         return _read_wav(values[0], channel)
     if channel is not None:
-        raise SimplydataError('channel= goes with a .wav file, such as sdata.numbers("call.wav", channel=1).')
+        raise SimplydataError('channel= goes with a .wav file, such as sdata.number_list("call.wav", channel=1).')
     if len(values) == 1 and not is_number(values[0]):
         if to is not None or step is not None or how_many is not None:
             raise SimplydataError(
-                "to=, step= and how_many= go with a starting number, like sdata.numbers(1, to=10).\n"
-                "For a list of your own numbers, write just the list: sdata.numbers([3, 5, 2, 8])"
+                "to=, step= and how_many= go with a starting number, like sdata.number_list(1, to=10).\n"
+                "For a list of your own numbers, write just the list: sdata.number_list([3, 5, 2, 8])"
             )
-        arr = to_array(values[0], "sdata.numbers()", _NUMBERS_EXAMPLE)
+        arr = to_array(values[0], "sdata.number_list()", _NUMBERS_EXAMPLE)
         if arr.ndim != 1:
             raise SimplydataError(
-                "sdata.numbers() makes one list of numbers. For rows and columns, use "
+                "sdata.number_list() makes one list of numbers. For rows and columns, use "
                 "sdata.number_grid([[1, 2], [3, 4]])."
             )
         return Numbers(arr)
     if not values:
-        raise SimplydataError(f"sdata.numbers() needs some numbers.\nFor example:  {_NUMBERS_EXAMPLE}")
+        raise SimplydataError(f"sdata.number_list() needs some numbers.\nFor example:  {_NUMBERS_EXAMPLE}")
     if len(values) == 1 and to is not None:
         return Numbers(_counting(values[0], to, step, how_many))
     if to is not None or step is not None or how_many is not None:
         raise SimplydataError(
-            "to=, step= and how_many= go with one starting number, like sdata.numbers(1, to=10)."
+            "to=, step= and how_many= go with one starting number, like sdata.number_list(1, to=10)."
         )
     if len(values) == 1:
         n = say_number(values[0])
         raise SimplydataError(
-            f"sdata.numbers({n}) is only one number. For a list with just that number write sdata.numbers([{n}]);\n"
-            f"to count up to it write sdata.numbers(1, to={n})."
+            f"sdata.number_list({n}) is only one number. For a list with just that number write "
+            f"sdata.number_list([{n}]);\nto count up to it write sdata.number_list(1, to={n})."
         )
-    return Numbers(to_array(list(values), "sdata.numbers()", _NUMBERS_EXAMPLE))
+    return Numbers(to_array(list(values), "sdata.number_list()", _NUMBERS_EXAMPLE))
 
 
 _TEXT_ENDINGS = (".txt", ".csv", ".tsv", ".dat")
@@ -466,7 +466,7 @@ def _read_text_numbers(file_name, empty_values=None) -> Numbers:
 
     from .block_files import local_path
 
-    path = local_path(file_name, "sdata.numbers()")
+    path = local_path(file_name, "sdata.number_list()")
     if not path.is_file():
         from .._data import _missing_file_error
 
@@ -490,15 +490,15 @@ def _read_text_numbers(file_name, empty_values=None) -> Numbers:
         frame = pd.read_csv(path, **{**options, "header": 0})
         header = str(frame.columns[0])
     if frame.shape[1] != 1:
-        raise SimplydataError(f'"{path.name}" has {frame.shape[1]} columns; sdata.numbers() reads one. For several '
+        raise SimplydataError(f'"{path.name}" has {frame.shape[1]} columns; sdata.number_list() reads one. For several '
                               f'columns use sdata.table("{path.name}").')
     column = pd.to_numeric(frame.iloc[:, 0], errors="coerce")
     text = int(column.isna().sum() - frame.iloc[:, 0].isna().sum())
     if text:
         bad = frame.iloc[:, 0][column.isna() & frame.iloc[:, 0].notna()].iloc[0]
         raise SimplydataError(f'"{path.name}" has text among its numbers, such as "{bad}". Name the markers for '
-                              f'"no value":  sdata.numbers("{path.name}", empty_values=["{bad}"])')
-    arr = to_array(column.to_numpy(), "sdata.numbers()", _NUMBERS_EXAMPLE)
+                              f'"no value":  sdata.number_list("{path.name}", empty_values=["{bad}"])')
+    arr = to_array(column.to_numpy(), "sdata.number_list()", _NUMBERS_EXAMPLE)
     empty = int(np.isnan(arr).sum()) if arr.dtype.kind == "f" else 0
     print(f"{amount(arr.size)} from {path.name}" + (f' (the first line, "{header}", is the name)' if header else "")
           + (f"; {empty} {'is' if empty == 1 else 'are'} empty" if empty else "")
@@ -578,22 +578,22 @@ def say_number(value) -> str:
 
 
 def _counting(start, to, step, how_many) -> np.ndarray:
-    example = "sdata.numbers(1, to=10)   or   sdata.numbers(0, to=1, how_many=5)"
+    example = "sdata.number_list(1, to=10)   or   sdata.number_list(0, to=1, how_many=5)"
     for name, value in (("the starting number", start), ("to=", to)):
         if not is_number(value) or not math.isfinite(value):
             raise SimplydataError(f"{name} needs to be a number.\nFor example:  {example}")
     if step is not None and how_many is not None:
         raise SimplydataError(
             "Give step= (the gap between numbers) or how_many= (how many numbers), not both.\n"
-            "For example:  sdata.numbers(0, to=100, step=25)   or   sdata.numbers(0, to=1, how_many=5)"
+            "For example:  sdata.number_list(0, to=100, step=25)   or   sdata.number_list(0, to=1, how_many=5)"
         )
     if how_many is not None:
-        n = check_whole("numbers", "how_many=", how_many, "sdata.numbers(0, to=1, how_many=5)")
+        n = check_whole("numbers", "how_many=", how_many, "sdata.number_list(0, to=1, how_many=5)")
         return np.linspace(start, to, n)
     if step is None:
         step = 1 if to >= start else -1
     if not is_number(step) or step == 0 or not math.isfinite(step):
-        raise SimplydataError(f"step= needs a number that is not 0, like step=2.\nFor example:  sdata.numbers(0, to=100, step=25)")
+        raise SimplydataError(f"step= needs a number that is not 0, like step=2.\nFor example:  sdata.number_list(0, to=100, step=25)")
     if (to - start) * step < 0:
         raise SimplydataError(
             f"Going from {say_number(start)} to {say_number(to)} with step={say_number(step)} never gets there.\n"

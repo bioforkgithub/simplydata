@@ -124,7 +124,7 @@ def test_find_path_over_time_explains_wrong_input(kwargs, problem):
 
 def test_turn_into_running_area_is_cumulative_trapezoid_and_simpson():
     values = [2.0, 4, 4, 3, 1, 0, 2]
-    nums = sdata.numbers(values)
+    nums = sdata.number_list(values)
     nums.turn_into_running_area(time_step=60)
     np.testing.assert_array_equal(nums.as_numpy(), integrate.cumulative_trapezoid(values, dx=60, initial=0))
     nums.undo()
@@ -132,8 +132,8 @@ def test_turn_into_running_area_is_cumulative_trapezoid_and_simpson():
     nums.turn_into_running_area(time_step=60, test_method="simpson")
     np.testing.assert_array_equal(nums.as_numpy(), integrate.cumulative_simpson(values, dx=60, initial=0))
     # a closed form: the running area of a straight line 0, 1, 2 ... with step 1 is t^2 / 2
-    line = sdata.numbers(list(range(11)))
+    line = sdata.number_list(list(range(11)))
     line.turn_into_running_area()
     np.testing.assert_allclose(line.as_numpy(), np.arange(11.0) ** 2 / 2, rtol=0, atol=1e-12)
     with pytest.raises(sdata.SimplydataError, match="fill the empty"):
-        sdata.numbers([1, None, 3]).turn_into_running_area()
+        sdata.number_list([1, None, 3]).turn_into_running_area()

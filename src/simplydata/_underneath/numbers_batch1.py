@@ -17,7 +17,7 @@ _PLATE_NUMPY = "import numpy as np\n            a = np.arange(1, 25).reshape(2, 
 ENTRIES = [
     # ---- yes or no values
     _e("nums.turn_into_yes_or_no", """
-            numbers = sdata.numbers([18.0, 21.5, None, 25.0, 19.0])
+            numbers = sdata.number_list([18.0, 21.5, None, 25.0, 19.0])
             numbers.turn_into_yes_or_no(is_above=20)
         """, """
             import numpy as np
@@ -28,8 +28,8 @@ ENTRIES = [
              "(np.logical_and, np.logical_or, np.logical_not).",
        choices=("an empty value is no (NumPy's nan > 20 is False too); is_empty=True asks for the empty ones.",)),
     _e("nums.keep_numbers_where", """
-            deep = sdata.numbers([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)
-            numbers = sdata.numbers([1.1, 9.5, 4.2, 12.0, 2.0])
+            deep = sdata.number_list([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)
+            numbers = sdata.number_list([1.1, 9.5, 4.2, 12.0, 2.0])
             numbers.keep_numbers_where(deep)
         """, """
             import numpy as np
@@ -40,8 +40,8 @@ ENTRIES = [
         """, "On a grid or a block the shape stays and the other numbers become empty (np.where(deep, values, "
              "np.nan)), as xarray's where. The step can be undone."),
     _e("nums.remove_numbers_where", """
-            land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)
-            numbers = sdata.numbers([12, 15, 9, 20, 14])
+            land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
             numbers.remove_numbers_where(land)
         """, """
             import numpy as np
@@ -51,8 +51,8 @@ ENTRIES = [
             values[~land]
         """, "On a grid or a block the shape stays and the removed numbers become empty."),
     _e("nums.replace_numbers_where", """
-            land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)
-            numbers = sdata.numbers([12.0, 15.0, 9.0, 20.0, 14.0])
+            land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)
+            numbers = sdata.number_list([12.0, 15.0, 9.0, 20.0, 14.0])
             numbers.replace_numbers_where(land, with_value="empty")
         """, """
             import numpy as np
@@ -62,7 +62,7 @@ ENTRIES = [
             np.where(land, np.nan, values)
         """, 'with_value="empty" (or None) makes them empty; a number puts that number in. The step can be undone.'),
     _e("nums.count_numbers_that", """
-            numbers = sdata.numbers([18.0, 21.5, None, 25.0, 19.0])
+            numbers = sdata.number_list([18.0, 21.5, None, 25.0, 19.0])
             numbers.count_numbers_that(is_above=20)
         """, """
             import numpy as np
@@ -72,7 +72,7 @@ ENTRIES = [
         """, "Grids and blocks take over= or in_each= for one count per position of the other directions "
              "(np.count_nonzero(test, axis=)). On yes or no values without a test, it counts the yes."),
     _e("nums.check_if_any_number", """
-            numbers = sdata.numbers([18.0, 21.5, None, 25.0, 19.0])
+            numbers = sdata.number_list([18.0, 21.5, None, 25.0, 19.0])
             numbers.check_if_any_number(is_above=30)
         """, """
             import numpy as np
@@ -81,7 +81,7 @@ ENTRIES = [
             bool(np.any(values > 30))
         """, "It says the answer in a sentence (how many pass) and gives back True or False."),
     _e("nums.check_if_all_numbers", """
-            numbers = sdata.numbers([18.0, 21.5, None, 25.0, 19.0])
+            numbers = sdata.number_list([18.0, 21.5, None, 25.0, 19.0])
             numbers.check_if_all_numbers(is_above=0)
         """, """
             import numpy as np
@@ -91,7 +91,7 @@ ENTRIES = [
         """, "It says the answer in a sentence and gives back True or False; over= gives one answer per position.",
        choices=("empty values are skipped: NumPy's np.all(values > 0) would say False because nan > 0 is False.",)),
     _e("nums.check_if_same_as", """
-            numbers = sdata.numbers([0.1 + 0.2, 1.0])
+            numbers = sdata.number_list([0.1 + 0.2, 1.0])
             numbers.check_if_same_as([0.3, 1.0], within=1e-12)
         """, """
             import numpy as np
@@ -120,7 +120,7 @@ ENTRIES = [
         """, "column= counts from 1. The step can be undone."),
     # ---- rounding, angles and positions
     _e("nums.round_down", """
-            numbers = sdata.numbers([2.7, -2.3, 0.5])
+            numbers = sdata.number_list([2.7, -2.3, 0.5])
             numbers.round_down()
         """, """
             import numpy as np
@@ -129,7 +129,7 @@ ENTRIES = [
             np.floor(values)
         """, "Minus numbers go down too: -2.3 becomes -3. take_whole_part() goes towards 0 instead."),
     _e("nums.round_up", """
-            numbers = sdata.numbers([2.1, -2.7, 0.5])
+            numbers = sdata.number_list([2.1, -2.7, 0.5])
             numbers.round_up()
         """, """
             import numpy as np
@@ -138,7 +138,7 @@ ENTRIES = [
             np.ceil(values)
         """, "Minus numbers go up too: -2.7 becomes -2."),
     _e("nums.take_whole_part", """
-            numbers = sdata.numbers([2.7, -2.7, 0.5])
+            numbers = sdata.number_list([2.7, -2.7, 0.5])
             numbers.take_whole_part()
         """, """
             import numpy as np
@@ -147,7 +147,7 @@ ENTRIES = [
             np.trunc(values)
         """, "The decimals go: 2.7 becomes 2 and -2.7 becomes -2 (towards 0)."),
     _e("nums.take_sin", """
-            numbers = sdata.numbers([0, 30, 90])
+            numbers = sdata.number_list([0, 30, 90])
             numbers.take_sin(degrees=True)
         """, """
             import numpy as np
@@ -158,7 +158,7 @@ ENTRIES = [
        choices=("angles are in radians unless degrees=True, as in NumPy, so the code is the same as NumPy's "
                 "(np.sin(values) without degrees=True).",)),
     _e("nums.take_cos", """
-            numbers = sdata.numbers([0, 60, 90])
+            numbers = sdata.number_list([0, 60, 90])
             numbers.take_cos(degrees=True)
         """, """
             import numpy as np
@@ -167,7 +167,7 @@ ENTRIES = [
             np.cos(np.deg2rad(values))
         """, "Angles are in radians unless degrees=True, as in NumPy.", tolerance=1e-15),
     _e("nums.take_tan", """
-            numbers = sdata.numbers([0, 45, 60])
+            numbers = sdata.number_list([0, 45, 60])
             numbers.take_tan(degrees=True)
         """, """
             import numpy as np
@@ -177,7 +177,7 @@ ENTRIES = [
         """, "Angles are in radians unless degrees=True. At 90 degrees NumPy gives a very big number.",
        tolerance=1e-15),
     _e("nums.change_angles_to", """
-            numbers = sdata.numbers([0, 1.5708, 3.14159])
+            numbers = sdata.number_list([0, 1.5708, 3.14159])
             numbers.change_angles_to("degrees")
         """, """
             import numpy as np
@@ -186,7 +186,7 @@ ENTRIES = [
             np.rad2deg(values)
         """, 'change_angles_to("radians") goes back (np.deg2rad).', tolerance=1e-15),
     _e("nums.find_where_biggest", """
-            numbers = sdata.numbers([12, 15, None, 20, 14])
+            numbers = sdata.number_list([12, 15, None, 20, 14])
             numbers.find_where_biggest()
         """, """
             import numpy as np
@@ -198,7 +198,7 @@ ENTRIES = [
        choices=("positions count from 1 (NumPy's argmax counts from 0); empty values are skipped (np.nanargmax); "
                 "on a tie, the first.",)),
     _e("nums.find_where_smallest", """
-            numbers = sdata.numbers([12, 15, None, 9, 14])
+            numbers = sdata.number_list([12, 15, None, 9, 14])
             numbers.find_where_smallest()
         """, """
             import numpy as np
@@ -207,7 +207,7 @@ ENTRIES = [
             int(np.nanargmin(values)) + 1
         """, "Positions count from 1; empty values are skipped; on a tie, the first."),
     _e("nums.make_pair_table_with", """
-            numbers = sdata.numbers([0, 10, 50])
+            numbers = sdata.number_list([0, 10, 50])
             numbers.make_pair_table_with([0, 10, 50], by_subtracting=True)
         """, """
             import numpy as np
@@ -438,7 +438,7 @@ ENTRIES = [
     # ---- stretching
     Entry(word="block.show_how_it_lines_up_with", ours="""
             block = sdata.number_block(of_shape=(2, 3, 4), filled_with=1)
-            block.show_how_it_lines_up_with(sdata.numbers([1, 2, 3, 4]))
+            block.show_how_it_lines_up_with(sdata.number_list([1, 2, 3, 4]))
         """, code={"NumPy": """
             import numpy as np
             # show_how_it_lines_up_with(other)
@@ -475,7 +475,7 @@ ENTRIES = [
           note="simplydata's own: the sentences that say which numbers were used again are printed (the default)."),
     # ---- options that change the call underneath
     _e("nums.divide_by", """
-            numbers = sdata.numbers([7, -7, 9])
+            numbers = sdata.number_list([7, -7, 9])
             numbers.divide_by(2, rounding_down=True)
         """, """
             import numpy as np
@@ -485,7 +485,7 @@ ENTRIES = [
         """, "-7 divided by 2 rounded down is -4, as Python's //. Dividing by 0 gives an empty value with a note.",
        option="rounding_down="),
     Entry(word="nums.take_fourier_transform", option="with_zero_in_middle=", ours="""
-            numbers = sdata.numbers([1.0, 3.0, 2.0, 0.5, 4.0, 2.5])
+            numbers = sdata.number_list([1.0, 3.0, 2.0, 0.5, 4.0, 2.5])
             numbers.take_fourier_transform(time_step=0.5, with_zero_in_middle=True)
         """, code={"SciPy": """
             import numpy as np

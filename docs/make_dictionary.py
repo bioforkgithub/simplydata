@@ -150,7 +150,7 @@ the word has one entry with a part for each, marked
 \kind{table} \code{table.keep\_rows\_where(...)} & a step on a table\\
 \kind{chart} \code{chart.draw\_bars(...)} & a step on a chart\\
 \kind{option} \code{show="median"} & an option inside a chart step\\
-\kind{numbers} \code{numbers.find\_average()} & a step on numbers: \code{numbers = sdata.numbers([12, 15, 9])}\\
+\kind{numbers} \code{numbers.find\_average()} & a step on numbers: \code{numbers = sdata.number\_list([12, 15, 9])}\\
 \kind{grid} \code{grid.get\_row(1)} & a step on a grid: \code{grid = sdata.number\_grid([[3, 5], [8, 6]])}\\
 \kind{distribution} \code{distribution.find\_chance\_that\_value(is\_above=60)} & a step on a distribution: \code{distribution = sdata.distribution("normal")}\\
 \end{tabular}
@@ -495,7 +495,7 @@ chart = table.start_chart()             # or sdata.chart(table), sdata.chart("my
 chart.draw_bars(x="class", y="marks", error="standard error")
 chart.write_title_on_top("Good marks")
 chart.save("marks.png")
-numbers = sdata.numbers([12, 15, 9, 20, 14])
+numbers = sdata.number_list([12, 15, 9, 20, 14])
 bigger = numbers * 2                       # symbols make new numbers
 numbers.keep_each_number_that(is_above=10) # words change the numbers (undo() takes it back)
 numbers.find_average()
@@ -504,7 +504,7 @@ grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 Every example runs as written on the practice table in brackets after it: \code{(weather)} means
 \code{weather = sdata.get\_example("weather")}, then \code{chart = sdata.chart(weather)} for a chart
 word or \code{table = sdata.table(weather)} for a table word. Number words use
-\code{numbers = sdata.numbers([12, 15, 9, 20, 14])}, grid words
+\code{numbers = sdata.number\_list([12, 15, 9, 20, 14])}, grid words
 \code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])} and system words
 \code{system = sdata.system("1 / (s**2 + 2*s + 5)")}. Steps such as \code{fit\_line} or
 \code{write\_title\_on\_top} go after a chart step such as \code{chart.draw\_dots(...)}, and \code{a},

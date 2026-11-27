@@ -584,7 +584,7 @@ def _path_exactly(texts, names, letters, rights, time, at_start, t0, known, orde
 
 
 # ---------------------------------------------------------------- sums of series (numbers phase, batch 4)
-SUM_HINT = ("For the decimal of a finite sum, put the terms in numbers and add them: sdata.numbers(...) then "
+SUM_HINT = ("For the decimal of a finite sum, put the terms in numbers and add them: sdata.number_list(...) then "
             "find_total(). For the formula of the sum up to a letter, use between=[1, \"n\"].")
 MAX_SUM_DIGITS = 100_000  # a finite sum whose terms have more digits than this is refused before SymPy adds them
 
@@ -864,7 +864,7 @@ def _long_sum(sp, term, k, low, high, said: str):
     if general.has(sp.Sum):
         raise SimplydataError(f"{said}: SymPy found no exact formula, and simplydata does not add more than "
                               f"{MAX_SUM_TERMS:,} terms one by one. Use a shorter range, or numbers words: "
-                              "sdata.numbers(...) then find_total().")
+                              "sdata.number_list(...) then find_total().")
     if general.is_polynomial(last):
         found = _guarded(general.subs, last, high, what="SymPy subs", hint=SUM_HINT)
         about = f" (about {float_of(found, 'SymPy N', SUM_HINT):.10g})" if found.is_real else ""

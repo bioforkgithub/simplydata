@@ -171,7 +171,7 @@ def test_show_takes_every_measure_name(marks, show, how):
 
 # ---------------------------------------------------------------- numbers
 def test_old_number_words_work(capsys):
-    nums = sdata.numbers([3, None, 5])
+    nums = sdata.number_list([3, None, 5])
     assert nums.count_empty() == 1
     assert nums.done().tolist()[0] == 3
     nums.fill_empty(with_value=0)
