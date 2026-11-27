@@ -133,7 +133,7 @@ jobs:
           xcolor colortbl caption booktabs tools enumitem needspace titlesec fancyhdr listings pgf tcolorbox environ
           trimspaces pdfcol tikzfill listingsutf8 hyperref bookmark tocloft refcount zref iftex xpatch upquote
           multirow l3packages l3kernel fp
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: examples-*
           path: ${{ runner.temp }}/parts
@@ -193,11 +193,11 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.sha }}
       - uses: ./.github/actions/setup-simplydata
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: manual
           path: ${{ runner.temp }}/manual
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: report
           path: validation
