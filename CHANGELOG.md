@@ -27,7 +27,8 @@ working for one release and prints a one-line note with its new name.
   second y-axis, a colour bar and the other charts of a page come after it), so any matplotlib or seaborn code
   works on them, and `fig.savefig("chart.png")` saves the result. It is a copy: changing `fig` never changes the
   chart, and later words on the chart never change `fig`. It is the matplotlib Figure also for a chart saved as a
-  web page, and the last frame of an animation. Pages of charts have it too. 579 words now.
+  web page, and the last frame of an animation. Pages of charts and pairs charts (`sdata.draw_all_pairs`) have it
+  too. 579 words now.
 
 ### Added: a manual chapter for readers who know matplotlib or seaborn (charts finishing)
 

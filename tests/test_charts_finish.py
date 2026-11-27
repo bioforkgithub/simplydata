@@ -115,3 +115,17 @@ def test_as_matplotlib_is_a_word_with_help_an_example_and_its_group(capsys):
     assert out.startswith("chart.as_matplotlib()")
     assert "fig.axes" in out and "copy" in out and "web page" in out
     assert "fig = chart.as_matplotlib()" in learn.HELP_EXAMPLES["as_matplotlib"]
+
+
+def test_a_pairs_chart_has_the_door_too():
+    """sdata.draw_all_pairs(...) gives a pairs chart; as_matplotlib gives its Figure, a copy as on a chart (it raised
+    MissingWordError)."""
+    pairs = sdata.draw_all_pairs(_marks(), columns=["hours", "marks"])
+    fig = pairs.as_matplotlib()
+    assert isinstance(fig, Figure) and len(fig.axes) >= 4  # 2 x 2 panels (and the twins of the histograms)
+    dots = [np.asarray(c.get_offsets(), dtype=float) for ax in fig.axes for c in ax.collections if len(c.get_offsets())]
+    frame = _marks().as_pandas()
+    assert any(len(d) == len(frame) and sorted(d[:, 0]) == sorted(frame["marks"]) for d in dots)
+    fig.suptitle("Only in matplotlib")
+    assert pairs.as_matplotlib() is not fig
+    assert pairs.as_matplotlib().get_suptitle() == ""
