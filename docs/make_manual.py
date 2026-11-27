@@ -136,6 +136,7 @@ UNDERNEATH = {
                         "colour map and norm of a colour scale)",
     "get_size": "matplotlib (Figure.get_size_inches)",
     "undo": "simplydata itself: a chart is a list of steps, drawn only when it is shown or saved",
+    "as_matplotlib": "matplotlib (the Figure simplydata draws, with its Axes in Figure.axes)",
     "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
     "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
     "use_shapes": "seaborn (scatterplot style= and markers=)",

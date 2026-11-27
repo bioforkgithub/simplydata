@@ -26,7 +26,9 @@ WIDTH = 78
 GROUPS = [
     ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save", "get_numbers_drawn",
                               # charts phase, batch 1: reading a chart back, and a step back
-                              "get_text_drawn", "get_scales_drawn", "get_size", "undo"]),
+                              "get_text_drawn", "get_scales_drawn", "get_size", "undo",
+                              # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
+                              "as_matplotlib"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
@@ -457,6 +459,12 @@ HELP_EXAMPLES = {
     "get_size": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.set_size(width=17, height=12, unit="cm")\n'
                              'width, height = chart.get_size(unit="cm")', "get_size"),
     "undo": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_log_scale_y()\nchart.undo()', "undo"),
+    # charts finishing: hand the chart to matplotlib for a job no word does, then save it with matplotlib
+    "as_matplotlib": "\n".join([
+        "import simplydata as sdata", 'marks = sdata.get_example("marks")', "chart = sdata.chart(marks)",
+        'chart.draw_dots(x="hours", y="marks")', "fig = chart.as_matplotlib()", "ax = fig.axes[0]",
+        'ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})',
+        'fig.savefig("as_matplotlib.png", dpi=300)']),
     "write_letter": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.write_letter("B")', "write_letter"),
     "put_legend_inside": _ex("weather", 'chart.draw_lines(x="month", y="temperature", colour="city")\n'
                                         'chart.put_legend_inside("top left")', "put_legend_inside"),

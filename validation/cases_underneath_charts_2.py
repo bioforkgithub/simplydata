@@ -1052,6 +1052,37 @@ def _cases_web(Case):
     ]
 
 
+def _cases_finishing(Case):
+    """Charts finishing (approved by Manish 2026-11-27): as_matplotlib, the door to matplotlib."""
+    return [
+        _case(Case, "as_matplotlib", "mtcars: fuel use against weight handed to matplotlib, which marks the heaviest "
+                                     "car", "mtcars", _code(MTCARS_DOTS, """
+            fig = chart.as_matplotlib()
+            ax = fig.axes[0]
+            heaviest = data.loc[data["wt"].idxmax()]
+            ax.annotate(heaviest["model"], xy=(heaviest["wt"], heaviest["mpg"]), xytext=(4, 25),
+                        arrowprops={"arrowstyle": "->"})
+            xy = ax.collections[0].get_offsets()
+            notes = chart.get_text_drawn().keep_rows_where("part", is_equal_to="note").count_rows()
+            {"dots": len(xy), "sum of x": float(xy[:, 0].sum()), "sum of y": float(xy[:, 1].sum()),
+             "x from": ax.get_xlim()[0], "x to": ax.get_xlim()[1], "notes in fig": len(ax.texts),
+             "note is the heaviest car": float(ax.texts[0].get_text() == "Lincoln Continental"),
+             "notes in the chart": notes}
+        """), _library(MTCARS_SEABORN, """
+            heaviest = data.loc[data["wt"].idxmax()]
+            ax.annotate(heaviest["model"], xy=(heaviest["wt"], heaviest["mpg"]), xytext=(4, 25),
+                        arrowprops={"arrowstyle": "->"})
+        """, """
+            xy = np.asarray(f["dots"], dtype=float)
+            {"dots": len(xy), "sum of x": float(xy[:, 0].sum()), "sum of y": float(xy[:, 1].sum()),
+             "x from": f["limits"][0][0], "x to": f["limits"][0][1], "notes in fig": len(f["texts"][1]),
+             "note is the heaviest car": float(list(f["texts"][1]) == ["Lincoln Continental"]), "notes in the chart": 0}
+        """), "seaborn scatterplot + matplotlib Axes.annotate, read with chart_facts", r="""
+            list(dots = length(mpg), `sum of x` = sum(wt), `sum of y` = sum(mpg))
+        """, note="The Figure is a copy: the note written on it in matplotlib is not on the simplydata chart."),
+    ]
+
+
 def cases(Case):
     return (_cases_batch1(Case) + _cases_new_marks(Case) + _cases_axes_and_look(Case) + _cases_colour_bars_and_3d(Case)
-            + _cases_options(Case) + _cases_web(Case))
+            + _cases_options(Case) + _cases_web(Case) + _cases_finishing(Case))
