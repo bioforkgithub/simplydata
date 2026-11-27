@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 572 commands in 67 cards, version 0.2.0.\par}
+work. 580 commands in 67 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -796,7 +796,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}where\_\allowbreak{}biggest(\textquotedbl{}3*x + 2*y\textquotedbl{},\allowbreak{} rules=[\textquotedbl{}x + y \textless{}= 4\textquotedbl{},\allowbreak{} \textquotedbl{}x + 3*y \textless{}= 6\textquotedbl{},\allowbreak{} \textquotedbl{}x \textgreater{}= 0\textquotedbl{},\allowbreak{} \textquotedbl{}y \textgreater{}= 0\textquotedbl{}])}\opts{\code{formula=}, \code{between=}, \code{start=}, \code{rules=}, \code{whole\_\allowbreak{}numbers=}, \code{search=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}}}{Find where a formula is biggest, and its value there.}{SciPy \code{linprog()}}
 
-\cmd{\code{sdata.\allowbreak{}solve(\textquotedbl{}x**3 - 2*x = 5\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{equations=}, \code{between=}, \code{start=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}, \code{exactly=}}}{Find the values that make an equation true.}{SciPy \code{linspace()}, \code{gap()}, \code{brentq()}, \code{zip()}, \code{DataFrame()}}
+\cmd{\code{sdata.\allowbreak{}solve(\textquotedbl{}x**3 - 2*x = 5\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{equations=}, \code{between=}, \code{start=}, \code{test\_\allowbreak{}method=}, \code{known=}, \code{fast=}, \code{exactly=}, \code{for\_\allowbreak{}letter=}, \code{letters\_\allowbreak{}are=}}}{Find the values that make an equation true.}{SciPy \code{linspace()}, \code{gap()}, \code{brentq()}, \code{zip()}, \code{DataFrame()}}
 
 \end{cardtable}
 
@@ -804,7 +804,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \begin{cardtable}
 
-\cmd{\code{sdata.\allowbreak{}formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{})}\opts{\code{text=}}}{A formula to work with exactly (SymPy): simpler, multiplied out, slopes, areas, limits.}{SymPy \code{Symbol()}, \code{str()}, \code{parse\_\allowbreak{}expr()}}
+\cmd{\code{sdata.\allowbreak{}formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{})}\opts{\code{text=}, \code{letters\_\allowbreak{}are=}}}{A formula to work with exactly (SymPy): simpler, multiplied out, slopes, areas, limits.}{SymPy \code{Symbol()}, \code{str()}, \code{parse\_\allowbreak{}expr()}}
 
 \cmd{\code{f.\allowbreak{}make\_\allowbreak{}simpler()}}{Write the formula in a simpler way (SymPy simplify).}{SymPy \code{Symbol()}, \code{str()}, \code{simplify()}}
 
@@ -812,7 +812,7 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}product()}}{Write the formula as a product of factors (SymPy factor).}{SymPy \code{Symbol()}, \code{str()}, \code{factor()}}
 
-\cmd{\code{f.\allowbreak{}find\_\allowbreak{}slope\_\allowbreak{}formula()}\opts{\code{for\_\allowbreak{}letter=}}}{The formula of the slope (the derivative), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{diff()}}
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}slope\_\allowbreak{}formula()}\opts{\code{for\_\allowbreak{}letter=}, \code{how\_\allowbreak{}many\_\allowbreak{}times=}}}{The formula of the slope (the derivative), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{diff()}}
 
 \cmd{\code{f.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}formula()}\opts{\code{for\_\allowbreak{}letter=}}}{The formula of the area under the curve (the integral), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{integrate()}}
 
@@ -822,11 +822,19 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{f.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}latex()}}{Show the formula as LaTeX, to paste into a paper; also gives the text back.}{SymPy \code{Symbol()}, \code{latex()}}
 
-\cmd{\code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as(\textquotedbl{}x\textquotedbl{},\allowbreak{} goes\_\allowbreak{}to=0)}\opts{\code{letter=}, \code{goes\_\allowbreak{}to=}}}{The value the formula comes close to as a letter goes to a value (the limit).}{SymPy \code{Symbol()}, \code{limit()}, \code{sin()}}
+\cmd{\code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as(\textquotedbl{}x\textquotedbl{},\allowbreak{} goes\_\allowbreak{}to=0)}\opts{\code{letter=}, \code{goes\_\allowbreak{}to=}, \code{from\_\allowbreak{}side=}}}{The value the formula comes close to as a letter goes to a value (the limit).}{SymPy \code{Symbol()}, \code{limit()}, \code{sin()}}
 
 \cmd{\code{f.\allowbreak{}find\_\allowbreak{}taylor\_\allowbreak{}series(around=0,\allowbreak{} up\_\allowbreak{}to\_\allowbreak{}power=4)}\opts{\code{around=}, \code{up\_\allowbreak{}to\_\allowbreak{}power=}, \code{for\_\allowbreak{}letter=}}}{The formula as a sum of powers near one value (the Taylor series), as a new formula.}{SymPy \code{Symbol()}, \code{str()}, \code{series().\allowbreak{}removeO()}, \code{exp()}}
 
 \cmd{\code{f.\allowbreak{}undo()}}{Take the last change of the formula back.}{simplydata's own: a formula keeps its earlier forms. A SymPy expression never changes, so in SymPy you keep the old one in a variable yourself.}
+
+\cmd{\code{f.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}decimal(digits=50)}\opts{\code{digits=}}}{Show a formula without letters as a decimal with as many digits as you ask; also gives the text back.}{SymPy \code{str()}, \code{N()}, \code{sqrt()}}
+
+\cmd{\code{f.\allowbreak{}group\_\allowbreak{}by\_\allowbreak{}powers\_\allowbreak{}of(\textquotedbl{}x\textquotedbl{})}\opts{\code{letter=}}}{Multiply out, then gather the terms by the powers of one letter (SymPy collect).}{SymPy \code{symbols()}, \code{str()}, \code{collect()}, \code{expand()}}
+
+\cmd{\code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}partial\_\allowbreak{}fractions()}\opts{\code{for\_\allowbreak{}letter=}}}{Split a fraction of polynomials into a sum of simple fractions (SymPy apart).}{SymPy \code{Symbol()}, \code{str()}, \code{apart()}}
+
+\cmd{\code{f.\allowbreak{}as\_\allowbreak{}sympy()}}{The SymPy expression underneath, to carry on in SymPy itself.}{SymPy \code{str()}, \code{parse\_\allowbreak{}expr()}, \code{Symbol()}}
 
 \end{cardtable}
 
@@ -836,11 +844,13 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under(\textquotedbl{}x**2\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}\opts{\code{formula=}, \code{between=}, \code{test\_\allowbreak{}method=}, \code{exactly=}, \code{known=}}}{The area under a formula's curve between two values (the definite integral).}{SciPy \code{quad()}, \code{exp()}}
 
-\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}volume\_\allowbreak{}under(\textquotedbl{}x * y\textquotedbl{},\allowbreak{} between=\{\textquotedbl{}x\textquotedbl{}: [0,\allowbreak{} 1],\allowbreak{} \textquotedbl{}y\textquotedbl{}: [0,\allowbreak{} 2]\})}\opts{\code{formula=}, \code{between=}, \code{known=}}}{The volume under a formula of two or more letters, over a range of each (a double or triple integral).}{SciPy \code{dblquad()}}
+\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}volume\_\allowbreak{}under(\textquotedbl{}x * y\textquotedbl{},\allowbreak{} between=\{\textquotedbl{}x\textquotedbl{}: [0,\allowbreak{} 1],\allowbreak{} \textquotedbl{}y\textquotedbl{}: [0,\allowbreak{} 2]\})}\opts{\code{formula=}, \code{between=}, \code{known=}, \code{exactly=}}}{The volume under a formula of two or more letters, over a range of each (a double or triple integral).}{SciPy \code{dblquad()}}
 
 \cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time(\textquotedbl{}dN/dt = r * N * (1 - N / K)\textquotedbl{},\allowbreak{} at\_\allowbreak{}start=\{\textquotedbl{}N\textquotedbl{}: 10\},\allowbreak{} between=[0,\allowbreak{} 50],\allowbreak{} known=\{\textquotedbl{}r\textquotedbl{}: 0.\allowbreak{}3,\allowbreak{} \textquotedbl{}K\textquotedbl{}: 1000\},\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}5)}\opts{\code{equations=}, \code{at\_\allowbreak{}start=}, \code{between=}, \code{known=}, \code{time\_\allowbreak{}step=}, \code{stop\_\allowbreak{}when=}, \code{test\_\allowbreak{}method=}, \code{exactly=}}}{The values over time from how fast they change (an ordinary differential equation).}{SciPy \code{linspace()}, \code{solve\_\allowbreak{}ivp()}, \code{DataFrame()}}
 
 \cmd{\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}area(time\_\allowbreak{}step=60)}\opts{\code{time\_\allowbreak{}step=}, \code{test\_\allowbreak{}method=}, \code{sampling\_\allowbreak{}rate=}, \code{fs=}}}{Turn readings into the area so far under their curve (a running integral).}{SciPy \code{cumulative\_\allowbreak{}trapezoid()}}
+
+\cmd{\code{sdata.\allowbreak{}find\_\allowbreak{}sum\_\allowbreak{}of\_\allowbreak{}series(\textquotedbl{}1/k**2\textquotedbl{},\allowbreak{} between=[1,\allowbreak{} \textquotedbl{}infinity\textquotedbl{}])}\opts{\code{formula=}, \code{between=}, \code{for\_\allowbreak{}letter=}, \code{known=}}}{The sum of a formula for every whole number from one end to the other (a series).}{SymPy \code{Symbol()}, \code{str()}, \code{summation()}}
 
 \end{cardtable}
 
@@ -1346,7 +1356,13 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 
 \cmd{\code{grid.\allowbreak{}take\_\allowbreak{}matrix\_\allowbreak{}exp()}}{The matrix exponential of a square grid (as used for rates of change between states).}{SciPy \code{expm()}}
 
-\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}null\_\allowbreak{}space()}}{The directions the grid turns into zeros (its null space), one in each column of a new grid.}{SciPy \code{null\_\allowbreak{}space()}}
+\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}null\_\allowbreak{}space()}\opts{\code{exactly=}}}{The directions the grid turns into zeros (its null space), one in each column of a new grid.}{SciPy \code{null\_\allowbreak{}space()}}
+
+\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}determinant()}\opts{\code{exactly=}}}{The determinant of a square grid: one number that is 0 when the grid has no inverse.}{SciPy \code{det()}}
+
+\cmd{\code{grid.\allowbreak{}take\_\allowbreak{}inverse()}\opts{\code{exactly=}}}{Turn a square grid into its inverse: the grid that multiplies it to give the identity.}{SciPy \code{inv()}}
+
+\cmd{\code{grid.\allowbreak{}find\_\allowbreak{}eigenvalues()}\opts{\code{exactly=}}}{The eigenvalues of a square grid, biggest first, as a table.}{SciPy \code{eigvalsh()}, \code{DataFrame()}}
 
 \end{cardtable}
 

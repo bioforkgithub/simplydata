@@ -66,7 +66,7 @@ _SDATA = [
      "diff Derivative Integral deriv derivative"),
     ('sdata.formula("x**3 - 2*x"), then f.find_value_at(x=2) or f.put_in(x="y + 1")',
      "subs evalf lambdify matlabFunction substitute"),
-    ('sdata.formula("x**3 - 2*x"), then f.show_as_latex()', "latex"),
+    ('sdata.formula("x**3 - 2*x"), then f.show_as_latex()', "latex pprint pretty"),
     ('sdata.formula("sin(x) / x"), then f.find_limit_as("x", goes_to=0) or f.find_taylor_series(around=0)',
      "limit series taylor"),
     ('sdata.solve("x**2 = 2", exactly=True)', "solveset linsolve"),
@@ -75,6 +75,19 @@ _SDATA = [
     ('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})', "dblquad tplquad nquad integral2 integral3"),
     ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3})',
      "solve_ivp odeint ode dsolve lsoda ode45 ode15s ode23"),
+    # Numbers phase, batch 4 (approved by Manish 2026-11-26): the SymPy words
+    ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then f.turn_into_partial_fractions()',
+     "apart partial_fractions partfrac"),
+    ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then f.group_by_powers_of("x")', "collect coeffs"),
+    ('sdata.formula("sqrt(2)"), then f.find_value_at() for a number, or f.show_as_decimal(digits=50) for many '
+     'digits', "N vpa"),
+    ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"})', "assumptions refine assume Q"),
+    ('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])', "summation Sum nsum symsum is_convergent"),
+    ('sdata.solve("x**2 - 4 > 0", exactly=True)',
+     "reduce_inequalities solve_univariate_inequality solve_poly_inequality"),
+    ("sdata.number_grid([[2, 1], [1, 2]]), then grid.find_determinant()", "det"),
+    ("sdata.number_grid([[2, 1], [1, 2]]), then grid.take_inverse()", "inv"),
+    ("sdata.number_grid([[2, 1], [1, 2]]), then grid.find_eigenvalues()", "eig eigvals eigvalsh eigen eigenvals"),
     ("sdata.numbers(0, to=10, how_many=50)", "linspace arange seq seq_len array"),
     # NumPy + SciPy phase, batch 2 (approved by Manish 2026-11-25)
     ('sdata.number_block("sst.nc", values="sst")',

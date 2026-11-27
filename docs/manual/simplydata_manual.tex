@@ -7405,7 +7405,9 @@ ax.plot(at, fitted)          # the fitted curve
 \wordentry{chart.draw\_curve()}{word:draw-curve}
 Draw a formula, or a distribution, as a curve. \code{chart.\allowbreak{}draw\_\allowbreak{}curve(\textquotedbl{}y = 100 * exp(-0.\allowbreak{}3 * x)\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 10])}
 
-The formula uses one name (x, or any other) and the functions of \code{table.\allowbreak{}add\_\allowbreak{}column}; \code{between=[low,\allowbreak{} high]} says where along x (normally the x range of the chart).\\
+The formula uses one name (x, or any other) and the functions of \code{table.\allowbreak{}add\_\allowbreak{}column}; a formula made with\\
+\codeline{sdata.formula(\textquotedbl{}x**3 - 3*x\textquotedbl{}) can be drawn too;}\\
+\code{between=[low,\allowbreak{} high]} says where along x (normally the x range of the chart).\\
 \codeline{chart.draw\_curve(sdata.distribution(\textquotedbl{}normal\textquotedbl{}, average=50, standard\_deviation=10)) draws a}\\
 distribution: its density curve, or for whole-number distributions (binomial, poisson ...) the chance of each value. Over a histogram the curve is scaled to the bars (count, percent or density), with a note. \code{show=\textquotedbl{}cumulative\textquotedbl{}} draws the chance of a value at or below x instead (on a cumulative histogram it is scaled the same way). \code{steps=} is how many points make the curve (normally 200); \code{dashed=True}, \code{colour=\textquotedbl{}red\textquotedbl{}}, \code{thickness=3} and \code{labelled=\textquotedbl{}model\textquotedbl{}} (shown in the legend) change how it looks.
 
@@ -18917,7 +18919,8 @@ Find the values that make an equation true.
 \codeline{sdata.solve(\textquotedbl{}x**3 - 2*x = 5\textquotedbl{}, between=[0, 3])}\enspace (x = 2.09455)\\
 One equation with one name: \code{between=[low,\allowbreak{} high]} finds every solution in the range where the two sides cross (Brent's method, R \code{uniroot()} on each sign change, as rootSolve::\code{uniroot.\allowbreak{}all()}); \code{start=} finds one solution by searching from the start (secant method); a polynomial (only + - * and whole powers) needs neither and gives all its solutions, complex ones too (R \code{polyroot()}). Several equations in a list:\\
 \codeline{sdata.solve([\textquotedbl{}x + y = 3\textquotedbl{}, \textquotedbl{}x * y = 2\textquotedbl{}], start=\{\textquotedbl{}x\textquotedbl{}: 0, \textquotedbl{}y\textquotedbl{}: 1\}) (Powell's hybrid method, as}\\
-R nleqslv::\code{nleqslv()}); straight-line equations are solved exactly (R \code{solve()}). \code{known=} fixes some names (a dict, or a one-row result table from \code{table.\allowbreak{}fit\_\allowbreak{}formula}). Gives back a table with one row per solution: each name, \code{\textquotedbl{}left minus right\textquotedbl{}} at the solution (the check: close to 0) and the method. \code{fast=True} gives a Polars table. \code{exactly=True} gives the exact solutions from SymPy solve (simplydata[exact]): \code{sdata.\allowbreak{}solve(\textquotedbl{}x**2 = 2\textquotedbl{},\allowbreak{} exactly=True)} prints x = -\code{sqrt(2)} or x = \code{sqrt(2)}; the table has each decimal and its exact form.
+R nleqslv::\code{nleqslv()}); straight-line equations are solved exactly (R \code{solve()}). \code{known=} fixes some names (a dict, or a one-row result table from \code{table.\allowbreak{}fit\_\allowbreak{}formula}). Gives back a table with one row per solution: each name, \code{\textquotedbl{}left minus right\textquotedbl{}} at the solution (the check: close to 0) and the method. \code{fast=True} gives a Polars table. \code{exactly=True} gives the exact solutions from SymPy solve (simplydata[exact]): \code{sdata.\allowbreak{}solve(\textquotedbl{}x**2 = 2\textquotedbl{},\allowbreak{} exactly=True)} prints x = -\code{sqrt(2)} or x = \code{sqrt(2)}; the table has each decimal and its exact form. With \code{exactly=True}, \code{for\_\allowbreak{}letter=\textquotedbl{}T\textquotedbl{}} solves for that letter and leaves the others as letters (\code{sdata.\allowbreak{}solve(\textquotedbl{}p*V = n*R*T\textquotedbl{},\allowbreak{} for\_\allowbreak{}letter=\textquotedbl{}T\textquotedbl{},\allowbreak{} exactly=True)} gives T = V*p/(R*n)); rules (\textless{}, \textgreater{}, \textless{}=, \textgreater{}=) give the ranges where they hold (\code{sdata.\allowbreak{}solve(\textquotedbl{}x**2 - 4 \textgreater{} 0\textquotedbl{},\allowbreak{} exactly=True)}: x \textless{} -2 or x \textgreater{} 2, SymPy solveset over the real numbers); \code{letters\_\allowbreak{}are=}\{\code{\textquotedbl{}c\textquotedbl{}}: \code{\textquotedbl{}positive\textquotedbl{}}\} says what a letter is. A formula made with \code{sdata.\allowbreak{}formula()} means\\
+\codeline{formula = 0: sdata.solve(f.find\_slope\_formula(), exactly=True) finds where the slope is flat.}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -18928,6 +18931,8 @@ R nleqslv::\code{nleqslv()}); straight-line equations are solved exactly (R \cod
 \code{known=} & \\
 \code{fast=} & normally \code{False}\\
 \code{exactly=} & normally \code{False}\\
+\code{for\_\allowbreak{}letter=} & \\
+\code{letters\_\allowbreak{}are=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.solve]{How simplydata chooses methods}, page \pageref{basis:sdata.solve}: the default, the evidence and the checks.}
@@ -18971,6 +18976,46 @@ x = sp.Symbol("x")
 \undertext{simplydata also gives the decimal of each solution and says when one is not an ordinary number.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{for\_\allowbreak{}letter=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+p, V, n, R, T = sp.symbols("p V n R T")
+# solve("p*V = n*R*T", for_letter="T", exactly=True)
+[str(s[T]) for s in sp.solve([sp.Eq(p*V, n*R*T)], [T], dict=True)]
+\end{lstlisting}
+\undertext{simplydata also says which letters stay letters and leaves their decimal empty.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{letters\_\allowbreak{}are=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+c = sp.Symbol("c", positive=True)
+# solve("c**2 = 4", exactly=True, letters_are={"c": "positive"})
+[str(s[c]) for s in sp.solve([sp.Eq(c**2, 4)], [c], dict=True)]
+\end{lstlisting}
+\undertext{simplydata also checks with SymPy solveset that these are all the solutions of that kind.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=True with a rule}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x = sp.Symbol("x")
+# solve("x**2 - 4 > 0", exactly=True)
+ranges = sp.solveset(x**2 - 4 > 0, x, sp.S.Reals)   # (1)
+[str(piece.end).replace("oo", "infinity") for piece in ranges.args]   # (2)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) over the real numbers (domain S.Reals): SymPy solveset's own default is the complex numbers, where \textless{} and \textgreater{} have no meaning; with \code{letters\_\allowbreak{}are=} the numbers the letter may be (positive: 0 to infinity).}
+\undertext{(2) infinity is written as the word, not as SymPy's oo.}
+\undertext{simplydata also says the answer in words (x \textless{} -2 or x \textgreater{} 2) and uses \code{reduce\_\allowbreak{}inequalities} for several rules.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unchapter{Number words}{family:numbers}
 Steps on numbers, \code{nums = sdata.numbers([12, 15, 9, 20, 14])}, on grids of numbers, \code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])}, on systems, \code{system = sdata.system("1 / (s**2 + 2*s + 5)")}, and on formulas, \code{f = sdata.formula("(x + 2)**2 - 4")}.
 \unsection{Formulas and exact answers}{group:Formulas-and-exact-answers}
@@ -18978,11 +19023,12 @@ Steps on numbers, \code{nums = sdata.numbers([12, 15, 9, 20, 14])}, on grids of 
 A formula to work with exactly (SymPy): simpler, multiplied out, slopes, areas, limits. \code{sdata.\allowbreak{}formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{})}
 
 \codeline{f = sdata.formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{}), then f.turn\_into\_sum() gives x**2 + 4*x. Write the formula as for}\\
-\code{fit\_\allowbreak{}formula}: letters (x, y, rate), numbers, + - * / and ** (\textasciicircum{} works too), brackets, pi and the functions exp, log, sqrt, abs, sin, cos, tan, erf ... The letters are found by themselves. Needs the extra simplydata[exact] (SymPy): pip install \code{\textquotedbl{}simplydata[exact]\textquotedbl{}}. A formula can be handed to \code{find\_\allowbreak{}where\_\allowbreak{}smallest}, \code{find\_\allowbreak{}where\_\allowbreak{}biggest} and \code{find\_\allowbreak{}area\_\allowbreak{}under}. \code{lgamma(x)} is the log of the size of \code{gamma(x)}, as R lgamma and SciPy gammaln (real also where gamma is negative). Powers of numbers with more than 1000 digits are refused.
+\code{fit\_\allowbreak{}formula}: letters (x, y, rate), numbers, + - * / and ** (\textasciicircum{} works too), brackets, pi and the functions exp, log, sqrt, abs, sin, cos, tan, erf ... The letters are found by themselves. \code{letters\_\allowbreak{}are=}\{\code{\textquotedbl{}k\textquotedbl{}}: \code{\textquotedbl{}positive\textquotedbl{}}\} says what a letter is (\code{\textquotedbl{}positive\textquotedbl{}}, \code{\textquotedbl{}zero or more\textquotedbl{}}, \code{\textquotedbl{}negative\textquotedbl{}}, \code{\textquotedbl{}real\textquotedbl{}}, \code{\textquotedbl{}whole number\textquotedbl{}}, \code{\textquotedbl{}positive whole number\textquotedbl{}}), so SymPy may use it: \code{sqrt(k**2)} is then k. Needs the extra simplydata[exact] (SymPy): pip install \code{\textquotedbl{}simplydata[exact]\textquotedbl{}}. A formula can be handed to \code{find\_\allowbreak{}where\_\allowbreak{}smallest}, \code{find\_\allowbreak{}where\_\allowbreak{}biggest}, \code{find\_\allowbreak{}area\_\allowbreak{}under}, solve and \code{chart.\allowbreak{}draw\_\allowbreak{}curve}. \code{lgamma(x)} is the log of the size of \code{gamma(x)}, as R lgamma and SciPy gammaln (real also where gamma is negative). Powers of numbers with more than 1000 digits are refused. In Jupyter a formula is shown typeset.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{text=} & \\
+\code{letters\_\allowbreak{}are=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.formula]{How simplydata chooses methods}, page \pageref{basis:sdata.formula}: the default, the evidence and the checks.}
@@ -19005,6 +19051,18 @@ str(parse_expr("(x + 2)**2 - 4", local_dict=letters))
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) every letter is handed to SymPy as a Symbol of its own, so letters such as E, I, N and S stay letters (SymPy alone reads them as its constant e, the imaginary unit and its own functions).}
 \undertext{simplydata also checks the text first with Python's ast (numbers, letters, + - * / ** \textasciicircum{}, brackets and the functions of \code{fit\_\allowbreak{}formula} only) and names the letters it found.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{letters\_\allowbreak{}are=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+k, t = sp.symbols("k t", positive=True)
+# formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
+str(sp.expand(sp.sqrt(k**2) + sp.log(k*t)))
+\end{lstlisting}
+\undertext{simplydata also names each letter with what it is, and takes \code{\textquotedbl{}zero or more\textquotedbl{}}, \code{\textquotedbl{}negative\textquotedbl{}}, \code{\textquotedbl{}real\textquotedbl{}}, \code{\textquotedbl{}whole number\textquotedbl{}} and \code{\textquotedbl{}positive whole number\textquotedbl{}}.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
 \wordentry{f.make\_simpler()}{word:f.make-simpler}
@@ -19037,7 +19095,7 @@ str(sp.simplify((x**2 - 1) / (x - 1)))
 Multiply out the brackets, so the formula is a sum of terms (SymPy expand). \code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}sum()}
 
 \codeline{f = sdata.formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{}), then f.turn\_into\_sum() gives x**2 + 4*x. The formula changes;}\\
-\code{f.\allowbreak{}undo()} takes the step back. \code{turn\_\allowbreak{}into\_\allowbreak{}product()} goes the other way. As SymPy \code{expand()}.
+\code{f.\allowbreak{}undo()} takes the step back. \code{turn\_\allowbreak{}into\_\allowbreak{}product()} goes the other way. As SymPy \code{expand()}. A sum with letters raised to a whole power above 100 is refused (it would have far too many terms).
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -19089,11 +19147,12 @@ str(sp.factor(x**2 + 4*x))
 The formula of the slope (the derivative), as a new formula. \code{f.\allowbreak{}find\_\allowbreak{}slope\_\allowbreak{}formula()}
 
 \codeline{f = sdata.formula(\textquotedbl{}x**3 - 2*x\textquotedbl{}), then f.find\_slope\_formula() gives 3*x**2 - 2. for\_letter= says which}\\
-letter when there are several. As SymPy \code{diff()}; MATLAB diff; R \code{D()}.
+letter when there are several. \code{how\_\allowbreak{}many\_\allowbreak{}times=2} takes the slope of the slope (the second derivative), up to 20 times. \code{for\_\allowbreak{}letter=[\textquotedbl{}x\textquotedbl{},\allowbreak{} \textquotedbl{}y\textquotedbl{}]} takes the slope for x, then for y (a mixed partial derivative). As SymPy \code{diff()}; MATLAB diff; R \code{D()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{for\_\allowbreak{}letter=} & \\
+\code{how\_\allowbreak{}many\_\allowbreak{}times=} & normally \code{1}\\
 \end{optiontable}
 
 \wordfield{Underneath}{SymPy \code{Symbol()}, \code{str()}, \code{diff()}}
@@ -19113,6 +19172,30 @@ x = sp.Symbol("x")
 str(sp.diff(x**3 - 2*x, x))
 \end{lstlisting}
 \undertext{simplydata also finds the letter itself when the formula has only one (\code{for\_\allowbreak{}letter=} otherwise).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{how\_\allowbreak{}many\_\allowbreak{}times=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x = sp.Symbol("x")
+# f.find_slope_formula(how_many_times=3)
+str(sp.diff(sp.sin(x), x, 3))
+\end{lstlisting}
+\undertext{simplydata also names the derivative (the 3rd) and refuses more than 20 times.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{for\_\allowbreak{}letter=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x, y = sp.symbols("x y")
+# f.find_slope_formula(for_letter=["x", "y"])
+str(sp.diff(x**2 * y**3, x, y))
+\end{lstlisting}
+\undertext{simplydata also checks that each letter is a letter of the formula.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
 \wordentry{f.find\_area\_formula()}{word:f.find-area-formula}
@@ -19205,7 +19288,7 @@ str((x**2).subs(x, y + 1))
 Show the formula as LaTeX, to paste into a paper; also gives the text back. \code{f.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}latex()}
 
 \codeline{f = sdata.formula(\textquotedbl{}x**3 - 2*x\textquotedbl{}), then f.show\_as\_latex() prints x\textasciicircum{}\{3\} - 2 x. Nothing is written to a}\\
-file. As SymPy \code{latex()}.
+file. As SymPy \code{latex()}. In Jupyter a formula is shown typeset by itself.
 
 \wordfield{Options}{none: just write the empty brackets.}
 
@@ -19231,12 +19314,13 @@ sp.latex(x**3 - 2*x)
 The value the formula comes close to as a letter goes to a value (the limit). \code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as(\textquotedbl{}x\textquotedbl{},\allowbreak{} goes\_\allowbreak{}to=0)}
 
 \codeline{f = sdata.formula(\textquotedbl{}sin(x) / x\textquotedbl{}), then f.find\_limit\_as(\textquotedbl{}x\textquotedbl{}, goes\_to=0) gives 1. goes\_to= takes a number,}\\
-\code{\textquotedbl{}infinity\textquotedbl{}} or \code{\textquotedbl{}-infinity\textquotedbl{}}. At a number the formula must come to the same value from both sides (as in school maths; SymPy's own \code{limit()} looks from above only). Gives a number, or a formula when other letters are left. As SymPy \code{limit()}.
+\code{\textquotedbl{}infinity\textquotedbl{}} or \code{\textquotedbl{}-infinity\textquotedbl{}}. At a number the formula must come to the same value from both sides (as in school maths; SymPy's own \code{limit()} looks from above only); \code{from\_\allowbreak{}side=\textquotedbl{}above\textquotedbl{}} or \code{\textquotedbl{}below\textquotedbl{}} looks from one side only (\code{\textquotedbl{}right\textquotedbl{}} and \code{\textquotedbl{}left\textquotedbl{}} work too): for 1/x, \code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as(\textquotedbl{}x\textquotedbl{},\allowbreak{} goes\_\allowbreak{}to=0,\allowbreak{} from\_\allowbreak{}side=\textquotedbl{}above\textquotedbl{})} gives infinity. Gives a number, or a formula when other letters are left. As SymPy \code{limit()}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{letter=} & \\
 \code{goes\_\allowbreak{}to=} & normally \code{0}\\
+\code{from\_\allowbreak{}side=} & normally \code{\textquotedbl{}both\textquotedbl{}}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:f.find-limit-as]{How simplydata chooses methods}, page \pageref{basis:f.find-limit-as}: the default, the evidence and the checks.}
@@ -19258,6 +19342,18 @@ float(sp.limit(sp.sin(x) / x, x, 0, dir="+-"))   # (1)
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) at a number the limit is taken from both sides (\code{dir=\textquotedbl{}+-\textquotedbl{}}), as in school maths; SymPy's own default looks from above only.}
 \undertext{simplydata also says when the two sides differ, with the value from each.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{from\_\allowbreak{}side=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x = sp.Symbol("x")
+# f.find_limit_as("x", goes_to=0, from_side="below")
+float(sp.limit(sp.Abs(x) / x, x, 0, dir="-"))
+\end{lstlisting}
+\undertext{simplydata also takes \code{\textquotedbl{}left\textquotedbl{}} and \code{\textquotedbl{}right\textquotedbl{}} as other spellings, and refuses a side at infinity.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
 \wordentry{f.find\_taylor\_series()}{word:f.find-taylor-series}
@@ -19309,6 +19405,124 @@ f.turn_into_sum()
 f.undo()
 \end{lstlisting}
 \undertext{\textit{Nothing underneath:} simplydata's own: a formula keeps its earlier forms. A SymPy expression never changes, so in SymPy you keep the old one in a variable yourself.}
+\wordentry{f.show\_as\_decimal()}{word:f.show-as-decimal}
+Show a formula without letters as a decimal with as many digits as you ask; also gives the text back.
+
+\code{f.\allowbreak{}show\_\allowbreak{}as\_\allowbreak{}decimal(digits=50)}\\
+\codeline{f = sdata.formula(\textquotedbl{}sqrt(2)\textquotedbl{}), then f.show\_as\_decimal(digits=50) prints}\\
+1.4142135623730950488016887242096980785696718753769. A float keeps only about 16 digits, so the answer is text. \code{digits=} from 1 to 10,000. Put numbers in place of letters first (\code{f.\allowbreak{}put\_\allowbreak{}in(x=2)}). Nothing changes. As SymPy \code{N(expr,\allowbreak{} digits)} (evalf); MATLAB vpa.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{digits=} & normally \code{15}\\
+\end{optiontable}
+
+\wordfield{Underneath}{SymPy \code{str()}, \code{N()}, \code{sqrt()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+f = sdata.formula("sqrt(2)")
+f.show_as_decimal(digits=50)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+# f.show_as_decimal(digits=50)
+str(sp.N(sp.sqrt(2), 50))
+\end{lstlisting}
+\undertext{simplydata also refuses a formula that still has letters, and \code{digits=} above 10,000.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{f.group\_by\_powers\_of()}{word:f.group-by-powers-of}
+Multiply out, then gather the terms by the powers of one letter (SymPy collect). \code{f.\allowbreak{}group\_\allowbreak{}by\_\allowbreak{}powers\_\allowbreak{}of(\textquotedbl{}x\textquotedbl{})}
+
+\codeline{f = sdata.formula(\textquotedbl{}a*x**2 + b*x**2 + a*x - x\textquotedbl{}), then f.group\_by\_powers\_of(\textquotedbl{}x\textquotedbl{}) gives}\\
+x**2*(a + b) + x*(a - 1). The formula changes; \code{f.\allowbreak{}undo()} takes the step back. As SymPy \code{collect(expand(.\allowbreak{}.\allowbreak{}.\allowbreak{}),\allowbreak{} x)}. A sum with letters raised to a whole power above 100 is refused.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{letter=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:f.group-by-powers-of]{How simplydata chooses methods}, page \pageref{basis:f.group-by-powers-of}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SymPy \code{symbols()}, \code{str()}, \code{collect()}, \code{expand()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+f = sdata.formula("a*x**2 + b*x**2 + a*x - x")
+f.group_by_powers_of("x")
+f.undo()
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+a, b, x = sp.symbols("a b x")
+# f.group_by_powers_of("x")
+str(sp.collect(sp.expand((a + x)*(b + x) - x), x))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the formula is multiplied out first (expand), so the terms inside brackets are gathered too; SymPy collect alone leaves (a + x)*(b + x) as it is.}
+\undertext{simplydata also refuses a sum with letters raised to a whole power above 100, and \code{f.\allowbreak{}undo()} takes the step back.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{f.turn\_into\_partial\_fractions()}{word:f.turn-into-partial-fractions}
+Split a fraction of polynomials into a sum of simple fractions (SymPy apart). \code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}partial\_\allowbreak{}fractions()}
+
+\codeline{f = sdata.formula(\textquotedbl{}(3*x + 5) / ((x + 1)*(x + 2))\textquotedbl{}), then f.turn\_into\_partial\_fractions() gives}\\
+1/(x + 2) + 2/(x + 1). \code{for\_\allowbreak{}letter=} says which letter when there are several. The formula changes; \code{f.\allowbreak{}undo()} takes the step back. As SymPy \code{apart()}; MATLAB partfrac.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{for\_\allowbreak{}letter=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{SymPy \code{Symbol()}, \code{str()}, \code{apart()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+f = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
+f.turn_into_partial_fractions()
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x = sp.Symbol("x")
+# f.turn_into_partial_fractions()
+str(sp.apart((3*x + 5) / ((x + 1)*(x + 2)), x))
+\end{lstlisting}
+\undertext{simplydata also says when the formula is not a fraction of polynomials, and \code{f.\allowbreak{}undo()} takes the step back.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{f.as\_sympy()}{word:f.as-sympy}
+The SymPy expression underneath, to carry on in SymPy itself. \code{f.\allowbreak{}as\_\allowbreak{}sympy()}
+
+\codeline{f = sdata.formula(\textquotedbl{}(x + 2)**2 - 4\textquotedbl{}), then expr = f.as\_sympy() gives the SymPy expression (x + 2)**2 - 4,}\\
+with the same letters (SymPy Symbols, with what \code{letters\_\allowbreak{}are=} said they are). Changing it in SymPy does not change the formula. A SymPy expression never changes itself, so the two can be used side by side.
+
+\wordfield{Options}{none: just write the empty brackets.}
+
+\wordfield{Underneath}{SymPy \code{str()}, \code{parse\_\allowbreak{}expr()}, \code{Symbol()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+f = sdata.formula("(x + 2)**2 - 4")
+expr = f.as_sympy()
+print(type(expr))
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+from sympy.parsing.sympy_parser import parse_expr
+# f.as_sympy()
+str(parse_expr("(x + 2)**2 - 4", local_dict={"x": sp.Symbol("x")}))
+\end{lstlisting}
+\undertext{simplydata also prints what kind of SymPy expression it is.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Areas and paths over time}{group:Areas-and-paths-over-time}
 \wordentry{sdata.find\_area\_under()}{word:sdata.find-area-under}
 The area under a formula's curve between two values (the definite integral). \code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under(\textquotedbl{}x**2\textquotedbl{},\allowbreak{} between=[0,\allowbreak{} 3])}
@@ -19375,13 +19589,14 @@ str(sp.integrate(sp.exp(-x**2), (x, 0, sp.oo)))
 The volume under a formula of two or more letters, over a range of each (a double or triple integral).
 
 \codeline{sdata.find\_volume\_under(\textquotedbl{}x * y\textquotedbl{}, between=\{\textquotedbl{}x\textquotedbl{}: [0, 1], \textquotedbl{}y\textquotedbl{}: [0, 2]\})}\enspace (1)\\
-\code{between=} gives a range for each letter; the first letter is the outer one. Two letters: SciPy integrate.dblquad; three: tplquad; more: nquad (the total under the surface). Ends can be \code{\textquotedbl{}infinity\textquotedbl{}}.
+\code{between=} gives a range for each letter; the first letter is the outer one. Two letters: SciPy integrate.dblquad; three: tplquad; more: nquad (the total under the surface). Ends can be \code{\textquotedbl{}infinity\textquotedbl{}}. \code{exactly=True} gives the exact answer from SymPy integrate (one letter after the other, the last letter of \code{between=} first), as a formula (simplydata[exact]).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{formula=} & \\
 \code{between=} & \\
 \code{known=} & \\
+\code{exactly=} & normally \code{False}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.find-volume-under]{How simplydata chooses methods}, page \pageref{basis:sdata.find-volume-under}: the default, the evidence and the checks.}
@@ -19403,10 +19618,24 @@ integrate.dblquad(lambda y, x: x * y**2, 0, 1, 0, 2)[0]   # (1)
 \undertext{simplydata also picks tplquad for three letters and nquad for more.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+x, y = sp.symbols("x y")
+# find_volume_under("x * y**2", between={"x": [0, 1], "y": [0, 2]}, exactly=True)
+str(sp.integrate(x * y**2, (y, 0, 2), (x, 0, 1)))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the first letter of \code{between=} is the outer one, as without \code{exactly=True}; SymPy integrates over the first range it is given first, so the ranges are handed over in reverse.}
+\undertext{simplydata also prints the decimal next to the exact answer.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{sdata.find\_path\_over\_time()}{word:sdata.find-path-over-time}
 The values over time from how fast they change (an ordinary differential equation). \code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time(\textquotedbl{}dN/dt = r * N * (1 - N / K)\textquotedbl{},\allowbreak{} at\_\allowbreak{}start=\{\textquotedbl{}N\textquotedbl{}: 10\},\allowbreak{} between=[0,\allowbreak{} 50],\allowbreak{} known=\{\textquotedbl{}r\textquotedbl{}: 0.\allowbreak{}3,\allowbreak{} \textquotedbl{}K\textquotedbl{}: 1000\},\allowbreak{} time\_\allowbreak{}step=0.\allowbreak{}5)}
 
-Gives back a table: time, then each value that changes. Write each equation as \code{\textquotedbl{}dN/dt = .\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{}}; several equations in a list change together (predator and prey). \code{at\_\allowbreak{}start=} gives each value at the first time, \code{between=} the first and last time, \code{known=} the fixed values, \code{time\_\allowbreak{}step=} the times in the table (else the solver's own steps). \code{stop\_\allowbreak{}when=\textquotedbl{}N \textgreater{}= 900\textquotedbl{}} stops when that comes true. SciPy integrate.solve\_ivp, \code{test\_\allowbreak{}method=\textquotedbl{}RK45\textquotedbl{}} (the default), \code{\textquotedbl{}LSODA\textquotedbl{}}, \code{\textquotedbl{}stiff\textquotedbl{}} (Radau), \code{\textquotedbl{}BDF\textquotedbl{}}, \code{\textquotedbl{}DOP853\textquotedbl{}} or \code{\textquotedbl{}RK23\textquotedbl{}}, with the tolerances of R deSolve (1e-6). \code{exactly=True} gives the formula from SymPy dsolve (one equation; simplydata[exact]).
+Gives back a table: time, then each value that changes. Write each equation as \code{\textquotedbl{}dN/dt = .\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{}}; several equations in a list change together (predator and prey). \code{at\_\allowbreak{}start=} gives each value at the first time, \code{between=} the first and last time, \code{known=} the fixed values, \code{time\_\allowbreak{}step=} the times in the table (else the solver's own steps). \code{stop\_\allowbreak{}when=\textquotedbl{}N \textgreater{}= 900\textquotedbl{}} stops when that comes true. SciPy integrate.solve\_ivp, \code{test\_\allowbreak{}method=\textquotedbl{}RK45\textquotedbl{}} (the default), \code{\textquotedbl{}LSODA\textquotedbl{}}, \code{\textquotedbl{}stiff\textquotedbl{}} (Radau), \code{\textquotedbl{}BDF\textquotedbl{}}, \code{\textquotedbl{}DOP853\textquotedbl{}} or \code{\textquotedbl{}RK23\textquotedbl{}}, with the tolerances of R deSolve (1e-6). One second-order equation, \code{\textquotedbl{}d2x/dt2 = -k*x - c*dx/dt\textquotedbl{}}, needs \code{at\_\allowbreak{}start=}\{\code{\textquotedbl{}x\textquotedbl{}}: 1, \code{\textquotedbl{}dx/dt\textquotedbl{}}: 0\}; the table then has dx/dt too. \code{exactly=True} gives the formula from SymPy dsolve (one equation; simplydata[exact]); without \code{at\_\allowbreak{}start=} it gives the general formula, with free constants C1 (and C2).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -19462,6 +19691,51 @@ str(sp.simplify(s.rhs))   # (1)
 \undertext{simplydata also refuses an answer SymPy can give only as an equation, and says so.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly= without at\_\allowbreak{}start=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+t, r, N = sp.Symbol("t"), sp.Symbol("r"), sp.Function("N")
+# find_path_over_time("dN/dt = r * N", exactly=True)
+s = sp.dsolve(sp.Eq(N(t).diff(t), r * N(t)), N(t))
+str(sp.simplify(s.rhs))
+\end{lstlisting}
+\undertext{simplydata also says that C1 is a free constant that \code{at\_\allowbreak{}start=} would fix.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{equations=\textquotedbl{}d2x/dt2 = .\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{}}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np, pandas as pd
+from scipy.integrate import solve_ivp
+# find_path_over_time("d2x/dt2 = -k*x - c*dx/dt", ...)
+def change(t, y):   # y = [x, dx/dt]   (1)
+    return [y[1], -4 * y[0] - 0.5 * y[1]]
+s = solve_ivp(change, (0, 10), [1, 0], t_eval=np.linspace(0, 10, 21),
+              method="RK45", rtol=1e-6, atol=1e-6)
+pd.DataFrame({"time": s.t, "x": s.y[0], "dx/dt": s.y[1]})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the second-order equation becomes two first-order ones, with the speed dx/dt as a second changing value (the standard way for \code{solve\_\allowbreak{}ivp}, as in R deSolve).}
+\undertext{simplydata also reads dx/dt on the right side, and the table shows the speed too.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{equations=\textquotedbl{}d2x/dt2 = .\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{},\allowbreak{} exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+t, x = sp.Symbol("t"), sp.Function("x")
+# find_path_over_time("d2x/dt2 = -k*x", at_start={"x": 1, "dx/dt": 0}, ..., exactly=True)
+ics = {x(0): 1, x(t).diff(t).subs(t, 0): 0}
+s = sp.dsolve(sp.Eq(x(t).diff(t, 2), -4 * x(t)), x(t), ics=ics)
+str(sp.simplify(s.rhs))
+\end{lstlisting}
+\undertext{simplydata also gives the general formula with C1 and C2 when \code{at\_\allowbreak{}start=} is left out.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \wordentry{nums.turn\_into\_running\_area()}{word:nums.turn-into-running-area}
 Turn readings into the area so far under their curve (a running integral). \code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}area(time\_\allowbreak{}step=60)}
 
@@ -19509,6 +19783,42 @@ values = np.array([2, 4, 4, 3, 1], dtype=float)
 integrate.cumulative_simpson(values, dx=60, initial=0)
 \end{lstlisting}
 \undertext{simplydata also refuses empty values.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{sdata.find\_sum\_of\_series()}{word:sdata.find-sum-of-series}
+The sum of a formula for every whole number from one end to the other (a series). \code{sdata.\allowbreak{}find\_\allowbreak{}sum\_\allowbreak{}of\_\allowbreak{}series(\textquotedbl{}1/k**2\textquotedbl{},\allowbreak{} between=[1,\allowbreak{} \textquotedbl{}infinity\textquotedbl{}])}
+
+\codeline{sdata.find\_sum\_of\_series(\textquotedbl{}1/k**2\textquotedbl{}, between=[1, \textquotedbl{}infinity\textquotedbl{}]) gives pi**2/6 (about 1.644934067). The ends are}\\
+whole numbers, \code{\textquotedbl{}infinity\textquotedbl{}}, or a letter: \code{between=[1,\allowbreak{} \textquotedbl{}n\textquotedbl{}]} gives the formula of the sum up to n. When the sum grows without end, or does not settle, simplydata says so. When SymPy finds no exact formula but the sum settles, the decimal is given, with only the digits SymPy is sure of. A sum that holds only under a condition (r**k, for \textbar{}r\textbar{} \textless{} 1) keeps the condition in its formula. \code{for\_\allowbreak{}letter=} says which letter counts when there are several; \code{known=} fixes others. As SymPy \code{summation()}; MATLAB symsum. Gives a formula (or a number when only the decimal is known).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{formula=} & \\
+\code{between=} & \\
+\code{for\_\allowbreak{}letter=} & \\
+\code{known=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:sdata.find-sum-of-series]{How simplydata chooses methods}, page \pageref{basis:sdata.find-sum-of-series}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SymPy \code{Symbol()}, \code{str()}, \code{summation()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])
+sdata.find_sum_of_series("k", between=[1, "n"])
+sdata.find_sum_of_series("1/k", between=[1, "infinity"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+k = sp.Symbol("k", integer=True)   # (1)
+# find_sum_of_series("1/k**2", between=[1, "infinity"])
+str(sp.summation(1/k**2, (k, 1, sp.oo)))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the letter that counts is a whole number (\code{integer=True}), as it is in a sum; SymPy can then simplify terms such as (-1)**(2*k).}
+\undertext{simplydata also says when the sum grows without end or does not settle (SymPy \code{is\_\allowbreak{}convergent}), and gives the decimal when there is no exact formula.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
 \unchapter{Table words}{family:table}
@@ -29056,10 +29366,14 @@ linalg.expm(g)
 \wordentry{grid.find\_null\_space()}{word:grid.find-null-space}
 The directions the grid turns into zeros (its null space), one in each column of a new grid. \code{grid.\allowbreak{}find\_\allowbreak{}null\_\allowbreak{}space()}
 
-Each column x of the answer gives the grid times x = 0, and the columns are at right angles and of length 1. No column means only zero goes to zero. SciPy linalg.null\_space (from the singular value decomposition).
+Each column x of the answer gives the grid times x = 0, and the columns are at right angles and of length 1. No column means only zero goes to zero. SciPy linalg.null\_space (from the singular value decomposition). \code{exactly=True} gives SymPy's exact directions (nullspace, the numbers as fractions): simple whole numbers and fractions, such as [-2, 1], which are not of length 1 and need not be at right angles (numbers phase, batch 4).
 
-\wordfield{Options}{none: just write the empty brackets.}
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{exactly=} & normally \code{False}\\
+\end{optiontable}
 
+\wordfield{Why this method}{\hyperref[basis:grid.find-null-space-exactly-eq]{How simplydata chooses methods}, page \pageref{basis:grid.find-null-space-exactly-eq}: the default, the evidence and the checks.}
 \wordfield{Underneath}{SciPy \code{null\_\allowbreak{}space()}}
 \wordfield{Example you can run}{}\par\nopagebreak
 \begin{lstlisting}[style=py]
@@ -29079,6 +29393,171 @@ linalg.null_space(g)
 \end{lstlisting}
 \undertext{simplydata also says how many directions there are, or that only zero goes to zero.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import sympy as sp
+# find_null_space(exactly=True)
+vectors = sp.Matrix([[1, 2, 3], [2, 4, 6]]).nullspace()
+np.array([[float(v) for v in vec] for vec in vectors]).T   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each of SymPy's directions is one column, as without \code{exactly=True} (SciPy's columns are of length 1; SymPy's are its simplest whole numbers).}
+\undertext{simplydata also prints the directions exactly and says they are not of length 1.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{grid.find\_determinant()}{word:grid.find-determinant}
+The determinant of a square grid: one number that is 0 when the grid has no inverse. \code{grid.\allowbreak{}find\_\allowbreak{}determinant()}
+
+\codeline{sdata.number\_grid([[2, 1], [1, 2]]).find\_determinant() gives 3. SciPy linalg.det (from the LU}\\
+decomposition, LAPACK), as R \code{det()} and MATLAB det. \code{exactly=True} gives the exact answer from SymPy (the numbers as fractions), as a formula: \code{f.\allowbreak{}find\_\allowbreak{}value\_\allowbreak{}at()} gives its decimal. Nothing changes in the grid.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{exactly=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:grid.find-determinant-exactly-eq]{How simplydata chooses methods}, page \pageref{basis:grid.find-determinant-exactly-eq}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{det()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+grid = sdata.number_grid([[2, 1], [1, 2]])
+grid.find_determinant()
+grid.find_determinant(exactly=True)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6]], dtype=float)
+# find_determinant()
+float(linalg.det(g))
+\end{lstlisting}
+\undertext{simplydata also says when the determinant is 0 (no inverse), and refuses a grid that is not square.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import sympy as sp
+g = [[0.5, 0.25], [0.2, 0.4]]
+# find_determinant(exactly=True)
+m = sp.Matrix([[sp.nsimplify(v, rational=True) for v in row] for row in g])   # (1)
+str(m.det())
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each number becomes the fraction it stands for (SymPy nsimplify, \code{rational=True}): 0.2 is 1/5; a number no such fraction gives back exactly keeps its exact binary value.}
+\undertext{simplydata also prints the decimal, and refuses grids bigger than 12 x 12.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{grid.take\_inverse()}{word:grid.take-inverse}
+Turn a square grid into its inverse: the grid that multiplies it to give the identity. \code{grid.\allowbreak{}take\_\allowbreak{}inverse()}
+
+\codeline{sdata.number\_grid([[2, 1], [1, 2]]).take\_inverse() gives [[2/3, -1/3], [-1/3, 2/3]] as decimals. SciPy}\\
+linalg.inv (LAPACK), as R \code{solve(a)} and MATLAB inv. A grid whose determinant is 0 has no inverse, and simplydata says so. \code{exactly=True} works it out exactly with SymPy (the numbers as fractions), prints the fractions and keeps their decimals. Undo with \code{grid.\allowbreak{}undo()}. To solve equations, \code{sdata.\allowbreak{}solve} is better than an inverse.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{exactly=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:grid.take-inverse-exactly-eq]{How simplydata chooses methods}, page \pageref{basis:grid.take-inverse-exactly-eq}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{inv()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+grid = sdata.number_grid([[2, 1], [1, 2]])
+grid.take_inverse()
+print(grid)
+grid.undo()
+grid.take_inverse(exactly=True)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6]], dtype=float)
+# take_inverse()
+linalg.inv(g)
+\end{lstlisting}
+\undertext{simplydata also says plainly when the grid has no inverse, and \code{undo()} gives the grid back.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import sympy as sp
+# take_inverse(exactly=True)
+m = sp.Matrix([[2, 1], [1, 2]]).inv()   # (1)
+np.array(m.evalf(), dtype=float)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the grid keeps the decimals of the exact inverse; the fractions themselves are printed.}
+\undertext{simplydata also prints each row as fractions (2/3, -1/3).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{grid.find\_eigenvalues()}{word:grid.find-eigenvalues}
+The eigenvalues of a square grid, biggest first, as a table. \code{grid.\allowbreak{}find\_\allowbreak{}eigenvalues()}
+
+\codeline{sdata.number\_grid([[2, 1], [1, 2]]).find\_eigenvalues() gives 3 and 1. Gives back a table: eigenvalue,}\\
+imaginary part (0 unless the grid turns things round). A symmetric grid (as a correlation grid; symmetric to within R isSymmetric's tolerance) uses SciPy linalg.eigvalsh, whose eigenvalues are always real, biggest first; any other grid uses linalg.eigvals, ordered by their size (the modulus) biggest first. That is the order of R \code{eigen()}\$values. \code{exactly=True} gives the exact eigenvalues from SymPy (eigenvals, the numbers as exact fractions), in the same order (R's order, also among eigenvalues of the same size), with how many times each comes, for grids up to 6 x 6. MATLAB eig.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{exactly=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:grid.find-eigenvalues]{How simplydata chooses methods}, page \pageref{basis:grid.find-eigenvalues}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{eigvalsh()}, \code{DataFrame()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+grid = sdata.number_grid([[2, 1], [1, 2]])
+values = grid.find_eigenvalues()
+print(values)
+grid.find_eigenvalues(exactly=True)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np, pandas as pd
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6]], dtype=float)
+# find_eigenvalues()
+values = linalg.eigvalsh(g)[::-1]   # (1) (2)
+pd.DataFrame({"eigenvalue": values, "imaginary part": 0.0})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a symmetric grid uses eigvalsh, whose eigenvalues are always real; any other grid uses eigvals.}
+\undertext{(2) biggest first, as R \code{eigen()} gives them; SciPy gives eigvalsh's smallest first.}
+\undertext{simplydata also gives an imaginary part, 0 unless the grid turns things round.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import sympy as sp
+# find_eigenvalues(exactly=True)
+found = sp.Matrix([[2, 1], [1, 2]]).eigenvals()   # {3: 1, 1: 1}
+rows = sorted(found.items(), key=lambda item: -float(item[0]))   # (1)
+pd.DataFrame({"eigenvalue": [float(v) for v, _ in rows], "imaginary part": 0.0,
+              "eigenvalue exactly": [str(v) for v, _ in rows], "times": [n for _, n in rows]})
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) biggest first, as without \code{exactly=True}; SymPy's dict has no order to rely on.}
+\undertext{simplydata also says how many times each eigenvalue comes, and refuses grids bigger than 6 x 6.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
 \end{underneathbox}
 \unsection{Numbers: undo and finish}{group:Numbers-undo-and-finish}
 \wordentry{nums.undo()}{word:nums.undo}
@@ -33745,7 +34224,7 @@ samples.count_each("crew")
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 602 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 151 defaults rest on published guidelines or method comparisons, 352 follow the convention of the package named so that results match it, and 99 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an automated review pass when they were designed, and in November 2026 every entry, with its references, was read again by automated review passes told to act as hostile statistical referees (AI review, not named human reviewers); their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 612 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 153 defaults rest on published guidelines or method comparisons, 360 follow the convention of the package named so that results match it, and 99 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an automated review pass when they were designed, and in November 2026 every entry, with its references, was read again by automated review passes told to act as hostile statistical referees (AI review, not named human reviewers); their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -35487,10 +35966,17 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P5)}{Brent's method and Powell's hybrid method are the standard solvers of SciPy and MINPACK. The 1000-step scan is simplydata's own starting value; the printout says that roots that only touch zero can be missed by a sign scan. \textit{Basis: starting value.}}
 \wordfield{Checks}{A different number of unknowns and equations, and singular linear systems, are refused.}
 \wordfield{In the dictionary}{\hyperref[word:sdata.solve]{page \pageref{word:sdata.solve}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.solve-exactly-eqTrue-with-a-rule}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}solve()} \code{exactly=True with a rule}}\par\nopagebreak
+\wordfield{Default}{Rules (\textless{}, \textgreater{}, \textless{}=, \textgreater{}=) are solved over the real numbers (SymPy solveset with domain S.Reals; \code{reduce\_\allowbreak{}inequalities} for several rules in one letter).}
+\wordfield{Alternatives}{None: equations (=) give every solution, complex ones too.}
+\wordfield{Why (P4)}{\textless{} and \textgreater{} compare real numbers only; SymPy solveset's own default domain is the complex numbers, where a rule has no meaning. \textit{Basis: convention.}}
+\wordfield{Checks}{One letter only; equations and rules are not mixed; the answer is written as ranges with their ends.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:sdata.solve]{page \pageref{word:sdata.solve}}}
 \unsection{Formulas and exact answers}{basis-group:Formulas-and-exact-answers}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.formula}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}formula()}}\par\nopagebreak
 \wordfield{Default}{Every letter of the formula is handed to SymPy as a plain Symbol of its own (no assumptions such as positive or real), so E, I, N, S and beta stay letters.}
-\wordfield{Alternatives}{None: write pi for 3.14159... and \code{exp(1)} for e.}
+\wordfield{Alternatives}{\code{letters\_\allowbreak{}are=} gives a letter SymPy's assumptions (positive, zero or more, negative, real, whole number); write pi for 3.14159... and \code{exp(1)} for e.}
 \wordfield{Why (P4)}{SymPy's parser alone reads E as the number e, I as the imaginary unit and N, S, beta as its own functions, which would change a researcher's formula without a word (Meurer et al. 2017 describe the parser). \textit{Basis: convention.}}
 \wordfield{Checks}{The text is checked with Python's ast first: numbers, letters, + - * / ** \textasciicircum{}, brackets and the functions of \code{fit\_\allowbreak{}formula} only; an equation (=) is refused with a pointer to \code{sdata.\allowbreak{}solve(exactly=True)}.}
 \wordfield{References}{Meurer et al. 2017}
@@ -35504,7 +35990,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{In the dictionary}{\hyperref[word:f.find-value-at]{page \pageref{word:f.find-value-at}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:f.find-limit-as}\noindent{\sffamily\bfseries\color{brand}\code{f.\allowbreak{}find\_\allowbreak{}limit\_\allowbreak{}as()}}\par\nopagebreak
 \wordfield{Default}{At a number, the limit from both sides (SymPy \code{limit(dir=\textquotedbl{}+-\textquotedbl{})}); at infinity, from below.}
-\wordfield{Alternatives}{None: when the two sides differ, simplydata says so and gives the value from each.}
+\wordfield{Alternatives}{\code{from\_\allowbreak{}side=\textquotedbl{}above\textquotedbl{}} or \code{\textquotedbl{}below\textquotedbl{}} for one side only (SymPy \code{dir=\textquotedbl{}+\textquotedbl{}} or \code{\textquotedbl{}-\textquotedbl{}}); when the two sides differ, simplydata says so and gives the value from each.}
 \wordfield{Why (P4)}{A limit in school maths and in most textbooks is two-sided; SymPy's own default (from above only) would give a value where the limit does not exist, such as 1/x at 0. \textit{Basis: convention.}}
 \wordfield{Checks}{\code{goes\_\allowbreak{}to=} is a number, \code{\textquotedbl{}infinity\textquotedbl{}} or \code{\textquotedbl{}-infinity\textquotedbl{}}.}
 \wordfield{References}{Meurer et al. 2017}
@@ -35515,6 +36001,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P5)}{A few powers show the shape near the point; the option names the highest power kept, not SymPy's order of the left-out term, which learners misread. \textit{Basis: starting value.}}
 \wordfield{Checks}{\code{up\_\allowbreak{}to\_\allowbreak{}power=} a whole number, 0 or more.}
 \wordfield{In the dictionary}{\hyperref[word:f.find-taylor-series]{page \pageref{word:f.find-taylor-series}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:f.group-by-powers-of}\noindent{\sffamily\bfseries\color{brand}\code{f.\allowbreak{}group\_\allowbreak{}by\_\allowbreak{}powers\_\allowbreak{}of()}}\par\nopagebreak
+\wordfield{Default}{The formula is multiplied out first (SymPy expand), then the terms are gathered by the powers of the letter (collect).}
+\wordfield{Alternatives}{None: \code{f.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}product()} or \code{f.\allowbreak{}make\_\allowbreak{}simpler()} write it in other ways; \code{f.\allowbreak{}undo()} takes the step back.}
+\wordfield{Why (P5)}{SymPy collect gathers only the terms it can see, so (a + x)*(b + x) would stay as it is; expanding first gives the grouping a reader expects from the name, as in textbooks. \textit{Basis: convention.}}
+\wordfield{Checks}{The letter must be a letter of the formula; a sum with letters raised to a whole power above 100 is refused before it is multiplied out.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:f.group-by-powers-of]{page \pageref{word:f.group-by-powers-of}}}
 \unsection{Areas and paths over time}{basis-group:Areas-and-paths-over-time}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.find-area-under}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}find\_\allowbreak{}area\_\allowbreak{}under()}}\par\nopagebreak
 \wordfield{Default}{SciPy integrate.quad (QUADPACK's adaptive Gauss-Kronrod rules, as R \code{integrate()}), with SciPy's own tolerances (1.49e-8).}
@@ -35536,6 +36029,13 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{A range for every letter and no other.}
 \wordfield{References}{Piessens et al. 1983}
 \wordfield{In the dictionary}{\hyperref[word:sdata.find-volume-under]{page \pageref{word:sdata.find-volume-under}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.find-volume-under-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}find\_\allowbreak{}volume\_\allowbreak{}under()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{SymPy integrate over each letter in turn, the inner letter (the last of \code{between=}) first, as without \code{exactly=True}.}
+\wordfield{Alternatives}{Without \code{exactly=True}: the volume in numbers (SciPy dblquad, tplquad, nquad).}
+\wordfield{Why (P5)}{The same order of letters as the numeric word, so the two agree; integrate is SymPy's exact integrator. \textit{Basis: convention.}}
+\wordfield{Checks}{An answer that is infinite, does not converge or cannot be found exactly is refused, with a sentence.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:sdata.find-volume-under]{page \pageref{word:sdata.find-volume-under}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.find-path-over-time}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time()}}\par\nopagebreak
 \wordfield{Default}{SciPy integrate.solve\_ivp with RK45 (Dormand-Prince), relative and absolute tolerance 1e-6 as R deSolve; the table holds the times of \code{time\_\allowbreak{}step=} (else the solver's own steps).}
 \wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}LSODA\textquotedbl{}} (R deSolve's default), \code{\textquotedbl{}stiff\textquotedbl{}} (Radau), \code{\textquotedbl{}BDF\textquotedbl{}}, \code{\textquotedbl{}DOP853\textquotedbl{}}, \code{\textquotedbl{}RK23\textquotedbl{}}; \code{exactly=True} (SymPy dsolve).}
@@ -35550,12 +36050,26 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{One equation only; an answer SymPy can give only as an equation (not a formula) is refused, with a sentence.}
 \wordfield{References}{Meurer et al. 2017}
 \wordfield{In the dictionary}{\hyperref[word:sdata.find-path-over-time]{page \pageref{word:sdata.find-path-over-time}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.find-path-over-time-equations-eq-d2x-dt2--eq-...}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}find\_\allowbreak{}path\_\allowbreak{}over\_\allowbreak{}time()} \code{equations=\textquotedbl{}d2x/dt2 = .\allowbreak{}.\allowbreak{}.\allowbreak{}\textquotedbl{}}}\par\nopagebreak
+\wordfield{Default}{A second-order equation becomes two first-order ones, with the speed dx/dt as a second changing value, solved by SciPy \code{solve\_\allowbreak{}ivp} (RK45, tolerances 1e-6 as R deSolve).}
+\wordfield{Alternatives}{\code{exactly=True}: SymPy dsolve; \code{test\_\allowbreak{}method=} as for first-order equations.}
+\wordfield{Why (P3)}{Writing an equation of order n as n first-order equations is the standard route of every initial-value solver (Soetaert et al. 2010 for R deSolve; SciPy \code{solve\_\allowbreak{}ivp} takes first-order systems only).}
+\wordfield{Checks}{One second-order equation on its own; \code{at\_\allowbreak{}start=} needs x and dx/dt.}
+\wordfield{References}{Soetaert et al. 2010; Dormand \& Prince 1980}
+\wordfield{In the dictionary}{\hyperref[word:sdata.find-path-over-time]{page \pageref{word:sdata.find-path-over-time}}}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.turn-into-running-area}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}running\_\allowbreak{}area()}}\par\nopagebreak
 \wordfield{Default}{The trapezoid rule (SciPy \code{cumulative\_\allowbreak{}trapezoid}) with the first value 0, so the result is as long as the readings; time step 1 unless given or remembered.}
 \wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}simpson\textquotedbl{}} (\code{cumulative\_\allowbreak{}simpson}); \code{time\_\allowbreak{}step=} or \code{sampling\_\allowbreak{}rate=}.}
 \wordfield{Why (P3)}{The trapezoid rule assumes nothing about the curve between readings; it is SciPy's, MATLAB's (cumtrapz) and R pracma's (cumtrapz) standard. \textit{Basis: convention.}}
 \wordfield{Checks}{Empty values are refused.}
 \wordfield{In the dictionary}{\hyperref[word:nums.turn-into-running-area]{page \pageref{word:nums.turn-into-running-area}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:sdata.find-sum-of-series}\noindent{\sffamily\bfseries\color{brand}\code{sdata.\allowbreak{}find\_\allowbreak{}sum\_\allowbreak{}of\_\allowbreak{}series()}}\par\nopagebreak
+\wordfield{Default}{The letter that counts is a whole number (a SymPy Symbol with \code{integer=True}), summed with SymPy summation; with no closed form, Sum.is\_convergent decides whether it settles, and the decimal is bounded: the first terms added by evalf, the rest between two integrals (the integral test, with the trapezoid and midpoint rules when the terms bend upwards), and only the digits both bounds round to are printed.}
+\wordfield{Alternatives}{\code{for\_\allowbreak{}letter=} says which letter counts; \code{known=} fixes the others; \code{between=} may end at a letter for the formula of the partial sum.}
+\wordfield{Why (P4)}{A series counts in whole numbers, and SymPy can simplify terms such as (-1)**(2*k) only when it knows that; the convergence test says plainly when a sum does not settle instead of giving a meaningless decimal. \textit{Basis: convention.}}
+\wordfield{Checks}{A finite sum with no closed form and more than 10,000 terms is refused rather than added term by term.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:sdata.find-sum-of-series]{page \pageref{word:sdata.find-sum-of-series}}}
 \unsection{Values between points}{basis-group:Values-between-points}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:table.find-values-at}\noindent{\sffamily\bfseries\color{brand}\code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}}\par\nopagebreak
 \wordfield{Default}{Straight lines between the points (as R \code{approx()}); repeated places averaged; places outside the data left empty.}
@@ -37395,6 +37909,41 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{A square grid without empty cells.}
 \wordfield{References}{Al-Mohy \& Higham 2009}
 \wordfield{In the dictionary}{\hyperref[word:grid.take-matrix-exp]{page \pageref{word:grid.take-matrix-exp}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.find-null-space-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}find\_\allowbreak{}null\_\allowbreak{}space()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{SymPy Matrix.nullspace on the numbers as fractions; each direction is one column of the new grid, as without \code{exactly=True}.}
+\wordfield{Alternatives}{Without \code{exactly=True}: SciPy linalg.null\_space (columns of length 1 at right angles).}
+\wordfield{Why (P5)}{SymPy's directions are its simplest whole numbers and fractions, easy to read; the sentence says they are not of length 1, so they are not mistaken for SciPy's. \textit{Basis: convention.}}
+\wordfield{Checks}{Grids up to 12 x 12 with a number in every cell.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:grid.find-null-space]{page \pageref{word:grid.find-null-space}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.find-determinant-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}find\_\allowbreak{}determinant()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{Each number of the grid becomes the simplest fraction whose decimal is exactly that number (SymPy nsimplify, \code{rational=True}: 0.2 is 1/5); a number no short fraction gives back exactly (4 + 1e-15) keeps its exact binary value instead of being rounded to 15 digits. Then SymPy Matrix.det works exactly.}
+\wordfield{Alternatives}{Without \code{exactly=True}: SciPy linalg.det (LU decomposition, LAPACK).}
+\wordfield{Why (P5)}{A decimal such as 0.2 cannot be held exactly by a float; the fraction it was typed as is what the reader means. Rounding every number to 15 digits first would change a number such as 4 + 1e-15 and could turn a grid with an inverse into one without, so such a number is kept exactly as stored. \textit{Basis: convention.}}
+\wordfield{Checks}{Grids up to 12 x 12 with a number in every cell.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:grid.find-determinant]{page \pageref{word:grid.find-determinant}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.take-inverse-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}take\_\allowbreak{}inverse()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{The exact inverse from SymPy (the numbers as fractions) is printed as fractions; the grid keeps their decimals, so the other grid words work on it.}
+\wordfield{Alternatives}{Without \code{exactly=True}: SciPy linalg.inv (LAPACK).}
+\wordfield{Why (P5)}{A grid holds numbers, so the fractions are shown for reading and the decimals kept for working on. \textit{Basis: convention.}}
+\wordfield{Checks}{A grid whose determinant is exactly 0 is refused; grids up to 12 x 12.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:grid.take-inverse]{page \pageref{word:grid.take-inverse}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.find-eigenvalues}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}find\_\allowbreak{}eigenvalues()}}\par\nopagebreak
+\wordfield{Default}{A grid symmetric to within R isSymmetric's tolerance (100 x machine epsilon) uses SciPy linalg.eigvalsh (real eigenvalues always), biggest first; any other grid linalg.eigvals, biggest size (modulus) first: the order of R \code{eigen()}.}
+\wordfield{Alternatives}{\code{exactly=True}: SymPy eigenvals, for grids up to 6 x 6.}
+\wordfield{Why (P3)}{LAPACK's symmetric eigensolver (Anderson et al. 1999) is faster and more accurate for symmetric grids and never gives a tiny imaginary part by rounding; biggest first matches R and the order readers expect.}
+\wordfield{Checks}{A square grid with no empty cells.}
+\wordfield{References}{Anderson et al. 1999}
+\wordfield{In the dictionary}{\hyperref[word:grid.find-eigenvalues]{page \pageref{word:grid.find-eigenvalues}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.find-eigenvalues-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}find\_\allowbreak{}eigenvalues()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{SymPy Matrix.eigenvals on the numbers as exact fractions, in the order of R \code{eigen()} (as without \code{exactly=True}), with how many times each comes; a real eigenvalue has no imaginary part, not a rounding remainder.}
+\wordfield{Alternatives}{Without \code{exactly=True}: SciPy linalg.eigvalsh or eigvals.}
+\wordfield{Why (P5)}{SymPy gives the eigenvalues as a dict without an order; biggest first is the order of the numeric word and R \code{eigen()}. \textit{Basis: convention.}}
+\wordfield{Checks}{Grids up to 6 x 6: the roots of a polynomial of higher degree seldom have an exact formula.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:grid.find-eigenvalues]{page \pageref{word:grid.find-eigenvalues}}}
 \unsection{Numbers: undo and finish}{basis-group:Numbers-undo-and-finish}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.turn-into-table}\noindent{\sffamily\bfseries\color{brand}\code{nums.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}table()}}\par\nopagebreak
 \wordfield{Default}{One column called \code{\textquotedbl{}value\textquotedbl{}}.}
@@ -37637,6 +38186,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Albers C, Lakens D (2018). When power analyses based on pilot data are biased: Inaccurate effect size estimators and follow-up bias. Journal of Experimental Social Psychology 74:187-195. \href{https://doi.org/10.1016/j.jesp.2017.09.004}{doi:10.1016/j.jesp.2017.09.004}
 \par\noindent\hangindent=1.5em Albert A, Anderson JA (1984). On the existence of maximum likelihood estimates in logistic regression models. Biometrika 71:1-10. \href{https://doi.org/10.1093/biomet/71.1.1}{doi:10.1093/biomet/71.1.1}
 \par\noindent\hangindent=1.5em Altman DG (1998). Confidence intervals for the number needed to treat. BMJ 317:1309-1312. \href{https://doi.org/10.1136/bmj.317.7168.1309}{doi:10.1136/bmj.317.7168.1309}
+\par\noindent\hangindent=1.5em Anderson E, Bai Z, Bischof C et al. (1999). LAPACK Users' Guide (3rd ed.). Society for Industrial and Applied Mathematics, Philadelphia. \href{https://doi.org/10.1137/1.9780898719604}{doi:10.1137/1.9780898719604}
 \par\noindent\hangindent=1.5em Anderson MJ (2001). A new method for non-parametric multivariate analysis of variance. Austral Ecology 26:32-46. \href{https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x}{doi:10.1111/j.1442-9993.2001.01070.pp.x}
 \par\noindent\hangindent=1.5em Anderson MJ (2006). Distance-Based Tests for Homogeneity of Multivariate Dispersions. Biometrics 62:245-253. \href{https://doi.org/10.1111/j.1541-0420.2005.00440.x}{doi:10.1111/j.1541-0420.2005.00440.x}
 \par\noindent\hangindent=1.5em Anderson MJ, Walsh DCI (2013). PERMANOVA, ANOSIM, and the Mantel test in the face of heterogeneous dispersions: What null hypothesis are you testing?. Ecological Monographs 83:557-574. \href{https://doi.org/10.1890/12-2010.1}{doi:10.1890/12-2010.1}
@@ -38130,6 +38680,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.as-numpy}{nums.as\_numpy()}
 \indexline{word:table.as-pandas}{table.as\_pandas()}
 \indexline{word:table.as-polars}{table.as\_polars()}
+\indexline{word:f.as-sympy}{f.as\_sympy()}
 \indexline{word:break-between-y}{chart.break\_between\_y()}
 \indexline{word:nums.change-angles-to}{nums.change\_angles\_to()}
 \indexline{word:table.change-column}{table.change\_column()}
@@ -38286,6 +38837,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.find-correlation-between-profiles}{table.find\_correlation\_between\_profiles()}
 \indexline{word:dist.find-cut-off}{dist.find\_cut\_off()}
 \indexline{word:dist.find-density-at}{dist.find\_density\_at()}
+\indexline{word:grid.find-determinant}{grid.find\_determinant()}
 \indexline{word:block.find-direction-names}{block.find\_direction\_names()}
 \indexline{word:table.find-distances-between-rows}{table.find\_distances\_between\_rows()}
 \indexline{word:table.find-distances-to-rows-of}{table.find\_distances\_to\_rows\_of()}
@@ -38294,6 +38846,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:grid.find-each-patch-that}{grid.find\_each\_patch\_that()}
 \indexline{word:nums.find-each-peak-that}{nums.find\_each\_peak\_that()}
 \indexline{word:table.find-each-peak-that}{table.find\_each\_peak\_that()}
+\indexline{word:grid.find-eigenvalues}{grid.find\_eigenvalues()}
 \indexline{word:nums.find-envelope}{nums.find\_envelope()}
 \indexline{word:table.find-fence-around}{table.find\_fence\_around()}
 \indexline{word:table.find-group-levels-of}{table.find\_group\_levels\_of()}
@@ -38328,6 +38881,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.find-standard-deviation}{dist.find\_standard\_deviation()}
 \indexline{word:nums.find-standard-deviation}{nums.find\_standard\_deviation()}
 \indexline{word:table.find-standard-deviation-of}{table.find\_standard\_deviation\_of()}
+\indexline{word:sdata.find-sum-of-series}{sdata.find\_sum\_of\_series()}
 \indexline{word:table.find-summary-of}{table.find\_summary\_of()}
 \indexline{word:table.find-survival-over-time}{table.find\_survival\_over\_time()}
 \indexline{word:f.find-taylor-series}{f.find\_taylor\_series()}
@@ -38383,6 +38937,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:get-size}{chart.get\_size()}
 \indexline{word:get-text-drawn}{chart.get\_text\_drawn()}
 \indexline{word:sdata.go-to-next-day}{sdata.go\_to\_next\_day()}
+\indexline{word:f.group-by-powers-of}{f.group\_by\_powers\_of()}
 \indexline{word:sdata.help}{sdata.help()}
 \indexline{word:hide-colour-bar}{chart.hide\_color\_bar()}
 \indexline{word:hide-colour-bar}{chart.hide\_colour\_bar()}
@@ -38548,6 +39103,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.show}{table.show()}
 \indexline{word:sdata.show-all-words}{sdata.show\_all\_words()}
 \indexline{word:sdata.show-answers}{sdata.show\_answers()}
+\indexline{word:f.show-as-decimal}{f.show\_as\_decimal()}
 \indexline{word:nums.show-as-fraction}{nums.show\_as\_fraction()}
 \indexline{word:f.show-as-latex}{f.show\_as\_latex()}
 \indexline{word:sdata.show-day}{sdata.show\_day()}
@@ -38613,6 +39169,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:nums.take-cube-root}{nums.take\_cube\_root()}
 \indexline{word:nums.take-exp}{nums.take\_exp()}
 \indexline{word:nums.take-fourier-transform}{nums.take\_fourier\_transform()}
+\indexline{word:grid.take-inverse}{grid.take\_inverse()}
 \indexline{word:nums.take-log}{nums.take\_log()}
 \indexline{word:nums.take-log-odds}{nums.take\_log\_odds()}
 \indexline{word:grid.take-matrix-exp}{grid.take\_matrix\_exp()}
@@ -38628,6 +39185,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.turn-into-dates}{table.turn\_into\_dates()}
 \indexline{word:table.turn-into-lowercase}{table.turn\_into\_lowercase()}
 \indexline{word:table.turn-into-numbers}{table.turn\_into\_numbers()}
+\indexline{word:f.turn-into-partial-fractions}{f.turn\_into\_partial\_fractions()}
 \indexline{word:f.turn-into-product}{f.turn\_into\_product()}
 \indexline{word:nums.turn-into-running-area}{nums.turn\_into\_running\_area()}
 \indexline{word:nums.turn-into-running-total}{nums.turn\_into\_running\_total()}

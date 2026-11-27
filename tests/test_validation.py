@@ -29,7 +29,9 @@ study = report.study
 NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata.make_wave", "sdata.make_window_shape",
                      # numbers phase, batch 3: a formula is the input, so the answer worked out by hand is the check
                      "sdata.formula", "f.", "sdata.solve", "sdata.find_area_under", "sdata.find_volume_under",
-                     "sdata.find_path_over_time")
+                     "sdata.find_path_over_time",
+                     # numbers phase, batch 4: the sum of a formula's series has no data either
+                     "sdata.find_sum_of_series")
 
 
 def test_every_dataset_has_a_source_a_licence_and_its_file():

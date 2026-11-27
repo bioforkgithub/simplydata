@@ -110,6 +110,18 @@ def _show(x) -> str:
     return "0" if text in ("-0", "0") else text
 
 
+def _bound(x, up: bool) -> str:
+    """A number as a bound is printed: 6 significant digits, rounded up (for "at most") or down (for "at least") so
+    the bound stays true (the exact decimal value of x, from Python's decimal)."""
+    from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
+
+    exact = Decimal(float(x))
+    if exact == 0:
+        return "0"
+    rounded = exact.quantize(Decimal(1).scaleb(exact.adjusted() - 5), rounding=ROUND_CEILING if up else ROUND_FLOOR)
+    return f"{float(rounded):.6g}"
+
+
 def _list_words(items) -> str:
     items = list(items)
     if len(items) <= 1:
@@ -308,6 +320,7 @@ class _Answer:
         self.extra = extra or {}
         self.notes = notes or []
         self.method_name = method_name
+        self.only_bound = False  # the formula changes too fast near the answer for the digits of its value
 
 
 def _find(step, goal, formula, between, start, rules, whole_numbers, search, method, known, fast):
@@ -318,11 +331,12 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     if not isinstance(search, str) or search.strip().lower() not in SEARCHES:
         raise choice_error(step, "search", search, SEARCHES)
     search = search.strip().lower()
-    if hasattr(formula, "_formula_text"):  # a formula made with sdata.formula()
+    made = formula  # a formula made with sdata.formula() keeps what letters_are= said
+    if hasattr(formula, "_formula_text"):
         formula = formula._formula_text()
     if not isinstance(formula, str):
         raise SimplydataError(f"{step}() needs a formula in quotes, for example {example}.")
-    goal_formula = read_formula(formula, known=known)
+    goal_formula = read_formula(made if hasattr(made, "_formula_text") else formula, known=known)
     rule_list = _read_rules(step, rules, known)
     names = list(goal_formula.names)
     for rule in rule_list:
@@ -336,6 +350,11 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         print("Using " + ", ".join(f"{k} = {_show(v)}" for k, v in goal_formula.known.items()) + " from known=.")
     limits, has_limits = _limits(step, names, between, "between=[0, 5]" if len(names) == 1 else
                                  'between={"x": [0, 5], "y": [0, None]}')
+    if hasattr(made, "_expr"):  # a formula made with letters_are=: the search stays where the letters fit
+        from ._formula import check_range_fits
+
+        for name, (low, high) in limits.items():
+            check_range_fits(made, name, low, high, step)
     whole = _whole_names(step, names, whole_numbers)
     sign = -1.0 if biggest else 1.0
 
@@ -348,6 +367,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     linear_method = method is not None and isinstance(method, str) and \
         METHOD_SPELLINGS.get(method.strip().lower(), method.strip().lower()) in LINEAR_METHODS
 
+    from_start = None  # where a local search (from a start) began
     if search == "whole range":
         chosen = _plain_method(step, method, GLOBAL_METHODS, METHOD_SPELLINGS)
         answer = _whole_range(step, names, limits, objective, rule_list, whole, start, chosen or
@@ -374,6 +394,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             first = _starts(step, names, start, limits, True,
                             'start={"x": 1, "y": 1} (the search under rules starts there)')
             answer = _with_rules(names, limits, objective, rule_list, first, chosen or "slsqp", all_linear)
+            from_start = first
         elif len(names) == 1 and (method is None or _plain_method(step, method, {**LOCAL_METHODS, **ONE_NAME_METHODS},
                                                                   METHOD_SPELLINGS) == "brent"):
             low, high = limits[names[0]]
@@ -403,6 +424,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             if chosen is None:
                 chosen = "l-bfgs-b" if has_limits else "nelder-mead"
             answer = _local(names, limits, has_limits, objective, first, chosen)
+            from_start = first
 
     value = sign * answer.value
     where = ""
@@ -417,7 +439,30 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
         where = " within between="
     if search == "whole range":
         where = " over the whole range" + ("" if not rule_list else where)
-    print(f"The {word} value of {formula}{where} is {_show(value)}, at {_places(names, answer.place)}.")
+    if not math.isfinite(answer.value) and from_start is not None and math.isfinite(objective(from_start)):
+        # SLSQP from x = 1 on x + sqrt(x) steps to a negative x, where sqrt has no value, and stops there
+        ended = f" at {_places(names, answer.place)}," if np.all(np.isfinite(answer.place)) else ""
+        raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: searching from "
+                              f"{_places(names, from_start)}, where the formula has a value, the search ended{ended} "
+                              "where it has none (it is not a number there, or is infinite: sqrt(x), for example, has "
+                              'no value for x below 0). Give another start, or try search="whole range" with a range '
+                              "for each name in between=.")
+    if not math.isfinite(answer.value) and from_start is not None:  # a local search sees only near its start
+        raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: searching from "
+                              f"{_places(names, from_start)}, the search found no place where the formula has a value "
+                              "(it is not a number there, or is infinite: sqrt(x), for example, has no value for x "
+                              'below 0). Give a start where the formula has a value, or try search="whole range" with '
+                              "a range for each name in between=.")
+    if not math.isfinite(answer.value):  # the objective is infinite only where the formula is NaN or infinite
+        raise SimplydataError(f"{step}() found no {word} value of {formula}{where}: wherever the search looked, the "
+                              "formula is not a number or is infinite (log(x), for example, has no value for x of 0 "
+                              "or below). Check between=.")
+    if answer.only_bound:  # abs(x - 1/3)**0.5: the value at the place found is sure, the smallest itself is not
+        print(f"The {word} value of {formula}{where} is {'at least' if biggest else 'at most'} "
+              f"{_bound(value, up=not biggest)}, found near {_places(names, answer.place)}; the formula changes too "
+              f"fast there for the digits of the {word} value itself to be sure.")
+    else:
+        print(f"The {word} value of {formula}{where} is {_show(value)}, at {_places(names, answer.place)}.")
     print(answer.method_words)
     tight = []
     for rule in rule_list:
@@ -453,6 +498,77 @@ def _scan(low, high, objective, points):
     return xs, ys
 
 
+def _edge(objective, inside, outside):
+    """The last point from inside (where the formula has a value) towards outside (where it has none) at which the
+    formula still has a value, to the last floating-point step: SciPy bisect on whether it has a value, then NumPy
+    nextafter over the last few steps. None if none is found."""
+    from scipy import optimize
+
+    def has_value(x):
+        return 1.0 if math.isfinite(objective(x)) else -1.0
+
+    with warnings.catch_warnings(), np.errstate(all="ignore"):
+        warnings.simplefilter("ignore")
+        x = float(optimize.bisect(has_value, inside, outside, xtol=np.finfo(float).tiny, maxiter=1200, disp=False))
+    for _ in range(64):  # bisect stops within a few steps of the edge, on either side of it
+        if math.isfinite(objective(x)):
+            break
+        x = float(np.nextafter(x, inside))
+    else:
+        return None
+    for _ in range(64):
+        step = float(np.nextafter(x, outside))
+        if step == x or not math.isfinite(objective(step)):
+            return x
+        x = step
+    return x
+
+
+def _polish(objective, place, value, low, high, near=()):
+    """Brent's answer made sure at its last digits (it stops BRENT_TOL from the answer). Where the formula has no
+    value at BRENT_TOL from Brent's place, or at the nearest of the points near (the scan points) on that side, the
+    edge where it stops having one is found (_edge) and the formula is worked out there: sqrt(1 - x**2) is 0 at
+    x = -1, not 0.000137 at a point near it. The formula is worked out at the place as printed and at the place
+    rounded to BRENT_TOL too (abs(x)**0.5 is 0 at x = 0). The lowest of these values is kept; a value only as low as
+    Brent's keeps Brent's place."""
+    candidates = [(place, value)]
+    for direction in (-1.0, 1.0):
+        beyond = [p for p in near if (p - place) * direction > 0]
+        probes = [place + direction * BRENT_TOL] + ([min(beyond, key=lambda p: abs(p - place))] if beyond else [])
+        for probe in probes:
+            probe = min(max(probe, low), high)
+            if probe == place:
+                continue
+            if not math.isfinite(objective(probe)):
+                edge = _edge(objective, place, probe)
+                if edge is not None:
+                    candidates.append((edge, objective(edge)))
+                break
+    for rounded in (float(_show(place)), round(place, 10)):
+        if low <= rounded <= high:
+            candidates.append((rounded, objective(rounded)))
+    best = min(range(len(candidates)), key=lambda i: (candidates[i][1], i))
+    return candidates[best]
+
+
+def _settle(objective, place, value, low, high):
+    """Whether the digits of value are sure: no point nearer to place than BRENT_TOL (tried at halving distances, down
+    to about 1e-28) gives a value that prints lower. When one does (abs(x - 1/3)**0.5, whose lowest point is between
+    two floating-point numbers near 1/3), the lowest value found is only a bound: (place, value, False)."""
+    sure = True
+    if not math.isfinite(value):
+        return place, value, sure
+    for k in range(0, 61, 3):
+        distance = BRENT_TOL * 2.0 ** -k
+        for probe in (place - distance, place + distance):
+            if low <= probe <= high:
+                found = objective(probe)
+                if math.isfinite(found) and found < value and _show(found) != _show(value):
+                    sure = False
+                    place, value = probe, found
+    return place, value, sure
+
+
 def _brent_range(name, low, high, objective, biggest=False):
     """Brent's method on [low, high]. The objective is minus the formula for find_biggest, so the
     notes speak of the highest point and the peaks then."""
@@ -464,6 +580,28 @@ def _brent_range(name, low, high, objective, biggest=False):
                                      options={"xatol": BRENT_TOL, "maxiter": 10000})
     place, value = float(found.x), float(found.fun)
     xs, ys = _scan(low, high, objective, SCAN_POINTS)
+    finite = np.isfinite(ys)
+    settled, iterations = bool(found.success), int(found.nit)
+    if not math.isfinite(value) and finite.any():
+        # Brent's points all fell where the formula has no value (sqrt(1 - x**2) on [-100, 50] has one only from -1
+        # to 1), but the scan found some: Brent's method again, on the scan cell around the best of them
+        best = int(np.nanargmin(np.where(finite, ys, np.nan)))
+        cell = (float(xs[max(best - 1, 0)]), float(xs[min(best + 1, len(xs) - 1)]))
+        again = optimize.minimize_scalar(objective, bounds=cell, method="bounded",
+                                         options={"xatol": BRENT_TOL, "maxiter": 10000})
+        if not (math.isfinite(float(again.fun)) and float(again.fun) <= ys[best]):
+            # the best scan point is no answer: its digits are not those of the smallest value
+            word = "biggest" if biggest else "smallest"
+            raise SimplydataError(
+                f"Between {_show(low)} and {_show(high)}, the formula has a value at {int(finite.sum())} of the "
+                f"{SCAN_POINTS} evenly spaced points checked first, and Brent's method found no {lower} value than "
+                f"the best of them, at {name} = {_show(xs[best])}, so its {word} value is not sure: the part of the "
+                f"range where it has a value may be small. Give a narrower between= around {name} = "
+                f"{_show(xs[best])}, for example between=[{_show(cell[0])}, {_show(cell[1])}].")
+        place, value = float(again.x), float(again.fun)
+        settled, iterations = bool(again.success), iterations + int(again.nit)
+    if math.isfinite(value):  # the edge where the formula stops having a value, and the place as printed
+        place, value = _polish(objective, place, value, low, high, xs)
     notes = []
     for edge in (low, high):  # R optimize() never tries the ends themselves; look there too
         edge_value = objective(edge)
@@ -471,7 +609,6 @@ def _brent_range(name, low, high, objective, biggest=False):
             place, value = edge, edge_value
             notes.append(f"Note: the {lowest} point is at the end of the range, {name} = {_show(edge)}; a wider "
                          f"between= may give a {lower} value.")
-    finite = np.isfinite(ys)
     dips = 0
     for i in range(len(ys)):
         if not finite[i]:
@@ -490,14 +627,26 @@ def _brent_range(name, low, high, objective, biggest=False):
         notes.append(f"Note: of {SCAN_POINTS} evenly spaced points checked first, {name} = {_show(xs[best])} gives "
                      f"a {lower} value ({_show(shown)}) than Brent's answer: the curve has several {dip}s and "
                      f'Brent\'s method found one of them. Try search="whole range", or a narrower between=.')
-    return _Answer([place], value, words, settled=bool(found.success), iterations=int(found.nit), notes=notes,
-                   method_name="Brent's method on the range")
+    place, value, sure = _settle(objective, place, value, low, high)
+    answer = _Answer([place], value, words, settled=settled, iterations=iterations, notes=notes,
+                     method_name="Brent's method on the range")
+    answer.only_bound = not sure
+    return answer
 
 
 def _brent_start(step, name, first, low, high, objective, word):
     from scipy import optimize
 
     width = 0.1 * max(1.0, abs(first))
+    # SciPy bracket tries first, first + width and then first + width + 1.618034*width (its golden ratio); from three
+    # points where the formula has no value it cannot move (sqrt(x - 0.2) from 0 has one at the third, 0.2618)
+    tried = (first, first + width, (first + width) + 1.618034 * width)
+    if not any(math.isfinite(objective(x)) for x in tried):
+        raise SimplydataError(
+            f"Searching from {name} = {_show(first)}, the search found no place where the formula has a value (it is "
+            "not a number there, or is infinite: sqrt(x), for example, has no value for x below 0). Give a start "
+            "where the formula has a value, or a range, for example between=[0, 10]."
+        )
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -523,11 +672,14 @@ def _brent_start(step, name, first, low, high, objective, word):
              "optimize() on that bracket. It finds the nearest dip to the start; between= or "
              'search="whole range" looks further.')
     notes = []
-    place = float(found.x)
+    place, value = _polish(objective, float(found.x), float(found.fun), a, c, (a, b, c))
+    place, value, sure = _settle(objective, place, value, a, c)
     if not low <= place <= high:
         notes.append(f"Note: the answer is outside between= ({_range_words(low, high)}).")
-    return _Answer([place], float(found.fun), words, settled=bool(found.success), iterations=int(found.nit),
-                   notes=notes, method_name="Brent's method from the start")
+    answer = _Answer([place], value, words, settled=bool(found.success), iterations=int(found.nit),
+                     notes=notes, method_name="Brent's method from the start")
+    answer.only_bound = not sure
+    return answer
 
 
 def _bounds(names, limits):
@@ -826,8 +978,9 @@ def _read_solve_equation(text, known):
                               'To find where a formula is smallest, use sdata.find_where_smallest("...").')
     formula, sign = read_equation(text, known=known)
     if sign != "=":
-        raise SimplydataError(f'solve() works with = only; "{text}" is a rule. To keep to rules, use '
-                              'sdata.find_where_smallest(formula, rules=["..."]).')
+        raise SimplydataError(f'solve() works with = only; "{text}" is a rule. For the values where it holds, add '
+                              f'exactly=True: sdata.solve("{text}", exactly=True). To keep to rules while finding the '
+                              'smallest value, use sdata.find_where_smallest(formula, rules=["..."]).')
     return formula
 
 
@@ -862,7 +1015,8 @@ def _solve_one_range(text, name, gap, low, high, chosen):
 
 
 @friendly(renamed={"method": "test_method"})
-def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False):
+def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False,
+          for_letter=None, letters_are=None):
     """Find the values that make an equation true.
 
     sdata.solve("x**3 - 2*x = 5", between=[0, 3])   (x = 2.09455)
@@ -877,11 +1031,16 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     Gives back a table with one row per solution: each name, "left minus right" at the
     solution (the check: close to 0) and the method. fast=True gives a Polars table.
     exactly=True gives the exact solutions from SymPy solve (simplydata[exact]): sdata.solve("x**2 = 2",
-    exactly=True) prints x = -sqrt(2) or x = sqrt(2); the table has each decimal and its exact form.
+    exactly=True) prints x = -sqrt(2) or x = sqrt(2); the table has each decimal and its exact form. With
+    exactly=True, for_letter="T" solves for that letter and leaves the others as letters
+    (sdata.solve("p*V = n*R*T", for_letter="T", exactly=True) gives T = V*p/(R*n)); rules (<, >, <=, >=) give the
+    ranges where they hold (sdata.solve("x**2 - 4 > 0", exactly=True): x < -2 or x > 2, SymPy solveset over the
+    real numbers); letters_are={"c": "positive"} says what a letter is. A formula made with sdata.formula() means
+    formula = 0: sdata.solve(f.find_slope_formula(), exactly=True) finds where the slope is flat.
     """
     if not isinstance(exactly, bool):
         raise SimplydataError("exactly= should be True or False.")
-    if isinstance(equations, str):
+    if isinstance(equations, str) or hasattr(equations, "_formula_text"):
         texts = [equations]
     elif isinstance(equations, (list, tuple)) and equations:
         texts = list(equations)
@@ -893,7 +1052,12 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
                                   "start= or test_method=. Leave them out, or leave out exactly=True.")
         from ._formula import solve_exactly
 
-        return solve_exactly(texts, known, fast)
+        return solve_exactly(texts, known, fast, for_letter=for_letter, letters_are=letters_are)
+    if letters_are is not None:
+        raise SimplydataError("letters_are= tells SymPy what a letter is, so it works with exactly=True: "
+                              'sdata.solve("c**2 = 4", exactly=True, letters_are={"c": "positive"}).')
+    # a formula made with sdata.formula() means formula = 0 (numbers phase, batch 4)
+    texts = [f"{t._formula_text()} = 0" if hasattr(t, "_formula_text") else t for t in texts]
     formulas = [_read_solve_equation(t, known) for t in texts]
     names: list[str] = []
     for f in formulas:
@@ -907,6 +1071,17 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
         print("Using " + ", ".join(f"{k} = {_show(v)}" for k, v in used_known.items()) + " from known=.")
     if not names:
         raise SimplydataError(f'"{texts[0]}" has no name to find, such as x. For example {_solve_example()}.')
+    if for_letter is not None:
+        if isinstance(for_letter, str):
+            wanted = [for_letter]
+        else:
+            wanted = list(for_letter) if isinstance(for_letter, (list, tuple)) else None
+        if wanted is None or sorted(map(str, wanted)) != sorted(names):
+            raise SimplydataError(
+                f"for_letter= without exactly=True finds decimals, so every other letter needs a number from known= "
+                f"(the letters left to find are {', '.join(names)}). To rearrange the equation for {for_letter} with "
+                "the other letters kept, use exactly=True: "
+                'sdata.solve("p*V = n*R*T", for_letter="T", exactly=True).')
     if len(names) > len(formulas):
         raise SimplydataError(
             f"There are more names to find ({', '.join(names)}) than equations ({len(formulas)}), so there are "

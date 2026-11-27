@@ -35,9 +35,89 @@ working for one release and prints a one-line note with its new name.
 - Tests compare both options with SciPy and R (`stats::filter` on the padded readings), and two new reliability cases
   check them on the Lake Huron levels.
 
+### Added: numbers phase, batch 4 (the SymPy words; approved by Manish 2026-11-26)
+
+- Formulas: `f.find_slope_formula(how_many_times=2)` (up to 20 times) and `for_letter=["x", "y"]` for a mixed
+  slope; `f.find_limit_as("x", goes_to=0, from_side="above")` (or `"below"`; `"right"`, `"left"`, `"+"` and `"-"`
+  work too); `f.show_as_decimal(digits=50)` (text, up to 10,000 digits); `f.group_by_powers_of("x")` (expand, then
+  collect) and `f.turn_into_partial_fractions()` (apart), both undo-able; `f.as_sympy()` gives the SymPy expression
+  to carry on in SymPy itself. In Jupyter a formula is shown typeset (`_repr_latex_`).
+- `letters_are={"k": "positive"}` on `sdata.formula` and on `sdata.solve(..., exactly=True)`: "positive", "zero or
+  more", "negative", "real", "whole number", "positive whole number" (SymPy's assumptions), so `sqrt(k**2)` is `k`,
+  `log(k*t)` splits, and `c**2 = 4` gives only `c = 2`.
+- `sdata.solve(..., exactly=True)`: `for_letter="T"` rearranges for one letter and keeps the others as letters
+  (`p*V = n*R*T` gives `T = V*p/(R*n)`); rules (`<`, `>`, `<=`, `>=`) give the ranges where they hold (SymPy solveset
+  over the real numbers, reduce_inequalities for several), as a table of `from`, `to` and whether each end is in; a
+  formula made with `sdata.formula` means formula = 0, so `sdata.solve(f.find_slope_formula(), exactly=True)` finds
+  the flat points. Without `exactly=True` a rule now points to it.
+- `chart.draw_curve(f, between=[0, 10])` draws a formula made with `sdata.formula`.
+- `sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])` (SymPy summation): an exact sum, the formula of a
+  sum up to a letter (`between=[1, "n"]`), a plain sentence when the sum grows without end or does not settle, and
+  the decimal when SymPy finds no exact formula but the series settles.
+- `sdata.find_volume_under(..., exactly=True)` (SymPy integrate). `sdata.find_path_over_time(..., exactly=True)`
+  without `at_start=` gives the general formula with its free constants (C1, C2); one second-order equation,
+  `"d2x/dt2 = -k*x - c*dx/dt"`, is solved exactly (dsolve) or in numbers (solve_ivp with `dx/dt` as a second changing
+  value, shown in the table); `at_start=` then needs `x` and `dx/dt`.
+- Grids: `find_determinant()` (SciPy linalg.det), `take_inverse()` (linalg.inv, undo-able) and `find_eigenvalues()`
+  (linalg.eigvalsh for a symmetric grid, else eigvals; biggest first), each with `exactly=True` (SymPy Matrix with
+  the numbers as fractions: det, inv, eigenvals with how many times each comes); `find_null_space(exactly=True)`
+  (SymPy nullspace). Exact work takes grids up to 12 x 12 (6 x 6 for eigenvalues).
+- Safety: every heavy SymPy call (simplify, factor, expand, integrate, limit, series, solve, solveset, dsolve,
+  summation, apart, collect and the exact grid words) runs under one time limit of 60 seconds, in one local helper
+  process that is kept alive between calls (multiprocessing, started with "spawn"; it imports SymPy only, and talks
+  to Python through a pipe, never the network; it writes nothing and stops when Python exits). A call that runs
+  longer is stopped with a plain sentence, and the next call starts a fresh helper. Where no helper process can be
+  started, SymPy runs without the limit and simplydata says so once (`SIMPLYDATA_SYMPY_HELPER=0` turns the helper
+  off). A sum with letters raised to a whole power above 100 is refused before it is multiplied out (`(x + y + z +
+  1)**200` would have about 1.4 million terms).
+- Other names from SymPy, MATLAB and R point to the new words (apart, collect, vpa, summation, Sum, symsum,
+  reduce_inequalities, refine, det, inv, eig, eigenvals ...).
+- After the independent review of the batch: a series with no exact formula prints only the digits SymPy's evalf
+  gives the same at 15 and 30 digits of precision (a slowly settling series such as 1/(k log(k)**2) gets 2.1, not
+  ten wrong digits), and refuses when not even two agree; a sum up to a letter of the formula uses that same letter;
+  a long finite sum is worked out from SymPy's formula of the sum up to n (exactly when it is a polynomial, else as a
+  decimal), and a sum whose terms have more than 100,000 digits is refused; `letters_are=` reaches formulas in
+  `solve` and the ranges of rules (x positive: 0 < x < 2), and a value or range that contradicts it is refused in
+  `find_value_at`, `put_in`, `find_area_under`, `find_volume_under`, `find_where_*` and `draw_curve`; a rule that
+  repeats (sin(x) > 0) is refused, since SymPy gives one period only; a letter every number fits is said ("y can be
+  any number; x = 3 - y"); `find_eigenvalues` follows R eigen()'s order (by size for a grid that is not symmetric,
+  with R isSymmetric's tolerance) and real exact eigenvalues have no imaginary part; exact grids keep a number that
+  no short fraction gives back (4 + 1e-15) instead of rounding it; numbers longer than 4300 digits are shown with
+  their size; `gamma`, `lgamma`, `digamma`, `beta` and `besselJ` of a number above 1000 are refused while reading;
+  `put_in`, `find_value_at` and every decimal of an exact answer run under the time limit; typed decimals and
+  `known=` values are the same exact numbers in exact paths; infinity is written as a word.
+- The helper process: a watchdog thread ends it as soon as Python is gone (even mid-job), its own output goes to the
+  null device, it has a memory limit (half the memory free when it starts, 1 to 4 GB), multiprocessing's preparation data
+  leaves your script out instead of swapping `__main__`, an embedded Python whose executable is not Python runs SymPy
+  in-process with a note, every SymPy call of one word shares one 60-second deadline, and the stop sentence gives
+  advice for that word. On Linux and macOS multiprocessing also starts its own small resource-tracker process.
+- After the second review: a series with no exact formula is bounded instead of compared at two precisions (the
+  first 1,000 or 10,000 terms added by SymPy evalf, the rest between two integrals of the terms by SymPy: the
+  integral test, with the trapezoid and midpoint rules when SymPy shows the terms bend upwards), and only the digits
+  both bounds round to are printed (1/(k log(k)**3) now prints 2.065886539, as R); a formula is read unevaluated and
+  the numbers inside `gamma`, `lgamma`, `digamma`, `beta` and `besselJ` and of powers are worked out under the time
+  limit and checked first (`gamma(abs(-2000))`, `gamma(2000*x/x)` and `(1 + 1/10**4)**(10**4)` are refused, never
+  worked out while reading); a repeating rule is answered when it always or never holds, or when the other rules
+  keep the letter to a range of finite length (one period of SymPy solveset moved along by whole periods), and
+  refused otherwise; the size of a very long number comes from SymPy N and integer_log; `find_eigenvalues(exactly=
+  True)` follows R eigen()'s order also among eigenvalues of the same size; `put_in(x="y")` gives y what x was; a
+  whole typed decimal is its simplest fraction again (1e23 is 10**23); the sum of r**k has no value (instead of nan)
+  where |r| >= 1, so its slope has none there either, and such a formula works in `find_where_*`,
+  `find_area_under` (also exactly) and `draw_curve`; each thread keeps its own deadline, and the helper start leaves
+  the main script out only for its own thread; the exact grid words share one deadline; a rule always true or false
+  for what the letters are, and the ranges of whole-number letters, are said plainly; typed decimals in rules are
+  exact (x < 3.5 is x < 7/2).
+- After the third review: every power whose base is not a plain letter or number, and every exp of a log, is sized
+  before SymPy makes the number (`(abs(999)**100)**100`, `(999*x)**400`, `exp(3000*log(10))` and a typed whole
+  number of 400 digits to a power are refused at once); `find_where_smallest`/`find_where_biggest` say when the
+  formula has no value anywhere the search looked, instead of an infinite answer; `put_in` refuses an expression in
+  place of a letter with a kind unless SymPy shows it has that kind; a repeating rule over too long a finite range
+  says how many repeats it covers; a series whose terms rise to 0 gets its decimal too, the bounds leave room for
+  the accuracy of SymPy's integrals, and the 1,000-term answer is kept when the 10,000-term round fails.
+
 ### Added: numbers phase, batch 3 (formulas, areas and paths, grids, nearest rows; approved by Manish 2026-11-25)
 
-- Exact maths with SymPy, the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
+- Exact maths with SymPy (1.14 or newer), the new extra `simplydata[exact]`: `f = sdata.formula("(x + 2)**2 - 4")` with
   `f.make_simpler()`, `f.turn_into_sum()`, `f.turn_into_product()`, `f.find_slope_formula()`, `f.find_area_formula()`,
   `f.find_value_at(x=2)`, `f.put_in(x="y + 1")`, `f.show_as_latex()`, `f.find_limit_as("x", goes_to=0)`,
   `f.find_taylor_series(around=0, up_to_power=4)` and `f.undo()`; `sdata.solve("x**2 = 2", exactly=True)`;

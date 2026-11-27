@@ -368,19 +368,36 @@ class GridWords3:
         return self._change("matrix exp", out)
 
     @friendly
-    def find_null_space(self):
+    def find_null_space(self, exactly=False):
         """The directions the grid turns into zeros (its null space), one in each column of a new grid. grid.find_null_space()
 
         Each column x of the answer gives the grid times x = 0, and the columns are at right angles and of length
         1. No column means only zero goes to zero. SciPy linalg.null_space (from the singular value
-        decomposition).
+        decomposition). exactly=True gives SymPy's exact directions (nullspace, the numbers as fractions): simple
+        whole numbers and fractions, such as [-2, 1], which are not of length 1 and need not be at right angles
+        (numbers phase, batch 4).
         """
         from scipy import linalg
 
         from .numbers import NumberGrid
 
+        if not isinstance(exactly, bool):
+            raise SimplydataError("exactly= should be True or False.")
         values = np.asarray(self._values, dtype=float)
         _no_empty(values, "find_null_space")
+        if exactly:
+            from .._formula import MAX_EXACT_GRID, exact_matrix, run_exactly
+
+            matrix = exact_matrix(values, "find_null_space", MAX_EXACT_GRID)
+            vectors = run_exactly(matrix.nullspace, what="SymPy nullspace")
+            if not vectors:
+                print("The null space is empty: only zero is sent to zero (SymPy nullspace, exact). The new grid has "
+                      "no columns.")
+                return NumberGrid(np.zeros((values.shape[1], 0)))
+            said = "; ".join("[" + ", ".join(str(v) for v in vector) + "]" for vector in vectors)
+            print(f"The null space has {amount(len(vectors), 'direction')}, exactly: {said}   (SymPy nullspace, exact). "
+                  "These are SymPy's simplest whole-number directions, not of length 1 as without exactly=True.")
+            return NumberGrid(np.array([[float(v) for v in vector] for vector in vectors], dtype=float).T)
         out = linalg.null_space(values)
         if out.shape[1]:
             print(f"The null space has {amount(out.shape[1], 'direction')}: each column of the new grid is sent to 0 "
