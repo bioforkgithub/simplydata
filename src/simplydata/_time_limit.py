@@ -170,7 +170,7 @@ def _start():
 def _stop() -> None:
     """Stop the helper (if any) and forget it. Also run when Python exits."""
     process, jobs, answers = _STATE["process"], _STATE["jobs"], _STATE["answers"]
-    _STATE["process"] = _STATE["jobs"] = _STATE["answers"] = None
+    _STATE["process"] = _STATE["jobs"] = _STATE["answers"] = _STATE["memory_limit"] = None
     if jobs is not None:
         try:
             if process is not None and process.is_alive():
@@ -266,7 +266,7 @@ def _wait(process, answers, seconds: float):
     """Wait up to seconds for the helper's answer: True when it is there, False when the time is up, None when (on
     macOS, which ignores the helper's own memory limit) the helper went over its memory limit."""
     limit = _STATE["memory_limit"]
-    if sys.platform != "darwin" or not limit:
+    if sys.platform != "darwin" or not limit or process is None:  # (None: a stand-in helper in the tests)
         return answers.poll(seconds)
     end = time.monotonic() + seconds
     while True:

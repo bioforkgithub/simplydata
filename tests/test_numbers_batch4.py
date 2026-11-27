@@ -914,6 +914,30 @@ def test_on_macos_the_parent_stops_a_helper_over_its_memory_limit(monkeypatch):
     assert time.monotonic() - started >= 0.25
 
 
+def test_on_macos_a_stand_in_helper_is_waited_for_in_one_go(monkeypatch):
+    # the recording stand-in of the deadline tests has no process: on macOS it saw the 0.05 s memory looks instead
+    # of the word's whole wait (PR #72 macOS 3.11, test_review2_k_each_thread_keeps_its_own_deadline)
+    seen = []
+
+    class Answers:
+        def poll(self, seconds):
+            seen.append(seconds)
+            return True
+
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setitem(_time_limit._STATE, "memory_limit", 2 ** 30)
+    assert _time_limit._wait(None, Answers(), 42.0) is True
+    assert seen == [42.0]
+
+
+def test_a_stopped_helper_forgets_its_memory_limit():
+    _sp()
+    _time_limit.run_with_time_limit(operator.add, 1, 2)
+    assert _time_limit._STATE["memory_limit"]
+    _time_limit._stop()
+    assert _time_limit._STATE["memory_limit"] is None
+
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="proc_pid_rusage is part of macOS")
 def test_on_macos_the_memory_of_a_process_can_be_read():
     used = _time_limit._memory_in_use(os.getpid())
