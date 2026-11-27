@@ -21,6 +21,7 @@ import re
 # sdata.<name>: top-level words, and words people expect on sdata that live on a table or a chart.
 _SDATA = [
     ('sdata.get_example("lung", from_r_package="survival")', "get_rdataset rdata load_dataset"),
+    ('sdata.get_example() lists the practice tables, and sdata.get_example("marks") gives one', "get_dataset_names"),
     ('sdata.compare_averages(averages=[63.2, 68.9], standard_deviations=[8.1, 9.0], counts=[20, 22])',
      "ttest_ind_from_stats tsum_test"),
     ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day")', "date_range seq.Date datetime_range daterange"),
@@ -702,7 +703,11 @@ _CHART = [
     ('chart.draw_contour(x="east", y="north", z="height")', "contourf"),
     ('chart.draw_surface(x="east", y="north", z="height")', "plot_surface"),
     ('chart.add_second_y("rain")', "twinx"),
-    ('chart.draw_one_chart_for_each_group_in("class")', "facet_wrap facet_grid FacetGrid subplots"),
+    ('chart.draw_one_chart_for_each_group_in("class")', "facet_wrap facet_grid FacetGrid"),
+    # charts finishing PR: plt.subplots(2, 2) also makes a page of different charts
+    ('chart.draw_one_chart_for_each_group_in("class") for one chart per group, or '
+     "sdata.put_in_rows_and_columns([chart_a, chart_b, chart_c], per_row=2) for different charts on one page",
+     "subplots"),
     ("chart.draw_side_histograms()", "jointplot"),
     ('chart.draw_all_dots(x="class", y="marks")', "stripplot swarmplot geom_jitter"),
     ('chart.draw_count_bars(x="fruit")', "countplot"),
@@ -783,6 +788,99 @@ _CHART_3 = [
     ('chart.draw_bars_3d(x="month", y="city", z="rain")', "bar3d bar_3d"),
 ]
 
+# chart.<name>, charts finishing PR (API audit of matplotlib 3.11.2 and seaborn 0.13.2, 2026-11-27): names with a
+# chart word but no pointer. matplotlib's and seaborn's names typed with plt., ax., fig. or sns. in front look here
+# first (NAMESPACES below), so plt.title is the title and not pandas' str.title.
+_CHART_4 = [
+    ("chart.as_matplotlib(), which gives the chart's matplotlib Figure: fig = chart.as_matplotlib(), then "
+     "ax = fig.axes[0] is its Axes, and any matplotlib code works on them", "gcf gca get_figure get_axes Figure Axes fig ax axes figure plt pyplot "
+     "matplotlib mpl"),
+    ("chart.as_matplotlib() gives the matplotlib Figure (fig = chart.as_matplotlib()); then fig.axes[0].table(...) "
+     "in matplotlib draws the table: simplydata draws no table inside a chart", "table add_table"),
+    # not covered: the hand-over, as the manual's chapter "From matplotlib and seaborn to simplydata" shows
+    ("chart.as_matplotlib() gives the matplotlib Figure (fig = chart.as_matplotlib()); then the matplotlib or seaborn "
+     "code works on fig.axes[0]: simplydata has no word for this job (the manual's chapter \"From matplotlib and "
+     'seaborn to simplydata\" shows how)', "quiver quiverkey barbs streamplot fill Polygon fill_betweenx margins "
+                                             "boxenplot bxp supxlabel supylabel voxels"),
+    ('chart.draw_lines(x="month", y="temperature", colour="city")', "lineplot"),
+    ('chart.draw_dots(x="hours", y="marks"), then chart.draw_one_chart_for_each_group_in("class") for one chart per '
+     "group (draw_lines for lines)", "relplot"),
+    ('chart.draw_histogram(x="marks"), then chart.draw_one_chart_for_each_group_in("class") for one chart per group '
+     "(draw_density or draw_cumulative_share for the other kinds)", "displot distplot"),
+    ('chart.draw_bars(x="class", y="marks") (or draw_boxes, draw_violins, draw_all_dots, draw_count_bars), then '
+     'chart.draw_one_chart_for_each_group_in("subject") for one chart per group', "catplot"),
+    ('sdata.draw_all_pairs(sdata.get_example("marks"), colour="class")', "pairplot PairGrid"),
+    ('chart.draw_dots(x="hours", y="marks"), then chart.draw_side_histograms()', "JointGrid"),
+    ('chart.draw_heatmap(x="month", y="city", value="rain", cluster=True)', "clustermap"),
+    ('chart.draw_bars(x="subject", y="marks", colour="class")', "grouped_bar"),
+    ('chart.draw_area(x="month", y="rain", colour="city", stacked=True)', "stackplot"),
+    ('chart.draw_lines(x="month_number", y="temperature", joined_by="steps")', "step stairs"),
+    ('chart.draw_heatmap(x="month", y="city", value="rain")', "matshow pcolor pcolorfast"),
+    ('chart.draw_contour(x="east", y="north", z="height"), which joins scattered points up as tricontour does',
+     "tricontour tricontourf tripcolor triplot"),
+    ('chart.draw_surface(x="east", y="north", z="height")', "plot_trisurf"),
+    ('chart.draw_surface(x="east", y="north", z="height", as_wires=True)', "plot_wireframe"),
+    ('chart.draw_dots_3d(x="east", y="north", z="height")', "scatter3D"),
+    ("chart.look_from(height=90)", "set_top_view"),
+    ('chart.write_note("tallest", x=8, y=95)', "text2D text3D Annotation Text"),
+    ("chart.draw_arrow(start=[2, 40], end=[4, 60])", "Arrow FancyArrowPatch"),
+    ("chart.draw_line_with_slope(1, through=(0, 0))", "AxLine"),
+    ('chart.draw_pie(labels="fruit", values="count")', "pie_label"),
+    ('chart.draw_bars(x="class", y="marks"), then chart.write_numbers_on_bars()', "bar_label"),
+    ("chart.use_log_scale_x(), then chart.use_log_scale_y()", "loglog"),
+    ("chart.flip_x()", "invert_xaxis set_xinverted"),
+    ("chart.flip_y()", "invert_yaxis set_yinverted"),
+    ("chart.set_range_x(0, 10)", "set_xbound set_xlim3d"),
+    ("chart.set_range_y(0, 100)", "set_ybound set_ylim3d"),
+    ("chart.set_range_z(-10, 20)", "set_zbound set_zlim3d"),
+    ('chart.put_ticks_x(1, 4, 7, 10, labels=["one", "four", "seven", "ten"])',
+     "set_xticklabels FixedLocator FixedFormatter"),
+    ('chart.put_ticks_y(0, 50, 100, labels=["none", "half", "all"])', "set_yticklabels"),
+    ('chart.put_ticks_z(-10, 0, 10, 20, labels=["deep", "sea level", "hill", "top"])', "set_zticklabels"),
+    ("chart.put_ticks_x(how_many=5)", "locator_params MaxNLocator LinearLocator"),
+    ("chart.put_ticks_x(every=5)", "MultipleLocator"),
+    ("chart.hide_ticks_x()", "NullLocator NullFormatter"),
+    ('chart.write_ticks_y_as("thousands"), or "percent", "scientific" or "plain"',
+     "ticklabel_format FormatStrFormatter StrMethodFormatter PercentFormatter"),
+    ("chart.rotate_labels_x(45)", "autofmt_xdate"),
+    ("chart.rotate_labels_x(45) to turn the tick labels, chart.hide_ticks_x() to hide the ticks, or "
+     "chart.use_font_size(ticks=10) for their size", "tick_params"),
+    ('chart.hide_frame() for axis("off"), chart.use_true_shape() for axis("equal"), or chart.set_range_x(0, 10) '
+     "and chart.set_range_y(0, 100) for the ranges", "axis"),
+    ("chart.hide_frame() takes the whole frame away (the paper look already leaves out the top and right lines)",
+     "despine set_frame_on"),
+    ('chart.label_colour_bar("Rain (mm)"): a colour scale gets its colour bar by itself, and chart.hide_colour_bar() '
+     "takes it away", "colorbar"),
+    ('chart.use_colour_scale("magma", between=[0, 30])', "clim Normalize"),
+    ('chart.use_colour_scale("magma")', "get_cmap set_cmap colormaps Colormap viridis magma inferno plasma jet"),
+    ('chart.use_colours("Set2")', "color_palette set_palette set_prop_cycle cycler mpl_palette husl_palette "
+                                   "hls_palette"),
+    ('chart.use_colour_scale("white", "navy")', "light_palette dark_palette blend_palette cubehelix_palette"),
+    ('chart.use_colour_scale("blue to red", middle=0)', "diverging_palette TwoSlopeNorm CenteredNorm"),
+    ('chart.use_style("school"), or "paper", "presentation", "dark" or "black and white"',
+     "set_theme set_style axes_style"),
+    ("chart.use_style(\"presentation\") for bigger text and lines (seaborn's \"talk\"), or chart.use_font_size(14)",
+     "set_context plotting_context"),
+    ('chart.use_style("school"), chart.use_font("DejaVu Serif") or chart.use_font_size(14) set the look; any other '
+     "matplotlib setting is left to matplotlib: chart.as_matplotlib()", "rc rc_context rcParams rcdefaults"),
+    ('chart.write_caption_at_bottom("Data from 2026")', "figtext"),
+    ('chart.set_size(width=17, height=8, unit="cm")', "set_figwidth set_figheight figaspect"),
+    ('chart.save("chart.png", resolution=300)', "set_dpi get_dpi"),
+    ("chart.add_zoom_box(x_between=[2, 4], y_between=[40, 60])", "indicate_inset indicate_inset_zoom"),
+    ('chart.draw_one_chart_for_each_group_in("class", same_y=True)', "sharex sharey"),
+    ("sdata.put_in_rows_and_columns([chart_a, chart_b, chart_c], per_row=2)",
+     "subplot subplot2grid subplot_mosaic subfigures add_subfigure add_subplot add_gridspec GridSpec SubplotSpec"),
+    ("sdata.put_side_by_side([chart_a, chart_b], with_one_legend=True)", "figlegend"),
+    ("chart.get_text_drawn()", "get_yticklabels get_xmajorticklabels get_ymajorticklabels get_xminorticklabels "
+                               "get_yminorticklabels get_suptitle get_supxlabel get_supylabel "
+                               "get_legend_handles_labels get_zlabel get_zticklabels get_zmajorticklabels "
+                               "get_zminorticklabels"),
+    ("chart.get_numbers_drawn()", "get_lines get_images"),
+    ("chart.get_scales_drawn()", "get_xbound get_ybound get_xinverted get_yinverted xaxis_inverted yaxis_inverted "
+                                 "get_zlim get_zscale get_zticks get_zbound get_zinverted zaxis_inverted get_xlim3d "
+                                 "get_ylim3d get_zlim3d"),
+]
+
 # nums.<name> (numbers). Older ones (mean, sum, min ...) are in numbers/_base.py HINTS.
 _NUMBERS = [
     ('numbers.fit_distribution("gamma")', "fit fitdistr fitdist"),
@@ -834,7 +932,7 @@ _NUMBERS = [
     # Numbers phase, batch 3 (approved by Manish 2026-11-25); the grid words' other names are in NumberGrid._HINTS
     ("numbers.turn_into_running_area(time_step=60)", "cumulative_trapezoid cumtrapz cumulative_simpson"),
     ("numbers.take_cube_root()", "cbrt nthroot"),
-    ("numbers.find_coherence_with(other, time_step=0.01)", "coherence csd mscohere"),
+    ("numbers.find_coherence_with(other, time_step=0.01)", "coherence csd mscohere cohere"),
     ("numbers.take_cosine_transform()", "dct dst"),
     ("numbers.show_as_fraction()", "nsimplify Rational rat as_fraction"),
 ]
@@ -1011,17 +1109,26 @@ def _build(groups):
     return table
 
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE), "chart": _build(_CHART + _CHART_2 + _CHART_3),
+OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
+               "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
                "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
-              "DataFrameGroupBy": "groups", "SeriesGroupBy": "groups"}
+              "DataFrameGroupBy": "groups", "SeriesGroupBy": "groups",
+              # charts finishing PR: matplotlib's and seaborn's names (plt.title, ax.set_xlabel, fig.savefig,
+              # sns.lineplot, fig.axes[0].set_title, matplotlib.pyplot.hist) and pandas' df.plot.bar mean the chart
+              # word: plt.title is write_title_on_top, not pandas' str.title
+              "plt": "chart", "pyplot": "chart", "matplotlib": "chart", "mpl": "chart", "ax": "chart", "axs": "chart",
+              "axes": "chart", "fig": "chart", "figure": "chart", "sns": "chart", "seaborn": "chart", "plot": "chart",
+              "Axes3D": "chart"}
 NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
-# text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows)
-NAMESPACE_FALLBACK = {"groups": "table"}
+# text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
+# A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word
+# (plt.cohere).
+NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers")}
 # What can stand in front of a name and changes nothing: pd.read_csv, pl.DataFrame.join, df.merge, Series.replace
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
               "data", "dplyr", "tidyr", "base", "stats"}
@@ -1037,7 +1144,21 @@ def other_name_parts(typed: str) -> tuple[str | None, str] | None:
 
     What is inside brackets is left out first, so pl.col("name").str.contains("a") is str.contains; a bracket left
     open at the end (df.str.replace( or df.str.replace("a") is dropped. Namespace names are read in any capitals
-    (Str.Replace, groupBy.filter)."""
+    (Str.Replace, groupBy.filter). ("chart", "set_title") for ax.set_title, plt.title, sns.lineplot or
+    fig.axes[0].set_xlabel: matplotlib's and seaborn's names."""
+    found = _name_parts(typed)
+    return None if found is None else found[1:]
+
+
+def other_name_space(typed: str) -> str | None:
+    """The namespace as typed in front of a name: "ax" for ax.set_title, "plt" for plt.hist, "str" for
+    Series.str.replace; None when there is none."""
+    found = _name_parts(typed)
+    return None if found is None else found[0]
+
+
+def _name_parts(typed: str) -> tuple[str | None, str | None, str] | None:
+    """(namespace as typed, its kind, name), as other_name_parts reads them."""
     text = str(typed).strip()
     while text.count("(") > text.count(")"):  # a bracket left open: drop it and what follows
         text = text[:text.rindex("(")]
@@ -1053,9 +1174,9 @@ def other_name_parts(typed: str) -> tuple[str | None, str] | None:
     spaces = {key.lower(): kind for key, kind in NAMESPACES.items()}
     for part in reversed(before):
         if part.lower() in spaces:
-            return spaces[part.lower()], name
+            return part, spaces[part.lower()], name
     if before[0] in SIMPLYDATA_OBJECTS:
         return None
     if all(part in QUALIFIERS for part in before) or len(before) == 1:
-        return None, name
+        return None, None, name
     return None

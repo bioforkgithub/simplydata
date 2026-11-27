@@ -2184,21 +2184,25 @@ def _print_other_names(word) -> bool:
     Gives back True when something was printed. A name inside a namespace of pandas or Polars looks there first:
     sdata.help("str.replace") (also "Series.str.replace", 'df["name"].str.replace') points to replace_text_in, not
     to replace_values_in, and sdata.help("dt.round") to round_dates_in. A name with pd., pl. or DataFrame. in front
-    is the name itself. A bare name lists every meaning, the namespaced ones included ("str.replace: ...")."""
+    is the name itself. A bare name lists every meaning, the namespaced ones included ("str.replace: ...").
+    matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
+    pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts
+    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts, other_name_space
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
-    if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter
+    if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter, ax.hist
         kind, w = parts
+        space = NAMESPACE_SHOWN.get(kind) or other_name_space(_normalise(str(word)))
         if other_name_pointer(kind, w) is None:  # Str.Replace is str.replace: pandas and Polars names are lowercase
             w = w.lower()
         pointer = other_name_pointer(kind, w)
-        if pointer is None and kind in NAMESPACE_FALLBACK:  # groupby().mean() means what mean means on a table
-            pointer = other_name_pointer(NAMESPACE_FALLBACK[kind], w)
+        for other in NAMESPACE_FALLBACK.get(kind, ()):  # groupby().mean() means what mean means on a table
+            if pointer is None:
+                pointer = other_name_pointer(other, w)
         found = [(kind, pointer)] if pointer is not None else []
-        shown = f"{NAMESPACE_SHOWN[kind]}.{w}"
+        shown = f"{space}.{w}"
     else:
         w = parts[1] if parts is not None else w  # pd.merge, DataFrame.merge -> merge
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
@@ -2235,6 +2239,8 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             own = str(word).strip().split(".", 1)[0]
             if parts is not None and parts[0] is None and own not in QUALIFIERS:
                 keys = _lookup_all(parts[1])
+            elif parts is not None and parts[0] == "chart":  # plt.show, fig.savefig ... a chart word of that name
+                keys = [k for k in _lookup_all(parts[1]) if _kind(k) == "chart"]
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)
