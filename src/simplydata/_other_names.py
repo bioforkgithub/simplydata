@@ -1395,14 +1395,74 @@ _SYMPY = [
 ]
 
 
+# so.<name> and seaborn.objects.<name>: seaborn's objects interface (so.Plot with marks, stats, moves and scales), the
+# audit of seaborn 0.13.2 (2026-11-28). A Plot method or a name that is a chart word itself (save, show) explains the
+# chart word.
+_SEABORN_OBJECTS = [
+    ("sdata.chart(table): a chart of a table; every step comes after it, as the Plot methods do", "Plot"),
+    ('chart.draw_dots(x="hours", y="marks")', "Dot Dots"),
+    ('chart.draw_dots(x="hours", y="marks"), then chart.fit_line(): each draw word adds one more layer', "add"),
+    ('chart.draw_lines(x="month", y="temperature", colour="city")', "Line Lines"),
+    ('chart.draw_bars(x="class", y="marks")', "Bar Bars Agg"),
+    ('chart.draw_area(x="month", y="rain", colour="city")', "Area"),
+    ('chart.draw_band(x="month", between=["lowest", "highest"])', "Band"),
+    ('chart.draw_error_bars(of_kind="standard deviation") after a draw word', "Range"),
+    ('chart.draw_bars(x="class", y="marks", error="confidence interval")', "Est"),
+    ('chart.draw_count_bars(x="class")', "Count"),
+    ('chart.draw_histogram(x="marks")', "Hist"),
+    ('chart.draw_histogram(x="marks", show="percent") for shares of the whole', "Norm"),
+    ('chart.draw_density(x="marks")', "KDE"),
+    ('chart.draw_boxes(x="class", y="marks") shows the quartiles of each group', "Perc"),
+    ('chart.draw_dots(x="hours", y="marks"), then chart.fit_curve(of_degree=2)', "PolyFit"),
+    ('chart.draw_all_dots(x="class", y="marks") spreads the dots of each group a little sideways', "Jitter"),
+    ('chart.draw_bars(x="subject", y="marks", colour="class"): the groups stand side by side by themselves', "Dodge"),
+    ('chart.draw_bars(x="subject", y="marks", colour="class", stacked=True)', "Stack"),
+    ('chart.write_names_on_dots("name") after chart.draw_dots(...)', "Text"),
+    ('chart.use_log_scale_x() or chart.use_scale_x("square root") for a number axis', "Continuous"),
+    ('chart.order_x("C", "B", "A") for groups on an axis', "Nominal"),
+    ('chart.draw_lines(x="time", y="signal"): a column of dates gets a date axis by itself', "Temporal"),
+    ('chart.draw_one_chart_for_each_group_in(by="class")', "facet"),
+    ('chart.draw_one_chart_for_each_group_in(by="class", same_y=False)', "share"),
+    ('sdata.draw_all_pairs(sdata.get_example("marks"), colour="class")', "pair"),
+    ('chart.set_size(width=17, height=12, unit="cm")', "layout"),
+    ('chart.label_x("Hours"), chart.label_y("Marks") or chart.write_title_on_top("Marks")', "label"),
+    ("chart.set_range_x(0, 10) and chart.set_range_y(0, 100)", "limit"),
+    ('chart.use_colours("Set2") for the colours, or chart.use_log_scale_y() for an axis', "scale"),
+    ('chart.use_style("school")', "theme config"),
+    ("chart.as_matplotlib() gives the chart as a matplotlib Figure, for code that needs one", "on plot"),
+]
+
+# seaborn's colour helpers and setup functions (owner's decision 2026-11-28: cover all of seaborn), typed with sns.
+_SEABORN_MORE = [
+    ('sdata.show_colours("deep")', "palplot"),
+    ('sdata.pick_colours_with_sliders(kind="brewer")', "choose_colorbrewer_palette"),
+    ('sdata.pick_colours_with_sliders(kind="cubehelix")', "choose_cubehelix_palette"),
+    ('sdata.pick_colours_with_sliders(kind="dark")', "choose_dark_palette"),
+    ('sdata.pick_colours_with_sliders(kind="light")', "choose_light_palette"),
+    ('sdata.pick_colours_with_sliders(kind="diverging")', "choose_diverging_palette"),
+    ('chart.use_colours("windows blue", "amber", from_colour_list="xkcd")', "xkcd_palette xkcd_rgb"),
+    ('chart.use_colours("Mahogany", "Denim", from_colour_list="crayon")', "crayon_palette crayons"),
+    ('sdata.change_colour("red", colour_strength_times=0.5)', "desaturate"),
+    ('sdata.change_colour("#7a8f99", full_colour_strength=True)', "saturate"),
+    ('sdata.change_colour("navy", lightness=0.6)', "set_hls_values"),
+    ('chart.use_style("paper", colour_letters="seaborn")', "set_color_codes"),
+    ('chart.use_style("paper"): each chart starts from simplydata\'s own look, so there is nothing to reset',
+     "reset_defaults reset_orig"),
+    ('sdata.get_example("marks"): the practice tables are inside simplydata, so nothing is downloaded and there is no '
+     "data folder", "get_data_home"),
+    ("sdata.help(): seaborn's dogplot is a joke that downloads a photo of a dog from the internet; simplydata "
+     "downloads nothing, so it has no such word", "dogplot"),
+]
+
+
 OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
-               "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4), "chart3d": _build(_CHART_3D),
+               "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4 + _SEABORN_MORE), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
                "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
                "numpy": _build(_NUMPY), "linalg": _build(_LINALG), "random": _build(_RANDOM), "fft": _build(_FFT),
                "stats": _build(_STATS), "special": _build(_SPECIAL), "scipy": _build(_SCIPY),
-               "sympy": _build(_SYMPY)}
+               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -1419,7 +1479,9 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "Generator": "random", "RandomState": "random", "fft": "fft", "stats": "stats", "special": "special",
               "scipy": "scipy", "optimize": "scipy", "integrate": "scipy", "interpolate": "scipy",
               "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
-              "Matrix": "sympy"}
+              "Matrix": "sympy",
+              # seaborn's objects interface: so.Dot, so.Plot.facet, seaborn.objects.Hist
+              "so": "so", "objects": "so"}
 NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
@@ -1430,10 +1492,12 @@ NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "char
                       "numpy": ("numbers", "block", "sdata"), "linalg": ("numpy", "numbers", "sdata"),
                       "random": ("numbers", "sdata"), "fft": ("numbers", "sdata"),
                       "stats": ("sdata", "numbers", "table"), "special": ("numbers", "sdata"),
-                      "scipy": ("sdata", "numbers", "block", "table"), "sympy": ("sdata",)}
-# The NumPy, SciPy and SymPy namespaces (numbers finishing PR), and how a bare name shows each of them
+                      "scipy": ("sdata", "numbers", "block", "table"), "sympy": ("sdata",),
+                      "so": ("chart", "sdata")}
+# The NumPy, SciPy and SymPy namespaces (numbers finishing PR) and seaborn.objects, and how a bare name shows each
 NUMBER_SPACES = {"numpy": "np", "linalg": "linalg", "random": "rng", "fft": "fft", "stats": "stats",
-                 "special": "special", "scipy": "scipy", "sympy": "sympy"}
+                 "special": "special", "scipy": "scipy", "sympy": "sympy",
+                 "so": "so"}  # seaborn.objects has its own list too, and a name it lacks is looked up the same way
 # What can stand in front of a name and changes nothing: pd.read_csv, pl.DataFrame.join, df.merge, Series.replace
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
               "data", "dplyr", "tidyr", "base"}
@@ -1477,6 +1541,9 @@ def _name_parts(typed: str) -> tuple[str | None, str | None, str] | None:
         return None
     name, before = parts[-1], parts[:-1]
     spaces = {key.lower(): kind for key, kind in NAMESPACES.items()}
+    for part in before:  # so.Plot.facet: seaborn.objects' Plot, not pandas' df.plot
+        if part in ("so", "objects"):
+            return part, "so", name
     for part in reversed(before):
         if part.lower() in spaces:
             return part, spaces[part.lower()], name

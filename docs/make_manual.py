@@ -613,6 +613,11 @@ UNDERNEATH = {
     "grid.solve_for": "SciPy (linalg.solve; linalg.lstsq for least squares; optimize.nnls and optimize.lsq_linear for "
                       "between=); SymPy LUsolve and solve_least_squares for exactly=True",
     "grid.break_down": "SciPy (linalg.svd, qr, lu, cholesky, schur, polar, ldl, hessenberg, qz)",
+    # seaborn's colour tools (owner's decision 2026-11-28)
+    "sdata.show_colours": "seaborn (palplot, color_palette)",
+    "sdata.change_colour": "seaborn (set_hls_values, desaturate, saturate)",
+    "sdata.pick_colours_with_sliders": "seaborn (choose_colorbrewer_palette, choose_cubehelix_palette, "
+                                       "choose_dark_palette, choose_light_palette, choose_diverging_palette)",
 }
 
 # ---------------------------------------------------------------- hand-written text

@@ -20,6 +20,22 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: the rest of seaborn's colour tools, and seaborn.objects names (owner's decision 2026-11-28)
+
+- `sdata.show_colours("deep")` draws a row of swatches (seaborn `palplot`) and gives back the colour codes.
+- `sdata.change_colour("navy", lightness=0.6)` gives a lighter, darker, greyer or stronger colour: `lightness=`,
+  `colour_strength=` and `hue=` are seaborn `set_hls_values`, `colour_strength_times=` is `desaturate` and
+  `full_colour_strength=True` is `saturate`.
+- `sdata.pick_colours_with_sliders(kind="dark")` is seaborn's `choose_*_palette` sliders (`"brewer"`,
+  `"cubehelix"`, `"dark"`, `"light"`, `"diverging"`), in Jupyter with ipywidgets; anywhere else it says what is
+  needed. simplydata never installs anything.
+- `from_colour_list="xkcd"` or `"crayon"` on `use_colour`, `use_colours` and `use_colour_scale` reads the names of
+  xkcd's colour survey or Crayola's crayons (seaborn `xkcd_palette`, `crayon_palette`).
+- `chart.use_style("paper", colour_letters="seaborn")` makes "b", "g", "r" ... seaborn's colours on that chart
+  (seaborn `set_color_codes`); other charts keep matplotlib's letters.
+- `sdata.help("so.Dots")`, `sdata.help("so.Plot.facet")`: seaborn.objects names point to the chart words, and
+  `dogplot`, `reset_defaults`, `reset_orig` and `get_data_home` say why simplydata needs no such word. 584 words now.
+
 ### Added: NumPy, SciPy and SymPy names point to the simplydata word (numbers finishing)
 
 - `sdata.help("np.mean")`, `sdata.help("np.linalg.solve")`, `sdata.help("rng.normal")`,

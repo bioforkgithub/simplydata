@@ -53,7 +53,9 @@ GROUPS = [
     ("Colours and look", ["use_colour", "use_colours", "use_colour_scale", "use_style", "set_size", "show_grid", "hide_grid",
                           "put_legend_at_top", "put_legend_at_bottom", "put_legend_on_left", "put_legend_on_right",
                           "hide_legend", "show_legend", "label_legend", "label_colour_bar",
-                          "put_legend_inside", "use_shapes"]),
+                          "put_legend_inside", "use_shapes",
+                          # seaborn's colour tools (owner's decision 2026-11-28: cover all of seaborn)
+                          "sdata.show_colours", "sdata.change_colour", "sdata.pick_colours_with_sliders"]),
     ("Order of groups", ["order_x", "order_y", "order_legend"]),
     ("Several charts", ["draw_one_chart_for_each_group_in", "sdata.put_side_by_side", "sdata.put_one_above_other", "sdata.put_in_rows_and_columns",
                         "add_zoom_box", "animate"]),
@@ -567,6 +569,15 @@ HELP_EXAMPLES = {
     "use_colour": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.use_colour("purple")', "use_colour"),
     "use_colour_scale": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\nchart.use_colour_scale("magma")', "use_colour_scale"),
     "use_colours": _ex("marks", 'chart.draw_bars(x="subject", y="marks", colour="class")\nchart.use_colours("orange", "teal", "purple")', "use_colours"),
+    # seaborn's colour tools (owner's decision 2026-11-28)
+    "sdata.show_colours": "\n".join(["import simplydata as sdata", 'codes = sdata.show_colours("deep")',
+                                     'sdata.show_colours("viridis", how_many=5, save_as="colours.png")']),
+    "sdata.change_colour": "\n".join(["import simplydata as sdata",
+                                      'lighter = sdata.change_colour("navy", lightness=0.6)',
+                                      'greyer = sdata.change_colour("red", colour_strength_times=0.5)']),
+    "sdata.pick_colours_with_sliders": "\n".join(["import simplydata as sdata",
+                                                  "# in Jupyter, with ipywidgets: sliders; anywhere else: a sentence",
+                                                  'colours = sdata.pick_colours_with_sliders(kind="dark")']),
     "use_style": _ex("marks", 'chart.draw_bars(x="subject", y="marks", colour="class")\nchart.use_style("school")', "use_style"),
     "set_size": _ex("weather", 'chart.draw_lines(x="month", y="rain", colour="city")\nchart.set_size(width=17, height=8, unit="cm")', "set_size"),
     "show_grid": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_grid()', "show_grid"),
@@ -2274,7 +2285,8 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
                               for n in (name, name.lower()))
                 if not pointed:  # the words of numbers, grids and formulas first: np.save is numbers.save
                     found = _lookup_all(name)
-                    keys = [k for k in found if _kind(k) in ("numbers", "grid", "block", "formula", "dist")] or found
+                    own = ("chart",) if parts[0] == "so" else ("numbers", "grid", "block", "formula", "dist")
+                    keys = [k for k in found if _kind(k) in own] or found  # so.Plot.save is chart.save
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)
