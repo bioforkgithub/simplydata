@@ -626,13 +626,14 @@ def test_dictionary_has_every_word_with_a_page():
 
 
 def test_dictionary_lists_every_other_name_and_old_name():
-    from simplydata._other_names import OTHER_NAMES
+    from simplydata._other_names import NUMBER_SPACES, OTHER_NAMES
 
     dictionary = _make_dictionary()
     written = DICTIONARY.read_text(encoding="utf-8")
     listed = {re.sub(r"\\(.)", r"\1", name) for name in re.findall(r"^\\othername\{(.*?)\}\{", written, flags=re.M)}
     for kind, names in OTHER_NAMES.items():
-        prefix = {"numbers": "nums", "text": "str", "dates": "dt", "groups": "groupby"}.get(kind, kind)
+        prefix = {"numbers": "nums", "text": "str", "dates": "dt", "groups": "groupby",
+                  **NUMBER_SPACES}.get(kind, kind)
         for name in names:
             assert name in listed or f"{prefix}.{name}" in listed, name
     for old, _, _ in dictionary.old_names():

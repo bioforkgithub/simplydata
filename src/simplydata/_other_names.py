@@ -1130,10 +1130,271 @@ _CHART_3D = [
     ("chart.look_from(height=20, around=45)", "view_init"),
 ]
 
+
+# Numbers finishing PR (API audit of NumPy, SciPy and SymPy, 2026-11-27): names typed with np., numpy., np.linalg.,
+# np.random., rng., np.fft., scipy., stats., optimize., integrate., interpolate., signal., ndimage., spatial.,
+# special., sp. or sympy. in front. Inside NumPy, mean is the average of numbers (not of a table column), diff is the
+# differences of numbers (not a slope formula), zeros makes a grid (not the zeros of a system) and norm is the length
+# of a vector (not the normal distribution). A name a list does not hold falls back to the lists in
+# NAMESPACE_FALLBACK below. A job left to the library points to the hand-over (numbers.as_numpy(),
+# formula.as_sympy()).
+_NUMPY_HAND_OVER = ("numbers.as_numpy() hands the numbers to NumPy (a grid too: grid.as_numpy()), where the NumPy "
+                    "call works")
+# np.<name>: NumPy's top level
+_NUMPY = [
+    ("numbers.find_average()", "mean average nanmean"),
+    ("numbers.find_median()", "median nanmedian"),
+    ("numbers.find_total()", "sum nansum"),
+    ("numbers.find_smallest()", "min amin nanmin"),
+    ("numbers.find_biggest()", "max amax nanmax"),
+    ("numbers.find_biggest() - numbers.find_smallest()", "ptp"),
+    ("numbers.find_standard_deviation()", "std nanstd"),
+    ("numbers.find_standard_deviation() ** 2 for the variance (or sdata.distribution(...).find_variance())",
+     "var nanvar"),
+    ("numbers.find_percentile(90)", "percentile nanpercentile quantile nanquantile"),
+    ("numbers.turn_into_running_total()", "cumsum nancumsum cumulative_sum"),
+    ("numbers.take_square_root()", "sqrt"),
+    ("numbers.take_absolute_value()", "abs absolute fabs"),
+    ("numbers.take_exp()", "exp"),
+    ('numbers.take_log() for the natural log, or numbers.take_log(base=10)', "log log10 log2"),
+    ("numbers.raise_to_power(2)", "power pow float_power square"),
+    ("numbers.times(3)", "multiply"),
+    ("numbers.times(-1)", "negative"),
+    ("numbers.divide_by(2)", "divide true_divide"),
+    ("numbers.round_to(with_decimals=2)", "round around rint"),
+    ("numbers.reverse() for numbers, or block.reverse(over=\"row\") for a block", "flip"),
+    ("numbers.remove_duplicate_numbers()", "unique unique_values"),
+    ("numbers.count_each()", "unique_counts bincount"),
+    ("numbers.count()", "size"),
+    ("numbers.turn_into_yes_or_no(is_empty=True)", "isnan"),
+    ("numbers.fill_empty_numbers(with_value=0)", "nan_to_num"),
+    ("numbers.replace_each_number_that(is_above=100, with_value=100)", "clip"),
+    ("numbers.replace_each_number_that(is_below=0, with_value=0) to keep every number at 0 or above",
+     "maximum fmax"),
+    ("numbers.replace_each_number_that(is_above=100, with_value=100) to keep every number at 100 or below",
+     "minimum fmin"),
+    ('numbers.replace_each_number_that(is_above=100, with_value=100), or numbers.replace_numbers_where(yes_no, '
+     'with_value=0) with a yes or no list', "where"),
+    ("numbers.turn_into_yes_or_no(is_one_of=[1, 2])", "isin"),
+    ("numbers.turn_into_yes_or_no(is_above=20)", "greater_equal less_equal equal not_equal logical_xor"),
+    ("grid.swap_rows_and_columns()", "transpose matrix_transpose"),
+    ("grid.get_all_numbers()", "ravel"),
+    ("grid.get_numbers_from_each_row_at(columns=[2, 1, 3])", "take_along_axis"),
+    ("numbers.turn_into_running_area(time_step=1), whose last number is the whole area", "trapezoid trapz"),
+    ('table.find_correlation_between("hours", "marks", "height", show="covariance") on the columns of a table',
+     "cov"),
+    ('table.find_correlation_between("hours", "marks") on the columns of a table', "corrcoef"),
+    ('numbers.save("numbers.csv")', "save savetxt savez savez_compressed tofile"),
+    ('sdata.number_list("readings.txt")', "load fromfile fromregex fromstring"),
+    (_NUMPY_HAND_OVER + ": np.diff(numbers.as_numpy())", "diff ediff1d gradient"),
+    (_NUMPY_HAND_OVER + ": np.histogram(numbers.as_numpy(), bins=10)",
+     "histogram histogramdd histogram_bin_edges digitize searchsorted"),
+    (_NUMPY_HAND_OVER + ": np.prod(numbers.as_numpy())", "prod nanprod cumprod nancumprod cumulative_prod"),
+    (_NUMPY_HAND_OVER + ": grid.as_numpy() @ other.as_numpy()",
+     "dot matmul vdot inner tensordot einsum matvec vecmat vecdot"),
+    (_NUMPY_HAND_OVER + ": np.trace(grid.as_numpy())", "trace diagonal diag diagflat tril triu eye identity"),
+    (_NUMPY_HAND_OVER + ": np.argsort(numbers.as_numpy())", "argsort lexsort partition argpartition"),
+    (_NUMPY_HAND_OVER + ": np.meshgrid(x.as_numpy(), y.as_numpy())", "meshgrid mgrid ogrid indices"),
+    (_NUMPY_HAND_OVER + ": np.polyval([1, 0, -2], numbers.as_numpy())", "polyval poly1d polyder polyint"),
+    (_NUMPY_HAND_OVER + ": np.sign(numbers.as_numpy())",
+     "sign arcsin arccos arctan arctan2 asin acos atan atan2 sinh cosh tanh arcsinh arccosh arctanh hypot "
+     "log1p expm1 mod remainder fmod divmod reciprocal gcd lcm"),
+]
+
+# linalg.<name>: np.linalg and scipy.linalg
+_GRID = "sdata.number_grid([[4, 2, 1], [2, 3, 0.5], [1, 0.5, 2]])"
+_LINALG = [
+    (f"grid.solve_for([1, 2, 3]), on a grid made with {_GRID}",
+     "solve solve_triangular solve_banded solveh_banded solve_toeplitz solve_circulant lu_solve cho_solve "
+     "tensorsolve mldivide"),
+    ("grid.solve_for([6, 5, 7, 10]), on a grid that is not square (least squares)", "lstsq"),
+    ('grid.break_down(test_method="svd")', "svd svdvals diagsvd"),
+    ('grid.break_down(test_method="qr")', "qr"),
+    ('grid.break_down(test_method="lu")', "lu lu_factor"),
+    ('grid.break_down(test_method="cholesky")', "cholesky cho_factor"),
+    ('grid.break_down(test_method="schur")', "schur rsf2csf"),
+    ('grid.break_down(test_method="polar")', "polar"),
+    ('grid.break_down(test_method="ldl")', "ldl"),
+    ('grid.break_down(test_method="hessenberg")', "hessenberg"),
+    (f'grid.break_down(test_method="qz", together_with={_GRID})', "qz ordqz"),
+    ("grid.find_determinant()", "det"),
+    ("grid.take_inverse()", "inv"),
+    ("grid.find_eigenvalues()", "eig eigh eigvals eigvalsh"),
+    ("grid.find_null_space()", "null_space"),
+    ("grid.take_matrix_exp()", "expm"),
+    (_NUMPY_HAND_OVER + ": np.linalg.norm(numbers.as_numpy())",
+     "norm vector_norm matrix_norm matrix_rank cond pinv pinvh matrix_power slogdet multi_dot tensorinv orth "
+     "logm sqrtm"),
+]
+
+# random.<name>: np.random, a NumPy Generator (rng = np.random.default_rng()) and Python's random
+_RANDOM = [
+    ("sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)",
+     "normal standard_normal randn gauss normalvariate"),
+    ("sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)", "uniform random rand random_sample"),
+    ("sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)",
+     "integers randint random_integers randrange"),
+    ("sdata.make_random_numbers(how_many=10, with_seed=1): with_seed= makes the same numbers each time",
+     "seed default_rng Generator RandomState SeedSequence"),
+    ("numbers.make_random_picks(how_many=40, with_seed=1)", "choice choices"),
+    ("numbers.keep_random_numbers(numbers.count(), with_seed=1) puts every number in a random order",
+     "permutation shuffle permuted sample"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3).make_random_numbers(how_many=100)', "binomial"),
+    ('sdata.distribution("poisson", average=3).make_random_numbers(how_many=100)', "poisson"),
+    ('sdata.distribution("gamma", shape=2).make_random_numbers(how_many=100)',
+     "gamma standard_gamma gammavariate"),
+    ('sdata.distribution("beta", shape1=2, shape2=5).make_random_numbers(how_many=100)', "beta betavariate"),
+    ('sdata.distribution("exponential", rate=2).make_random_numbers(how_many=100)',
+     "exponential standard_exponential expovariate"),
+    ('sdata.distribution("lognormal", log_average=0, log_standard_deviation=1).make_random_numbers(how_many=100)',
+     "lognormal lognormvariate"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3).make_random_numbers(how_many=100)', "chisquare"),
+    ('sdata.distribution("F", degrees_of_freedom_1=3, degrees_of_freedom_2=20).make_random_numbers(how_many=100)',
+     "f"),
+    ('sdata.distribution("t", degrees_of_freedom=5).make_random_numbers(how_many=100)', "standard_t"),
+    ('sdata.distribution("weibull", shape=1.5).make_random_numbers(how_many=100)', "weibull weibullvariate"),
+    ('sdata.distribution("gumbel", location=0, scale=1).make_random_numbers(how_many=100)', "gumbel"),
+    ('sdata.distribution("laplace", location=0, scale=1).make_random_numbers(how_many=100)', "laplace"),
+    ('sdata.distribution("logistic", location=0, scale=1).make_random_numbers(how_many=100)', "logistic"),
+    ('sdata.distribution("cauchy", location=0, scale=1).make_random_numbers(how_many=100)', "standard_cauchy"),
+    ('sdata.distribution("pareto", shape=3).make_random_numbers(how_many=100) (NumPy\'s pareto gives these numbers '
+     "minus 1, the Lomax distribution)", "pareto paretovariate"),
+    ('sdata.distribution("triangular", lowest=0, highest=10, peak=3).make_random_numbers(how_many=100)',
+     "triangular"),
+    ('sdata.distribution("von mises", average=0, concentration=2).make_random_numbers(how_many=100)',
+     "vonmises vonmisesvariate"),
+    ('sdata.distribution("inverse gaussian", average=1, shape=2).make_random_numbers(how_many=100)', "wald"),
+    ('sdata.distribution("geometric", chance=0.2).make_random_numbers(how_many=100)', "geometric"),
+    ('sdata.distribution("hypergeometric", marked=10, unmarked=40, drawn=5).make_random_numbers(how_many=100)',
+     "hypergeometric"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4).make_random_numbers(how_many=100)',
+     "negative_binomial"),
+]
+
+# fft.<name>: np.fft and scipy.fft
+_FFT = [
+    ("numbers.take_fourier_transform(time_step=0.01)", "fft rfft dft fftfreq rfftfreq"),
+    ("sdata.find_inverse_fourier_transform(table), on the table take_fourier_transform gives", "ifft irfft"),
+    ("numbers.take_fourier_transform(with_zero_in_middle=True)", "fftshift ifftshift"),
+    ("numbers.take_cosine_transform()", "dct dst"),
+    (_NUMPY_HAND_OVER + ": np.fft.fft2(grid.as_numpy())",
+     "fft2 ifft2 fftn ifftn rfft2 irfft2 rfftn irfftn hfft ihfft idct idst dctn idctn dstn idstn fht ifht"),
+]
+
+# stats.<name>: scipy.stats (the distributions; its tests fall back to the sdata and table words)
+_STATS = [
+    ('sdata.distribution("normal", average=50, standard_deviation=10)', "norm"),
+    ('sdata.distribution("lognormal", log_average=0, log_standard_deviation=1)', "lognorm"),
+    ('sdata.distribution("exponential", rate=2)', "expon"),
+    ('sdata.distribution("gamma", shape=2, rate=1)', "gamma"),
+    ('sdata.distribution("beta", shape1=2, shape2=5)', "beta"),
+    ('sdata.distribution("uniform", lowest=0, highest=1)', "uniform"),
+    ('sdata.distribution("t", degrees_of_freedom=5)', "t"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3)', "chi2"),
+    ('sdata.distribution("F", degrees_of_freedom_1=3, degrees_of_freedom_2=20)', "f"),
+    ('sdata.distribution("weibull", shape=1.5)', "weibull_min"),
+    ('sdata.distribution("cauchy", location=0, scale=1)', "cauchy"),
+    ('sdata.distribution("logistic", location=0, scale=1)', "logistic"),
+    ('sdata.distribution("laplace", location=0, scale=1)', "laplace"),
+    ('sdata.distribution("gumbel", location=0, scale=1)', "gumbel_r"),
+    ('sdata.distribution("pareto", shape=3)', "pareto"),
+    ('sdata.distribution("gev", location=0, scale=1, shape=0.1)', "genextreme"),
+    ('sdata.distribution("generalised pareto", scale=1, shape=0.1)', "genpareto"),
+    ('sdata.distribution("triangular", lowest=0, highest=10, peak=3)', "triang"),
+    ('sdata.distribution("half-normal", standard_deviation=1)', "halfnorm"),
+    ('sdata.distribution("inverse gaussian", average=1, shape=2)', "invgauss"),
+    ('sdata.distribution("von mises", average=0, concentration=2)', "vonmises"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3)', "binom"),
+    ('sdata.distribution("bernoulli", chance=0.3)', "bernoulli"),
+    ('sdata.distribution("poisson", average=3)', "poisson"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4)', "nbinom"),
+    ('sdata.distribution("geometric", chance=0.2)', "geom"),
+    ('sdata.distribution("hypergeometric", marked=10, unmarked=40, drawn=5)', "hypergeom"),
+    ('sdata.distribution("whole number uniform", lowest=1, highest=6)', "randint"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_middle_range(95)', "interval"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_average()', "mean"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_median()', "median"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_standard_deviation()', "std"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()', "var"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary()', "stats"),
+]
+
+# special.<name>: scipy.special (the functions; a formula can use gamma, lgamma, digamma, beta, erf, erfc, besselJ)
+_SPECIAL = [
+    ("sdata.count_ways_to_choose(3, out_of=10)", "comb binom"),
+    ("sdata.count_ways_to_order(3, out_of=10)", "perm"),
+    ("sdata.count_ways_to_order(5, out_of=5) for 5! (every order of 5 things)", "factorial"),
+    ("numbers.take_log_odds()", "logit"),
+    ("numbers.turn_into_chances()", "expit"),
+    ('sdata.formula("gamma(x)"), then formula.find_value_at(x=4.5): a formula can use gamma, lgamma, digamma, beta, '
+     "erf, erfc and besselJ", "gamma gammaln loggamma digamma psi beta erf erfc jv"),
+    ('sdata.distribution("normal").find_chance_that_value(is_below=1.96)', "ndtr log_ndtr"),
+    ('sdata.distribution("normal").find_percentile(97.5)', "ndtri"),
+]
+
+# scipy.<name>, optimize., integrate., interpolate., signal., ndimage. and spatial.: names whose word the sdata,
+# numbers, table and block lists do not already give
+_SCIPY = [
+    ("grid.solve_for([4, 1, 2, 5], between=[0, None]) for answers of 0 or above, on a grid of 4 rows",
+     "nnls lsqnonneg"),
+    ("grid.solve_for([4, 1, 2, 5], between=[0, 1]) for answers between limits, on a grid of 4 rows", "lsq_linear"),
+    ("numbers.find_each_peak_that(is_at_least=1)", "find_peaks find_peaks_cwt argrelextrema"),
+    ("numbers.find_spectrum(time_step=0.01)", "periodogram welch spectrogram"),
+    ("numbers.convolve_with([1, 2, 1])", "fftconvolve oaconvolve"),
+    ('numbers.turn_into_running_area(time_step=60, test_method="simpson"), whose last number is the whole area',
+     "simpson trapezoid"),
+    ("grid.find_each_patch_that(is_above=0.5)", "label sum_labels center_of_mass find_objects"),
+    ("grid.rotate(by_degrees=15)", "rotate"),
+    ("grid.change_size_to(rows=10, columns=10)", "zoom"),
+    ('table.find_distances_to_rows_of(other, using=["east", "north"])', "distance_matrix"),
+    ("grid.take_matrix_exp()", "expm"),
+    ("grid.find_null_space()", "null_space"),
+]
+
+# sp.<name> and sympy.<name>: SymPy's top level (and Matrix methods such as Matrix.det)
+_SYMPY = [
+    ('sdata.solve("x**2 = 2", exactly=True)', "solve solveset linsolve nonlinsolve nsolve roots"),
+    ('sdata.formula("(x + 2)**2 - 4")', "symbols Symbol sympify parse_expr S Eq Function"),
+    ('sdata.formula("sqrt(2) * sin(x) + exp(-x)"): SymPy functions are written inside the formula text '
+     "(exp, log, sqrt, abs, sin, cos, tan, arcsin, arccos, arctan, erf, erfc, gamma, beta, besselJ, sinc)",
+     "sqrt sin cos tan exp log asin acos atan atan2 erf erfc Abs sinc besselj loggamma pi E oo"),
+    ('sdata.formula("x**3 - 2*x"), then formula.find_slope_formula()', "diff Derivative idiff"),
+    ('sdata.formula("x**3 - 2*x"), then formula.find_area_formula()', "integrate Integral"),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], exactly=True)', "quad"),
+    ('sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2)', "subs evalf N lambdify"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify nsimplify trigsimp radsimp cancel"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand expand_trig"),
+    ('sdata.formula("x**2 - 4"), then formula.turn_into_product()', "factor factorint"),
+    ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()', "apart"),
+    ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "collect"),
+    ('sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to=0)', "limit Limit"),
+    ('sdata.formula("sin(x)"), then formula.find_taylor_series(around=0)', "series taylor"),
+    ('sdata.formula("x**3 - 2*x"), then formula.show_as_latex()', "latex pprint pretty"),
+    ('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])', "summation Sum"),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     "exactly=True)", "dsolve"),
+    ('sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])', "minimum"),
+    ('sdata.find_where_biggest("x * (10 - x)", between=[0, 10])', "maximum"),
+    ("sdata.number_grid([[2, 1], [1, 2]])", "Matrix ImmutableMatrix"),
+    ("grid.find_determinant(exactly=True)", "det"),
+    ("grid.take_inverse(exactly=True)", "inv"),
+    ("grid.find_eigenvalues(exactly=True)", "eigenvals"),
+    ("grid.find_null_space(exactly=True)", "nullspace"),
+    ("grid.solve_for([5, 10], exactly=True), on a grid of 2 rows", "LUsolve solve_least_squares"),
+    ("numbers.show_as_fraction()", "Rational"),
+    ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"})', "assumptions refine Q"),
+    ("formula.as_sympy() hands the formula to SymPy, where the SymPy call works", "srepr"),
+]
+
+
 OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
                "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
-               "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS)}
+               "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
+               # numbers finishing PR: NumPy's, SciPy's and SymPy's names
+               "numpy": _build(_NUMPY), "linalg": _build(_LINALG), "random": _build(_RANDOM), "fft": _build(_FFT),
+               "stats": _build(_STATS), "special": _build(_SPECIAL), "scipy": _build(_SCIPY),
+               "sympy": _build(_SYMPY)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -1143,16 +1404,31 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               # word: plt.title is write_title_on_top, not pandas' str.title
               "plt": "chart", "pyplot": "chart", "matplotlib": "chart", "mpl": "chart", "ax": "chart", "axs": "chart",
               "axes": "chart", "fig": "chart", "figure": "chart", "sns": "chart", "seaborn": "chart", "plot": "chart",
-              "style": "chart", "Axes3D": "chart3d"}
+              "style": "chart", "Axes3D": "chart3d",
+              # numbers finishing PR: NumPy's, SciPy's and SymPy's names (np.mean, np.linalg.solve, rng.normal,
+              # scipy.stats.gamma, optimize.nnls, sp.Matrix.det): np.mean is numbers.find_average, not a table word
+              "np": "numpy", "numpy": "numpy", "linalg": "linalg", "random": "random", "rng": "random",
+              "Generator": "random", "RandomState": "random", "fft": "fft", "stats": "stats", "special": "special",
+              "scipy": "scipy", "optimize": "scipy", "integrate": "scipy", "interpolate": "scipy",
+              "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
+              "Matrix": "sympy"}
 NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
 # A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word
 # (plt.cohere).
-NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "chart3d": ("chart", "sdata", "numbers")}
+NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "chart3d": ("chart", "sdata", "numbers"),
+                      # numbers finishing PR: a NumPy, SciPy or SymPy name its own list does not hold
+                      "numpy": ("numbers", "block", "sdata"), "linalg": ("numpy", "numbers", "sdata"),
+                      "random": ("numbers", "sdata"), "fft": ("numbers", "sdata"),
+                      "stats": ("sdata", "numbers", "table"), "special": ("numbers", "sdata"),
+                      "scipy": ("sdata", "numbers", "block", "table"), "sympy": ("sdata",)}
+# The NumPy, SciPy and SymPy namespaces (numbers finishing PR), and how a bare name shows each of them
+NUMBER_SPACES = {"numpy": "np", "linalg": "linalg", "random": "rng", "fft": "fft", "stats": "stats",
+                 "special": "special", "scipy": "scipy", "sympy": "sympy"}
 # What can stand in front of a name and changes nothing: pd.read_csv, pl.DataFrame.join, df.merge, Series.replace
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
-              "data", "dplyr", "tidyr", "base", "stats"}
+              "data", "dplyr", "tidyr", "base"}
 # How simplydata's own objects are written: chart.draw_bars is a simplydata word, not a name from another tool
 SIMPLYDATA_OBJECTS = {"simplydata", "sd", "sdata", "table", "chart", "charts", "page", "numbers", "nums", "grid",
                       "block", "distribution", "dist", "formula", "f", "system"}

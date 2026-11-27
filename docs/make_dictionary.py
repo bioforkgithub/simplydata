@@ -42,7 +42,7 @@ from make_manual import code, esc, rich  # noqa: E402
 
 import simplydata  # noqa: E402
 from simplydata import learn  # noqa: E402
-from simplydata._other_names import NAMESPACE_SHOWN, OTHER_NAMES  # noqa: E402
+from simplydata._other_names import NAMESPACE_SHOWN, NUMBER_SPACES, OTHER_NAMES  # noqa: E402
 
 MANUAL = make_manual.MANUAL
 TEX = MANUAL / "simplydataDictionary.tex"
@@ -274,6 +274,8 @@ def _calls(written: str) -> list[str]:
                 raise ValueError(f"Say what {base}(...).{chained.group(1)} is in docs/make_dictionary.py")
             name = f"dist.{chained.group(1)}"
         key = learn._lookup(name)
+        if key is None and name.startswith("grid."):  # grid.as_numpy: a grid has the words of numbers too
+            key = learn._lookup("nums." + name[len("grid."):])
         if key is None:
             raise ValueError(f"{name} in simplydata/_other_names.py is not a word")
         found.append(key)
@@ -293,8 +295,8 @@ def other_names() -> dict[str, list[str]]:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"
-            if kind in NAMESPACE_SHOWN:
-                shown = f"{NAMESPACE_SHOWN[kind]}.{name}"
+            if kind in NAMESPACE_SHOWN or kind in NUMBER_SPACES:  # np.mean, linalg.solve, sympy.diff
+                shown = f"{NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES[kind]}.{name}"
             else:
                 shown = f"{WRITTEN[kind]}.{name}" if name in words else name
             found.setdefault(shown, [])
@@ -307,7 +309,7 @@ def other_names_of() -> dict[str, list[str]]:
     turned: dict[str, list[str]] = {}
     for shown, keys in other_names().items():
         space, _, name = shown.rpartition(".")
-        if space in NAMESPACE_SHOWN.values():  # str.replace stays str.replace
+        if space in NAMESPACE_SHOWN.values() or space in NUMBER_SPACES.values():  # str.replace stays str.replace
             name = shown
         for key in keys:
             if name not in turned.setdefault(key, []):

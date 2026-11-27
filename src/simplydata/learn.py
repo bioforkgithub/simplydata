@@ -2198,7 +2198,7 @@ def _print_other_names(word) -> bool:
     matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
     pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts, other_name_space
+    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, other_name_parts, other_name_space
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
@@ -2218,6 +2218,9 @@ def _print_other_names(word) -> bool:
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
                                                                  *NAMESPACE_SHOWN)]
         found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+        if not found:  # lstsq, svd, rfftfreq: names only NumPy, SciPy or SymPy use (numbers finishing PR)
+            found = [(kind, other_name_pointer(kind, w)) for kind in NUMBER_SPACES]
+            found = [(kind, pointer) for kind, pointer in found if pointer is not None]
         shown = w
     if not found:
         return False
@@ -2226,7 +2229,8 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {NAMESPACE_SHOWN.get(kind) or _SHOWN.get(kind, kind)}.{w}: {pointer}")
+            print(f"  {NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or _SHOWN.get(kind, kind)}.{w}: "
+                  f"{pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
     return True
@@ -2243,7 +2247,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
     if isinstance(word, str):
         keys = _lookup_all(word)
         if not keys:  # weather.draw_bars, students.save: a name of your own in front of a simplydata word
-            from ._other_names import QUALIFIERS, other_name_parts
+            from ._other_names import NUMBER_SPACES, QUALIFIERS, other_name_parts
 
             parts = other_name_parts(_normalise(word))
             own = str(word).strip().split(".", 1)[0]
@@ -2261,6 +2265,15 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
                         word = name
                     else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
                         keys = _lookup_all(name)
+            elif parts is not None and parts[0] in NUMBER_SPACES:  # np.sort, np.add: a word of numbers
+                from ._other_names import NAMESPACE_FALLBACK, OTHER_NAMES
+
+                name = parts[1]
+                pointed = any(n in OTHER_NAMES[kind] for kind in (parts[0], *NAMESPACE_FALLBACK[parts[0]])
+                              for n in (name, name.lower()))
+                if not pointed:  # the words of numbers, grids and formulas first: np.save is numbers.save
+                    found = _lookup_all(name)
+                    keys = [k for k in found if _kind(k) in ("numbers", "grid", "block", "formula", "dist")] or found
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)

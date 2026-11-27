@@ -238,7 +238,7 @@ class SolvingWords:
         print(f"x makes grid times x as close to b as it can (least squares) with {_limit_words(low, high)}: "
               f"{_shown(out)}   ({how})")
         print(f"The leftover size (the length of b minus grid times x) is {leftover:.6g}; "
-              f"{amount(at_limit)} of {out.size} {'is' if at_limit == 1 else 'are'} at a limit.")
+              f"{at_limit} of the {amount(out.size)} {'is' if at_limit == 1 else 'are'} at a limit.")
         return out
 
     @friendly
