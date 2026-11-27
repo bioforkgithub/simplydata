@@ -45,6 +45,7 @@ from .systems import System, frequency_filter, system
 from ._sql import run_sql  # tables phase, batch 3: SQL on files, with DuckDB
 from ._formula import formula  # numbers phase, batch 3: exact maths with SymPy (simplydata[exact])
 from ._calculus import find_area_under, find_path_over_time, find_volume_under  # numbers phase, batch 3
+from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of series with SymPy
 
 # Last, on purpose: the old name sdata.words (defined below) must win over the subpackage simplydata.words
 # (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
@@ -95,7 +96,8 @@ __all__ = [
     "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "count_ways_to_choose",
     "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_under", "find_chance_of_finding",
-    "find_how_many_needed", "find_inverse_fourier_transform", "find_path_over_time", "find_volume_under",
+    "find_how_many_needed", "find_inverse_fourier_transform", "find_path_over_time", "find_sum_of_series",
+    "find_volume_under",
     "find_where_biggest", "find_where_smallest", "formula", "frequency_filter", "get_example", "go_to_next_day",
     "help", "hide_stretching_notes", "make_design_table",
     "make_random_assignments", "make_random_numbers",

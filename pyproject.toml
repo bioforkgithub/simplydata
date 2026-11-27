@@ -71,9 +71,11 @@ web = ["plotly>=6.0,<8"]
 # wheels for Windows, macOS and Linux. Classic netCDF-3 files are read by SciPy's own engine (scipy is required).
 xarray = ["xarray>=2024.10,<2027", "h5netcdf>=1.4,<2", "h5py>=3.11,<4"]
 # SymPy for exact maths: sdata.formula(...) and its words, sdata.solve(exactly=True), find_area_under(exactly=True),
-# find_path_over_time(exactly=True) and show_as_fraction (numbers phase, batch 3). Lower bound: the release CI tests;
+# find_path_over_time(exactly=True) and show_as_fraction (numbers phase, batch 3). Lower bound 1.14 (numbers phase,
+# batch 4, 2026-11-27): SymPy 1.13 cannot pickle an unknown function such as N(t), so the exact path over time could
+# not reach the time-limited helper, and its parser recurses differently on long sums (oldest-versions CI job);
 # upper bound: the next untested major release.
-exact = ["sympy>=1.13,<2"]
+exact = ["sympy>=1.14,<2"]
 r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: https://cran.r-project.org)
 # R packages the [r] words call are installed in R itself (tests/conftest.py R_PACKAGES). S3a-2 (lines and curves)
 # adds drc (fit_dose_response), segmented (fit_line(with_bends=)), smatr and mcr (fit_line(method=)) and quantreg

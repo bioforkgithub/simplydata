@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-26. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-27. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**45910 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
+**46059 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
 
 ## Setup
 
@@ -2085,15 +2085,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528133245009 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735943121215 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774352923713 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193098601871 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877438401219 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215979989493 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208564138137 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549589136578 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.54324649545795 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528336674982 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748735899168722 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.54277415834674 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193036141996 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877189611154 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215953769326 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.50220836122453 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549840056922 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.54324651918625 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
 | own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
@@ -45944,9 +45944,9 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | at 2 | exact: worked out by hand from the formula | 9 | 9 | within 1e-15 (exact formula) | pass |
-| at -1 | exact: worked out by hand from the formula | 0 | 0 | within 1e-15 (exact formula) | pass |
+| at -1 | exact: worked out by hand from the formula | 2.88831100138373e-275 | 0 | within 1e-15 (exact formula) | pass |
 | at 2 | SymPy subs | 9 | 9 | relative 1e-12 | pass |
-| at -1 | SymPy subs | 0 | 0 | relative 1e-12 | pass |
+| at -1 | SymPy subs | 2.88831100138373e-275 | 0 | relative 1e-12 | pass |
 
 ### `f.show_as_latex`
 
@@ -46238,6 +46238,308 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | corners | R | 12 | 12 | relative 1e-12 | pass |
 | x total | R | 2160216 | 2160216 | relative 1e-12 | pass |
 | zinc total | R | 7694 | 7694 | relative 1e-12 | pass |
+
+### `f.find_slope_formula how_many_times=`
+
+**how_many_times=3: the third slope of sin(x) is -cos(x)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 1 | exact: worked out by hand from the formula | -0.54030230586814 | -0.54030230586814 | within 1e-15 (exact formula) | pass |
+| at 0 | exact: worked out by hand from the formula | -1 | -1 | within 1e-15 (exact formula) | pass |
+| at 1 | SymPy diff | -0.54030230586814 | -0.54030230586814 | relative 1e-12 | pass |
+| at 0 | SymPy diff | -1 | -1 | relative 1e-12 | pass |
+| at 1 | R | -0.54030230586814 | -0.54030230586814 | relative 1e-09 | pass |
+| at 0 | R | -1 | -1 | relative 1e-09 | pass |
+
+### `f.find_slope_formula for_letter=`
+
+**for_letter=["x", "y"]: the mixed slope of x^2 y^3 is 6 x y^2** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at (2, 1) | exact: worked out by hand from the formula | 12 | 12 | within 1e-15 (exact formula) | pass |
+| at (1, 3) | exact: worked out by hand from the formula | 54 | 54 | within 1e-15 (exact formula) | pass |
+| at (2, 1) | SymPy diff | 12 | 12 | relative 1e-12 | pass |
+| at (1, 3) | SymPy diff | 54 | 54 | relative 1e-12 | pass |
+| at (2, 1) | R | 12 | 12 | relative 1e-09 | pass |
+| at (1, 3) | R | 54 | 54 | relative 1e-09 | pass |
+
+### `f.find_limit_as from_side=`
+
+**from_side=: \|x\| / x comes to -1 from below and 1 from above at 0** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| below | exact: worked out by hand from the formula | -1 | -1 | within 0 (exact formula) | pass |
+| above | exact: worked out by hand from the formula | 1 | 1 | within 0 (exact formula) | pass |
+| below | SymPy limit (dir) | -1 | -1 | relative 1e-12 | pass |
+| above | SymPy limit (dir) | 1 | 1 | relative 1e-12 | pass |
+
+### `f.show_as_decimal`
+
+**sqrt(2) to 50 digits, as published (OEIS A002193)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| the 50 digits | OEIS A002193: 1.4142135623730950488016887242096980785696718753769 | 1 | 1 | within 0 (exact formula) | pass |
+| digits | digits=50 | 50 | 50 | within 0 (exact formula) | pass |
+| the 50 digits | SymPy N | 1 | 1 | exact | pass |
+| digits | SymPy N | 50 | 50 | exact | pass |
+
+### `f.group_by_powers_of`
+
+**(a + x)(b + x) - x grouped by x: x^2 + x (a + b - 1) + a b** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| terms | exact: worked out by hand from the formula: x**2, x*(a + b - 1) and a*b | 3 | 3 | within 0 (exact formula) | pass |
+| at a=2, b=3, x=5 | exact: worked out by hand from the formula: 7 * 8 - 5 | 51 | 51 | within 1e-15 (exact formula) | pass |
+| terms | SymPy expand and collect | 3 | 3 | relative 1e-12 | pass |
+| at a=2, b=3, x=5 | SymPy expand and collect | 51 | 51 | relative 1e-12 | pass |
+| at a=2, b=3, x=5 | R | 51 | 51 | relative 1e-09 | pass |
+
+### `f.turn_into_partial_fractions`
+
+**(3x + 5) / ((x + 1)(x + 2)) is 2/(x + 1) + 1/(x + 2)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| fractions | exact: worked out by hand from the formula | 2 | 2 | within 0 (exact formula) | pass |
+| at 3 | exact: worked out by hand from the formula: 2/4 + 1/5 | 0.7 | 0.7 | within 1e-15 (exact formula) | pass |
+| fractions | SymPy apart | 2 | 2 | relative 1e-12 | pass |
+| at 3 | SymPy apart | 0.7 | 0.7 | relative 1e-12 | pass |
+| at 3 | R | 0.7 | 0.7 | relative 1e-09 | pass |
+
+### `f.as_sympy`
+
+**the SymPy expression of (x + 2)^2 - 4 is SymPy's own, at x = 1.5** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 1.5 | exact: worked out by hand from the formula | 8.25 | 8.25 | within 1e-15 (exact formula) | pass |
+| letters | exact: worked out by hand from the formula | 1 | 1 | within 0 (exact formula) | pass |
+| at 1.5 | SymPy parse_expr | 8.25 | 8.25 | relative 1e-12 | pass |
+| letters | SymPy parse_expr | 1 | 1 | relative 1e-12 | pass |
+
+### `sdata.formula letters_are=`
+
+**letters_are=: with k and t positive, sqrt(k^2) + log(k t) is k + log(k) + log(t)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| terms | exact: worked out by hand from the formula | 3 | 3 | within 0 (exact formula) | pass |
+| at k=2, t=3 | exact: worked out by hand from the formula | 3.79175946922805 | 3.79175946922805 | within 1e-15 (exact formula) | pass |
+| terms | SymPy expand with positive Symbols | 3 | 3 | relative 1e-12 | pass |
+| at k=2, t=3 | SymPy expand with positive Symbols | 3.79175946922805 | 3.79175946922805 | relative 1e-12 | pass |
+| at k=2, t=3 | R | 3.79175946922805 | 3.79175946922805 | relative 1e-09 | pass |
+
+### `sdata.solve for_letter=`
+
+**for_letter="T": p V = n R T gives T = p V / (n R); one mole at 101325 Pa in 22.4 L** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| T | exact: worked out by hand from the formula | 272.99494828001 | 272.99494828001 | within 1e-12 (exact formula) | pass |
+| T | SymPy solve | 272.99494828001 | 272.99494828001 | relative 1e-12 | pass |
+| T | R | 272.99494828001 | 272.99494828001 | relative 1e-09 | pass |
+
+### `sdata.solve letters_are=`
+
+**letters_are=: c^2 = 4 with c positive has the one solution c = 2** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| solutions | exact: worked out by hand from the formula | 1 | 1 | within 0 (exact formula) | pass |
+| c | exact: worked out by hand from the formula | 2 | 2 | within 0 (exact formula) | pass |
+| solutions | SymPy solve with a positive Symbol | 1 | 1 | relative 1e-12 | pass |
+| c | SymPy solve with a positive Symbol | 2 | 2 | relative 1e-12 | pass |
+
+### `sdata.solve exactly=True with a rule`
+
+**a rule: x^2 - 4 > 0 holds for x < -2 and x > 2 (the roots of x^2 - 4)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pieces | exact: worked out by hand from the formula | 2 | 2 | within 0 (exact formula) | pass |
+| first ends at | exact: worked out by hand from the formula | -2 | -2 | within 0 (exact formula) | pass |
+| second starts at | exact: worked out by hand from the formula | 2 | 2 | within 0 (exact formula) | pass |
+| pieces | SymPy solveset over the real numbers | 2 | 2 | relative 1e-12 | pass |
+| first ends at | SymPy solveset over the real numbers | -2 | -2 | relative 1e-12 | pass |
+| second starts at | SymPy solveset over the real numbers | 2 | 2 | relative 1e-12 | pass |
+| first ends at | R | -2 | -2 | relative 1e-09 | pass |
+| second starts at | R | 2 | 2 | relative 1e-09 | pass |
+
+### `sdata.find_sum_of_series`
+
+**1 / k^2 from 1 to infinity is pi^2 / 6 (Euler, the Basel problem)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum | exact: worked out by hand from the formula: pi^2 / 6 | 1.64493406684823 | 1.64493406684823 | within 1e-15 (exact formula) | pass |
+| sum | SymPy summation and Sum.evalf | 1.64493406684823 | 1.64493406684823 | relative 1e-12 | pass |
+| no closed form | SymPy summation and Sum.evalf | 0.494724919645613 | 0.494724919645676 | relative 1e-12 | pass |
+| sum | R | 1.64493406684823 | 1.64493406684873 | relative 1e-09 | pass |
+| no closed form | R | 0.494724919645613 | 0.494724919645176 | relative 1e-09 | pass |
+
+**k from 1 to n is n (n + 1) / 2 (Gauss); at n = 100 it is 5050** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 100 | exact: worked out by hand from the formula: n (n + 1) / 2 | 5050 | 5050 | within 0 (exact formula) | pass |
+| big | exact: worked out by hand from the formula: n (n + 1)(2n + 1) / 6 | 3.333338333335e+17 | 3.333338333335e+17 | within 1e-15 (exact formula) | pass |
+| at 100 | SymPy summation | 5050 | 5050 | relative 1e-12 | pass |
+| big | SymPy summation | 3.333338333335e+17 | 3.333338333335e+17 | relative 1e-12 | pass |
+| at 100 | R | 5050 | 5050 | relative 1e-09 | pass |
+| big | R | 3.333338333335e+17 | 3.333338333335e+17 | relative 1e-09 | pass |
+
+**1 / (k log(k)^3) from 2 settles slowly: only the sure digits** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sum | worked out by hand: the terms up to 10^7 and the integral of the rest (Euler-Maclaurin) | 2.06588653879359 | 2.06588653888414 | within 1e-09 (exact formula) | pass |
+| sum | SymPy: the first 1,000 terms (evalf), the rest between the trapezoid and midpoint bounds (integrate) | 2.06588653879359 | 2.06588653879337 | relative 1e-12 | pass |
+| sum | R | 2.06588653879359 | 2.06588653888414 | relative 1e-09 | pass |
+
+### `sdata.find_volume_under exactly=`
+
+**exactly=True: the volume under x y^2 over 0..1 by 0..2 is 4 / 3** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| volume | exact: worked out by hand from the formula | 1.33333333333333 | 1.33333333333333 | within 1e-15 (exact formula) | pass |
+| volume | SymPy integrate | 1.33333333333333 | 1.33333333333333 | relative 1e-12 | pass |
+| volume | R | 1.33333333333333 | 1.33333333333333 | relative 1e-09 | pass |
+
+### `sdata.find_path_over_time exactly= without at_start=`
+
+**exactly=True without at_start=: dN/dt = r N is N = C1 exp(r t)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| C1 = 10, r = 0.3, t = 5 | exact: worked out by hand from the formula | 44.8168907033807 | 44.8168907033806 | within 1e-14 (exact formula) | pass |
+| C1 = 10, r = 0.3, t = 5 | SymPy dsolve | 44.8168907033807 | 44.8168907033807 | relative 1e-12 | pass |
+
+### `sdata.find_path_over_time equations="d2x/dt2 = ..."`
+
+**d2x/dt2 = -4x - 0.5 dx/dt from x = 1 at rest: a damped spring** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x at 5 | exact: worked out by hand from the formula: exp(-c t / 2) (cos w t + c / (2 w) sin w t), within the solver's tolerance | -0.269073529836581 | -0.269074964990903 | within 0.0001 (exact formula) | pass |
+| x at 10 | exact: worked out by hand from the formula | 0.053458682984837 | 0.0534595292542578 | within 0.0001 (exact formula) | pass |
+| dx/dt at 5 | exact: worked out by hand from the formula | 0.275256501798637 | 0.275258478747504 | within 0.0001 (exact formula) | pass |
+| x at 5 | SciPy integrate.solve_ivp (RK45), as two first-order equations | -0.269073529836581 | -0.269073529836581 | relative 1e-12 | pass |
+| x at 10 | SciPy integrate.solve_ivp (RK45), as two first-order equations | 0.053458682984837 | 0.053458682984837 | relative 1e-12 | pass |
+| dx/dt at 5 | SciPy integrate.solve_ivp (RK45), as two first-order equations | 0.275256501798637 | 0.275256501798637 | relative 1e-12 | pass |
+
+### `sdata.find_path_over_time equations="d2x/dt2 = ...", exactly=`
+
+**exactly=True: d2x/dt2 = -4x from x = 1 at rest is x = cos(2t)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 1 | exact: worked out by hand from the formula | -0.416146836547142 | -0.416146836547142 | within 1e-15 (exact formula) | pass |
+| at 2.5 | exact: worked out by hand from the formula | 0.283662185463226 | 0.283662185463226 | within 1e-15 (exact formula) | pass |
+| at 1 | SymPy dsolve | -0.416146836547142 | -0.416146836547142 | relative 1e-12 | pass |
+| at 2.5 | SymPy dsolve | 0.283662185463226 | 0.283662185463226 | relative 1e-12 | pass |
+| at 1 | R | -0.416146836547142 | -0.416146836547142 | relative 1e-09 | pass |
+| at 2.5 | R | 0.283662185463226 | 0.283662185463226 | relative 1e-09 | pass |
+
+### `grid.find_determinant`
+
+**the determinant of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| determinant | SciPy linalg.det | 0.00810961081055123 | 0.00810961081055123 | relative 1e-12 | pass |
+| determinant | R | 0.00810961081055123 | 0.00810961081055134 | relative 1e-09 | pass |
+
+### `grid.find_determinant exactly=`
+
+**exactly=True: AirPassengers as 12 years x 12 months, a whole-number determinant** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| determinant | SymPy Matrix.det | 3.70794963018776e+15 | 3.70794963018776e+15 | relative 1e-15 | pass |
+| whole number | SymPy Matrix.det | 1 | 1 | relative 1e-15 | pass |
+| determinant | R | 3.70794963018776e+15 | 3.70794963018776e+15 | relative 1e-09 | pass |
+
+### `grid.take_inverse`
+
+**the inverse of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.inv | 7.07272201393962 | 7.07272201393962 | relative 1e-12 | pass |
+| corner | SciPy linalg.inv | 3.62296061144836 | 3.62296061144836 | relative 1e-12 | pass |
+| total | SciPy linalg.inv | 4.35448765868603 | 4.35448765868603 | relative 1e-12 | pass |
+| first | R | 7.07272201393962 | 7.07272201393952 | relative 1e-09 | pass |
+| corner | R | 3.62296061144836 | 3.62296061144825 | relative 1e-09 | pass |
+| total | R | 4.35448765868603 | 4.35448765868601 | relative 1e-09 | pass |
+
+### `grid.take_inverse exactly=`
+
+**exactly=True: the first 3 years x 3 months of AirPassengers, inverted exactly** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SymPy Matrix.inv | 0.230436350522899 | 0.230436350522899 | relative 1e-15 | pass |
+| total | SymPy Matrix.inv | 0.0128020194734944 | 0.0128020194734944 | relative 1e-15 | pass |
+| first | R | 0.230436350522899 | 0.2304363505229 | relative 1e-09 | pass |
+| total | R | 0.0128020194734944 | 0.0128020194734944 | relative 1e-09 | pass |
+
+### `grid.find_eigenvalues`
+
+**the eigenvalues of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | the eigenvalues of a correlation grid add up to its size | 4 | 4 | within 1e-12 (printed rounding) | pass |
+| biggest | SciPy linalg.eigvalsh | 2.91849781653199 | 2.91849781653199 | relative 1e-12 | pass |
+| smallest | SciPy linalg.eigvalsh | 0.0207148364286191 | 0.0207148364286191 | relative 1e-12 | pass |
+| total | SciPy linalg.eigvalsh | 4 | 4 | relative 1e-12 | pass |
+| biggest | R | 2.91849781653199 | 2.91849781653199 | relative 1e-09 | pass |
+| smallest | R | 0.0207148364286191 | 0.0207148364286192 | relative 1e-09 | pass |
+| total | R | 4 | 4 | relative 1e-09 | pass |
+
+**AirPassengers, first 4 years x 4 months (not symmetric): in R eigen()'s order** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.eigvals, by size | 596.752205660174 | 596.752205660174 | relative 1e-12 | pass |
+| second | SciPy linalg.eigvals, by size | -8.45635082694768 | -8.45635082694768 | relative 1e-12 | pass |
+| third | SciPy linalg.eigvals, by size | 4.35207258338688 | 4.35207258338688 | relative 1e-12 | pass |
+| third, imaginary | SciPy linalg.eigvals, by size | 0.890477718148775 | 0.890477718148775 | relative 1e-12 | pass |
+| fourth, imaginary | SciPy linalg.eigvals, by size | -0.890477718148775 | -0.890477718148775 | relative 1e-12 | pass |
+| first | R | 596.752205660174 | 596.752205660174 | relative 1e-09 | pass |
+| second | R | -8.45635082694768 | -8.4563508269477 | relative 1e-09 | pass |
+| third | R | 4.35207258338688 | 4.3520725833869 | relative 1e-09 | pass |
+| third, imaginary | R | 0.890477718148775 | 0.89047771814889 | relative 1e-09 | pass |
+| fourth, imaginary | R | -0.890477718148775 | -0.89047771814889 | relative 1e-09 | pass |
+
+### `grid.find_eigenvalues exactly=`
+
+**exactly=True: January and February of 1949 and 1950 (AirPassengers), exactly** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | SymPy Matrix.eigenvals | 235.700471292964 | 235.700471292964 | relative 1e-15 | pass |
+| smallest | SymPy Matrix.eigenvals | 2.29952870703563 | 2.29952870703563 | relative 1e-15 | pass |
+| biggest | R | 235.700471292964 | 235.700471292964 | relative 1e-12 | pass |
+| smallest | R | 2.29952870703563 | 2.29952870703565 | relative 1e-12 | pass |
+
+### `grid.find_null_space exactly=`
+
+**exactly=True: the 2 directions the first 6 iris flowers (4 x 6) send to zero** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| directions | SymPy Matrix.nullspace | 2 | 2 | relative 1e-15 | pass |
+| biggest left over | SymPy Matrix.nullspace | 1 | 1 | relative 1e-15 | pass |
+| total | SymPy Matrix.nullspace | -1 | -0.999999999999999 | relative 1e-15 | pass |
+| directions | R | 2 | 2 | relative 1e-12 | pass |
+| biggest left over | R | 1 | 1 | relative 1e-12 | pass |
 
 ### `nums.smooth`
 
@@ -52159,6 +52461,29 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `table.find_distances_to_rows_of` | SciPy | polars | table | relative 1e-12 | pass |
 | `table.find_fence_around` | SciPy | pandas | table | relative 1e-12 | pass |
 | `table.find_fence_around` | SciPy | polars | table | relative 1e-12 | pass |
+| `f.find_slope_formula how_many_times=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `f.find_slope_formula for_letter=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `f.find_limit_as from_side=` | SymPy | pandas | value | relative 0 | pass |
+| `f.show_as_decimal` | SymPy | pandas | value | relative 1e-09 | pass |
+| `f.group_by_powers_of` | SymPy | pandas | value | relative 1e-09 | pass |
+| `f.turn_into_partial_fractions` | SymPy | pandas | value | relative 1e-09 | pass |
+| `f.as_sympy` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.formula letters_are=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.solve for_letter=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.solve letters_are=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.solve exactly=True with a rule` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.find_sum_of_series` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.find_volume_under exactly=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.find_path_over_time exactly= without at_start=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `sdata.find_path_over_time equations="d2x/dt2 = ..."` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.find_path_over_time equations="d2x/dt2 = ...", exactly=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `grid.find_determinant` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_determinant exactly=` | SymPy | pandas | value | relative 1e-09 | pass |
+| `grid.take_inverse` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.take_inverse exactly=` | SymPy | pandas | value | relative 1e-15 | pass |
+| `grid.find_eigenvalues` | SciPy | pandas | table | relative 1e-12 | pass |
+| `grid.find_eigenvalues exactly=` | SymPy | pandas | table | relative 1e-15 | pass |
+| `grid.find_null_space exactly=` | SymPy | pandas | value | relative 0 | pass |
 
 How each kind is compared:
 
@@ -52999,6 +53324,18 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `table.find_nearest_rows_to` (1): the straight-line (Euclidean) distance in the columns given, nearest first.
 - `table.find_distances_to_rows_of` (1): the straight-line (Euclidean) distance; test_method= takes "manhattan", "chebyshev", "bray-curtis", "canberra" and "cosine".
 - `table.find_fence_around` (1): the corners in SciPy's (Qhull's) order, going round anticlockwise; R chull() goes round clockwise.
+- `f.group_by_powers_of` (1): the formula is multiplied out first (expand), so the terms inside brackets are gathered too; SymPy collect alone leaves (a + x)*(b + x) as it is.
+- `sdata.solve exactly=True with a rule` (1): over the real numbers (domain S.Reals): SymPy solveset's own default is the complex numbers, where < and > have no meaning; with letters_are= the numbers the letter may be (positive: 0 to infinity).
+- `sdata.solve exactly=True with a rule` (2): infinity is written as the word, not as SymPy's oo.
+- `sdata.find_sum_of_series` (1): the letter that counts is a whole number (integer=True), as it is in a sum; SymPy can then simplify terms such as (-1)**(2*k).
+- `sdata.find_volume_under exactly=` (1): the first letter of between= is the outer one, as without exactly=True; SymPy integrates over the first range it is given first, so the ranges are handed over in reverse.
+- `sdata.find_path_over_time equations="d2x/dt2 = ..."` (1): the second-order equation becomes two first-order ones, with the speed dx/dt as a second changing value (the standard way for solve_ivp, as in R deSolve).
+- `grid.find_determinant exactly=` (1): each number becomes the fraction it stands for (SymPy nsimplify, rational=True): 0.2 is 1/5; a number no such fraction gives back exactly keeps its exact binary value.
+- `grid.take_inverse exactly=` (1): the grid keeps the decimals of the exact inverse; the fractions themselves are printed.
+- `grid.find_eigenvalues` (1): a symmetric grid uses eigvalsh, whose eigenvalues are always real; any other grid uses eigvals.
+- `grid.find_eigenvalues` (2): biggest first, as R eigen() gives them; SciPy gives eigvalsh's smallest first.
+- `grid.find_eigenvalues exactly=` (1): biggest first, as without exactly=True; SymPy's dict has no order to rely on.
+- `grid.find_null_space exactly=` (1): each of SymPy's directions is one column, as without exactly=True (SciPy's columns are of length 1; SymPy's are its simplest whole numbers).
 
 ## Datasets
 

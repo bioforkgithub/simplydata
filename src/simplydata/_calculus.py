@@ -8,7 +8,12 @@ Every number comes from SciPy (and SymPy for exactly=True):
   between= (the first is the outer one) and handed to SciPy in its own reversed order;
 * find_path_over_time: integrate.solve_ivp (RK45 by default; LSODA, Radau, BDF, DOP853, RK23), with the relative and
   absolute tolerances of R deSolve (1e-6), t_eval from time_step= and a stopping event from stop_when=;
-  exactly=True: sympy.dsolve.
+  exactly=True: sympy.dsolve;
+* numbers phase, batch 4 (approved by Manish 2026-11-26): find_volume_under(exactly=True): sympy.integrate over each
+  letter in turn; find_path_over_time(exactly=True) without at_start= gives the general solution (dsolve with its
+  free constants C1, C2), and a second-order equation "d2x/dt2 = ..." is solved exactly (dsolve) or in numbers
+  (solve_ivp, with dx/dt as a second changing value); find_sum_of_series: sympy.summation, with Sum.is_convergent
+  and evalf when there is no closed form.
 
 The formulas are read by the same safe reader as fit_formula and find_where_smallest (Python's ast; never run), so
 the same text works everywhere, and a formula made with sdata.formula() is accepted too. Own code is glue only.
@@ -24,6 +29,7 @@ import numpy as np
 
 from ._errors import SimplydataError, choice_error, friendly
 from ._maths_formula import read_formula, split_equation
+from ._time_limit import one_deadline
 
 AREA_METHODS = {"quad": "SciPy integrate.quad (adaptive Gauss-Kronrod, QUADPACK), as R integrate()",
                 "gauss": "SciPy integrate.fixed_quad (Gauss-Legendre with 5 points)"}
@@ -41,6 +47,9 @@ PATH_SPELLINGS = {"rk45": "RK45", "lsoda": "LSODA", "stiff": "stiff", "radau": "
 RTOL = 1e-6  # as R deSolve::ode (rtol = 1e-6, atol = 1e-6)
 ATOL = 1e-6
 _DERIVATIVE = re.compile(r"^\s*d\s*([A-Za-z]\w*)\s*/\s*d\s*([A-Za-z]\w*)\s*$")
+# "d2x/dt2" (also written d^2x/dt^2): the slope of the slope (numbers phase, batch 4)
+_SECOND = re.compile(r"^\s*d\s*\^?\s*2\s*([A-Za-z]\w*)\s*/\s*d\s*([A-Za-z]\w*?)\s*\^?\s*2\s*$")
+MAX_SUM_TERMS = 10_000  # a finite sum with no closed form is added term by term only up to this many terms
 _INFINITY = {"infinity": math.inf, "inf": math.inf, "+infinity": math.inf, "-infinity": -math.inf,
              "-inf": -math.inf, "minus infinity": -math.inf}
 
@@ -112,7 +121,7 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     if not isinstance(exactly, bool):
         raise SimplydataError("exactly= should be True or False.")
     text = _text_of(formula, step)
-    read = read_formula(text, known=known)
+    read = read_formula(formula, known=known)
     if len(read.names) != 1:
         raise SimplydataError(f"find_area_under() needs a formula with one letter; {text} has {len(read.names)} "
                               f"({', '.join(read.names) or 'none'}). Fix the others with known={{...}}, or use "
@@ -121,8 +130,11 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     if between is None:
         raise SimplydataError(f"find_area_under() needs between=[low, high].\nFor example:  {example}")
     low, high = _span(between, step, name, example)
+    from ._formula import check_range_fits
+
+    check_range_fits(formula, name, low, high, step)
     if exactly:
-        return _area_exactly(text, name, low, high, known)
+        return _area_exactly(formula, text, name, low, high, known)
     key = AREA_SPELLINGS.get(str(test_method).strip().lower(), str(test_method).strip().lower())
     if key == "romberg":
         raise SimplydataError('test_method="romberg" is gone: SciPy removed integrate.romberg in version 1.15. Use '
@@ -159,43 +171,89 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     return float(value)
 
 
-def _area_exactly(text, name, low, high, known):
-    from ._formula import Formula, need_sympy, parse
+def _exact_end(sp, v):
+    return sp.oo if v == math.inf else (-sp.oo if v == -math.inf else sp.nsimplify(v, rational=True))
 
-    sp = need_sympy("find_area_under(exactly=True)")
+
+def _exact_answer(sp, found, what: str):
+    """Refuse an exact area or volume that does not settle on a number, or that SymPy could not work out."""
+    if found in (sp.oo, -sp.oo):
+        raise SimplydataError(f"{what} is {'infinite' if found == sp.oo else 'minus infinite'}: it does not settle "
+                              "on a number (SymPy integrate).")
+    if found is sp.nan or found.has(sp.nan) or found.has(sp.zoo):
+        raise SimplydataError(f"{what} does not settle on a number (the integral does not converge; SymPy integrate "
+                              "gives no value).")
+    if found.has(sp.Integral):
+        raise SimplydataError(f"SymPy found no exact answer for {what[0].lower() + what[1:]}; without exactly=True "
+                              "simplydata gives it as a decimal.")
+
+
+def _exact_values(sp, known) -> dict:
+    """known= as exact numbers (exact_number: 0.3 is 3/10), the same rule as the typed numbers of a formula."""
+    from ._formula import exact_number
     from ._maths_formula import _known_values
 
-    values = {k: sp.nsimplify(v, rational=True) for k, v in _known_values(known).items()}
-    expr = parse(text, "find_area_under()", values)
-    x = sp.Symbol(name)
+    return {k: exact_number(sp, v) for k, v in _known_values(known).items()}
 
-    def end(v):
-        return sp.oo if v == math.inf else (-sp.oo if v == -math.inf else sp.nsimplify(v, rational=True))
 
-    found = sp.integrate(expr, (x, end(low), end(high)))
-    if found in (sp.oo, -sp.oo):
-        raise SimplydataError(f"The area under {text} for {name} from {_show(low)} to {_show(high)} is "
-                              f"{'infinite' if found == sp.oo else 'minus infinite'}: it does not settle on a number "
-                              "(SymPy integrate).")
-    if found is sp.nan or found.has(sp.nan) or found.has(sp.zoo):
-        raise SimplydataError(f"The area under {text} for {name} from {_show(low)} to {_show(high)} does not settle "
-                              "on a number (the integral does not converge; SymPy integrate gives no value).")
-    if found.has(sp.Integral):
-        raise SimplydataError(f"SymPy found no exact area under {text}; without exactly=True simplydata gives it as "
-                              "a decimal.")
-    decimal = sp.N(found)
-    print(f"The area under {text} for {name} from {_show(low)} to {_show(high)}: {found} (about {decimal}).")
+def _exact_expr(sp, formula, text, what: str, known):
+    """The SymPy expression of a formula for the exact words, with the known= values put in: a formula made with
+    sdata.formula() as it is (its letters keep what letters_are= said, and a Piecewise keeps its conditions), text
+    read by the formula reader."""
+    from ._formula import _guarded, parse
+
+    values = _exact_values(sp, known)
+    if hasattr(formula, "_expr"):
+        expr = formula._expr
+        named = {str(s): s for s in expr.free_symbols}
+        swaps = {named[k]: v for k, v in values.items() if k in named}
+        if swaps:
+            expr = _guarded(expr.subs, swaps, what="SymPy subs")
+    else:
+        expr = parse(text, what, values)
+    return _exact_floats(sp, expr)
+
+
+def _exact_floats(sp, expr):
+    """Typed decimals of a formula (0.3) as the exact numbers they stand for (3/10), as known= values are."""
+    from ._formula import exact_number
+
+    floats = expr.atoms(sp.Float)
+    return expr.xreplace({f: exact_number(sp, float(f)) for f in floats}) if floats else expr
+
+
+def _about(sp, found) -> str:
+    """" (about 1.234)" for an exact real number, worked out under the time limit; "" otherwise."""
+    from ._formula import EXACTLY_HINT, float_of
+
+    if found.free_symbols or not found.is_real:
+        return ""
+    return f" (about {float_of(found, 'SymPy N', EXACTLY_HINT):.10g})"
+
+
+def _area_exactly(formula, text, name, low, high, known):
+    from ._formula import EXACTLY_HINT, Formula, _guarded, _show as said, need_sympy
+
+    sp = need_sympy("find_area_under(exactly=True)")
+    expr = _exact_expr(sp, formula, text, "find_area_under()", known)
+    x = next((s for s in expr.free_symbols if str(s) == name), sp.Symbol(name))
+    found = _guarded(sp.integrate, expr, (x, _exact_end(sp, low), _exact_end(sp, high)), what="SymPy integrate",
+                     hint=EXACTLY_HINT)
+    _exact_answer(sp, found, f"The area under {text} for {name} from {_show(low)} to {_show(high)}")
+    print(f"The area under {text} for {name} from {_show(low)} to {_show(high)}: {said(found)}{_about(sp, found)}.")
     print("Method: SymPy integrate, exact.")
     return Formula(found)
 
 
 @friendly
-def find_volume_under(formula=None, between=None, known=None):
+def find_volume_under(formula=None, between=None, known=None, exactly=False):
     """The volume under a formula of two or more letters, over a range of each (a double or triple integral).
 
     sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})   (1)
     between= gives a range for each letter; the first letter is the outer one. Two letters: SciPy
     integrate.dblquad; three: tplquad; more: nquad (the total under the surface). Ends can be "infinity".
+    exactly=True gives the exact answer from SymPy integrate (one letter after the other, the last letter of
+    between= first), as a formula (simplydata[exact]).
     """
     from scipy import integrate
 
@@ -203,8 +261,10 @@ def find_volume_under(formula=None, between=None, known=None):
     example = 'sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})'
     if formula is None:
         raise SimplydataError(f"find_volume_under() needs a formula in quotes.\nFor example:  {example}")
+    if not isinstance(exactly, bool):
+        raise SimplydataError("exactly= should be True or False.")
     text = _text_of(formula, step)
-    read = read_formula(text, known=known)
+    read = read_formula(formula, known=known)
     if len(read.names) < 2:
         raise SimplydataError(f"find_volume_under() needs a formula with two or more letters; {text} has "
                               f"{len(read.names)}. For one letter use sdata.find_area_under.")
@@ -219,6 +279,13 @@ def find_volume_under(formula=None, between=None, known=None):
                               f"\nFor example:  {example}")
     order = list(between)
     spans = [_span(between[n], step, n, example) for n in order]
+    from ._formula import check_range_fits
+
+    for n, (lo, hi) in zip(order, spans):
+        check_range_fits(formula, n, lo, hi, step)
+    ranges = ", ".join(f"{n} from {_show(lo)} to {_show(hi)}" for n, (lo, hi) in zip(order, spans))
+    if exactly:
+        return _volume_exactly(formula, text, order, spans, ranges, known)
 
     def value_at(*inner_first):
         values = dict(zip(reversed(order), inner_first))  # SciPy gives the innermost letter first
@@ -235,7 +302,6 @@ def find_volume_under(formula=None, between=None, known=None):
     else:
         (value, error), notes = _quiet(integrate.nquad, value_at, list(reversed(spans)))
         how = f"SciPy integrate.nquad over {len(order)} letters (the total under the surface)"
-    ranges = ", ".join(f"{n} from {_show(lo)} to {_show(hi)}" for n, (lo, hi) in zip(order, spans))
     print(f"The volume under {text} for {ranges}: {_show(value)} (error below {error:.2g}).")
     print(f"Method: {how}; {order[0]} is the outer letter.")
     for note in notes:
@@ -243,8 +309,32 @@ def find_volume_under(formula=None, between=None, known=None):
     return float(value)
 
 
+def _volume_exactly(formula, text, order, spans, ranges, known):
+    from ._formula import EXACTLY_HINT, Formula, _guarded, _show as said, need_sympy
+
+    sp = need_sympy("find_volume_under(exactly=True)")
+    expr = _exact_expr(sp, formula, text, "find_volume_under()", known)
+    # a letter SymPy cancelled while reading (x*y/y is x) is still integrated over: it multiplies by its range
+    symbols = {n: next((s for s in expr.free_symbols if str(s) == n), sp.Symbol(n)) for n in order}
+    # SymPy integrates over the first range it is given first: the inner letter (the last of between=) goes first
+    limits = [(symbols[n], _exact_end(sp, lo), _exact_end(sp, hi)) for n, (lo, hi) in reversed(list(zip(order,
+                                                                                                         spans)))]
+    found = _guarded(sp.integrate, expr, *limits, what="SymPy integrate", hint=EXACTLY_HINT)
+    _exact_answer(sp, found, f"The volume under {text} for {ranges}")
+    print(f"The volume under {text} for {ranges}: {said(found)}{_about(sp, found)}.")
+    print(f"Method: SymPy integrate, exact; {order[-1]} first (the inner letter), {order[0]} last.")
+    return Formula(found)
+
+
 # ---------------------------------------------------------------- paths over time
-def _read_changes(equations, known, example):
+def _velocity_letter(name: str, time: str) -> str:
+    """The letter that stands for dx/dt inside a second-order equation."""
+    return f"d{name}_d{time}"
+
+
+def _read_changes(equations, known, example, other_letters_allowed=False):
+    """(texts, names, letters, rights, formulas, time, order): names are what the table shows (x, dx/dt), letters
+    what the formulas use (x, dx_dt); order is 2 for one equation "d2x/dt2 = ...", else 1."""
     if isinstance(equations, str):
         texts = [equations]
     elif isinstance(equations, (list, tuple)) and equations and all(isinstance(e, str) for e in equations):
@@ -252,14 +342,21 @@ def _read_changes(equations, known, example):
     else:
         raise SimplydataError(f"find_path_over_time() needs an equation such as \"dN/dt = r * N\" in quotes, or a "
                               f"list of them.\nFor example:  {example}")
-    names, rights, time = [], [], None
+    names, rights, time, order = [], [], None, 1
     for text in texts:
         left, sign, right = split_equation(text)
         found = _DERIVATIVE.match(left)
-        if sign != "=" or not found:
+        second = _SECOND.match(left) if not found else None
+        if sign != "=" or not (found or second):
             raise SimplydataError(f'"{text}" should say how fast something changes, such as "dN/dt = r * N": the '
-                                  f"left side is d, a letter, /d and the time letter.\nFor example:  {example}")
-        name, letter = found.groups()
+                                  f"left side is d, a letter, /d and the time letter (or d2x/dt2 for the slope of "
+                                  f"the slope).\nFor example:  {example}")
+        name, letter = (found or second).groups()
+        if second:
+            if len(texts) != 1:
+                raise SimplydataError("A second-order equation (d2x/dt2 = ...) works on its own: give it alone, not in "
+                                      "a list with others.")
+            order = 2
         if time is not None and letter != time:
             raise SimplydataError(f"Every equation needs the same time letter; one uses d{time} and one d{letter}.")
         if name == letter:
@@ -269,15 +366,25 @@ def _read_changes(equations, known, example):
         time = letter
         names.append(name)
         rights.append(right)
+    letters = list(names)
+    if order == 2:
+        name = names[0]
+        speed = _velocity_letter(name, time)
+        if re.search(rf"\b{re.escape(speed)}\b", rights[0]):
+            raise SimplydataError(f"{speed} is the name simplydata gives to d{name}/d{time}; use another letter.")
+        # d x / d t on the right is the speed: written as one letter before the safe reader reads the text
+        rights = [speed, re.sub(rf"\bd\s*{re.escape(name)}\s*/\s*d\s*{re.escape(time)}\b", speed, rights[0])]
+        names = [name, f"d{name}/d{time}"]
+        letters = [name, speed]
     formulas = [read_formula(r, known=known) for r in rights]
-    allowed = set(names) | {time}
-    for text, f in zip(texts, formulas):
+    allowed = set(letters) | {time}
+    for text, f in zip(texts * len(formulas), formulas):
         other = [n for n in f.names if n not in allowed]
-        if other:
+        if other and not other_letters_allowed:  # exactly=True keeps them as letters
             raise SimplydataError(f"{text} uses {', '.join(other)}, which {'is' if len(other) == 1 else 'are'} not "
                                   f"changing and has no value. Give {'it' if len(other) == 1 else 'them'} with "
                                   f"known=, for example known={{{', '.join(repr(n) + ': 0.3' for n in other)}}}.")
-    return texts, names, rights, formulas, time
+    return texts, names, letters, rights, formulas, time, order
 
 
 @friendly(renamed={"method": "test_method"})
@@ -290,17 +397,27 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
     between= the first and last time, known= the fixed values, time_step= the times in the table (else the
     solver's own steps). stop_when="N >= 900" stops when that comes true. SciPy integrate.solve_ivp,
     test_method="RK45" (the default), "LSODA", "stiff" (Radau), "BDF", "DOP853" or "RK23", with the tolerances
-    of R deSolve (1e-6). exactly=True gives the formula from SymPy dsolve (one equation; simplydata[exact]).
+    of R deSolve (1e-6). One second-order equation, "d2x/dt2 = -k*x - c*dx/dt", needs at_start={"x": 1,
+    "dx/dt": 0}; the table then has dx/dt too. exactly=True gives the formula from SymPy dsolve (one equation;
+    simplydata[exact]); without at_start= it gives the general formula, with free constants C1 (and C2).
     """
     from scipy import integrate
 
     step = "find_path_over_time"
     example = ('sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, between=[0, 50], '
                'known={"r": 0.3, "K": 1000}, time_step=0.5)')
-    texts, names, rights, formulas, time = _read_changes(equations, known, example)
+    if not isinstance(exactly, bool):
+        raise SimplydataError("exactly= should be True or False.")
+    texts, names, letters, rights, formulas, time, order = _read_changes(equations, known, example,
+                                                                         other_letters_allowed=exactly)
+    if exactly and at_start is None:
+        t0 = _span(between, step, time, example)[0] if between is not None else 0.0
+        return _path_exactly(texts, names, letters, rights, time, None, t0, known, order)
     if not isinstance(at_start, dict):
         raise SimplydataError(f"find_path_over_time() needs at_start= with the first value of "
-                              f"{', '.join(names)}.\nFor example:  {example}")
+                              f"{', '.join(names)}.\nFor example:  {example}"
+                              + ("\n(With exactly=True and no at_start=, SymPy gives the general formula.)"
+                                 if not exactly else ""))
     missing = [n for n in names if n not in at_start]
     extra = [n for n in at_start if n not in names]
     if missing or extra:
@@ -311,15 +428,16 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
         v = at_start[n]
         if isinstance(v, bool) or not isinstance(v, (int, float, np.integer, np.floating)) or not math.isfinite(v):
             raise SimplydataError(f"at_start= needs a number for {n}; it got {v!r}.")
+    if exactly:
+        t0 = _span(between, step, time, example)[0] if between is not None else 0.0
+        if math.isinf(t0):
+            raise SimplydataError("between= needs two numbers for the times (not infinity).")
+        return _path_exactly(texts, names, letters, rights, time, at_start, t0, known, order)
     if between is None:
         raise SimplydataError(f"find_path_over_time() needs between=[first time, last time].\nFor example:  {example}")
     t0, t1 = _span(between, step, time, example)
     if math.isinf(t0) or math.isinf(t1):
         raise SimplydataError("between= needs two numbers for the times (not infinity).")
-    if not isinstance(exactly, bool):
-        raise SimplydataError("exactly= should be True or False.")
-    if exactly:
-        return _path_exactly(texts, names, rights, time, at_start, t0, known)
     key = PATH_SPELLINGS.get(str(test_method).strip().lower())
     if key is None:
         raise choice_error(step, "test_method", test_method, list(PATH_METHODS))
@@ -339,14 +457,19 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
                   f"times, so the last time in the table is {_show(times[-1])}.")
 
     def change(t, y):
-        values = dict(zip(names, y))
+        values = dict(zip(letters, y))
         values[time] = t
         return [float(f({k: values[k] for k in f.names})) for f in formulas]
 
     events, stop_text = None, None
     start = [float(at_start[n]) for n in names]
     if stop_when is not None:
-        events, stop_text, holds = _stop_event(stop_when, names, time, known)
+        rule_text = stop_when
+        if order == 2 and isinstance(stop_when, str):  # dx/dt in the rule is the speed, as on the right side
+            rule_text = re.sub(rf"\bd\s*{re.escape(names[0])}\s*/\s*d\s*{re.escape(time)}\b", letters[1],
+                               stop_when)
+        events, stop_text, holds = _stop_event(rule_text, letters, time, known)
+        stop_text = stop_when.strip() if isinstance(stop_when, str) else stop_text
         if holds(t0, start):
             import pandas as pd
 
@@ -373,6 +496,9 @@ def find_path_over_time(equations=None, at_start=None, between=None, known=None,
           + ", ".join(f"{n} = {_show(at_start[n])}" for n in names) + f"; {len(found.t)} times in the table"
           + (f" (every {_show(time_step)})" if time_step is not None else " (the solver's own steps; time_step= "
                                                                           "gives even ones)") + ".")
+    if order == 2:
+        print(f"The second-order equation was solved as two first-order ones, with the speed {names[1]} as a "
+              "second changing value (it is in the table too).")
     if stop_text is not None:
         hit = found.t_events[0]
         if len(hit):
@@ -409,31 +535,343 @@ def _stop_event(stop_when, names, time, known):
     return [event], stop_when.strip(), holds
 
 
-def _path_exactly(texts, names, rights, time, at_start, t0, known):
-    from ._formula import Formula, need_sympy, parse
-    from ._maths_formula import _known_values
+@one_deadline
+def _path_exactly(texts, names, letters, rights, time, at_start, t0, known, order=1):
+    from ._formula import EXACTLY_HINT, Formula, _guarded, exact_number, need_sympy, parse
 
     sp = need_sympy("find_path_over_time(exactly=True)")
-    if len(names) != 1:
+    if len(texts) != 1:
         raise SimplydataError("exactly=True works with one equation; for several, leave it out and simplydata "
                               "finds the path in numbers.")
-    values = {k: sp.nsimplify(v, rational=True) for k, v in _known_values(known).items()}
+    values = _exact_values(sp, known)
     t = sp.Symbol(time)
-    y = sp.Function(names[0])
-    rhs = parse(rights[0], "find_path_over_time()", values).subs(sp.Symbol(names[0]), y(t))
-    start = sp.nsimplify(at_start[names[0]], rational=True)
+    name = names[0]
+    y = sp.Function(name)
+    swaps = {sp.Symbol(name): y(t)}
+    if order == 2:
+        swaps[sp.Symbol(letters[1])] = y(t).diff(t)
+    rhs = _exact_floats(sp, parse(rights[-1], "find_path_over_time()", values)).subs(swaps)
+    start_time = exact_number(sp, t0)
+    ics = None
+    if at_start is not None:
+        ics = {y(start_time): exact_number(sp, at_start[name])}
+        if order == 2:
+            ics[y(t).diff(t).subs(t, start_time)] = exact_number(sp, at_start[names[1]])
+    equation = sp.Eq(y(t).diff(t, order), rhs)
     try:
-        solved = sp.dsolve(sp.Eq(y(t).diff(t), rhs), y(t), ics={y(sp.nsimplify(t0, rational=True)): start})
+        solved = _guarded(sp.dsolve, equation, y(t), ics=ics, what="SymPy dsolve", hint=EXACTLY_HINT)
     except (NotImplementedError, ValueError) as error:
         raise SimplydataError(f"SymPy found no formula for {texts[0]} ({error}). Leave out exactly=True for the "
                               "path in numbers.") from None
     if isinstance(solved, list):
-        raise SimplydataError(f"{texts[0]} has more than one formula that starts at {names[0]} = {start}; leave out "
-                              "exactly=True for the path in numbers.")
+        where = f"that starts at {name} = {at_start[name]}" if at_start is not None else "for it"
+        raise SimplydataError(f"{texts[0]} has more than one formula {where}; leave out exactly=True for the path in "
+                              "numbers.")
     if solved.lhs != y(t) or solved.rhs.has(y(t)):
         raise SimplydataError(f"SymPy could write the answer to {texts[0]} only as an equation, not as a formula for "
-                              f"{names[0]}: {solved.lhs} = {solved.rhs}. Leave out exactly=True for the path in "
-                              "numbers.")
-    answer = sp.simplify(solved.rhs)
-    print(f"{texts[0]} with {names[0]} = {start} at {time} = {_show(t0)}: {names[0]} = {answer}   (SymPy dsolve)")
+                              f"{name}: {solved.lhs} = {solved.rhs}. Leave out exactly=True for the path in numbers.")
+    answer = _guarded(sp.simplify, solved.rhs, what="SymPy simplify", hint=EXACTLY_HINT)
+    if at_start is None:
+        constants = sorted((str(s) for s in answer.free_symbols if str(s).startswith("C") and str(s)[1:].isdigit()))
+        print(f"{texts[0]}: {name} = {answer}   (SymPy dsolve, the general formula)")
+        if constants:
+            print(f"{' and '.join(constants)} {'is a constant' if len(constants) == 1 else 'are constants'} that any "
+                  f"number fits; at_start= fixes {'it' if len(constants) == 1 else 'them'}.")
+        return Formula(answer)
+    starts = ", ".join(f"{n} = {exact_number(sp, at_start[n])}" for n in names)
+    print(f"{texts[0]} with {starts} at {time} = {_show(t0)}: {name} = {answer}   (SymPy dsolve)")
     return Formula(answer)
+
+
+# ---------------------------------------------------------------- sums of series (numbers phase, batch 4)
+SUM_HINT = ("For the decimal of a finite sum, put the terms in numbers and add them: sdata.numbers(...) then "
+            "find_total(). For the formula of the sum up to a letter, use between=[1, \"n\"].")
+MAX_SUM_DIGITS = 100_000  # a finite sum whose terms have more digits than this is refused before SymPy adds them
+
+
+def _sum_end(sp, value, own: dict, example: str):
+    """One end of a sum: a whole number, "infinity" / "-infinity", or a letter (a sum up to n). A letter that is
+    also a letter of the formula is that same letter (the formula's own SymPy Symbol)."""
+    from ._formula import INFINITY, MINUS_INFINITY, parse
+
+    words = f'between= takes whole numbers, "infinity" or a letter such as "n" for the ends'
+    if isinstance(value, str):
+        key = value.strip().lower()
+        if key in INFINITY:
+            return sp.oo
+        if key in MINUS_INFINITY:
+            return -sp.oo
+        end = parse(value, "find_sum_of_series()")
+        if not isinstance(end, sp.Symbol):
+            raise SimplydataError(f'{words}; it got "{value}".\nFor example:  {example}')
+        return own.get(str(end), sp.Symbol(str(end), integer=True))
+    if isinstance(value, (int, float, np.integer, np.floating)) and not isinstance(value, bool) and \
+            math.isinf(float(value)):
+        return sp.oo if value > 0 else -sp.oo
+    if isinstance(value, bool) or not isinstance(value, (int, float, np.integer, np.floating)) or \
+            not math.isfinite(float(value)) or float(value) != int(value):
+        raise SimplydataError(f"{words}; it got {value!r}.\nFor example:  {example}")
+    return sp.Integer(int(value))
+
+
+SURE_DIGITS_SHOWN = 10  # a sum without an exact formula is printed with at most this many sure digits
+TERMS_ONE_BY_ONE = (1_000, 10_000)  # terms added one by one before the rest is bounded (more when too few digits)
+
+
+def _sign_is(sp, expr, sign: str):
+    """Whether SymPy's assumptions show expr is <= 0 ("falls") or >= 0 ("bends up"), for every t >= 0 in it: True,
+    or None when SymPy cannot show it. expr is written as one fraction (SymPy together, factor_terms) and, if that
+    is not enough, with its top and bottom multiplied out (SymPy expand); every step under the time limit."""
+    from ._formula import _guarded
+
+    together = _guarded(sp.factor_terms, _guarded(sp.together, expr, what="SymPy together", hint=SUM_HINT),
+                        what="SymPy factor_terms", hint=SUM_HINT)
+    for form in (together, None):
+        if form is None:
+            top, bottom = sp.fraction(together)
+            top = _guarded(sp.expand, top, what="SymPy expand", hint=SUM_HINT)
+            bottom = _guarded(sp.expand, bottom, what="SymPy expand", hint=SUM_HINT)
+            form = top / bottom
+        if (form.is_nonpositive if sign == "falls" else form.is_nonnegative):
+            return True
+    return None
+
+
+def _tail_integral(sp, f, x, start):
+    """The integral of f from start to infinity as a 40-digit decimal: SymPy evalf of the Integral (numerical, with
+    SymPy's own accuracy check), or SymPy integrate when the numerical one does not reach 30 digits."""
+    from ._formula import _guarded
+
+    found = _guarded(sp.Integral(f, (x, start, sp.oo)).evalf, 40, what="SymPy evalf", hint=SUM_HINT)
+    if found.is_Float and found._prec >= 100:
+        return found
+    exact = _guarded(sp.integrate, f, (x, start, sp.oo), what="SymPy integrate", hint=SUM_HINT)
+    if exact.has(sp.Integral) or not exact.is_number:
+        return None
+    found = _guarded(sp.N, exact, 40, what="SymPy N", hint=SUM_HINT)
+    return found if found.is_Float and found._prec >= 100 else None
+
+
+def _sum_between(sp, term, k, start, count: int, said: str):
+    """Lower and upper bounds (40-digit decimals) of term summed from k = start to infinity: the first count terms
+    added by SymPy evalf, the rest bounded by the integral test with SymPy's integrals. Needs terms that SymPy shows
+    keep falling after them (f' <= 0; terms that keep rising, to 0, are bounded as minus their sum); when they also
+    bend upwards (f'' >= 0), the closer bounds of the trapezoid and
+    midpoint rules hold:
+        integral from last to infinity - f(last)/2  <=  rest  <=  integral from last + 1/2 to infinity
+    otherwise
+        integral from last + 1 to infinity  <=  rest  <=  integral from last to infinity."""
+    from ._formula import _guarded
+
+    last = start + count - 1
+    x = sp.Dummy("x", real=True)
+    t = sp.Dummy("t", nonnegative=True)
+    f = term.subs(k, x)
+    slope = sp.diff(f, x)
+    if not _sign_is(sp, slope.subs(x, last + t), "falls"):
+        if _sign_is(sp, -slope.subs(x, last + t), "falls"):  # terms that rise to 0 (-1/k**2): bound minus them
+            low, high, bends_up = _sum_between(sp, -term, k, start, count, said)
+            return -high, -low, bends_up
+        raise SimplydataError(f"{said}: SymPy found no exact formula, and simplydata gives the decimal of such a sum "
+                              "only when SymPy can show that its terms keep falling, so that the integral test bounds "
+                              f"the error; SymPy cannot show that here.\n{SUM_HINT}")
+    bends_up = _sign_is(sp, sp.diff(slope, x).subs(x, last + t), "bends up")
+    letters = [sp.Dummy(f"k{i}") for i in range(count)]
+    terms = sp.Add(*[term.xreplace({k: letter}) for letter in letters])
+    first = _guarded(terms.evalf, 40, subs={letter: start + i for i, letter in enumerate(letters)}, what="SymPy evalf",
+                     hint=SUM_HINT)
+    at_last = _guarded(term.evalf, 40, subs={k: last}, what="SymPy evalf", hint=SUM_HINT)
+    from_last = _tail_integral(sp, f, x, last)
+    if bends_up:
+        after_half = _tail_integral(sp, f, x, sp.Rational(2 * last + 1, 2))
+        low, high = (None if from_last is None else from_last - at_last / 2), after_half
+    else:
+        low, high = _tail_integral(sp, f, x, last + 1), from_last
+    if low is None or high is None or not (first.is_Float and at_last.is_Float):
+        raise SimplydataError(f"{said}: SymPy found no exact formula, and its integral of the terms, which bounds the "
+                              f"error of the decimal, did not reach enough digits.\n{SUM_HINT}")
+    # the integrals are sure to 100 bits (about 8e-31 of their size, _tail_integral), the terms to 40 digits: room
+    # for both, ten times over
+    room = sp.Float("1e-29", 40) * (abs(first) + abs(low) + abs(high) + abs(at_last) + 1)
+    return first + low - room, first + high + room, bool(bends_up)
+
+
+def _sure_digits(low, high) -> int:
+    """How many significant digits every number between low and high has in common when rounded (to nearest, ties
+    to even): the digits of the sum that are sure. Python's decimal module rounds the 40-digit texts."""
+    from decimal import ROUND_HALF_EVEN, Context
+
+    for digits in range(SURE_DIGITS_SHOWN, 0, -1):
+        rounding = Context(prec=digits, rounding=ROUND_HALF_EVEN)
+        if rounding.create_decimal(str(low)) == rounding.create_decimal(str(high)):
+            return digits
+    return 0
+
+
+def _settled_decimal(sp, term, k, low, high, said: str):
+    """The decimal of a series with no exact formula, with only the digits that are sure: the first terms added by
+    SymPy evalf and the rest bounded by the integral test (_sum_between), so that the sum lies between two numbers;
+    the digits printed are those both round to. A slowly settling series such as 1/(k log(k)**2) gets fewer digits.
+    Gives back the middle of the two bounds."""
+    if low.is_finite:
+        sides = [(term, low)]
+    elif high.is_finite:
+        sides = [(term.subs(k, -k), -high)]
+    else:
+        sides = [(term, sp.Integer(0)), (term.subs(k, -k), sp.Integer(1))]
+    done = None  # (count, bounds, below, above, digits) of the last round that finished
+    for count in TERMS_ONE_BY_ONE:
+        try:
+            bounds = [_sum_between(sp, side, k, start, count, said) for side, start in sides]
+        except (SimplydataError, NotImplementedError, ValueError, TypeError, ArithmeticError, RuntimeError):
+            # SymPy's own errors come back from the helper as they are (NotImplementedError from an integral)
+            if done is None:
+                raise
+            break  # more terms ran out of time or could not be bounded: the bounds of fewer terms still hold
+        below, above = sum(b[0] for b in bounds), sum(b[1] for b in bounds)
+        done = (count, bounds, below, above, _sure_digits(below, above))
+        if done[4] >= SURE_DIGITS_SHOWN:
+            break
+    count, bounds, below, above, digits = done
+    if digits < 2:
+        raise SimplydataError(f"{said}: SymPy found no exact formula, and the sum is only known to lie between "
+                              f"{float(below):.6g} and {float(above):.6g}, not even two sure digits. The series "
+                              f"settles too slowly.\n{SUM_HINT}")
+    from decimal import ROUND_HALF_EVEN, Context
+
+    shown = Context(prec=digits, rounding=ROUND_HALF_EVEN).create_decimal(str(below))
+    note = "" if digits >= SURE_DIGITS_SHOWN else (f"; only {digits} digits are sure: the sum lies between "
+                                                   f"{float(below):.{digits + 2}g} and {float(above):.{digits + 2}g}")
+    rule = "trapezoid and midpoint rules" if all(b[2] for b in bounds) else "integral test"
+    print(f"{said}: SymPy found no exact formula; it settles at about {shown}{note}   (SymPy is_convergent; the first "
+          f"{count:,} terms added by SymPy evalf, the rest bounded by the {rule} with SymPy's integral)")
+    return float((below + above) / 2)
+
+
+@friendly
+@one_deadline
+def find_sum_of_series(formula=None, between=None, for_letter=None, known=None):
+    """The sum of a formula for every whole number from one end to the other (a series). sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])
+
+    sdata.find_sum_of_series("1/k**2", between=[1, "infinity"]) gives pi**2/6 (about 1.644934067). The ends are
+    whole numbers, "infinity", or a letter: between=[1, "n"] gives the formula of the sum up to n. When the sum grows
+    without end, or does not settle, simplydata says so. When SymPy finds no exact formula but the sum settles, the
+    decimal is given, with only the digits SymPy is sure of. A sum that holds only under a condition (r**k, for
+    |r| < 1) keeps the condition in its formula. for_letter= says which letter counts when there are several;
+    known= fixes others. As SymPy summation(); MATLAB symsum. Gives a formula (or a number when only the decimal is
+    known).
+    """
+    from ._formula import Formula, _guarded, _show as show, float_of, need_sympy, parse
+
+    sp = need_sympy("sdata.find_sum_of_series()")
+    example = 'sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])'
+    if formula is None:
+        raise SimplydataError(f"find_sum_of_series() needs a formula in quotes.\nFor example:  {example}")
+    expr = _exact_expr(sp, formula, formula, "find_sum_of_series()", known)
+    letters = sorted(str(s) for s in expr.free_symbols)
+    if for_letter is None:
+        if len(letters) != 1:
+            raise SimplydataError(f"{show(expr)} has {len(letters)} letters ({', '.join(letters) or 'none'}): say "
+                                  "which one counts with for_letter=, and fix the others with known= if they are "
+                                  f'numbers.\nFor example:  sdata.find_sum_of_series("r**k", between=[0, "infinity"], '
+                                  'for_letter="k")')
+        for_letter = letters[0]
+    if not isinstance(for_letter, str) or for_letter not in letters:
+        raise SimplydataError(f"for_letter= needs one of the letters of {show(expr)} in quotes: "
+                              f"{', '.join(repr(n) for n in letters) or 'none'}.")
+    if isinstance(between, (str, bytes)) or not isinstance(between, (list, tuple)) or len(between) != 2:
+        raise SimplydataError(f"find_sum_of_series() needs between= the first and the last whole number.\n"
+                              f"For example:  {example}")
+    own = {str(s): s for s in expr.free_symbols}
+    low, high = (_sum_end(sp, v, own, example) for v in between)
+    if for_letter in (str(low), str(high)):
+        raise SimplydataError(f"between= cannot end at {for_letter}: that is the letter that counts.")
+    if low.is_number and high.is_number and low > high:
+        raise SimplydataError(f"between= must go from the smaller end to the bigger one; it was "
+                              f"[{show(low)}, {show(high)}].")
+    k = sp.Symbol(for_letter, integer=True)
+    term = expr.subs(own[for_letter], k)
+    said = (f"The sum of {formula.strip() if isinstance(formula, str) else show(expr)} for {k} from {show(low)} to "
+            f"{show(high)}")
+    finite = low.is_Integer and high.is_Integer
+    if finite:
+        _check_term_sizes(sp, term, k, (low, high), said)
+    if finite and int(high) - int(low) + 1 > MAX_SUM_TERMS:
+        return _long_sum(sp, term, k, low, high, said)
+    found = _guarded(sp.summation, term, (k, low, high), what="SymPy summation", hint=SUM_HINT)
+    if found == sp.oo or found == -sp.oo:
+        print(f"{said} grows without end: the series does not settle on a number   (SymPy summation)")
+        return math.inf if found == sp.oo else -math.inf
+    if found is sp.nan or found.has(sp.nan, sp.zoo):
+        print(f"{said} does not settle on a number   (SymPy summation)")
+        return math.nan
+    if isinstance(found, sp.Piecewise):
+        pieces = [(e, c) for e, c in found.args if not e.has(sp.Sum)]
+        if pieces:
+            words = "; ".join(f"{show(e)} when {show(c)}" if c is not sp.true else show(e) for e, c in pieces)
+            print(f"{said}: {words}; otherwise it does not settle   (SymPy summation)")
+            print("The formula keeps the condition: f.find_value_at() gives no number where it does not hold.")
+            # no "otherwise" piece: where no condition holds the formula has no value, and so has its slope (a nan
+            # piece would be a number to SymPy, whose slope is 0)
+            return Formula(sp.Piecewise(*pieces))
+    if found.has(sp.Sum):
+        series = sp.Sum(term, (k, low, high))
+        if high.is_infinite or low.is_infinite:
+            try:
+                settles = _guarded(series.is_convergent, what="SymPy is_convergent", hint=SUM_HINT)
+            except NotImplementedError:
+                settles = None
+            if settles is False or settles == sp.false:
+                print(f"{said} does not settle on a number   (SymPy is_convergent)")
+                return math.nan
+            if settles is not True and settles != sp.true:
+                raise SimplydataError(f"{said}: SymPy found no exact formula and cannot tell whether the series "
+                                      "settles.")
+        if series.free_symbols:
+            raise SimplydataError(f"{said}: SymPy found no exact formula. Give the other letters numbers with known= "
+                                  "for a decimal.")
+        return _settled_decimal(sp, term, k, low, high, said)
+    about = f" (about {float_of(found, 'SymPy N', SUM_HINT):.10g})" if not found.free_symbols and found.is_real else ""
+    print(f"{said}: {show(found)}{about}   (SymPy summation)")
+    return Formula(found)
+
+
+def _check_term_sizes(sp, term, k, ends, said: str) -> None:
+    """Refuse a finite sum whose terms at its ends have more than MAX_SUM_DIGITS digits (2**(2**k) up to 36), before
+    SymPy adds them: worked out as decimals by SymPy evalf, which keeps only the size of such a number."""
+    from ._formula import _guarded
+
+    for end in ends:
+        try:
+            size = _guarded(term.evalf, 15, subs={k: end}, what="SymPy evalf", hint=SUM_HINT)
+        except (ValueError, TypeError, ZeroDivisionError):
+            continue
+        if size.is_number and size.is_finite and size != 0:
+            digits = _guarded(sp.log, sp.Abs(size), 10, what="SymPy log", hint=SUM_HINT)
+            if digits.is_real and digits > MAX_SUM_DIGITS:
+                raise SimplydataError(f"{said}: the term at {k} = {end} has about {int(digits):,} digits, too big to "
+                                      f"add up exactly (simplydata takes terms of up to {MAX_SUM_DIGITS} digits).")
+
+
+def _long_sum(sp, term, k, low, high, said: str):
+    """A finite sum of more than MAX_SUM_TERMS terms: SymPy's formula of the sum up to a letter, never term by term.
+    A polynomial formula is worked out exactly; any other (harmonic numbers, zeta) only as a decimal, with the end
+    put in as a decimal number, since its exact fraction would have millions of digits."""
+    from ._formula import Formula, _guarded, _show as show, float_of
+
+    last = sp.Dummy("last", integer=True)
+    general = _guarded(sp.summation, term, (k, low, last), what="SymPy summation", hint=SUM_HINT)
+    if general.has(sp.Sum):
+        raise SimplydataError(f"{said}: SymPy found no exact formula, and simplydata does not add more than "
+                              f"{MAX_SUM_TERMS:,} terms one by one. Use a shorter range, or numbers words: "
+                              "sdata.numbers(...) then find_total().")
+    if general.is_polynomial(last):
+        found = _guarded(general.subs, last, high, what="SymPy subs", hint=SUM_HINT)
+        about = f" (about {float_of(found, 'SymPy N', SUM_HINT):.10g})" if found.is_real else ""
+        print(f"{said}: {show(found)}{about}   (SymPy summation, the formula of the sum up to {k} = {high})")
+        return Formula(found)
+    decimal = _guarded(general.subs, last, sp.Float(int(high), 30), what="SymPy subs", hint=SUM_HINT)
+    value = float_of(decimal, "SymPy N", SUM_HINT)
+    print(f"{said}: about {value:.10g}   (SymPy summation gives the formula {show(general.subs(last, sp.Symbol('n')))} "
+          f"for the sum up to n; at n = {high} its exact fraction is too long to write, so the decimal is given)")
+    return value

@@ -96,6 +96,9 @@ def read_curve_formula(word, text):
     from .._maths_formula import read_formula
 
     example = 'draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])'
+    made = text
+    if hasattr(text, "_formula_text"):  # a formula made with sdata.formula() (numbers phase, batch 4)
+        text = text._formula_text()
     if not isinstance(text, str) or not text.strip():
         raise SimplydataError(f".{word}() needs a formula in quotes or a distribution.\nFor example chart.{example}")
     left = None
@@ -105,7 +108,7 @@ def read_curve_formula(word, text):
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_ ]*", left or ""):
             raise SimplydataError(f'.{word}() reads "{text}" as "name = formula"; the left of = should be a name, '
                                   f"such as y.\nFor example chart.{example}")
-    formula = read_formula(right)
+    formula = read_formula(made if hasattr(made, "_formula_text") else right)
     if len(formula.names) != 1:
         if not formula.names:
             raise SimplydataError(f'"{right}" has no name such as x in it, so it does not change along the chart. '
@@ -400,7 +403,8 @@ class CurveWords:
                    thickness=None, show="density") -> _Same:
         """Draw a formula, or a distribution, as a curve. chart.draw_curve("y = 100 * exp(-0.3 * x)", between=[0, 10])
 
-        The formula uses one name (x, or any other) and the functions of table.add_column;
+        The formula uses one name (x, or any other) and the functions of table.add_column; a formula made with
+        sdata.formula("x**3 - 3*x") can be drawn too;
         between=[low, high] says where along x (normally the x range of the chart).
         chart.draw_curve(sdata.distribution("normal", average=50, standard_deviation=10)) draws a
         distribution: its density curve, or for whole-number distributions (binomial,
@@ -426,6 +430,10 @@ class CurveWords:
                 raise SimplydataError('show="cumulative" is for a distribution, such as '
                                       'chart.draw_curve(sdata.distribution("normal"), show="cumulative").')
             thing = read_curve_formula(word, formula_or_distribution)
+            if span is not None and hasattr(formula_or_distribution, "_expr"):  # letters_are= of a formula
+                from .._formula import check_range_fits
+
+                check_range_fits(formula_or_distribution, thing[2], span[0], span[1], word)
         self._add("curve", "extra", _draw_curve, thing=thing, between=span, steps=int(steps), dashed=bool(dashed),
                   colour=colour, label=None if labelled is None else str(labelled), thickness=thickness, show=show,
                   said={})

@@ -49,6 +49,11 @@ ALLOWED = {
                                                    "(matplotlib secondary_xaxis needs both directions); no "
                                                    "statistical method of our own",
     "table/columns.py": "digamma offered as a formula function users can type",
+    # numbers phase, batch 4 (approved by Manish 2026-11-26): the matrix words are SciPy's own linalg calls, handed
+    # the grid as it is (as R solve() and eigen()); nothing is computed by simplydata
+    "numbers/numbers_4.py::GridWords4.take_inverse": "grid.take_inverse() is SciPy linalg.inv itself (LAPACK)",
+    "numbers/numbers_4.py::GridWords4.find_eigenvalues": "grid.find_eigenvalues() is SciPy linalg.eigvalsh (symmetric "
+                                                         "grid) or linalg.eigvals itself (LAPACK)",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",
