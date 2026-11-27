@@ -34,7 +34,8 @@ LEAST_MEMORY = GIGABYTE  # nor below this (SymPy itself needs a few hundred MB)
 
 
 def _memory_free_now() -> int:
-    """The memory this computer has free now (Windows: available physical memory; Linux: MemAvailable)."""
+    """The memory this computer has free now (Windows: available physical memory; Linux: MemAvailable; macOS has
+    neither, so the helper there takes the smallest limit, 1 GB)."""
     try:
         if sys.platform == "win32":
             import ctypes

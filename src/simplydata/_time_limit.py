@@ -13,6 +13,7 @@ one starts at the next call. The helper has a memory limit (half the memory free
 at most 4 GB), so a sum whose numbers grow without end stops with MemoryError instead of filling the computer. macOS
 does not honour that limit inside the helper, so there this process looks at the helper's memory (its physical
 footprint, read with proc_pid_rusage) every WATCH_EVERY seconds while it waits, and stops the helper at the limit.
+On macOS the limit is 1 GB (the helper cannot read the free memory there, so it takes the smallest limit).
 
 Privacy: the helper is a local process. It talks to this one through two one-way multiprocessing pipes (named pipes
 on Windows, os.pipe elsewhere; never a socket, so no network), writes no file, logs nothing, sends its own output
@@ -248,7 +249,10 @@ def _memory_in_use(pid: int):
                         ("exit_time", ctypes.c_uint64)]
 
         library = _STATE.get("libproc")
+        if library is False:  # loading it failed once: do not try again every WATCH_EVERY seconds
+            return None
         if library is None:
+            _STATE["libproc"] = False
             library = _STATE["libproc"] = ctypes.CDLL("/usr/lib/libproc.dylib")
         usage = Usage()
         if library.proc_pid_rusage(ctypes.c_int(pid), ctypes.c_int(0), ctypes.byref(usage)) != 0:  # RUSAGE_INFO_V0
@@ -271,7 +275,7 @@ def _wait(process, answers, seconds: float):
             return True
         used = _memory_in_use(process.pid)
         if used is not None and used > limit:
-            return None
+            return True if answers.poll(0) else None  # an answer that came in just now is kept
         if left <= WATCH_EVERY:
             return False
 
