@@ -2184,6 +2184,8 @@ def _print_other_names(word) -> bool:
     parts = other_name_parts(w)
     if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter
         kind, w = parts
+        if other_name_pointer(kind, w) is None:  # Str.Replace is str.replace: pandas and Polars names are lowercase
+            w = w.lower()
         pointer = other_name_pointer(kind, w)
         if pointer is None and kind in NAMESPACE_FALLBACK:  # groupby().mean() means what mean means on a table
             pointer = other_name_pointer(NAMESPACE_FALLBACK[kind], w)

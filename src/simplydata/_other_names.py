@@ -300,7 +300,7 @@ _TABLE = [
     ('table.add_change_column("growth", from_column="population")', "diff pct_change"),
     ('table.add_rolling_column("smooth", from_column="temperature")', "rolling rollmean"),
     ('table.add_rank_column("rank", from_column="marks")', "rank"),
-    ('table.add_group_column("result", from_column="marks", cut_at=[60])', "cut"),
+    ('table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"])', "cut"),
     ('table.add_is_empty_column("no_price", from_column="price")', "isna isnull is_na is_null"),
     ("table.keep_random_rows(5, with_seed=1)", "sample sample_n slice_sample"),
     ('table.keep_biggest_rows(3, by="marks")', "nlargest top_n slice_max"),
@@ -434,7 +434,8 @@ _TABLE = [
      "stl STL decompose seasonal_decompose decomposition split_trend_and_season deseasonalise"),
     ('table.find_trend_of("visitors", sorted_by="month")',
      "mk.test mann_kendall mannkendall sens.slope sen_slope theilslopes smk.test sea.sens.slope"),
-    ('table.find_correlation_between("a", "b", rows_back=12, sorted_by="date")', "ccf cross_correlation xcorr"),
+    ('table.find_correlation_between("signal", "vibration", rows_back=12, sorted_by="time")',
+     "ccf cross_correlation xcorr"),
     ('table.add_missing_dates("date", every="day")', "asfreq upsample fill_missing_dates"),
     ('table.add_smoothed_column("signal_smoothed", from_column="signal", window=11, sorted_by="time")',
      "rolling_smooth savgol smooth_column add_smooth_column"),
@@ -600,7 +601,9 @@ _TABLE = [
     ('table.replace_values_in("class", {"A": "Class A", "B": "Class B"})', "map replace_strict"),
     ('table.count_empty_cells_in() to count the empty cells, or table.add_is_empty_column("no_price", '
      'from_column="price") for a True or False column (True where the cell is empty)',
-     "notna notnull is_not_null has_nulls hasnans null_count"),
+     "has_nulls hasnans null_count"),
+    ('table.keep_rows_where("price", is_empty=False) to keep the rows with a value, or '
+     'table.remove_rows_with_empty_cells_in("price")', "notna notnull is_not_null"),
     ('table.add_missing_combinations_of("year", "country"), or table.add_missing_dates("date") for a run of dates',
      "reindex"),
     ('table.save("results.json"): the end of the file name chooses the type, also .jsonl, .feather, .dta and .html',
@@ -899,8 +902,8 @@ _TEXT = [
     ('table.add_column_with_part_of_text("last_two", from_column="name", last_characters=2)', "tail"),
     ('table.add_column_with_part_of_text("number", from_column="sample_id", matches_pattern="[0-9]+")',
      "extract extract_groups"),
-    ('table.split_column("name", separator=" ") for new columns, or table.split_into_rows("genes", separator=";") '
-     "for new rows", "split split_exact splitn rsplit"),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) for new columns, or '
+     'table.split_into_rows("genes", separator=";") for new rows', "split split_exact splitn rsplit"),
     ('table.add_column("name_and_class", by_joining_text=["name", "class"], separator=" ") joins columns side by '
      'side; joining the text of many rows into one cell is in the manual chapter "From pandas (and Polars) to '
      'simplydata"', "join cat concat"),
@@ -961,7 +964,10 @@ _GROUPS = [
     ('table.keep_rows_where("class", is_equal_to="A")', "get_group"),
     ('table.keep_first_rows(2, for_each_group_in="class")', "head"),
     ('table.keep_last_rows(2, for_each_group_in="class")', "tail"),
-    ('table.count_rows(for_each_group_in="class")', "size count len"),
+    ('table.count_rows(for_each_group_in="class")', "size len"),
+    # pandas groupby().count() counts the filled cells of each column in each group
+    ('table.find_summary_of(["marks", "hours"], show=["count"], for_each_group_in="class") counts the filled cells '
+     "of each column (table.count_rows(for_each_group_in=\"class\") counts the rows)", "count"),
     ('table.find_summary_of(["marks", "hours"], show=["average", "count"], for_each_group_in="class"); different '
      'measures for different columns are in the manual chapter "From pandas (and Polars) to simplydata"',
      "agg aggregate"),
@@ -971,17 +977,25 @@ _GROUPS = [
      "apply map_groups pipe"),
     ('table.keep_biggest_rows(1, by="marks", for_each_group_in="class")', "idxmax arg_max"),
     ('table.keep_smallest_rows(1, by="marks", for_each_group_in="class")', "idxmin arg_min"),
-    ('table.add_row_number_column("number", for_each_group_in="class")', "cumcount ngroup"),
+    ('table.add_row_number_column("number", for_each_group_in="class")', "cumcount"),
+    ('table.add_rank_column("group_number", from_column="class", biggest_first=False, when_tied="no gaps")',
+     "ngroup"),
     ('table.add_running_column("so_far", from_column="marks", show="total", for_each_group_in="class")',
      "cumsum cum_sum"),
     ('table.add_running_column("best_so_far", from_column="marks", show="biggest", for_each_group_in="class")',
      "cummax cum_max"),
     ('table.add_running_column("lowest_so_far", from_column="marks", show="smallest", for_each_group_in="class")',
      "cummin cum_min"),
-    ('table.fill_empty_cells_in("price", with_the="value above", for_each_group_in="shop")', "ffill forward_fill"),
-    ('table.fill_empty_cells_in("price", with_the="value below", for_each_group_in="shop")', "bfill backward_fill"),
+    ('table.as_pandas(), then df["price"] = df.groupby("shop")["price"].ffill() in pandas, and give the result to '
+     "sdata.table to come back (table.fill_empty_cells_in(\"price\", with_the=\"value above\") fills the whole "
+     "column)", "ffill forward_fill"),
+    ('table.as_pandas(), then df["price"] = df.groupby("shop")["price"].bfill() in pandas, and give the result to '
+     "sdata.table to come back (table.fill_empty_cells_in(\"price\", with_the=\"value below\") fills the whole "
+     "column)", "bfill backward_fill"),
     ('table.find_summary_of("marks", show=["variance", "standard error", "skewness", "kurtosis"], '
-     'for_each_group_in="class")', "var sem skew kurt kurtosis describe"),
+     'for_each_group_in="class")', "var sem skew kurt kurtosis"),
+    ('table.find_summary_of("marks", show=["count", "average", "standard deviation", "smallest", "percentile 25", '
+     '"median", "percentile 75", "biggest"], for_each_group_in="class")', "describe"),
     ('table.add_previous_value_column("last_year", from_column="population", for_each_group_in="country")', "shift"),
     ('table.add_rank_column("place", from_column="marks", for_each_group_in="class")', "rank"),
     ('table.add_rolling_column("smooth", from_column="sales", for_each_group_in="shop")', "rolling"),
@@ -1011,14 +1025,22 @@ NAMESPACE_FALLBACK = {"groups": "table"}
 # What can stand in front of a name and changes nothing: pd.read_csv, pl.DataFrame.join, df.merge, Series.replace
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
               "data", "dplyr", "tidyr", "base", "stats"}
+# How simplydata's own objects are written: chart.draw_bars is a simplydata word, not a name from another tool
+SIMPLYDATA_OBJECTS = {"sdata", "table", "chart", "charts", "page", "numbers", "nums", "grid", "block", "distribution",
+                      "dist", "formula", "f", "system"}
 
 
 def other_name_parts(typed: str) -> tuple[str | None, str] | None:
     """("text", "replace") for str.replace, Series.str.replace or df["name"].str.replace("a", "b"); (None, "merge")
-    for pd.merge or DataFrame.merge (a name with only qualifiers in front); None for a bare name or anything else.
+    for pd.merge, DataFrame.merge or marks.merge (qualifiers, or one name of your own, in front); None for a bare
+    name, a simplydata word (chart.draw_bars) or anything else.
 
-    What is inside brackets is left out first, so pl.col("name").str.contains("a") is str.contains."""
+    What is inside brackets is left out first, so pl.col("name").str.contains("a") is str.contains; a bracket left
+    open at the end (df.str.replace( or df.str.replace("a") is dropped. Namespace names are read in any capitals
+    (Str.Replace, groupBy.filter)."""
     text = str(typed).strip()
+    while text.count("(") > text.count(")"):  # a bracket left open: drop it and what follows
+        text = text[:text.rindex("(")]
     while True:  # drop what is inside ( ) and [ ], innermost first
         shorter = re.sub(r"\([^()]*\)|\[[^\[\]]*\]", "", text)
         if shorter == text:
@@ -1028,9 +1050,12 @@ def other_name_parts(typed: str) -> tuple[str | None, str] | None:
     if len(parts) < 2 or not all(part.isidentifier() for part in parts):
         return None
     name, before = parts[-1], parts[:-1]
+    spaces = {key.lower(): kind for key, kind in NAMESPACES.items()}
     for part in reversed(before):
-        if part in NAMESPACES:
-            return NAMESPACES[part], name
-    if all(part in QUALIFIERS for part in before):
+        if part.lower() in spaces:
+            return spaces[part.lower()], name
+    if before[0] in SIMPLYDATA_OBJECTS:
+        return None
+    if all(part in QUALIFIERS for part in before) or len(before) == 1:
         return None, name
     return None
