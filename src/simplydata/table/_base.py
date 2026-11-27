@@ -55,6 +55,11 @@ def _plain_time_text(native):
     return native.dt.to_string("%Y-%m-%d %H:%M:%S" + (f"%.{digits}f" if digits else ""))
 
 
+def counted(n: int, word: str) -> str:
+    """1 column, 2 columns: a count with its word in the singular or the plural."""
+    return f"{n} {word}" if n == 1 else f"{n} {word}s"
+
+
 def show(native):
     """Show a table nicely: a real table in Jupyter/VS Code, text elsewhere."""
     try:
@@ -588,9 +593,9 @@ class BaseTable:
         rows = min(rows, total)
         _show_whole(numbered(self._frame.head(rows)))
         if rows < total:
-            print(f"Showing {rows} of {total} rows, {len(self._columns)} columns.")
+            print(f"Showing {rows} of {counted(total, 'row')}, {counted(len(self._columns), 'column')}.")
         else:
-            print(f"{total} rows, {len(self._columns)} columns.")
+            print(f"{counted(total, 'row')}, {counted(len(self._columns), 'column')}.")
         return None
 
     @friendly
@@ -623,7 +628,8 @@ class BaseTable:
         rows, cols = self._frame.shape
         survey = self.__dict__.get("_survey")
         mode = f" (a survey: {survey['said']})" if survey else ""
-        return f"simplydata table: {rows} rows, {cols} columns{mode}\n{numbered(self._frame.head(10))!r}"
+        return (f"simplydata table: {counted(rows, 'row')}, {counted(cols, 'column')}{mode}\n"
+                f"{numbered(self._frame.head(10))!r}")
 
     def _repr_html_(self):
         """The table in Jupyter and VS Code, with rows numbered from 1 (as everywhere in simplydata)."""
