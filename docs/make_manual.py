@@ -3,8 +3,9 @@
 Everything in the manual comes from simplydata itself: the lessons, their solutions and the
 word list from simplydata/learn.py (LESSONS, HELP_EXAMPLES, GROUPS), each word's options and
 text from its docstring and signature, and the practice tables from simplydata.data. Only
-three things are written by hand: the short "Getting started" text below, UNDERNEATH (which
-library each word uses) and docs/manual/ideas.tex (the data science ideas).
+four things are written by hand: the short "Getting started" text below, UNDERNEATH (which
+library each word uses), docs/manual/ideas.tex (the data science ideas) and docs/manual/from_pandas.tex (the
+chapter for readers who come from pandas and Polars).
 
     python docs/make_manual.py            # write the .tex, run every example, compile the PDF
     python docs/make_manual.py --tex      # only write the .tex (fast; no LaTeX needed)
@@ -651,7 +652,10 @@ can write it up in a report or a paper.
   \item[{\hyperref[part:ideas]{Part IV: Data science ideas}}] The ideas behind the numbers in plain
     words: average and median, standard deviation and standard error, confidence intervals,
     p-values, effect sizes, and a guide to which statistical test to use when.
-  \item[{\hyperref[part:solutions]{Part V: Solutions}}] A worked solution for every
+  \item[{\hyperref[part:from-pandas]{Part V: From pandas and Polars}}] For readers who know pandas or
+    Polars: each topic of their user guides, the simplydata words for it, and how to hand a table over
+    for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:solutions]{Part VI: Solutions}}] A worked solution for every
     ``Try it yourself'' task.
 \end{description}
 Keep the \href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet}
@@ -1538,6 +1542,8 @@ def make() -> str:
         _dictionary(aliases),
         r"\part{Data science ideas}\label{part:ideas}",
         r"\input{ideas}",
+        r"\part{From pandas and Polars}\label{part:from-pandas}",
+        r"\input{from_pandas}",
         r"\part{Solutions}\label{part:solutions}",
         _solutions(),
         r"\part{How simplydata chooses methods}\label{part:basis}",

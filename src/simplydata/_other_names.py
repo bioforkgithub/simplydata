@@ -613,7 +613,8 @@ _TABLE = [
     ('table.keep_rows_where("marks", is_between=[50, 70])', "between is_between"),
     ('table.add_group_column("result", rules={"marks >= 80": "top", "marks >= 50": "pass"}, otherwise="fail")',
      "case_when when"),
-    ('table.find_average_of("sales", every="month") (every= works in every find_..._of word)', "group_by_dynamic"),
+    ('table.find_average_of("sales", for_each_group_in="date", every="month") (every= works in every find_..._of '
+     "word)", "group_by_dynamic"),
     ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time")',
      "ewm_mean ewm_mean_by"),
     ('table.add_rolling_column("smooth", from_column="temperature", show="average")',
