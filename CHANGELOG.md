@@ -20,6 +20,19 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: `grid.solve_for(b)` and `grid.break_down(test_method=)` (numbers finishing)
+
+- `x = grid.solve_for([5, 10])` solves grid times x = b: SciPy `linalg.solve` for a square grid, least squares
+  (`linalg.lstsq`) for a grid that is not square, and the sentence says which. `with_best_fit=True` asks for least
+  squares on a square grid too (one whose determinant is 0). `between=[0, None]` keeps every x at 0 or above
+  (non-negative least squares, SciPy `optimize.nnls`, as R nnls and MATLAB lsqnonneg), as for unmixing spectra
+  or a diet mix; other limits use `optimize.lsq_linear`. `exactly=True` gives SymPy's exact answer. b may be a
+  grid, one right side in each column. `sdata.solve` stays the word for equations written as text.
+- `parts = grid.break_down(test_method="qr")` gives the parts of a matrix decomposition as a dict of grids and
+  prints what each part is and how they multiply back: `"svd"` (the default), `"qr"`, `"lu"`, `"cholesky"`,
+  `"schur"`, `"polar"`, `"ldl"`, `"hessenberg"` and `"qz"` (with `together_with=` for the second grid), all from
+  SciPy `linalg`. 581 words now.
+
 ### Added: `chart.as_matplotlib()`, the door to matplotlib (charts finishing)
 
 - `fig = chart.as_matplotlib()` gives the chart as a plain matplotlib Figure, for a job no simplydata word does,

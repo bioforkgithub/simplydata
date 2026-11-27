@@ -33,6 +33,7 @@ from .numbers_2 import ChanceWords, RandomPickWords, SmoothOverWords  # NumPy + 
 from ._base import NOT_GIVEN
 from .numbers_3 import GridWords3, NumberWords3, SharedWords3
 from .numbers_4 import GridWords4
+from .solving_words import SolvingWords  # numbers finishing: solve_for and break_down (P41)
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
@@ -89,7 +90,7 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 GridWords3, GridWords4, SharedWords3, BaseNumbers):
+                 GridWords3, GridWords4, SolvingWords, SharedWords3, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -117,7 +118,14 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
               "det": "find_determinant", "determinant": "find_determinant", "inv": "take_inverse",
               "inverse": "take_inverse", "eig": "find_eigenvalues",
               "eigvals": "find_eigenvalues", "eigvalsh": "find_eigenvalues", "eigenvals": "find_eigenvalues",
-              "eigen": "find_eigenvalues", "eigenvalues": "find_eigenvalues", "nullspace": "find_null_space"}
+              "eigen": "find_eigenvalues", "eigenvalues": "find_eigenvalues", "nullspace": "find_null_space",
+              # numbers finishing (P41): solving and breaking down
+              "solve": "solve_for", "lstsq": "solve_for", "lsq_linear": "solve_for", "nnls": "solve_for",
+              "lsqnonneg": "solve_for", "mldivide": "solve_for", "lu": "break_down", "qr": "break_down",
+              "svd": "break_down", "cholesky": "break_down", "chol": "break_down", "schur": "break_down",
+              "polar": "break_down", "ldl": "break_down", "hessenberg": "break_down", "hess": "break_down",
+              "qz": "break_down", "decompose": "break_down", "decomposition": "break_down",
+              "factorize": "break_down", "take_apart": "break_down"}
     # Words that cannot work on a grid, with the reason and what to write instead.
     _POINTERS = {"keep_each_number_that": _GRID_KEEP_NUMBERS, "remove_each_number_that": _GRID_KEEP_NUMBERS,
                  "keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}

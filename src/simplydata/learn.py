@@ -222,7 +222,9 @@ GROUPS = [
                                             "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
                                             "grid.take_matrix_exp", "grid.find_null_space",
                                             # numbers phase, batch 4 (approved by Manish 2026-11-26)
-                                            "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues"]),
+                                            "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues",
+                                            # numbers finishing (P41, approved by Manish 2026-11-25)
+                                            "grid.solve_for", "grid.break_down"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -1634,6 +1636,14 @@ HELP_EXAMPLES.update({
                                 "grid.undo()", "grid.take_inverse(exactly=True)"),
     "grid.find_eigenvalues": _lines("grid = sdata.number_grid([[2, 1], [1, 2]])", "values = grid.find_eigenvalues()",
                                     "print(values)", "grid.find_eigenvalues(exactly=True)"),
+    # numbers finishing (P41, approved by Manish 2026-11-25): solving and breaking down
+    "grid.solve_for": _lines("grid = sdata.number_grid([[2, 1], [1, 3]])", "x = grid.solve_for([5, 10])",
+                             "print(x)", "grid.solve_for([5, 10], exactly=True)",
+                             "mix = sdata.number_grid([[2, 0], [1, 1], [0, 3]])",
+                             "amounts = mix.solve_for([4, 3, 5], between=[0, None])"),
+    "grid.break_down": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
+                              'parts = grid.break_down(test_method="cholesky")', 'print(parts["U"])',
+                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])'),
 })
 
 

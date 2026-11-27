@@ -608,6 +608,10 @@ UNDERNEATH = {
     "grid.take_inverse": "SciPy (linalg.inv); SymPy Matrix.inv for exactly=True",
     "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals); SymPy eigenvals for "
                              "exactly=True",
+    # numbers finishing (P41; each also has a tested entry in simplydata._underneath)
+    "grid.solve_for": "SciPy (linalg.solve; linalg.lstsq for least squares; optimize.nnls and optimize.lsq_linear for "
+                      "between=); SymPy LUsolve and solve_least_squares for exactly=True",
+    "grid.break_down": "SciPy (linalg.svd, qr, lu, cholesky, schur, polar, ldl, hessenberg, qz)",
 }
 
 # ---------------------------------------------------------------- hand-written text
