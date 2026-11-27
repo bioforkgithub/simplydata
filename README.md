@@ -184,6 +184,13 @@ for yes/no answers and counts (lme4), and Bayes factors (BayesFactor). The full 
 [What simplydata handles](docs/what_simplydata_handles.md#packages-underneath). A word that needs R and cannot find
 it says what to install, as the note in the quick start does; see [Using the words that need R](#using-the-words-that-need-r).
 
+**Can I use it on a server, where there is no screen and no VS Code?**
+Yes. A server (usually Linux) runs simplydata like any computer: install it in your own home folder (no admin
+rights needed), run your script from the terminal with `python analysis.py`, and save charts as PDF, SVG or PNG
+files, since no screen is needed. The tests run every chart without a screen on each change. Name completion
+(the list of words that appears as you type) still works: with VS Code's Remote-SSH extension it is the same as
+on your own computer, and in Jupyter or IPython on the server you press Tab. See [On a server](#on-a-server).
+
 ## What simplydata handles
 
 **570 words (commands) in 67 groups, with 454 different options, on top of 20 Python packages (10 installed always, 10 with an extra; patsy comes with statsmodels) and
@@ -304,6 +311,56 @@ recommend one of these two:
    that way.
 
 Other editors (PyCharm, Spyder) also complete names; IDLE does very little, so it is not recommended.
+
+### On a server
+
+A server or a computing cluster runs simplydata the same way as your own computer; most run Linux.
+
+**Install in your own home folder** (no admin rights needed). Get [Miniforge](https://conda-forge.org/download/)
+or micromamba into your home folder, then:
+
+```
+conda create -n simplydata -c conda-forge python=3.12
+conda activate simplydata
+pip install simplydata
+```
+
+If your cluster offers software modules, `module load python` (or the name it uses) followed by
+`pip install --user simplydata` works too.
+
+**Run your script from the terminal**, and save the charts as files:
+
+```
+python analysis.py        # in analysis.py: chart.save("marks.pdf"), or .svg or .png
+```
+
+No screen is needed: simplydata draws into the file. Copy the file to your own computer to look at it.
+
+**Long jobs go to the queue.** For example, with SLURM:
+
+```
+#!/bin/bash
+#SBATCH --time=00:30:00
+#SBATCH --mem=4G
+conda activate simplydata
+python analysis.py
+```
+
+**Name completion on a server.** The list of words that appears as you type (`table.keep` showing
+`keep_rows_where` and the other `keep_` words) still works, in three ways:
+
+1. **VS Code with the Remote-SSH extension** (best): VS Code stays on your computer, while the code, the files
+   and the name completion run on the server, against the simplydata installed there. It works as it does on your
+   own computer. Some clusters do not allow it on their login computers; ask your server's support if it will not
+   connect.
+2. **Jupyter on the server, in your own web browser**: on the server run `jupyter lab --no-browser --port 8888`;
+   on your computer run `ssh -L 8888:localhost:8888 you@server` and open `http://localhost:8888`. Type
+   `table.keep` and press Tab; Shift+Tab shows a word's help.
+3. **IPython in the terminal**: `pip install ipython`, start `ipython`, and press Tab after `table.` to list the
+   words.
+
+Everywhere, `sdata.help("keep_rows_where")` prints a word's help and example, and `sdata.words()` lists all the
+words.
 
 ### pip
 
