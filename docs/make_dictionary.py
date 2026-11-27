@@ -42,7 +42,7 @@ from make_manual import code, esc, rich  # noqa: E402
 
 import simplydata  # noqa: E402
 from simplydata import learn  # noqa: E402
-from simplydata._other_names import OTHER_NAMES  # noqa: E402
+from simplydata._other_names import NAMESPACE_SHOWN, OTHER_NAMES  # noqa: E402
 
 MANUAL = make_manual.MANUAL
 TEX = MANUAL / "simplydataDictionary.tex"
@@ -284,7 +284,8 @@ def other_names() -> dict[str, list[str]]:
     """{name from another tool: [keys of the simplydata words it points to]}, A to Z.
 
     A name that is also a simplydata word is written with its object in front ("table.table",
-    "sdata.put_in_rows_and_columns"), so it is not mistaken for the simplydata word.
+    "sdata.put_in_rows_and_columns"), so it is not mistaken for the simplydata word. A name from a namespace of
+    pandas and Polars is always written with it ("str.replace", "dt.year", "groupby.filter").
     """
     words = set(entries()) | {a for names in learn._aliases().values() for a in names}
     found: dict[str, list[str]] = {}
@@ -292,7 +293,10 @@ def other_names() -> dict[str, list[str]]:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"
-            shown = f"{WRITTEN[kind]}.{name}" if name in words else name
+            if kind in NAMESPACE_SHOWN:
+                shown = f"{NAMESPACE_SHOWN[kind]}.{name}"
+            else:
+                shown = f"{WRITTEN[kind]}.{name}" if name in words else name
             found.setdefault(shown, [])
             found[shown] += [k for k in keys if k not in found[shown]]
     return {n: found[n] for n in sorted(found, key=sort_key)}
@@ -302,7 +306,9 @@ def other_names_of() -> dict[str, list[str]]:
     """{key: [names other tools use for it]}: the other names turned round."""
     turned: dict[str, list[str]] = {}
     for shown, keys in other_names().items():
-        name = shown.rpartition(".")[2]
+        space, _, name = shown.rpartition(".")
+        if space in NAMESPACE_SHOWN.values():  # str.replace stays str.replace
+            name = shown
         for key in keys:
             if name not in turned.setdefault(key, []):
                 turned[key].append(name)

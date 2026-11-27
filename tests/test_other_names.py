@@ -150,3 +150,172 @@ def test_help_explains_other_names(capsys):
 
 def test_grid_numbers_keep_their_own_words():
     assert isinstance(sdata.number_grid([[1, 2]]), NumberGrid)
+
+
+# ---------------------------------------------------------------- tables finishing PR: the API audit's pointers
+# Every pandas 3.1.1 / Polars 2.1.0 name the audit (2026-11-25) found with a simplydata word but no pointer, or with a
+# wrong one: what sdata.help says now. Names inside .str, .dt and groupby() are typed with their namespace.
+AUDIT_POINTERS = [
+    ("apply", "add_column"), ("arg_max", "keep_biggest_rows"), ("arg_min", "keep_smallest_rows"),
+    ("astype", "turn_into_numbers"), ("backward_fill", "fill_empty_cells_in"),
+    ("bfill", "fill_empty_cells_in"), ("bottom_k", "keep_smallest_rows"), ("bottom_k_by", "keep_smallest_rows"),
+    ("case_when", "add_group_column"), ("cast", "turn_into_numbers"), ("concat_str", "add_column"),
+    ("cum_count", "add_running_column"), ("cum_max", "add_running_column"),
+    ("cum_min", "add_running_column"), ("cummax", "add_running_column"), ("cummin", "add_running_column"),
+    ("cumprod", "add_running_column"), ("date", "add_column"), ("dt.ceil", "round_dates_in"),
+    ("dt.date", "add_column_with_part_of_date"), ("dt.day", "add_column_with_part_of_date"),
+    ("dt.day_name", "add_column_with_part_of_date"), ("dt.day_of_week", "add_column_with_part_of_date"),
+    ("dt.day_of_year", "add_column_with_part_of_date"), ("dt.dayofweek", "add_column_with_part_of_date"),
+    ("dt.dayofyear", "add_column_with_part_of_date"), ("dt.daysinmonth", "add_column_with_part_of_date"),
+    ("dt.floor", "round_dates_in"), ("dt.hour", "add_column_with_part_of_date"),
+    ("dt.minute", "add_column_with_part_of_date"), ("dt.month", "add_column_with_part_of_date"),
+    ("dt.month_name", "add_column_with_part_of_date"), ("dt.month_start", "round_dates_in"),
+    ("dt.ordinal_day", "add_column_with_part_of_date"), ("dt.quarter", "add_column_with_part_of_date"),
+    ("dt.replace", "as_polars"), ("dt.round", "round_dates_in"), ("dt.second", "add_column_with_part_of_date"),
+    ("dt.time", "add_column_with_part_of_date"), ("dt.total_days", "add_column"), ("dt.total_hours", "add_column"),
+    ("dt.total_minutes", "add_column"), ("dt.total_seconds", "add_column"), ("dt.truncate", "round_dates_in"),
+    ("dt.week", "add_column_with_part_of_date"), ("dt.weekday", "add_column_with_part_of_date"),
+    ("dt.year", "add_column_with_part_of_date"), ("ewm_mean", "add_smoothed_column"),
+    ("ewm_mean_by", "add_smoothed_column"), ("ffill", "fill_empty_cells_in"), ("filter", "keep_rows_where"),
+    ("format", "add_column"), ("forward_fill", "fill_empty_cells_in"), ("from_arrow", "table"),
+    ("from_dataframe", "table"), ("from_dict", "table"), ("from_dicts", "table"), ("from_numpy", "table"),
+    ("from_pandas", "table"), ("from_records", "table"), ("group_by_dynamic", "find_average_of"),
+    ("groupby.apply", "as_pandas"), ("groupby.bfill", "fill_empty_cells_in"),
+    ("groupby.cummax", "add_running_column"), ("groupby.cummin", "add_running_column"),
+    ("groupby.ffill", "fill_empty_cells_in"), ("groupby.filter", "keep_groups_where"),
+    ("groupby.get_group", "keep_rows_where"), ("groupby.idxmax", "keep_biggest_rows"),
+    ("groupby.idxmin", "keep_smallest_rows"), ("groupby.kurt", "find_summary_of"),
+    ("groupby.sem", "find_summary_of"), ("groupby.skew", "find_summary_of"), ("groupby.var", "find_summary_of"),
+    ("has_nulls", "count_empty_cells_in"), ("hasnans", "count_empty_cells_in"), ("idxmax", "keep_biggest_rows"),
+    ("idxmin", "keep_smallest_rows"), ("insert", "add_column"), ("insert_column", "add_column"),
+    ("interpolate_by", "fill_empty_cells_in"), ("is_between", "keep_rows_where"), ("is_in", "keep_rows_where"),
+    ("is_not_null", "count_empty_cells_in"), ("isin", "keep_rows_where"), ("kurt", "find_summary_of"),
+    ("kurtosis", "find_summary_of"), ("map", "replace_values_in"), ("map_batches", "add_column"),
+    ("map_columns", "add_column"), ("map_elements", "add_column"), ("map_rows", "add_column"),
+    ("max_by", "keep_biggest_rows"), ("min_by", "keep_smallest_rows"), ("notna", "count_empty_cells_in"),
+    ("notnull", "count_empty_cells_in"), ("null_count", "count_empty_cells_in"), ("read_spss", "table"),
+    ("read_sql_query", "run_sql"), ("read_stata", "table"), ("reindex", "add_missing_combinations_of"),
+    ("replace_strict", "replace_values_in"), ("rolling_max", "add_rolling_column"),
+    ("rolling_max_by", "add_rolling_column"), ("rolling_mean", "add_rolling_column"),
+    ("rolling_mean_by", "add_rolling_column"), ("rolling_median", "add_rolling_column"),
+    ("rolling_median_by", "add_rolling_column"), ("rolling_min", "add_rolling_column"),
+    ("rolling_min_by", "add_rolling_column"), ("rolling_quantile", "add_rolling_column"),
+    ("rolling_quantile_by", "add_rolling_column"), ("rolling_std", "add_rolling_column"),
+    ("rolling_std_by", "add_rolling_column"), ("rolling_sum", "add_rolling_column"),
+    ("rolling_sum_by", "add_rolling_column"), ("rolling_var", "add_rolling_column"),
+    ("rolling_var_by", "add_rolling_column"), ("sem", "find_summary_of"), ("skew", "find_summary_of"),
+    ("str.count", "add_column"), ("str.extract", "add_column_with_part_of_text"),
+    ("str.extract_groups", "add_column_with_part_of_text"), ("str.head", "add_column_with_part_of_text"),
+    ("str.join", "add_column"), ("str.len", "add_column"), ("str.ljust", "add_zeros_in_front_of"),
+    ("str.lstrip", "remove_extra_spaces_in"), ("str.pad", "add_zeros_in_front_of"),
+    ("str.replace", "replace_text_in"), ("str.replace_all", "replace_text_in"), ("str.reverse", "as_polars"),
+    ("str.rstrip", "remove_extra_spaces_in"), ("str.slice", "add_column_with_part_of_text"),
+    ("str.split", "split_column"), ("str.strip_chars", "remove_extra_spaces_in"),
+    ("str.strip_chars_end", "remove_extra_spaces_in"), ("str.strip_chars_start", "remove_extra_spaces_in"),
+    ("str.tail", "add_column_with_part_of_text"), ("str.title", "as_pandas"), ("str.to_date", "turn_into_dates"),
+    ("str.to_decimal", "turn_into_numbers"), ("str.to_integer", "turn_into_numbers"),
+    ("str.to_lowercase", "turn_into_lowercase"), ("str.to_time", "turn_into_dates"),
+    ("str.to_uppercase", "turn_into_uppercase"), ("time", "add_column_with_part_of_date"), ("to_excel", "save"),
+    ("to_feather", "save"), ("to_html", "save"), ("to_json", "save"), ("to_list", "get_column"),
+    ("to_series", "get_column"), ("to_stata", "save"), ("tolist", "get_column"), ("top_k", "keep_biggest_rows"),
+    ("top_k_by", "keep_biggest_rows"), ("truncate", "round_dates_in"), ("update", "fill_empty_cells_from"),
+    ("values", "get_column"), ("var", "find_summary_of"), ("when", "add_group_column"),
+    ("where", "replace_values_in"), ("write_ipc", "save"), ("write_json", "save"), ("write_ndjson", "save"),
+]
+
+
+@pytest.mark.parametrize("typed, word", AUDIT_POINTERS)
+def test_every_name_the_audit_found_points_to_its_word(typed, word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert "it is a name from other tools" in out, typed
+    assert f'sdata.help("{word}")' in out.splitlines()[-1], (typed, out)
+
+
+@pytest.mark.parametrize("typed, shown, word, not_word", [
+    ("str.replace", "str.replace", "replace_text_in", "replace_values_in"),
+    ("Series.str.replace", "str.replace", "replace_text_in", "replace_values_in"),
+    ('df["name"].str.replace("Mr ", "")', "str.replace", "replace_text_in", "replace_values_in"),
+    ('pl.col("name").str.contains("an")', "str.contains", "keep_rows_where", None),
+    ("str.count", "str.count", "count_text", "count_rows"),
+    ("str.len", "str.len", "length(name)", "count_rows"),
+    ("str.split", "str.split", "split_column", "make_one_table_for_each_group_in"),
+    ("str.slice", "str.slice", "add_column_with_part_of_text", "keep_rows_by_position"),
+    ("str.head", "str.head", "first_characters=", "show_first_rows"),
+    ("str.join", "str.join", "by_joining_text=", "join_with"),
+    ("str.title", "str.title", "as_pandas", "write_title_on_top"),
+    ("dt.round", "dt.round", "round_dates_in", "round_numbers_in"),
+    ("Series.dt.year", "dt.year", 'part="year"', None),
+    ('pl.col("date").dt.truncate("1mo")', "dt.truncate", "round_dates_in", None),
+    ("dt.replace", "dt.replace", "as_polars", "replace_values_in"),
+    ("groupby.filter", "groupby.filter", "keep_groups_where", "keep_rows_where"),
+    ('df.groupby("class").filter', "groupby.filter", "keep_groups_where", "keep_rows_where"),
+    ("DataFrameGroupBy.head", "groupby.head", "keep_first_rows", "show_first_rows"),
+    ('df.group_by("class").mean', "groupby.mean", "find_average_of", None),  # not listed: the table meaning
+    ("pd.read_csv", "read_csv", 'sdata.table("my_file.csv")', None),
+    ("pl.DataFrame.join", "join", "join_with", None),
+])
+def test_names_inside_a_namespace_point_to_their_own_word(typed, shown, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(f'simplydata has no word called "{shown}": it is a name from other tools.'), out
+    assert word in out
+    if not_word:
+        assert not_word not in out
+
+
+def test_a_bare_name_lists_its_namespace_meanings_too(capsys):
+    sdata.help("replace")
+    out = capsys.readouterr().out
+    assert '  table.replace: In simplydata this is table.replace_values_in("class", "A", with_value="Alpha").' in out
+    assert '  str.replace: In simplydata this is table.replace_text_in("name", "Mr ", with_value="").' in out
+    sdata.help("filter")
+    out = capsys.readouterr().out
+    assert "  table.filter: " in out and "  groupby.filter: " in out and "keep_groups_where" in out
+
+
+def test_a_text_or_date_name_never_falls_back_to_the_table_meaning(capsys):
+    sdata.help("str.mean")  # not a text step: no pointer, not the table's find_average_of
+    assert "find_average_of" not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("name, words", [
+    ("cummax", ['show="biggest"']), ("cummin", ['show="smallest"']), ("cumprod", ['show="product"']),
+    ("cum_count", ['show="count"']),
+    ("filter", ["table.keep_rows_where(", 'table.keep_columns(contains="week")']),
+    ("isin", ['is_one_of=["A", "B"]', "table.keep_rows_found_in("]),
+    ("to_excel", ['table.save("results.xlsx")']),
+    ("where", ["table.replace_values_in(", "in_rows_where=", "table.keep_rows_where("]),
+    ("unique", ['table.keep_columns("class"), then table.remove_duplicate_rows()',
+                '"From pandas (and Polars) to simplydata"']),
+    ("count", ["table.count_rows()", "table.describe_columns()", 'table.count_each("class")']),
+    ("astype", ["turn_into_numbers", "turn_into_text", "turn_into_dates", "turn_into_categories"]),
+    ("str", ["table.describe_columns()", "str.replace is replace_text_in"]),
+    ("dt", ["table.add_column_with_part_of_date("]),
+    ("between", ["is_between=[50, 70]"]),
+])
+def test_table_pointers_the_audit_found_wrong_or_missing(name, words):
+    table = sdata.table(sdata.get_example("marks"))
+    with pytest.raises(MissingWordError) as info:
+        getattr(table, name)
+    for word in words:
+        assert word in str(info.value), (name, word)
+
+
+@pytest.mark.parametrize("name, word", [("from_dict", "table"), ("from_pandas", "table"), ("read_sql_query", "run_sql"),
+                                        ("read_spss", "table")])
+def test_sdata_pointers_from_the_audit(name, word):
+    with pytest.raises(MissingWordError, match=rf"In simplydata this is sdata\.{word}\("):
+        getattr(sdata, name)
+
+
+def test_other_name_parts():
+    from simplydata._other_names import other_name_parts
+
+    assert other_name_parts("str.replace") == ("text", "replace")
+    assert other_name_parts('df["a b"].str.split(";", n=1)') == ("text", "split")
+    assert other_name_parts("pd.Series.dt.year") == ("dates", "year")
+    assert other_name_parts('df.groupby(["a", "b"]).filter') == ("groups", "filter")
+    assert other_name_parts("pd.merge") == (None, "merge")
+    assert other_name_parts("merge") is None
+    assert other_name_parts("chart.draw_bars") is None  # not a pandas or Polars name

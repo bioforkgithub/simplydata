@@ -2173,20 +2173,36 @@ def _print_one(key: str) -> None:
 def _print_other_names(word) -> bool:
     """sdata.help("minimize"): a name from another tool points to the simplydata word (it never runs).
 
-    Gives back True when something was printed."""
+    Gives back True when something was printed. A name inside a namespace of pandas or Polars looks there first:
+    sdata.help("str.replace") (also "Series.str.replace", 'df["name"].str.replace') points to replace_text_in, not
+    to replace_values_in, and sdata.help("dt.round") to round_dates_in. A name with pd., pl. or DataFrame. in front
+    is the name itself. A bare name lists every meaning, the namespaced ones included ("str.replace: ...")."""
     from ._errors import other_name_pointer, other_name_target
+    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts
 
     w = _normalise(str(word))
-    found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers")]
-    found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+    parts = other_name_parts(w)
+    if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter
+        kind, w = parts
+        pointer = other_name_pointer(kind, w)
+        if pointer is None and kind in NAMESPACE_FALLBACK:  # groupby().mean() means what mean means on a table
+            pointer = other_name_pointer(NAMESPACE_FALLBACK[kind], w)
+        found = [(kind, pointer)] if pointer is not None else []
+        shown = f"{NAMESPACE_SHOWN[kind]}.{w}"
+    else:
+        w = parts[1] if parts is not None else w  # pd.merge, DataFrame.merge -> merge
+        found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
+                                                                 *NAMESPACE_SHOWN)]
+        found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+        shown = w
     if not found:
         return False
-    print(f'simplydata has no word called "{w}": it is a name from other tools.')
+    print(f'simplydata has no word called "{shown}": it is a name from other tools.')
     if len(found) == 1:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {_SHOWN.get(kind, kind)}.{w}: {pointer}")
+            print(f"  {NAMESPACE_SHOWN.get(kind) or _SHOWN.get(kind, kind)}.{w}: {pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
     return True
