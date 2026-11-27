@@ -139,6 +139,21 @@ simplydata also prints each answer as a sentence and names the method it used.
 > compared yet and the word list may still change (an old word keeps working for one release and prints a one-line
 > note with its new name). Read each printout, and check an important result before you publish it.
 
+## Ask: this repository is here to help everyone
+
+simplydata is made to help: the student with a first table, the researcher with a deadline, and the person working
+alone on a server at night. **No question is too small.** If something stopped you, it will stop someone else, and
+your question makes the manual, the messages and the words better for the next person.
+
+- **Something went wrong, or an answer looks wrong:** [Report a problem](https://github.com/bioforkgithub/simplydata/issues/new/choose).
+- **A name, a message, the manual or a lesson was hard to follow:** [Something was confusing](https://github.com/bioforkgithub/simplydata/issues/new/choose). This counts as much as a bug.
+- **You looked for a word that is not there:** [Suggest a word](https://github.com/bioforkgithub/simplydata/issues/new/choose).
+- **Anything else** (how to do a task, which method fits your data, using it on a server):
+  [Discussions](https://github.com/bioforkgithub/simplydata/discussions). Questions others may have are answered
+  there, and the common ones move into [Questions new users ask](#questions-new-users-ask) below.
+
+Please never paste sensitive data into a question: a few made-up rows that show the same problem are enough.
+
 ## Questions new users ask
 
 **Why not just learn pandas or R?**
