@@ -373,9 +373,9 @@ def test_count_each():
 
 def test_summary_names_and_hints():
     nums = numbers([1, 2])
-    with pytest.raises(SimplydataError, match=r"nums\.find_average\(\)"):
+    with pytest.raises(SimplydataError, match=r"numbers\.find_average\(\)"):
         nums.find_average_of()
-    with pytest.raises(SimplydataError, match=r"nums\.find_average\(\)"):
+    with pytest.raises(SimplydataError, match=r"numbers\.find_average\(\)"):
         nums.mean()
     with pytest.raises(SimplydataError, match=r"keep_each_number_that"):
         nums.keep_rows_where()
@@ -460,11 +460,11 @@ def test_charts_and_tables_accept_numbers():
 
 def test_every_word_has_a_docstring_with_an_example():
     # words shared by lists and grids (add, log, undo ...) show the list example
-    for cls, name in ((Numbers, "nums."), (NumberGrid, "grid.")):
+    for cls, name in ((Numbers, "numbers."), (NumberGrid, "grid.")):
         for word in cls._word_names():
             doc = getattr(cls, word).__doc__ or ""
             assert doc.strip(), word
-            assert name in doc or "nums." in doc, f"{cls.__name__}.{word} has no example"
+            assert name in doc or "numbers." in doc, f"{cls.__name__}.{word} has no example"
 
 
 def test_fill_empty_numbers_with_the_line_between_neighbours(capsys):

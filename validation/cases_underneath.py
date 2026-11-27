@@ -396,8 +396,8 @@ def _cases(Case):
              """, parent_label="seaborn barplot"),
         Case("sdata.numbers", "Michelson's 100 measurements as numbers", "NIST Michelso", "published",
              ours="""
-                 nums = sdata.numbers(data["y"].tolist())
-                 {"mean": nums.find_total() / nums.count(), "count": nums.count()}
+                 numbers = sdata.numbers(data["y"].tolist())
+                 {"mean": numbers.find_total() / numbers.count(), "count": numbers.count()}
              """,
              published={"mean": (299.8524, 1e-9, "NIST certified")},
              parent="""
@@ -434,8 +434,8 @@ def _cases(Case):
                                           "standard deviation), seed 1", "NIST Michelso", "real data",
              ours="""
                  m, s = data["y"].mean(), data["y"].std()
-                 nums = sdata.make_random_numbers(how_many=100, average=m, standard_deviation=s, with_seed=1)
-                 {"first": nums.get_number_at(1), "total": nums.find_total()}
+                 numbers = sdata.make_random_numbers(how_many=100, average=m, standard_deviation=s, with_seed=1)
+                 {"first": numbers.get_number_at(1), "total": numbers.find_total()}
              """,
              parent="""
                  m, s = data["y"].mean(), data["y"].std()

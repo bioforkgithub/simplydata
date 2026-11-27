@@ -142,7 +142,7 @@ ENTRIES = [
             out
         """)}, 'test_method="gaussian" (ndimage.gaussian_filter, width=) and "median" (ndimage.median_filter) work the '
                "same way along the directions named.",
-       choices=('ends="empty": the places without a full window are left empty, as nums.smooth; ends="reflect" and '
+       choices=('ends="empty": the places without a full window are left empty, as numbers.smooth; ends="reflect" and '
                 "\"mirror\" keep SciPy's edges of those names.",)),
     _e("grid.smooth", """
             grid = sdata.number_grid([[1.0, 4, 2, 8, 5], [3, 9, 7, 1, 6], [2, 2, 8, 4, 3], [6, 5, 1, 9, 2]])
@@ -200,8 +200,8 @@ ENTRIES = [
        option="in_groups_of="),
     # ---- numbers
     _e("nums.make_random_picks", """
-            nums = sdata.numbers([4.2, 5.1, 3.8, 6.0, 4.9])
-            nums.make_random_picks(how_many=8, with_chances=[0.1, 0.2, 0.3, 0.2, 0.2], with_seed=3)
+            numbers = sdata.numbers([4.2, 5.1, 3.8, 6.0, 4.9])
+            numbers.make_random_picks(how_many=8, with_chances=[0.1, 0.2, 0.3, 0.2, 0.2], with_seed=3)
         """, {"NumPy": """
             import numpy as np
             values = np.array([4.2, 5.1, 3.8, 6.0, 4.9])
@@ -211,8 +211,8 @@ ENTRIES = [
         """}, "with_chances= must add up to 1, as NumPy asks; putting_back=False picks each number at most once.",
        choices=("putting each pick back is the default, as NumPy's choice and a bootstrap sample.",)),
     _e("nums.take_log_odds", """
-            nums = sdata.numbers([0.1, 0.5, 0.8, 0.0])
-            nums.take_log_odds()
+            numbers = sdata.numbers([0.1, 0.5, 0.8, 0.0])
+            numbers.take_log_odds()
         """, {"SciPy": """
             import numpy as np
             from scipy import special
@@ -222,8 +222,8 @@ ENTRIES = [
         """}, "turn_into_chances() takes it back.",
        choices=("0 and 1 have no log-odds (SciPy gives -inf and inf): they become empty, with a note.",)),
     _e("nums.turn_into_chances", """
-            nums = sdata.numbers([-2.2, 0.0, 1.386])
-            nums.turn_into_chances()
+            numbers = sdata.numbers([-2.2, 0.0, 1.386])
+            numbers.turn_into_chances()
         """, {"SciPy": """
             import numpy as np
             from scipy import special

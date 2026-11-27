@@ -34,7 +34,7 @@ class FourierNumberWords:
     def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None, with_zero_in_middle=False):
         """The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
 
-        nums.take_fourier_transform(time_step=0.005)
+        numbers.take_fourier_transform(time_step=0.005)
         Gives back a table: frequency, size, phase (degrees), real part, imaginary part. show="half" (0 up
         to the highest frequency the readings can show, SciPy rfft) or "all" (every frequency, negative
         ones too, SciPy fft). The sizes are R's Mod(fft(x)) and the phases Arg(fft(x)) in degrees.
@@ -82,10 +82,10 @@ class FourierNumberWords:
     def find_envelope(self: _Same, show="envelope", time_step=None, sampling_rate=None, fs=None) -> _Same:
         """The envelope of the numbers: how big the wave is at each moment (from the Hilbert transform).
 
-        nums.find_envelope()
+        numbers.find_envelope()
         show="envelope" (the size of the analytic signal), "phase" (in degrees, unwrapped) or "frequency"
         (how fast the phase turns, cycles per unit of time; the last value is empty). SciPy
-        signal.hilbert, as R gsignal::hilbert. Undo with nums.undo().
+        signal.hilbert, as R gsignal::hilbert. Undo with numbers.undo().
         """
         if show not in ENVELOPE_SHOWS:
             raise choice_error("envelope", "show", show, list(ENVELOPE_SHOWS))
@@ -101,10 +101,10 @@ class FourierNumberWords:
     def convolve_with(self: _Same, other, keep="all") -> _Same:
         """Convolve the numbers with other numbers: each result is a sum of products as one list slides along.
 
-        nums.convolve_with([1, 2, 1])
+        numbers.convolve_with([1, 2, 1])
         keep="all" (every overlap, n + m - 1 numbers; R convolve(x, rev(y), type = "open")), "same" (the
         middle n) or "overlap" (only where they overlap fully; R type = "filter"). SciPy signal.convolve.
-        Sliding sums without the flip: nums.convolve_with(other.reverse()). Undo with nums.undo().
+        Sliding sums without the flip: numbers.convolve_with(other.reverse()). Undo with numbers.undo().
         """
         from scipy import signal
 
@@ -122,9 +122,9 @@ class FourierNumberWords:
     def deconvolve_by(self: _Same, other) -> _Same:
         """Undo a convolution: the numbers divided by other numbers (polynomial division).
 
-        nums.deconvolve_by([1, 2, 3])
+        numbers.deconvolve_by([1, 2, 3])
         Gives the quotient as the new numbers and prints the size of what is left over (the remainder).
-        SciPy signal.deconvolve, as R pracma::deconv. Undo with nums.undo().
+        SciPy signal.deconvolve, as R pracma::deconv. Undo with numbers.undo().
         """
         from scipy import signal
 
@@ -143,13 +143,13 @@ class FourierNumberWords:
     def change_time_step(self, to=None, time_step=None, test_method="fourier", sampling_rate=None, fs=None):
         """Change the time between readings (resample): fewer readings (with a filter first) or more.
 
-        nums.change_time_step(to=0.01, time_step=0.001)
+        numbers.change_time_step(to=0.01, time_step=0.001)
         to= is the new time between readings; time_step= the present one (or remembered). test_method="fourier"
         (SciPy signal.resample: treats the recording as repeating), "polyphase" (SciPy resample_poly with
         the ratio as a fraction, Kaiser window 5) or "filter then keep" (SciPy decimate: a Chebyshev filter
         run both ways, then every n-th reading; to= must be a whole number of steps). Keeping every n-th
         reading without a filter is keep_numbers_by_position(1, step=n), which can fold fast cycles into
-        slow ones (aliasing). The numbers remember the new time step. Undo with nums.undo().
+        slow ones (aliasing). The numbers remember the new time step. Undo with numbers.undo().
         """
         from fractions import Fraction
 

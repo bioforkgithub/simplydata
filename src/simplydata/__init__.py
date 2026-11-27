@@ -9,7 +9,7 @@
     chart.write_title_on_top("Good marks")
     chart.save("marks.png")
 
-Numbers too: nums = sdata.numbers([3, 5, 2, 8]), then nums.find_average().
+Numbers too: numbers = sdata.numbers([3, 5, 2, 8]), then numbers.find_average().
 
 New here? Type sdata.show_lesson(1), or sdata.start_30_days() for an hour a day over 30 days.
 Every word: sdata.show_all_words(). One word: sdata.help("draw_bars").

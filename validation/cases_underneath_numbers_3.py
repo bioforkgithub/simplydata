@@ -50,8 +50,8 @@ def cases(Case):
         # ---------------------------------------------------------------- formulas (SymPy)
         closed("sdata.formula", "(x + 2)^2 - 4 read as a formula, at x = 1.5",
                """
-                   f = sdata.formula("(x + 2)**2 - 4")
-                   {"at 1.5": f.find_value_at(x=1.5)}
+                   formula = sdata.formula("(x + 2)**2 - 4")
+                   {"at 1.5": formula.find_value_at(x=1.5)}
                """, {"at 1.5": (8.25, 1e-15, CLOSED_FORM + ": 3.5^2 - 4")},
                """
                    import sympy as sp
@@ -64,9 +64,9 @@ def cases(Case):
                """),
         closed("f.make_simpler", "(x^2 - 1) / (x - 1) is x + 1: the simpler formula at x = 3 and x = 1",
                """
-                   f = sdata.formula("(x**2 - 1) / (x - 1)")
-                   f.make_simpler()
-                   {"at 3": f.find_value_at(x=3), "at 1": f.find_value_at(x=1)}
+                   formula = sdata.formula("(x**2 - 1) / (x - 1)")
+                   formula.make_simpler()
+                   {"at 3": formula.find_value_at(x=3), "at 1": formula.find_value_at(x=1)}
                """, {"at 3": (4.0, 1e-15, CLOSED_FORM), "at 1": (2.0, 1e-15, CLOSED_FORM + ": the gap at 1 is gone")},
                """
                    import sympy as sp
@@ -76,9 +76,9 @@ def cases(Case):
                """, "SymPy simplify"),
         closed("f.turn_into_sum", "(x + 2)^2 - 4 multiplied out: x^2 + 4x has two terms",
                """
-                   f = sdata.formula("(x + 2)**2 - 4")
-                   f.turn_into_sum()
-                   {"terms": str(f).count("+") + 1, "at 2": f.find_value_at(x=2)}
+                   formula = sdata.formula("(x + 2)**2 - 4")
+                   formula.turn_into_sum()
+                   {"terms": str(formula).count("+") + 1, "at 2": formula.find_value_at(x=2)}
                """, {"terms": (2.0, 0.0, CLOSED_FORM + ": x^2 + 4x"), "at 2": (12.0, 1e-15, CLOSED_FORM)},
                """
                    import sympy as sp
@@ -88,9 +88,9 @@ def cases(Case):
                """, "SymPy expand"),
         closed("f.turn_into_product", "x^2 + 4x as a product: x (x + 4), two factors",
                """
-                   f = sdata.formula("x**2 + 4*x")
-                   f.turn_into_product()
-                   {"factors": str(f).count("*") + 1, "at 3": f.find_value_at(x=3)}
+                   formula = sdata.formula("x**2 + 4*x")
+                   formula.turn_into_product()
+                   {"factors": str(formula).count("*") + 1, "at 3": formula.find_value_at(x=3)}
                """, {"factors": (2.0, 0.0, CLOSED_FORM + ": x (x + 4)"), "at 3": (21.0, 1e-15, CLOSED_FORM)},
                """
                    import sympy as sp
@@ -129,9 +129,9 @@ def cases(Case):
                """),
         closed("f.find_value_at", "x^3 - 2x at x = 2.5, and at four values at once",
                """
-                   f = sdata.formula("x**3 - 2*x")
-                   many = f.find_value_at(x=[0, 1, 2, 3])
-                   {"at 2.5": f.find_value_at(x=2.5), "total at 0 to 3": many.find_total()}
+                   formula = sdata.formula("x**3 - 2*x")
+                   many = formula.find_value_at(x=[0, 1, 2, 3])
+                   {"at 2.5": formula.find_value_at(x=2.5), "total at 0 to 3": many.find_total()}
                """, {"at 2.5": (10.625, 1e-15, CLOSED_FORM), "total at 0 to 3": (24.0, 1e-12, CLOSED_FORM)},
                """
                    import sympy as sp
@@ -283,9 +283,9 @@ def cases(Case):
         Case("nums.turn_into_running_area", "AirPassengers: passengers so far, month by month (trapezoid rule)",
              "AirPassengers", "real data",
              ours="""
-                 nums = sdata.numbers(data["passengers"].tolist())
-                 nums.turn_into_running_area(time_step=1)
-                 {"after a year": nums.get_number_at(13), "whole area": nums.get_number_at("last")}
+                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers.turn_into_running_area(time_step=1)
+                 {"after a year": numbers.get_number_at(13), "whole area": numbers.get_number_at("last")}
              """,
              parent="""
                  from scipy import integrate
@@ -300,9 +300,9 @@ def cases(Case):
         Case("nums.turn_into_running_area", "AirPassengers: passengers so far by Simpson's rule",
              "AirPassengers", "real data", option="test_method=",
              ours="""
-                 nums = sdata.numbers(data["passengers"].tolist())
-                 nums.turn_into_running_area(time_step=1, test_method="simpson")
-                 {"after a year": nums.get_number_at(13), "whole area": nums.get_number_at("last")}
+                 numbers = sdata.numbers(data["passengers"].tolist())
+                 numbers.turn_into_running_area(time_step=1, test_method="simpson")
+                 {"after a year": numbers.get_number_at(13), "whole area": numbers.get_number_at("last")}
              """,
              parent="""
                  from scipy import integrate
@@ -312,9 +312,9 @@ def cases(Case):
         Case("nums.take_cube_root", "the cube roots of Michelson's measurements less their average (some negative)",
              "NIST Michelso", "real data",
              ours="""
-                 nums = sdata.numbers((data["y"] - 299.85).tolist())
-                 nums.take_cube_root()
-                 {"total": nums.find_total(), "smallest": nums.find_smallest()}
+                 numbers = sdata.numbers((data["y"] - 299.85).tolist())
+                 numbers.take_cube_root()
+                 {"total": numbers.find_total(), "smallest": numbers.find_smallest()}
              """,
              parent="""
                  r = np.cbrt(data["y"].to_numpy() - 299.85)
@@ -356,10 +356,10 @@ def cases(Case):
         Case("nums.take_cosine_transform", "the level of Lake Huron, 1875-1972, as cosine waves",
              "Lake Huron", "real data",
              ours="""
-                 nums = sdata.numbers(data["level"].tolist())
-                 nums.take_cosine_transform()
-                 {"first": nums.get_number_at(1), "second": nums.get_number_at(2),
-                  "sum of squares": (nums ** 2).find_total()}
+                 numbers = sdata.numbers(data["level"].tolist())
+                 numbers.take_cosine_transform()
+                 {"first": numbers.get_number_at(1), "second": numbers.get_number_at(2),
+                  "sum of squares": (numbers ** 2).find_total()}
              """,
              parent="""
                  from scipy import fft

@@ -22,7 +22,7 @@ class SignalMoreTableWords:
         One condition: keep_below=, keep_above=, keep_between=[low, high], remove_between=[low, high] or
         remove_at= one frequency (a notch, width= how wide). Frequencies are cycles per unit of the
         sorted_by column (per second for seconds, per day for dates). The options are those of
-        nums.keep_each_frequency_that (test_method=, steepness=, both_ways=, show_filter=True ...). The readings must be evenly
+        numbers.keep_each_frequency_that (test_method=, steepness=, both_ways=, show_filter=True ...). The readings must be evenly
         spaced and filled in. for_each_group_in= filters each group on its own. Undo with table.undo().
         """
         from ..numbers.filter_words import filter_call, filter_numbers, show_filter_chart
@@ -150,7 +150,7 @@ class SignalMoreTableWords:
 
         table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)   (with sdata.get_example("sensor"))
         apart= and wide_at_least= are in units of the sorted_by column (readings without it). The other
-        options and the result are those of nums.find_each_peak_that, with the sorted_by value of each peak.
+        options and the result are those of numbers.find_each_peak_that, with the sorted_by value of each peak.
         Empty cells are never peaks. SciPy signal.find_peaks, as R pracma::findpeaks.
         """
         return self._table_peaks(False, column, sorted_by, is_at_least, None, apart, stands_out_by, wide_at_least,

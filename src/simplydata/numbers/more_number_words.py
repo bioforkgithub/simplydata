@@ -148,19 +148,20 @@ class MoreNumberWords:
 
     @friendly
     def round_down(self: _Same) -> _Same:
-        """Round every number down to a whole number: 2.7 becomes 2 and -2.3 becomes -3 (NumPy floor). nums.round_down()"""
+        """Round every number down to a whole number: 2.7 becomes 2 and -2.3 becomes -3 (NumPy floor). numbers.round_down()"""
         return self._whole("round_down", np.floor, "round down to whole numbers")
 
     @friendly
     def round_up(self: _Same) -> _Same:
-        """Round every number up to a whole number: 2.1 becomes 3 and -2.7 becomes -2 (NumPy ceil). nums.round_up()"""
+        """Round every number up to a whole number: 2.1 becomes 3 and -2.7 becomes -2 (NumPy ceil).
+        numbers.round_up()"""
         return self._whole("round_up", np.ceil, "round up to whole numbers")
 
     @friendly
     def take_whole_part(self: _Same) -> _Same:
         """Keep the whole part of every number, dropping the decimals: 2.7 becomes 2 and -2.7 becomes -2 (NumPy trunc).
 
-        nums.take_whole_part()
+        numbers.take_whole_part()
         round_down goes down (-2.7 becomes -3); take_whole_part goes towards 0.
         """
         return self._whole("take_whole_part", np.trunc, "take the whole part")
@@ -179,17 +180,17 @@ class MoreNumberWords:
 
     @friendly
     def take_sin(self: _Same, degrees=False) -> _Same:
-        """The sine of every number; angles in radians, as NumPy, or degrees=True. nums.take_sin(degrees=True)"""
+        """The sine of every number; angles in radians, as NumPy, or degrees=True. numbers.take_sin(degrees=True)"""
         return self._trig(np.sin, degrees)
 
     @friendly
     def take_cos(self: _Same, degrees=False) -> _Same:
-        """The cosine of every number; angles in radians, as NumPy, or degrees=True. nums.take_cos(degrees=True)"""
+        """The cosine of every number; angles in radians, as NumPy, or degrees=True. numbers.take_cos(degrees=True)"""
         return self._trig(np.cos, degrees)
 
     @friendly
     def take_tan(self: _Same, degrees=False) -> _Same:
-        """The tangent of every number; angles in radians, as NumPy, or degrees=True. nums.take_tan(degrees=True)
+        """The tangent of every number; angles in radians, as NumPy, or degrees=True. numbers.take_tan(degrees=True)
 
         At 90 degrees the tangent has no finite value; NumPy gives a very big number there.
         """
@@ -197,7 +198,8 @@ class MoreNumberWords:
 
     @friendly
     def change_angles_to(self: _Same, unit=None) -> _Same:
-        """Change angles from radians to degrees, or back (NumPy rad2deg, deg2rad). nums.change_angles_to("degrees")"""
+        """Change angles from radians to degrees, or back (NumPy rad2deg, deg2rad).
+        numbers.change_angles_to("degrees")"""
         if unit not in ANGLE_UNITS:
             raise choice_error("change_angles_to", "unit", unit, list(ANGLE_UNITS))
         func = np.rad2deg if unit == "degrees" else np.deg2rad
@@ -231,11 +233,11 @@ class MoreNumberWords:
     def turn_into_yes_or_no(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                             is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
                             is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
-        """New yes or no values, one for each number: yes where the number passes the test. warm = nums.turn_into_yes_or_no(is_above=20)
+        """New yes or no values, one for each number: yes where the number passes the test. warm = numbers.turn_into_yes_or_no(is_above=20)
 
         The same conditions as keep_each_number_that; empty numbers are no (except is_empty=True). Join tests with
         & (both), | (either) and ~ (not): warm & ~salty. The numbers themselves do not change.
-        NumPy: nums > 20 (a bool array).
+        NumPy: numbers > 20 (a bool array).
         """
         if extra:
             raise SimplydataError("turn_into_yes_or_no() needs one condition, like is_above=20."
@@ -285,19 +287,19 @@ class MoreNumberWords:
 
     @friendly
     def keep_numbers_where(self: _Same, yes_no=None) -> _Same:
-        """Keep the numbers where the yes or no values say yes. nums.keep_numbers_where(deep)
+        """Keep the numbers where the yes or no values say yes. numbers.keep_numbers_where(deep)
 
         deep = depth.turn_into_yes_or_no(is_above=100) makes the yes or no values. Numbers drop the others (NumPy
-        nums[deep]); a grid or block keeps its shape and the others become empty (NumPy np.where(deep, nums, nan);
+        numbers[deep]); a grid or block keeps its shape and the others become empty (NumPy np.where(deep, numbers, nan);
         xarray's where does the same).
         """
         return self._where("keep_numbers_where", yes_no, keep=True)
 
     @friendly
     def remove_numbers_where(self: _Same, yes_no=None) -> _Same:
-        """Remove the numbers where the yes or no values say yes. nums.remove_numbers_where(land)
+        """Remove the numbers where the yes or no values say yes. numbers.remove_numbers_where(land)
 
-        Numbers drop them (NumPy nums[~land]); a grid or block keeps its shape and they become empty.
+        Numbers drop them (NumPy numbers[~land]); a grid or block keeps its shape and they become empty.
         """
         return self._where("remove_numbers_where", yes_no, keep=False)
 
@@ -324,9 +326,10 @@ class MoreNumberWords:
 
     @friendly
     def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN) -> _Same:
-        """Replace the numbers where the yes or no values say yes. nums.replace_numbers_where(land, with_value="empty")
+        """Replace the numbers where the yes or no values say yes.
+        numbers.replace_numbers_where(land, with_value="empty")
 
-        with_value= a number, or "empty" (None works too). NumPy np.where(land, value, nums).
+        with_value= a number, or "empty" (None works too). NumPy np.where(land, value, numbers).
         """
         mask = self._mask_from(yes_no, "replace_numbers_where")
         if with_value is NOT_GIVEN:
@@ -348,10 +351,11 @@ class MoreNumberWords:
     def count_numbers_that(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                            is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN,
                            is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN, over=None, in_each=None):
-        """How many numbers pass a test, for all of them or along a direction. nums.count_numbers_that(is_above=25)
+        """How many numbers pass a test, for all of them or along a direction. numbers.count_numbers_that(is_above=25)
 
         On yes or no values without a test, it counts the yes. Grids and blocks take over= (sst.count_numbers_that(
-        is_above=25, over="time") gives warm days per grid cell) or in_each=. NumPy np.count_nonzero(nums > 25, axis=).
+        is_above=25, over="time") gives warm days per grid cell) or in_each=. NumPy
+        np.count_nonzero(numbers > 25, axis=).
         """
         if extra:
             raise SimplydataError("count_numbers_that() needs one condition, like is_above=25."
@@ -406,7 +410,7 @@ class MoreNumberWords:
     def check_if_all_numbers(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                              is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
                              is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, over=None):
-        """Check whether every number passes a test: it says so and gives back True or False. nums.check_if_all_numbers(is_at_least=0)
+        """Check whether every number passes a test: it says so and gives back True or False. numbers.check_if_all_numbers(is_at_least=0)
 
         Empty numbers are skipped. over= gives one answer for each position of the other directions. NumPy np.all.
         """
@@ -420,7 +424,7 @@ class MoreNumberWords:
     def check_if_any_number(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                             is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
                             is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, over=None):
-        """Check whether at least one number passes a test: it says so and gives back True or False. nums.check_if_any_number(is_above=30)
+        """Check whether at least one number passes a test: it says so and gives back True or False. numbers.check_if_any_number(is_above=30)
 
         Empty numbers are skipped. over= gives one answer for each position of the other directions. NumPy np.any.
         """
@@ -433,7 +437,7 @@ class MoreNumberWords:
     # ------------------------------------------------------------------ comparing (decision 11)
     @friendly
     def check_if_same_as(self, other=None, within=None) -> bool:
-        """Check whether these numbers and others are the same: it says so and gives back True or False. nums.check_if_same_as(other, within=0.001)
+        """Check whether these numbers and others are the same: it says so and gives back True or False. numbers.check_if_same_as(other, within=0.001)
 
         The same shape and the same numbers; two empty values count as the same. within= allows a difference up to
         that much (0.1 + 0.2 is not exactly 0.3 in a computer). NumPy np.array_equal, or np.allclose(rtol=0, atol=within).
@@ -501,7 +505,7 @@ class MoreNumberWords:
 
     @friendly
     def find_where_biggest(self, over=None):
-        """Where the biggest number is, counting from 1 (NumPy argmax + 1). nums.find_where_biggest()
+        """Where the biggest number is, counting from 1 (NumPy argmax + 1). numbers.find_where_biggest()
 
         Numbers give its position; grids and blocks its position in every direction, said with names. over= gives
         one position for each position of the other directions: scores.find_where_biggest(over="class"). Empty values are skipped; on a tie, the first.
@@ -510,7 +514,7 @@ class MoreNumberWords:
 
     @friendly
     def find_where_smallest(self, over=None):
-        """Where the smallest number is, counting from 1 (NumPy argmin + 1). nums.find_where_smallest()
+        """Where the smallest number is, counting from 1 (NumPy argmin + 1). numbers.find_where_smallest()
 
         As find_where_biggest: a position for numbers, one in every direction for grids and blocks, over= for one
         position along a direction.
@@ -521,7 +525,7 @@ class MoreNumberWords:
     @friendly
     def make_pair_table_with(self, other=None, by_adding=False, by_subtracting=False, by_multiplying=False,
                              by_dividing=False, as_blocks=False):
-        """A new table of every pair: each number with each of the other numbers (NumPy outer). nums.make_pair_table_with(depths, by_subtracting=True)
+        """A new table of every pair: each number with each of the other numbers (NumPy outer). numbers.make_pair_table_with(depths, by_subtracting=True)
 
         Multiplying is the default (the times table); by_adding=, by_subtracting= or by_dividing=True for the others.
         as_blocks=True puts a copy of the other numbers, times each number, in its place (NumPy kron).

@@ -158,7 +158,7 @@ UNITS = {
             "Look closely at the brackets: square brackets [ ] make a list, round brackets ( ) call a "
             "word, and curly brackets { } make a table by hand.",
             'Then type sdata.help("find_average") and read what it says.',
-            "Let the editor type the long names: type nums.find and press Tab in Jupyter, or wait a moment in "
+            "Let the editor type the long names: type numbers.find and press Tab in Jupyter, or wait a moment in "
             "VS Code (Ctrl+Space brings the list up). Every word that starts with find appears; choose one with "
             "the arrow keys and Enter."],
         examples=[[
@@ -168,12 +168,12 @@ UNITS = {
             ("print(round(3.14159, 2))", "Two things in the brackets, separated by a comma: round 3.14159 "
                                          "to 2 decimals."),
             ("import simplydata as sdata", 'Load simplydata. From now on we call it by its short name, sdata.'),
-            ("nums = sdata.numbers(marks)", "numbers is a word of sdata: the point joins a thing and its "
-                                            "word. We call the result nums."),
-            ("nums.find_average()", "A step on the numbers: it prints the answer in a sentence. Empty brackets "
-                               "still have to be there."),
-            ("nums.keep_each_number_that(is_above=50)", "is_above=50 is an option with a name: the name, =, the value."),
-            ("nums.show()", "Show the numbers that are left."),
+            ("numbers = sdata.numbers(marks)", "sdata.numbers is a word of sdata: the point joins a thing and its "
+                                               "word. We call the result numbers."),
+            ("numbers.find_average()", "A step on the numbers: it prints the answer in a sentence. Empty brackets "
+                                       "still have to be there."),
+            ("numbers.keep_each_number_that(is_above=50)", "is_above=50 is an option with a name: the name, =, the value."),
+            ("numbers.show()", "Show the numbers that are left."),
             ('kids = {"name": ["Asha", "Ben"], "height": [144, 152]}', "A table typed by hand: each column "
                                                                       "name with its list of values."),
             ("table = sdata.table(kids)", "Turn it into a simplydata table."),
@@ -181,19 +181,19 @@ UNITS = {
         ]],
         recall=[
             ("How do you write a list of the numbers 3, 5 and 2?", "[3, 5, 2]: square brackets, commas between."),
-            ("In nums.keep_each_number_that(is_above=50), what is is_above=50?",
+            ("In numbers.keep_each_number_that(is_above=50), what is is_above=50?",
              "An option with a name: the name, =, and the value, inside the round brackets."),
             ("What does every simplydata program start with?", "import simplydata as sdata"),
-            ("Which word gives the average of numbers called nums?", "nums.find_average()"),
+            ("Which word gives the average of the numbers you called numbers?", "numbers.find_average()"),
         ],
         task=["Make a list of five temperatures, turn it into simplydata numbers, and find the biggest one "
               "and the median."],
         solutions=[(_code('''
             import simplydata as sdata
             temperatures = [4, 9, 13, 17, 20]
-            nums = sdata.numbers(temperatures)
-            nums.find_biggest()
-            nums.find_median()'''),
+            numbers = sdata.numbers(temperatures)
+            numbers.find_biggest()
+            numbers.find_median()'''),
             "The biggest is 20 and the median (the middle value when they are in order) is 13.")],
     ),
     "py_errors": dict(
@@ -212,7 +212,7 @@ UNITS = {
              "one, and so does every bracket."),
             ('sdata.get_example("wether")', 'Did you mean sdata.get_example("weather")',
              "simplydata's own errors say what went wrong and suggest the word you probably meant."),
-            ("nums = sdata.numbers([3, 5, 2])\nnums.find_avrage()", "Did you mean .find_average()",
+            ("numbers = sdata.numbers([3, 5, 2])\nnumbers.find_avrage()", "Did you mean .find_average()",
              "A misspelt step: simplydata lists the steps you can use and the nearest one."),
         ],
         recall=[
@@ -224,11 +224,11 @@ UNITS = {
              "Quote marks and brackets: every one that opens must be closed."),
         ],
         task=['Find and fix the two mistakes in these lines, then run them: '
-              'nums = sdata.numbers([4, 8, 6) and then nums.averag()'],
+              'numbers = sdata.numbers([4, 8, 6) and then numbers.averag()'],
         solutions=[(_code('''
             import simplydata as sdata
-            nums = sdata.numbers([4, 8, 6])
-            nums.find_average()'''),
+            numbers = sdata.numbers([4, 8, 6])
+            numbers.find_average()'''),
             "The list needs its closing ] before the ), and the word is average. The average is 6.")],
     ),
     # ------------------------------------------------------------ charts (lessons 1 to 8)
@@ -563,8 +563,8 @@ UNITS = {
         lessons=[13],
         words=["sdata.numbers", "sdata.make_random_numbers", "nums.find_median", "nums.find_percentile", "sdata.number_grid"],
         recall=[
-            ("How do you make simplydata numbers from a list?", "nums = sdata.numbers([12, 15, 9, 20, 14])"),
-            ("Which word gives the middle value of numbers?", "nums.find_median()"),
+            ("How do you make simplydata numbers from a list?", "numbers = sdata.numbers([12, 15, 9, 20, 14])"),
+            ("Which word gives the middle value of numbers?", "numbers.find_median()"),
             ("How do you make 100 random numbers with average 50 and standard deviation 10, the same every time?",
              "sdata.make_random_numbers(how_many=100, average=50, standard_deviation=10, with_seed=1)"),
             ("How do you get the number in row 1, column 2 of a grid?", "grid.get_number_at(row=1, column=2)"),
@@ -910,7 +910,7 @@ UNITS = {
         recall=[
             ("How do you make a normal distribution with average 50 and standard deviation 10?",
              'sdata.distribution("normal", average=50, standard_deviation=10)'),
-            ("Which word gives the chance of a value above 80?", "dist.find_chance_that_value(is_above=80)"),
+            ("Which word gives the chance of a value above 80?", "distribution.find_chance_that_value(is_above=80)"),
             ("Which word fits a distribution to a column?", 'table.fit_distribution_to("days_absent", "negative binomial")'),
         ],
         task=["Heights are normal with average 150 and standard deviation 8. What share is taller than 165? "
@@ -1031,8 +1031,8 @@ UNITS = {
             import simplydata as sdata
             table = sdata.table(sdata.get_example("growth"))
             table.fit_formula("forest = a + b * (year - 2000)", for_each_group_in="country")
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.find_chance_that_value(is_above=70)'''),
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.find_chance_that_value(is_above=70)'''),
             "fit_formula and chance: the fit_ family on a table, and the distribution words. About 2 % of marks "
             "are above 70.")],
     ),

@@ -592,9 +592,9 @@ def cases(Case):
         Case("dist.make_random_numbers", "mtcars: random numbers from a normal curve shaped like fuel use, seed 1",
              "mtcars", "real data",
              ours=_join(MPG_NORMAL, """
-                 nums = sdata.distribution("normal", average=m, standard_deviation=s).make_random_numbers(
+                 numbers = sdata.distribution("normal", average=m, standard_deviation=s).make_random_numbers(
                      how_many=32, with_seed=1)
-                 {"first": nums.get_number_at(1), "total": nums.find_total()}
+                 {"first": numbers.get_number_at(1), "total": numbers.find_total()}
              """),
              parent=_join(MPG_NORMAL, """
                  from scipy import stats

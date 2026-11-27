@@ -290,7 +290,7 @@ class NumberBlock(BlockLabelWords, SmoothOverWords, ChanceWords, MoreNumberWords
 
     @friendly
     def get_all_numbers(self):
-        """Every number of the block in one list, the last direction fastest (NumPy ravel). nums = block.get_all_numbers()"""
+        """Every number of the block in one list, the last direction fastest (NumPy ravel). numbers = block.get_all_numbers()"""
         from .numbers import Numbers
 
         return Numbers(self._values.ravel().copy())

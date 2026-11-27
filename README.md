@@ -362,7 +362,7 @@ data" at the top of this page means the promises below, and automatic tests chec
 - **The only network use is one you ask for:** `sdata.table("https://...")` downloads the table at a web address
   you give: one request for that file, with none of your data. It follows the address on only to another https
   address. Everything else, R included, runs fully offline.
-- **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `nums.save(...)` and
+- **Files are written only where you ask:** `table.save(...)`, `chart.save(...)`, `numbers.save(...)` and
   `save_as=`. R draws into nothing, never into an `Rplots.pdf`. `sdata.start_30_days()` keeps the dates of your
   learning days in `.simplydata/progress.json` in your home folder (no data). Temporary files are deleted at once:
   an SPSS file read from a web address, and R's own session folder when Python ends.

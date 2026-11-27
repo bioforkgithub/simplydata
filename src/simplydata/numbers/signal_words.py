@@ -1,4 +1,4 @@
-"""Numbers words for signals: nums.find_spectrum(time_step=0.01)."""
+"""Numbers words for signals: numbers.find_spectrum(time_step=0.01)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ class SignalNumberWords:
                       between=None, time_points=None, sampling_rate=None, fs=None):
         """Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
-        nums.find_spectrum(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
+        numbers.find_spectrum(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
         time_step= is the time between readings (sampling_rate= or fs=, readings per unit of time, are
         accepted instead); without it the frequencies are in cycles per reading. test_method="periodogram"
         (the default; SciPy periodogram, one-sided, scaled so that the powers times the frequency step
@@ -49,7 +49,7 @@ class SignalNumberWords:
             if np.isnan(values).any():
                 raise SimplydataError(f"find_spectrum() needs a value at every step, but {int(np.isnan(values).sum())} "
                                       "numbers are empty. Fill them first, for example "
-                                      'nums.fill_empty_numbers(with_the="line between neighbours").')
+                                      'numbers.fill_empty_numbers(with_the="line between neighbours").')
             step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), step_name)
             t = None
             unit = "rows" if (time_step is None and sampling_rate is None and fs is None and
@@ -66,7 +66,7 @@ class TimeSeriesNumberWords:
     def find_autocorrelation(self, rows_back=None, show="correlation", band="white noise"):
         """How much the numbers are like themselves some places back (autocorrelation), with a noise band.
 
-        nums.find_autocorrelation(rows_back=24)
+        numbers.find_autocorrelation(rows_back=24)
         As table.find_autocorrelation_of: R acf (show="correlation"), pacf ("partial") or the
         covariance, the white-noise or Bartlett band, and the Ljung-Box test, from statsmodels with
         R's options. The numbers are taken in order, evenly spaced, with no empty values.
@@ -79,8 +79,8 @@ class TimeSeriesNumberWords:
         values = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(values).any():
             raise SimplydataError(f"find_autocorrelation() needs a value at every place, but {int(np.isnan(values).sum())} "
-                                  'numbers are empty. Fill them first: nums.fill_empty_numbers(with_the="line between '
-                                  'neighbours").')
+                                  'numbers are empty. Fill them first: numbers.fill_empty_numbers('
+                                  'with_the="line between neighbours").')
         got = _time_series.autocorrelation(values, rows_back, show, band, step_name)
         print(_time_series.sentence(got, "The numbers", show, band))
         print(_time_series.method_sentence(show, band, got["k"]))
@@ -96,7 +96,7 @@ class TimeSeriesNumberWords:
                  season="added", order=None, seasonal_order=None, interval=95, check_on_last=None, show="forecast"):
         """Forecast the next numbers, with an interval for each (R forecast and stats, run in R).
 
-        nums.forecast(steps_ahead=12, repeats_every=12)
+        numbers.forecast(steps_ahead=12, repeats_every=12)
         As table.forecast: the numbers are taken in order, one step apart, and called "numbers" in the
         sentences. test_method= "exponential smoothing" (R HoltWinters), "last value", "same season last
         time", "average", "straight on" or "arima" (with order=); repeats_every= is a whole number of

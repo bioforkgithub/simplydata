@@ -254,7 +254,7 @@ class BaseTable:
 
         Only needed when another library wants pandas: simplydata words never need it. It is a copy: changing df
         does not change the table, and later steps on the table do not change df (as as_polars() and
-        nums.as_numpy()).
+        numbers.as_numpy()).
         """
         return _independent_native(self._frame.to_pandas())
 

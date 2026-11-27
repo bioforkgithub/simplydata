@@ -150,9 +150,9 @@ the word has one entry with a part for each, marked
 \kind{table} \code{table.keep\_rows\_where(...)} & a step on a table\\
 \kind{chart} \code{chart.draw\_bars(...)} & a step on a chart\\
 \kind{option} \code{show="median"} & an option inside a chart step\\
-\kind{nums} \code{nums.find\_average()} & a step on numbers: \code{nums = sdata.numbers([12, 15, 9])}\\
+\kind{nums} \code{nums.find\_average()} & a step on numbers: \code{numbers = sdata.numbers([12, 15, 9])}\\
 \kind{grid} \code{grid.get\_row(1)} & a step on a grid: \code{grid = sdata.number\_grid([[3, 5], [8, 6]])}\\
-\kind{dist} \code{dist.find\_chance\_that\_value(is\_above=60)} & a step on a distribution: \code{dist = sdata.distribution("normal")}\\
+\kind{dist} \code{dist.find\_chance\_that\_value(is\_above=60)} & a step on a distribution: \code{distribution = sdata.distribution("normal")}\\
 \end{tabular}
 \end{center}
 Know the name from pandas, R, NumPy or matplotlib (\code{groupby}, \code{iloc}, \code{hist},
@@ -175,7 +175,7 @@ should do, then the details: \code{table.keep\_rows\_where("marks", is\_above=50
   \item \textbf{One option name means one thing everywhere}: \code{for\_each\_group\_in=} (a result for each
     group of a table), \code{in\_each="row"} (a result for each row of a grid), conditions start with \code{is\_} (\code{is\_above=}, \code{is\_between=[low, high]}),
     \code{colour=}, \code{from\_column=}.
-  \item \textbf{Counting starts at 1}, as people count: \code{nums.get\_number\_at(1)} is the first number,
+  \item \textbf{Counting starts at 1}, as people count: \code{numbers.get\_number\_at(1)} is the first number,
     \code{grid.get\_row(1)} the top row.
   \item \textbf{Every change can be taken back} with \code{undo()}.
 \end{itemize}
@@ -263,7 +263,8 @@ def sort_key(word: str) -> tuple:
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
-    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|nums|grid|block|dist)\.(\w+)\(", written):
+    for m in re.finditer(r"(?<![\w.)])(sdata|table|chart|numbers|nums|grid|block|distribution|dist|formula)\.(\w+)\(",
+                         written):
         base = f"{m.group(1)}.{m.group(2)}"
         end = make_manual._balanced(written, m.end() - 1, "(", ")")
         name = base
@@ -494,16 +495,16 @@ chart = table.start_chart()             # or sdata.chart(table), sdata.chart("my
 chart.draw_bars(x="class", y="marks", error="standard error")
 chart.write_title_on_top("Good marks")
 chart.save("marks.png")
-nums = sdata.numbers([12, 15, 9, 20, 14])
-bigger = nums * 2                       # symbols make new numbers
-nums.keep_each_number_that(is_above=10) # words change the numbers (undo() takes it back)
-nums.find_average()
+numbers = sdata.numbers([12, 15, 9, 20, 14])
+bigger = numbers * 2                       # symbols make new numbers
+numbers.keep_each_number_that(is_above=10) # words change the numbers (undo() takes it back)
+numbers.find_average()
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 \end{verbatim}}
 Every example runs as written on the practice table in brackets after it: \code{(weather)} means
 \code{weather = sdata.get\_example("weather")}, then \code{chart = sdata.chart(weather)} for a chart
 word or \code{table = sdata.table(weather)} for a table word. Number words use
-\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, grid words
+\code{numbers = sdata.numbers([12, 15, 9, 20, 14])}, grid words
 \code{grid = sdata.number\_grid([[3, 5, 2], [8, 6, 4]])} and system words
 \code{system = sdata.system("1 / (s**2 + 2*s + 5)")}. Steps such as \code{fit\_line} or
 \code{write\_title\_on\_top} go after a chart step such as \code{chart.draw\_dots(...)}, and \code{a},

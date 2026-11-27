@@ -1,6 +1,6 @@
 """Maths words. They CHANGE the numbers you have, and undo() takes them back.
 
-For NEW numbers use the symbols instead: nums + 5, nums * 2, nums ** 2. Both give the
+For NEW numbers use the symbols instead: numbers + 5, numbers * 2, numbers ** 2. Both give the
 same answer, because they share one calculation (see _base.calculate).
 """
 
@@ -20,35 +20,35 @@ class MathsWords:
     # ------------------------------------------------------------------ the four sums and power
     @friendly
     def add(self: _Same, number=None) -> _Same:
-        """Add a number to every number (or add numbers one by one). nums.add(5)
+        """Add a number to every number (or add numbers one by one). numbers.add(5)
 
-        For new numbers, write bigger = nums + 5 instead.
+        For new numbers, write bigger = numbers + 5 instead.
         """
         return self._sum_word("add", number)
 
     @friendly
     def subtract(self: _Same, number=None) -> _Same:
-        """Take a number away from every number. nums.subtract(2)
+        """Take a number away from every number. numbers.subtract(2)
 
-        For new numbers, write smaller = nums - 2 instead.
+        For new numbers, write smaller = numbers - 2 instead.
         """
         return self._sum_word("subtract", number)
 
     @friendly
     def times(self: _Same, number=None) -> _Same:
-        """Multiply every number by a number. nums.times(2)
+        """Multiply every number by a number. numbers.times(2)
 
-        For new numbers, write double = nums * 2 instead.
+        For new numbers, write double = numbers * 2 instead.
         """
         return self._sum_word("times", number)
 
     @friendly
     def divide_by(self: _Same, number=None, rounding_down=False) -> _Same:
-        """Divide every number by a number. nums.divide_by(4)
+        """Divide every number by a number. numbers.divide_by(4)
 
         Dividing by 0 has no answer, so those values become empty and a note says how many.
         rounding_down=True keeps the whole part, rounded down, also for minus numbers: -7 divided by 2 gives -4
-        (NumPy floor_divide, Python's //). For new numbers, write quarter = nums / 4 instead.
+        (NumPy floor_divide, Python's //). For new numbers, write quarter = numbers / 4 instead.
         """
         if rounding_down is True:
             return self._floor_divide(number)
@@ -58,9 +58,9 @@ class MathsWords:
 
     @friendly
     def raise_to_power(self: _Same, number=None) -> _Same:
-        """Raise every number to a power: raise_to_power(2) squares, raise_to_power(3) cubes. nums.raise_to_power(2)
+        """Raise every number to a power: raise_to_power(2) squares, raise_to_power(3) cubes. numbers.raise_to_power(2)
 
-        raise_to_power(0.5) is the same as the square root. For new numbers, write squares = nums ** 2.
+        raise_to_power(0.5) is the same as the square root. For new numbers, write squares = numbers ** 2.
         """
         return self._sum_word("power", number)
 
@@ -71,7 +71,7 @@ class MathsWords:
 
     @friendly
     def take_square_root(self: _Same) -> _Same:
-        """The square root of every number: 9 becomes 3. nums.take_square_root()
+        """The square root of every number: 9 becomes 3. numbers.take_square_root()
 
         Negative numbers have no square root among ordinary numbers, so they become empty.
         """
@@ -84,12 +84,12 @@ class MathsWords:
 
     @friendly
     def take_absolute_value(self: _Same) -> _Same:
-        """Every number without its minus sign: -3 becomes 3. nums.take_absolute_value()"""
+        """Every number without its minus sign: -3 becomes 3. numbers.take_absolute_value()"""
         return self._each("absolute value", np.abs(self._values))
 
     @friendly(renamed={"decimals": "with_decimals"})
     def round_to(self: _Same, with_decimals=0) -> _Same:
-        """Round every number to this many decimal places. nums.round_to(2)
+        """Round every number to this many decimal places. numbers.round_to(2)
 
         A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4),
         like R and NumPy; this stops a run of halves from always pushing totals up.
@@ -107,7 +107,7 @@ class MathsWords:
     def take_log(self: _Same, base="e") -> _Same:
         """The logarithm of every number: natural (base e) unless you give base=10 or base=2.
 
-        nums.take_log()  nums.take_log(base=10)  nums.take_log(base=2)
+        numbers.take_log()  numbers.take_log(base=10)  numbers.take_log(base=2)
         take_log(base=10) of 1000 is 3, because 10 x 10 x 10 = 1000. The log only exists for
         numbers above 0, so 0 and negative numbers become empty.
         """
@@ -132,7 +132,7 @@ class MathsWords:
 
     @friendly
     def take_exp(self: _Same) -> _Same:
-        """e (about 2.718) to the power of every number; it undoes take_log(). nums.take_exp()"""
+        """e (about 2.718) to the power of every number; it undoes take_log(). numbers.take_exp()"""
         with np.errstate(all="ignore"):
             result = np.exp(self._values.astype(float))
         too_big = int((np.isinf(result) & np.isfinite(self._values)).sum())

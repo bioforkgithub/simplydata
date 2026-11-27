@@ -295,7 +295,7 @@ def _times(left: dict, right: dict) -> dict:
 def _with_conditions(made, known) -> MathsFormula:
     """A formula made with sdata.formula() that holds only under a condition (a SymPy Piecewise, such as the sum of
     r**k for |r| < 1), which formula text cannot write: worked out by SymPy lambdify with NumPy and SciPy, as
-    f.find_value_at() does for many values. Where no condition holds there is no value (NaN)."""
+    formula.find_value_at() does for many values. Where no condition holds there is no value (NaN)."""
     import sympy as sp
 
     values = _known_values(known)

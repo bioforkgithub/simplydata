@@ -185,7 +185,7 @@ class TimeStepWords:
 
         table.add_smoothed_column("signal_smoothed", from_column="signal", test_method="savitzky-golay", window=11, sorted_by="time")
         (with sdata.get_example("sensor")). The methods and their options are those of
-        nums.smooth: "moving average" (weights=, ends=), "median" (R runmed, needs simplydata[r]),
+        numbers.smooth: "moving average" (weights=, ends=), "median" (R runmed, needs simplydata[r]),
         "savitzky-golay" (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "lowess" and
         "spline" (smoothness=; these two use the sorted_by values as x and allow uneven steps and empty
         cells), "whittaker" (smoothness=) or "wiener". The other methods need evenly spaced readings

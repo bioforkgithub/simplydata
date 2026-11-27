@@ -5,6 +5,14 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Changed: examples write names in full
+
+- Every example, help text, lesson and message now writes `formula = sdata.formula(...)`,
+  `numbers = sdata.numbers(...)` and `distribution = sdata.distribution(...)`, then `formula.turn_into_sum()`,
+  `numbers.find_average()` and `distribution.find_percentile(95)`, in place of the short names `f`, `nums` and
+  `dist`. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")` and
+  `sdata.help("distribution.find_median")` work, as the short names still do.
+
 ### Changed: minimum versions
 
 - NumPy 2.1 or newer is needed (was 2.0): `block.split_into_one_block_per` uses NumPy's `np.unstack`, which

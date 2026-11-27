@@ -1,4 +1,4 @@
-"""Numbers words for smoothing: nums.smooth(...) and nums.remove_trend(...). Engine: simplydata._smoothing."""
+"""Numbers words for smoothing: numbers.smooth(...) and numbers.remove_trend(...). Engine: simplydata._smoothing."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class SmoothingNumberWords:
                width=None, smoothness=None, alpha=None, span=None, half_life=None, com=None) -> _Same:
         """Smooth the numbers: each one becomes a summary of its neighbours, so noise and spikes shrink.
 
-        nums.smooth(test_method="median", window=5)
+        numbers.smooth(test_method="median", window=5)
         The numbers are taken in order, one step apart. test_method= "moving average" (the average of the
         window= readings centred on each; weights=[1, 2, 1] for a weighted average; ends= "empty" (as R
         stats::filter), "shorter windows", "mirror" (d c b | a b c d) or "reflect" (the end reading repeated,
@@ -28,7 +28,7 @@ class SmoothingNumberWords:
         width=2 readings; ends= "reflect", SciPy's default, or "mirror"), "lowess" (smoothness= the share of
         readings in each local fit, 2/3), "spline" (smoothness="auto" or R's lambda=), "whittaker"
         (smoothness=100; bigger is smoother) or "wiener".
-        Undo with nums.undo().
+        Undo with numbers.undo().
         """
         got = _smoothing.smooth(np.asarray(self._values, dtype=float).ravel(), test_method, window, ends,
                                 step_name="smooth", weights=weights, of_degree=of_degree, newest_weight=newest_weight,
@@ -42,12 +42,12 @@ class SmoothingNumberWords:
     def remove_trend(self: _Same, test_method="straight line", breaks=None) -> _Same:
         """Take away the trend: the best straight line (or only the average) is taken from the numbers.
 
-        nums.remove_trend()
+        numbers.remove_trend()
         test_method="straight line" (least squares, as R residuals(lm(x ~ seq_along(x)))) or "average" (takes
         away the average only). breaks=[200, 500] fits a separate straight line to each piece: a new
         line starts after readings 200 and 500 (counting from 1). The pieces are fitted separately, so
         the lines may jump at a break, as SciPy detrend (MATLAB and R pracma::detrend join them into one
-        line). Undo with nums.undo().
+        line). Undo with numbers.undo().
         """
         values, words, call = _smoothing.remove_trend(np.asarray(self._values, dtype=float).ravel(), test_method, breaks)
         print(f"From the numbers {words}.")

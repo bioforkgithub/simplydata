@@ -207,7 +207,7 @@ UNDERNEATH = {
     "fit_curve": "statsmodels (least squares on the powers of x), drawn with matplotlib",
     "draw_smooth_line": "statsmodels (lowess with R lowess()'s default delta, 1 % of the x range) or SciPy (make_smoothing_spline, for "
                    "test_method=\"spline\"; smoothness=\"auto\" lets R smooth.spline choose it and needs R); the other "
-                   "methods as nums.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
+                   "methods as numbers.smooth (SciPy, pandas; \"median\" R runmed); drawn with matplotlib",
     "draw_density": "seaborn (kdeplot)",
     "draw_trade_off_curve": "R pROC (roc, coords, ci.auc; simplydata[r]), drawn with matplotlib",
     "draw_difference_dots": "statsmodels (graphics.agreement.mean_diff_plot) for the dots; R "
@@ -383,7 +383,7 @@ UNDERNEATH = {
     "nums.remove_trend": "SciPy (signal.detrend)",
     "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
     "nums.remove_each_frequency_that": "SciPy (as keep_each_frequency_that; iirnotch, iircomb)",
-    "table.add_filtered_column": "SciPy (as nums.keep_each_frequency_that)",
+    "table.add_filtered_column": "SciPy (as numbers.keep_each_frequency_that)",
     "nums.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
     "nums.find_each_dip_that": "SciPy (signal.find_peaks on minus the numbers)",
     "table.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
@@ -397,7 +397,7 @@ UNDERNEATH = {
     "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
     "sdata.make_window_shape": "SciPy (signal.get_window)",
     "table.add_envelope_column": "SciPy (signal.hilbert)",
-    "sdata.frequency_filter": "SciPy (the designs of nums.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt)",
+    "sdata.frequency_filter": "SciPy (the designs of numbers.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt)",
     "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
@@ -794,11 +794,11 @@ FAMILY_TITLES = {
                              "\\code{table.keep\\_rows\\_where(...)}. Table words work the same on pandas and Polars tables. "
                              "Words that start with \\code{sdata.} (finding and solving, planning a study) are "
                              "called on simplydata itself, and words that start with \\code{dist.} are steps on "
-                             "a distribution: \\code{dist = sdata.distribution(\"normal\")}."),
-    "numbers": ("Number words", "Steps on numbers, \\code{nums = sdata.numbers([12, 15, 9, 20, 14])}, "
+                             "a distribution: \\code{distribution = sdata.distribution(\"normal\")}."),
+    "numbers": ("Number words", "Steps on numbers, \\code{numbers = sdata.numbers([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
                                 "on systems, \\code{system = sdata.system(\"1 / (s**2 + 2*s + 5)\")}, "
-                                "and on formulas, \\code{f = sdata.formula(\"(x + 2)**2 - 4\")}."),
+                                "and on formulas, \\code{formula = sdata.formula(\"(x + 2)**2 - 4\")}."),
     "help": ("Help words", "Words that teach simplydata."),
 }
 
@@ -851,7 +851,8 @@ def code(text: str) -> str:
 _CALL = re.compile(r"(?<![\w.])[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\(")
 _OPTION = re.compile(r"(?<![\w.])[a-z_][a-z0-9_]*=(?!=)")
 _QUOTED = re.compile(r'"[^"\n]*"')
-_NAME = re.compile(r"(?<![\w.])(?:(?:sdata|chart|table|nums|grid|page)\.\w+(?:\(\))?|[A-Za-z]\w*_\w*(?:\(\))?)")
+_NAME = re.compile(r"(?<![\w.])(?:(?:sdata|chart|table|numbers|nums|grid|page|distribution|formula)\.\w+(?:\(\))?"
+                   r"|[A-Za-z]\w*_\w*(?:\(\))?)")
 _ENDING = re.compile(r"(?<![\w])\.(?:png|pdf|svg|jpg|tif|gif|xlsx|csv|tsv|parquet|json)\b")
 
 
@@ -1147,7 +1148,7 @@ def _doc_text(doc: str) -> str:
                 left, right = stripped[: columns.start(1)], stripped[columns.end(1):]
                 pieces.append(r"\codeline{" + esc(left) + r"}\enspace " + rich(" ".join(right.split())))
                 continue
-            if re.match(r"^(?:sdata|chart|table|nums|grid|page)\.\w+\(|^\w+ = ", stripped):
+            if re.match(r"^(?:sdata|chart|table|numbers|nums|grid|page|distribution|formula)\.\w+\(|^\w+ = ", stripped):
                 if prose:
                     pieces.append(rich(" ".join(prose)))
                     prose = []

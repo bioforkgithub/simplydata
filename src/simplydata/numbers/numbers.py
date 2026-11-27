@@ -38,10 +38,10 @@ from .numbers_4 import GridWords4
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
               FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
-    """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: nums.add(5)."""
+    """A list of numbers. Make one with sdata.numbers([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
-    _name = "nums"
+    _name = "numbers"
     _noun = "numbers"
     _OLD_WORDS = {**BaseNumbers._OLD_WORDS, "fill_empty": "fill_empty_numbers",
                   "show_first": "show_first_numbers", "show_last": "show_last_numbers",
@@ -57,18 +57,18 @@ class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, Maths
         import pandas as pd
 
         if not isinstance(name, str) or not name.strip():
-            raise SimplydataError('name= needs a column name in quotes, like nums.turn_into_table(name="marks").')
+            raise SimplydataError('name= needs a column name in quotes, like numbers.turn_into_table(name="marks").')
         return pd.DataFrame({name: self._values})
 
     def _picking_help(self) -> str:
         return (
             "Numbers are picked with words, and positions count from 1:\n"
-            "    nums.get_number_at(1)              the first number\n"
-            '    nums.get_number_at("last")         the last number\n'
-            "    nums.keep_first_numbers(3)     keep only the first 3\n"
-            "    nums.keep_numbers_by_position(3, to=8)   the numbers at positions 3 to 8\n"
+            "    numbers.get_number_at(1)              the first number\n"
+            '    numbers.get_number_at("last")         the last number\n'
+            "    numbers.keep_first_numbers(3)     keep only the first 3\n"
+            "    numbers.keep_numbers_by_position(3, to=8)   the numbers at positions 3 to 8\n"
             "Python's [ ] counts from 0, so simplydata does not use it. "
-            "For a NumPy array, use nums.as_numpy()."
+            "For a NumPy array, use numbers.as_numpy()."
         )
 
     def __repr__(self):
@@ -224,7 +224,7 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
 
     @friendly
     def get_all_numbers(self):
-        """All the numbers of the grid as a list, row by row (flatten). nums = grid.get_all_numbers()"""
+        """All the numbers of the grid as a list, row by row (flatten). numbers = grid.get_all_numbers()"""
         return Numbers(self._values.ravel().copy())
 
     # ------------------------------------------------------------------ rows and columns by position
@@ -721,7 +721,7 @@ def make_random_numbers(how_many=None, between=None, average=None, standard_devi
         if whole_numbers:
             raise SimplydataError(
                 "whole_numbers=True goes with between=[low, high]. For a bell shape, round afterwards: "
-                "nums.round_to(0)."
+                "numbers.round_to(0)."
             )
         values = rng.normal(average, standard_deviation, size)
     else:

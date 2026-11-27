@@ -110,7 +110,7 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     The formula has one letter (known= fixes others, as in sdata.solve). The area below 0 counts as minus.
     test_method="quad" (the default: SciPy integrate.quad, adaptive, as R integrate()) or "gauss" (fixed_quad,
     5 points; ends must be numbers). exactly=True gives the exact answer from SymPy integrate (simplydata[exact]),
-    as a formula. For a list of readings use nums.turn_into_running_area().
+    as a formula. For a list of readings use numbers.turn_into_running_area().
     """
     from scipy import integrate
 
@@ -810,7 +810,7 @@ def find_sum_of_series(formula=None, between=None, for_letter=None, known=None):
         if pieces:
             words = "; ".join(f"{show(e)} when {show(c)}" if c is not sp.true else show(e) for e, c in pieces)
             print(f"{said}: {words}; otherwise it does not settle   (SymPy summation)")
-            print("The formula keeps the condition: f.find_value_at() gives no number where it does not hold.")
+            print("The formula keeps the condition: formula.find_value_at() gives no number where it does not hold.")
             # no "otherwise" piece: where no condition holds the formula has no value, and so has its slope (a nan
             # piece would be a number to SymPy, whose slope is 0)
             return Formula(sp.Piecewise(*pieces))

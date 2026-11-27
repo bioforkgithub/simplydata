@@ -356,7 +356,7 @@ def test_friendly_errors():
         normal.find_chance_that_value(over=3)
     with pytest.raises(SimplydataError, match="find_density_at"):
         normal.pdff  # noqa: B018
-    with pytest.raises(SimplydataError, match="dist.find_percentile"):
+    with pytest.raises(SimplydataError, match="distribution.find_percentile"):
         normal.ppf  # noqa: B018
     with pytest.raises(SimplydataError, match="cannot be changed"):
         normal.average_value = 3
@@ -369,8 +369,10 @@ def test_interface_for_charts():
     assert list(dist._pdf([1, 2])) == pytest.approx(stats.gamma(2, scale=2).pdf([1, 2]))
     counts = distribution("poisson", average=2)
     assert counts.is_discrete and list(counts._pmf([0, 1])) == pytest.approx(stats.poisson(2).pmf([0, 1]))
-    for other, word in (("pdf", "dist.find_density_at(60)"), ("cdf", "dist.find_chance_that_value(is_below=60)"), ("ppf", "dist.find_percentile(95)"),
-                        ("rvs", "dist.make_random_numbers(how_many=100, with_seed=1)")):
+    for other, word in (("pdf", "distribution.find_density_at(60)"),
+                        ("cdf", "distribution.find_chance_that_value(is_below=60)"),
+                        ("ppf", "distribution.find_percentile(95)"),
+                        ("rvs", "distribution.make_random_numbers(how_many=100, with_seed=1)")):
         with pytest.raises(AttributeError, match=re.escape(f"In simplydata this is {word}")):
             getattr(dist, other)  # other tools' names point to the word, and never run
 

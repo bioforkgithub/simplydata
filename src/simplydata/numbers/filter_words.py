@@ -16,7 +16,7 @@ def _one_condition(below, above, between, equal_to, step_name):
              if v is not None]
     if len(given) != 1:
         raise SimplydataError(f"{step_name}() needs exactly one of is_below=, is_above=, is_between= or is_equal_to=, such as "
-                              f"nums.{step_name}(is_below=5, time_step=0.01).")
+                              f"numbers.{step_name}(is_below=5, time_step=0.01).")
     name, value = given[0]
     if name == "between":
         if not (isinstance(value, (list, tuple)) and len(value) == 2 and value[0] < value[1]):
@@ -125,7 +125,7 @@ class FilterNumberWords:
                                  show_filter=False, sampling_rate=None, fs=None) -> _Same:
         """Keep only some frequencies of the numbers (a low-pass, high-pass, band-pass or peak filter).
 
-        nums.keep_each_frequency_that(is_below=5, time_step=0.01)
+        numbers.keep_each_frequency_that(is_below=5, time_step=0.01)
         One condition: is_below=5 keeps the slow cycles (low-pass), is_above=1 the fast ones (high-pass),
         is_between=[1, 5] a band, is_equal_to=10 one frequency (width= how wide). Frequencies are cycles per unit
         of time: time_step= is the time between readings (sampling_rate= or fs= instead). test_method=
@@ -135,7 +135,7 @@ class FilterNumberWords:
         MATLAB filtfilt, which differs from R signal::filtfilt near the ends); both_ways=False runs it
         forwards only, as R signal::filter. show_filter=True also shows the filter's chart (gain and phase
         against frequency) and prints the line that saves it, sdata.frequency_filter(...).chart().save(...).
-        Undo with nums.undo().
+        Undo with numbers.undo().
         """
         return self._filter_word(True, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, False, sampling_rate, fs,
@@ -148,11 +148,11 @@ class FilterNumberWords:
                                    and_multiples=False, show_filter=False, sampling_rate=None, fs=None) -> _Same:
         """Remove some frequencies from the numbers, such as a 50-per-second hum (band-stop or notch filter).
 
-        nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
+        numbers.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
         is_between=[49, 51] removes a band; is_equal_to=50 one frequency (a notch, width= how wide; and_multiples
         =True also removes 100, 150 ... below half the readings per unit of time, one SciPy iirnotch each; the
         average stays); is_below= and is_above= remove the slow or the fast cycles.
-        The options are those of keep_each_frequency_that (show_filter= too). Undo with nums.undo().
+        The options are those of keep_each_frequency_that (show_filter= too). Undo with numbers.undo().
         """
         return self._filter_word(False, is_below, is_above, is_between, is_equal_to, time_step, test_method, steepness, both_ways,
                                  ripple, removed_by, 101, "hamming", width, and_multiples, sampling_rate, fs,

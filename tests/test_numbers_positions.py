@@ -90,17 +90,17 @@ def test_empty_numbers_keep_their_place():
 @pytest.mark.parametrize("call, message", [
     (lambda n: n.keep_numbers_by_position(), "needs which positions"),
     (lambda n: n.keep_numbers_by_position(0), "Positions count from 1, so the first position is 1, not 0"),
-    (lambda n: n.keep_numbers_by_position(-1), 'For the last positions use to="last" or nums.keep_last_numbers(3)'),
+    (lambda n: n.keep_numbers_by_position(-1), 'For the last positions use to="last" or numbers.keep_last_numbers(3)'),
     (lambda n: n.keep_numbers_by_position(1.5), "whole numbers from 1 to 10"),
     (lambda n: n.keep_numbers_by_position(True), "whole numbers from 1 to 10"),
     (lambda n: n.keep_numbers_by_position(8, to=3), "Position 8 comes after position 3. Write the smaller first: "
-                                                    "nums.keep_numbers_by_position(3, to=8); to turn the order "
-                                                    "round use nums.reverse()"),
+                                                    "numbers.keep_numbers_by_position(3, to=8); to turn the order "
+                                                    "round use numbers.reverse()"),
     (lambda n: n.keep_numbers_by_position([1, 2], step=2), "not with a list"),
     (lambda n: n.keep_numbers_by_position([2, 2]), "Position 2 is listed twice"),
     (lambda n: n.keep_numbers_by_position(11), "There is no position 11"),
-    (lambda n: n.keep_numbers_by_position(above=5), "nums.keep_each_number_that(is_above=...)"),
-    (lambda n: n.remove_numbers_by_position(below=5), "nums.remove_each_number_that(is_below=...)"),
+    (lambda n: n.keep_numbers_by_position(above=5), "numbers.keep_each_number_that(is_above=...)"),
+    (lambda n: n.remove_numbers_by_position(below=5), "numbers.remove_each_number_that(is_below=...)"),
     (lambda n: n.keep_numbers_by_position(1, too=3), "Did you mean to=?"),
     (lambda n: n.remove_numbers_by_position(1, to="last"), "That would remove every number"),
 ])
@@ -191,12 +191,12 @@ def test_replace_numbers_errors(nums, call, message):
     ("putmask", "replace_each_number_that"),
 ])
 def test_other_names_point_to_the_new_words(nums, name, word):
-    with pytest.raises(AttributeError, match=rf"nums\.{word}\(\)"):
+    with pytest.raises(AttributeError, match=rf"numbers\.{word}\(\)"):
         getattr(nums, name)
 
 
 def test_brackets_mention_the_new_words(nums):
     with pytest.raises(SimplydataError) as info:
         nums[2:5]
-    assert "nums.keep_numbers_by_position(3, to=8)" in str(info.value)
-    assert 'nums.get_number_at("last")' in str(info.value)
+    assert "numbers.keep_numbers_by_position(3, to=8)" in str(info.value)
+    assert 'numbers.get_number_at("last")' in str(info.value)

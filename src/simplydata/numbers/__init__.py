@@ -1,9 +1,9 @@
 """Numbers: plain-English words over NumPy for lists and grids of numbers.
 
-    nums = numbers([3, 5, 2, 8])
-    nums.add(5)            # words change the numbers (nums.undo() takes it back)
-    bigger = nums * 2      # symbols make new numbers
-    nums.find_average()
+    numbers = sdata.numbers([3, 5, 2, 8])
+    numbers.add(5)            # words change the numbers (numbers.undo() takes it back)
+    bigger = numbers * 2      # symbols make new numbers
+    numbers.find_average()
 
 sdata.show_lesson(13) teaches them.
 """

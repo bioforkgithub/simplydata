@@ -79,7 +79,7 @@ class PeakNumberWords:
 
     @friendly(renamed={"at_least": "is_at_least"})
     def find_each_peak_that(self, is_at_least=None, apart=None, stands_out_by=None, wide_at_least=None, time_step=None, **experts):
-        """Find the peaks: numbers higher than both neighbours, with conditions. nums.find_each_peak_that(is_at_least=1, apart=10)
+        """Find the peaks: numbers higher than both neighbours, with conditions. numbers.find_each_peak_that(is_at_least=1, apart=10)
 
         is_at_least= the lowest height that counts; apart= the smallest distance between peaks (in readings,
         or in units of time with time_step=); stands_out_by= how far a peak rises above the higher of the
@@ -92,7 +92,7 @@ class PeakNumberWords:
 
     @friendly(renamed={"at_most": "is_at_most"})
     def find_each_dip_that(self, is_at_most=None, apart=None, stands_out_by=None, wide_at_least=None, time_step=None, **experts):
-        """Find the dips: numbers lower than both neighbours. nums.find_each_dip_that(is_at_most=-1, apart=10)
+        """Find the dips: numbers lower than both neighbours. numbers.find_each_dip_that(is_at_most=-1, apart=10)
 
         As find_each_peak_that, turned upside down: is_at_most= the highest value a dip may have. SciPy
         signal.find_peaks on minus the numbers, as R pracma::findpeaks(-x).

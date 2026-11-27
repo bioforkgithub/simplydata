@@ -72,7 +72,7 @@ def missing_word_error(word: str, known) -> MissingWordError:
 # Names from other tools and everyday maths (minimize, curve_fit, groupby, hist ...) never run:
 # they point to the simplydata word. The list is in _other_names.py.
 _PREFIXES = ("sdata", "table", "chart", "nums", "grid", "block", "dist")
-_TARGET = re.compile(r"(?:sdata|table|chart|nums|grid|block|dist)\.(\w+)\(")
+_TARGET = re.compile(r"(?:sdata|table|chart|numbers|nums|grid|block|distribution|dist)\.(\w+)\(")
 
 
 def other_name_target(written: str) -> str:
@@ -86,7 +86,7 @@ def other_name_pointer(kind: str, name: str, known=None, prefix: str | None = No
 
     kind is "sdata", "table", "chart" or "numbers". With known= (the words of the object) and
     prefix= (how the object is written, such as "grid"), a pointer to a word the object lacks
-    is not given, and "nums." is written as the prefix.
+    is not given, and "numbers." is written as the prefix.
     """
     from ._other_names import OTHER_NAMES
 
@@ -94,7 +94,7 @@ def other_name_pointer(kind: str, name: str, known=None, prefix: str | None = No
     if written is None:
         return None
     if known is not None:
-        own = f"{'nums' if kind == 'numbers' else kind}."
+        own = f"{kind}."
         if written.startswith(own) and other_name_target(written) not in known:
             return None
         if prefix and written.startswith(own):

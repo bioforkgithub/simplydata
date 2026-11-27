@@ -32,8 +32,8 @@ ENTRIES = [
     Entry(
         word="nums.smooth",
         ours="""
-            nums = sdata.numbers([3, 5, 4, 30, 6, 7, 5, 8, 6, 9])
-            nums.smooth()
+            numbers = sdata.numbers([3, 5, 4, 30, 6, 7, 5, 8, 6, 9])
+            numbers.smooth()
         """,
         code={"SciPy": """
             import numpy as np
@@ -52,13 +52,13 @@ ENTRIES = [
                  "rep(1 / 5, 5), sides = 2) (ends=\"empty\"; \"shorter windows\", \"mirror\" and \"reflect\" fill them).",),
         also="test_method= offers a running median (R runmed itself), Savitzky-Golay, exponential, Gaussian, lowess, "
              "loess, spline, Whittaker and Wiener smoothing. simplydata also says which method it used and the R "
-             "call that gives the same numbers, and remembers the step for nums.undo().",
+             "call that gives the same numbers, and remembers the step for numbers.undo().",
     ),
     Entry(
         word="nums.remove_trend",
         ours="""
-            nums = sdata.numbers([2, 4, 3, 7, 6, 9, 8, 12])
-            nums.remove_trend()
+            numbers = sdata.numbers([2, 4, 3, 7, 6, 9, 8, 12])
+            numbers.remove_trend()
         """,
         code={"SciPy": """
             import numpy as np
@@ -112,8 +112,8 @@ ENTRIES = [
         word="nums.find_autocorrelation",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.find_autocorrelation()
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.find_autocorrelation()
         """,
         code={"statsmodels": """
             import numpy as np, pandas as pd
@@ -222,8 +222,8 @@ ENTRIES += [
         word="nums.forecast",
         data="visitors",
         ours="""
-            nums = sdata.get_example("visitors").keep_rows_by_position(1, to=144).get_column("visitors")
-            nums.forecast(steps_ahead=12, repeats_every=12)
+            numbers = sdata.get_example("visitors").keep_rows_by_position(1, to=144).get_column("visitors")
+            numbers.forecast(steps_ahead=12, repeats_every=12)
         """,
         code={
             "R": """
@@ -302,8 +302,8 @@ ENTRIES += [
     Entry(
         word="nums.find_each_peak_that",
         ours="""
-            nums = sdata.numbers([0, 2, 1, 3, 3, 1, 5, 0, 4, 1])
-            nums.find_each_peak_that(is_at_least=2)
+            numbers = sdata.numbers([0, 2, 1, 3, 3, 1, 5, 0, 4, 1])
+            numbers.find_each_peak_that(is_at_least=2)
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
@@ -329,8 +329,8 @@ ENTRIES += [
     Entry(
         word="nums.find_each_dip_that",
         ours="""
-            nums = sdata.numbers([5, 2, 4, 1, 6, 3, 3, 7, 0, 4])
-            nums.find_each_dip_that(is_at_most=2)
+            numbers = sdata.numbers([5, 2, 4, 1, 6, 3, 3, 7, 0, 4])
+            numbers.find_each_dip_that(is_at_most=2)
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
@@ -412,8 +412,8 @@ ENTRIES += [
         word="nums.find_spectrum",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.find_spectrum()
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.find_spectrum()
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
@@ -439,8 +439,8 @@ ENTRIES += [
         word="nums.keep_each_frequency_that",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.keep_each_frequency_that(is_below=10, time_step=0.005)
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.keep_each_frequency_that(is_below=10, time_step=0.005)
         """,
         code={"SciPy": """
             import pandas as pd
@@ -463,8 +463,8 @@ ENTRIES += [
         word="nums.remove_each_frequency_that",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.remove_each_frequency_that(is_equal_to=50, time_step=0.005)
         """,
         code={"SciPy": """
             import pandas as pd
@@ -537,8 +537,8 @@ ENTRIES += [
         word="nums.find_envelope",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.find_envelope()
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.find_envelope()
         """,
         code={"SciPy": """
             import pandas as pd
@@ -581,8 +581,8 @@ ENTRIES += [
     Entry(
         word="nums.take_fourier_transform",
         ours="""
-            nums = sdata.numbers([1, 3, 2, 5, 4, 6, 5, 8])
-            nums.take_fourier_transform(time_step=0.5)
+            numbers = sdata.numbers([1, 3, 2, 5, 4, 6, 5, 8])
+            numbers.take_fourier_transform(time_step=0.5)
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
@@ -605,8 +605,8 @@ ENTRIES += [
     Entry(
         word="sdata.find_inverse_fourier_transform",
         ours="""
-            nums = sdata.numbers([1, 3, 2, 5, 4])
-            table = nums.take_fourier_transform()
+            numbers = sdata.numbers([1, 3, 2, 5, 4])
+            table = numbers.take_fourier_transform()
             sdata.find_inverse_fourier_transform(table)
         """,
         code={"SciPy": """
@@ -626,8 +626,8 @@ ENTRIES += [
     Entry(
         word="nums.convolve_with",
         ours="""
-            nums = sdata.numbers([1, 2, 3])
-            nums.convolve_with([1, 2, 1])
+            numbers = sdata.numbers([1, 2, 3])
+            numbers.convolve_with([1, 2, 1])
         """,
         code={"SciPy": """
             from scipy import signal
@@ -638,13 +638,13 @@ ENTRIES += [
         tolerance=1e-12,
         choices=("keep=\"all\": every overlap, n + m - 1 numbers, as R convolve(x, rev(y), type = \"open\"); \"same\" "
                  "keeps the middle n, \"overlap\" only full overlaps.",),
-        also="simplydata also says how many numbers came out and remembers the step for nums.undo().",
+        also="simplydata also says how many numbers came out and remembers the step for numbers.undo().",
     ),
     Entry(
         word="nums.deconvolve_by",
         ours="""
-            nums = sdata.numbers([0, 1, 2.5, 4, 1.5])
-            nums.deconvolve_by([1, 2, 3])
+            numbers = sdata.numbers([0, 1, 2.5, 4, 1.5])
+            numbers.deconvolve_by([1, 2, 3])
         """,
         code={"SciPy": """
             from scipy import signal
@@ -660,8 +660,8 @@ ENTRIES += [
         word="nums.change_time_step",
         data="sensor",
         ours="""
-            nums = sdata.get_example("sensor").get_column("signal")
-            nums.change_time_step(to=0.01, time_step=0.005)
+            numbers = sdata.get_example("sensor").get_column("signal")
+            numbers.change_time_step(to=0.01, time_step=0.005)
         """,
         code={"SciPy": """
             import pandas as pd
