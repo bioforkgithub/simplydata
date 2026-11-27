@@ -793,15 +793,15 @@ _CHART_3 = [
 # first (NAMESPACES below), so plt.title is the title and not pandas' str.title.
 _CHART_4 = [
     ("chart.as_matplotlib(), which gives the chart's matplotlib Figure: fig = chart.as_matplotlib(), then "
-     "ax = fig.axes[0] is its Axes, and any matplotlib code works on them", "gcf gca get_figure get_axes Figure Axes fig ax axes figure plt pyplot "
-     "matplotlib mpl"),
+     "ax = fig.axes[0] is its Axes, and any matplotlib code works on them",
+     "gcf gca get_figure get_axes Figure Axes fig ax axes figure plt pyplot matplotlib mpl"),
     ("chart.as_matplotlib() gives the matplotlib Figure (fig = chart.as_matplotlib()); then fig.axes[0].table(...) "
      "in matplotlib draws the table: simplydata draws no table inside a chart", "table add_table"),
     # not covered: the hand-over, as the manual's chapter "From matplotlib and seaborn to simplydata" shows
     ("chart.as_matplotlib() gives the matplotlib Figure (fig = chart.as_matplotlib()); then the matplotlib or seaborn "
      "code works on fig.axes[0]: simplydata has no word for this job (the manual's chapter \"From matplotlib and "
      'seaborn to simplydata\" shows how)', "quiver quiverkey barbs streamplot fill Polygon fill_betweenx margins "
-                                             "boxenplot bxp supxlabel supylabel voxels"),
+                                             "boxenplot bxp supxlabel supylabel voxels triplot"),
     ('chart.draw_lines(x="month", y="temperature", colour="city")', "lineplot"),
     ('chart.draw_dots(x="hours", y="marks"), then chart.draw_one_chart_for_each_group_in("class") for one chart per '
      "group (draw_lines for lines)", "relplot"),
@@ -817,7 +817,7 @@ _CHART_4 = [
     ('chart.draw_lines(x="month_number", y="temperature", joined_by="steps")', "step stairs"),
     ('chart.draw_heatmap(x="month", y="city", value="rain")', "matshow pcolor pcolorfast"),
     ('chart.draw_contour(x="east", y="north", z="height"), which joins scattered points up as tricontour does',
-     "tricontour tricontourf tripcolor triplot"),
+     "tricontour tricontourf tripcolor"),
     ('chart.draw_surface(x="east", y="north", z="height")', "plot_trisurf"),
     ('chart.draw_surface(x="east", y="north", z="height", as_wires=True)', "plot_wireframe"),
     ('chart.draw_dots_3d(x="east", y="north", z="height")', "scatter3D"),
@@ -858,7 +858,15 @@ _CHART_4 = [
     ('chart.use_colour_scale("white", "navy")', "light_palette dark_palette blend_palette cubehelix_palette"),
     ('chart.use_colour_scale("blue to red", middle=0)', "diverging_palette TwoSlopeNorm CenteredNorm"),
     ('chart.use_style("school"), or "paper", "presentation", "dark" or "black and white"',
-     "set_theme set_style axes_style"),
+     "set_theme set_style axes_style use"),
+    # sns.set is the old name of set_theme; matplotlib's ax.set(xlabel=..., title=...) sets several things at once
+    ('chart.use_style("school") for seaborn\'s set (the old name of set_theme); matplotlib\'s ax.set(xlabel=..., '
+     "title=...) is label_x, label_y, write_title_on_top and the other words, one for each", "set"),
+    # the spacing between parts needs nothing: simplydata always draws with matplotlib's constrained layout
+    ('chart.set_size(width=17, height=12, unit="cm") gives more room; the spacing itself needs nothing, as '
+     "simplydata always uses matplotlib's constrained layout, so labels do not overlap (spacing of your own: "
+     "chart.as_matplotlib())", "tight_layout subplots_adjust set_tight_layout set_constrained_layout "
+                               "set_layout_engine"),
     ("chart.use_style(\"presentation\") for bigger text and lines (seaborn's \"talk\"), or chart.use_font_size(14)",
      "set_context plotting_context"),
     ('chart.use_style("school"), chart.use_font("DejaVu Serif") or chart.use_font_size(14) set the look; any other '
@@ -1109,8 +1117,21 @@ def _build(groups):
     return table
 
 
+# Axes3D.<name>: the 3D Axes of mpl_toolkits.mplot3d, where scatter, plot and bar mean the 3D words
+_CHART_3D = [
+    ('chart.draw_dots_3d(x="east", y="north", z="height")', "scatter scatter3D"),
+    ('chart.draw_lines_3d(x="east", y="north", z="height")', "plot plot3D"),
+    ('chart.draw_bars_3d(x="month", y="city", z="rain")', "bar bar3d"),
+    ('chart.draw_surface(x="east", y="north", z="height")', "plot_surface plot_trisurf"),
+    ('chart.draw_surface(x="east", y="north", z="height", as_wires=True)', "plot_wireframe"),
+    ('chart.label_z("Height (m)")', "set_zlabel"),
+    ("chart.set_range_z(-10, 20)", "set_zlim set_zlim3d"),
+    ("chart.put_ticks_z(-10, 0, 10, 20)", "set_zticks"),
+    ("chart.look_from(height=20, around=45)", "view_init"),
+]
+
 OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
-               "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4),
+               "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
                "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS)}
 
@@ -1122,13 +1143,13 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               # word: plt.title is write_title_on_top, not pandas' str.title
               "plt": "chart", "pyplot": "chart", "matplotlib": "chart", "mpl": "chart", "ax": "chart", "axs": "chart",
               "axes": "chart", "fig": "chart", "figure": "chart", "sns": "chart", "seaborn": "chart", "plot": "chart",
-              "Axes3D": "chart"}
-NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby"}
+              "style": "chart", "Axes3D": "chart3d"}
+NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
 # A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word
 # (plt.cohere).
-NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers")}
+NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "chart3d": ("chart", "sdata", "numbers")}
 # What can stand in front of a name and changes nothing: pd.read_csv, pl.DataFrame.join, df.merge, Series.replace
 QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame", "s", "col",
               "data", "dplyr", "tidyr", "base", "stats"}

@@ -2239,8 +2239,18 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             own = str(word).strip().split(".", 1)[0]
             if parts is not None and parts[0] is None and own not in QUALIFIERS:
                 keys = _lookup_all(parts[1])
-            elif parts is not None and parts[0] == "chart":  # plt.show, fig.savefig ... a chart word of that name
-                keys = [k for k in _lookup_all(parts[1]) if _kind(k) == "chart"]
+            elif parts is not None and parts[0] in ("chart", "chart3d"):  # plt.show, fig.show: a chart word
+                from ._core import BaseChart
+                from ._other_names import OTHER_NAMES
+
+                name = parts[1]
+                keys = [k for k in _lookup_all(name) if _kind(k) == "chart"]
+                pointed = any(n in OTHER_NAMES[kind] for kind in {parts[0], "chart"} for n in (name, name.lower()))
+                if not keys and not pointed:
+                    if name in BaseChart._OLD_WORDS:  # plt.pie, sns.heatmap: the old word's name gives the word
+                        word = name
+                    else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
+                        keys = _lookup_all(name)
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)

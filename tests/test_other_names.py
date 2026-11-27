@@ -537,6 +537,13 @@ CHART_AUDIT_POINTERS = [
     ("ax.get_zlim", "get_scales_drawn"), ("plt.cohere", "find_coherence_with"),
     ("sns.get_dataset_names", "get_example"), ("ax.quiver", "as_matplotlib"), ("sns.boxenplot", "as_matplotlib"),
     ("plt.streamplot", "as_matplotlib"), ("ax.margins", "as_matplotlib"),
+    # review of the charts finishing PR
+    ("ax.triplot", "as_matplotlib"), ("sns.set", "use_style"), ("plt.style.use", "use_style"),
+    ("plt.tight_layout", "set_size"), ("plt.subplots_adjust", "set_size"), ("fig.set_layout_engine", "set_size"),
+    ("Axes3D.scatter", "draw_dots_3d"), ("Axes3D.plot", "draw_lines_3d"), ("Axes3D.bar", "draw_bars_3d"),
+    ("Axes3D.plot_surface", "draw_surface"), ("Axes3D.plot_wireframe", "draw_surface"),
+    ("Axes3D.set_zlabel", "label_z"), ("Axes3D.view_init", "look_from"),
+    ("Axes3D.set_title", "write_title_on_top"),  # not in the 3D list: the chart meaning
 ]
 
 
@@ -677,3 +684,42 @@ def test_every_chart_pointer_call_runs_on_a_practice_table(calls, tmp_path, monk
                 assert not any(bad in text for bad in BAD), f"{calls} on {source} after {first}: {text}"
                 errors.append(f"{source} after {first}: {text.splitlines()[0]}")
     pytest.fail(f"{calls} ran on no practice table:\n" + "\n".join(errors[:6]))
+
+
+
+@pytest.mark.parametrize("typed, old, new", [
+    ("plt.pie", "pie", "draw_pie"), ("ax.pie", "pie", "draw_pie"), ("plt.polar", "polar", "draw_polar"),
+    ("plt.contour", "contour", "draw_contour"), ("ax.contour", "contour", "draw_contour"),
+    ("sns.heatmap", "heatmap", "draw_heatmap"),
+])
+def test_a_matplotlib_name_that_is_an_old_chart_word_gives_the_word(typed, old, new, capsys):
+    """plt.pie, sns.heatmap ... are the old names of chart words (pie, heatmap): help says what they are called now
+    (it said "no word called")."""
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert f'"chart.{old}" is now called "chart.{new}"' in out, out
+    assert "no word called" not in out
+
+
+@pytest.mark.parametrize("typed, heading", [
+    ("fig.keep_rows_where", "table.keep_rows_where()"), ("plot.keep_rows_where", "table.keep_rows_where()"),
+    ("axes.find_average_of", "table.find_average_of()"),
+])
+def test_a_table_word_after_a_matplotlib_name_is_still_found(typed, heading, capsys):
+    """A name with no chart word or pointer falls back to every word, as before the namespaces."""
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(heading), out[:200]
+
+
+def test_axes3d_names_have_their_own_list():
+    from simplydata._other_names import OTHER_NAMES, other_name_parts
+
+    assert other_name_parts("Axes3D.scatter") == ("chart3d", "scatter")
+    assert "draw_dots_3d" in OTHER_NAMES["chart3d"]["scatter"] and "draw_dots(" in OTHER_NAMES["chart"]["scatter"]
+
+
+def test_triplot_is_left_to_matplotlib_not_a_contour_map():
+    from simplydata._other_names import OTHER_NAMES
+
+    assert "as_matplotlib" in OTHER_NAMES["chart"]["triplot"] and "draw_contour" not in OTHER_NAMES["chart"]["triplot"]
