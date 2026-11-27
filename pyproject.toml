@@ -47,7 +47,7 @@ dependencies = [
     # panic in str.strptime("%d %B %Y") on a short month name (turn_into_dates(written_like=)), and before 1.40 a
     # pivot drops the values of an empty name (the oldest-versions run of 2026-11-25).
     "polars>=1.43.2,<3",
-    "pyarrow>=19,<27",
+    "pyarrow>=26.0.1,<27",
 ]
 
 [project.optional-dependencies]
