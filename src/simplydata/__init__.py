@@ -118,7 +118,8 @@ __all__ = [
     "pick_colours_with_sliders",
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
-    "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve", "stack_up", "start_30_days",
+    "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve",
+    "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]
 

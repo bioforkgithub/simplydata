@@ -139,7 +139,7 @@ def _share(value, name: str):
 @friendly
 def change_colour(colour=None, lightness=None, colour_strength=None, colour_strength_times=None, hue=None,
                   full_colour_strength=False):
-    """A lighter, darker, greyer or stronger version of a colour, as a colour code. sdata.change_colour("navy", lightness=0.6)
+    """A lighter, darker, greyer or stronger colour, as a code. sdata.change_colour("navy", lightness=0.6)
 
     lightness= sets how light the colour is, from 0 (black) to 1 (white); colour_strength= sets how strong
     (saturated) it is, from 0 (grey) to 1 (full colour); hue= sets the colour round the colour wheel, from 0 to 1

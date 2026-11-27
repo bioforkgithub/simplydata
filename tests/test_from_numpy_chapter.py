@@ -1,6 +1,6 @@
-"""The manual chapter "From NumPy and SciPy to simplydata" (docs/manual/from_numpy.tex) is written by hand: every example
-in it runs, uses today's words, hands over to NumPy only after as_numpy(), and the chapter is part of the manual,
-after the matplotlib chapter."""
+"""The manual chapter "From NumPy and SciPy to simplydata" (docs/manual/from_numpy.tex) is written by hand: every
+example in it runs, uses today's words, hands over to NumPy only after as_numpy(), and the chapter is part of the
+manual, after the matplotlib chapter."""
 
 import contextlib
 import importlib.util
