@@ -81,6 +81,48 @@ def test_times_with_a_zone_and_without_one_in_one_csv_file(tmp_path, capsys):
     assert "UTC offset" in capsys.readouterr().out
 
 
+def _saved_on_both_engines(data, kind, tmp_path):
+    files = []
+    for fast in (False, True):
+        path = tmp_path / f"saved_{fast}.{kind}"
+        sdata.table(data, fast=fast).save(str(path))
+        files.append(gzip.decompress(path.read_bytes()) if kind.endswith(".gz") else path.read_bytes())
+    return files
+
+
+@pytest.mark.parametrize("kind", ["csv", "tsv", "csv.gz"])
+def test_one_column_with_an_empty_cell_keeps_every_row(kind, tmp_path):
+    """Polars wrote the empty cell of a one-column table as an empty line, which a reader skips: 2 rows came back
+    instead of 3. Both engines now write "" there, as pandas does."""
+    data = {"t": [dt.datetime(2024, 7, 1, 23, 45), None, dt.datetime(2024, 7, 2, 1, 0)]}
+    files = _saved_on_both_engines(data, kind, tmp_path)
+    assert files[0] == files[1]
+    for fast in (False, True):
+        back = sdata.table(str(tmp_path / f"saved_{fast}.{kind}"), fast=fast)
+        assert back.count_rows() == 3, fast
+
+
+def test_times_of_day_are_written_alike(tmp_path):
+    data = {"clock": [dt.time(1, 2, 3), None, dt.time(4, 5, 6, 500000)], "n": [1, 2, 3]}
+    files = _saved_on_both_engines(data, "csv", tmp_path)
+    assert files[0] == files[1] == b'clock,n\n01:02:03,1\n,2\n04:05:06.500000,3\n'
+
+
+def test_true_and_false_are_written_alike(tmp_path):
+    """Polars wrote true and false, pandas True and False. An empty text ("") is the one difference left: Polars
+    keeps it as "", pandas writes nothing (the file then cannot tell it from an empty cell)."""
+    files = _saved_on_both_engines({"ok": [True, None, False], "n": [1.5, 2.0, None]}, "csv", tmp_path)
+    assert files[0] == files[1] == b"ok,n\nTrue,1.5\n,2.0\nFalse,\n"
+
+
+def test_durations_are_written_alike(tmp_path):
+    """Polars cannot write durations to a .csv file (a raw ComputeError); simplydata writes pandas' text."""
+    data = {"wait": [dt.timedelta(hours=1), None, dt.timedelta(days=1, seconds=1, microseconds=500000)],
+            "n": [1, 2, 3]}
+    files = _saved_on_both_engines(data, "csv", tmp_path)
+    assert files[0] == files[1] == b'wait,n\n0 days 01:00:00.000000,1\n,2\n1 days 00:00:01.500000,3\n'
+
+
 # ---------------------------------------------------------------- spread_into_columns says what it did
 def test_spread_with_show_names_the_columns_that_share_a_cell(capsys):
     fruit = sdata.get_example("fruit")

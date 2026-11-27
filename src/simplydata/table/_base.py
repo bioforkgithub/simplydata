@@ -55,6 +55,30 @@ def _plain_time_text(native):
     return native.dt.to_string("%Y-%m-%d %H:%M:%S" + (f"%.{digits}f" if digits else ""))
 
 
+def _clock_text(native):
+    """The text pandas to_csv writes for a Polars column of times of day: 01:02:03, or 04:05:06.500000 when the time
+    has parts of a second (Python's own text of a time). Polars write_csv would write 01:02:03.000000000."""
+    whole, fine = native.dt.to_string("%H:%M:%S"), native.dt.to_string("%H:%M:%S%.6f")
+    return whole.zip_with(native.dt.nanosecond() == 0, fine)
+
+
+def _duration_text(native):
+    """The text pandas to_csv writes for a Polars column of durations (0 days 01:00:00); Polars write_csv cannot write
+    durations at all. pandas makes the text, from the same values."""
+    import polars as pl
+
+    values = native.to_pandas()
+    texts = [None if empty else text for text, empty in zip(values.astype(str).tolist(), values.isna().tolist())]
+    return pl.Series(native.name, texts, dtype=pl.String)
+
+
+def _true_false_text(native):
+    """True and False, as pandas to_csv writes them (Polars write_csv would write true and false)."""
+    import polars as pl
+
+    return native.replace_strict({True: "True", False: "False"}, return_dtype=pl.String)
+
+
 def counted(n: int, word: str) -> str:
     """1 column, 2 columns: a count with its word in the singular or the plural."""
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
@@ -329,11 +353,13 @@ class BaseTable:
         data are read by name, each on its own: simplydata says which columns differ and prints a line
         to copy for each sheet, such as  patients = sdata.table("study.xlsx", sheet="patients").
 
-        Times without a time zone are written in a .csv file the way pandas writes them, on both
-        engines: 2024-07-01 23:45:00 (with decimals of a second only when the times have them), or
-        just 2024-07-01 when every time is at midnight. Text files (.csv, .tsv) end each line the
-        same way on every computer (a line feed, as on Linux and macOS), so the same table gives the
-        same file on Windows too.
+        A .csv file is written the way pandas writes it, on both engines: times without a time zone
+        as 2024-07-01 23:45:00 (with decimals of a second only when the times have them, or just
+        2024-07-01 when every time is at midnight), times of day as 01:02:03, durations as
+        0 days 01:00:00, True and False with capitals, and an empty cell of a one-column table as ""
+        (an empty line would be skipped when the file is read). One difference is left: an empty
+        text ("") is "" on Polars and nothing on pandas. Text files (.csv, .tsv) end each line the
+        same way on every computer (a line feed, as on Linux and macOS).
 
         Times with a time zone: .parquet and .feather keep the zone. A .csv or .tsv file has no place
         for it, so the times are written with their UTC offset (2024-07-01 23:45:00-04:00, on both
@@ -380,7 +406,12 @@ class BaseTable:
             self._save_in_sheet(path, in_sheet, frame)
             return self
         if kind == "csv" and frame.implementation.is_polars():
-            frame.write_csv(str(path))  # Polars write_csv (lines end in \n on every computer)
+            native = frame.to_native()
+            if native.width == 1 and native.null_count().item():
+                # one column: an empty cell would be an empty line, which a reader skips; pandas writes "" there
+                native.write_csv(str(path), null_value='""')
+            else:
+                frame.write_csv(str(path))  # Polars write_csv (lines end in \n on every computer)
         elif kind == "csv":
             frame.to_native().to_csv(path, index=False, lineterminator=LINE_END)  # pandas to_csv
         elif kind == "parquet":
@@ -405,13 +436,21 @@ class BaseTable:
         writes: 2024-07-01 23:45:00-04:00), and sdata.table() reads it back as the same moments on the UTC clock.
         Excel and Stata have no time zones at all (pandas refuses them), so the clock times of the zone are saved
         (pandas dt.tz_localize(None), Polars dt.replace_time_zone(None)). Either way a note names the zone.
-        Times without a zone go into a .csv file as the text pandas writes, on both engines (_plain_time_text).
+        Times without a zone, times of day, durations and True/False go into a .csv file as the text pandas writes,
+        on both engines (_plain_time_text, _clock_text, _duration_text, _true_false_text).
         """
         frame = self._frame
-        plain = [name for name, kind_ in frame.schema.items() if kind_ == nw.Datetime and not kind_.time_zone]
-        if kind == "csv" and plain and frame.implementation.is_polars():  # times without a zone: pandas' text
-            frame = frame.with_columns(*(nw.from_native(_plain_time_text(frame[name].to_native()), series_only=True)
-                                         .alias(name) for name in plain))
+        if kind == "csv" and frame.implementation.is_polars():  # pandas' text on both engines
+            texts = {nw.Time: _clock_text, nw.Duration: _duration_text, nw.Boolean: _true_false_text}
+            changed = []
+            for name, kind_ in frame.schema.items():
+                if kind_ == nw.Datetime and not kind_.time_zone:
+                    changed.append(_plain_time_text(frame[name].to_native()))
+                elif any(kind_ == dtype for dtype in texts):
+                    make = next(make for dtype, make in texts.items() if kind_ == dtype)
+                    changed.append(make(frame[name].to_native()))
+            if changed:
+                frame = frame.with_columns(*(nw.from_native(text, series_only=True) for text in changed))
         zoned = {name: kind_.time_zone for name, kind_ in self._frame.schema.items()
                  if kind_ == nw.Datetime and kind_.time_zone}
         if not zoned or (kind not in OFFSET_TEXT_TYPES and kind not in NO_ZONE_TYPES):

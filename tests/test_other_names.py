@@ -467,7 +467,8 @@ def _runnable_pointers():
 
 
 @pytest.mark.parametrize("calls", _runnable_pointers())
-def test_every_table_pointer_call_runs_on_a_practice_table(calls):
+def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # table.save("results.csv") and friends write here
     errors = []
     for source in [None, *EXAMPLES]:
         table = _pointer_table() if source is None else sdata.get_example(source)
