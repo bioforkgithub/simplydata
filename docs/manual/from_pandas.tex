@@ -52,7 +52,8 @@ Do you know a pandas or Polars name, but not the simplydata word? Ask: \code{sda
 Names inside the text and date steps work too: \code{sdata.help("str.replace")},
 \code{sdata.help("dt.year")} and \code{sdata.help("groupby.filter")} each name the simplydata word.
 The full list is in the section ``Coming from another tool?'' of the simplydata dictionary
-(\href{https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf}{simplydataDictionary.pdf}).
+(\href{https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf}%
+{simplydataDictionary.pdf}).
 
 \unsection{A first look at a table}{from-pandas:first-look}
 
@@ -236,7 +237,7 @@ table.get_cell_at(row=1, column="marks")
 
 \begin{lstlisting}[style=py]
 weather = sdata.get_example("weather")
-weather.keep_columns(starts_with="wind")      # pandas df.filter(like="wind"), Polars pl.col("^wind.*$")
+weather.keep_columns(starts_with="wind")      # pandas df.filter(regex="^wind"), Polars pl.col("^wind.*$")
 weather.keep_rows_by_position(1, to=3)        # pandas iloc[0:3]
 weather.show()
 \end{lstlisting}
