@@ -108,7 +108,7 @@ work. @WORDS@ commands in @CARDS@ cards, version @VERSION@.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
-\code{table.start\_chart()} or \code{sdata.chart(...)}; \code{nums.} on numbers from \code{sdata.numbers(...)}.
+\code{table.start\_chart()} or \code{sdata.chart(...)}; \code{numbers.} on numbers from \code{sdata.numbers(...)}.
 The small grey line under a command names its options. For the full story of a command, use
 \code{sdata.help("word")}, the \href{@MANUAL@}{manual} or the \href{@DICTIONARY@}{dictionary}. These cards are
 made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they always match the version above.\par}

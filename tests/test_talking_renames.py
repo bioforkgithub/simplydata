@@ -303,12 +303,14 @@ def test_help_for_an_old_option_lists_its_words_on_one_line(capsys):
 
 
 @pytest.mark.parametrize("typed, line, not_said", [
-    ("dist.chart", '"dist.chart" is now called "dist.draw_chart".', "start_chart"),
+    ("dist.chart", '"distribution.chart" is now called "distribution.draw_chart".', "start_chart"),
+    ("distribution.chart", '"distribution.chart" is now called "distribution.draw_chart".', "start_chart"),
     ("table.chart", '"table.chart" is now called "table.start_chart".', "draw_chart"),
-    ("nums.chart", '"nums.chart" is now called "nums.start_chart".', "draw_chart"),
-    ("nums.average", '"nums.average" is now called "nums.find_average".', "dist."),
-    ("grid.average", '"grid.average" is now called "grid.find_average".', "dist."),
-    ("table.spectrum_of", '"table.spectrum_of" is now called "table.find_spectrum_of".', "nums."),
+    ("nums.chart", '"numbers.chart" is now called "numbers.start_chart".', "draw_chart"),
+    ("numbers.chart", '"numbers.chart" is now called "numbers.start_chart".', "draw_chart"),
+    ("nums.average", '"numbers.average" is now called "numbers.find_average".', "distribution."),
+    ("grid.average", '"grid.average" is now called "grid.find_average".', "distribution."),
+    ("table.spectrum_of", '"table.spectrum_of" is now called "table.find_spectrum_of".', "numbers."),
 ])
 def test_help_honours_the_object_written_in_front(typed, line, not_said, capsys):
     sdata.help(typed)
@@ -324,8 +326,8 @@ def test_help_without_an_object_names_each_object_once(capsys):
     sdata.help("average")
     out = capsys.readouterr().out
     said = [x for x in out.splitlines() if "is now called" in x]
-    assert said == ['"nums.average" is now called "nums.find_average".',
-                    '"dist.average" is now called "dist.find_average".']
+    assert said == ['"numbers.average" is now called "numbers.find_average".',
+                    '"distribution.average" is now called "distribution.find_average".']
 
 
 def test_lessons_and_help_examples_use_no_old_name():

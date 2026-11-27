@@ -793,7 +793,7 @@ FAMILY_TITLES = {
     "table": ("Table words", "Steps on a table: \\code{table = sdata.table(...)}, then "
                              "\\code{table.keep\\_rows\\_where(...)}. Table words work the same on pandas and Polars tables. "
                              "Words that start with \\code{sdata.} (finding and solving, planning a study) are "
-                             "called on simplydata itself, and words that start with \\code{dist.} are steps on "
+                             "called on simplydata itself, and words that start with \\code{distribution.} are steps on "
                              "a distribution: \\code{distribution = sdata.distribution(\"normal\")}."),
     "numbers": ("Number words", "Steps on numbers, \\code{numbers = sdata.numbers([12, 15, 9, 20, 14])}, "
                                 "on grids of numbers, \\code{grid = sdata.number\\_grid([[3, 5, 2], [8, 6, 4]])}, "
@@ -1289,7 +1289,7 @@ def _word_entry(key: str, aliases: dict) -> str:
     title = learn._call_form(key)
     out = [f"\\wordentry{{{esc(title)}}}{{{label(key)}}}"]
     if key in aliases:
-        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
+        start = learn._SHOWN.get(learn._kind(key), "chart")
         other = ", ".join(code(f"{start}.{a}()") for a in aliases[key])
         out.append(f"\\wordfield{{Also written}}{{{other}}}")
     if key in learn.OPTIONS:
@@ -1467,7 +1467,7 @@ def _index(aliases: dict) -> str:
     entries = []
     for key in learn._all_keys():
         entries.append((learn._word(key).lower(), learn._call_form(key), key))
-        start = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"}.get(learn._kind(key), "chart")
+        start = learn._SHOWN.get(learn._kind(key), "chart")
         for alias in aliases.get(key, []):
             entries.append((alias.lower(), f"{start}.{alias}()", key))
     entries.sort(key=lambda e: (e[0].strip("="), e[1]))

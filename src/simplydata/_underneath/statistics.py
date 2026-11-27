@@ -1291,7 +1291,7 @@ ENTRIES += [
         choices=("maximum likelihood with the gamma starting at 0 (floc=0), as R MASS::fitdistr(x, \"gamma\"); SciPy's "
                  "own fit also moves the start.",
                  "the second parameter is the rate (1 / SciPy's scale), as R's dgamma(shape, rate)."),
-        also="Empty values are left out. The fitted distribution answers the dist words (find_chance_that_value, "
+        also="Empty values are left out. A fitted distribution answers the distribution words (find_chance_that_value, "
              "find_percentile ...); turn_into_table() also gives the standard errors, AIC and BIC.",
     ),
     Entry(

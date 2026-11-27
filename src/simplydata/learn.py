@@ -1666,6 +1666,20 @@ _PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block"
 # Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
 # distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
 _WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}
+# How a word is shown to people (headings, help, word lists): the object written in full in front. The keys of
+# GROUPS keep the short names (nums.find_average), and sdata.help() takes either spelling.
+_SHOWN = {"table": "table", "numbers": "numbers", "grid": "grid", "block": "block", "dist": "distribution",
+          "system": "system", "formula": "formula"}
+# A short name typed in front of a word, and how it is shown: sdata.help("nums.average") says "numbers.average".
+_SHOWN_TYPED = {"nums": "numbers", "dist": "distribution", "f": "formula"}
+
+
+def _shown_key(key: str) -> str:
+    """A key as people see it: "nums.find_average" -> "numbers.find_average", "f.undo" -> "formula.undo"."""
+    kind = _kind(key)
+    if kind in _PREFIX:
+        return f"{_SHOWN[kind]}.{_word(key)}"
+    return key
 
 
 def _block_class():
@@ -1771,7 +1785,7 @@ def _call_form(key: str) -> str:
         return key
     if kind == "chart":
         return f"chart.{key}()"
-    return f"{key}()"
+    return f"{_shown_key(key)}()"
 
 
 def _prefixes(key: str) -> str:
@@ -1962,7 +1976,8 @@ def _old_names(word) -> list[tuple[str, str, str]]:
 
     Old words come from each object's _OLD_WORDS, old options from the renamed= of
     @friendly. Both still work for one release, but sdata.show_all_words() never lists them.
-    A prefix is honoured: "dist.chart" gives only dist.draw_chart, and no options.
+    A prefix is honoured: "dist.chart" (or "distribution.chart") gives only distribution.draw_chart, and no
+    options.
     """
     raw = str(word).strip()
     head = raw.split(".", 1)[0] if "." in raw.rstrip("()") else None
@@ -2031,7 +2046,8 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
         if "=" in name:
             options.setdefault((name, new), []).append(key)
             continue
-        where = typed or (key.rsplit(".", 1)[0] if "." in key else "chart")
+        where = _SHOWN_TYPED.get(typed, typed) if typed else (
+            _SHOWN.get(_kind(key), key.rsplit(".", 1)[0]) if "." in key else "chart")
         line = f'"{where}.{name}" is now called "{where}.{new}".'
         if line not in lines:
             lines.append(line)
@@ -2130,7 +2146,7 @@ def _print_one(key: str) -> None:
     print(f"Group: {_group_of(key)}")
     aliases = _aliases().get(key)
     if aliases:
-        start = _PREFIX.get(_kind(key), "chart")
+        start = _SHOWN.get(_kind(key), "chart")
         print("Same word, other spelling: " + ", ".join(f"{start}.{a}()" for a in aliases))
     print()
     if key in OPTIONS:
@@ -2169,7 +2185,7 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {_PREFIX.get(kind, kind)}.{w}: {pointer}")
+            print(f"  {_SHOWN.get(kind, kind)}.{w}: {pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
     return True

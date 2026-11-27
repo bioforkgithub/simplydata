@@ -3550,7 +3550,7 @@ BASIS["dist.find_variance"] = _b(
 BASIS["dist.show_summary"] = _b(
     "One row: average, median, standard deviation, variance, skewness, excess kurtosis (0 for the normal "
     "distribution), entropy in nats and the lowest and highest possible values, all from SciPy.",
-    "The single dist words for one number each.",
+    "The single distribution words for one number each.",
     "Excess kurtosis is the form SciPy and most software give, so 0 means as heavy-tailed as the normal "
     "distribution.", (), "P3", "An entropy SciPy cannot work out is left empty.", "convention")
 BASIS["dist.make_random_numbers"] = _b(

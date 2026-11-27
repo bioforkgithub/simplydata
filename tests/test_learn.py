@@ -260,7 +260,8 @@ def test_help_for_a_word_on_charts_and_tables_explains_both(capsys):
 
 
 @pytest.mark.parametrize("typed, expected", [
-    ("nums.find_average", "nums.find_average()"), ("nums.find_average", "nums.find_average()"), ("grid.get_row", "grid.get_row()"),
+    ("nums.find_average", "numbers.find_average()"), ("numbers.find_average", "numbers.find_average()"),
+    ("grid.get_row", "grid.get_row()"),
     ("swap_rows_and_columns", "table.swap_rows_and_columns()"), ("grid.swap_rows_and_columns", "grid.swap_rows_and_columns()"), ("numbers", "sdata.numbers()"),
 ])
 def test_help_finds_number_words(typed, expected, capsys):
