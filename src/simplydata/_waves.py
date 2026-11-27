@@ -26,7 +26,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
     from scipy import signal
 
     from ._time_axis import read_time_step
-    from .numbers import numbers
+    from .numbers import number_list
 
     if shape not in SHAPES:
         raise choice_error("wave", "shape", shape, list(SHAPES))
@@ -58,7 +58,7 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
             values = signal.sawtooth(angle, width=float(rising_share))
         else:
             values = signal.gausspulse(t - t[len(t) // 2], fc=float(frequency), bw=float(bandwidth))
-    nums = numbers(values)
+    nums = number_list(values)
     nums._time_step = step
     print(f"A {shape} wave of {how_many} readings ({words}).")
     return nums
@@ -74,7 +74,7 @@ def make_window_shape(name="hann", how_many=64, periodic=False):
     """
     from scipy import signal
 
-    from .numbers import numbers
+    from .numbers import number_list
 
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
         raise SimplydataError("make_window_shape() needs how_many= as a whole number of weights, such as how_many=64.")
@@ -84,7 +84,7 @@ def make_window_shape(name="hann", how_many=64, periodic=False):
         raise SimplydataError(f'make_window_shape() does not know the window {name!r} ({error}). Try "hann", "hamming", '
                               '"blackman" or ("kaiser", 5).') from None
     print(f"{how_many} weights of a {'periodic' if periodic else 'symmetric'} {name} window (SciPy get_window).")
-    return numbers(values)
+    return number_list(values)
 
 
 def _same_rows_as_made(info, frame):
@@ -93,15 +93,15 @@ def _same_rows_as_made(info, frame):
     quietly cut or pad them. Changing the real and imaginary parts (setting some frequencies to 0) is fine."""
     if not {"frequency", "real part", "imaginary part"} <= set(frame.columns):
         raise SimplydataError("find_inverse_fourier_transform() needs the columns frequency, real part and imaginary "
-                              "part of the table that nums.take_fourier_transform() gave back.")
+                              "part of the table that numbers.take_fourier_transform() gave back.")
     made = info.get("frequency")
     now = np.asarray(frame["frequency"].to_numpy(), dtype=float)
     if made is not None and (len(now) != len(made) or not np.array_equal(now, made)):
         said = (f"it had {len(made)} rows and now has {len(now)}" if len(now) != len(made) else
                 "its frequencies are no longer the ones it made, in the same order")
         raise SimplydataError(
-            "find_inverse_fourier_transform() needs the rows of the table as nums.take_fourier_transform() made them, "
-            f"but they have changed ({said}), so it is no longer known how many numbers they came from.\n"
+            "find_inverse_fourier_transform() needs the rows of the table as numbers.take_fourier_transform() made "
+            f"them, but they have changed ({said}), so it is no longer known how many numbers they came from.\n"
             "Keep every row. To take some frequencies out, set their real part and imaginary part to 0 instead, "
             "or undo the step that changed the rows (table.undo()).")
 
@@ -110,18 +110,18 @@ def _same_rows_as_made(info, frame):
 def find_inverse_fourier_transform(table=None):
     """Numbers back from a Fourier transform table (its real and imaginary parts). sdata.find_inverse_fourier_transform(table)
 
-    table is what nums.take_fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
+    table is what numbers.take_fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
     Re(fft(z, inverse = TRUE)) / n. A round trip gives the numbers back (to about 1e-12). Its rows must stay
     as they were made: to take frequencies out, set their real and imaginary parts to 0 (removing or
     reordering rows is refused, since the number of readings then no longer fits).
     """
     from scipy import fft
 
-    from .numbers import numbers
+    from .numbers import number_list
 
     info = getattr(table, "_fourier", None)
     if info is None:
-        raise SimplydataError("find_inverse_fourier_transform() needs the table that nums.take_fourier_transform() gave back.")
+        raise SimplydataError("find_inverse_fourier_transform() needs the table that numbers.take_fourier_transform() gave back.")
     frame = table._frame
     _same_rows_as_made(info, frame)
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
@@ -129,7 +129,7 @@ def find_inverse_fourier_transform(table=None):
     if info.get("zero_in_middle"):
         z = fft.ifftshift(z)  # back to SciPy's own order before ifft
     values = fft.irfft(z, n=info["n"]) if info["show"] == "half" else fft.ifft(z).real
-    nums = numbers(values)
+    nums = number_list(values)
     nums._time_step = info["time_step"]
     print(f"{info['n']} numbers back from the Fourier transform (SciPy {'irfft' if info['show'] == 'half' else 'ifft'}).")
     return nums

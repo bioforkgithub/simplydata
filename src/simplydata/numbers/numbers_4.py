@@ -101,7 +101,7 @@ class GridWords4:
 
         sdata.number_grid([[2, 1], [1, 2]]).find_determinant() gives 3. SciPy linalg.det (from the LU
         decomposition, LAPACK), as R det() and MATLAB det. exactly=True gives the exact answer from SymPy (the
-        numbers as fractions), as a formula: f.find_value_at() gives its decimal. Nothing changes in the grid.
+        numbers as fractions), as a formula: formula.find_value_at() gives its decimal. Nothing changes in the grid.
         """
         from scipy import linalg
 

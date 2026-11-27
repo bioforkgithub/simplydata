@@ -123,7 +123,7 @@ def test_a_reference_number_without_a_simplydata_number_fails_the_case():
     """A misspelt name on either side must fail, not drop the comparison silently."""
     case = study.Case("nums.find_median", "a misspelt name", "made-up", "made-up",
                       ours="""
-                          {"median": sdata.numbers([1, 2, 3]).find_median()}
+                          {"median": sdata.number_list([1, 2, 3]).find_median()}
                       """,
                       published={"mediann": (2.0, 1e-12, "exact")},
                       parent="""

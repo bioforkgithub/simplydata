@@ -184,7 +184,7 @@ def test_and_multiples_is_scipy_iirnotch_at_each_multiple_and_keeps_the_average(
     from scipy import signal
 
     slow, x = _hum()
-    nums = sdata.numbers(x)
+    nums = sdata.number_list(x)
     nums.remove_each_frequency_that(is_equal_to=50, time_step=0.001, and_multiples=True)
     out = capsys.readouterr().out
     assert "9 notch filters at 50, 100 ... 450 (width 1 each); the average (frequency 0) stays" in out
@@ -322,8 +322,8 @@ def test_round_numbers_in_refuses_a_polars_that_rounds_halves_away_from_zero(mon
 
 # ---------------------------------------------------------------- 9. the inverse Fourier transform checks its rows
 def _transform():
-    nums = sdata.numbers(np.sin(2 * np.pi * 5 * np.arange(100) * 0.01) + 0.3 * np.sin(2 * np.pi * 30 * np.arange(100)
-                                                                                         * 0.01))
+    nums = sdata.number_list(np.sin(2 * np.pi * 5 * np.arange(100) * 0.01)
+                             + 0.3 * np.sin(2 * np.pi * 30 * np.arange(100) * 0.01))
     return nums, nums.take_fourier_transform(time_step=0.01)
 
 
@@ -467,7 +467,7 @@ def test_spectrum_gives_no_share_of_variance_and_its_power_is_scipy(capsys):
 
 def test_notch_method_line_names_what_scipy_runs(capsys):
     # before: "Method: SciPy, as R signal::filtfilt(SciPy signal.iirnotch, x) ..."
-    nums = sdata.numbers(_hum(2000)[1])
+    nums = sdata.number_list(_hum(2000)[1])
     nums.remove_each_frequency_that(is_equal_to=50, time_step=0.001)
     out = capsys.readouterr().out
     assert "Method: SciPy signal.iirnotch, run with SciPy signal.filtfilt (forwards and backwards" in out

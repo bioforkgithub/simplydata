@@ -227,7 +227,7 @@ def test_symbols_follow_numpy_broadcasting_for_random_shapes():
 
 def test_clash_message_lines_up_from_the_right():
     with pytest.raises(sdata.SimplydataError) as info:
-        plate(named=False) - sdata.numbers(list(range(8)))
+        plate(named=False) - sdata.number_list(list(range(8)))
     text = str(info.value)
     assert text.startswith("Cannot combine 24 pages x 8 rows x 12 columns with 8 numbers.")
     assert "<- needs 12, or 1" in text
@@ -268,7 +268,7 @@ def test_show_how_it_lines_up_prints_the_picture(capsys):
 
 def test_both_sides_stretching_note_and_hiding_it(capsys):
     column = sdata.number_block(np.arange(100).reshape(100, 1))
-    row = sdata.numbers(list(range(100)))
+    row = sdata.number_list(list(range(100)))
     result = column - row
     np.testing.assert_array_equal(result.as_numpy(), np.arange(100).reshape(100, 1) - np.arange(100))
     assert "both sides were stretched" in capsys.readouterr().out

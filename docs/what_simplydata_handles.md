@@ -26,7 +26,7 @@ Python packages:
 | Polars | the same table words on a fast engine for big data: `sdata.table(..., fast=True)`, `table.as_polars()`; some table words run on Polars for every table, so that pandas and Polars tables give one answer | built in |
 | pyarrow | Parquet and Feather files (`sdata.table("file.parquet")`, `table.save("clean.parquet")`) and passing tables between Polars and pandas | built in |
 | narwhals | lets every table word run on pandas or Polars alike | built in |
-| NumPy | the number words: `sdata.numbers`, `sdata.number_grid`, `sdata.number_block` (any number of directions), maths in words (`take_log`, `turn_into_running_total`), random numbers, `nums.as_numpy()` | built in |
+| NumPy | the number words: `sdata.number_list`, `sdata.number_grid`, `sdata.number_block` (any number of directions), maths in words (`take_log`, `turn_into_running_total`), random numbers, `numbers.as_numpy()` | built in |
 | SciPy | tests (t-tests, ANOVA, rank tests, chi-square, Fisher, Kolmogorov-Smirnov, Shapiro-Wilk), 28 named distributions (with the GEV and generalised Pareto curves of extremes) and any other `scipy.stats` one (`sdata.distribution`), fitting and solving (`fit_formula`, `solve`, `find_where_smallest`), values between points (`find_values_at`, `make_map_of`), bootstrap intervals (`find_interval_of`), the average direction of directions or times of day (`find_average_direction_of`), distances and clusters, spectra, filters, peaks, the Hilbert envelope and the Fourier transform (`find_spectrum_of`, `add_filtered_column`, `find_each_peak_that`, `find_envelope`), linear systems (`sdata.system`) | built in |
 | statsmodels (with its formula helper patsy) | models in `explain`: linear, logistic, Poisson, negative binomial, Gamma, ordered, multinomial, mixed models, GEE, robust regression, conditional logistic; Welch's ANOVA, corrections for many tests, kappa, exact intervals of percents and rates (`rate_of`, `compare_to_truth`), PCA, lowess and STL (`add_trend_and_season`), power of regression and of two percents, multiple-imputation fits | built in |
 | matplotlib | every chart's canvas (`sdata.chart`), pie, polar, contour, surface and 3D charts, titles, axes, legends, several charts on one page, `animate` | built in |
@@ -35,7 +35,7 @@ Python packages:
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
 | DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | xarray, h5netcdf, h5py | xarray lines up blocks of numbers by the names of their directions (`plate - blank`) and chooses by labels (`block.keep_where`); without it NumPy does the same job. h5netcdf and h5py read and write netCDF-4 files (`sdata.number_block("sst.nc")`, `block.save("out.nc")`, `sdata.show_whats_inside`) | [xarray] |
-| SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `nums.show_as_fraction()` | [exact] |
+| SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `numbers.show_as_fraction()` | [exact] |
 | plotly | web pages of charts: `chart.save("marks.html")` and `chart.show_in_web_page()` (the picture is drawn by matplotlib and copied into plotly) | [web] |
 | python-control | rise time, settling time and overshoot of `system.step_response()`; gain and phase margins of `system.frequency_response()` | [systems] |
 | plotly | web pages you can point at: `chart.save("chart.html")` and `chart.show_in_web_page()` copy what matplotlib drew into a plotly figure, with plotly.js written inside the page, so it opens with no internet | [web] |
@@ -128,7 +128,7 @@ R users, not packages simplydata needs.
 | Patterns across many columns, communities and resistomes | principal components, clusters with silhouettes, distances (Bray-Curtis, Jaccard, Aitchison, Hellinger), diversity and rarefaction, log ratios, NMDS, PCoA, PERMANOVA, ANOSIM, SIMPER, RDA and CCA, Mantel and Procrustes, LDA, correspondence analysis | `add_principal_components`, `add_clusters`, `find_distances_between_rows`, `add_diversity_columns`, `add_log_ratio_columns`, `add_nmds`, `add_principal_coordinates`, `compare_profiles_of`, `explain_profiles_of`, `find_correlation_between_profiles`, `add_axes_that_separate_groups`, `add_correspondence_axes` |
 | Hidden factors (questionnaires, test batteries) | how many hidden factors lie behind many columns and which columns go with which (parallel analysis, minres, oblimin); whether a model of hidden factors written down beforehand fits the data, and paths between factors | `find_hidden_factors_behind`, `check_hidden_factors` |
 | Directions, places and extremes | the average direction of currents, winds or times of day, and the Rayleigh test; Moran's I for nearby places; variograms; return levels (the 100-year sea level) from yearly maxima or from values above a threshold, with profile-likelihood intervals, and the threshold check | `find_average_direction_of`, `compare_shape_to(shape="even around the circle")`, `find_autocorrelation_of(x=, y=)`, `find_variogram_of`, `find_return_levels_of`, `chart.draw_threshold_check` |
-| Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.numbers`, `nums.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
+| Numbers and grids | lists and grids of numbers without a table: maths, choosing, sorting, filling, summaries | `sdata.number_list`, `numbers.find_average`, `sdata.number_grid`, `grid.swap_rows_and_columns` |
 | Learning and citing | every word with an example, help for one word, lessons, the 30-day course, the packages to cite | `sdata.show_all_words`, `sdata.help`, `sdata.show_lesson`, `sdata.start_30_days`, `sdata.show_packages_used` |
 | Coming next (not on main yet) | the next statistics phase (S3d) | planned |
 
@@ -207,11 +207,11 @@ chart = table.start_chart()                                    # draw it
 Plain words over NumPy for lists and grids of numbers:
 
 ```python
-nums = sdata.numbers([12, 15, 9, 20, 14])
-bigger = nums * 2                        # symbols make new numbers
-nums.keep_each_number_that(is_above=10)  # words change the numbers you have ...
-nums.undo()                              # ... and can be taken back
-nums.find_average()
+numbers = sdata.number_list([12, 15, 9, 20, 14])
+bigger = numbers * 2                        # symbols make new numbers
+numbers.keep_each_number_that(is_above=10)  # words change the numbers you have ...
+numbers.undo()                              # ... and can be taken back
+numbers.find_average()
 grid = sdata.number_grid([[3, 5, 2], [8, 6, 4]])
 grid.find_total(for_each="row")
 ```
@@ -229,7 +229,7 @@ table.keep_columns("hours", to="height")                               # a run o
 table.keep_columns(of_kind="number")                                   # every number column
 table.get_cell_at(row=3, column="marks")                               # one cell
 table.replace_values_in("marks", is_above=90, with_value=90)
-grid = sdata.numbers(1, to=24).make_number_grid(columns=6)
+grid = sdata.number_list(1, to=24).make_number_grid(columns=6)
 grid.keep_rows_by_position(2, to=3).keep_columns_by_position(1, to=3)  # a block
 ```
 
@@ -271,8 +271,8 @@ growth.find_values_at("population", at={"year": [2001, 2011]}, for_each_group_in
 sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])                                 # -3, at x = 2 (as R optimize())
 sdata.solve("x**3 - 2*x = 5", between=[0, 3])                                               # x = 2.09455 (as R uniroot())
 
-dist = sdata.distribution("normal", average=50, standard_deviation=10)
-dist.find_chance_that_value(is_above=80)                                                    # 0.135 %, and the R call: pnorm(...)
+distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+distribution.find_chance_that_value(is_above=80)                                            # 0.135 %, and the R call: pnorm(...)
 school = sdata.table(sdata.get_example("school"))
 school.compare_distributions_for("days_absent", distributions=("poisson", "negative binomial"))
 ```

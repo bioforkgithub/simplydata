@@ -6,8 +6,8 @@ start_again() for free, exactly like tables.
 
 Two ways to do maths, on purpose:
 
-* symbols make NEW numbers, like maths on paper:   bigger = nums + 5
-* words CHANGE the numbers you have (with undo):   nums.add(5)
+* symbols make NEW numbers, like maths on paper:   bigger = numbers + 5
+* words CHANGE the numbers you have (with undo):   numbers.add(5)
 
 Both use the same calculation underneath, so they always give the same answer.
 
@@ -263,7 +263,7 @@ UFUNCS = {np.add: "add", np.subtract: "subtract", np.multiply: "times", np.true_
 class BaseNumbers:
     """Shared by Numbers and NumberGrid."""
 
-    _name = "nums"  # the name used in examples
+    _name = "numbers"  # the name used in examples
     _noun = "numbers"
     # Old names that still work for one release (with a note the first time): old -> new.
     _OLD_WORDS = {"count_empty": "count_empty_numbers", "done": "as_numpy",
@@ -374,7 +374,7 @@ class BaseNumbers:
     # ------------------------------------------------------------------ history words
     @friendly
     def undo(self: _Same) -> _Same:
-        """Take the last step back. nums.undo()"""
+        """Take the last step back. numbers.undo()"""
         if not self._history:
             print(f"Nothing to undo: these {self._noun} have no steps yet.")
             return self
@@ -387,7 +387,7 @@ class BaseNumbers:
 
     @friendly
     def show_steps(self: _Same) -> _Same:
-        """List every step you did, in order. nums.show_steps()"""
+        """List every step you did, in order. numbers.show_steps()"""
         if not self._history:
             print("No steps yet.")
         else:
@@ -397,7 +397,7 @@ class BaseNumbers:
 
     @friendly
     def start_again(self: _Same) -> _Same:
-        """Go back to the numbers as they were at the start. nums.start_again()"""
+        """Go back to the numbers as they were at the start. numbers.start_again()"""
         first_step = self._history[0][2] if self._history else getattr(self, "_time_step", None)
         self._change("start again", self._original)
         if first_step is not None:
@@ -407,55 +407,55 @@ class BaseNumbers:
     # ------------------------------------------------------------------ looking words
     @friendly
     def show(self):
-        """Show every number. nums.show()"""
+        """Show every number. numbers.show()"""
         print(np.array2string(self._values, threshold=sys.maxsize, separator=", "))
         return None
 
     @friendly
     def count(self):
-        """How many numbers there are (empty ones included). nums.count()"""
+        """How many numbers there are (empty ones included). numbers.count()"""
         return int(self._values.size)
 
     @friendly
     def count_empty_numbers(self):
-        """How many values are empty (missing). nums.count_empty_numbers()"""
+        """How many values are empty (missing). numbers.count_empty_numbers()"""
         return int(self._empty_mask().sum())
 
     # ------------------------------------------------------------------ finishing words
     @friendly
     def as_numpy(self):
-        """Give back the numbers as a plain NumPy array, for other Python tools. array = nums.as_numpy()"""
+        """Give back the numbers as a plain NumPy array, for other Python tools. array = numbers.as_numpy()"""
         return self._values.copy()
 
     @friendly
     def turn_into_table(self, name="value") -> Table:
-        """Turn the numbers into a simplydata table. nums.turn_into_table(name="marks")"""
+        """Turn the numbers into a simplydata table. numbers.turn_into_table(name="marks")"""
         from ..table import Table
 
         return Table(self._as_pandas(name=name))
 
     @friendly
     def start_chart(self) -> Chart:
-        """Start a chart from these numbers. chart = nums.start_chart()"""
+        """Start a chart from these numbers. chart = numbers.start_chart()"""
         from ..chart import chart
 
         return chart(self)
 
     @friendly
     def save(self: _Same, file_name, time_step=None, bits=32) -> _Same:
-        """Save the numbers; the end of the file name decides the type. nums.save("nums.csv")
+        """Save the numbers; the end of the file name decides the type. numbers.save("numbers.csv")
 
         File types: .csv, .tsv, .xlsx (Excel), .parquet and .json, the same as tables, and .wav (sound:
         time_step= the time between readings, or the one the numbers remember; bits=32 writes the numbers
         as they are (32-bit floating point), bits=16 writes 16-bit whole numbers: -1 to 1 times 32768,
-        rounded, clipped to -32768 to 32767, so a 16-bit file read with sdata.numbers comes back the same;
+        rounded, clipped to -32768 to 32767, so a 16-bit file read with sdata.number_list comes back the same;
         SciPy io.wavfile).
         """
         if isinstance(file_name, str) and file_name.lower().endswith(".wav"):
             self._save_wav(file_name, time_step, bits)
             return self
         if time_step is not None or bits != 32:
-            raise SimplydataError("time_step= and bits= go with a .wav file, such as nums.save(\"tone.wav\", time_step=1/44100).")
+            raise SimplydataError("time_step= and bits= go with a .wav file, such as numbers.save(\"tone.wav\", time_step=1/44100).")
         self.turn_into_table().save(file_name)
         return self
 
@@ -465,7 +465,7 @@ class BaseNumbers:
         step = time_step if time_step is not None else getattr(self, "_time_step", None)
         if step is None or isinstance(step, bool) or not isinstance(step, (int, float)) or step <= 0:
             raise SimplydataError('Saving a .wav file needs time_step= (the time between readings), such as '
-                                  'nums.save("tone.wav", time_step=1/44100).')
+                                  'numbers.save("tone.wav", time_step=1/44100).')
         rate = int(round(1 / step))
         x = np.asarray(self._values, dtype=float).ravel()
         if np.isnan(x).any():
@@ -476,7 +476,7 @@ class BaseNumbers:
             clipped = int((np.abs(x) > 1).sum())
             if clipped:
                 print(f"Note: {clipped} values were beyond -1 to 1 and were clipped.")
-            # the scale sdata.numbers("file.wav") reads with: divided by 2^15
+            # the scale sdata.number_list("file.wav") reads with: divided by 2^15
             data = np.clip(np.round(x * 32768), -32768, 32767).astype(np.int16)
         else:
             raise SimplydataError("bits= is 32 (the numbers as they are) or 16.")
@@ -543,7 +543,7 @@ class BaseNumbers:
         return np.array(self._values, dtype=dtype, copy=True)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """NumPy functions work too: np.sin(nums) gives new numbers."""
+        """NumPy functions work too: np.sin(numbers) gives new numbers."""
         if method == "__call__" and not kwargs and len(inputs) == 2 and ufunc in UFUNCS:
             if inputs[0] is self:
                 return self._sum_symbol(UFUNCS[ufunc], inputs[1])

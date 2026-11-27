@@ -101,6 +101,7 @@ SDATA = {
     "window_shape": "make_window_shape", "find_smallest": "find_where_smallest", "find_biggest": "find_where_biggest",
     "words": "show_all_words", "lesson": "show_lesson", "today": "show_today", "day": "show_day",
     "answers": "show_answers", "next_day": "go_to_next_day",
+    "numbers": "number_list",
 }
 
 
@@ -114,7 +115,7 @@ def note(old, new):
 
 @pytest.fixture
 def objects(marks):
-    return {"chart": sdata.chart(marks), "table": sdata.table(marks), "nums": sdata.numbers([3, 1, 2]),
+    return {"chart": sdata.chart(marks), "table": sdata.table(marks), "nums": sdata.number_list([3, 1, 2]),
             "grid": sdata.number_grid([[1, 2], [3, 4]]), "dist": sdata.distribution("normal")}
 
 
@@ -143,13 +144,33 @@ def test_old_word_is_not_a_listed_word(kind, old, new):
 
 @pytest.mark.parametrize("old, new", list(SDATA.items()))
 def test_old_sdata_word_works_with_a_note_once(old, new, capsys):
-    if old == "words":  # a function of its own: sdata.words is also the name of a subpackage
-        assert callable(sdata.words)
+    if old in ("words", "numbers"):  # a function of its own: sdata.words and sdata.numbers are also subpackages
+        assert callable(getattr(sdata, old))
     else:
         assert getattr(sdata, old) is getattr(sdata, new)
         getattr(sdata, old)
         assert notes(capsys.readouterr().out) == [note(old, new)]
     assert old not in sdata.__all__ and new in sdata.__all__
+
+
+def test_old_sdata_numbers_gives_the_same_numbers_as_number_list(capsys):
+    old = sdata.numbers([3, None, 5])
+    new = sdata.number_list([3, None, 5])
+    assert type(old) is type(new) is sdata.Numbers
+    np.testing.assert_array_equal(old.as_numpy(), new.as_numpy())
+    assert sdata.numbers(1, to=10).as_numpy().tolist() == sdata.number_list(1, to=10).as_numpy().tolist()
+    assert notes(capsys.readouterr().out) == [note("numbers", "number_list")]  # once per session
+
+
+def test_help_on_the_old_sdata_numbers_points_to_number_list(capsys):
+    for typed in ("numbers", "sdata.numbers"):
+        sdata.help(typed)
+        out = capsys.readouterr().out
+        assert '"sdata.numbers" is now called "sdata.number_list".' in out
+        assert "\nsdata.number_list()\n===" in out  # and the new word is explained
+    sdata.help("number_list")
+    out = capsys.readouterr().out
+    assert out.startswith("sdata.number_list()") and "is now called" not in out
 
 
 def test_old_names_really_run(marks, capsys):
@@ -162,7 +183,7 @@ def test_old_names_really_run(marks, capsys):
     assert [s.name for s in chart._steps] == [s.name for s in sdata.chart(marks).draw_bars(x="name", y="marks")
                                                .write_title_on_top("Marks").put_legend_at_bottom()._steps]
     assert repr(chart).startswith("<simplydata chart: draw_bars")  # shown with the word as it is written now
-    assert sdata.numbers([1, 4, 9]).square_root().as_numpy().tolist() == [1, 2, 3]
+    assert sdata.number_list([1, 4, 9]).square_root().as_numpy().tolist() == [1, 2, 3]
     assert sdata.distribution("normal").chance(is_below=0) == pytest.approx(0.5)
 
 
@@ -202,8 +223,8 @@ def test_old_and_new_conditions_give_the_same_rows(marks):
     a = sdata.table(marks).keep_rows_where("marks", above=50).as_pandas()
     b = sdata.table(marks).keep_rows_where("marks", is_above=50).as_pandas()
     pd.testing.assert_frame_equal(a, b)
-    old = sdata.numbers([1, 5, 9]).keep_numbers(between=[2, 9]).as_numpy()
-    assert np.array_equal(old, sdata.numbers([1, 5, 9]).keep_each_number_that(is_between=[2, 9]).as_numpy())
+    old = sdata.number_list([1, 5, 9]).keep_numbers(between=[2, 9]).as_numpy()
+    assert np.array_equal(old, sdata.number_list([1, 5, 9]).keep_each_number_that(is_between=[2, 9]).as_numpy())
 
 
 def test_old_chart_options(marks, capsys):
@@ -303,12 +324,14 @@ def test_help_for_an_old_option_lists_its_words_on_one_line(capsys):
 
 
 @pytest.mark.parametrize("typed, line, not_said", [
-    ("dist.chart", '"dist.chart" is now called "dist.draw_chart".', "start_chart"),
+    ("dist.chart", '"distribution.chart" is now called "distribution.draw_chart".', "start_chart"),
+    ("distribution.chart", '"distribution.chart" is now called "distribution.draw_chart".', "start_chart"),
     ("table.chart", '"table.chart" is now called "table.start_chart".', "draw_chart"),
-    ("nums.chart", '"nums.chart" is now called "nums.start_chart".', "draw_chart"),
-    ("nums.average", '"nums.average" is now called "nums.find_average".', "dist."),
-    ("grid.average", '"grid.average" is now called "grid.find_average".', "dist."),
-    ("table.spectrum_of", '"table.spectrum_of" is now called "table.find_spectrum_of".', "nums."),
+    ("nums.chart", '"numbers.chart" is now called "numbers.start_chart".', "draw_chart"),
+    ("numbers.chart", '"numbers.chart" is now called "numbers.start_chart".', "draw_chart"),
+    ("nums.average", '"numbers.average" is now called "numbers.find_average".', "distribution."),
+    ("grid.average", '"grid.average" is now called "grid.find_average".', "distribution."),
+    ("table.spectrum_of", '"table.spectrum_of" is now called "table.find_spectrum_of".', "numbers."),
 ])
 def test_help_honours_the_object_written_in_front(typed, line, not_said, capsys):
     sdata.help(typed)
@@ -324,8 +347,8 @@ def test_help_without_an_object_names_each_object_once(capsys):
     sdata.help("average")
     out = capsys.readouterr().out
     said = [x for x in out.splitlines() if "is now called" in x]
-    assert said == ['"nums.average" is now called "nums.find_average".',
-                    '"dist.average" is now called "dist.find_average".']
+    assert said == ['"numbers.average" is now called "numbers.find_average".',
+                    '"distribution.average" is now called "distribution.find_average".']
 
 
 def test_lessons_and_help_examples_use_no_old_name():
@@ -342,7 +365,7 @@ def test_lessons_and_help_examples_use_no_old_name():
 
 def test_same_old_name_on_two_objects_gets_a_note_for_each(marks, capsys):
     # conftest clears the remembered notes before each test, so both objects are used in this one test
-    table, dist, nums = sdata.table(marks), sdata.distribution("normal"), sdata.numbers([1.0, 2, 3, 4, 5, 6, 7, 8])
+    table, dist, nums = sdata.table(marks), sdata.distribution("normal"), sdata.number_list([1.0, 2, 3, 4, 5, 6, 7, 8])
     assert table.chart == table.start_chart and dist.chart == dist.draw_chart
     nums.chart  # the same new name as table.chart: no second note
     table.keep_rows_where("marks", above=50)

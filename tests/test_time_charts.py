@@ -161,7 +161,7 @@ def test_smooth_line_methods_equal_nums_smooth(method, options):
     data = example_frame("sensor")
     ax = sdata.chart(data).draw_dots(x="time", y="signal").draw_smooth_line(test_method=method, **options)._render().axes[0]
     drawn = ax.get_lines()[-1].get_ydata()
-    nums = sdata.numbers(data["signal"])
+    nums = sdata.number_list(data["signal"])
     nums.smooth(test_method=method, **options)
     assert np.asarray(drawn, dtype=float) == pytest.approx(np.asarray(nums._values, dtype=float), rel=1e-12,
                                                            nan_ok=True)

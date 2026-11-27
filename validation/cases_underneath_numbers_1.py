@@ -86,7 +86,7 @@ def cases(Case):
         Case("nums.turn_into_yes_or_no", "Michelson's measurements above 299.85 (thousand km/s)", "NIST Michelso",
              "real data",
              ours=_code("""
-                 fast = sdata.numbers(data["y"].tolist()).turn_into_yes_or_no(is_above=299.85)
+                 fast = sdata.number_list(data["y"].tolist()).turn_into_yes_or_no(is_above=299.85)
              """, _ours_flat("fast")),
              parent=_code("""
                  import numpy as np
@@ -95,8 +95,8 @@ def cases(Case):
              r=R_FLAT + "flat(as.numeric(y > 299.85))", r_tolerance=0.0),
         Case("nums.keep_numbers_where", "iris: the petal lengths of the flowers with sepals above 6 cm", **iris,
              ours=_code("""
-                 long_sepal = sdata.numbers(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
-                 petals = sdata.numbers(data["Petal.Length"].tolist()).keep_numbers_where(long_sepal)
+                 long_sepal = sdata.number_list(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
+                 petals = sdata.number_list(data["Petal.Length"].tolist()).keep_numbers_where(long_sepal)
              """, _ours_flat("petals")),
              parent=_code("""
                  import numpy as np
@@ -105,8 +105,8 @@ def cases(Case):
              r=R_FLAT + "flat(Petal.Length[Sepal.Length > 6])", r_tolerance=0.0),
         Case("nums.remove_numbers_where", "iris: the petal lengths left when sepals above 6 cm are removed", **iris,
              ours=_code("""
-                 long_sepal = sdata.numbers(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
-                 petals = sdata.numbers(data["Petal.Length"].tolist()).remove_numbers_where(long_sepal)
+                 long_sepal = sdata.number_list(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
+                 petals = sdata.number_list(data["Petal.Length"].tolist()).remove_numbers_where(long_sepal)
              """, _ours_flat("petals")),
              parent=_code("""
                  import numpy as np
@@ -115,8 +115,9 @@ def cases(Case):
              r=R_FLAT + "flat(Petal.Length[!(Sepal.Length > 6)])", r_tolerance=0.0),
         Case("nums.replace_numbers_where", "iris: petal lengths set to 0 where the sepal is above 6 cm", **iris,
              ours=_code("""
-                 long_sepal = sdata.numbers(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
-                 petals = sdata.numbers(data["Petal.Length"].tolist()).replace_numbers_where(long_sepal, with_value=0)
+                 long_sepal = sdata.number_list(data["Sepal.Length"].tolist()).turn_into_yes_or_no(is_above=6)
+                 petals = sdata.number_list(data["Petal.Length"].tolist())
+                 petals.replace_numbers_where(long_sepal, with_value=0)
              """, _ours_flat("petals")),
              parent=_code("""
                  import numpy as np
@@ -126,7 +127,7 @@ def cases(Case):
         Case("nums.count_numbers_that", "how many of Michelson's 100 measurements are above 299.85", "NIST Michelso",
              "real data",
              ours="""
-                 {"count": sdata.numbers(data["y"].tolist()).count_numbers_that(is_above=299.85)}
+                 {"count": sdata.number_list(data["y"].tolist()).count_numbers_that(is_above=299.85)}
              """,
              parent="""
                  import numpy as np
@@ -135,7 +136,7 @@ def cases(Case):
              r="list(count = sum(y > 299.85))", r_tolerance=0.0),
         Case("nums.check_if_any_number", "iris: is any petal wider than 2.4 cm?", **iris,
              ours="""
-                 {"answer": float(sdata.numbers(data["Petal.Width"].tolist()).check_if_any_number(is_above=2.4))}
+                 {"answer": float(sdata.number_list(data["Petal.Width"].tolist()).check_if_any_number(is_above=2.4))}
              """,
              parent="""
                  import numpy as np
@@ -144,7 +145,7 @@ def cases(Case):
              r="list(answer = as.numeric(any(Petal.Width > 2.4)))", r_tolerance=0.0),
         Case("nums.check_if_all_numbers", "iris: is every sepal at least 2 cm wide?", **iris,
              ours="""
-                 {"answer": float(sdata.numbers(data["Sepal.Width"].tolist()).check_if_all_numbers(is_at_least=2))}
+                 {"answer": float(sdata.number_list(data["Sepal.Width"].tolist()).check_if_all_numbers(is_at_least=2))}
              """,
              parent="""
                  import numpy as np
@@ -154,8 +155,8 @@ def cases(Case):
         Case("nums.check_if_same_as", "Lake Huron: the levels and the levels rounded to 0.1 ft agree within 0.06",
              **huron,
              ours="""
-                 levels = sdata.numbers(data["level"].tolist())
-                 rounded = sdata.numbers(data["level"].tolist()).round_to(1)
+                 levels = sdata.number_list(data["level"].tolist())
+                 rounded = sdata.number_list(data["level"].tolist()).round_to(1)
                  {"same": float(levels.check_if_same_as(rounded, within=0.06)),
                   "same within 0.04": float(levels.check_if_same_as(rounded, within=0.04))}
              """,
@@ -191,17 +192,17 @@ def cases(Case):
              r=R_IRIS + "flat(m[!(m[, 1] < 5), ])", r_tolerance=0.0),
         # ---------------------------------------------------------------- rounding, angles and positions
         Case("nums.round_down", "Lake Huron levels rounded down to whole feet", **huron,
-             ours=_code('levels = sdata.numbers(data["level"].tolist()).round_down()', _ours_flat("levels")),
+             ours=_code('levels = sdata.number_list(data["level"].tolist()).round_down()', _ours_flat("levels")),
              parent=_code("import numpy as np\nx = np.floor(data['level'].to_numpy())", NP_FLAT),
              parent_label="NumPy floor", parent_tolerance=0.0, r=R_FLAT + "flat(floor(level))", r_tolerance=0.0),
         Case("nums.round_up", "Lake Huron levels rounded up to whole feet", **huron,
-             ours=_code('levels = sdata.numbers(data["level"].tolist()).round_up()', _ours_flat("levels")),
+             ours=_code('levels = sdata.number_list(data["level"].tolist()).round_up()', _ours_flat("levels")),
              parent=_code("import numpy as np\nx = np.ceil(data['level'].to_numpy())", NP_FLAT),
              parent_label="NumPy ceil", parent_tolerance=0.0, r=R_FLAT + "flat(ceiling(level))", r_tolerance=0.0),
         Case("nums.take_whole_part", "Lake Huron: the whole part of each level's distance from 579.5 ft (minus ones "
              "go towards 0)", **huron,
              ours=_code("""
-                 levels = sdata.numbers(data["level"].tolist())
+                 levels = sdata.number_list(data["level"].tolist())
                  levels.subtract(579.5)
                  levels.take_whole_part()
              """, _ours_flat("levels")),
@@ -210,35 +211,35 @@ def cases(Case):
              r_tolerance=0.0),
         Case("nums.take_sin", "AirPassengers: the sine of each month's angle on the year (30 degrees a month)", **air,
              ours=_code(MONTH_ANGLES, """
-                 angles = sdata.numbers(((months - 1) * 30).tolist()).take_sin(degrees=True)
+                 angles = sdata.number_list(((months - 1) * 30).tolist()).take_sin(degrees=True)
              """, _ours_flat("angles")),
              parent=_code(MONTH_ANGLES, "import numpy as np\nx = np.sin(np.deg2rad((months.to_numpy() - 1) * 30))",
                           NP_FLAT), parent_label="NumPy sin, deg2rad", parent_tolerance=1e-15,
              r=R_MONTHS + "flat(sin((mo - 1) * 30 * pi / 180))", r_tolerance=1e-12),
         Case("nums.take_cos", "AirPassengers: the cosine of each month's angle on the year", **air,
              ours=_code(MONTH_ANGLES, """
-                 angles = sdata.numbers(((months - 1) * 30).tolist()).take_cos(degrees=True)
+                 angles = sdata.number_list(((months - 1) * 30).tolist()).take_cos(degrees=True)
              """, _ours_flat("angles")),
              parent=_code(MONTH_ANGLES, "import numpy as np\nx = np.cos(np.deg2rad((months.to_numpy() - 1) * 30))",
                           NP_FLAT), parent_label="NumPy cos, deg2rad", parent_tolerance=1e-15,
              r=R_MONTHS + "flat(cos((mo - 1) * 30 * pi / 180))", r_tolerance=1e-12),
         Case("nums.take_tan", "AirPassengers: the tangent of 7.5 degrees a month (0 to 82.5 degrees)", **air,
              ours=_code(MONTH_ANGLES, """
-                 angles = sdata.numbers(((months - 1) * 7.5).tolist()).take_tan(degrees=True)
+                 angles = sdata.number_list(((months - 1) * 7.5).tolist()).take_tan(degrees=True)
              """, _ours_flat("angles")),
              parent=_code(MONTH_ANGLES, "import numpy as np\nx = np.tan(np.deg2rad((months.to_numpy() - 1) * 7.5))",
                           NP_FLAT), parent_label="NumPy tan, deg2rad", parent_tolerance=1e-15,
              r=R_MONTHS + "flat(tan((mo - 1) * 7.5 * pi / 180))", r_tolerance=1e-12),
         Case("nums.change_angles_to", "AirPassengers: each month's angle on the year, in radians", **air,
              ours=_code(MONTH_ANGLES, """
-                 angles = sdata.numbers(((months - 1) * 30).tolist()).change_angles_to("radians")
+                 angles = sdata.number_list(((months - 1) * 30).tolist()).change_angles_to("radians")
              """, _ours_flat("angles")),
              parent=_code(MONTH_ANGLES, "import numpy as np\nx = np.deg2rad((months.to_numpy() - 1) * 30)", NP_FLAT),
              parent_label="NumPy deg2rad", parent_tolerance=1e-15,
              r=R_MONTHS + "flat((mo - 1) * 30 * pi / 180)", r_tolerance=1e-12),
         Case("nums.find_where_biggest", "AirPassengers: the month (counting from 1) with the most passengers", **air,
              ours="""
-                 {"position": sdata.numbers(data["passengers"].tolist()).find_where_biggest()}
+                 {"position": sdata.number_list(data["passengers"].tolist()).find_where_biggest()}
              """,
              parent="""
                  import numpy as np
@@ -247,7 +248,7 @@ def cases(Case):
              r="list(position = which.max(passengers))", r_tolerance=0.0),
         Case("nums.find_where_smallest", "Lake Huron: the year (counting from 1) with the lowest level", **huron,
              ours="""
-                 {"position": sdata.numbers(data["level"].tolist()).find_where_smallest()}
+                 {"position": sdata.number_list(data["level"].tolist()).find_where_smallest()}
              """,
              parent="""
                  import numpy as np
@@ -262,7 +263,7 @@ def cases(Case):
              **huron,
              ours=_code("""
                  first = data["level"].to_numpy()[:10].tolist()
-                 pairs = sdata.numbers(first).make_pair_table_with(first, by_subtracting=True)
+                 pairs = sdata.number_list(first).make_pair_table_with(first, by_subtracting=True)
              """, _ours_flat("pairs.get_all_numbers()")),
              parent=_code("""
                  import numpy as np
@@ -272,7 +273,7 @@ def cases(Case):
              r=R_FLAT + "l <- level[1:10]\nflat(outer(l, l, `-`))", r_tolerance=0.0),
         Case("nums.divide_by", "AirPassengers: whole dozens of passengers (dividing by 12, rounding down)", **air,
              option="rounding_down=",
-             ours=_code('dozens = sdata.numbers(data["passengers"].tolist()).divide_by(12, rounding_down=True)',
+             ours=_code('dozens = sdata.number_list(data["passengers"].tolist()).divide_by(12, rounding_down=True)',
                         _ours_flat("dozens")),
              parent=_code("import numpy as np\nx = np.floor_divide(data['passengers'].to_numpy(), 12)", NP_FLAT),
              parent_label="NumPy floor_divide", parent_tolerance=0.0, r=R_FLAT + "flat(passengers %/% 12)",
@@ -280,7 +281,8 @@ def cases(Case):
         Case("nums.take_fourier_transform", "Lake Huron: the sizes of the Fourier transform with frequency 0 in the "
              "middle", **huron, option="with_zero_in_middle=",
              ours=_code("""
-                 t = sdata.numbers(data["level"].tolist()).take_fourier_transform(time_step=1, with_zero_in_middle=True)
+                 levels = sdata.number_list(data["level"].tolist())
+                 t = levels.take_fourier_transform(time_step=1, with_zero_in_middle=True)
              """, _ours_flat('t.get_column("size")')),
              parent=_code("""
                  import numpy as np
@@ -369,7 +371,7 @@ def cases(Case):
                    tolerance=1e-12, numbers="totals"),
         Case("sdata.stack_up", "iris: the four measurements stacked as a new direction (4 x 150)", **iris,
              ours=_code("""
-                 columns = [sdata.numbers(data[c].tolist()) for c in ["Sepal.Length", "Sepal.Width", "Petal.Length",
+                 columns = [sdata.number_list(data[c].tolist()) for c in ["Sepal.Length", "Sepal.Width", "Petal.Length",
                                                                        "Petal.Width"]]
                  stacked = sdata.stack_up(columns, as_new_direction="measurement")
              """, _ours_flat("stacked.get_all_numbers()")),

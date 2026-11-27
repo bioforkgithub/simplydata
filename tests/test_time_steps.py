@@ -36,7 +36,7 @@ def col(t, name):
 
 
 def signal60():
-    return sdata.numbers(example_frame("sensor")["signal"][:60])
+    return sdata.number_list(example_frame("sensor")["signal"][:60])
 
 
 def station_a(engine):
@@ -151,7 +151,7 @@ def test_whittaker_without_scipy_117_says_what_to_do(monkeypatch):
 
     monkeypatch.delattr(signal, "whittaker_henderson", raising=False)
     with pytest.raises(SimplydataError, match="needs SciPy 1.17 or newer"):
-        sdata.numbers([1.0, 2, 3, 2, 1]).smooth(test_method="whittaker")
+        sdata.number_list([1.0, 2, 3, 2, 1]).smooth(test_method="whittaker")
 
 
 @pytest.mark.parametrize("show, kwargs, expected", [
@@ -287,12 +287,12 @@ def test_smoothing_errors():
 
 # ---------------------------------------------------------------- remove_trend
 def test_remove_trend_matches_r(capsys):
-    nums = sdata.numbers(example_frame("sensor")["signal"])
+    nums = sdata.number_list(example_frame("sensor")["signal"])
     nums.remove_trend()
     # R: t <- seq_along(xx); residuals(lm(xx ~ t))[1:2]
     assert np.asarray(nums._values, dtype=float)[:2] == pytest.approx([-0.306456172827175, 0.595261418309621],
                                                                        rel=1e-9)
-    nums = sdata.numbers(example_frame("sensor")["signal"])
+    nums = sdata.number_list(example_frame("sensor")["signal"])
     nums.remove_trend(breaks=[200])
     # R: residuals(lm(xx[1:200] ~ t[1:200]))[1]; residuals(lm(xx[201:1000] ~ t[201:1000]))[1]
     values = np.asarray(nums._values, dtype=float)

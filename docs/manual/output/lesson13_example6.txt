@@ -11,4 +11,4 @@ values: 36 times x 4 latitudes x 5 longitudes; time from 2010-01-01 to 2012-12-0
 12 averages, one for each month (all years together): 36 times x 4 latitudes x 5 longitudes -> 12 months x 4 latitudes x 5 longitudes. xarray groupby("time.month").mean()
 Nearest labels: latitude 60; longitude 2. pandas Index.get_indexer(method="nearest") (as xarray sel(method="nearest"))
 Each number minus the usual value of its month (the average over all the years): anomalies. xarray: block.groupby("time.month") - reference.groupby("time.month").mean()
-36 picks from 36 numbers, putting each back, each equally likely (seed 1). NumPy random.default_rng(1).choice(nums, size=36, replace=True)
+36 picks from 36 numbers, putting each back, each equally likely (seed 1). NumPy random.default_rng(1).choice(numbers, size=36, replace=True)

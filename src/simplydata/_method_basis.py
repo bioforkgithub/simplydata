@@ -3290,7 +3290,7 @@ BASIS["sdata.get_example"] = _b(
     "Date columns are read as dates.",
     "sdata.get_example() lists the tables.",
     "Practice data: dates read as dates let the date words work at once.", (), "P5", "", "convention")
-BASIS["sdata.numbers"] = _b(
+BASIS["sdata.number_list"] = _b(
     "With to=, the end is included; the count of steps allows a little room for rounding.",
     "step=, how_many= (evenly spaced, as np.linspace).",
     "Making numbers: \"1 to 10\" includes 10 in everyday speech and in R's seq(); NumPy's arange leaves the end "
@@ -3510,7 +3510,7 @@ BASIS["table.agreement_between columns of numbers"] = _b(
 BASIS["dist.find_density_at"] = _b(
     "The height of the SciPy density (pdf) at the value, with the parameters under R's names (shape, rate) turned "
     "into SciPy's (a, scale = 1 / rate).",
-    "A list of values; dist.find_chance_that_value() for a chance.",
+    "A list of values; distribution.find_chance_that_value() for a chance.",
     "R's names are the ones most textbooks and papers use; turning them into SciPy's is bookkeeping, not a "
     "statistical choice.", (), "P3", "Count distributions are refused: they have no density.", "convention")
 BASIS["dist.find_cut_off"] = _b(
@@ -3529,28 +3529,28 @@ BASIS["dist.find_middle_range"] = _b(
     "A percent of 0, 100 or outside them is refused.", "convention")
 BASIS["dist.find_average"] = _b(
     "The mean of the SciPy distribution, with R's parameter names turned into SciPy's.",
-    "dist.show_summary() for every summary at once.",
+    "distribution.show_summary() for every summary at once.",
     "The average of a distribution is a fact of the distribution; only the names need care.", (), "P3",
     "A distribution with no finite average (heavy tails) gets a sentence that says so.", "convention")
 BASIS["dist.find_median"] = _b(
     "The median of the SciPy distribution (its 50 % point), with R's parameter names turned into SciPy's.",
-    "dist.find_percentile(50) gives the same.",
+    "distribution.find_percentile(50) gives the same.",
     "A fact of the distribution; only the names need care.", (), "P3", "", "convention")
 BASIS["dist.find_standard_deviation"] = _b(
     "The standard deviation of the SciPy distribution itself (no sample, so no n - 1), with R's parameter names "
     "turned into SciPy's.",
-    "dist.find_variance() for its square.",
+    "distribution.find_variance() for its square.",
     "A fact of the distribution; only the names need care.", (), "P3",
     "A distribution with no finite spread gets a sentence that says so.", "convention")
 BASIS["dist.find_variance"] = _b(
     "The variance of the SciPy distribution, with R's parameter names turned into SciPy's.",
-    "dist.find_standard_deviation() for its square root.",
+    "distribution.find_standard_deviation() for its square root.",
     "A fact of the distribution; only the names need care.", (), "P3",
     "A distribution with no finite variance gets a sentence that says so.", "convention")
 BASIS["dist.show_summary"] = _b(
     "One row: average, median, standard deviation, variance, skewness, excess kurtosis (0 for the normal "
     "distribution), entropy in nats and the lowest and highest possible values, all from SciPy.",
-    "The single dist words for one number each.",
+    "The single distribution words for one number each.",
     "Excess kurtosis is the form SciPy and most software give, so 0 means as heavy-tailed as the normal "
     "distribution.", (), "P3", "An entropy SciPy cannot work out is left empty.", "convention")
 BASIS["dist.make_random_numbers"] = _b(
@@ -3567,7 +3567,7 @@ BASIS["dist.draw_chart"] = _b(
 BASIS["dist.turn_into_table"] = _b(
     "One row: the distribution's name and its parameters under their plain names; parameters not given are "
     "left out; a fitted distribution adds its standard errors, log-likelihood, AIC and BIC.",
-    "dist.show_parameters() for a dictionary.",
+    "distribution.show_parameters() for a dictionary.",
     "Bookkeeping, not a method: the plain names are the ones the user typed.", (), "P5", "", "convention")
 # ---- Phase U3, batch 7: time series, cycles, waves and systems
 BASIS["nums.find_each_dip_that"] = _b(
@@ -3577,7 +3577,7 @@ BASIS["nums.find_each_dip_that"] = _b(
     "A dip is a peak turned upside down, so the same neutral start as find_each_peak_that: no threshold unless you "
     "give one. These are SciPy's definitions.", (), "P3", "", "convention")
 BASIS["table.find_each_dip_that"] = _b(
-    "Every local minimum, as nums.find_each_dip_that; apart= and wide_at_least= in units of sorted_by, turned into "
+    "Every local minimum, as numbers.find_each_dip_that; apart= and wide_at_least= in units of sorted_by, turned into "
     "readings rounded to 9 decimals.",
     "is_at_most=, apart=, stands_out_by=, wide_at_least=, for_each_group_in=.",
     "As table.find_each_peak_that. Rounding the number of readings keeps floating point from making SciPy's distance "
@@ -3964,11 +3964,11 @@ BASIS["grid.show_last_rows"] = _b(
     "Showing results: the same look as show().", (), "P5", "rows= must be a whole number.", "starting value")
 BASIS["grid.get_number_at"] = _b(
     "Rows and columns count from 1; \"last\" is the last one.", "None: Python's [ ] is not used on grids.",
-    "As nums.get_number_at: people count from 1, and so does R.", (), "P5",
+    "As numbers.get_number_at: people count from 1, and so does R.", (), "P5",
     "A row or column outside the grid stops with a message.", "convention")
 BASIS["grid.get_row"] = _b(
     "Rows count from 1; the row comes back as new numbers (a copy).", "\"last\" for the bottom row.",
-    "As nums.get_number_at; a copy means a later step on the row never changes the grid.", (), "P5",
+    "As numbers.get_number_at; a copy means a later step on the row never changes the grid.", (), "P5",
     "A row outside the grid stops with a message.", "convention")
 BASIS["grid.get_column"] = _b(
     "Columns count from 1 at the left; the column comes back as new numbers (a copy).",
@@ -3979,11 +3979,11 @@ BASIS["grid.get_all_numbers"] = _b(
     "The same order as make_number_grid fills, so the two undo each other.", (), "P3", "", "convention")
 BASIS["grid.keep_rows_by_position"] = _b(
     "Rows count from 1 and both ends are kept; the result stays a grid.", "to=, step= or a list of rows.",
-    "As nums.keep_numbers_by_position.", (), "P5", "Value conditions are refused: rows are chosen by place.",
+    "As numbers.keep_numbers_by_position.", (), "P5", "Value conditions are refused: rows are chosen by place.",
     "convention")
 BASIS["grid.keep_columns_by_position"] = _b(
     "Columns count from 1 at the left and both ends are kept.", "to=, step= or a list of columns.",
-    "As nums.keep_numbers_by_position.", (), "P5", "Value conditions are refused: columns are chosen by place.",
+    "As numbers.keep_numbers_by_position.", (), "P5", "Value conditions are refused: columns are chosen by place.",
     "convention")
 BASIS["grid.remove_rows_by_position"] = _b(
     "Rows count from 1.", "to=, step= or a list of rows.", "As grid.keep_rows_by_position.", (), "P5",
@@ -4711,10 +4711,10 @@ BASIS["block.find_values_at"] = _b(
     "Text labels are refused; the labels must run steadily up or down.", "convention")
 BASIS["block.smooth"] = _b(
     "A moving average of window=5 places along each direction named; the edges without a full window are empty "
-    "(ends=\"empty\"), as nums.smooth.",
+    "(ends=\"empty\"), as numbers.smooth.",
     "ends=\"reflect\" or \"mirror\" (SciPy's modes of those names); test_method=\"gaussian\" (width=2) or "
     "\"median\".",
-    "The same starting values as nums.smooth (R stats::filter leaves the ends empty), so a block smoothed along one "
+    "The same starting values as numbers.smooth (R stats::filter leaves the ends empty), so a block smoothed along one "
     "direction gives what each list of numbers would give.", (), "P3",
     "window= is odd, so it is centred; empty values are refused.", "convention")
 BASIS["grid.smooth"] = _b(
@@ -4899,7 +4899,8 @@ REFERENCES.update({
 BASIS["f.group_by_powers_of"] = _b(
     "The formula is multiplied out first (SymPy expand), then the terms are gathered by the powers of the letter "
     "(collect).",
-    "None: f.turn_into_product() or f.make_simpler() write it in other ways; f.undo() takes the step back.",
+    "None: formula.turn_into_product() or formula.make_simpler() write it in other ways; formula.undo() takes the "
+    "step back.",
     "SymPy collect gathers only the terms it can see, so (a + x)*(b + x) would stay as it is; expanding first gives "
     "the grouping a reader expects from the name, as in textbooks.", ("meurer2017",), "P5",
     "The letter must be a letter of the formula; a sum with letters raised to a whole power above 100 is refused "

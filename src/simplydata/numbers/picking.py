@@ -2,17 +2,17 @@
 
 The names follow tables, with "numbers" in place of "rows", so they can be guessed:
 
-    table.keep_rows_where("marks", is_above=50)    ->  nums.keep_each_number_that(is_above=50)
-    table.keep_first_rows(10)             ->  nums.keep_first_numbers(10)
-    table.show_first_rows(5)              ->  nums.show_first_numbers(5)
-    table.remove_rows_with_empty_cells_in()  ->  nums.remove_empty_numbers()
-    table.count_empty_cells_in()             ->  nums.count_empty_numbers()
-    table.fill_empty_cells_in("marks", with_the="average")  ->  nums.fill_empty_numbers(with_the="average")
+    table.keep_rows_where("marks", is_above=50)    ->  numbers.keep_each_number_that(is_above=50)
+    table.keep_first_rows(10)             ->  numbers.keep_first_numbers(10)
+    table.show_first_rows(5)              ->  numbers.show_first_numbers(5)
+    table.remove_rows_with_empty_cells_in()  ->  numbers.remove_empty_numbers()
+    table.count_empty_cells_in()             ->  numbers.count_empty_numbers()
+    table.fill_empty_cells_in("marks", with_the="average")  ->  numbers.fill_empty_numbers(with_the="average")
 
 Conditions are the same as keep_rows_where (without the text ones), and empty values never
 match a condition except is_empty=True.
 
-Positions count from 1: nums.get_number_at(1) is the first number.
+Positions count from 1: numbers.get_number_at(1) is the first number.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ class ReplacingWords:
             raise SimplydataError(
                 f".{step}() takes one condition at a time, but you gave {names}. "
                 "Write one step per condition, or use is_between=[low, high]."
-                + self._example(f"{step}(is_at_least=40)   then   nums.{step}(is_at_most=80)")
+                + self._example(f"{step}(is_at_least=40)   then   numbers.{step}(is_at_most=80)")
             )
         option, value = next(iter(given.items()))
         v = self._values
@@ -120,8 +120,8 @@ class ReplacingWords:
                                  is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
         """Replace a number, or every number that meets one condition; with_value="empty" (or None) makes them empty.
 
-        nums.replace_each_number_that(-999, with_value=None)   a code for "missing" becomes empty
-        nums.replace_each_number_that(is_above=100, with_value=100)   every number above 100 becomes 100
+        numbers.replace_each_number_that(-999, with_value=None)   a code for "missing" becomes empty
+        numbers.replace_each_number_that(is_above=100, with_value=100)   every number above 100 becomes 100
         The conditions are those of keep_each_number_that (one at a time): is_above, is_below,
         is_at_least, is_at_most, is_equal_to, is_not_equal_to, is_between, is_one_of, is_empty. A grid keeps its rows and columns.
         As NumPy np.where(a > 100, 100, a) and pandas s.mask(s > 100, 100).
@@ -158,7 +158,7 @@ class ReplacingWords:
             if old is None or (is_number(old) and old != old):
                 raise SimplydataError(
                     f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0) "
-                    f"or {name}.fill_empty_numbers(with_value=0)." if name == "nums" else
+                    f"or {name}.fill_empty_numbers(with_value=0)." if name == "numbers" else
                     f"For the empty numbers write {name}.replace_each_number_that(is_empty=True, with_value=0)."
                 )
             olds = list(old) if isinstance(old, (list, tuple, set, np.ndarray)) else [old]
@@ -213,7 +213,7 @@ class PickingWords(ReplacingWords):
     def get_number_at(self, position=None):
         """The number at a position, counting from 1: get_number_at(1) is the first number.
 
-        nums.get_number_at(1)
+        numbers.get_number_at(1)
         Positions count from 1, the way people count and the way charts number the x axis.
         get_number_at("last") is the last number.
         """
@@ -221,15 +221,15 @@ class PickingWords(ReplacingWords):
 
     @friendly
     def show_first_numbers(self, how_many=5):
-        """Show the first numbers. nums.show_first_numbers(5)"""
-        n = check_whole("show_first_numbers", "show_first_numbers()", how_many, "nums.show_first_numbers(5)")
+        """Show the first numbers. numbers.show_first_numbers(5)"""
+        n = check_whole("show_first_numbers", "show_first_numbers()", how_many, "numbers.show_first_numbers(5)")
         print(np.array2string(self._values[:n], threshold=sys.maxsize, separator=", "))
         return None
 
     @friendly
     def show_last_numbers(self, how_many=5):
-        """Show the last numbers. nums.show_last_numbers(5)"""
-        n = check_whole("show_last_numbers", "show_last_numbers()", how_many, "nums.show_last_numbers(5)")
+        """Show the last numbers. numbers.show_last_numbers(5)"""
+        n = check_whole("show_last_numbers", "show_last_numbers()", how_many, "numbers.show_last_numbers(5)")
         print(np.array2string(self._values[self._values.size - min(n, self._values.size):],
                               threshold=sys.maxsize, separator=", "))
         return None
@@ -238,9 +238,9 @@ class PickingWords(ReplacingWords):
     def _positions_picked(self, step: str, positions, to, step_size, example: str):
         return read_positions(
             step, positions, to, step_size, self._values.size, noun="position", count_noun="numbers",
-            owner="There are", example=example, last_hint="nums.keep_last_numbers(3)",
-            after_hint="to turn the order round use nums.reverse()", name="nums",
-            other_hint=lambda v: ("To keep numbers by their values use nums.keep_each_number_that(is_above=50)."
+            owner="There are", example=example, last_hint="numbers.keep_last_numbers(3)",
+            after_hint="to turn the order round use numbers.reverse()", name="numbers",
+            other_hint=lambda v: ("To keep numbers by their values use numbers.keep_each_number_that(is_above=50)."
                                   if isinstance(v, str) else None),
         )
 
@@ -252,8 +252,8 @@ class PickingWords(ReplacingWords):
             verb = step.split("_")[0]
             raise SimplydataError(
                 f".{step}() chooses numbers by their place in the list, not by their values.\n"
-                f"For numbers whose values meet a condition write nums.{verb}_each_number_that({_is(key)}=...).\n"
-                "For example:  nums.keep_each_number_that(is_above=50)"
+                f"For numbers whose values meet a condition write numbers.{verb}_each_number_that({_is(key)}=...).\n"
+                "For example:  numbers.keep_each_number_that(is_above=50)"
             )
         raise option_error(step, key, ["positions", "to", "step"])
 
@@ -261,12 +261,12 @@ class PickingWords(ReplacingWords):
     def keep_numbers_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Keep numbers by their position, counting from 1: a run, every n-th number, or a list.
 
-        nums.keep_numbers_by_position(2, to=4)
+        numbers.keep_numbers_by_position(2, to=4)
         Both ends are included. to="last" goes to the end; step=2 keeps every 2nd number; a list
         such as [1, 4] keeps those numbers in that order. As NumPy a[1:4] (positions, not values:
         keep_each_number_that(is_between=[2, 4]) keeps the values from 2 to 4).
         """
-        example = "nums.keep_numbers_by_position(3, to=8)"
+        example = "numbers.keep_numbers_by_position(3, to=8)"
         self._no_value_conditions("keep_numbers_by_position", conditions)
         picked = self._positions_picked("keep_numbers_by_position", positions, to, step, example)
         total = self._values.size
@@ -281,10 +281,10 @@ class PickingWords(ReplacingWords):
     def remove_numbers_by_position(self: _Same, positions=None, to=None, step=None, **conditions) -> _Same:
         """Remove numbers by their position, counting from 1: a run, every n-th number, or a list.
 
-        nums.remove_numbers_by_position("last")
+        numbers.remove_numbers_by_position("last")
         The opposite of keep_numbers_by_position, with the same positions. As NumPy np.delete(a, -1).
         """
-        example = 'nums.remove_numbers_by_position("last")'
+        example = 'numbers.remove_numbers_by_position("last")'
         self._no_value_conditions("remove_numbers_by_position", conditions)
         picked = self._positions_picked("remove_numbers_by_position", positions, to, step, example)
         total = self._values.size
@@ -304,7 +304,7 @@ class PickingWords(ReplacingWords):
     def keep_each_number_that(self: _Same, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN, is_at_most=NOT_GIVEN,
                               is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN, is_between=NOT_GIVEN, is_one_of=NOT_GIVEN,
                               is_empty=NOT_GIVEN) -> _Same:
-        """Keep only the numbers that match one condition. nums.keep_each_number_that(is_above=50)
+        """Keep only the numbers that match one condition. numbers.keep_each_number_that(is_above=50)
 
         Conditions (the same as table.keep_rows_where): is_above, is_below, is_at_least, is_at_most, is_equal_to,
         is_not_equal_to, is_between=[low, high] (both ends included), is_one_of=[...], is_empty=True.
@@ -323,7 +323,7 @@ class PickingWords(ReplacingWords):
                                 is_empty=NOT_GIVEN) -> _Same:
         """Remove the numbers that match one condition (the opposite of keep_each_number_that).
 
-        nums.remove_each_number_that(is_below=0)
+        numbers.remove_each_number_that(is_below=0)
         Same conditions as keep_each_number_that; is_between=[low, high] includes both ends.
         """
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
@@ -333,15 +333,15 @@ class PickingWords(ReplacingWords):
 
     @friendly
     def keep_first_numbers(self: _Same, how_many=5) -> _Same:
-        """Keep only the first numbers. nums.keep_first_numbers(10)"""
-        n = check_whole("keep_first_numbers", "keep_first_numbers()", how_many, "nums.keep_first_numbers(10)")
+        """Keep only the first numbers. numbers.keep_first_numbers(10)"""
+        n = check_whole("keep_first_numbers", "keep_first_numbers()", how_many, "numbers.keep_first_numbers(10)")
         mask = np.arange(self._values.size) < n
         return self._keep(f"keep the first {amount(n)}", mask)
 
     @friendly
     def keep_last_numbers(self: _Same, how_many=5) -> _Same:
-        """Keep only the last numbers. nums.keep_last_numbers(10)"""
-        n = check_whole("keep_last_numbers", "keep_last_numbers()", how_many, "nums.keep_last_numbers(10)")
+        """Keep only the last numbers. numbers.keep_last_numbers(10)"""
+        n = check_whole("keep_last_numbers", "keep_last_numbers()", how_many, "numbers.keep_last_numbers(10)")
         mask = np.arange(self._values.size) >= self._values.size - n
         return self._keep(f"keep the last {amount(n)}", mask)
 
@@ -349,9 +349,9 @@ class PickingWords(ReplacingWords):
     def keep_random_numbers(self: _Same, how_many=5, with_seed=None) -> _Same:
         """Keep some numbers picked at random (they keep their order); a seed gives the same pick every time.
 
-        nums.keep_random_numbers(10, with_seed=1)
+        numbers.keep_random_numbers(10, with_seed=1)
         """
-        example = "nums.keep_random_numbers(10, with_seed=1)"
+        example = "numbers.keep_random_numbers(10, with_seed=1)"
         n = check_whole("keep_random_numbers", "keep_random_numbers()", how_many, example)
         with_seed = check_seed(with_seed, example)
         size = self._values.size
@@ -366,14 +366,14 @@ class PickingWords(ReplacingWords):
 
     @friendly
     def remove_empty_numbers(self: _Same) -> _Same:
-        """Remove the empty (missing) values. nums.remove_empty_numbers()"""
+        """Remove the empty (missing) values. numbers.remove_empty_numbers()"""
         return self._keep("remove empty values", ~self._empty_mask(), kept_word=False)
 
     @friendly
     def remove_duplicate_numbers(self: _Same) -> _Same:
         """Remove numbers that repeat an earlier number, so each number is left once, in its first place.
 
-        nums.remove_duplicate_numbers()
+        numbers.remove_duplicate_numbers()
         """
         import pandas as pd
 
@@ -384,7 +384,7 @@ class PickingWords(ReplacingWords):
     def fill_empty_numbers(self: _Same, with_value=None, with_the=None) -> _Same:
         """Fill the empty values with a number, or with the average, median, value above or value below.
 
-        nums.fill_empty_numbers(with_value=0)   or   nums.fill_empty_numbers(with_the="average")
+        numbers.fill_empty_numbers(with_value=0)   or   numbers.fill_empty_numbers(with_the="average")
         with_the="line between neighbours" fills each gap on the straight line between the
         values just before and just after it; empty values at the start or end stay empty.
         """
@@ -435,7 +435,7 @@ class PickingWords(ReplacingWords):
     # ================================================================== order
     @friendly
     def sort(self: _Same, biggest_first=False) -> _Same:
-        """Put the numbers in order, smallest first; empty values go last. nums.sort(biggest_first=True)"""
+        """Put the numbers in order, smallest first; empty values go last. numbers.sort(biggest_first=True)"""
         if not isinstance(biggest_first, bool):
             raise SimplydataError("biggest_first= needs True or False (no quotes)." + self._example("sort(biggest_first=True)"))
         empty = self._empty_mask()
@@ -447,14 +447,14 @@ class PickingWords(ReplacingWords):
 
     @friendly
     def reverse(self: _Same) -> _Same:
-        """Turn the order round: the last number comes first. nums.reverse()"""
+        """Turn the order round: the last number comes first. numbers.reverse()"""
         return self._change("reverse", self._values[::-1].copy())
 
     @friendly
     def turn_into_running_total(self: _Same) -> _Same:
         """Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.
 
-        nums.turn_into_running_total()
+        numbers.turn_into_running_total()
         Empty values stay empty and are skipped in the total, like pandas cumsum().
         """
         empty = self._empty_mask()
@@ -466,7 +466,7 @@ class PickingWords(ReplacingWords):
     # ================================================================== into a grid
     @friendly
     def make_number_grid(self, rows=None, columns=None):
-        """Make a NEW grid from these numbers, filled row by row. grid = nums.make_number_grid(columns=3)
+        """Make a NEW grid from these numbers, filled row by row. grid = numbers.make_number_grid(columns=3)
 
         Give rows= or columns= (or both); the numbers must fill the grid exactly.
         """

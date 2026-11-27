@@ -90,13 +90,13 @@ ENTRIES = [
              "look is left out here.",
     ),
     Entry(
-        word="sdata.numbers",
+        word="sdata.number_list",
         ours="""
-            sdata.numbers(0, to=100, step=25)
+            sdata.number_list(0, to=100, step=25)
         """,
         code={"NumPy": """
             import numpy as np
-            # numbers(0, to=100, step=25)
+            # number_list(0, to=100, step=25)
             n = int(np.floor((100 - 0) / 25 + 1e-9)) + 1     # (1)
             0 + 25 * np.arange(n)
         """},
@@ -105,7 +105,7 @@ ENTRIES = [
         choices=("the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a "
                  "little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a "
                  "decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.",),
-        also="sdata.numbers([3, 5, 2, 8]) is np.array([3, 5, 2, 8]), and how_many= is np.linspace(0, 1, 5). "
+        also="sdata.number_list([3, 5, 2, 8]) is np.array([3, 5, 2, 8]), and how_many= is np.linspace(0, 1, 5). "
              "None in a list becomes an empty value (nan).",
     ),
     Entry(

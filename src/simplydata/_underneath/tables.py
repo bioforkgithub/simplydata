@@ -838,7 +838,7 @@ ENTRIES += [
         },
         compare="value",
         tolerance=0.0,
-        also="A column of numbers comes back as sdata.numbers, so number words such as find_average() work on it; "
+        also="A column of numbers comes back as sdata.number_list, so number words such as find_average() work on it; "
              "its empty cells become empty numbers (nan). A column of text or dates comes back as a plain list "
              "(to_list()), with a note. The table does not change.",
     ),

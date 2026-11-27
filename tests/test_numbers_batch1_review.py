@@ -117,7 +117,7 @@ def test_named_size_one_direction_stretches(path, capsys):
 # 6 ---------------------------------------------------------------- Fourier: the biggest away from frequency 0
 def test_fourier_biggest_size_skips_frequency_zero_by_value(capsys):
     signal = [5, 5.1, 4.9, 5, 5.2, 4.8, 5, 5.1]
-    sdata.numbers(signal).take_fourier_transform(time_step=1, with_zero_in_middle=True)
+    sdata.number_list(signal).take_fourier_transform(time_step=1, with_zero_in_middle=True)
     out = capsys.readouterr().out
     assert "the biggest size (after frequency 0) is at -0.375" in out or "is at 0.375" in out
 

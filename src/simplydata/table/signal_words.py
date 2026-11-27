@@ -26,7 +26,7 @@ class SignalTableWords:
         readings (dates: per day, or per month, quarter or year for calendar steps). Without it the
         rows are taken in table order and frequencies are in cycles per reading. The readings must be
         evenly spaced and filled in, except with test_method="lomb-scargle", which is made for uneven times
-        (empty cells are then left out). test_method= and show= as nums.find_spectrum: "periodogram" (SciPy;
+        (empty cells are then left out). test_method= and show= as numbers.find_spectrum: "periodogram" (SciPy;
         2 x R spec.pgram(x, taper = 0, detrend = FALSE, fast = FALSE)$spec except at the top
         frequency), "welch" (window= readings per piece) or "lomb-scargle" (R lomb::lsp() itself, needs
         simplydata[r] and R). for_each_group_in= gives one spectrum per group. Gives back a table: frequency,

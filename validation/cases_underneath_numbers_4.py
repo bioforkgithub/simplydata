@@ -89,9 +89,9 @@ def cases(Case):
                """, option="for_letter="),
         closed("f.find_limit_as", "from_side=: |x| / x comes to -1 from below and 1 from above at 0",
                """
-                   f = sdata.formula("abs(x) / x")
-                   {"below": f.find_limit_as("x", goes_to=0, from_side="below"),
-                    "above": f.find_limit_as("x", goes_to=0, from_side="right")}
+                   formula = sdata.formula("abs(x) / x")
+                   {"below": formula.find_limit_as("x", goes_to=0, from_side="below"),
+                    "above": formula.find_limit_as("x", goes_to=0, from_side="right")}
                """, {"below": (-1.0, 0.0, CLOSED_FORM), "above": (1.0, 0.0, CLOSED_FORM)},
                """
                    import sympy as sp
@@ -114,9 +114,9 @@ def cases(Case):
                """, "SymPy N", tolerance=0.0),
         closed("f.group_by_powers_of", "(a + x)(b + x) - x grouped by x: x^2 + x (a + b - 1) + a b",
                """
-                   f = sdata.formula("(a + x)*(b + x) - x")
-                   f.group_by_powers_of("x")
-                   {"terms": len(f.as_sympy().args), "at a=2, b=3, x=5": f.find_value_at(a=2, b=3, x=5)}
+                   formula = sdata.formula("(a + x)*(b + x) - x")
+                   formula.group_by_powers_of("x")
+                   {"terms": len(formula.as_sympy().args), "at a=2, b=3, x=5": formula.find_value_at(a=2, b=3, x=5)}
                """, {"terms": (3.0, 0.0, CLOSED_FORM + ": x**2, x*(a + b - 1) and a*b"),
                      "at a=2, b=3, x=5": (51.0, 1e-15, CLOSED_FORM + ": 7 * 8 - 5")},
                """
@@ -130,9 +130,9 @@ def cases(Case):
                """),
         closed("f.turn_into_partial_fractions", "(3x + 5) / ((x + 1)(x + 2)) is 2/(x + 1) + 1/(x + 2)",
                """
-                   f = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
-                   f.turn_into_partial_fractions()
-                   {"fractions": len(f.as_sympy().args), "at 3": f.find_value_at(x=3)}
+                   formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
+                   formula.turn_into_partial_fractions()
+                   {"fractions": len(formula.as_sympy().args), "at 3": formula.find_value_at(x=3)}
                """, {"fractions": (2.0, 0.0, CLOSED_FORM), "at 3": (0.7, 1e-15, CLOSED_FORM + ": 2/4 + 1/5")},
                """
                    import sympy as sp
@@ -156,9 +156,9 @@ def cases(Case):
                """, "SymPy parse_expr"),
         closed("sdata.formula", "letters_are=: with k and t positive, sqrt(k^2) + log(k t) is k + log(k) + log(t)",
                """
-                   f = sdata.formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
-                   f.turn_into_sum()
-                   {"terms": len(f.as_sympy().args), "at k=2, t=3": f.find_value_at(k=2, t=3)}
+                   formula = sdata.formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
+                   formula.turn_into_sum()
+                   {"terms": len(formula.as_sympy().args), "at k=2, t=3": formula.find_value_at(k=2, t=3)}
                """, {"terms": (3.0, 0.0, CLOSED_FORM), "at k=2, t=3": (2 + math.log(6), 1e-15, CLOSED_FORM)},
                """
                    import sympy as sp

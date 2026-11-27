@@ -40,7 +40,7 @@ def _no_empty(values, step: str):
 class SharedWords3:
     @friendly
     def take_cube_root(self: _Same) -> _Same:
-        """The cube root of every number: 27 becomes 3, and -8 becomes -2. nums.take_cube_root()
+        """The cube root of every number: 27 becomes 3, and -8 becomes -2. numbers.take_cube_root()
 
         Unlike raise_to_power(1/3), a negative number keeps its real cube root. NumPy cbrt.
         """
@@ -52,7 +52,7 @@ class SharedWords3:
 
     @friendly
     def show_as_fraction(self) -> None:
-        """Show each number as a fraction, such as 0.25 as 1/4; the numbers do not change. nums.show_as_fraction()
+        """Show each number as a fraction, such as 0.25 as 1/4; the numbers do not change. numbers.show_as_fraction()
 
         Each number is written with all the digits Python keeps (about 16), and SymPy nsimplify(rational=True) gives
         the fraction of exactly those digits: 1/3 worked out as a decimal (0.3333333333333333) shows as 1/3, but
@@ -76,11 +76,11 @@ class NumberWords3:
     @friendly(renamed={"method": "test_method"})
     def turn_into_running_area(self: _Same, time_step=None, test_method="trapezoid", sampling_rate=None,
                                fs=None) -> _Same:
-        """Turn readings into the area so far under their curve (a running integral). nums.turn_into_running_area(time_step=60)
+        """Turn readings into the area so far under their curve (a running integral). numbers.turn_into_running_area(time_step=60)
 
         A flow per second read every 60 seconds becomes the volume so far. The first number becomes 0 and the
         last is the whole area. test_method="trapezoid" (the default; SciPy integrate.cumulative_trapezoid,
-        straight lines between readings) or "simpson" (cumulative_simpson). Undo with nums.undo().
+        straight lines between readings) or "simpson" (cumulative_simpson). Undo with numbers.undo().
         """
         from scipy import integrate
 
@@ -108,7 +108,7 @@ class NumberWords3:
     def find_coherence_with(self, other=None, time_step=None, sampling_rate=None, fs=None):
         """How closely two recordings follow each other at each frequency, from 0 to 1 (the coherence).
 
-        nums.find_coherence_with(other, time_step=0.01)
+        numbers.find_coherence_with(other, time_step=0.01)
         Gives back a table: frequency, coherence. 1 means the two always move together at that frequency
         (with a fixed delay), 0 that they are unrelated there. Welch's method: SciPy signal.coherence with its own
         settings (Hann window, segments half overlapping, no padding). The segments are SciPy's 256 readings for a
@@ -125,7 +125,7 @@ class NumberWords3:
             raise SimplydataError("find_coherence_with() needs the other recording, as numbers of the same length."
                                   + self._example("find_coherence_with(other, time_step=0.01)"))
         x = np.asarray(self._values, dtype=float).ravel()
-        y = np.asarray(to_array(other, "find_coherence_with()", "nums.find_coherence_with([1, 2, 3])"),
+        y = np.asarray(to_array(other, "find_coherence_with()", "numbers.find_coherence_with([1, 2, 3])"),
                        dtype=float).ravel()
         if x.size != y.size:
             raise SimplydataError(f"find_coherence_with() needs two recordings of the same length; these have "
@@ -149,10 +149,10 @@ class NumberWords3:
 
     @friendly
     def take_cosine_transform(self: _Same) -> _Same:
-        """The numbers as a sum of cosine waves: the size of each (the discrete cosine transform). nums.take_cosine_transform()
+        """The numbers as a sum of cosine waves: the size of each (the discrete cosine transform). numbers.take_cosine_transform()
 
         The type-2 transform with orthonormal scaling (SciPy fft.dct(type=2, norm="ortho")), so the sum of
-        squares stays the same; the first numbers hold the slow changes. Undo with nums.undo().
+        squares stays the same; the first numbers hold the slow changes. Undo with numbers.undo().
         """
         from scipy import fft
 

@@ -153,7 +153,7 @@ def test_words_called_inside_a_word_that_fails_are_dropped_too():
 
 def test_recording_never_changes_what_a_word_gives_or_prints(capsys):
     word = sdata.Numbers.find_median
-    nums = sdata.numbers([12, 15, 9, 20, 14])
+    nums = sdata.number_list([12, 15, 9, 20, 14])
     first = word(nums)
     printed = capsys.readouterr().out
     second = word._simplydata_word(nums)

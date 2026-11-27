@@ -54,7 +54,7 @@ def cases(Case):
         Case("nums.smooth", "the level of Lake Huron, 1875-1972: a centred moving average of 5 years", "Lake Huron",
              "real data",
              ours="""
-                 s = sdata.numbers(data["level"]).smooth()
+                 s = sdata.number_list(data["level"]).smooth()
                  {"empty at the ends": s.count_empty_numbers(), "third year": s.get_number_at(3),
                   "year 50": s.get_number_at(50)}
              """,
@@ -71,7 +71,7 @@ def cases(Case):
         Case("nums.smooth", 'the level of Lake Huron, 1875-1972: a moving average of 5 years, the ends mirrored about '
              'the first and last year (ends="mirror")', "Lake Huron", "real data", option='ends="mirror"',
              ours="""
-                 s = sdata.numbers(data["level"]).smooth(ends="mirror")
+                 s = sdata.number_list(data["level"]).smooth(ends="mirror")
                  {"first year": s.get_number_at(1), "second year": s.get_number_at(2), "last year": s.get_number_at(98)}
              """,
              parent="""
@@ -88,7 +88,7 @@ def cases(Case):
         Case("nums.smooth", 'the level of Lake Huron, 1875-1972: a moving average of 5 years, the ends mirrored with '
              'the first and last year repeated (ends="reflect")', "Lake Huron", "real data", option='ends="reflect"',
              ours="""
-                 s = sdata.numbers(data["level"]).smooth(ends="reflect")
+                 s = sdata.number_list(data["level"]).smooth(ends="reflect")
                  {"first year": s.get_number_at(1), "second year": s.get_number_at(2), "last year": s.get_number_at(98)}
              """,
              parent="""
@@ -104,7 +104,7 @@ def cases(Case):
              """, r_tolerance=1e-12),
         Case("nums.remove_trend", "the level of Lake Huron without its straight-line fall", "Lake Huron", "real data",
              ours="""
-                 d = sdata.numbers(data["level"]).remove_trend()
+                 d = sdata.number_list(data["level"]).remove_trend()
                  {"first year": d.get_number_at(1), "last year": d.get_number_at(98), "total": d.find_total()}
              """,
              parent="""
@@ -141,7 +141,7 @@ def cases(Case):
         Case("nums.find_autocorrelation", "the level of Lake Huron: correlation with itself 1 and 2 years back",
              "Lake Huron", "real data",
              ours="""
-                 r = sdata.numbers(data["level"]).find_autocorrelation()
+                 r = sdata.number_list(data["level"]).find_autocorrelation()
                  {"rows back": r.count_rows(), "1 year back": r.get_cell_at(row=1, column="correlation"),
                   "2 years back": r.get_cell_at(row=2, column="correlation"),
                   "Ljung-Box statistic": r.get_cell_at(row=1, column="Ljung-Box statistic")}
@@ -192,7 +192,7 @@ def cases(Case):
         Case("nums.forecast", "the air passengers: Holt-Winters forecast of 1961 with its 95 % interval",
              "AirPassengers", "real data", ours_r=("forecast",),
              ours="""
-                 r = sdata.numbers(data["passengers"]).forecast(steps_ahead=12, repeats_every=12)
+                 r = sdata.number_list(data["passengers"]).forecast(steps_ahead=12, repeats_every=12)
                  {"January 1961": r.get_cell_at(row=1, column="forecast"),
                   "January 1961, 95 % low": r.get_cell_at(row=1, column="forecast 95 % prediction low"),
                   "December 1961": r.get_cell_at(row=12, column="forecast")}
@@ -219,7 +219,7 @@ def cases(Case):
         Case("nums.find_each_peak_that", "the drivers killed or seriously injured: the peaks at least 6 months apart",
              "Seatbelts", "real data",
              ours="""
-                 r = sdata.numbers(data["drivers"]).find_each_peak_that(apart=6)
+                 r = sdata.number_list(data["drivers"]).find_each_peak_that(apart=6)
                  {"peaks": r.count_rows(), "first peak": r.get_cell_at(row=1, column="position"),
                   "its width": r.get_cell_at(row=1, column="width")}
              """,
@@ -237,7 +237,7 @@ def cases(Case):
         Case("nums.find_each_dip_that", "the level of Lake Huron: the lowest years, dips at least 5 years apart",
              "Lake Huron", "real data",
              ours="""
-                 r = sdata.numbers(data["level"]).find_each_dip_that(apart=5)
+                 r = sdata.number_list(data["level"]).find_each_dip_that(apart=5)
                  {"dips": r.count_rows(), "lowest dip": r.get_column("value").find_smallest(),
                   "first dip": r.get_cell_at(row=1, column="position")}
              """,
@@ -282,7 +282,7 @@ def cases(Case):
         Case("nums.find_spectrum", "the drivers killed or seriously injured: the yearly cycle in the periodogram",
              "Seatbelts", "real data",
              ours="""
-                 r = sdata.numbers(data["drivers"]).find_spectrum()
+                 r = sdata.number_list(data["drivers"]).find_spectrum()
                  {"power at 1 / 12 per month": r.get_cell_at(row=17, column="power")}
              """,
              parent="""
@@ -328,7 +328,7 @@ def cases(Case):
         Case("nums.keep_each_frequency_that", "the Lake Huron level: cycles slower than 10 years kept",
              "Lake Huron", "real data",
              ours="""
-                 s = sdata.numbers(data["level"]).keep_each_frequency_that(is_below=0.1, time_step=1)
+                 s = sdata.number_list(data["level"]).keep_each_frequency_that(is_below=0.1, time_step=1)
                  {"first year": s.get_number_at(1), "year 50": s.get_number_at(50)}
              """,
              parent="""
@@ -340,7 +340,7 @@ def cases(Case):
         Case("nums.remove_each_frequency_that", "the drivers killed or seriously injured: the yearly cycle notched out",
              "Seatbelts", "real data",
              ours="""
-                 s = sdata.numbers(data["drivers"]).remove_each_frequency_that(is_equal_to=1, time_step=1 / 12,
+                 s = sdata.number_list(data["drivers"]).remove_each_frequency_that(is_equal_to=1, time_step=1 / 12,
                                                                               width=0.1)
                  {"first month": s.get_number_at(1), "month 100": s.get_number_at(100)}
              """,
@@ -391,7 +391,7 @@ def cases(Case):
                   "coefficients are compared with SciPy and R signal; the two gains with their exact values."),
         Case("nums.find_envelope", "the Lake Huron level about its average: the envelope", "Lake Huron", "real data",
              ours="""
-                 e = sdata.numbers(data["level"]).remove_trend(test_method="average").find_envelope()
+                 e = sdata.number_list(data["level"]).remove_trend(test_method="average").find_envelope()
                  {"first year": e.get_number_at(1), "year 50": e.get_number_at(50)}
              """,
              parent="""
@@ -427,7 +427,7 @@ def cases(Case):
         Case("nums.take_fourier_transform", "the Lake Huron level: the size and phase of the first frequencies",
              "Lake Huron", "real data",
              ours="""
-                 r = sdata.numbers(data["level"]).take_fourier_transform()
+                 r = sdata.number_list(data["level"]).take_fourier_transform()
                  {"frequencies": r.count_rows(), "size at 0": r.get_cell_at(row=1, column="size"),
                   "size at 1 / 98": r.get_cell_at(row=2, column="size"),
                   "phase at 1 / 98": r.get_cell_at(row=2, column="phase")}
@@ -446,7 +446,7 @@ def cases(Case):
         Case("sdata.find_inverse_fourier_transform", "the Lake Huron level there and back", "Lake Huron",
              "real data",
              ours="""
-                 back = sdata.find_inverse_fourier_transform(sdata.numbers(data["level"]).take_fourier_transform())
+                 back = sdata.find_inverse_fourier_transform(sdata.number_list(data["level"]).take_fourier_transform())
                  {"count": back.count(), "first year": back.get_number_at(1), "last year": back.get_number_at(98)}
              """,
              parent="""
@@ -455,7 +455,7 @@ def cases(Case):
         Case("nums.convolve_with", "the air passengers convolved with the weights 1, 2, 1", "AirPassengers",
              "real data",
              ours="""
-                 c = sdata.numbers(data["passengers"]).convolve_with([1, 2, 1])
+                 c = sdata.number_list(data["passengers"]).convolve_with([1, 2, 1])
                  {"count": c.count(), "first": c.get_number_at(1), "number 100": c.get_number_at(100)}
              """,
              parent="""
@@ -469,7 +469,7 @@ def cases(Case):
              """, r_tolerance=1e-9),
         Case("nums.deconvolve_by", "the air passengers divided by 1 + 0.5 z^-1", "AirPassengers", "real data",
              ours="""
-                 q = sdata.numbers(data["passengers"]).deconvolve_by([1, 0.5])
+                 q = sdata.number_list(data["passengers"]).deconvolve_by([1, 0.5])
                  {"count": q.count(), "first": q.get_number_at(1), "number 100": q.get_number_at(100)}
              """,
              parent="""
@@ -485,7 +485,7 @@ def cases(Case):
         Case("nums.change_time_step", "the air passengers every two months (Fourier resampling)", "AirPassengers",
              "real data",
              ours="""
-                 r = sdata.numbers(data["passengers"]).change_time_step(to=2, time_step=1)
+                 r = sdata.number_list(data["passengers"]).change_time_step(to=2, time_step=1)
                  {"count": r.count(), "first": r.get_number_at(1), "number 30": r.get_number_at(30)}
              """,
              parent="""
@@ -566,8 +566,8 @@ def cases(Case):
         Case("system.response_to", "a first-order lag 1 / (5 s + 1) fed the level of Lake Huron, year by year",
              "Lake Huron", "real data",
              ours="""
-                 r = sdata.system("1 / (5*s + 1)").response_to(sdata.numbers(data["level"]),
-                                                             time_points=sdata.numbers(data["year"]))
+                 r = sdata.system("1 / (5*s + 1)").response_to(sdata.number_list(data["level"]),
+                                                             time_points=sdata.number_list(data["year"]))
                  {"output after 1 year": r.get_cell_at(row=2, column="output"),
                   "output in 1972": r.get_cell_at(row=98, column="output")}
              """,

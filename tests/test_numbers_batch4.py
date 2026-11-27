@@ -37,7 +37,7 @@ def _sp():
 
 
 def _listed(table, column) -> list:
-    """A column as a plain list (a column of numbers comes back as sdata.numbers, any other as a list)."""
+    """A column as a plain list (a column of numbers comes back as sdata.number_list, any other as a list)."""
     found = table.get_column(column)
     return found if isinstance(found, list) else found.as_numpy().tolist()
 

@@ -38,8 +38,8 @@ from ._errors import SimplydataError
 TIME_LIMIT = 60.0  # seconds one SymPy call (or one word's SymPy calls together) may take
 START_LIMIT = 120.0  # seconds the helper may take to start (it imports SymPy once)
 WORKER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_sympy_worker.py")
-FORMULA_HINT = ("Try f.make_simpler() first, or carry on in SymPy itself, which has no time limit: f.as_sympy() "
-                "gives the SymPy expression.")
+FORMULA_HINT = ("Try formula.make_simpler() first, or carry on in SymPy itself, which has no time limit: "
+                "formula.as_sympy() gives the SymPy expression.")
 EXACTLY_HINT = "Leave out exactly=True for the answer in decimals (SciPy and NumPy)."
 
 _LOCK = threading.RLock()

@@ -2094,10 +2094,10 @@ class SummaryWords:
     # ------------------------------------------------------------------ one column on its own
     @friendly
     def get_column(self, name=None) -> Numbers | list:
-        """One column on its own: a column of numbers becomes sdata.numbers, any other a plain list.
+        """One column on its own: a column of numbers becomes sdata.number_list, any other a plain list.
 
         marks = table.get_column("marks")   (with sdata.get_example("marks"))
-        then marks.find_average(), marks.start_chart() ... like any sdata.numbers. Empty cells become
+        then marks.find_average(), marks.start_chart() ... like any sdata.number_list. Empty cells become
         empty numbers. The table does not change.
         """
         if not isinstance(name, str):
@@ -2109,13 +2109,13 @@ class SummaryWords:
         dtype = self._frame.schema[name]
         series = self._frame[name]
         if dtype.is_numeric():
-            from ..numbers import numbers
+            from ..numbers import number_list
 
             if series.null_count() or dtype.is_float():
                 values = series.cast(nw.Float64).to_numpy()
             else:
                 values = series.cast(nw.Int64).to_numpy()
-            return numbers(values)
+            return number_list(values)
         kind = "text" if dtype == nw.String or dtype == nw.Categorical or dtype == nw.Enum else (
             "True/False values" if dtype == nw.Boolean else "dates" if dtype.is_temporal() else "values")
         print(f'Note: "{name}" holds {kind}, not numbers, so it comes back as a plain Python list.')

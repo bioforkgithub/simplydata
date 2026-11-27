@@ -3258,7 +3258,7 @@ Note: Since 2026-11-22 the practice table bcg is made up (DATA_LICENSES.md): it 
 | bar | seaborn barplot | 2.33 | 2.33 | relative 1e-09 | pass |
 | bars | seaborn barplot | 1 | 1 | relative 1e-09 | pass |
 
-### `sdata.numbers`
+### `sdata.number_list`
 
 **Michelson's 100 measurements as numbers** (published; data: NIST Michelso)
 
@@ -45064,7 +45064,7 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | ways | SciPy special.perm(exact=True) | 3307800 | 3307800 | exact | pass |
 | ways | R | 3307800 | 3307800 | exact | pass |
 
-### `sdata.numbers empty_values=`
+### `sdata.number_list empty_values=`
 
 **Lake Huron levels in a text file with every tenth reading marked -999** (real data; data: Lake Huron)
 
@@ -52309,7 +52309,7 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `sdata.chart` | seaborn | pandas | chart | relative 1e-09 | pass |
 | `table.start_chart` | seaborn | pandas | chart | relative 1e-09 | pass |
 | `table.start_chart` | seaborn | polars | chart | relative 1e-09 | pass |
-| `sdata.numbers` | NumPy | pandas | value | relative 0 | pass |
+| `sdata.number_list` | NumPy | pandas | value | relative 0 | pass |
 | `sdata.number_grid` | NumPy | pandas | value | relative 0 | pass |
 | `sdata.distribution` | SciPy | pandas | value | relative 1e-12 | pass |
 | `sdata.make_random_numbers` | NumPy | pandas | value | relative 0 | pass |
@@ -52421,7 +52421,7 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `nums.turn_into_chances` | SciPy | pandas | value | relative 1e-12 | pass |
 | `sdata.count_ways_to_choose` | SciPy | pandas | value | relative 1e-12 | pass |
 | `sdata.count_ways_to_order` | SciPy | pandas | value | relative 1e-12 | pass |
-| `sdata.numbers empty_values=` | pandas | pandas | value | relative 1e-12 | pass |
+| `sdata.number_list empty_values=` | pandas | pandas | value | relative 1e-12 | pass |
 | `sdata.make_random_numbers of_shape=` | NumPy | pandas | value | relative 1e-12 | pass |
 | `sdata.formula` | SymPy | pandas | value | relative 1e-09 | pass |
 | `f.make_simpler` | SymPy | pandas | value | relative 1e-09 | pass |
@@ -53269,7 +53269,7 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `system.chart` (2): two panels sharing a log x-axis: the gain in decibels above, the phase in degrees below, unwrapped so it runs on past -180 degrees.
 - `sdata.table` (1): the separator is guessed from the file (sep=None), so a file with ; or tabs between the values is read too; separator= sets it yourself.
 - `sdata.get_example` (1): a column of dates is read as dates (parse_dates=), so date words work on it at once.
-- `sdata.numbers` (1): the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.
+- `sdata.number_list` (1): the end you give is included (0, 25, 50, 75, 100): simplydata counts how many steps fit (with a little room for rounding) and multiplies. np.arange(0, 125, 25) gives the same here, but with a decimal step np.arange can overshoot the end: np.arange(1, 1.4, 0.1) has 1.4 in it.
 - `sdata.number_grid` (1): the list is cut into rows, row after row (NumPy's order "C"): 1 2 3, then 4 5 6.
 - `sdata.distribution` (1): the parameters have plain names (tries=, chance=), turned into SciPy's (n, p); R's names (size=, prob=) work too.
 - `sdata.make_random_numbers` (1): NumPy's random generator (default_rng) with the seed you give, the way NumPy recommends; the old np.random.seed() gives other numbers.

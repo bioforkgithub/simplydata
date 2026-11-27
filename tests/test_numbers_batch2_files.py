@@ -252,21 +252,21 @@ def test_file_words_refuse_web_addresses_before_opening(address, no_network, tmp
     with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
         sdata.number_block([[1.0, 2.0]]).save(address.replace("*", "x"))
     with pytest.raises(sdata.SimplydataError, match="opens only the file you name; it never downloads"):
-        sdata.numbers(address.replace(".nc", ".txt").replace("*", "x"))
+        sdata.number_list(address.replace(".nc", ".txt").replace("*", "x"))
 
 
-# ---------------------------------------------------------------------- sdata.numbers from a text file (P38)
+# ---------------------------------------------------------------------- sdata.number_list from a text file (P38)
 def test_numbers_from_a_text_file_with_empty_values_equal_pandas(tmp_path, no_network, capsys):
     path = tmp_path / "readings.txt"
     path.write_text("depth\n12.5\n-999\n13.1\n-999.0\n12.9\n")
-    nums = sdata.numbers(str(path), empty_values=[-999])
+    nums = sdata.number_list(str(path), empty_values=[-999])
     expected = pd.read_csv(path, sep=r"\s+", header=0, na_values=[-999]).iloc[:, 0].to_numpy()
     np.testing.assert_array_equal(nums.as_numpy(), expected)
     assert nums.count_empty_numbers() == 2
     assert '"depth", is the name' in capsys.readouterr().out
     csv = tmp_path / "r.csv"
     csv.write_text("1\n2\nNA\n4\n")
-    np.testing.assert_array_equal(sdata.numbers(str(csv), empty_values=["NA"]).as_numpy(),
+    np.testing.assert_array_equal(sdata.number_list(str(csv), empty_values=["NA"]).as_numpy(),
                                   pd.read_csv(csv, header=None, na_values=["NA"],
                                               keep_default_na=False).iloc[:, 0].to_numpy())
 
@@ -274,13 +274,13 @@ def test_numbers_from_a_text_file_with_empty_values_equal_pandas(tmp_path, no_ne
 def test_numbers_from_text_refuse_text_and_columns(tmp_path):
     (tmp_path / "bad.txt").write_text("1\nbroken\n3\n")
     with pytest.raises(sdata.SimplydataError, match='empty_values=\\["broken"\\]'):
-        sdata.numbers(str(tmp_path / "bad.txt"))
-    assert sdata.numbers(str(tmp_path / "bad.txt"), empty_values=["broken"]).count_empty_numbers() == 1
+        sdata.number_list(str(tmp_path / "bad.txt"))
+    assert sdata.number_list(str(tmp_path / "bad.txt"), empty_values=["broken"]).count_empty_numbers() == 1
     (tmp_path / "two.csv").write_text("1,2\n3,4\n")
     with pytest.raises(sdata.SimplydataError, match="2 columns"):
-        sdata.numbers(str(tmp_path / "two.csv"))
+        sdata.number_list(str(tmp_path / "two.csv"))
     with pytest.raises(sdata.SimplydataError, match="goes with a file"):
-        sdata.numbers([1, 2], empty_values=[-999])
+        sdata.number_list([1, 2], empty_values=[-999])
 
 
 def test_block_from_a_file_is_an_ordinary_block(xr, tmp_path):

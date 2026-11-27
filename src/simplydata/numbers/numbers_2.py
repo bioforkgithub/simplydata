@@ -634,7 +634,7 @@ class SmoothOverWords:
         window= neighbours along each direction), "gaussian" (a bell curve with a standard deviation of width=2
         places) or "median" (removes single spikes). SciPy ndimage.uniform_filter, gaussian_filter and median_filter
         with axes=. ends= says what happens at the edges, with SciPy's own names for its modes: "empty" (the moving
-        average's default: the edges without a full window are left empty, as nums.smooth), "reflect" (the
+        average's default: the edges without a full window are left empty, as numbers.smooth), "reflect" (the
         gaussian's and median's default: the edge number is repeated, d c b a | a b c d) or "mirror" (it is not:
         d c b | a b c d). Undo with undo().
         """
@@ -729,7 +729,7 @@ class ChanceWords:
 
     @friendly
     def take_log_odds(self: _Same) -> _Same:
-        """Turn chances (0 to 1) into log-odds, the logit: 0.8 becomes 1.386. nums.take_log_odds()
+        """Turn chances (0 to 1) into log-odds, the logit: 0.8 becomes 1.386. numbers.take_log_odds()
 
         log-odds = log(p / (1 - p)). Only chances between 0 and 1 have log-odds, so 0, 1 and numbers outside become
         empty. turn_into_chances() takes it back. SciPy special.logit.
@@ -746,7 +746,7 @@ class ChanceWords:
 
     @friendly
     def turn_into_chances(self: _Same) -> _Same:
-        """Turn log-odds back into chances from 0 to 1 (the logistic function): 1.386 becomes 0.8. nums.turn_into_chances()
+        """Turn log-odds back into chances from 0 to 1 (the logistic function): 1.386 becomes 0.8. numbers.turn_into_chances()
 
         chance = 1 / (1 + e^-x), the inverse logit, as a logistic regression turns its scores into chances. SciPy
         special.expit.
@@ -759,11 +759,11 @@ class ChanceWords:
 
 
 class RandomPickWords:
-    """nums.make_random_picks (P10): NumPy Generator.choice."""
+    """numbers.make_random_picks (P10): NumPy Generator.choice."""
 
     @friendly(renamed={"seed": "with_seed"})
     def make_random_picks(self, how_many=None, putting_back=True, with_chances=None, with_seed=None) -> Numbers:
-        """Pick numbers at random from these ones; gives back new numbers. nums.make_random_picks(how_many=40, with_seed=1)
+        """Pick numbers at random from these ones; gives back new numbers. numbers.make_random_picks(how_many=40, with_seed=1)
 
         putting_back=True (the default) puts each pick back, so a number can come up again and you can pick more
         than there are (a bootstrap sample); putting_back=False picks each at most once (as keep_random_numbers).
@@ -772,7 +772,7 @@ class RandomPickWords:
         """
         from .numbers import Numbers
 
-        example = "nums.make_random_picks(how_many=40, putting_back=True, with_seed=1)"
+        example = "numbers.make_random_picks(how_many=40, putting_back=True, with_seed=1)"
         with_seed = check_seed(with_seed, example)
         if not isinstance(how_many, _nb.Integral) or isinstance(how_many, bool) or how_many < 0:
             raise SimplydataError(f"make_random_picks() needs how_many= as a whole number.\nFor example:  {example}")
@@ -787,7 +787,7 @@ class RandomPickWords:
                                   "putting_back=True allows more.")
         chances = None
         if with_chances is not None:
-            chances = to_array(with_chances, "with_chances=", "nums.make_random_picks(how_many=10, with_chances=[0.5, 0.3, 0.2])")
+            chances = to_array(with_chances, "with_chances=", "numbers.make_random_picks(how_many=10, with_chances=[0.5, 0.3, 0.2])")
             if chances.ndim != 1 or chances.size != n:
                 raise SimplydataError(f"with_chances= needs one chance for each number: {n} chances.")
         rng = np.random.default_rng(with_seed)
@@ -805,7 +805,7 @@ class RandomPickWords:
               + (", with the chances given" if chances is not None else ", each equally likely")
               + (f" (seed {with_seed})" if with_seed is not None else "; no seed: different each run, add with_seed=1 "
                  "to repeat it")
-              + f". NumPy random.default_rng({with_seed if with_seed is not None else ''}).choice(nums, size={how_many}, "
+              + f". NumPy random.default_rng({with_seed if with_seed is not None else ''}).choice(numbers, size={how_many}, "
               f"replace={putting_back}{', p=chances' if chances is not None else ''})")
         if empty:
             print(f"Note: {amount(empty, 'empty value')} can be picked too.")

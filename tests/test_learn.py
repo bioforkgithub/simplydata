@@ -260,8 +260,9 @@ def test_help_for_a_word_on_charts_and_tables_explains_both(capsys):
 
 
 @pytest.mark.parametrize("typed, expected", [
-    ("nums.find_average", "nums.find_average()"), ("nums.find_average", "nums.find_average()"), ("grid.get_row", "grid.get_row()"),
-    ("swap_rows_and_columns", "table.swap_rows_and_columns()"), ("grid.swap_rows_and_columns", "grid.swap_rows_and_columns()"), ("numbers", "sdata.numbers()"),
+    ("nums.find_average", "numbers.find_average()"), ("numbers.find_average", "numbers.find_average()"),
+    ("grid.get_row", "grid.get_row()"),
+    ("swap_rows_and_columns", "table.swap_rows_and_columns()"), ("grid.swap_rows_and_columns", "grid.swap_rows_and_columns()"), ("number_list", "sdata.number_list()"),
 ])
 def test_help_finds_number_words(typed, expected, capsys):
     sdata.help(typed)
@@ -717,9 +718,9 @@ def test_old_names_are_not_listed(capsys):
 
 
 def test_new_numbers_words_are_exported():
-    assert isinstance(sdata.numbers([1, 2]), sdata.Numbers)
+    assert isinstance(sdata.number_list([1, 2]), sdata.Numbers)
     assert isinstance(sdata.number_grid([[1, 2], [3, 4]]), sdata.NumberGrid)
     assert isinstance(sdata.make_random_numbers(how_many=3, with_seed=1), sdata.Numbers)
     assert callable(sdata.show_all_words) and callable(sdata.table)  # functions, not the subpackages
-    for name in ("numbers", "number_grid", "make_random_numbers", "Numbers", "NumberGrid"):
+    for name in ("number_list", "number_grid", "make_random_numbers", "Numbers", "NumberGrid"):
         assert name in sdata.__all__

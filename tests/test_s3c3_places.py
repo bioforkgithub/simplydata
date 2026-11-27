@@ -313,7 +313,7 @@ def test_pareto_points_to_the_generalised_pareto():
 def test_generalised_pareto_has_scipys_sign():
     rng = np.random.default_rng(3)
     x = stats.genpareto(c=0.2, scale=5).rvs(size=400, random_state=rng)
-    fit = sdata.numbers(list(x)).fit_distribution("generalized pareto")
+    fit = sdata.number_list(list(x)).fit_distribution("generalized pareto")
     table = fit.turn_into_table().as_pandas()
     c, _, scale = stats.genpareto.fit(x, floc=0)
     assert table["shape"][0] == pytest.approx(c, abs=2e-3)

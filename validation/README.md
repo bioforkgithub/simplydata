@@ -78,10 +78,11 @@ same-underneath box (part 2). Of the 402:
 - **16 have nothing to compare**: the help and learning words `sdata.help`, `sdata.show_all_words`,
   `sdata.show_lesson`, `sdata.show_day`, `sdata.show_today`, `sdata.show_answers`, `sdata.start_30_days`,
   `sdata.go_to_next_day`, `sdata.show_packages_used`, the steps words `table.undo`, `table.show_steps`,
-  `table.start_again`, `nums.undo`, `nums.show_steps` and `nums.start_again`, and `dist.show_parameters`, which gives
-  back the parameters it was given. They print help, a lesson, the list of packages used or the steps taken, or put a
-  table back as it was: they compute no number, so there is no published answer or parent package to compare them
-  with. Their box is run to show that it runs, and the report marks it "none".
+  `table.start_again`, `numbers.undo`, `numbers.show_steps` and `numbers.start_again`, and
+  `distribution.show_parameters`, which gives back the parameters it was given. They print help, a lesson, the
+  list of packages used or the steps taken, or put a table back as it was: they compute no number, so there is no
+  published answer or parent package to compare them with. Their box is run to show that it runs, and the report
+  marks it "none".
 
 The separate test study (the notebooks of `simplydata_tests`, 26,718 comparisons, each difference explained) compares
 many of these words a second time, on other published data.

@@ -110,7 +110,7 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     The formula has one letter (known= fixes others, as in sdata.solve). The area below 0 counts as minus.
     test_method="quad" (the default: SciPy integrate.quad, adaptive, as R integrate()) or "gauss" (fixed_quad,
     5 points; ends must be numbers). exactly=True gives the exact answer from SymPy integrate (simplydata[exact]),
-    as a formula. For a list of readings use nums.turn_into_running_area().
+    as a formula. For a list of readings use numbers.turn_into_running_area().
     """
     from scipy import integrate
 
@@ -584,7 +584,7 @@ def _path_exactly(texts, names, letters, rights, time, at_start, t0, known, orde
 
 
 # ---------------------------------------------------------------- sums of series (numbers phase, batch 4)
-SUM_HINT = ("For the decimal of a finite sum, put the terms in numbers and add them: sdata.numbers(...) then "
+SUM_HINT = ("For the decimal of a finite sum, put the terms in numbers and add them: sdata.number_list(...) then "
             "find_total(). For the formula of the sum up to a letter, use between=[1, \"n\"].")
 MAX_SUM_DIGITS = 100_000  # a finite sum whose terms have more digits than this is refused before SymPy adds them
 
@@ -810,7 +810,7 @@ def find_sum_of_series(formula=None, between=None, for_letter=None, known=None):
         if pieces:
             words = "; ".join(f"{show(e)} when {show(c)}" if c is not sp.true else show(e) for e, c in pieces)
             print(f"{said}: {words}; otherwise it does not settle   (SymPy summation)")
-            print("The formula keeps the condition: f.find_value_at() gives no number where it does not hold.")
+            print("The formula keeps the condition: formula.find_value_at() gives no number where it does not hold.")
             # no "otherwise" piece: where no condition holds the formula has no value, and so has its slope (a nan
             # piece would be a number to SymPy, whose slope is 0)
             return Formula(sp.Piecewise(*pieces))
@@ -864,7 +864,7 @@ def _long_sum(sp, term, k, low, high, said: str):
     if general.has(sp.Sum):
         raise SimplydataError(f"{said}: SymPy found no exact formula, and simplydata does not add more than "
                               f"{MAX_SUM_TERMS:,} terms one by one. Use a shorter range, or numbers words: "
-                              "sdata.numbers(...) then find_total().")
+                              "sdata.number_list(...) then find_total().")
     if general.is_polynomial(last):
         found = _guarded(general.subs, last, high, what="SymPy subs", hint=SUM_HINT)
         about = f" (about {float_of(found, 'SymPy N', SUM_HINT):.10g})" if found.is_real else ""

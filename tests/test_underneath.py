@@ -76,8 +76,8 @@ def test_library_code_names_no_simplydata_word_but_the_practice_table():
 
     for entry in ENTRIES:
         for library, language, source in entry.blocks():
-            names = set(re.findall(r"\bsdata\.(\w+)", source)) | set(re.findall(r"\b(?:table|chart|nums)\.(\w+)\(",
-                                                                                     source))
+            names = set(re.findall(r"\bsdata\.(\w+)", source)) | set(
+                re.findall(r"\b(?:table|chart|numbers|nums)\.(\w+)\(", source))
             assert names <= {"get_example"}, (entry.word, library, names)
 
 

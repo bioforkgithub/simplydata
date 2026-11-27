@@ -9,7 +9,7 @@
     chart.write_title_on_top("Good marks")
     chart.save("marks.png")
 
-Numbers too: nums = sdata.numbers([3, 5, 2, 8]), then nums.find_average().
+Numbers too: numbers = sdata.number_list([3, 5, 2, 8]), then numbers.find_average().
 
 New here? Type sdata.show_lesson(1), or sdata.start_30_days() for an hour a day over 30 days.
 Every word: sdata.show_all_words(). One word: sdata.help("draw_bars").
@@ -26,7 +26,7 @@ from ._errors import SimplydataError
 from .chart import Chart, chart
 from .data import get_example
 from .table import Table, table
-from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, numbers
+from .numbers import NumberGrid, Numbers, make_random_numbers, number_grid, number_list
 from .numbers.blocks import (NumberBlock, hide_stretching_notes, number_block, show_stretching_notes, stack_up,
                              stretch_to_same_shape)  # NumPy + SciPy phase, batch 1
 from .numbers.numbers_2 import count_ways_to_choose, count_ways_to_order  # NumPy + SciPy phase, batch 2
@@ -47,8 +47,9 @@ from ._formula import formula  # numbers phase, batch 3: exact maths with SymPy 
 from ._calculus import find_area_under, find_path_over_time, find_volume_under  # numbers phase, batch 3
 from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of series with SymPy
 
-# Last, on purpose: the old name sdata.words (defined below) must win over the subpackage simplydata.words
-# (sdata.table and sdata.numbers win over their subpackages the same way, by being imported after them).
+# Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
+# simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
+# after it).
 from .learn import help, show_all_words, show_lesson  # noqa: E402
 from .learn_days import go_to_next_day, show_answers, show_day, show_today, start_30_days  # noqa: E402
 from ._cite import show_packages_used  # noqa: E402
@@ -66,6 +67,8 @@ _OLD_WORDS = {
     "window_shape": "make_window_shape", "find_smallest": "find_where_smallest", "find_biggest": "find_where_biggest",
     "words": "show_all_words", "lesson": "show_lesson", "today": "show_today", "day": "show_day",
     "answers": "show_answers", "next_day": "go_to_next_day",
+    # 2026-11-27: number_list matches number_grid and number_block
+    "numbers": "number_list",
 }
 
 
@@ -75,6 +78,14 @@ def words(*args, **kwargs):
 
     renamed_note("words", "show_all_words")
     return show_all_words(*args, **kwargs)
+
+
+def numbers(*args, **kwargs):
+    """Old name of sdata.number_list() (kept for one release)."""
+    from ._errors import renamed_note
+
+    renamed_note("numbers", "number_list")
+    return number_list(*args, **kwargs)
 
 
 def __getattr__(name):
@@ -101,7 +112,7 @@ __all__ = [
     "find_where_biggest", "find_where_smallest", "formula", "frequency_filter", "get_example", "go_to_next_day",
     "help", "hide_stretching_notes", "make_design_table",
     "make_random_assignments", "make_random_numbers",
-    "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "numbers",
+    "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "number_list",
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve", "stack_up", "start_30_days",

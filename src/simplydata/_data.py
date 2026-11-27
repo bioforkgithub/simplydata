@@ -1151,7 +1151,7 @@ def load(source=None, sheet=None, fast: bool = False, options: dict | None = Non
 
 
 def _is_simplydata_numbers(obj) -> bool:
-    """sdata.numbers(...) or sdata.number_grid(...)."""
+    """sdata.number_list(...) or sdata.number_grid(...)."""
     return bool(getattr(obj, "_is_simplydata_numbers", False) or getattr(obj, "_is_simplydata_grid", False))
 
 

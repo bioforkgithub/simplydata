@@ -785,7 +785,7 @@ class StatsWords:
         smoothness=) and R smooth.spline()): smoothness="auto" lets R choose how smooth by
         generalised cross-validation, which needs R (pip install "simplydata[r]"); a number
         is R's lambda= (bigger is smoother) and needs no R.
-        The smoothing methods of nums.smooth work too, on dots or lines with evenly spaced x:
+        The smoothing methods of numbers.smooth work too, on dots or lines with evenly spaced x:
         "moving average" (window=, weights=, ends=), "median" (needs R), "savitzky-golay"
         (of_degree=), "exponential" (newest_weight=), "gaussian" (width=), "whittaker" (smoothness=)
         and "wiener". The line goes through the x values of the dots, as table.add_smoothed_column.

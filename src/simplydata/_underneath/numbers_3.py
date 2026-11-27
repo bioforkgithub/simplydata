@@ -15,8 +15,8 @@ ENTRIES = [
     Entry(
         word="sdata.formula",
         ours="""
-            f = sdata.formula("(x + 2)**2 - 4")
-            str(f)
+            formula = sdata.formula("(x + 2)**2 - 4")
+            str(formula)
         """,
         code={"SymPy": """
             import sympy as sp
@@ -34,50 +34,50 @@ ENTRIES = [
     Entry(
         word="f.make_simpler",
         ours="""
-            f = sdata.formula("(x**2 - 1) / (x - 1)")
-            str(f.make_simpler())
+            formula = sdata.formula("(x**2 - 1) / (x - 1)")
+            str(formula.make_simpler())
         """,
         code={"SymPy": SYMPY + """
-            # f.make_simpler()
+            # formula.make_simpler()
             str(sp.simplify((x**2 - 1) / (x - 1)))
         """},
         compare="value",
-        also="simplydata also prints the formula before and after, and f.undo() takes the step back.",
+        also="simplydata also prints the formula before and after, and formula.undo() takes the step back.",
     ),
     Entry(
         word="f.turn_into_sum",
         ours="""
-            f = sdata.formula("(x + 2)**2 - 4")
-            str(f.turn_into_sum())
+            formula = sdata.formula("(x + 2)**2 - 4")
+            str(formula.turn_into_sum())
         """,
         code={"SymPy": SYMPY + """
-            # f.turn_into_sum()
+            # formula.turn_into_sum()
             str(sp.expand((x + 2)**2 - 4))
         """},
         compare="value",
-        also="simplydata also prints the formula before and after, and f.undo() takes the step back.",
+        also="simplydata also prints the formula before and after, and formula.undo() takes the step back.",
     ),
     Entry(
         word="f.turn_into_product",
         ours="""
-            f = sdata.formula("x**2 + 4*x")
-            str(f.turn_into_product())
+            formula = sdata.formula("x**2 + 4*x")
+            str(formula.turn_into_product())
         """,
         code={"SymPy": SYMPY + """
-            # f.turn_into_product()
+            # formula.turn_into_product()
             str(sp.factor(x**2 + 4*x))
         """},
         compare="value",
-        also="simplydata also prints the formula before and after, and f.undo() takes the step back.",
+        also="simplydata also prints the formula before and after, and formula.undo() takes the step back.",
     ),
     Entry(
         word="f.find_slope_formula",
         ours="""
-            f = sdata.formula("x**3 - 2*x")
-            str(f.find_slope_formula())
+            formula = sdata.formula("x**3 - 2*x")
+            str(formula.find_slope_formula())
         """,
         code={"SymPy": SYMPY + """
-            # f.find_slope_formula()
+            # formula.find_slope_formula()
             str(sp.diff(x**3 - 2*x, x))
         """},
         compare="value",
@@ -86,11 +86,11 @@ ENTRIES = [
     Entry(
         word="f.find_area_formula",
         ours="""
-            f = sdata.formula("x**3 - 2*x")
-            str(f.find_area_formula())
+            formula = sdata.formula("x**3 - 2*x")
+            str(formula.find_area_formula())
         """,
         code={"SymPy": SYMPY + """
-            # f.find_area_formula()
+            # formula.find_area_formula()
             str(sp.integrate(x**3 - 2*x, x))
         """},
         compare="value",
@@ -99,11 +99,11 @@ ENTRIES = [
     Entry(
         word="f.find_value_at",
         ours="""
-            f = sdata.formula("x**3 - 2*x")
-            f.find_value_at(x=2.5)
+            formula = sdata.formula("x**3 - 2*x")
+            formula.find_value_at(x=2.5)
         """,
         code={"SymPy": SYMPY + """
-            # f.find_value_at(x=2.5)
+            # formula.find_value_at(x=2.5)
             float((x**3 - 2*x).subs(x, sp.Rational(5, 2)).evalf())   # (1)
         """},
         compare="value",
@@ -115,12 +115,12 @@ ENTRIES = [
     Entry(
         word="f.put_in",
         ours="""
-            f = sdata.formula("x**2")
-            str(f.put_in(x="y + 1"))
+            formula = sdata.formula("x**2")
+            str(formula.put_in(x="y + 1"))
         """,
         code={"SymPy": SYMPY + """
             y = sp.Symbol("y")
-            # f.put_in(x="y + 1")
+            # formula.put_in(x="y + 1")
             str((x**2).subs(x, y + 1))
         """},
         compare="value",
@@ -129,11 +129,11 @@ ENTRIES = [
     Entry(
         word="f.show_as_latex",
         ours="""
-            f = sdata.formula("x**3 - 2*x")
-            f.show_as_latex()
+            formula = sdata.formula("x**3 - 2*x")
+            formula.show_as_latex()
         """,
         code={"SymPy": SYMPY + """
-            # f.show_as_latex()
+            # formula.show_as_latex()
             sp.latex(x**3 - 2*x)
         """},
         compare="value",
@@ -142,11 +142,11 @@ ENTRIES = [
     Entry(
         word="f.find_limit_as",
         ours="""
-            f = sdata.formula("sin(x) / x")
-            f.find_limit_as("x", goes_to=0)
+            formula = sdata.formula("sin(x) / x")
+            formula.find_limit_as("x", goes_to=0)
         """,
         code={"SymPy": SYMPY + """
-            # f.find_limit_as("x", goes_to=0)
+            # formula.find_limit_as("x", goes_to=0)
             float(sp.limit(sp.sin(x) / x, x, 0, dir="+-"))   # (1)
         """},
         compare="value",
@@ -158,11 +158,11 @@ ENTRIES = [
     Entry(
         word="f.find_taylor_series",
         ours="""
-            f = sdata.formula("exp(x)")
-            str(f.find_taylor_series(around=0, up_to_power=4))
+            formula = sdata.formula("exp(x)")
+            str(formula.find_taylor_series(around=0, up_to_power=4))
         """,
         code={"SymPy": SYMPY + """
-            # f.find_taylor_series(around=0, up_to_power=4)
+            # formula.find_taylor_series(around=0, up_to_power=4)
             str(sp.series(sp.exp(x), x, 0, n=5).removeO())   # (1)
         """},
         compare="value",
@@ -171,9 +171,9 @@ ENTRIES = [
         also="simplydata also gives back a formula, so its words work on the series.",
     ),
     Entry(word="f.undo", ours="""
-            f = sdata.formula("(x + 2)**2 - 4")
-            f.turn_into_sum()
-            f.undo()
+            formula = sdata.formula("(x + 2)**2 - 4")
+            formula.turn_into_sum()
+            formula.undo()
         """, compare="none",
           note="simplydata's own: a formula keeps its earlier forms. A SymPy expression never changes, so in SymPy "
                "you keep the old one in a variable yourself."),
@@ -295,8 +295,8 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_running_area",
         ours="""
-            nums = sdata.numbers([2, 4, 4, 3, 1])
-            nums.turn_into_running_area(time_step=60)
+            numbers = sdata.number_list([2, 4, 4, 3, 1])
+            numbers.turn_into_running_area(time_step=60)
         """,
         code={"SciPy": """
             import numpy as np
@@ -313,8 +313,8 @@ ENTRIES = [
     Entry(
         word="nums.turn_into_running_area", option="test_method=",
         ours="""
-            nums = sdata.numbers([2, 4, 4, 3, 1])
-            nums.turn_into_running_area(time_step=60, test_method="simpson")
+            numbers = sdata.number_list([2, 4, 4, 3, 1])
+            numbers.turn_into_running_area(time_step=60, test_method="simpson")
         """,
         code={"SciPy": """
             import numpy as np
@@ -331,8 +331,8 @@ ENTRIES = [
     Entry(
         word="nums.take_cube_root",
         ours="""
-            nums = sdata.numbers([27, -8, 1000, 2])
-            nums.take_cube_root()
+            numbers = sdata.number_list([27, -8, 1000, 2])
+            numbers.take_cube_root()
         """,
         code={"NumPy": """
             import numpy as np
@@ -347,8 +347,8 @@ ENTRIES = [
     Entry(
         word="nums.show_as_fraction",
         ours="""
-            nums = sdata.numbers([0.5, 0.25, 0.3333333333333333, 1.75])
-            nums.show_as_fraction()
+            numbers = sdata.number_list([0.5, 0.25, 0.3333333333333333, 1.75])
+            numbers.show_as_fraction()
         """,
         code={"SymPy": """
             import sympy as sp
@@ -364,8 +364,8 @@ ENTRIES = [
         ours="""
             import numpy as np
             t = 0.01 * np.arange(500)
-            nums = sdata.numbers(np.sin(2 * np.pi * 5 * t))
-            nums.find_coherence_with(np.sin(2 * np.pi * 5 * t + 1) + np.cos(2 * np.pi * 13 * t), time_step=0.01)
+            numbers = sdata.number_list(np.sin(2 * np.pi * 5 * t))
+            numbers.find_coherence_with(np.sin(2 * np.pi * 5 * t + 1) + np.cos(2 * np.pi * 13 * t), time_step=0.01)
         """,
         code={"SciPy": """
             import numpy as np
@@ -387,8 +387,8 @@ ENTRIES = [
     Entry(
         word="nums.take_cosine_transform",
         ours="""
-            nums = sdata.numbers([1, 2, 3, 4])
-            nums.take_cosine_transform()
+            numbers = sdata.number_list([1, 2, 3, 4])
+            numbers.take_cosine_transform()
         """,
         code={"SciPy": """
             import numpy as np

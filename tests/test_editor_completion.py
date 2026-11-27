@@ -29,7 +29,7 @@ def test_the_package_says_it_has_type_hints():
 def test_starting_words_say_what_they_give_back():
     assert _return_hint(sdata.table) == "Table"
     assert _return_hint(sdata.chart) == "Chart"
-    assert _return_hint(sdata.numbers) == "Numbers"
+    assert _return_hint(sdata.number_list) == "Numbers"
     assert _return_hint(sdata.number_grid) == "NumberGrid"
     assert _return_hint(sdata.distribution) == "Distribution"
     assert _return_hint(Table.start_chart) == "Chart"
@@ -57,7 +57,7 @@ def test_words_are_real_class_attributes_and_listed():
         assert word in vars(Table) or any(word in vars(base) for base in Table.__mro__), word
         assert word in listed, word
     assert "draw_dots" in dir(sdata.chart(table))
-    for word in ("table", "get_example", "chart", "numbers", "number_grid", "distribution"):
+    for word in ("table", "get_example", "chart", "number_list", "number_grid", "distribution"):
         assert word in sdata.__all__ and word in dir(sdata), word
 
 
@@ -79,7 +79,7 @@ def _complete(code: str) -> list[str]:
     ("import simplydata as sdata\nc = sdata.table('my_file.csv').start_chart()\nc.draw_d", "draw_dots"),
     ("import simplydata as sdata\nc = sdata.chart(sdata.table('my_file.csv'))\nc.draw_dots(x='a', y='b').write_t",
      "write_title_on_top"),
-    ("import simplydata as sdata\nn = sdata.numbers([1, 2, 3])\nn.find_av", "find_average"),
+    ("import simplydata as sdata\nn = sdata.number_list([1, 2, 3])\nn.find_av", "find_average"),
 ])
 def test_static_completion_in_a_script(code, expected):
     """jedi.Script reads the code without running it, as an editor does."""

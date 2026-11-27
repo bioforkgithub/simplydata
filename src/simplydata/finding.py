@@ -1036,7 +1036,7 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     (sdata.solve("p*V = n*R*T", for_letter="T", exactly=True) gives T = V*p/(R*n)); rules (<, >, <=, >=) give the
     ranges where they hold (sdata.solve("x**2 - 4 > 0", exactly=True): x < -2 or x > 2, SymPy solveset over the
     real numbers); letters_are={"c": "positive"} says what a letter is. A formula made with sdata.formula() means
-    formula = 0: sdata.solve(f.find_slope_formula(), exactly=True) finds where the slope is flat.
+    formula = 0: sdata.solve(formula.find_slope_formula(), exactly=True) finds where the slope is flat.
     """
     if not isinstance(exactly, bool):
         raise SimplydataError("exactly= should be True or False.")

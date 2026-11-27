@@ -12,7 +12,7 @@ plain sentence that says how to install it. Every answer comes from SymPy:
 * make_simpler: simplify; turn_into_sum: expand; turn_into_product: factor;
 * find_slope_formula: diff; find_area_formula: integrate; find_value_at: subs + evalf (one value) or lambdify with
   NumPy and SciPy (many values); put_in: subs; show_as_latex: latex; find_limit_as: limit; find_taylor_series:
-  series; solve(exactly=True): solve; nums.show_as_fraction: nsimplify(rational=True).
+  series; solve(exactly=True): solve; numbers.show_as_fraction: nsimplify(rational=True).
 * numbers phase, batch 4 (approved by Manish 2026-11-26): find_slope_formula(how_many_times=) and mixed slopes: diff;
   find_limit_as(from_side=): limit(dir="+" or "-"); show_as_decimal: N; group_by_powers_of: expand then collect;
   turn_into_partial_fractions: apart; letters_are=: Symbols with SymPy's assumptions (positive, integer ...);
@@ -36,7 +36,7 @@ from ._errors import MissingWordError, SimplydataError, choice_error, friendly, 
 from ._time_limit import EXACTLY_HINT, FORMULA_HINT, one_deadline
 
 INSTALL_EXACT = 'pip install "simplydata[exact]"   (or: conda install -c conda-forge sympy)'
-FORMULA_EXAMPLE = 'f = sdata.formula("(x + 2)**2 - 4")'
+FORMULA_EXAMPLE = 'formula = sdata.formula("(x + 2)**2 - 4")'
 
 # the functions a formula may use: name -> (fewest, most arguments); the same as fit_formula's
 FUNCTIONS = {"exp": (1, 1), "log": (1, 2), "sqrt": (1, 1), "abs": (1, 1), "sin": (1, 1), "cos": (1, 1),
@@ -1248,8 +1248,8 @@ class Formula:
         object.__setattr__(self, "_history", [])
 
     def __setattr__(self, name, value):
-        raise SimplydataError("A formula is changed with its words, such as f.make_simpler(); f.undo() takes a "
-                              "step back.")
+        raise SimplydataError("A formula is changed with its words, such as formula.make_simpler(); "
+                              "formula.undo() takes a step back.")
 
     @classmethod
     def _word_names(cls) -> list[str]:
@@ -1263,7 +1263,7 @@ class Formula:
             raise AttributeError(name)
         lines = [f"A formula has no word called .{name}()."]
         if name in HINTS:
-            lines.append(f"In simplydata this is f.{HINTS[name]}." if not HINTS[name].startswith("sdata.")
+            lines.append(f"In simplydata this is formula.{HINTS[name]}." if not HINTS[name].startswith("sdata.")
                          else f"In simplydata this is {HINTS[name]}.")
         else:
             guesses = suggest(name, list(WORDS))
@@ -1311,7 +1311,7 @@ class Formula:
 
     def _letter(self, step: str, for_letter, example: str):
         """The letter to work with: for_letter=, or the only letter of the formula."""
-        need_sympy(f"f.{step}()")
+        need_sympy(f"formula.{step}()")
         letters = self._letters()
         if for_letter is None:
             if len(letters) == 1:
@@ -1319,10 +1319,10 @@ class Formula:
             if not letters:
                 raise SimplydataError(f"{_show(self._expr)} has no letter, so .{step}() has nothing to work with.")
             raise SimplydataError(f"{_show(self._expr)} has {len(letters)} letters ({', '.join(letters)}): say which "
-                                  f"one with for_letter=.\nFor example:  f.{example}")
+                                  f"one with for_letter=.\nFor example:  formula.{example}")
         if not isinstance(for_letter, str) or for_letter not in letters:
             raise SimplydataError(f"for_letter= needs one of the letters of the formula in quotes: "
-                                  f"{', '.join(repr(n) for n in letters) or 'none'}.\nFor example:  f.{example}")
+                                  f"{', '.join(repr(n) for n in letters) or 'none'}.\nFor example:  formula.{example}")
         return self._symbol(for_letter)
 
     def _change(self, what: str, new):
@@ -1333,25 +1333,25 @@ class Formula:
     # ---------------------------------------------------------------- changing the formula (with undo)
     @friendly
     def make_simpler(self):
-        """Write the formula in a simpler way (SymPy simplify). f.make_simpler()
+        """Write the formula in a simpler way (SymPy simplify). formula.make_simpler()
 
-        f = sdata.formula("(x**2 - 1) / (x - 1)"), then f.make_simpler() gives x + 1. The formula changes;
-        f.undo() takes the step back. As SymPy simplify(); MATLAB simplify.
+        formula = sdata.formula("(x**2 - 1) / (x - 1)"), then formula.make_simpler() gives x + 1. The formula changes;
+        the step can be taken back with formula.undo(). As SymPy simplify(); MATLAB simplify.
         """
-        sp = need_sympy("f.make_simpler()")
+        sp = need_sympy("formula.make_simpler()")
         new = _guarded(sp.simplify, self._expr, what="SymPy simplify")
         print(f"{_show(self._expr)} written more simply: {_show(new)}   (SymPy simplify)")
         return self._change("make simpler", new)
 
     @friendly
     def turn_into_sum(self):
-        """Multiply out the brackets, so the formula is a sum of terms (SymPy expand). f.turn_into_sum()
+        """Multiply out the brackets, so the formula is a sum of terms (SymPy expand). formula.turn_into_sum()
 
-        f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum() gives x**2 + 4*x. The formula changes;
-        f.undo() takes the step back. turn_into_product() goes the other way. As SymPy expand(). A sum with letters
-        raised to a whole power above 100 is refused (it would have far too many terms).
+        formula = sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum() gives x**2 + 4*x. The formula changes;
+        the step can be taken back with formula.undo(). turn_into_product() goes the other way. As SymPy expand(). A
+        sum with letters raised to a whole power above 100 is refused (it would have far too many terms).
         """
-        sp = need_sympy("f.turn_into_sum()")
+        sp = need_sympy("formula.turn_into_sum()")
         check_letter_powers(sp, self._expr, "turn_into_sum")
         new = _guarded(sp.expand, self._expr, what="SymPy expand")
         print(f"{_show(self._expr)} multiplied out: {_show(new)}   (SymPy expand)")
@@ -1359,12 +1359,12 @@ class Formula:
 
     @friendly
     def turn_into_product(self):
-        """Write the formula as a product of factors (SymPy factor). f.turn_into_product()
+        """Write the formula as a product of factors (SymPy factor). formula.turn_into_product()
 
-        f = sdata.formula("x**2 + 4*x"), then f.turn_into_product() gives x*(x + 4). The formula changes;
-        f.undo() takes the step back. turn_into_sum() goes the other way. As SymPy factor().
+        formula = sdata.formula("x**2 + 4*x"), then formula.turn_into_product() gives x*(x + 4). The formula changes;
+        the step can be taken back with formula.undo(). turn_into_sum() goes the other way. As SymPy factor().
         """
-        sp = need_sympy("f.turn_into_product()")
+        sp = need_sympy("formula.turn_into_product()")
         new = _guarded(sp.factor, self._expr, what="SymPy factor")
         print(f"{_show(self._expr)} as a product: {_show(new)}   (SymPy factor)")
         return self._change("turn into product", new)
@@ -1372,13 +1372,13 @@ class Formula:
     @friendly
     @one_deadline
     def group_by_powers_of(self, letter=None):
-        """Multiply out, then gather the terms by the powers of one letter (SymPy collect). f.group_by_powers_of("x")
+        """Multiply out, then gather the terms by powers of a letter (SymPy collect). formula.group_by_powers_of("x")
 
-        f = sdata.formula("a*x**2 + b*x**2 + a*x - x"), then f.group_by_powers_of("x") gives
-        x**2*(a + b) + x*(a - 1). The formula changes; f.undo() takes the step back. As SymPy collect(expand(...), x).
-        A sum with letters raised to a whole power above 100 is refused.
+        formula = sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x") gives
+        x**2*(a + b) + x*(a - 1). The formula changes; formula.undo() takes the step back. As SymPy
+        collect(expand(...), x). A sum with letters raised to a whole power above 100 is refused.
         """
-        sp = need_sympy("f.group_by_powers_of()")
+        sp = need_sympy("formula.group_by_powers_of()")
         x = self._letter("group_by_powers_of", letter, 'group_by_powers_of("x")')
         check_letter_powers(sp, self._expr, "group_by_powers_of")
         expanded = _guarded(sp.expand, self._expr, what="SymPy expand")
@@ -1388,13 +1388,13 @@ class Formula:
 
     @friendly
     def turn_into_partial_fractions(self, for_letter=None):
-        """Split a fraction of polynomials into a sum of simple fractions (SymPy apart). f.turn_into_partial_fractions()
+        """Split a fraction into a sum of simple fractions (SymPy apart). formula.turn_into_partial_fractions()
 
-        f = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then f.turn_into_partial_fractions() gives
-        1/(x + 2) + 2/(x + 1). for_letter= says which letter when there are several. The formula changes; f.undo()
+        formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions() gives
+        1/(x + 2) + 2/(x + 1). for_letter= says which letter when there are several. The formula changes; formula.undo()
         takes the step back. As SymPy apart(); MATLAB partfrac.
         """
-        sp = need_sympy("f.turn_into_partial_fractions()")
+        sp = need_sympy("formula.turn_into_partial_fractions()")
         x = self._letter("turn_into_partial_fractions", for_letter, 'turn_into_partial_fractions(for_letter="x")')
         if not self._expr.is_rational_function(x):
             raise SimplydataError(f"turn_into_partial_fractions() works on a fraction of polynomials in {x}, such as "
@@ -1406,7 +1406,7 @@ class Formula:
 
     @friendly
     def undo(self):
-        """Take the last change of the formula back. f.undo()"""
+        """Take the last change of the formula back. formula.undo()"""
         if not self._history:
             print("Nothing to undo: this formula has not changed.")
             return self
@@ -1418,16 +1418,17 @@ class Formula:
     # ---------------------------------------------------------------- new formulas
     @friendly
     def find_slope_formula(self, for_letter=None, how_many_times=1) -> Formula:
-        """The formula of the slope (the derivative), as a new formula. f.find_slope_formula()
+        """The formula of the slope (the derivative), as a new formula. formula.find_slope_formula()
 
-        f = sdata.formula("x**3 - 2*x"), then f.find_slope_formula() gives 3*x**2 - 2. for_letter= says which
-        letter when there are several. how_many_times=2 takes the slope of the slope (the second derivative), up to
-        20 times. for_letter=["x", "y"] takes the slope for x, then for y (a mixed partial derivative). As SymPy
+        formula = sdata.formula("x**3 - 2*x"), then formula.find_slope_formula() gives 3*x**2 - 2. for_letter= says
+        which letter when there are several. how_many_times=2 takes the slope of the slope (the second derivative), up
+        to 20 times. for_letter=["x", "y"] takes the slope for x, then for y (a mixed partial derivative). As SymPy
         diff(); MATLAB diff; R D().
         """
-        sp = need_sympy("f.find_slope_formula()")
+        sp = need_sympy("formula.find_slope_formula()")
         example = 'find_slope_formula(for_letter="x")'
-        times = _whole(how_many_times, "how_many_times=", 1, MAX_SLOPE_TIMES, "f.find_slope_formula(how_many_times=2)")
+        times = _whole(how_many_times, "how_many_times=", 1, MAX_SLOPE_TIMES,
+                       "formula.find_slope_formula(how_many_times=2)")
         if isinstance(for_letter, (list, tuple)):
             if times != 1:
                 raise SimplydataError('how_many_times= works with one letter. With a list, name a letter more than '
@@ -1456,13 +1457,13 @@ class Formula:
 
     @friendly
     def find_area_formula(self, for_letter=None) -> Formula:
-        """The formula of the area under the curve (the integral), as a new formula. f.find_area_formula()
+        """The formula of the area under the curve (the integral), as a new formula. formula.find_area_formula()
 
-        f = sdata.formula("x**3 - 2*x"), then f.find_area_formula() gives x**4/4 - x**2 (add any constant).
+        formula = sdata.formula("x**3 - 2*x"), then formula.find_area_formula() gives x**4/4 - x**2 (add any constant).
         for_letter= says which letter when there are several. sdata.find_area_under("...", between=[a, b]) gives
         the area as a number. As SymPy integrate(); MATLAB int.
         """
-        sp = need_sympy("f.find_area_formula()")
+        sp = need_sympy("formula.find_area_formula()")
         x = self._letter("find_area_formula", for_letter, 'find_area_formula(for_letter="x")')
         new = _guarded(sp.integrate, self._expr, x, what="SymPy integrate")
         if new.has(sp.Integral):
@@ -1477,7 +1478,7 @@ class Formula:
         letters = self._letters()
         if not values and letters:
             raise SimplydataError(f".{step}() needs a value for each letter ({', '.join(letters) or 'none'}).\n"
-                                  f"For example:  f.{example}")
+                                  f"For example:  formula.{example}")
         unknown = [k for k in values if k not in letters]
         if unknown:
             raise SimplydataError(f"{', '.join(unknown)} {'is' if len(unknown) == 1 else 'are'} not a letter of "
@@ -1486,20 +1487,21 @@ class Formula:
 
     @friendly
     def find_value_at(self, **values):
-        """The value of the formula when each letter has a value. f.find_value_at(x=2)
+        """The value of the formula when each letter has a value. formula.find_value_at(x=2)
 
-        f = sdata.formula("x**3 - 2*x"), then f.find_value_at(x=2) gives 4. Give every letter a value. Many
-        values at once (a list or numbers) give numbers back: f.find_value_at(x=sdata.numbers(0, to=3,
+        formula = sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2) gives 4. Give every letter a value. Many
+        values at once (a list or numbers) give numbers back: formula.find_value_at(x=sdata.number_list(0, to=3,
         how_many=50)). One value: SymPy subs and evalf; many: SymPy lambdify with NumPy and SciPy. An empty value
         (NaN) gives an empty answer, as in a list. lgamma(x) is the log of the size of gamma(x) (SciPy gammaln, as R
         lgamma), for one value and for many.
         """
-        sp = need_sympy("f.find_value_at()")
+        sp = need_sympy("formula.find_value_at()")
         letters = self._values_for("find_value_at", values, "find_value_at(x=2)")
         missing = [n for n in letters if n not in values]
         if missing:
             raise SimplydataError(f"find_value_at() needs a value for every letter; {', '.join(missing)} "
-                                  f"{'has' if len(missing) == 1 else 'have'} none.\nFor example:  f.find_value_at("
+                                  f"{'has' if len(missing) == 1 else 'have'} none.\n"
+                                  "For example:  formula.find_value_at("
                                   + ", ".join(f"{n}=1" for n in letters) + ")")
         many = {k: v for k, v in values.items() if not _one_number(v)}
         for name, value in values.items():
@@ -1517,7 +1519,7 @@ class Formula:
             found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
-                                      "decimal (float). f.put_in(...).show_as_decimal() shows it.")
+                                      "decimal (float). formula.put_in(...).show_as_decimal() shows it.")
             if not found.is_real:
                 if found.is_number:
                     raise SimplydataError(f"At {_places(values)} the formula has no value among the ordinary "
@@ -1530,7 +1532,7 @@ class Formula:
         from .numbers._base import to_array
         from .numbers.numbers import Numbers
 
-        arrays = [np.asarray(to_array(values[n], "find_value_at()", "f.find_value_at(x=[0, 1, 2])"), dtype=float)
+        arrays = [np.asarray(to_array(values[n], "find_value_at()", "formula.find_value_at(x=[0, 1, 2])"), dtype=float)
                   if n in many else float(values[n]) for n in letters]
         from scipy import special
 
@@ -1555,12 +1557,12 @@ class Formula:
 
     @friendly
     def put_in(self, **values) -> Formula:
-        """Put a number or another formula in place of a letter, as a new formula. f.put_in(x="y + 1")
+        """Put a number or another formula in place of a letter, as a new formula. formula.put_in(x="y + 1")
 
-        f = sdata.formula("x**2"), then f.put_in(x="y + 1") gives (y + 1)**2. A number gives a formula with one
-        letter fewer. As SymPy subs(); MATLAB subs.
+        formula = sdata.formula("x**2"), then formula.put_in(x="y + 1") gives (y + 1)**2. A number gives a formula with
+        one letter fewer. As SymPy subs(); MATLAB subs.
         """
-        sp = need_sympy("f.put_in()")
+        sp = need_sympy("formula.put_in()")
         self._values_for("put_in", values, 'put_in(x="y + 1")')
         own = self._symbols()
         swaps = {}
@@ -1600,12 +1602,12 @@ class Formula:
 
     @friendly
     def show_as_latex(self) -> str:
-        """Show the formula as LaTeX, to paste into a paper; also gives the text back. f.show_as_latex()
+        """Show the formula as LaTeX, to paste into a paper; also gives the text back. formula.show_as_latex()
 
-        f = sdata.formula("x**3 - 2*x"), then f.show_as_latex() prints x^{3} - 2 x. Nothing is written to a
+        formula = sdata.formula("x**3 - 2*x"), then formula.show_as_latex() prints x^{3} - 2 x. Nothing is written to a
         file. As SymPy latex(). In Jupyter a formula is shown typeset by itself.
         """
-        sp = need_sympy("f.show_as_latex()")
+        sp = need_sympy("formula.show_as_latex()")
         text = sp.latex(self._expr)
         print(text)
         return text
@@ -1614,18 +1616,18 @@ class Formula:
     def show_as_decimal(self, digits=15) -> str:
         """Show a formula without letters as a decimal with as many digits as you ask; also gives the text back.
 
-        f.show_as_decimal(digits=50)
-        f = sdata.formula("sqrt(2)"), then f.show_as_decimal(digits=50) prints
+        formula.show_as_decimal(digits=50)
+        formula = sdata.formula("sqrt(2)"), then formula.show_as_decimal(digits=50) prints
         1.4142135623730950488016887242096980785696718753769. A float keeps only about 16 digits, so the answer is
-        text. digits= from 1 to 10,000. Put numbers in place of letters first (f.put_in(x=2)). Nothing changes.
+        text. digits= from 1 to 10,000. Put numbers in place of letters first (formula.put_in(x=2)). Nothing changes.
         As SymPy N(expr, digits) (evalf); MATLAB vpa.
         """
-        sp = need_sympy("f.show_as_decimal()")
-        count = _whole(digits, "digits=", 1, MAX_DECIMAL_DIGITS, "f.show_as_decimal(digits=50)")
+        sp = need_sympy("formula.show_as_decimal()")
+        count = _whole(digits, "digits=", 1, MAX_DECIMAL_DIGITS, "formula.show_as_decimal(digits=50)")
         letters = self._letters()
         if letters:
             raise SimplydataError(f"{_show(self._expr)} still has letters ({', '.join(letters)}), so it has no single "
-                                  f"decimal. Put numbers in first, for example f.put_in({letters[0]}=2)"
+                                  f"decimal. Put numbers in first, for example formula.put_in({letters[0]}=2)"
                                   ".show_as_decimal().")
         value = _guarded(sp.N, self._expr, count, what="SymPy N")
         if value.has(sp.zoo, sp.nan, sp.oo, -sp.oo) or value is sp.nan:
@@ -1639,13 +1641,14 @@ class Formula:
 
     @friendly
     def as_sympy(self):
-        """The SymPy expression underneath, to carry on in SymPy itself. f.as_sympy()
+        """The SymPy expression underneath, to carry on in SymPy itself. formula.as_sympy()
 
-        f = sdata.formula("(x + 2)**2 - 4"), then expr = f.as_sympy() gives the SymPy expression (x + 2)**2 - 4,
-        with the same letters (SymPy Symbols, with what letters_are= said they are). Changing it in SymPy does not
-        change the formula. A SymPy expression never changes itself, so the two can be used side by side.
+        formula = sdata.formula("(x + 2)**2 - 4"), then expr = formula.as_sympy() gives the SymPy expression
+        (x + 2)**2 - 4, with the same letters (SymPy Symbols, with what letters_are= said they are). Changing it in
+        SymPy does not change the formula. A SymPy expression never changes itself, so the two can be used side by
+        side.
         """
-        need_sympy("f.as_sympy()")
+        need_sympy("formula.as_sympy()")
         print(f"The SymPy expression underneath: {_show(self._expr)}   (a SymPy {type(self._expr).__name__}; carry "
               "on in SymPy with it)")
         return self._expr
@@ -1653,15 +1656,15 @@ class Formula:
     @friendly
     @one_deadline
     def find_limit_as(self, letter=None, goes_to=0, from_side="both"):
-        """The value the formula comes close to as a letter goes to a value (the limit). f.find_limit_as("x", goes_to=0)
+        """The limit: the value the formula comes close to as a letter goes to a value. formula.find_limit_as("x")
 
-        f = sdata.formula("sin(x) / x"), then f.find_limit_as("x", goes_to=0) gives 1. goes_to= takes a number,
-        "infinity" or "-infinity". At a number the formula must come to the same value from both sides (as in
-        school maths; SymPy's own limit() looks from above only); from_side="above" or "below" looks from one side
-        only ("right" and "left" work too): for 1/x, f.find_limit_as("x", goes_to=0, from_side="above") gives
-        infinity. Gives a number, or a formula when other letters are left. As SymPy limit().
+        formula = sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to=0) gives 1. goes_to= takes a
+        number, "infinity" or "-infinity". At a number the formula must come to the same value from both sides (as in
+        school maths; SymPy's own limit() looks from above only); from_side="above" or "below" looks from one side only
+        ("right" and "left" work too): for 1/x, formula.find_limit_as("x", goes_to=0, from_side="above") gives infinity.
+        Gives a number, or a formula when other letters are left. As SymPy limit().
         """
-        sp = need_sympy("f.find_limit_as()")
+        sp = need_sympy("formula.find_limit_as()")
         if letter is None:
             letters = self._letters()
             letter = letters[0] if len(letters) == 1 else None
@@ -1718,12 +1721,12 @@ class Formula:
     def find_taylor_series(self, around=0, up_to_power=4, for_letter=None) -> Formula:
         """The formula as a sum of powers near one value (the Taylor series), as a new formula.
 
-        f.find_taylor_series(around=0, up_to_power=4)
-        f = sdata.formula("exp(x)"), then f.find_taylor_series(around=0, up_to_power=4) gives
+        formula.find_taylor_series(around=0, up_to_power=4)
+        formula = sdata.formula("exp(x)"), then formula.find_taylor_series(around=0, up_to_power=4) gives
         x**4/24 + x**3/6 + x**2/2 + x + 1: the powers of (x - around) up to up_to_power=, with the rest left
         out. As SymPy series(...).removeO().
         """
-        sp = need_sympy("f.find_taylor_series()")
+        sp = need_sympy("formula.find_taylor_series()")
         x = self._letter("find_taylor_series", for_letter, 'find_taylor_series(around=0, up_to_power=4, '
                                                            'for_letter="x")')
         if isinstance(up_to_power, bool) or not isinstance(up_to_power, (int, np.integer)) or up_to_power < 0:
@@ -1749,7 +1752,7 @@ def _places(values: dict) -> str:
 def formula(text=None, letters_are=None) -> Formula:
     """A formula to work with exactly (SymPy): simpler, multiplied out, slopes, areas, limits. sdata.formula("(x + 2)**2 - 4")
 
-    f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum() gives x**2 + 4*x. Write the formula as for
+    formula = sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum() gives x**2 + 4*x. Write the formula as for
     fit_formula: letters (x, y, rate), numbers, + - * / and ** (^ works too), brackets, pi and the functions exp,
     log, sqrt, abs, sin, cos, tan, erf ... The letters are found by themselves. letters_are={"k": "positive"} says
     what a letter is ("positive", "zero or more", "negative", "real", "whole number", "positive whole number"), so

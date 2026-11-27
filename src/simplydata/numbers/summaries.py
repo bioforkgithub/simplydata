@@ -2,7 +2,7 @@
 
 Naming: the same words as tables, without "_of". A table needs to be told which column
 (table.find_average_of("marks")); numbers are already one set, so there is nothing to name:
-nums.find_average(). Grids take in_each="row" or in_each="column" (tables take
+numbers.find_average(). Grids take in_each="row" or in_each="column" (tables take
 for_each_group_in="class"), and then give back one answer per row or column as new numbers.
 The old spelling for_each="row" still works for one release, with a note.
 
@@ -124,7 +124,7 @@ def _make(step: str, func, doc: str, grid: bool):
     else:
         def word(self):
             return self._summary(step, func)
-        word.__doc__ = f"{doc}\n\n        nums.find_{step}()\n        "
+        word.__doc__ = f"{doc}\n\n        numbers.find_{step}()\n        "
     word.__name__ = word.__qualname__ = f"find_{step}"
     return friendly(word, renamed={"for_each": "in_each"}) if grid else friendly(word)
 
@@ -143,7 +143,7 @@ class SummaryWords(SummaryCore):
     def find_percentile(self, percent=None):
         """The number that this percent of the numbers are below: find_percentile(50) is the median.
 
-        nums.find_percentile(90)
+        numbers.find_percentile(90)
         Uses NumPy's usual "linear" method, the same as pandas and R. Empty values are skipped.
         """
         return self._summary("percentile", np.nanpercentile, q=self._check_percent(percent))
@@ -154,7 +154,7 @@ class SummaryWords(SummaryCore):
 
         Biggest count first. Empty values count as a value of their own, so the percents are
         out of all numbers. Percents are rounded to 1 decimal place.
-        nums.count_each()
+        numbers.count_each()
         """
         import pandas as pd
 

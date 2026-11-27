@@ -194,8 +194,8 @@ GROUPS = [
                          "table.make_copy", "table.start_chart", "table.as_pandas", "table.as_polars",
                          "table.as_list"]),
     # Number words: "nums.name" is a step on numbers, "grid.name" a step on a grid of numbers.
-    ("Numbers: make and look", ["sdata.numbers", "sdata.make_random_numbers", "nums.show", "nums.show_first_numbers",
-                                "nums.show_last_numbers", "nums.get_number_at", "nums.count",
+    ("Numbers: make and look", ["sdata.number_list", "sdata.make_random_numbers", "nums.show",
+                                "nums.show_first_numbers", "nums.show_last_numbers", "nums.get_number_at", "nums.count",
                                 "nums.count_empty_numbers"]),
     ("Numbers: maths in words", ["nums.add", "nums.subtract", "nums.times", "nums.divide_by", "nums.raise_to_power",
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
@@ -357,15 +357,16 @@ def _tx(name: str, body: str) -> str:
 
 def _nx(body: str, values: str = "[12, 15, 9, 20, 14]") -> str:
     """A runnable numbers example: make some numbers (or take a column of a practice table), then the steps."""
-    made = values if values.startswith("sdata.get_example(") else f"sdata.numbers({values})"
-    lines = ["import simplydata as sdata", f"nums = {made}"]
+    made = values if values.startswith("sdata.get_example(") else f"sdata.number_list({values})"
+    lines = ["import simplydata as sdata", f"numbers = {made}"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
 
 def _dx(body: str) -> str:
     """A runnable distribution example: make a distribution, then the steps."""
-    lines = ["import simplydata as sdata", 'dist = sdata.distribution("normal", average=50, standard_deviation=10)']
+    lines = ["import simplydata as sdata",
+             'distribution = sdata.distribution("normal", average=50, standard_deviation=10)']
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -386,7 +387,7 @@ def _gx(body: str) -> str:
 
 def _bx(body: str) -> str:
     """A runnable example on a bigger grid (4 rows, 6 columns), for choosing parts of it."""
-    lines = ["import simplydata as sdata", "grid = sdata.numbers(1, to=24).make_number_grid(columns=6)"]
+    lines = ["import simplydata as sdata", "grid = sdata.number_list(1, to=24).make_number_grid(columns=6)"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -821,31 +822,34 @@ HELP_EXAMPLES = {
     # distributions
     "sdata.distribution": textwrap.dedent("""\
         import simplydata as sdata
-        dist = sdata.distribution("normal", average=50, standard_deviation=10)
-        print(dist)
-        dist.find_chance_that_value(is_above=80)
+        distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+        print(distribution)
+        distribution.find_chance_that_value(is_above=80)
         coins = sdata.distribution("binomial", tries=10, chance=0.5)
         coins.find_chance_that_value(is_at_most=3)"""),
     "table.fit_distribution_to": _tx("shop", 'fit = table.fit_distribution_to("sales", "lognormal")\n'
                                           "fit.find_chance_that_value(is_above=600)\nfit.turn_into_table()"),
     "table.compare_distributions_for": _tx("shop", 'table.compare_distributions_for("sales")'),
-    "nums.fit_distribution": _nx('fit = nums.fit_distribution("gamma")\nfit.find_chance_that_value(is_above=18)'),
-    "dist.find_chance_that_value": _dx("dist.find_chance_that_value(is_above=80)\ndist.find_chance_that_value(is_between=[40, 60])\n"
+    "nums.fit_distribution": _nx('fit = numbers.fit_distribution("gamma")\nfit.find_chance_that_value(is_above=18)'),
+    "dist.find_chance_that_value": _dx("distribution.find_chance_that_value(is_above=80)\ndistribution.find_chance_that_value(is_between=[40, 60])\n"
                        'dice = sdata.distribution("whole number uniform", between=[1, 6])\ndice.find_chance_that_value(6)'),
-    "dist.find_density_at": _dx("dist.find_density_at(60)"),
-    "dist.find_percentile": _dx("dist.find_percentile(95)\ndist.find_percentile([5, 50, 95])"),
-    "dist.find_cut_off": _dx("dist.find_cut_off(with_chance_above=0.025)\ndist.find_cut_off(with_chance_below=0.05)"),
-    "dist.find_middle_range": _dx("dist.find_middle_range(95)"),
-    "dist.find_average": _dx("dist.find_average()"),
-    "dist.find_median": _dx("dist.find_median()"),
-    "dist.find_standard_deviation": _dx("dist.find_standard_deviation()"),
-    "dist.find_variance": _dx("dist.find_variance()"),
-    "dist.show_summary": _dx("dist.show_summary()"),
-    "dist.make_random_numbers": _dx("nums = dist.make_random_numbers(how_many=100, with_seed=1)\nnums.find_average()"),
-    "dist.draw_chart": _dx('chart = dist.draw_chart()\nchart.write_title_on_top("Normal, average 50, standard deviation 10")\n'
-                      'chart.save("distribution.png")'),
-    "dist.turn_into_table": _dx("result = dist.turn_into_table()\nresult.show()"),
-    "dist.show_parameters": _dx("print(dist.show_parameters())"),
+    "dist.find_density_at": _dx("distribution.find_density_at(60)"),
+    "dist.find_percentile": _dx("distribution.find_percentile(95)\ndistribution.find_percentile([5, 50, 95])"),
+    "dist.find_cut_off": _dx("distribution.find_cut_off(with_chance_above=0.025)\n"
+                             "distribution.find_cut_off(with_chance_below=0.05)"),
+    "dist.find_middle_range": _dx("distribution.find_middle_range(95)"),
+    "dist.find_average": _dx("distribution.find_average()"),
+    "dist.find_median": _dx("distribution.find_median()"),
+    "dist.find_standard_deviation": _dx("distribution.find_standard_deviation()"),
+    "dist.find_variance": _dx("distribution.find_variance()"),
+    "dist.show_summary": _dx("distribution.show_summary()"),
+    "dist.make_random_numbers": _dx("numbers = distribution.make_random_numbers(how_many=100, with_seed=1)\n"
+                                    "numbers.find_average()"),
+    "dist.draw_chart": _dx('chart = distribution.draw_chart()\n'
+                           'chart.write_title_on_top("Normal, average 50, standard deviation 10")\n'
+                           'chart.save("distribution.png")'),
+    "dist.turn_into_table": _dx("result = distribution.turn_into_table()\nresult.show()"),
+    "dist.show_parameters": _dx("print(distribution.show_parameters())"),
     "table.compare_spreads_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
                                              'table.compare_spreads_of("marks", for_each_group_in="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
@@ -1050,7 +1054,7 @@ HELP_EXAMPLES = {
     "draw_threshold_check": _ex("rain", 'chart.draw_threshold_check(x="rain", between=[10, 30])', "rain_threshold"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
-    "nums.find_spectrum": _nx("nums.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_spectrum": _nx("numbers.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.check_steady_over_time": _tx("sensor", 'table.check_steady_over_time("signal", sorted_by="time")'),
     "table.find_autocorrelation_of": _tx("sensor", 'table.find_autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
     "table.add_trend_and_season": _tx("visitors", """\
@@ -1063,29 +1067,29 @@ HELP_EXAMPLES = {
         table.fill_empty_cells_in("nitrate", with_the="line between neighbours", sorted_by="date", for_each_group_in="station")"""),
     "table.add_smoothed_column": _tx("sensor", 'table.add_smoothed_column("signal_smoothed", from_column="signal", '
                                                'test_method="savitzky-golay", window=11, sorted_by="time")'),
-    "nums.smooth": _nx('nums.smooth(test_method="median", window=5)', values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.remove_trend": _nx("nums.remove_trend()", values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.keep_each_frequency_that": _nx("nums.keep_each_frequency_that(is_below=10, time_step=0.005)",
+    "nums.smooth": _nx('numbers.smooth(test_method="median", window=5)', values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.remove_trend": _nx("numbers.remove_trend()", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.keep_each_frequency_that": _nx("numbers.keep_each_frequency_that(is_below=10, time_step=0.005)",
                                  values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.remove_each_frequency_that": _nx("nums.remove_each_frequency_that(is_equal_to=50, time_step=0.005)",
+    "nums.remove_each_frequency_that": _nx("numbers.remove_each_frequency_that(is_equal_to=50, time_step=0.005)",
                                    values='sdata.get_example("sensor").get_column("signal")'),
     "table.add_filtered_column": _tx("sensor", 'table.add_filtered_column("slow", from_column="signal", keep_below=10, '
                                                'sorted_by="time")'),
-    "nums.find_each_peak_that": _nx("nums.find_each_peak_that(is_at_least=1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.find_each_dip_that": _nx("nums.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_each_peak_that": _nx("numbers.find_each_peak_that(is_at_least=1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_each_dip_that": _nx("numbers.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.find_each_peak_that": _tx("sensor", 'table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)'),
     "table.find_each_dip_that": _tx("sensor", 'table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.05)'),
-    "nums.take_fourier_transform": _nx("nums.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
-    "sdata.find_inverse_fourier_transform": _nx("""        table = nums.take_fourier_transform()
+    "nums.take_fourier_transform": _nx("numbers.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "sdata.find_inverse_fourier_transform": _nx("""        table = numbers.take_fourier_transform()
         back = sdata.find_inverse_fourier_transform(table)""", values="[1, 2, 3, 4]"),
-    "nums.find_envelope": _nx("nums.find_envelope()", values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.convolve_with": _nx("nums.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
-    "nums.deconvolve_by": _nx("nums.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
-    "nums.change_time_step": _nx("nums.change_time_step(to=0.01, time_step=0.005)",
+    "nums.find_envelope": _nx("numbers.find_envelope()", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.convolve_with": _nx("numbers.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
+    "nums.deconvolve_by": _nx("numbers.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
+    "nums.change_time_step": _nx("numbers.change_time_step(to=0.01, time_step=0.005)",
                                  values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.make_wave": "\n".join(["import simplydata as sdata",
-                              'nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)']),
-    "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'nums = sdata.make_window_shape("hann", how_many=64)']),
+                              'numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)']),
+    "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'numbers = sdata.make_window_shape("hann", how_many=64)']),
     "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
     "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
     "draw_sticks": _ex("weather", 'chart.draw_sticks(x="month_number", y="rain", colour="city")', "draw_sticks"),
@@ -1114,13 +1118,13 @@ HELP_EXAMPLES = {
     "system.chart": _system_x('chart = system.chart()\nchart.save("bode.png")'),
     "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
                                       'repeats_every="year", for_each_group_in="museum")'),
-    "nums.forecast": _nx("nums.forecast(steps_ahead=12, repeats_every=12)",
+    "nums.forecast": _nx("numbers.forecast(steps_ahead=12, repeats_every=12)",
                          values='sdata.get_example("visitors").get_column("visitors").keep_first_numbers(144)'),
     "table.compare_forecasts_for": _tx("visitors", 'table.compare_forecasts_for("visitors", sorted_by="month", '
                                                'repeats_every="year", for_each_group_in="museum")'),
     "table.find_change_points_in": _tx("river", 'table.find_change_points_in("nitrate", sorted_by="date", '
                                              'for_each_group_in="station")'),
-    "nums.find_autocorrelation": _nx("nums.find_autocorrelation(rows_back=10)",
+    "nums.find_autocorrelation": _nx("numbers.find_autocorrelation(rows_back=10)",
                                    values='sdata.get_example("sensor").get_column("signal")'),
     # survival
     "table.find_survival_over_time": _tx("trial", 'table.find_survival_over_time(time="days", event="died", for_each_group_in="treatment")'),
@@ -1196,69 +1200,69 @@ HELP_EXAMPLES = {
         sdata.find_chance_of_finding(effect_size=0.5, values_per_group=20)
         sdata.find_chance_of_finding(effect_size=0.5, values_per_group=[20, 40], based_on="ranks")"""),
     # numbers: make and look
-    "sdata.numbers": textwrap.dedent("""\
+    "sdata.number_list": textwrap.dedent("""\
         import simplydata as sdata
-        nums = sdata.numbers([3, 5, 2, 8])
-        print(nums)
-        print(sdata.numbers(1, to=10))
-        print(sdata.numbers(0, to=1, how_many=5))"""),
+        numbers = sdata.number_list([3, 5, 2, 8])
+        print(numbers)
+        print(sdata.number_list(1, to=10))
+        print(sdata.number_list(0, to=1, how_many=5))"""),
     "sdata.make_random_numbers": textwrap.dedent("""\
         import simplydata as sdata
         dice = sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
         dice.show()
         heights = sdata.make_random_numbers(how_many=100, average=150, standard_deviation=8, with_seed=1)
         heights.find_average()"""),
-    "nums.show": _nx("nums.show()"),
-    "nums.show_first_numbers": _nx("nums.show_first_numbers(3)"),
-    "nums.show_last_numbers": _nx("nums.show_last_numbers(2)"),
-    "nums.get_number_at": _nx('print(nums.get_number_at(1))\nprint(nums.get_number_at("last"))'),
-    "nums.count": _nx("print(nums.count())"),
-    "nums.count_empty_numbers": _nx("print(nums.count_empty_numbers())", "[12, None, 9, None, 14]"),
+    "nums.show": _nx("numbers.show()"),
+    "nums.show_first_numbers": _nx("numbers.show_first_numbers(3)"),
+    "nums.show_last_numbers": _nx("numbers.show_last_numbers(2)"),
+    "nums.get_number_at": _nx('print(numbers.get_number_at(1))\nprint(numbers.get_number_at("last"))'),
+    "nums.count": _nx("print(numbers.count())"),
+    "nums.count_empty_numbers": _nx("print(numbers.count_empty_numbers())", "[12, None, 9, None, 14]"),
     # numbers: maths in words
-    "nums.add": _nx("nums.add(5)\nnums.show()"),
-    "nums.subtract": _nx("nums.subtract(2)\nnums.show()"),
-    "nums.times": _nx("nums.times(2)\nnums.show()"),
-    "nums.divide_by": _nx("nums.divide_by(4)\nnums.show()"),
-    "nums.raise_to_power": _nx("nums.raise_to_power(2)\nnums.show()"),
-    "nums.take_square_root": _nx("nums.take_square_root()\nnums.show()", "[9, 16, 25]"),
-    "nums.take_absolute_value": _nx("nums.take_absolute_value()\nnums.show()", "[-3, 5, -2]"),
-    "nums.round_to": _nx("nums.round_to(1)\nnums.show()", "[2.345, 3.14159, 7.07]"),
-    "nums.take_log": _nx("nums.take_log(base=10)\nnums.show()", "[1, 10, 100, 1000]"),
-    "nums.take_exp": _nx("nums.take_exp()\nnums.show()", "[0, 1, 2]"),
-    "nums.turn_into_running_total": _nx("nums.turn_into_running_total()\nnums.show()", "[1, 2, 3, 4]"),
+    "nums.add": _nx("numbers.add(5)\nnumbers.show()"),
+    "nums.subtract": _nx("numbers.subtract(2)\nnumbers.show()"),
+    "nums.times": _nx("numbers.times(2)\nnumbers.show()"),
+    "nums.divide_by": _nx("numbers.divide_by(4)\nnumbers.show()"),
+    "nums.raise_to_power": _nx("numbers.raise_to_power(2)\nnumbers.show()"),
+    "nums.take_square_root": _nx("numbers.take_square_root()\nnumbers.show()", "[9, 16, 25]"),
+    "nums.take_absolute_value": _nx("numbers.take_absolute_value()\nnumbers.show()", "[-3, 5, -2]"),
+    "nums.round_to": _nx("numbers.round_to(1)\nnumbers.show()", "[2.345, 3.14159, 7.07]"),
+    "nums.take_log": _nx("numbers.take_log(base=10)\nnumbers.show()", "[1, 10, 100, 1000]"),
+    "nums.take_exp": _nx("numbers.take_exp()\nnumbers.show()", "[0, 1, 2]"),
+    "nums.turn_into_running_total": _nx("numbers.turn_into_running_total()\nnumbers.show()", "[1, 2, 3, 4]"),
     # numbers: choose, sort and fill
-    "nums.keep_each_number_that": _nx("nums.keep_each_number_that(is_above=10)\nnums.show()"),
-    "nums.remove_each_number_that": _nx("nums.remove_each_number_that(is_below=10)\nnums.show()"),
-    "nums.keep_first_numbers": _nx("nums.keep_first_numbers(3)\nnums.show()"),
-    "nums.keep_last_numbers": _nx("nums.keep_last_numbers(3)\nnums.show()"),
-    "nums.keep_random_numbers": _nx("nums.keep_random_numbers(3, with_seed=1)\nnums.show()"),
-    "nums.remove_duplicate_numbers": _nx("nums.remove_duplicate_numbers()\nnums.show()", "[3, 5, 3, 8, 5]"),
-    "nums.remove_empty_numbers": _nx("nums.remove_empty_numbers()\nnums.show()", "[12, None, 9, 14]"),
-    "nums.fill_empty_numbers": _nx('nums.fill_empty_numbers(with_the="line between neighbours")\nnums.show()',
+    "nums.keep_each_number_that": _nx("numbers.keep_each_number_that(is_above=10)\nnumbers.show()"),
+    "nums.remove_each_number_that": _nx("numbers.remove_each_number_that(is_below=10)\nnumbers.show()"),
+    "nums.keep_first_numbers": _nx("numbers.keep_first_numbers(3)\nnumbers.show()"),
+    "nums.keep_last_numbers": _nx("numbers.keep_last_numbers(3)\nnumbers.show()"),
+    "nums.keep_random_numbers": _nx("numbers.keep_random_numbers(3, with_seed=1)\nnumbers.show()"),
+    "nums.remove_duplicate_numbers": _nx("numbers.remove_duplicate_numbers()\nnumbers.show()", "[3, 5, 3, 8, 5]"),
+    "nums.remove_empty_numbers": _nx("numbers.remove_empty_numbers()\nnumbers.show()", "[12, None, 9, 14]"),
+    "nums.fill_empty_numbers": _nx('numbers.fill_empty_numbers(with_the="line between neighbours")\nnumbers.show()',
                                    "[12, None, 9, None, 14]"),
-    "nums.sort": _nx("nums.sort(biggest_first=True)\nnums.show()"),
-    "nums.reverse": _nx("nums.reverse()\nnums.show()"),
-    "nums.keep_numbers_by_position": _nx("nums.keep_numbers_by_position(2, to=4)\nnums.show()"),
-    "nums.remove_numbers_by_position": _nx('nums.remove_numbers_by_position("last")\nnums.show()'),
-    "nums.replace_each_number_that": _nx("nums.replace_each_number_that(-999, with_value=None)\n"
-                                "nums.replace_each_number_that(is_above=14, with_value=14)\nnums.show()",
+    "nums.sort": _nx("numbers.sort(biggest_first=True)\nnumbers.show()"),
+    "nums.reverse": _nx("numbers.reverse()\nnumbers.show()"),
+    "nums.keep_numbers_by_position": _nx("numbers.keep_numbers_by_position(2, to=4)\nnumbers.show()"),
+    "nums.remove_numbers_by_position": _nx('numbers.remove_numbers_by_position("last")\nnumbers.show()'),
+    "nums.replace_each_number_that": _nx("numbers.replace_each_number_that(-999, with_value=None)\n"
+                                "numbers.replace_each_number_that(is_above=14, with_value=14)\nnumbers.show()",
                                 "[12, -999, 9, 20, 14]"),
     # numbers: summaries
-    "nums.find_average": _nx("nums.find_average()"),
-    "nums.find_median": _nx("nums.find_median()"),
-    "nums.find_total": _nx("nums.find_total()"),
-    "nums.find_smallest": _nx("nums.find_smallest()"),
-    "nums.find_biggest": _nx("nums.find_biggest()"),
-    "nums.find_standard_deviation": _nx("nums.find_standard_deviation()"),
-    "nums.find_percentile": _nx("nums.find_percentile(90)"),
-    "nums.count_each": _nx("nums.count_each()", "[3, 5, 3, 8, 5, 3]"),
+    "nums.find_average": _nx("numbers.find_average()"),
+    "nums.find_median": _nx("numbers.find_median()"),
+    "nums.find_total": _nx("numbers.find_total()"),
+    "nums.find_smallest": _nx("numbers.find_smallest()"),
+    "nums.find_biggest": _nx("numbers.find_biggest()"),
+    "nums.find_standard_deviation": _nx("numbers.find_standard_deviation()"),
+    "nums.find_percentile": _nx("numbers.find_percentile(90)"),
+    "nums.count_each": _nx("numbers.count_each()", "[3, 5, 3, 8, 5, 3]"),
     # grids of numbers
     "sdata.number_grid": textwrap.dedent("""\
         import simplydata as sdata
         grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
         print(grid)
         print(sdata.number_grid(rows=2, columns=3, filled_with=0))"""),
-    "nums.make_number_grid": _nx("grid = nums.make_number_grid(columns=3)\nprint(grid)", "[1, 2, 3, 4, 5, 6]"),
+    "nums.make_number_grid": _nx("grid = numbers.make_number_grid(columns=3)\nprint(grid)", "[1, 2, 3, 4, 5, 6]"),
     "grid.count_rows": _gx("print(grid.count_rows())"),
     "grid.count_columns": _gx("print(grid.count_columns())"),
     "grid.find_shape": _gx("print(grid.find_shape())"),
@@ -1267,37 +1271,37 @@ HELP_EXAMPLES = {
     "grid.get_number_at": _gx("print(grid.get_number_at(row=1, column=2))"),
     "grid.get_row": _gx("top = grid.get_row(1)\ntop.show()"),
     "grid.get_column": _gx("left = grid.get_column(1)\nleft.show()"),
-    "grid.get_all_numbers": _gx("nums = grid.get_all_numbers()\nnums.show()"),
+    "grid.get_all_numbers": _gx("numbers = grid.get_all_numbers()\nnumbers.show()"),
     "grid.swap_rows_and_columns": _gx("grid.swap_rows_and_columns()\nprint(grid)"),
     # NumPy + SciPy phase, batch 1: yes or no
-    "nums.turn_into_yes_or_no": _nx("warm = nums.turn_into_yes_or_no(is_above=13)\nprint(warm)\nprint(~warm)"),
-    "nums.keep_numbers_where": _nx("deep = sdata.numbers([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)\n"
-                                   "nums.keep_numbers_where(deep)\nnums.show()"),
-    "nums.remove_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
-                                     "nums.remove_numbers_where(land)\nnums.show()"),
-    "nums.replace_numbers_where": _nx("land = sdata.numbers([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
-                                      'nums.replace_numbers_where(land, with_value="empty")\nnums.show()'),
-    "nums.count_numbers_that": _nx("print(nums.count_numbers_that(is_above=13))"),
-    "nums.check_if_any_number": _nx("print(nums.check_if_any_number(is_above=30))"),
-    "nums.check_if_all_numbers": _nx("print(nums.check_if_all_numbers(is_at_least=0))"),
-    "nums.check_if_same_as": _nx("other = sdata.numbers([12, 15, 9, 20, 14.0001])\n"
-                                 "print(nums.check_if_same_as(other, within=0.001))"),
+    "nums.turn_into_yes_or_no": _nx("warm = numbers.turn_into_yes_or_no(is_above=13)\nprint(warm)\nprint(~warm)"),
+    "nums.keep_numbers_where": _nx("deep = sdata.number_list([5, 150, 80, 300, 20]).turn_into_yes_or_no(is_above=100)\n"
+                                   "numbers.keep_numbers_where(deep)\nnumbers.show()"),
+    "nums.remove_numbers_where": _nx("land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+                                     "numbers.remove_numbers_where(land)\nnumbers.show()"),
+    "nums.replace_numbers_where": _nx("land = sdata.number_list([0, 0, 1, 0, 1]).turn_into_yes_or_no(is_equal_to=1)\n"
+                                      'numbers.replace_numbers_where(land, with_value="empty")\nnumbers.show()'),
+    "nums.count_numbers_that": _nx("print(numbers.count_numbers_that(is_above=13))"),
+    "nums.check_if_any_number": _nx("print(numbers.check_if_any_number(is_above=30))"),
+    "nums.check_if_all_numbers": _nx("print(numbers.check_if_all_numbers(is_at_least=0))"),
+    "nums.check_if_same_as": _nx("other = sdata.number_list([12, 15, 9, 20, 14.0001])\n"
+                                 "print(numbers.check_if_same_as(other, within=0.001))"),
     "grid.keep_rows_where": _gx("grid.keep_rows_where(column=3, is_above=0.5)\ngrid.keep_rows_where(column=1, is_above=5)\n"
                                 "print(grid)"),
     "grid.remove_rows_where": _gx("grid.remove_rows_where(column=1, is_empty=True)\n"
                                   "grid.remove_rows_where(column=2, is_below=6)\nprint(grid)"),
     # rounding, angles and positions
-    "nums.round_down": _nx("nums.round_down()\nnums.show()", "[2.7, -2.3, 0.5]"),
-    "nums.round_up": _nx("nums.round_up()\nnums.show()", "[2.1, -2.7, 0.5]"),
-    "nums.take_whole_part": _nx("nums.take_whole_part()\nnums.show()", "[2.7, -2.7, 0.5]"),
-    "nums.take_sin": _nx("nums.take_sin(degrees=True)\nnums.show()", "[0, 30, 90]"),
-    "nums.take_cos": _nx("nums.take_cos(degrees=True)\nnums.show()", "[0, 60, 90]"),
-    "nums.take_tan": _nx("nums.take_tan(degrees=True)\nnums.show()", "[0, 45, 60]"),
-    "nums.change_angles_to": _nx('nums.change_angles_to("degrees")\nnums.show()', "[0, 1.5708, 3.14159]"),
-    "nums.find_where_biggest": _nx("print(nums.find_where_biggest())"),
-    "nums.find_where_smallest": _nx("print(nums.find_where_smallest())"),
-    "nums.make_pair_table_with": _nx("depths = sdata.numbers([0, 10, 50])\n"
-                                     "table = nums.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
+    "nums.round_down": _nx("numbers.round_down()\nnumbers.show()", "[2.7, -2.3, 0.5]"),
+    "nums.round_up": _nx("numbers.round_up()\nnumbers.show()", "[2.1, -2.7, 0.5]"),
+    "nums.take_whole_part": _nx("numbers.take_whole_part()\nnumbers.show()", "[2.7, -2.7, 0.5]"),
+    "nums.take_sin": _nx("numbers.take_sin(degrees=True)\nnumbers.show()", "[0, 30, 90]"),
+    "nums.take_cos": _nx("numbers.take_cos(degrees=True)\nnumbers.show()", "[0, 60, 90]"),
+    "nums.take_tan": _nx("numbers.take_tan(degrees=True)\nnumbers.show()", "[0, 45, 60]"),
+    "nums.change_angles_to": _nx('numbers.change_angles_to("degrees")\nnumbers.show()', "[0, 1.5708, 3.14159]"),
+    "nums.find_where_biggest": _nx("print(numbers.find_where_biggest())"),
+    "nums.find_where_smallest": _nx("print(numbers.find_where_smallest())"),
+    "nums.make_pair_table_with": _nx("depths = sdata.number_list([0, 10, 50])\n"
+                                     "table = numbers.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
                                      "[0, 10, 50]"),
     # blocks of numbers
     "sdata.number_block": textwrap.dedent("""\
@@ -1347,7 +1351,7 @@ HELP_EXAMPLES = {
     "sdata.stretch_to_same_shape": textwrap.dedent("""\
         import simplydata as sdata
         a = sdata.number_block([[1], [2], [3]])
-        b = sdata.numbers([10, 20])
+        b = sdata.number_list([10, 20])
         a2, b2 = sdata.stretch_to_same_shape(a, b)
         print(a2)
         print(b2)"""),
@@ -1376,12 +1380,12 @@ HELP_EXAMPLES = {
         grid.smooth(window=3)
         print(grid)"""),
     # chances and random picks
-    "nums.make_random_picks": _nx("again = nums.make_random_picks(how_many=40, with_seed=1)\n"
+    "nums.make_random_picks": _nx("again = numbers.make_random_picks(how_many=40, with_seed=1)\n"
                                   "print(again.find_average())\n"
-                                  "dice = sdata.numbers([1, 2, 3]).make_random_picks(how_many=10, "
+                                  "dice = sdata.number_list([1, 2, 3]).make_random_picks(how_many=10, "
                                   "with_chances=[0.5, 0.3, 0.2], with_seed=1)"),
-    "nums.take_log_odds": _nx("nums.take_log_odds()\nnums.show()", "[0.1, 0.5, 0.8]"),
-    "nums.turn_into_chances": _nx("nums.turn_into_chances()\nnums.show()", "[-2.2, 0, 1.386]"),
+    "nums.take_log_odds": _nx("numbers.take_log_odds()\nnumbers.show()", "[0.1, 0.5, 0.8]"),
+    "nums.turn_into_chances": _nx("numbers.turn_into_chances()\nnumbers.show()", "[-2.2, 0, 1.386]"),
     "sdata.count_ways_to_choose": textwrap.dedent("""\
         import simplydata as sdata
         print(sdata.count_ways_to_choose(3, out_of=10))"""),
@@ -1402,13 +1406,13 @@ HELP_EXAMPLES = {
     "grid.remove_columns_by_position": _bx("grid.remove_columns_by_position(1, step=2)\nprint(grid)"),
     "grid.replace_each_number_that": _gx("grid.replace_each_number_that(is_below=4, with_value=0)\nprint(grid)"),
     # numbers: undo and finish
-    "nums.undo": _nx("nums.add(5)\nnums.undo()\nnums.show()"),
-    "nums.show_steps": _nx("nums.add(5)\nnums.keep_each_number_that(is_above=15)\nnums.show_steps()"),
-    "nums.start_again": _nx("nums.add(5)\nnums.times(2)\nnums.start_again()\nnums.show()"),
-    "nums.turn_into_table": _nx('table = nums.turn_into_table(name="marks")\nprint(table)'),
-    "nums.start_chart": _nx('chart = nums.start_chart()\nchart.draw_histogram(x="value", with_bins=4)\nchart.save("nums.png")'),
-    "nums.save": _nx('nums.save("nums.csv")'),
-    "nums.as_numpy": _nx("array = nums.as_numpy()\nprint(type(array))"),
+    "nums.undo": _nx("numbers.add(5)\nnumbers.undo()\nnumbers.show()"),
+    "nums.show_steps": _nx("numbers.add(5)\nnumbers.keep_each_number_that(is_above=15)\nnumbers.show_steps()"),
+    "nums.start_again": _nx("numbers.add(5)\nnumbers.times(2)\nnumbers.start_again()\nnumbers.show()"),
+    "nums.turn_into_table": _nx('table = numbers.turn_into_table(name="marks")\nprint(table)'),
+    "nums.start_chart": _nx('chart = numbers.start_chart()\nchart.draw_histogram(x="value", with_bins=4)\nchart.save("numbers.png")'),
+    "nums.save": _nx('numbers.save("numbers.csv")'),
+    "nums.as_numpy": _nx("array = numbers.as_numpy()\nprint(type(array))"),
     # help
     "sdata.show_all_words": "import simplydata as sdata\nsdata.show_all_words()",
     "sdata.help": 'import simplydata as sdata\nsdata.help("draw_bars")\nsdata.help("show=")\nsdata.help("keep_rows_where")\nsdata.help("find_average")',
@@ -1550,7 +1554,7 @@ HELP_EXAMPLES.update({
 
 def _fx(body: str, formula: str = "(x + 2)**2 - 4") -> str:
     """A runnable formula example: make a formula (needs simplydata[exact], SymPy), then the steps."""
-    lines = ["import simplydata as sdata", f'f = sdata.formula("{formula}")']
+    lines = ["import simplydata as sdata", f'formula = sdata.formula("{formula}")']
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -1561,32 +1565,33 @@ def _lines(*lines: str) -> str:
 
 # numbers phase, batch 3 (approved by Manish 2026-11-25)
 HELP_EXAMPLES.update({
-    "sdata.formula": _lines('f = sdata.formula("(x + 2)**2 - 4")', "print(f)"),
-    "f.make_simpler": _fx("f.make_simpler()", "(x**2 - 1) / (x - 1)"),
-    "f.turn_into_sum": _fx("f.turn_into_sum()"),
-    "f.turn_into_product": _fx("f.turn_into_product()", "x**2 + 4*x"),
-    "f.find_slope_formula": _fx("slope = f.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
-    "f.find_area_formula": _fx("area = f.find_area_formula()", "x**3 - 2*x"),
-    "f.find_value_at": _fx("f.find_value_at(x=2)\nf.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
-    "f.put_in": _fx('f.put_in(x="y + 1")', "x**2"),
-    "f.show_as_latex": _fx("f.show_as_latex()", "x**3 - 2*x"),
-    "f.find_limit_as": _fx('f.find_limit_as("x", goes_to=0)', "sin(x) / x"),
-    "f.find_taylor_series": _fx("f.find_taylor_series(around=0, up_to_power=4)", "exp(x)"),
-    "f.undo": _fx("f.turn_into_sum()\nf.undo()"),
+    "sdata.formula": _lines('formula = sdata.formula("(x + 2)**2 - 4")', "print(formula)"),
+    "f.make_simpler": _fx("formula.make_simpler()", "(x**2 - 1) / (x - 1)"),
+    "f.turn_into_sum": _fx("formula.turn_into_sum()"),
+    "f.turn_into_product": _fx("formula.turn_into_product()", "x**2 + 4*x"),
+    "f.find_slope_formula": _fx("slope = formula.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
+    "f.find_area_formula": _fx("area = formula.find_area_formula()", "x**3 - 2*x"),
+    "f.find_value_at": _fx("formula.find_value_at(x=2)\nformula.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
+    "f.put_in": _fx('formula.put_in(x="y + 1")', "x**2"),
+    "f.show_as_latex": _fx("formula.show_as_latex()", "x**3 - 2*x"),
+    "f.find_limit_as": _fx('formula.find_limit_as("x", goes_to=0)', "sin(x) / x"),
+    "f.find_taylor_series": _fx("formula.find_taylor_series(around=0, up_to_power=4)", "exp(x)"),
+    "f.undo": _fx("formula.turn_into_sum()\nformula.undo()"),
     "sdata.find_area_under": _lines('sdata.find_area_under("x**2", between=[0, 3])',
                                     'sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])'),
     "sdata.find_volume_under": _lines('sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})'),
     "sdata.find_path_over_time": _lines(
         'growth = sdata.find_path_over_time("dN/dt = r * N * (1 - N / K)", at_start={"N": 10}, between=[0, 50], '
         'known={"r": 0.3, "K": 1000}, time_step=0.5)', "growth.show_last_rows(3)"),
-    "nums.turn_into_running_area": _nx("nums.turn_into_running_area(time_step=60)\nnums.show()", "[2, 4, 4, 3, 1]"),
-    "nums.take_cube_root": _nx("nums.take_cube_root()\nnums.show()", "[27, -8, 1000]"),
-    "nums.show_as_fraction": _nx("nums.show_as_fraction()", "[0.5, 0.25, 0.3333333333333333, 1.75]"),
-    "nums.find_coherence_with": _lines('nums = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=500)',
+    "nums.turn_into_running_area": _nx("numbers.turn_into_running_area(time_step=60)\nnumbers.show()",
+                                       "[2, 4, 4, 3, 1]"),
+    "nums.take_cube_root": _nx("numbers.take_cube_root()\nnumbers.show()", "[27, -8, 1000]"),
+    "nums.show_as_fraction": _nx("numbers.show_as_fraction()", "[0.5, 0.25, 0.3333333333333333, 1.75]"),
+    "nums.find_coherence_with": _lines('numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=500)',
                                        'other = sdata.make_wave("square", frequency=5, time_step=0.01, how_many=500)',
-                                       "together = nums.find_coherence_with(other, time_step=0.01)",
+                                       "together = numbers.find_coherence_with(other, time_step=0.01)",
                                        "together.show_first_rows(5)"),
-    "nums.take_cosine_transform": _nx("nums.take_cosine_transform()\nnums.show()", "[1, 2, 3, 4]"),
+    "nums.take_cosine_transform": _nx("numbers.take_cosine_transform()\nnumbers.show()", "[1, 2, 3, 4]"),
     "grid.get_numbers_at_pairs": _gx("grid.get_numbers_at_pairs(rows=[1, 2], columns=[3, 3])"),
     "grid.get_numbers_from_each_row_at": _gx("grid.get_numbers_from_each_row_at(columns=[2, 1])"),
     "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)"),
@@ -1608,10 +1613,10 @@ HELP_EXAMPLES.update({
 
 # numbers phase, batch 4 (approved by Manish 2026-11-26): the SymPy words
 HELP_EXAMPLES.update({
-    "f.show_as_decimal": _fx("f.show_as_decimal(digits=50)", "sqrt(2)"),
-    "f.group_by_powers_of": _fx('f.group_by_powers_of("x")\nf.undo()', "a*x**2 + b*x**2 + a*x - x"),
-    "f.turn_into_partial_fractions": _fx("f.turn_into_partial_fractions()", "(3*x + 5) / ((x + 1)*(x + 2))"),
-    "f.as_sympy": _fx("expr = f.as_sympy()\nprint(type(expr))"),
+    "f.show_as_decimal": _fx("formula.show_as_decimal(digits=50)", "sqrt(2)"),
+    "f.group_by_powers_of": _fx('formula.group_by_powers_of("x")\nformula.undo()', "a*x**2 + b*x**2 + a*x - x"),
+    "f.turn_into_partial_fractions": _fx("formula.turn_into_partial_fractions()", "(3*x + 5) / ((x + 1)*(x + 2))"),
+    "f.as_sympy": _fx("expr = formula.as_sympy()\nprint(type(expr))"),
     "sdata.find_sum_of_series": _lines('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
                                        'sdata.find_sum_of_series("k", between=[1, "n"])',
                                        'sdata.find_sum_of_series("1/k", between=[1, "infinity"])'),
@@ -1658,6 +1663,23 @@ def _grid_class():
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
 _PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+# Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
+# distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
+_WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}
+# How a word is shown to people (headings, help, word lists): the object written in full in front. The keys of
+# GROUPS keep the short names (nums.find_average), and sdata.help() takes either spelling.
+_SHOWN = {"table": "table", "numbers": "numbers", "grid": "grid", "block": "block", "dist": "distribution",
+          "system": "system", "formula": "formula"}
+# A short name typed in front of a word, and how it is shown: sdata.help("nums.average") says "numbers.average".
+_SHOWN_TYPED = {"nums": "numbers", "dist": "distribution", "f": "formula"}
+
+
+def _shown_key(key: str) -> str:
+    """A key as people see it: "nums.find_average" -> "numbers.find_average", "f.undo" -> "formula.undo"."""
+    kind = _kind(key)
+    if kind in _PREFIX:
+        return f"{_SHOWN[kind]}.{_word(key)}"
+    return key
 
 
 def _block_class():
@@ -1763,19 +1785,23 @@ def _call_form(key: str) -> str:
         return key
     if kind == "chart":
         return f"chart.{key}()"
-    return f"{key}()"
+    return f"{_shown_key(key)}()"
 
 
 def _prefixes(key: str) -> str:
     """What may come before the word in an example: table.keep_rows_where(...), chart.draw_bars(...)."""
-    return _PREFIX.get(_kind(key), "chart|charts|sdata|page")
+    kind = _kind(key)
+    return _WRITTEN_AS.get(kind) or _PREFIX.get(kind, "chart|charts|sdata|page")
 
 
 def _find_call(text: str, prefix_word: str,
-               prefixes: str = "chart|charts|sdata|page|table|nums|grid|block|dist|system|f") -> str | None:
+               prefixes: str = ("chart|charts|sdata|page|table|numbers|nums|grid|block|distribution|dist|system|"
+                                "formula|f")) -> str | None:
     """Find the first call like chart.draw_bars(...) in text, brackets and quotes included."""
-    # "f" (a formula) only as a whole name: not the f at the end of "pdf." or "self."
-    prefixes = "|".join(r"(?<![\w.])f" if p == "f" else p for p in prefixes.split("|"))
+    # "f" (a formula) and the full names only as whole names: not the f at the end of "pdf." or "self.",
+    # and not "numbers" in "get_all_numbers."
+    whole = {"f", "formula", "numbers", "distribution"}
+    prefixes = "|".join(rf"(?<![\w.]){p}" if p in whole else p for p in prefixes.split("|"))
     m = re.search(rf"(?:{prefixes})\.{re.escape(prefix_word)}\(", text)
     if not m:
         return None
@@ -1846,13 +1872,14 @@ def show_all_words() -> None:
     print("simplydata words. Type sdata.help(\"draw_bars\") to learn more about any of them.")
     print("Chart words are steps on a chart: chart = sdata.chart(table), then chart.draw_bars(...).")
     print("Table words are steps on a table: table = sdata.table(...), then table.keep_rows_where(...).")
-    print("Number words are steps on numbers: nums = sdata.numbers([3, 5, 2]), then nums.find_average();")
+    print("Number words are steps on numbers: numbers = sdata.number_list([3, 5, 2]), then numbers.find_average();")
     print("grid words are steps on a grid of numbers: grid = sdata.number_grid([[1, 2], [3, 4]]).")
-    print('Distribution words are steps on a distribution: dist = sdata.distribution("normal"), then '
-          "dist.find_chance_that_value(is_above=2).")
+    print('Distribution words are steps on a distribution: distribution = sdata.distribution("normal"), then '
+          "distribution.find_chance_that_value(is_above=2).")
     print('System words are steps on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then '
           "system.step_response().")
-    print('Formula words are steps on a formula: f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum().')
+    print('Formula words are steps on a formula: formula = sdata.formula("(x + 2)**2 - 4"), then '
+          "formula.turn_into_sum().")
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1870,7 +1897,8 @@ def show_all_words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "nums.", "grid.", "block.", "dist.", "system.", "f.", "."):
+    for start in ("sdata.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.", "block.", "distribution.",
+                  "dist.", "system.", "formula.", "f.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -1923,7 +1951,7 @@ def _lookup_all(word) -> list[str]:
     typed = str(word).strip()
     w = _normalise(typed)
     for kind, prefix in _PREFIX.items():
-        if typed.startswith(prefix + "."):
+        if any(typed.startswith(name + ".") for name in _WRITTEN_AS.get(kind, prefix).split("|")):
             found = [_object_key(w, kind)]
             break
     else:
@@ -1939,7 +1967,8 @@ def _lookup_all(word) -> list[str]:
 # so it narrows nothing.
 _TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
                 "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
-                "system": {"system"}, "f": {"formula"}}
+                "system": {"system"}, "f": {"formula"},
+                "numbers": {"numbers"}, "distribution": {"dist"}, "formula": {"formula"}}
 
 
 def _old_names(word) -> list[tuple[str, str, str]]:
@@ -1947,7 +1976,8 @@ def _old_names(word) -> list[tuple[str, str, str]]:
 
     Old words come from each object's _OLD_WORDS, old options from the renamed= of
     @friendly. Both still work for one release, but sdata.show_all_words() never lists them.
-    A prefix is honoured: "dist.chart" gives only dist.draw_chart, and no options.
+    A prefix is honoured: "dist.chart" (or "distribution.chart") gives only distribution.draw_chart, and no
+    options.
     """
     raw = str(word).strip()
     head = raw.split(".", 1)[0] if "." in raw.rstrip("()") else None
@@ -1966,7 +1996,8 @@ def _old_names(word) -> list[tuple[str, str, str]]:
             found.append((w, new, key))
     new = _ps()._OLD_WORDS.get(w)
     if new and f"sdata.{new}" in _all_keys() and kinds is None:
-        found.append((w, new, f"sdata.{new}"))
+        # "sdata.numbers" names the sdata word first (other objects' old words of that name follow)
+        found.insert(0 if head == "sdata" else len(found), (w, new, f"sdata.{new}"))
     if kinds is None:
         option = w.split("=", 1)[0].strip()
         for key, func in _words_with_options():
@@ -2016,7 +2047,8 @@ def _old_name_lines(old, typed: str | None = None) -> tuple[list[str], list[str]
         if "=" in name:
             options.setdefault((name, new), []).append(key)
             continue
-        where = typed or (key.rsplit(".", 1)[0] if "." in key else "chart")
+        where = _SHOWN_TYPED.get(typed, typed) if typed else (
+            _SHOWN.get(_kind(key), key.rsplit(".", 1)[0]) if "." in key else "chart")
         line = f'"{where}.{name}" is now called "{where}.{new}".'
         if line not in lines:
             lines.append(line)
@@ -2115,7 +2147,7 @@ def _print_one(key: str) -> None:
     print(f"Group: {_group_of(key)}")
     aliases = _aliases().get(key)
     if aliases:
-        start = _PREFIX.get(_kind(key), "chart")
+        start = _SHOWN.get(_kind(key), "chart")
         print("Same word, other spelling: " + ", ".join(f"{start}.{a}()" for a in aliases))
     print()
     if key in OPTIONS:
@@ -2154,7 +2186,7 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {_PREFIX.get(kind, kind)}.{w}: {pointer}")
+            print(f"  {_SHOWN.get(kind, kind)}.{w}: {pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
     return True
@@ -3324,7 +3356,7 @@ LESSONS = [
             "keep_columns_by_position(1, to=3), df.loc[:, \"hours\":\"height\"] is "
             "keep_columns(\"hours\", to=\"height\"), df.select_dtypes(\"number\") is "
             "keep_columns(of_kind=\"number\"), df.at[2, \"marks\"] is get_cell_at(row=3, column=\"marks\") and "
-            "df.iloc[::-1] is reverse_rows(). For numbers, a[2:8] is nums.keep_numbers_by_position(3, to=8), "
+            "df.iloc[::-1] is reverse_rows(). For numbers, a[2:8] is numbers.keep_numbers_by_position(3, to=8), "
             "and for a grid, g[1:5, 0:3] is grid.keep_rows_by_position(2, to=5).keep_columns_by_position(1, to=3).",
         ],
         task=[
@@ -3781,24 +3813,25 @@ LESSONS = [
         parts=[
             ("Numbers are for when you have just numbers, not a table with named columns.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("nums = sdata.numbers([12, 15, 9, 20, 14])", "Make a list of five numbers and call it nums."),
-                ("print(nums)", "Look at them. The first line says how many there are."),
-                ("bigger = nums * 2", "Maths with symbols makes NEW numbers: every number times 2. "
-                                      "nums itself does not change."),
+                ("numbers = sdata.number_list([12, 15, 9, 20, 14])",
+                 "Make a list of five numbers and call it numbers."),
+                ("print(numbers)", "Look at them. The first line says how many there are."),
+                ("bigger = numbers * 2", "Maths with symbols makes NEW numbers: every number times 2. "
+                                      "numbers itself does not change."),
                 ("print(bigger)", "24, 30, 18, 40 and 28."),
-                ("nums.add(1)", "Maths with words CHANGES the numbers you have: add 1 to each one."),
-                ("nums.undo()", "Like a table, numbers can take back every word."),
-                ("nums.keep_each_number_that(is_above=10)", "Keep only the numbers above 10. The same conditions "
+                ("numbers.add(1)", "Maths with words CHANGES the numbers you have: add 1 to each one."),
+                ("numbers.undo()", "Like a table, numbers can take back every word."),
+                ("numbers.keep_each_number_that(is_above=10)", "Keep only the numbers above 10. The same conditions "
                                                 "as keep_rows_where: is_above, is_below, is_between ..."),
-                ("nums.find_average()", "The average of what is left, said in a sentence."),
-                ("nums.find_standard_deviation()", "How spread out they are (divide by n - 1, as in pandas "
+                ("numbers.find_average()", "The average of what is left, said in a sentence."),
+                ("numbers.find_standard_deviation()", "How spread out they are (divide by n - 1, as in pandas "
                                               "and R)."),
-                ("nums.show_steps()", "List the steps you did."),
+                ("numbers.show_steps()", "List the steps you did."),
             ]),
             ("Counting, random numbers and a chart.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("months = sdata.numbers(1, to=12)", "Count from 1 to 12. The end is included."),
-                ("temps = sdata.numbers([4, 6, 9, 13, 17, 20, 22, 21, 17, 12, 8, 5])", "A temperature for "
+                ("months = sdata.number_list(1, to=12)", "Count from 1 to 12. The end is included."),
+                ("temps = sdata.number_list([4, 6, 9, 13, 17, 20, 22, 21, 17, 12, 8, 5])", "A temperature for "
                                                                                     "each month."),
                 ("chart = sdata.chart()", "Start an empty chart: the numbers go straight into the chart "
                                        "type."),
@@ -3831,7 +3864,7 @@ LESSONS = [
             ]),
             ("Yes or no values, rounding and where the biggest is.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ("temps = sdata.numbers([4.6, 6.2, 9.8, 13.1, 17.5, 20.4])", "Six temperatures."),
+                ("temps = sdata.number_list([4.6, 6.2, 9.8, 13.1, 17.5, 20.4])", "Six temperatures."),
                 ("warm = temps.turn_into_yes_or_no(is_above=10)", "A yes or no value for each one: yes where it is "
                                                                    "above 10. temps does not change."),
                 ("print(warm)", "No, no, no, yes, yes, yes."),
@@ -3901,11 +3934,11 @@ LESSONS = [
         notes=[
             "The words follow the table words, with numbers in place of rows: keep_first_numbers, "
             "remove_empty_numbers, fill_empty_numbers, show_first_numbers.",
-            "Summaries have no _of, because there is no column to name: nums.find_average(), not "
+            "Summaries have no _of, because there is no column to name: numbers.find_average(), not "
             'table.find_average_of("marks").',
             "A sum with no answer, such as dividing by 0 or the square root of a negative number, "
             "gives an empty value and a note, never a crash.",
-            "nums.turn_into_table() turns numbers into a table, and nums.as_numpy() gives a plain NumPy array "
+            "numbers.turn_into_table() turns numbers into a table, and numbers.as_numpy() gives a plain NumPy array "
             "if another Python tool needs one.",
         ],
         task=[
@@ -3918,13 +3951,13 @@ LESSONS = [
         solutions=[
             (_sx("""\
                 import simplydata as sdata
-                nums = sdata.numbers(1, to=10)
-                squares = nums ** 2
+                numbers = sdata.number_list(1, to=10)
+                squares = numbers ** 2
                 print(squares)
-                nums.raise_to_power(2)
-                nums.show()"""),
-             "Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves nums alone; raise_to_power(2) "
-             "changes nums itself (and undo() can take it back)."),
+                numbers.raise_to_power(2)
+                numbers.show()"""),
+             "Both give 1, 4, 9 ... 100. ** 2 makes new numbers and leaves numbers alone; raise_to_power(2) "
+             "changes numbers itself (and undo() can take it back)."),
             (_sx("""\
                 import simplydata as sdata
                 dice = sdata.make_random_numbers(how_many=6, between=[1, 6], whole_numbers=True, with_seed=1)
@@ -3937,7 +3970,7 @@ LESSONS = [
                 print(grid)"""),
              "Three rows of four zeros: a grid to fill in later."),
         ],
-        words=["sdata.numbers", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
+        words=["sdata.number_list", "sdata.make_random_numbers", "sdata.number_grid", "nums.add", "nums.undo",
                "nums.keep_each_number_that", "nums.find_average", "nums.find_standard_deviation", "nums.find_median",
                "nums.find_percentile", "nums.start_chart", "grid.get_number_at", "grid.swap_rows_and_columns", "nums.show_steps", "nums.turn_into_yes_or_no", "nums.count_numbers_that", "nums.round_down", "sdata.number_block", "block.change_shape_to", "block.show_how_it_lines_up_with", "sdata.show_whats_inside", "block.save", "block.get_numbers_nearest_to", "block.turn_into_change_from_average", "nums.make_random_picks",
                "grid.get_numbers_at_pairs", "grid.find_each_patch_that", "grid.change_size_to"],
@@ -4711,11 +4744,11 @@ LESSONS = [
             ("Exact answers with a formula (needs the extra simplydata[exact], SymPy: "
              "pip install \"simplydata[exact]\"). The letters stay letters, so the answers are formulas.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ('f = sdata.formula("(x + 2)**2 - 4")', "A formula with the letter x."),
-                ("f.turn_into_sum()", "Multiply out the brackets: x**2 + 4*x."),
-                ("f.turn_into_product()", "Write it as a product: x*(x + 4). f.undo() would take it back."),
-                ("slope = f.find_slope_formula()", "The formula of its slope (the derivative): 2*x + 4."),
-                ("f.find_value_at(x=3)", "Its value at x = 3: 21."),
+                ('formula = sdata.formula("(x + 2)**2 - 4")', "A formula with the letter x."),
+                ("formula.turn_into_sum()", "Multiply out the brackets: x**2 + 4*x."),
+                ("formula.turn_into_product()", "Write it as a product: x*(x + 4). formula.undo() would take it back."),
+                ("slope = formula.find_slope_formula()", "The formula of its slope (the derivative): 2*x + 4."),
+                ("formula.find_value_at(x=3)", "Its value at x = 3: 21."),
                 ('sdata.solve("x**2 = 2", exactly=True)',
                  "The exact solutions, -sqrt(2) and sqrt(2), with their decimals in the table."),
             ]),
@@ -4829,16 +4862,16 @@ LESSONS = [
             ("A distribution says how likely each value is. Start with the bell curve (normal): marks "
              "with an average of 50 and a standard deviation of 10.", [
                 ("import simplydata as sdata", "Load simplydata."),
-                ('dist = sdata.distribution("normal", average=50, standard_deviation=10)',
+                ('distribution = sdata.distribution("normal", average=50, standard_deviation=10)',
                  "Make the distribution. R's names (mean=, sd=) work too."),
-                ("dist.find_chance_that_value(is_above=80)", "The chance of a mark above 80: 0.135 %. The R code that gives "
+                ("distribution.find_chance_that_value(is_above=80)", "The chance of a mark above 80: 0.135 %. The R code that gives "
                                           "the same answer is printed too: pnorm(80, ...)."),
-                ("dist.find_chance_that_value(is_between=[40, 60])", "68.3 %: about two in three are within one standard "
+                ("distribution.find_chance_that_value(is_between=[40, 60])", "68.3 %: about two in three are within one standard "
                                                   "deviation of the average."),
-                ("dist.find_percentile(95)", "95 % of marks are below 66.4."),
-                ("dist.find_cut_off(with_chance_above=0.025)", "The cut-off with a 2.5 % chance above it: 69.6. Tests use "
+                ("distribution.find_percentile(95)", "95 % of marks are below 66.4."),
+                ("distribution.find_cut_off(with_chance_above=0.025)", "The cut-off with a 2.5 % chance above it: 69.6. Tests use "
                                               "such cut-offs (critical values)."),
-                ("chart = dist.draw_chart()", "A chart of the bell curve."),
+                ("chart = distribution.draw_chart()", "A chart of the bell curve."),
                 ('chart.save("lesson20_normal.png")', "Save it."),
             ]),
             ("A research question: pupils' days absent are counts (0, 1, 2 ...). Do they vary as a "
@@ -5506,7 +5539,7 @@ LESSONS = [
         ],
         notes=[
             "Frequencies are counted per unit of the sorted_by column: per second here. For a list of numbers "
-            "give time_step= (nums.find_spectrum(time_step=0.005)).",
+            "give time_step= (numbers.find_spectrum(time_step=0.005)).",
             "The powers times the frequency step add up to the variance (SciPy's density scaling). R's "
             "spec.pgram() gives half these powers (it spreads them over negative frequencies too).",
             "A recording can only show frequencies up to half its readings per second: 100 per second here.",

@@ -17,11 +17,11 @@ ENTRIES = [
     Entry(
         word="f.find_slope_formula", option="how_many_times=",
         ours="""
-            f = sdata.formula("sin(x)")
-            str(f.find_slope_formula(how_many_times=3))
+            formula = sdata.formula("sin(x)")
+            str(formula.find_slope_formula(how_many_times=3))
         """,
         code={"SymPy": SYMPY + """
-            # f.find_slope_formula(how_many_times=3)
+            # formula.find_slope_formula(how_many_times=3)
             str(sp.diff(sp.sin(x), x, 3))
         """},
         compare="value",
@@ -30,13 +30,13 @@ ENTRIES = [
     Entry(
         word="f.find_slope_formula", option="for_letter=",
         ours="""
-            f = sdata.formula("x**2 * y**3")
-            str(f.find_slope_formula(for_letter=["x", "y"]))
+            formula = sdata.formula("x**2 * y**3")
+            str(formula.find_slope_formula(for_letter=["x", "y"]))
         """,
         code={"SymPy": """
             import sympy as sp
             x, y = sp.symbols("x y")
-            # f.find_slope_formula(for_letter=["x", "y"])
+            # formula.find_slope_formula(for_letter=["x", "y"])
             str(sp.diff(x**2 * y**3, x, y))
         """},
         compare="value",
@@ -45,11 +45,11 @@ ENTRIES = [
     Entry(
         word="f.find_limit_as", option="from_side=",
         ours="""
-            f = sdata.formula("abs(x) / x")
-            f.find_limit_as("x", goes_to=0, from_side="below")
+            formula = sdata.formula("abs(x) / x")
+            formula.find_limit_as("x", goes_to=0, from_side="below")
         """,
         code={"SymPy": SYMPY + """
-            # f.find_limit_as("x", goes_to=0, from_side="below")
+            # formula.find_limit_as("x", goes_to=0, from_side="below")
             float(sp.limit(sp.Abs(x) / x, x, 0, dir="-"))
         """},
         compare="value",
@@ -59,12 +59,12 @@ ENTRIES = [
     Entry(
         word="f.show_as_decimal",
         ours="""
-            f = sdata.formula("sqrt(2)")
-            f.show_as_decimal(digits=50)
+            formula = sdata.formula("sqrt(2)")
+            formula.show_as_decimal(digits=50)
         """,
         code={"SymPy": """
             import sympy as sp
-            # f.show_as_decimal(digits=50)
+            # formula.show_as_decimal(digits=50)
             str(sp.N(sp.sqrt(2), 50))
         """},
         compare="value",
@@ -73,44 +73,44 @@ ENTRIES = [
     Entry(
         word="f.group_by_powers_of",
         ours="""
-            f = sdata.formula("(a + x)*(b + x) - x")
-            str(f.group_by_powers_of("x"))
+            formula = sdata.formula("(a + x)*(b + x) - x")
+            str(formula.group_by_powers_of("x"))
         """,
         code={"SymPy": """
             import sympy as sp
             a, b, x = sp.symbols("a b x")
-            # f.group_by_powers_of("x")
+            # formula.group_by_powers_of("x")
             str(sp.collect(sp.expand((a + x)*(b + x) - x), x))   # (1)
         """},
         compare="value",
         choices=("the formula is multiplied out first (expand), so the terms inside brackets are gathered too; SymPy "
                  "collect alone leaves (a + x)*(b + x) as it is.",),
-        also="simplydata also refuses a sum with letters raised to a whole power above 100, and f.undo() takes the "
-             "step back.",
+        also="simplydata also refuses a sum with letters raised to a whole power above 100, and formula.undo() takes "
+             "the step back.",
     ),
     Entry(
         word="f.turn_into_partial_fractions",
         ours="""
-            f = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
-            str(f.turn_into_partial_fractions())
+            formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
+            str(formula.turn_into_partial_fractions())
         """,
         code={"SymPy": SYMPY + """
-            # f.turn_into_partial_fractions()
+            # formula.turn_into_partial_fractions()
             str(sp.apart((3*x + 5) / ((x + 1)*(x + 2)), x))
         """},
         compare="value",
-        also="simplydata also says when the formula is not a fraction of polynomials, and f.undo() takes the step back.",
+        also="simplydata also says when the formula is not a fraction of polynomials, and formula.undo() takes the step back.",
     ),
     Entry(
         word="f.as_sympy",
         ours="""
-            f = sdata.formula("(x + 2)**2 - 4")
-            str(f.as_sympy())
+            formula = sdata.formula("(x + 2)**2 - 4")
+            str(formula.as_sympy())
         """,
         code={"SymPy": """
             import sympy as sp
             from sympy.parsing.sympy_parser import parse_expr
-            # f.as_sympy()
+            # formula.as_sympy()
             str(parse_expr("(x + 2)**2 - 4", local_dict={"x": sp.Symbol("x")}))
         """},
         compare="value",
@@ -119,8 +119,8 @@ ENTRIES = [
     Entry(
         word="sdata.formula", option="letters_are=",
         ours="""
-            f = sdata.formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
-            str(f.turn_into_sum())
+            formula = sdata.formula("sqrt(k**2) + log(k*t)", letters_are={"k": "positive", "t": "positive"})
+            str(formula.turn_into_sum())
         """,
         code={"SymPy": """
             import sympy as sp

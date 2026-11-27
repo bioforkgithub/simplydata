@@ -67,8 +67,8 @@ ENTRIES = [
     Entry(
         word="dist.find_chance_that_value",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.find_chance_that_value(is_above=80)
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.find_chance_that_value(is_above=80)
         """,
         code={"SciPy": """
             from scipy import stats
@@ -86,8 +86,8 @@ ENTRIES = [
     Entry(
         word="dist.find_percentile",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.find_percentile(95)
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.find_percentile(95)
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1272,8 +1272,8 @@ ENTRIES += [
     Entry(
         word="nums.fit_distribution",
         ours="""
-            nums = sdata.numbers([12, 15, 9, 20, 14])
-            fit = nums.fit_distribution("gamma")
+            numbers = sdata.number_list([12, 15, 9, 20, 14])
+            fit = numbers.fit_distribution("gamma")
             fit.turn_into_table()
         """,
         code={"SciPy": """
@@ -1291,14 +1291,14 @@ ENTRIES += [
         choices=("maximum likelihood with the gamma starting at 0 (floc=0), as R MASS::fitdistr(x, \"gamma\"); SciPy's "
                  "own fit also moves the start.",
                  "the second parameter is the rate (1 / SciPy's scale), as R's dgamma(shape, rate)."),
-        also="Empty values are left out. The fitted distribution answers the dist words (find_chance_that_value, "
+        also="Empty values are left out. A fitted distribution answers the distribution words (find_chance_that_value, "
              "find_percentile ...); turn_into_table() also gives the standard errors, AIC and BIC.",
     ),
     Entry(
         word="dist.find_density_at",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.find_density_at(3)
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.find_density_at(3)
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1315,8 +1315,8 @@ ENTRIES += [
     Entry(
         word="dist.find_cut_off",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.find_cut_off(with_chance_above=1e-9)
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.find_cut_off(with_chance_above=1e-9)
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1336,8 +1336,8 @@ ENTRIES += [
     Entry(
         word="dist.find_middle_range",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.find_middle_range(95)
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.find_middle_range(95)
         """,
         code={"SciPy": """
             import numpy as np
@@ -1359,8 +1359,8 @@ ENTRIES += [
     Entry(
         word="dist.find_average",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.find_average()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.find_average()
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1376,8 +1376,8 @@ ENTRIES += [
     Entry(
         word="dist.find_median",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.find_median()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.find_median()
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1388,14 +1388,14 @@ ENTRIES += [
         compare="value",
         tolerance=1e-12,
         choices=("the parameters have R's names (shape, rate), turned into SciPy's (a, scale = 1 / rate).",),
-        also="The median is the 50 % point, the same as dist.find_percentile(50) and R qgamma(0.5, shape = 2, "
+        also="The median is the 50 % point, the same as distribution.find_percentile(50) and R qgamma(0.5, shape = 2, "
              "rate = 0.5).",
     ),
     Entry(
         word="dist.find_standard_deviation",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.find_standard_deviation()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.find_standard_deviation()
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1411,8 +1411,8 @@ ENTRIES += [
     Entry(
         word="dist.find_variance",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.find_variance()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.find_variance()
         """,
         code={"SciPy": """
             from scipy import stats
@@ -1428,8 +1428,8 @@ ENTRIES += [
     Entry(
         word="dist.show_summary",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.show_summary()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.show_summary()
         """,
         code={"SciPy": """
             import math
@@ -1453,8 +1453,8 @@ ENTRIES += [
     Entry(
         word="dist.make_random_numbers",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.make_random_numbers(how_many=5, with_seed=1)
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.make_random_numbers(how_many=5, with_seed=1)
         """,
         code={"SciPy": """
             import numpy as np
@@ -1472,8 +1472,8 @@ ENTRIES += [
     Entry(
         word="dist.draw_chart",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.draw_chart()
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.draw_chart()
         """,
         code={"matplotlib": """
             import matplotlib.pyplot as plt
@@ -1497,8 +1497,8 @@ ENTRIES += [
     Entry(
         word="dist.turn_into_table",
         ours="""
-            dist = sdata.distribution("gamma", shape=2, rate=0.5)
-            dist.turn_into_table()
+            distribution = sdata.distribution("gamma", shape=2, rate=0.5)
+            distribution.turn_into_table()
         """,
         code={"pandas": """
             import pandas as pd
@@ -1514,8 +1514,8 @@ ENTRIES += [
     Entry(
         word="dist.show_parameters",
         ours="""
-            dist = sdata.distribution("normal", average=50, standard_deviation=10)
-            dist.show_parameters()
+            distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+            distribution.show_parameters()
         """,
         compare="none",
         note="simplydata's own: it gives back the parameters as a Python dictionary of plain names, "

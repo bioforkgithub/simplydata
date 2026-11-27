@@ -234,7 +234,7 @@ def cases(Case):
         # ---------------------------------------------------------------- numbers
         Case("nums.make_random_picks", "Michelson: a bootstrap sample of the 100 measurements (seed 2026)",
              "NIST Michelso", "real data",
-             ours=_code('picks = sdata.numbers(data["y"].tolist()).make_random_picks(how_many=100, with_seed=2026)',
+             ours=_code('picks = sdata.number_list(data["y"].tolist()).make_random_picks(how_many=100, with_seed=2026)',
                         _ours_flat("picks")),
              parent=_code("""
                  import numpy as np
@@ -243,7 +243,7 @@ def cases(Case):
         Case("nums.take_log_odds", "iris: the log-odds of each flower's sepal width as a share of its length",
              **iris,
              ours=_code("""
-                 share = sdata.numbers((data["Sepal.Width"] / data["Sepal.Length"]).tolist()).take_log_odds()
+                 share = sdata.number_list((data["Sepal.Width"] / data["Sepal.Length"]).tolist()).take_log_odds()
              """, _ours_flat("share")),
              parent=_code("""
                  import numpy as np
@@ -253,7 +253,7 @@ def cases(Case):
              r=R_FLAT + "flat(qlogis(Sepal.Width / Sepal.Length))", r_tolerance=1e-12),
         Case("nums.turn_into_chances", "Lake Huron: the levels around their average turned into chances", **huron,
              ours=_code("""
-                 levels = sdata.numbers(data["level"].tolist())
+                 levels = sdata.number_list(data["level"].tolist())
                  levels.subtract(levels.find_average()).turn_into_chances()
              """, _ours_flat("levels")),
              parent=_code("""
@@ -280,7 +280,7 @@ def cases(Case):
                  {"ways": special.perm(len(data), 3, exact=True)}
              """, parent_label="SciPy special.perm(exact=True)", parent_tolerance=0.0,
              r="list(ways = choose(length(Species), 3) * factorial(3))", r_tolerance=0.0),
-        Case("sdata.numbers", "Lake Huron levels in a text file with every tenth reading marked -999", **huron,
+        Case("sdata.number_list", "Lake Huron levels in a text file with every tenth reading marked -999", **huron,
              option="empty_values=",
              ours=_code("""
                  import os, shutil, tempfile
@@ -289,7 +289,7 @@ def cases(Case):
                  marked = [-999 if i % 10 == 9 else v for i, v in enumerate(data["level"].tolist())]
                  with open(path, "w") as f:
                      f.write("\\n".join(str(v) for v in marked))
-                 levels = sdata.numbers(path, empty_values=[-999]).remove_empty_numbers()
+                 levels = sdata.number_list(path, empty_values=[-999]).remove_empty_numbers()
                  shutil.rmtree(folder)
              """, _ours_flat("levels")),
              parent=_code("""
@@ -307,7 +307,7 @@ def cases(Case):
         Case("sdata.make_random_numbers", "iris-sized block of 3 x 50 x 4 bell-shaped numbers with the iris average",
              **iris, option="of_shape=",
              ours=_code("""
-                 m = sdata.numbers(data["Sepal.Length"].tolist()).find_average()
+                 m = sdata.number_list(data["Sepal.Length"].tolist()).find_average()
                  block = sdata.make_random_numbers(of_shape=(3, 50, 4), average=m, standard_deviation=1, with_seed=7)
              """, _ours_flat("block.get_all_numbers()")),
              parent=_code("""
