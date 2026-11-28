@@ -107,7 +107,7 @@ ENTRIES = [
     _summary('show="percentile rank v"', "percentile rank 70",
              "float(stats.estimated_cdf(values, 70)) * 100           # (1)",
              choices=("the inverse of \"percentile p\" (R type 7, SciPy method=\"linear\"), in percent.",),
-             needs=(("scipy", "1.18"),)),
+             needs=("scipy 1.18",)),
     _summary('show="percent at or below v"', "percent at or below 70",
              'stats.percentileofscore(values, 70, kind="weak")      # (1)',
              choices=("the values at or below 70 count (kind=\"weak\"), so it is a plain share in percent.",)),

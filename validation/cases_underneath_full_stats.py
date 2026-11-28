@@ -76,7 +76,7 @@ def _summaries(Case):
                  '{"value": float(stats.estimated_cdf(y, 299.875)) * 100}', "SciPy stats.estimated_cdf",
                  r="list(value = 100 * uniroot(function(p) quantile(y, p, type = 7, names = FALSE) - 299.875, "
                    "c(0, 1), tol = 1e-14)$root)", r_tolerance=1e-8, option="percentile rank v",
-                 needs=(("scipy", "1.18"),)),
+                 needs=("scipy 1.18",)),
         _summary(Case, "percent at or below 299.9", "the percent of values at or below 299.9",
                  '{"value": stats.percentileofscore(y, 299.9, kind="weak")}', "SciPy stats.percentileofscore",
                  r="list(value = 100 * mean(y <= 299.9))", option="percent at or below v"),
