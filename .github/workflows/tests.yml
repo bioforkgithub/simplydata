@@ -52,7 +52,8 @@ jobs:
           "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
           "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
           "agricolae", "blockrand", "survey", "BayesFactor",
-          "AER", "alr4", "HH", "mediation", "gsignal", "control", "pracma");
+          "AER", "alr4", "HH", "mediation", "gsignal", "control", "pracma",
+          "signal", "nleqslv", "cubature", "lpSolve");
           install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
       # S3d-3: Bayesian models (explain(bayesian=True)) run on rstanarm, a large package (about 400 MB with Stan and
       # its other packages). Ready-made builds come from CRAN (Windows, macOS) and Posit's public package manager
