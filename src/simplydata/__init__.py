@@ -49,6 +49,7 @@ from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of ser
 from .colours import change_colour, pick_colours_with_sliders, show_colours  # seaborn's colour tools
 from ._sensitivity import find_sensitivity_of  # families for 100 %, batches 3-4: SciPy sobol_indices
 from ._parameter_finder import find_parameter_that_gives  # families for 100 %, batches 5-6: scipy.special inverses
+from ._matrix_equations import solve_matrix_equation  # families for 100 %, batch 19: Lyapunov, Sylvester, Riccati
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -122,6 +123,7 @@ __all__ = [
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve",
+    "solve_matrix_equation",  # families for 100 %, batch 19
     "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]
