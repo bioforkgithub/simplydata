@@ -222,7 +222,7 @@ on your own computer, and in Jupyter or IPython on the server you press Tab. See
 
 ## What simplydata handles
 
-**591 words (commands) in 67 groups, with 481 different options, on top of 20 Python packages (10 installed always, 10 with an extra; patsy comes with statsmodels) and
+**591 words (commands) in 67 groups, with 481 different options, on top of 22 Python packages (10 installed always, 12 with an extra; patsy comes with statsmodels) and
 87 R packages that it runs (plus R's own `stats`, and 16 more used only to check its answers), checked by 46513 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
@@ -426,7 +426,7 @@ micromamba create -n simplydata -c conda-forge simplydata   # the same with micr
 Extras, in the same environment (replace `conda` with `mamba` or `micromamba` if you use those):
 
 ```
-conda install -c conda-forge python-docx pyreadstat   # reading Word, SPSS and Stata files
+conda install -c conda-forge python-docx pyreadstat jinja2 lxml   # Word, SPSS and Stata files, .tex tables, web pages
 conda install -c conda-forge control                  # rise time, settling time and margins of systems
 conda install -c conda-forge python-duckdb            # SQL on a table or on files (run_sql)
 conda install -c conda-forge xarray                   # blocks of numbers line up by the names of their directions

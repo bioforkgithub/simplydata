@@ -505,16 +505,6 @@ ENTRIES = [
             table.join_with(periods, where="date >= start and date < end")
         """,
         code={
-            "Polars": """
-                import polars as pl
-                df = pl.read_csv("river.csv", try_parse_dates=True)
-                periods = pl.DataFrame({"start": ["2024-01-01", "2024-04-01"], "end": ["2024-02-01", "2024-05-01"],
-                                        "period": ["winter", "spring"]}).with_columns(
-                    pl.col("start", "end").str.to_datetime())
-                # join_with(periods, where="date >= start and date < end")
-                pairs = df.join_where(periods, pl.col("date") >= pl.col("start"), pl.col("date") < pl.col("end"))
-                pairs.sort(["station", "date"]).select(df.columns + periods.columns)       # (1)
-            """,
             "pandas": """
                 import pandas as pd
                 df = pd.read_csv("river.csv", parse_dates=["date"])
@@ -524,6 +514,16 @@ ENTRIES = [
                 # join_with(periods, where="date >= start and date < end")
                 pairs = df.merge(periods, how="cross")
                 pairs[(pairs["date"] >= pairs["start"]) & (pairs["date"] < pairs["end"])].reset_index(drop=True)   # (1)
+            """,
+            "Polars": """
+                import polars as pl
+                df = pl.read_csv("river.csv", try_parse_dates=True)
+                periods = pl.DataFrame({"start": ["2024-01-01", "2024-04-01"], "end": ["2024-02-01", "2024-05-01"],
+                                        "period": ["winter", "spring"]}).with_columns(
+                    pl.col("start", "end").str.to_datetime())
+                # join_with(periods, where="date >= start and date < end")
+                pairs = df.join_where(periods, pl.col("date") >= pl.col("start"), pl.col("date") < pl.col("end"))
+                pairs.sort(["station", "date"]).select(df.columns + periods.columns)       # (1)
             """,
         },
         compare="table",

@@ -75,7 +75,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,r,systems,sql,web,xarray,exact]"
+          python -m pip install -e ".[test,r,systems,files,sql,web,xarray,exact]"
         env:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
@@ -114,7 +114,7 @@ jobs:
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[test,systems,sql,web,xarray,exact]"
+          python -m pip install -e ".[test,systems,files,sql,web,xarray,exact]"
       - name: Run tests
         run: python -m pytest -q
         env:

@@ -1360,8 +1360,9 @@ def _same_underneath(key: str, entry=None) -> str:
     entry = entry or underneath_entry(key)
     if entry is None:
         return ""
-    if entry.compare == "none":
-        return r"\undertext{\textit{Nothing underneath:} " + rich(entry.note) + "}"
+    if entry.compare == "none":  # an option with nothing underneath still says which option it is
+        lead = r"\textbf{With " + code(entry.option) + "}: " if entry.option else ""
+        return r"\undertext{" + lead + r"\textit{Nothing underneath:} " + rich(entry.note) + "}"
     out = []
     if entry.compare == "chart":
         out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"

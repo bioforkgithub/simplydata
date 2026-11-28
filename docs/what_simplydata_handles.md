@@ -33,6 +33,7 @@ Python packages:
 | seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
+| Jinja2, lxml | saving a table as a LaTeX table (`table.save("table_1.tex")`, through pandas `to_latex`, which needs Jinja2) and reading the tables of a web page (`sdata.table("page.html")`, through pandas `read_html`, which needs lxml); both BSD-3-Clause | [files] |
 | DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | xarray, h5netcdf, h5py | xarray lines up blocks of numbers by the names of their directions (`plate - blank`) and chooses by labels (`block.keep_where`); without it NumPy does the same job. h5netcdf and h5py read and write netCDF-4 files (`sdata.number_block("sst.nc")`, `block.save("out.nc")`, `sdata.show_whats_inside`) | [xarray] |
 | SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `numbers.show_as_fraction()` | [exact] |
