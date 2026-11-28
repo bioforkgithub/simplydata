@@ -20,29 +20,34 @@ import numpy as np
 
 from ._errors import SimplydataError, choice_error
 
-METHODS = ("butterworth", "chebyshev", "chebyshev 2", "elliptic", "bessel")
-# "fir" (scipy.signal.firwin) is built but not offered: its weights differ from R signal::fir1 (R's add up
-# to 1.0015, SciPy's to 1), so the owner decides which to follow before it becomes a choice.
+METHODS = ("butterworth", "chebyshev", "chebyshev 2", "elliptic", "bessel", "fir", "fir least squares",
+           "fir equiripple", "fir frequency sampling")
+# The FIR designs (families for 100 %, batches 17-18; plan 2.7 approved by Manish 2026-11-28): SciPy firwin, firls,
+# remez, firwin2 (simplydata._filter_design). firwin's weights are not R signal::fir1's (R makes fir1 by frequency
+# sampling, so its weights add up to 1.0015 for fir1(100, 0.1)); they are checked against firwin's own formula.
 ALIASES = {"butter": "butterworth", "cheby1": "chebyshev", "chebyshev 1": "chebyshev", "cheby2": "chebyshev 2",
-           "ellip": "elliptic", "besself": "bessel", "firwin": "fir", "fir1": "fir"}
+           "ellip": "elliptic", "besself": "bessel", "firwin": "fir", "fir1": "fir", "window method": "fir",
+           "firls": "fir least squares", "least squares": "fir least squares", "remez": "fir equiripple",
+           "equiripple": "fir equiripple", "parks-mcclellan": "fir equiripple", "firpm": "fir equiripple",
+           "firwin2": "fir frequency sampling", "fir2": "fir frequency sampling",
+           "frequency sampling": "fir frequency sampling"}
 R_DESIGN = {"butterworth": "signal::butter({n}, {w}{t})", "chebyshev": "signal::cheby1({n}, {rp}, {w}{t})",
             "chebyshev 2": "signal::cheby2({n}, {rs}, {w}{t})", "elliptic": "signal::ellip({n}, {rp}, {rs}, {w}{t})",
             "bessel": "gsignal::as.Arma(gsignal::bilinear(gsignal::besself({n}, 2 * {fs} * tan(pi * {f} / {fs}){t}), "
-                      "T = 1 / {fs}))",
-            "fir": "signal::fir1({m}, {w}{t})"}
+                      "T = 1 / {fs}))"}
 SCIPY_TYPE = {"low": "lowpass", "high": "highpass", "pass": "bandpass", "stop": "bandstop"}
 R_TYPE = {"low": "", "high": ', type = "high"', "pass": ', type = "pass"', "stop": ', type = "stop"'}
 NAMES = {"butterworth": "Butterworth", "chebyshev": "Chebyshev (type 1)", "chebyshev 2": "Chebyshev (type 2)",
-         "elliptic": "elliptic", "bessel": "Bessel", "fir": "FIR (windowed)"}
+         "elliptic": "elliptic", "bessel": "Bessel"}
 
 
-def read_method(method, step_name):
+def read_method(method, step_name, single=False):
+    """The design asked for; single=True (is_equal_to=) also allows "gammatone"."""
     chosen = ALIASES.get(method.strip().lower(), method.strip().lower()) if isinstance(method, str) else method
-    if chosen == "fir":
-        raise SimplydataError('test_method="fir" is not ready: SciPy firwin and R signal::fir1 give different weights. '
-                              'Use test_method="butterworth" (or another listed method).')
+    if single and chosen == "gammatone":
+        return chosen
     if chosen not in METHODS:
-        raise choice_error(step_name, "test_method", method, list(METHODS))
+        raise choice_error(step_name, "test_method", method, list(METHODS) + (["gammatone"] if single else []))
     return chosen
 
 
@@ -50,11 +55,15 @@ def _g(x) -> str:
     return f"{float(x):.4g}"
 
 
-def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, removed_by=40, window=101,
-           window_shape="hamming", step_name="keep_each_frequency_that"):
+def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, removed_by=40, window=None,
+           window_shape="hamming", step_name="keep_each_frequency_that", transition_width=None, find_order_for=None,
+           with_least_delay=False):
     """kind: "low", "high", "pass", "stop"; cutoffs in cycles per unit of time. Returns dict(sos or ba,
-    words, r_call)."""
+    words, r_call). window: the number of FIR weights (101 when None); find_order_for={"loss_at": f}: the
+    steepness (or number of FIR weights) found by SciPy buttord ... kaiserord (simplydata._filter_design)."""
     from scipy import signal
+
+    from . import _filter_design as fd
 
     nyquist = 0.5 / step
     cut = np.atleast_1d(np.asarray(cutoffs, dtype=float))
@@ -64,15 +73,57 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
                               "unit of time).")
     if isinstance(steepness, bool) or not isinstance(steepness, (int, np.integer)) or not 1 <= steepness <= 20:
         raise SimplydataError(f"{step_name}() needs steepness= as a whole number from 1 to 20 (the filter order).")
-    w = cut / nyquist
+    fir = method in fd.FIR_METHODS
+    if transition_width is not None and method not in ("fir least squares", "fir equiripple",
+                                                       "fir frequency sampling"):
+        raise SimplydataError('transition_width= goes with test_method="fir least squares", "fir equiripple" or '
+                              '"fir frequency sampling".')
+    if with_least_delay and not fir:
+        raise SimplydataError('with_least_delay=True goes with an FIR test_method (such as "fir"): it gives an FIR '
+                              "filter the least delay for the same gain.")
+    loss_at = None
+    if find_order_for is not None:
+        if steepness != 4 or window is not None:
+            raise SimplydataError("find_order_for= finds the steepness (or the number of FIR weights) itself: leave "
+                                  "out steepness= and how_many_weights=.")
+        loss_at = fd.read_order_request(find_order_for, kind, cut, nyquist)
+    if fir:
+        found = ""
+        beta = None
+        if loss_at is not None:
+            if method != "fir":
+                raise SimplydataError('find_order_for= with an FIR filter works with test_method="fir" (the Kaiser '
+                                      "window method, SciPy kaiserord).")
+            window, beta, cut, found = fd.kaiser_order(kind, cut, loss_at, step, removed_by)
+        weights = fd.check_weights(window, method)
+        made = fd.design_fir(kind, cut, step, method, weights, window_shape, transition_width, beta)
+        b, a = made["ba"]
+        words = made["words"] + (f"; {found}" if found else "")
+        call = f"SciPy {made['scipy']}"
+        if loss_at is not None:
+            call = f"SciPy signal.kaiserord, then {made['scipy']}"
+        if with_least_delay:
+            b = fd.least_delay(b)
+            words += "; the least delay for the same gain (minimum phase)"
+            call += ', then signal.minimum_phase(method="homomorphic", half=False)'
+        elif method == "fir least squares":
+            call += f" (as R gsignal::firls({weights - 1}, edges / {_g(nyquist)}, gains))"
+        elif method == "fir equiripple":
+            call += f" (as R signal::remez({weights - 1}, edges / {_g(nyquist)}, gains))"
+        return dict(ba=(b, a), words=words, r_call=call, scipy_only=True)
+    if window is not None:
+        fd.check_weights(window, method)
+    n, cut_used, found = int(steepness), cut, ""
+    if loss_at is not None:
+        n, cut_used, found = fd.find_order(method, kind, cut, loss_at, step, ripple, removed_by)
+        if n > 20:
+            raise SimplydataError(f"That needs steepness {n} (SciPy {fd.ORDER_FINDERS[method]}), more than 20: ask for "
+                                  'less (a smaller removed_by=, a "loss_at" further from the cutoff) or use '
+                                  'test_method="elliptic", the steepest design.')
+    w = cut_used / nyquist
     w_r = _g(w[0]) if len(w) == 1 else f"c({_g(w[0])}, {_g(w[1])})"
-    if method == "fir":
-        if isinstance(window, bool) or not isinstance(window, (int, np.integer)) or window < 3 or window % 2 == 0:
-            raise SimplydataError('test_method="fir" needs window= as an odd number of weights, such as window=101.')
-        taps = signal.firwin(int(window), float(cut[0]) if len(cut) == 1 else cut, window=window_shape, pass_zero=kind in ("low", "stop"), fs=1 / step)
-        return dict(ba=(taps, np.array([1.0])), words=f"FIR filter with {int(window)} weights ({window_shape} window)",
-                    r_call=R_DESIGN["fir"].format(m=int(window) - 1, w=w_r, t=R_TYPE[kind]))
-    args = dict(N=int(steepness), Wn=float(cut[0]) if len(cut) == 1 else cut, btype=SCIPY_TYPE[kind], output="sos", fs=1 / step)
+    args = dict(N=n, Wn=float(cut_used[0]) if len(cut_used) == 1 else cut_used, btype=SCIPY_TYPE[kind], output="sos",
+                fs=1 / step)
     if method == "butterworth":
         sos = signal.butter(**args)
     elif method == "chebyshev":
@@ -83,10 +134,12 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
         sos = signal.ellip(rp=float(ripple), rs=float(removed_by), **args)
     else:
         sos = signal.bessel(norm="phase", **args)
-    f_r = _g(cut[0]) if len(cut) == 1 else f"c({_g(cut[0])}, {_g(cut[1])})"  # cutoffs in cycles per unit of time
-    return dict(sos=sos, words=f"{NAMES[method]} filter, steepness {int(steepness)}",
-                r_call=R_DESIGN[method].format(n=int(steepness), w=w_r, t=R_TYPE[kind], rp=_g(ripple),
-                                               rs=_g(removed_by), fs=_g(1 / step), f=f_r))
+    f_r = (_g(cut_used[0]) if len(cut_used) == 1 else  # cutoffs in cycles per unit of time
+           f"c({_g(cut_used[0])}, {_g(cut_used[1])})")
+    words = f"{NAMES[method]} filter, " + (found if found else f"steepness {n}")
+    return dict(sos=sos, words=words,
+                r_call=R_DESIGN[method].format(n=n, w=w_r, t=R_TYPE[kind], rp=_g(ripple), rs=_g(removed_by),
+                                               fs=_g(1 / step), f=f_r))
 
 
 def design_single(keep, frequency, step, width=1.0, and_multiples=False, step_name="remove_each_frequency_that"):
@@ -146,14 +199,17 @@ def _notches_at_multiples(f, step, width):
                 scipy_only=True)
 
 
-def apply(values, made, both_ways=True):
-    """The filtered values: forwards and backwards (both_ways) or forwards from rest."""
+def apply(values, made, both_ways=True, start_from="rest"):
+    """The filtered values: forwards and backwards (both_ways) or forwards, from rest or (start_from="first
+    value", both_ways=False only) in the steady state for the first value: SciPy sosfilt_zi / lfilter_zi times the
+    first reading, as R gsignal::filter_zi."""
     from scipy import signal
 
     x = np.asarray(values, dtype=float)
     if np.isnan(x).any():
         raise SimplydataError(f"Filtering needs a value at every step, but {int(np.isnan(x).sum())} are empty. Fill "
                               'them first (with_the="line between neighbours").')
+    steady = start_from == "first value"
     if "sos" in made:
         sos = made["sos"]
         if both_ways:
@@ -162,6 +218,8 @@ def apply(values, made, both_ways=True):
                 raise SimplydataError(f"Filtering both ways needs more than {pad} readings for this steepness; "
                                       f"there are {len(x)}. Use a smaller steepness= or both_ways=False.")
             return signal.sosfiltfilt(sos, x)
+        if steady:
+            return signal.sosfilt(sos, x, zi=signal.sosfilt_zi(sos) * x[0])[0]
         return signal.sosfilt(sos, x)
     b, a = made["ba"]
     if both_ways:
@@ -169,13 +227,30 @@ def apply(values, made, both_ways=True):
         if len(x) <= pad:
             raise SimplydataError(f"Filtering both ways needs more than {pad} readings; there are {len(x)}.")
         return signal.filtfilt(b, a, x)
+    if steady:
+        return signal.lfilter(b, a, x, zi=signal.lfilter_zi(b, a) * x[0])[0]
     return signal.lfilter(b, a, x)
 
 
+START_FROM = ("rest", "first value")
+
+
+def read_start(start_from, both_ways, step_name):
+    """start_from= "rest" (the default) or "first value" (with both_ways=False)."""
+    if start_from not in START_FROM:
+        raise choice_error(step_name, "start_from", start_from, list(START_FROM))
+    if start_from == "first value" and both_ways:
+        raise SimplydataError('start_from="first value" goes with both_ways=False: run both ways, the filter already '
+                              "starts in its steady state at each end (SciPy's padding).")
+    return start_from
+
+
 def coefficients(made):
-    """(b, a) of the whole filter (sos2tf for second-order sections)."""
+    """(b, a) of the whole filter (sos2tf for second-order sections), as long as each other."""
     from scipy import signal
 
     if "sos" in made:
         return signal.sos2tf(made["sos"])
-    return made["ba"]
+    b, a = (np.asarray(c, dtype=float) for c in made["ba"])
+    size = max(len(b), len(a))  # powers of 1/z: zeros at the end change nothing, and both read as powers of z
+    return np.concatenate([b, np.zeros(size - len(b))]), np.concatenate([a, np.zeros(size - len(a))])

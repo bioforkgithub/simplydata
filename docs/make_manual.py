@@ -382,7 +382,8 @@ UNDERNEATH = {
                               "gaussian_kde with statsmodels bw_silverman",
     "table.compare_distributions_for": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
-    "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch, signal.spectrogram); R lomb::lsp for uneven times "
+                          "(simplydata[r])",
     "table.find_spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.check_steady_over_time": "R (urca::ur.df or tseries::adf.test, and tseries::kpss.test, through rpy2: simplydata[r])",
     "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, "
@@ -397,23 +398,31 @@ UNDERNEATH = {
                                  "(simplydata[r])",
     "nums.smooth": "as table.add_smoothed_column",
     "nums.remove_trend": "SciPy (signal.detrend)",
-    "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
+    "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; firwin, firls, "
+                                     "remez, firwin2; buttord ... kaiserord; iirpeak, gammatone; sosfiltfilt, "
+                                     "sosfilt)",
     "nums.remove_each_frequency_that": "SciPy (as keep_each_frequency_that; iirnotch, iircomb)",
     "table.add_filtered_column": "SciPy (as numbers.keep_each_frequency_that)",
     "nums.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
     "nums.find_each_dip_that": "SciPy (signal.find_peaks on minus the numbers)",
     "table.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
     "table.find_each_dip_that": "SciPy (signal.find_peaks on minus the column)",
-    "nums.take_fourier_transform": "SciPy (fft.rfft, fft.fft)",
+    "nums.take_fourier_transform": "SciPy (fft.rfft, fft.fft; signal.ShortTimeFFT for over_time=, zoom_fft for "
+                                   "between=)",
     "sdata.find_inverse_fourier_transform": "SciPy (fft.irfft, fft.ifft)",
     "nums.find_envelope": "SciPy (signal.hilbert)",
     "nums.convolve_with": "SciPy (signal.convolve)",
     "nums.deconvolve_by": "SciPy (signal.deconvolve)",
-    "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate)",
-    "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
+    "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate, cspline1d_eval, qspline1d_eval)",
+    "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, sweep_poly, gausspulse, unit_impulse, max_len_seq) and "
+                       "NumPy sin",
     "sdata.make_window_shape": "SciPy (signal.get_window)",
     "table.add_envelope_column": "SciPy (signal.hilbert)",
-    "sdata.frequency_filter": "SciPy (the designs of numbers.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt)",
+    "sdata.frequency_filter": "SciPy (the designs of numbers.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt; "
+                              "butter(..., analog=True) and the others for analog=True)",
+    # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+    "system.move_poles_to": "SciPy (signal.place_poles on the tf2ss form, then ss2tf)",
+    "nums.find_phase_locking_to": "SciPy (signal.vectorstrength)",
     "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "

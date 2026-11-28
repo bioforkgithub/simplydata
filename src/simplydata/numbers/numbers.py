@@ -26,6 +26,7 @@ from .signal_words import SignalNumberWords, TimeSeriesNumberWords
 from .smoothing_words import SmoothingNumberWords
 from .filter_words import FilterNumberWords
 from .fourier_words import FourierNumberWords
+from .signal_words_2 import SignalNumberWords2  # families for 100 %, batches 17-18
 from .peak_words import PeakNumberWords
 from .summaries import GridSummaryWords, SummaryWords
 from .more_number_words import MoreNumberWords, _short
@@ -38,7 +39,7 @@ from .solving_words import SolvingWords  # numbers finishing: solve_for and brea
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
-              FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
+              FourierNumberWords, SignalNumberWords2, NumberWords3, SharedWords3, BaseNumbers):
     """A list of numbers. Make one with sdata.number_list([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
