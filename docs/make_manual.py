@@ -916,7 +916,7 @@ FAMILY_TITLES = {
 _UNICODE = {
     "°": r"\textdegree{}", "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}", "⁴": r"\textsuperscript{4}", "·": r"\textperiodcentered{}",
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
-    "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
+    "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "è": r"\`e", "’": "'", "‘": "`", "“": "``", "”": "''",
     "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "Ü": r"\"U", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
     "š": r"\v{s}", "å": r"\aa{}", "Å": r"\AA{}", "ø": r"\o{}", "æ": r"\ae{}",
     # the Greek and Turkish letters of the capitals_matter= notes (ΟΔΟΣ and οδος, İ)

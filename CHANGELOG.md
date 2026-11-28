@@ -5,6 +5,21 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Fixed: where the families for 100 % batches 1-21 meet
+
+- Every choice simplydata makes in batches 1-21 has its basis in "How simplydata chooses methods" (113 new entries,
+  783 in all), with 36 new references, each DOI checked in Crossref. Three "simplydata chooses" lines now say what
+  the code does: `fit_curve(always=)` puts the biggest y first at a tied x when rising (R `isoreg`'s order),
+  `show="differential entropy"` follows SciPy's automatic rule (van Es up to 10 values, Ebrahimi to 1000, Vasicek
+  above), and a circular measure needs its unit.
+- 15 options of batches 10-13 had no reliability case on real data; each now has one (AirPassengers, iris, mtcars)
+  against NumPy, SciPy or SymPy and, except the Hankel transform, base R.
+- Help pointers: names that a later batch gives a word (`logm`, `sqrtm`, `matrix_power`, `order_filter`, `hilbert2`,
+  `correlate2d` ...) point to the word, not to the hand-over; `special.<name>` points only from names scipy.special
+  has.
+- The tests in CI install the `[files]` extra (Jinja2 for .tex tables, lxml for web-page tables), and the README
+  lists both.
+
 ### Added: NumPy words for lists and grids of numbers, and one maker for polynomials (families for 100 %, batches 10-13)
 
 Approved by Manish 2026-11-28 (plan section 2.4, G5, G8 and G17). Each word calls NumPy, SciPy or SymPy once, says
