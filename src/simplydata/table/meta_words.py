@@ -32,7 +32,8 @@ from .summaries import _p_sentence
 # combine_pvalues: name -> (test in sentences, SciPy method, statistic name)
 P_VALUE_METHODS = {"fisher": ("Fisher's method of combining p-values", "fisher", "chi-square"),
                    "stouffer": ("Stouffer's z method of combining p-values", "stouffer", "z"),
-                   "pearson": ("Pearson's method of combining p-values", "pearson", "chi-square"),
+                   "pearson": ("Pearson's method of combining p-values", "pearson",
+                               "statistic (SciPy's sign: 2 x the sum of log(1 - p), 0 or below)"),
                    "tippett": ("Tippett's method (the smallest p-value)", "tippett", "smallest p"),
                    "mudholkar-george": ("Mudholkar and George's logit method", "mudholkar_george", "t")}
 P_VALUE_METHOD_SPELLINGS = {"fisher's": "fisher", "stouffer's": "stouffer", "z": "stouffer",

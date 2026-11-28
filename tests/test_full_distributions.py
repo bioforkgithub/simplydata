@@ -10,7 +10,7 @@ from scipy import special, stats
 from scipy.stats._distr_params import distcont, distdiscrete
 
 import simplydata as sdata
-from simplydata._distribution_names import PLAIN, Named
+from simplydata._distribution_names import DATA_UNITS, PLAIN, Named
 from simplydata._errors import SimplydataError
 from simplydata.distributions import FAMILIES, distribution
 
@@ -47,6 +47,9 @@ def test_each_plain_name_gives_the_scipy_distribution(scipy_name, capsys):
     if not discrete:
         given.update(location=0.5, scale=2.0)
         frozen = dist(*args, loc=0.5, scale=2.0)
+        shape_names = [s.strip() for s in (dist.shapes or "").split(",") if s.strip()]
+        for scipy_param in DATA_UNITS.get(scipy_name, ()):  # simplydata takes these ends in the data's units
+            given[shapes[scipy_param]] = 0.5 + 2.0 * args[shape_names.index(scipy_param)]
     else:
         given.update(shift=1)
         frozen = dist(*args, loc=1)
@@ -89,6 +92,29 @@ def _scipy_of(plain):
     from simplydata._distribution_names import LOOKUP, _key
 
     return LOOKUP[_key(plain)]
+
+
+@pytest.mark.parametrize("name, given, frozen, low, high", [
+    ("truncated normal", dict(lower_end=3, upper_end=9, location=5, scale=2), stats.truncnorm(-1, 2, 5, 2), 3, 9),
+    ("truncated exponential", dict(upper_end=7, location=1, scale=2), stats.truncexpon(3, 1, 2), 1, 7),
+    ("truncated weibull", dict(shape=2, lower_end=2, upper_end=6, location=0, scale=2),
+     stats.truncweibull_min(2, 1, 3, 0, 2), 2, 6),
+    ("truncated pareto", dict(shape=2, upper_end=9, location=1, scale=2), stats.truncpareto(2, 4, 1, 2), 3, 9),
+    ("trapezoidal", dict(rise_end=4, fall_start=8, location=2, scale=10), stats.trapezoid(0.2, 0.6, 2, 10), 2, 12),
+])
+def test_the_ends_of_truncated_distributions_are_in_the_units_of_the_data(name, given, frozen, low, high, capsys):
+    dist = distribution(name, **given)
+    assert dist.find_chance_that_value(is_below=(low + high) / 2) == pytest.approx(frozen.cdf((low + high) / 2))
+    assert dist.find_percentile(0) == pytest.approx(low) and dist.find_percentile(100) == pytest.approx(high)
+    shown = dist.show_parameters()
+    for key, value in given.items():
+        assert shown[key] == pytest.approx(value)  # shown back in the data's units
+    assert "lower end -1" not in repr(dist)
+
+
+def test_scipy_spelling_of_a_plain_named_distribution_takes_plain_parameters():
+    assert distribution("skewnorm", shape=4, location=10, scale=2).find_chance_that_value(is_below=11) == \
+        pytest.approx(stats.skewnorm(4, 10, 2).cdf(11), **EXACT)
 
 
 @pytest.mark.parametrize("typed, says", [
@@ -202,6 +228,37 @@ def test_normal_inverse_gamma_draws_value_and_variance_pairs(capsys):
         how_many=5, with_seed=1)
     x, s2 = stats.normal_inverse_gamma(mu=0, lmbda=1, a=2, b=1).rvs(size=5, random_state=np.random.default_rng(1))
     assert draws.as_numpy() == pytest.approx(np.column_stack([x, s2]), **EXACT)
+
+
+def test_multivariate_t_chance_below_matches_scipy(capsys):
+    dist = distribution("multivariate t", location=[0, 0], spread=COV, degrees_of_freedom=5)
+    frozen = stats.multivariate_t([0, 0], COV, df=5)
+    assert dist.find_chance_that_value(is_below=[1, 2]) == pytest.approx(
+        frozen.cdf([1, 2], random_state=np.random.default_rng(1)), rel=1e-12)
+
+
+@pytest.mark.parametrize("name, params, says", [
+    ("multivariate normal", dict(averages=[0, 0], covariance=[[1, 0.9], [0.1, 1]]), "symmetric"),
+    ("multivariate normal", dict(averages=[0, 0], covariance=[[1, 2], [2, 1]]), "negative eigenvalue"),
+    ("multinomial", dict(tries=10, chances=[0.2, 0.3, 0.4]), "add up to 1"),
+    ("wishart", dict(degrees_of_freedom=5, scale=[[1, 0, 0], [0, 1, 0]]), "square grid"),
+])
+def test_joint_inputs_are_checked(name, params, says):
+    with pytest.raises(SimplydataError, match=says):
+        distribution(name, **params)
+
+
+@pytest.mark.parametrize("point", [[1, 2, 3], [[1, 2], [3, 4]], 1.5])
+def test_find_density_at_needs_exactly_one_value_of_the_right_shape(point):
+    dist = distribution("multivariate normal", averages=[0, 0], covariance=COV)
+    with pytest.raises(SimplydataError, match="a list of 2 numbers"):
+        dist.find_density_at(point)
+
+
+def test_normal_inverse_gamma_density_takes_a_value_and_its_variance(capsys):
+    dist = distribution("normal inverse gamma", average=0, precision=1, shape=2, scale=1)
+    assert dist.find_density_at([0.5, 1.2]) == pytest.approx(
+        stats.normal_inverse_gamma(0, 1, 2, 1).pdf(0.5, 1.2), **EXACT)
 
 
 def test_joint_errors_name_the_plain_parameters():
@@ -336,6 +393,22 @@ def test_find_parameter_that_gives_says_what_is_wrong(given, says):
         sdata.find_parameter_that_gives("t", **given)
 
 
+@pytest.mark.parametrize("name, given", [
+    ("t", dict(chance_below=0.4, at_value=2.1)),  # stdtridf answers -1e100: no degrees of freedom do it
+    ("noncentral F", dict(chance_below=0.999, at_value=0.5, degrees_of_freedom_1=3, degrees_of_freedom_2=20)),
+])
+def test_find_parameter_that_gives_never_prints_scipy_no_answer_codes(name, given):
+    with pytest.raises(SimplydataError, match="finds none"):
+        sdata.find_parameter_that_gives(name, **given)
+
+
+def test_binomial_tries_says_the_whole_numbers_either_side(capsys):
+    found = sdata.find_parameter_that_gives("binomial", chance_at_most=0.3, at_value=5, chance=0.3)
+    assert stats.binom(int(found), 0.3).cdf(5) >= 0.3 >= stats.binom(int(found) + 1, 0.3).cdf(5)
+    out = capsys.readouterr().out
+    assert f"{int(found)} tries give a chance of" in out and f"{int(found) + 1} tries" in out
+
+
 def test_find_parameter_that_gives_knows_its_distributions():
     with pytest.raises(SimplydataError, match="knows the distributions"):
         sdata.find_parameter_that_gives("weibull", chance_below=0.5, at_value=2)
@@ -355,9 +428,9 @@ SPECIAL_POINTERS = {
     "chdtrc": "find_chance_that_value", "fdtr": "find_chance_that_value", "fdtrc": "find_chance_that_value",
     "gdtr": "find_chance_that_value", "gdtrc": "find_chance_that_value", "nbdtr": "find_chance_that_value",
     "nbdtrc": "find_chance_that_value", "pdtr": "find_chance_that_value", "pdtrc": "find_chance_that_value",
-    "stdtr": "find_chance_that_value", "btdtr": "find_chance_that_value", "chndtr": "find_chance_that_value",
+    "stdtr": "find_chance_that_value", "chndtr": "find_chance_that_value",
     "ncfdtr": "find_chance_that_value", "nctdtr": "find_chance_that_value", "chdtri": "find_percentile",
-    "fdtri": "find_percentile", "gdtrix": "find_percentile", "stdtrit": "find_percentile", "btdtri": "find_percentile",
+    "fdtri": "find_percentile", "gdtrix": "find_percentile", "stdtrit": "find_percentile",
     "chndtrix": "find_percentile", "ncfdtri": "find_percentile", "nctdtrit": "find_percentile",
     "bdtrik": "find_percentile", "nbdtrik": "find_percentile", "pdtrik": "find_percentile",
     "ndtri_exp": "find_percentile", "kolmogorov": "kolmogorov-smirnov limit", "kolmogi": "find_cut_off",
@@ -367,6 +440,15 @@ SPECIAL_POINTERS = {
         "stdtridf chdtriv fdtridfd gdtria gdtrib btdtria btdtrib bdtri bdtrin nbdtri nbdtrin pdtri nrdtrimn "
         "nrdtrisd chndtridf chndtrinc ncfdtridfd ncfdtridfn ncfdtrinc nctdtridf nctdtrinc").split()},
 }
+
+
+def test_no_pointer_names_a_scipy_special_function_scipy_does_not_have():
+    from scipy import special as sp
+
+    from simplydata._other_names import OTHER_NAMES
+
+    assert all(hasattr(sp, name) for name in OTHER_NAMES["special"]), [n for n in OTHER_NAMES["special"]
+                                                                       if not hasattr(sp, n)]
 
 
 @pytest.mark.parametrize("name", sorted(SPECIAL_POINTERS))

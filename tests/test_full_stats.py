@@ -45,7 +45,9 @@ MEASURES = [
     ("cumulant 4", lambda v: stats.kstat(v, 4)),
     ("cumulant variance 2", lambda v: stats.kstatvar(v, 2)),
     ("l-moment 2", lambda v: stats.lmoment(v, order=2)),
-    ("l-moment 3", lambda v: stats.lmoment(v, order=3)),
+    ("l-moment 3", lambda v: stats.lmoment(v, order=3, standardize=False)),
+    ("l-skewness", lambda v: stats.lmoment(v, order=3)),
+    ("l-kurtosis", lambda v: stats.lmoment(v, order=4)),
     ("central moment 3", lambda v: stats.moment(v, order=3)),
     ("expectile 90", lambda v: stats.expectile(v, alpha=0.9)),
     ("average between 40 and 80", lambda v: stats.tmean(v, (40, 80))),
@@ -54,9 +56,10 @@ MEASURES = [
     ("standard error between 40 and 80", lambda v: stats.tsem(v, (40, 80))),
     ("smallest from 50", lambda v: stats.tmin(v, lowerlimit=50)),
     ("biggest up to 80", lambda v: stats.tmax(v, upperlimit=80)),
-    ("circular average", lambda v: stats.circmean(v)),
+    ("circular average in radians", lambda v: stats.circmean(v)),
     ("circular standard deviation in degrees", lambda v: stats.circstd(v, high=360)),
-    ("circular variance", lambda v: stats.circvar(v)),
+    ("circular variance in radians", lambda v: stats.circvar(v)),
+    ("circular average in hours", lambda v: stats.circmean(v, high=24)),
     ("differential entropy", lambda v: stats.differential_entropy(v)),
     ("percentile rank 70", lambda v: stats.estimated_cdf(v, 70) * 100),
     ("percent at or below 70", lambda v: stats.percentileofscore(v, 70, kind="weak")),
@@ -79,12 +82,48 @@ def test_each_new_summary_measure_matches_scipy_for_each_group(name, scipy_measu
 
 def test_scipy_names_of_the_measures_and_their_numbers_are_read(capsys):
     table = _maths()
-    result = table.find_summary_of("marks", show=["gstd", "pmean 2", "kstat 3", "circmean"])
+    result = table.find_summary_of("marks", show=["gstd", "pmean 2", "kstat 3", "circmean in degrees"])
     v = _frame("marks").query("subject == 'Maths'")["marks"].to_numpy(float)
     assert _cell(result, "geometric standard deviation") == pytest.approx(stats.gstd(v), rel=1e-12)
     assert _cell(result, "power mean 2") == pytest.approx(stats.pmean(v, 2), rel=1e-12)
     assert _cell(result, "cumulant 3") == pytest.approx(stats.kstat(v, 3), rel=1e-12)
-    assert _cell(result, "circular average") == pytest.approx(stats.circmean(v), rel=1e-12)
+    assert _cell(result, "circular average in degrees") == pytest.approx(stats.circmean(v, high=360), rel=1e-12)
+
+
+@pytest.mark.parametrize("show", ["circular average", "circular standard deviation", "circular variance", "circmean"])
+def test_circular_measures_need_the_unit_of_the_angles(show):
+    # degrees such as 350, 10, 20, 5, 355 were read as radians before: the unit must now be written
+    df = pd.DataFrame({"angle": [350.0, 10.0, 20.0, 5.0, 355.0]})
+    with pytest.raises(SimplydataError, match="needs the unit of the angles"):
+        sdata.table(df).find_summary_of("angle", show=[show])
+    found = sdata.table(df).find_summary_of("angle", show=["circular average in degrees"])
+    assert _cell(found, "circular average in degrees") == pytest.approx(stats.circmean(df["angle"], high=360))
+
+
+def test_each_new_measure_prints_its_method_and_units(capsys):
+    df = pd.DataFrame({"angle": [350.0, 10.0, 20.0, 5.0, 355.0, 3.0, 8.0, 12.0, 351.0, 2.0, 4.0]})
+    sdata.table(df).find_summary_of("angle", show=["circular average in degrees", "circular variance in degrees",
+                                                   "differential entropy", "l-skewness", "percentile rank 10"])
+    out = capsys.readouterr().out
+    assert 'Method of "circular average in degrees":' in out and "the answer in degrees" in out
+    assert "with no unit" in out and "in nats" in out and "tau_3" in out and "inverse of" in out
+
+
+def test_l_moments_are_named_for_what_they_are():
+    v = _frame("marks")["marks"].dropna().to_numpy(float)
+    found = _table("marks").find_summary_of("marks", show=["l-moment 3", "l-skewness"])
+    assert _cell(found, "l-moment 3") == pytest.approx(stats.lmoment(v, order=3, standardize=False), rel=1e-12)
+    assert _cell(found, "l-skewness") == pytest.approx(stats.lmoment(v, order=3), rel=1e-12)
+    assert _cell(found, "l-moment 3") != pytest.approx(_cell(found, "l-skewness"))
+
+
+def test_in_bins_of_with_a_decimal_width_puts_values_on_an_edge_in_the_right_bin(capsys):
+    df = pd.DataFrame({"depth": [3.82, 3.9, 3.95, 4.0, 4.05], "oxygen": [1.0, 2.0, 3.0, 4.0, 5.0]})
+    result = sdata.table(df).find_summary_of("oxygen", show=["count", "total"], in_bins_of={"depth": 0.1})
+    assert result.get_column("depth from").as_numpy().tolist() == [3.8, 3.9, 4.0]
+    assert result.get_column("depth to").as_numpy().tolist() == [3.9, 4.0, 4.1]
+    assert result.get_column("total").as_numpy().tolist() == [1.0, 5.0, 9.0]  # 3.9 in [3.9, 4.0), 4.0 in [4.0, 4.1]
+    assert "3.8000000000000003" not in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("show, says", [
@@ -336,6 +375,22 @@ def test_best_power_tables_match_scipy_llf_and_normplot():
         stats.yeojohnson_normplot(days, -2, 2, N=41)[1], rel=1e-12)
 
 
+def test_review_wording_energy_units_pearson_statistic_and_no_false_r_claims(capsys):
+    df = _frame("marks")
+    sdata.table(df).compare_distributions_for("marks", for_each_group_in="class", show="energy distance")
+    assert "square root of the values' units" in capsys.readouterr().out
+    p = pd.DataFrame({"p": [0.04, 0.2, 0.11]})
+    result = sdata.table(p).combine_studies(p_values="p", test_method="pearson")
+    assert _cell(result, "statistic name") != "chi-square" and _cell(result, "statistic") <= 0
+    table = _maths()
+    table.keep_rows_where("class", is_one_of=["A", "B"])
+    table.compare_shapes_of("marks", for_each_group_in="class", test_method="cramer-von mises")
+    table.find_correlation_between("hours", "marks", test_method="chatterjee xi")
+    out = capsys.readouterr().out
+    assert "as R twosamples" not in out and "one-sided" in out
+    assert "HH::hov" not in (type(table).compare_spreads_of.__doc__ or "")
+
+
 def test_best_power_by_normal_plot_and_tukey_lambda_match_scipy(capsys):
     days = _frame("trial")["days"].to_numpy(float)
     table = _table("trial")
@@ -448,11 +503,12 @@ STATS_POINTERS = {
     "bayes_mvs": 'test_method="bayesian"', "mvsdist": 'test_method="bayesian"',
     "binned_statistic": "in_bins_of=", "binned_statistic_2d": "in_bins_of=", "binned_statistic_dd": "in_bins_of=",
     "binomtest": "compare_percent_to", "boschloo_exact": "boschloo", "boxcox_llf": "log-likelihood",
-    "boxcox_normmax": "find_best_power_of", "boxcox_normplot": "normal plot correlation",
+    "boxcox_normmax": 'show="best by normal plot"', "boxcox_normplot": "normal plot correlation",
     "brunnermunzel": "brunner-munzel", "bws_test": "baumgartner-weiss-schindler", "chatterjeexi": "chatterjee xi",
     "chisquare": "compare_counts_to", "circstd": "circular standard deviation", "circvar": "circular variance",
     "combine_pvalues": "p_values=", "cramervonmises": "cramer-von-mises", "cramervonmises_2samp": "cramer-von mises",
-    "cumfreq": "running count", "differential_entropy": "differential entropy", "directional_stats": "find_average_direction_of",
+    "cumfreq": "running count", "differential_entropy": "differential entropy",
+    "directional_stats": "find_average_direction_of",
     "energy_distance": "energy distance", "entropy": "entropy", "epps_singleton_2samp": "epps-singleton",
     "estimated_cdf": "percentile rank", "expectile": "expectile", "fligner": "fligner", "gmean": "geometric mean",
     "goodness_of_fit": "compare_shape_to", "gstd": "geometric standard deviation", "gzscore": "add_z_score_column",

@@ -866,6 +866,10 @@ def distribution(name=None, *values, **parameters) -> Distribution:
         raise SimplydataError(f"Write the parameters with their names.\nFor example:  {_named_example(family)}")
     if isinstance(family, Named):
         return Distribution(family, _scipy_params(family, family.to_scipy(parameters)))
+    from ._distribution_names import PLAIN
+
+    if isinstance(family, str) and family in PLAIN:  # "skewnorm" with shape= works as "skew normal" does
+        return Distribution(family, _scipy_params(family, Named(family).to_scipy(parameters)))
     if values:
         example = _example(family) if isinstance(family, Family) else f'sdata.distribution("{family}", c=2)'
         raise SimplydataError(f"Write the parameters with their names.\nFor example:  {example}")
@@ -1454,7 +1458,9 @@ class Distribution:
             return ", ".join(f"{p.shown} {_say(self._params[p.name])}" for p in self._family.params
                              if self._params.get(p.name) is not None)
         if getattr(self._family, "plain", None):
-            return ", ".join(f"{self._family.shown(k)} {_say_value(v)}" for k, v in self._params.items()
+            family = self._family
+            return ", ".join(f"{family.shown(k)} {_say_value(family.data_value(k, v, self._params))}"
+                             for k, v in self._params.items()
                              if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
         return ", ".join(f"{k}={_say(v)}" for k, v in self._params.items()
                          if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
@@ -1486,7 +1492,8 @@ class Distribution:
     def show_parameters(self):
         """The parameters as a dictionary of plain names: {"average": 50, "standard_deviation": 10}. distribution.show_parameters()"""
         if getattr(self._family, "plain", None):
-            return {self._family.names.get(k, k): v for k, v in self._params.items()}
+            family = self._family
+            return {family.names.get(k, k): family.data_value(k, v, self._params) for k, v in self._params.items()}
         return dict(self._params)
 
     # ------------------------------------------------------------------ random numbers
@@ -2217,7 +2224,8 @@ def fit_censored(values, censored, name="weibull", fixed=None, say=False, column
             pass
     n, k = len(x), len(free)
     aic, bic = -2 * ll + 2 * k, -2 * ll + k * math.log(n)
-    shown = (lambda t: t.replace("_", " ")) if isinstance(family, Family) else (lambda t: t)
+    shown = ((lambda t: t.replace("_", " ")) if isinstance(family, Family) else family.shown
+             if getattr(family, "plain", None) else (lambda t: t))
     row = {shown(key): float(v) for key, v in params.items() if v is not None}
     row.update({f"standard error of {shown(key)}": float(errors.get(key, math.nan)) for key, v in params.items()
                 if v is not None})
@@ -2233,7 +2241,8 @@ def fit_censored(values, censored, name="weibull", fixed=None, say=False, column
     else:
         dist = Distribution(family, params, fit_info=info, backend=backend)
     if say:
-        title = family.title if isinstance(family, Family) else f"SciPy {family}"
+        title = (family.title if isinstance(family, Family) else f"{family.plain} (SciPy {family})"
+                 if getattr(family, "plain", None) else f"SciPy {family}")
         article = "an" if title[0].lower() in "aeiou" else "a"
         by = f', where "{censored_by}" says so' if censored_by else ""
         print(f"Fitted {article} {title} distribution to {what} ({n} values, {int(right.sum())} of them censored"

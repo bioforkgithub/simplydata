@@ -279,7 +279,7 @@ class MoreTestWords:
         same p-value). Empty cells are skipped. Gives back a one-row table.
         test_method= chooses the test: "kolmogorov-smirnov" (2 groups, the default for 2), "anderson-darling"
         (the default for 3 or more; for 2 groups too), "cramer-von mises" (2 groups: the squared gaps between the
-        cumulative shares added up, SciPy cramervonmises_2samp, exact for small groups, as R twosamples::cvm_test)
+        cumulative shares added up, SciPy cramervonmises_2samp, exact for small groups)
         or "epps-singleton" (2 groups: compares the groups' characteristic functions, so it also works for counts
         with many ties; SciPy epps_singleton_2samp).
         """
@@ -315,7 +315,8 @@ class MoreTestWords:
             title, stat_name = "two-sample Cramer-von Mises test", "T"
             how = ("exact" if max(len(a), len(b)) <= 20 else "an approximation for larger groups")
             said = (f"the squared gaps between the groups' cumulative shares, added up (p-value {how}); SciPy "
-                    "cramervonmises_2samp, as R twosamples::cvm_test()")
+                    "cramervonmises_2samp (R twosamples::cvm_test has the same idea with another statistic and a "
+                    "bootstrap p-value, so its numbers differ)")
         else:
             if min(len(a), len(b)) < 5:
                 raise SimplydataError(f"The Epps-Singleton test needs at least 5 values in each group; {name_a} has "

@@ -1217,7 +1217,8 @@ class StatTestWords:
             second = (f"Test: Baumgartner-Weiss-Schindler test (B = {_num(bws)}), a rank test that weighs the ends of "
                       "the groups more than Mann-Whitney does; the p-value comes from shuffling the group labels "
                       "(every way when there are fewer than 9999, otherwise 9999 random ways with seed 1; SciPy "
-                      "bws_test, as R BWStest::bws_test()).")
+                      "bws_test; R BWStest::bws_test gives the same statistic, its default p-value comes from the "
+                      "large-sample formula instead).")
         else:
             result = stats.median_test(*arrays)
             chi, p, grand = float(result.statistic), float(result.pvalue), float(result.median)
@@ -1747,7 +1748,7 @@ class StatTestWords:
         of the ratio of two variances, R var.test(), run in R through simplydata[r]; it assumes
         bell-shaped values).
         test_method="o'brien": O'Brien's test, the one-way ANOVA of each value's O'Brien score, whose group
-        averages are the group variances (SciPy obrientransform, then f_oneway; as R HH::hov(..., method = "obrien")).
+        averages are the group variances (SciPy obrientransform, then f_oneway).
         Empty cells are skipped. Prints the standard deviation of each group and the answer
         in words; gives back a one-row table of results. compare_averages_of() uses Welch's
         test by default, which does not need equal spreads.

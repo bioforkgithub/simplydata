@@ -215,7 +215,9 @@ class DistributionTableWords:
                "wasserstein distance": ("SciPy wasserstein_distance, the area between the groups' cumulative shares, "
                                         "as R transport::wasserstein1d()") if len(columns) == 1 else
                "SciPy wasserstein_distance_nd, the cheapest way to move one group's points onto the other's"}[shown]
-        print(f"Method: {how}. 0 means the same values; bigger means further apart, in the units of the values.")
+        units = ("in the square root of the values' units" if shown == "energy distance" else
+                 "in the units of the values")
+        print(f"Method: {how}. 0 means the same values; bigger means further apart, {units}.")
         return self._distribution_rows_table(rows)
 
     # ------------------------------------------------------------------ compare_distributions_for
