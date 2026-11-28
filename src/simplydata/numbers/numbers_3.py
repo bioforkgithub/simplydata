@@ -148,20 +148,44 @@ class NumberWords3:
         return Table(pd.DataFrame({"frequency": frequency, "coherence": together}))
 
     @friendly
-    def take_cosine_transform(self: _Same) -> _Same:
+    def take_cosine_transform(self: _Same, kind="cosine", inverse=False, log_step=None, order=0) -> _Same:
         """The numbers as a sum of cosine waves: the size of each (the discrete cosine transform). numbers.take_cosine_transform()
 
         The type-2 transform with orthonormal scaling (SciPy fft.dct(type=2, norm="ortho")), so the sum of
-        squares stays the same; the first numbers hold the slow changes. Undo with numbers.undo().
+        squares stays the same; the first numbers hold the slow changes. kind="sine" gives the sine transform (dst);
+        inverse=True turns transformed numbers back (idct, idst). kind="hankel" is the fast Hankel transform of
+        numbers spaced evenly on a log scale (SciPy fft.fht, inverse ifht): log_step= is the step of the natural log
+        between them and order= the order of the Bessel function. Undo with numbers.undo().
         """
         from scipy import fft
 
+        if kind not in ("cosine", "sine", "hankel"):
+            raise choice_error("take_cosine_transform", "kind", kind, ["cosine", "sine", "hankel"])
+        if not isinstance(inverse, bool):
+            raise SimplydataError("inverse= needs True or False (no quotes).")
         x = np.asarray(self._values, dtype=float).ravel()
         _no_empty(x, "take_cosine_transform")
-        out = fft.dct(x, type=2, norm="ortho")
-        print(f"The cosine transform of {x.size} numbers (SciPy fft.dct, type 2, orthonormal): number 1 is the "
-              "average level, the next ones ever faster cosine waves.")
-        return self._change("cosine transform", out)
+        if kind == "hankel":
+            if not is_number(log_step) or log_step <= 0 or not is_number(order):
+                raise SimplydataError('kind="hankel" needs log_step= (the step of the natural log between the numbers, '
+                                      "above 0) and order= (a number), such as log_step=0.1, order=0.")
+            func = fft.ifht if inverse else fft.fht
+            out = func(x, dln=float(log_step), mu=float(order))
+            print(f"The {'inverse ' if inverse else ''}fast Hankel transform of {x.size} numbers (SciPy "
+                  f"fft.{func.__name__}, dln={say(log_step)}, mu={say(order)}).")
+            return self._change(f"{'inverse ' if inverse else ''}hankel transform", out)
+        if log_step is not None or order != 0:
+            raise SimplydataError('log_step= and order= go with kind="hankel".')
+        func = {("cosine", False): fft.dct, ("sine", False): fft.dst, ("cosine", True): fft.idct,
+                ("sine", True): fft.idst}[(kind, inverse)]
+        out = func(x, type=2, norm="ortho")
+        if kind == "cosine" and not inverse:
+            print(f"The cosine transform of {x.size} numbers (SciPy fft.dct, type 2, orthonormal): number 1 is the "
+                  "average level, the next ones ever faster cosine waves.")
+            return self._change("cosine transform", out)
+        print(f"The {'inverse ' if inverse else ''}{kind} transform of {x.size} numbers (SciPy fft.{func.__name__}, "
+              "type 2, orthonormal).")
+        return self._change(f"{'inverse ' if inverse else ''}{kind} transform", out)
 
 
 # ---------------------------------------------------------------- grids only

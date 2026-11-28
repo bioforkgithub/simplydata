@@ -96,19 +96,37 @@ def _exact_inverse(values, n):
 
 class GridWords4:
     @friendly
-    def find_determinant(self, exactly=False):
+    def find_determinant(self, exactly=False, as_log=False):
         """The determinant of a square grid: one number that is 0 when the grid has no inverse. grid.find_determinant()
 
         sdata.number_grid([[2, 1], [1, 2]]).find_determinant() gives 3. SciPy linalg.det (from the LU
         decomposition, LAPACK), as R det() and MATLAB det. exactly=True gives the exact answer from SymPy (the
-        numbers as fractions), as a formula: formula.find_value_at() gives its decimal. Nothing changes in the grid.
+        numbers as fractions), as a formula: formula.find_value_at() gives its decimal. as_log=True gives the natural
+        log of its size, which stays readable when the determinant itself is too big or too small for a decimal
+        (NumPy linalg.slogdet, as R determinant(x, logarithm = TRUE)); the sentence says its sign. Nothing changes in
+        the grid.
         """
         from scipy import linalg
 
         if not isinstance(exactly, bool):
             raise SimplydataError("exactly= should be True or False.")
+        if not isinstance(as_log, bool):
+            raise SimplydataError("as_log= should be True or False.")
+        if exactly and as_log:
+            raise SimplydataError("exactly=True and as_log=True do not go together; choose one.")
         values = self._square("find_determinant")
         n = values.shape[0]
+        if as_log:
+            from .numpy_grid_words import log_determinant
+
+            sign, logged = log_determinant(values)
+            sign_said = {1.0: "positive", -1.0: "negative"}.get(sign, "0")
+            if sign == 0:
+                print(f"The determinant of the {n} x {n} grid is 0, so its log has no value (NumPy linalg.slogdet).")
+                return float("-inf")
+            print(f"The natural log of the size of the determinant of the {n} x {n} grid: {logged:.10g}; the "
+                  f"determinant is {sign_said}   (NumPy linalg.slogdet)")
+            return logged
         if exactly:
             from .._formula import Formula, _show
 
@@ -122,19 +140,34 @@ class GridWords4:
         return found
 
     @friendly
-    def take_inverse(self: _Same, exactly=False) -> _Same:
+    def take_inverse(self: _Same, exactly=False, closest_possible=False) -> _Same:
         """Turn a square grid into its inverse: the grid that multiplies it to give the identity. grid.take_inverse()
 
         sdata.number_grid([[2, 1], [1, 2]]).take_inverse() gives [[2/3, -1/3], [-1/3, 2/3]] as decimals. SciPy
         linalg.inv (LAPACK), as R solve(a) and MATLAB inv. A grid whose determinant is 0 has no inverse, and
         simplydata says so. exactly=True works it out exactly with SymPy (the numbers as fractions), prints the
-        fractions and keeps their decimals. Undo with grid.undo(). To solve equations, sdata.solve is better than an
-        inverse.
+        fractions and keeps their decimals. closest_possible=True gives the closest thing to an inverse for any grid,
+        also one that is not square or has no inverse (the Moore-Penrose pseudo-inverse from the SVD: SciPy
+        linalg.pinv, or pinvh for a symmetric grid; R MASS::ginv). Undo with grid.undo(). To solve equations,
+        sdata.solve is better than an inverse.
         """
         from scipy import linalg
 
         if not isinstance(exactly, bool):
             raise SimplydataError("exactly= should be True or False.")
+        if not isinstance(closest_possible, bool):
+            raise SimplydataError("closest_possible= should be True or False.")
+        if closest_possible:
+            if exactly:
+                raise SimplydataError("exactly=True and closest_possible=True do not go together; choose one.")
+            from .numpy_grid_words import closest_inverse
+
+            values = self._no_empty_cells("take_inverse")
+            out, how = closest_inverse(values)
+            print(f"The closest possible inverse of the {values.shape[0]} x {values.shape[1]} grid ({how}: the "
+                  "Moore-Penrose pseudo-inverse); it is "
+                  f"{values.shape[1]} x {values.shape[0]}.")
+            return self._change("closest possible inverse", out)
         values = self._square("take_inverse")
         n = values.shape[0]
         if exactly:

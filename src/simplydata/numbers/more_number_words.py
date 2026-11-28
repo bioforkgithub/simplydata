@@ -196,10 +196,22 @@ class MoreNumberWords:
         return self._trig(np.tan, degrees)
 
     @friendly
-    def change_angles_to(self: _Same, unit=None) -> _Same:
-        """Change angles between radians and degrees (NumPy rad2deg, deg2rad). numbers.change_angles_to("degrees")"""
+    def change_angles_to(self: _Same, unit=None, remove_jumps=False) -> _Same:
+        """Change angles between radians and degrees (NumPy rad2deg, deg2rad). numbers.change_angles_to("degrees")
+
+        remove_jumps=True: the angles are already in unit=, and each jump of a whole turn (from 359 to 1 degree, say)
+        is taken out, so they run on smoothly (NumPy unwrap, period 2 pi or 360).
+        """
         if unit not in ANGLE_UNITS:
             raise choice_error("change_angles_to", "unit", unit, list(ANGLE_UNITS))
+        if not isinstance(remove_jumps, bool):
+            raise SimplydataError("remove_jumps= needs True or False (no quotes).")
+        if remove_jumps:
+            period = 360.0 if unit == "degrees" else 2 * np.pi
+            new = np.unwrap(self._values.astype(float), period=period)
+            print(f"Jumps of a whole turn taken out of the angles in {unit} (NumPy unwrap, period "
+                  f"{'360' if unit == 'degrees' else '2 pi'}).")
+            return self._change(f"remove jumps in angles ({unit})", new)
         func = np.rad2deg if unit == "degrees" else np.deg2rad
         other = "radians" if unit == "degrees" else "degrees"
         new = func(self._values.astype(float))
@@ -323,19 +335,46 @@ class MoreNumberWords:
         return self._change(f"{'keep' if keep else 'remove'} numbers where yes", new)
 
     @friendly
-    def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN) -> _Same:
+    def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN, at_positions=None,
+                              rules=None) -> _Same:
         """Replace the numbers where yes or no values say yes. numbers.replace_numbers_where(land, with_value="empty")
 
-        with_value= a number, or "empty" (None works too). NumPy np.where(land, value, numbers).
+        with_value= a number, "empty" (None works too), or other numbers of the same size (each taken from its own
+        place: NumPy copyto). NumPy np.where(land, value, numbers). at_positions= replaces the numbers at these
+        positions instead (from 1; on a grid, the table find_positions_where gives, or (row, column) pairs; NumPy
+        put). rules=[(cold, -1), (warm, 1)] gives each number the value of the first rule whose yes or no values say
+        yes, and leaves the others as they are, or gives them with_value= (NumPy select).
         """
+        from .numpy_grid_words import replace_at_positions, replace_by_rules
+
+        if at_positions is not None or rules is not None:
+            if sum(v is not None for v in (yes_no, at_positions, rules)) > 1:
+                raise SimplydataError("replace_numbers_where() takes yes or no values, at_positions= or rules=: one "
+                                      "of them.")
+            if at_positions is not None:
+                return replace_at_positions(self, at_positions, with_value)
+            return replace_by_rules(self, rules, with_value)
         mask = self._mask_from(yes_no, "replace_numbers_where")
         if with_value is NOT_GIVEN:
             raise SimplydataError('replace_numbers_where() needs with_value=, a number or "empty".'
                                   + self._example('replace_numbers_where(land, with_value="empty")'))
-        if with_value is None or with_value == "empty":
+        if with_value is None or (isinstance(with_value, str) and with_value == "empty"):
             new, said = np.where(mask, np.nan, self._values.astype(float)), "empty"
         elif is_number(with_value):
             new, said = np.where(mask, with_value, self._values), say(with_value)
+        elif isinstance(with_value, (list, tuple, np.ndarray)) or hasattr(with_value, "_values"):
+            from ._base import to_array
+
+            other = to_array(with_value, "with_value=", "numbers.replace_numbers_where(land, with_value=other)")
+            if other.shape != self._values.shape:
+                raise SimplydataError(f"with_value= needs a number, or numbers of the same size as yours "
+                                      f"({self._values.size}); it has {other.size}.")
+            new = self._values.astype(np.result_type(self._values, other), copy=True)
+            np.copyto(new, other, where=mask)
+            n = int(np.count_nonzero(mask))
+            print(f"Replaced {n} of {amount(self._values.size)} with the other numbers at the same places. NumPy: "
+                  f"np.copyto({self._name}, other, where=yes_no)")
+            return self._change("replace numbers where yes with other numbers", new)
         else:
             raise SimplydataError(f'with_value= needs a number or "empty" (you gave {with_value!r}).'
                                   + self._example('replace_numbers_where(land, with_value="empty")'))
