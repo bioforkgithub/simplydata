@@ -5,6 +5,52 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: calculus checks, series, transforms, code, number theory, ways and exact grids (families for 100 %, batches 24-26)
+
+Approved by Manish 2026-11-28 (plan section 2.10, G11, G13 and G15). Every answer comes from SymPy, under the one
+time limit; each word and value is tested against SymPy directly, with reliability cases against closed forms (the
+Laplace tables of Abramowitz and Stegun), the OEIS and R (pracma isprime and factors, base R choose and factorial).
+
+- New family word `formula.take_transform("laplace")`: the Laplace, Fourier, Mellin, sine, cosine and Hankel
+  transforms and their inverses (SymPy `laplace_transform` ... with `noconds=True`); `from_letter=`, `to_letter=`,
+  `order=` (Hankel) and `between=` (the strip of the inverse Mellin transform).
+- New word `formula.find_area_along_path(path="x = cos(t), y = sin(t)", between=[0, "2*pi"])`: the line integral
+  (SymPy `line_integrate`).
+- New family word `formula.check_if_always("rising", between=[0, 5])`: "rising", "falling", "strictly rising",
+  "strictly falling", "one way only" and "bending up" (SymPy `is_increasing` ... `is_convex`); None when SymPy cannot
+  tell, said plainly.
+- New words `formula.find_turning_points()` (SymPy `stationary_points`), `formula.find_where_undefined()`
+  (`singularities`) and `formula.find_period()` (`periodicity`).
+- New words `formula.find_fourier_series(between=["-pi", "pi"], how_many_terms=3)` (SymPy `fourier_series`),
+  `formula.find_residue_at(0)` (`residue`), `formula.list_terms(between=[1, 10])` (`sequence`),
+  `formula.find_hessian()` (`hessian`, as an exact grid) and `formula.find_wronskian(["exp(2*x)"])` (`wronskian`;
+  `whole_numbers_only=True` gives the Casoratian as a formula).
+- New family word `formula.show_as_code("r")`: C, C++, Fortran, GLSL, JavaScript, Julia, Maple, Mathematica,
+  MathML, Octave/MATLAB, Python, R, Rust, SMT-LIB, SymPy, text and SymPy's full form (SymPy's code printers), and
+  `formula.show_as_tree()` (`print_tree`; `as_graphviz=True`: `dotprint`).
+- New options: `find_taylor_series(all_terms=True)` (SymPy `fps`, every term), `find_limit_as(...,
+  whole_numbers_only=True)` (`limit_seq`), `find_slope_formula(step=1)` (a forward difference,
+  `differentiate_finite`; `difference_delta` for step 1) and `show_as_latex(left_side="y", over_lines=True)`
+  (`multiline_latex`).
+- New word `sdata.check_solution("dy/dx = y", "y = 3*exp(x)")`: SymPy `checksol`, `checkodesol` and `checkpdesol`.
+- New word `sdata.find_product_of_series("k/(k + 1)", between=[1, "n"])` (SymPy `product`).
+- `sdata.solve(..., exactly=True)` also solves in whole numbers (`whole_numbers_only=True`, SymPy `diophantine`
+  with every sign and order), sequences ("a(n + 2) = a(n + 1) + a(n)" with `at_start={0: 0, 1: 1}`, `rsolve`) and
+  partial differential equations ("du/dx + 2*du/dy = 0", `pdsolve`).
+- New words `sdata.list_ways_to_choose(2, out_of=[...])` (SymPy `subsets`; `with_repeats=True`; `one_from_each=`:
+  `cartes`) and `sdata.list_ways_to_order(2, out_of=[...])` (`variations`), up to 100,000 ways.
+- New words on numbers (G13): `numbers.check_if_prime()` (SymPy `isprime`), `numbers.find_prime_factors()`
+  (`factorint`; `show="different primes"`: `primefactors`; a fraction: `factorrat`) and the family
+  `numbers.find_number_fact("divisors")` for SymPy's other number theory (46 facts: divisors, perfect, next prime,
+  primorial, partitions, inverse modulo, discrete log, continued fractions, egyptian fractions ...). Numbers above
+  2**53 are refused; an answer above it is given exactly as text.
+- `sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True)`: an exact grid (SymPy Matrix) with fractions and letters,
+  with find_determinant, take_inverse, find_eigenvalues, find_null_space, solve_for, find_permanent,
+  make_columns_orthogonal and find_value_at; new grid words `grid.find_permanent()` (SymPy `per`) and
+  `grid.make_columns_orthogonal()` (`GramSchmidt`).
+- Help pointers for every SymPy name of these batches; matrix expressions, ODE classifiers and the like point to
+  the hand-over `formula.as_sympy()`.
+
 ### Added: polynomial algebra, SymPy's simplifiers and SymPy's names in formulas (families for 100 %, batches 22-23)
 
 Approved by Manish 2026-11-28 (plan section 2.10, G11 and G14). Every answer comes from SymPy, under the one time

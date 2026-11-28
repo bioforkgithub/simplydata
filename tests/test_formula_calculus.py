@@ -403,3 +403,18 @@ def test_permanent_and_orthogonal_columns_on_a_grid_of_numbers():
     assert (values.T @ values).ravel().tolist() == pytest.approx([1.0, 0.0, 0.0, 1.0])
     with pytest.raises(sdata.SimplydataError, match="depend on each other"):
         _quiet(sdata.number_grid([[1, 2], [2, 4]]).make_columns_orthogonal)
+
+
+def test_every_sympy_name_of_the_new_words_points_to_its_word():
+    from simplydata._other_names import OTHER_NAMES
+
+    names = OTHER_NAMES["sympy"]
+    used = ([v[0] for v in _formula_calculus.TRANSFORMS.values()] + [v[0] for v in _formula_calculus.ALWAYS.values()]
+            + [v[0] for v in _formula_calculus.LANGUAGES.values()]
+            + [v[0] for v in number_theory_words.FACTS.values()]
+            + ["checksol", "checkodesol", "checkpdesol", "diophantine", "rsolve", "pdsolve", "product", "subsets",
+               "variations", "cartes", "isprime", "factorint", "primefactors", "factorrat", "fps", "limit_seq",
+               "differentiate_finite", "multiline_latex", "line_integrate", "stationary_points", "singularities",
+               "periodicity", "fourier_series", "residue", "sequence", "hessian", "wronskian", "casoratian",
+               "GramSchmidt", "per", "print_tree", "dotprint"])
+    assert [n for n in used if n not in names] == []
