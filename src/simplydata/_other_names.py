@@ -1722,8 +1722,8 @@ _SYMPY = [
     ('sdata.formula("x**3 - 2*x"), then formula.find_area_formula()', "integrate Integral"),
     ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], exactly=True)', "quad"),
     ('sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2)', "subs evalf N lambdify"),
-    ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify nsimplify trigsimp radsimp cancel"),
-    ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand expand_trig"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand"),
     ('sdata.formula("x**2 - 4"), then formula.turn_into_product()', "factor"),
     ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()', "apart"),
     ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "collect"),
@@ -1746,6 +1746,188 @@ _SYMPY = [
     ("formula.as_sympy() hands the formula to SymPy, where the SymPy call works (factorint finds the prime factors "
      "of a whole number)", "srepr factorint"),
 ]
+
+
+# families for 100 %, batches 22-23 (plan section 2.10, approved by Manish 2026-11-28, G11 and G14): SymPy's
+# polynomial algebra, simplifiers and expand steps, each to the formula word and option value that runs it; SymPy's
+# names in formula text (made from _formula_names.py); and the SymPy areas left to SymPy (sets, logic, geometry,
+# tensors, number transforms), which point to the hand-over.
+_HAND_OVER = "formula.as_sympy() hands the formula to SymPy, where SymPy's"
+_SYMPY_POLYNOMIALS = [
+    ('sdata.formula("x**3 - 2*x**2 - x + 2"), then formula.find_roots(): every root exactly, with how many times it '
+     "repeats (SymPy's CRootOf for a root without a formula in roots)",
+     "all_roots rootof RootOf CRootOf ComplexRootOf"),
+    ('sdata.formula("x**5 - x + 1"), then formula.find_roots(real_only=True)', "real_roots"),
+    ('sdata.formula("2*x**3 - 3*x**2 - 2*x + 3"), then formula.find_roots(fractions_only=True)', "ground_roots"),
+    ('sdata.formula("x**3 - 2"), then formula.find_roots(exactly=False) (decimals)', "nroots"),
+    ('sdata.formula("x**3 - 2*x**2 - x + 2"), then formula.find_roots(show="count") (between=[0, 3] for a range)',
+     "count_roots"),
+    ('sdata.formula("x**2 - 2"), then formula.find_roots(show="intervals", within=0.001)',
+     "intervals isolate refine_root"),
+    ('sdata.formula("x**3*y + x*y**2 + 1"), then formula.find_degree() (the total degree with several letters)',
+     "degree total_degree"),
+    ('sdata.formula("x**3*y + x*y**2 + 1"), then formula.find_degree(for_letter=["x", "y"])', "degree_list"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1")', "div"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1", show="quotient")', "quo"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1", show="remainder")', "rem"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("2*x - 1", without_fractions=True) (show= for one '
+     "part)", "pdiv pquo prem"),
+    ('sdata.formula("x**3 - 1"), then formula.divide_by("x - 1", with_no_remainder=True)', "exquo pexquo"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with("x**2 - 1")', "gcd"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with(["x**2 - 1", "x**3 + 1"])', "gcd_list"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with("x**2 - 1", show="common factor and the '
+     'rest")', "cofactors"),
+    ('sdata.formula("x**2 - 1"), then formula.find_common_factor_with("x**2 + 3*x + 2", show="combination")',
+     "gcdex"),
+    ('sdata.formula("x**2 - 1"), then formula.find_common_factor_with("x**2 + 3*x + 2", show="half combination")',
+     "half_gcdex"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_multiple_with("x**2 - 1") (a list for several)',
+     "lcm lcm_list"),
+    ('sdata.formula("1/x + 1/(x + 1)"), then formula.turn_into_one_fraction()', "together"),
+    ('sdata.formula("(x + 1)/(x - 2)"), then top, bottom = formula.split_into_top_and_bottom()',
+     "fraction numer denom"),
+    ('sdata.formula("(x + 1)**2 + sin(x + 1)"), then formula.find_repeated_parts()', "cse"),
+    ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()',
+     "apart_list assemble_partfrac_list"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("discriminant")', "discriminant"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("resultant", other="x - 1")', "resultant"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("subresultants", other="x - 1")', "subresultants"),
+    ('sdata.formula("x**2*y - 1"), then formula.find_fact("groebner basis", other=["x*y - 1"])',
+     "groebner GroebnerBasis"),
+    ('sdata.formula("sqrt(2) + sqrt(3)"), then formula.find_fact("minimal polynomial")', "minimal_polynomial minpoly"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("galois group")', "galois_group"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("sturm sequence")', "sturm"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("viete formulas")', "viete"),
+    ('sdata.formula("3*x**2 - 3*x + 1"), then formula.find_fact("leading coefficient")', "LC"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("leading term")', "LT"),
+    ('sdata.formula("x**2 + y**2"), then formula.find_fact("symmetric form")', "symmetrize"),
+    ('sdata.formula("6*x**2 + 4"), then formula.find_fact("number factor")', "content"),
+    ('sdata.formula("6*x**2 + 4"), then formula.find_fact("without number factor")', "primitive"),
+    ('sdata.formula("2*x**2 - 2"), then formula.find_fact("factors")', "factor_list"),
+    ('sdata.formula("(x - 1)**2*(x + 1)"), then formula.find_fact("repeated factors")', "sqf_list"),
+    ('sdata.formula("x**4 - 1"), then formula.find_fact("square-free part")', "sqf_part"),
+    ('sdata.formula("x**3 - x"), then formula.find_fact("factorial factors") (SymPy gff itself is not written for '
+     "letters)", "gff_list gff"),
+    ('sdata.formula("2*x**2 + 4"), then formula.find_fact("divided by leading coefficient")', "monic"),
+    ('sdata.formula("x**4 + 2*x**2 + 1"), then formula.find_fact("parts it is made of")', "decompose"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("put into", other="x + 1")', "compose"),
+    ('sdata.formula("x"), then formula.find_fact("inverse modulo", other="x**2 + 1")', "invert"),
+    ('sdata.formula("5*x + 7"), then formula.find_fact("coefficients modulo", other=3)', "trunc"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("powers of roots", power=2)', "nth_power_roots_poly"),
+    ('sdata.formula("factorial(k)"), then formula.find_fact("term ratio")', "hypersimp"),
+    ('sdata.formula("x**2 + 1"), then formula.find_fact("remainder by several", other=["x - 1"])', "reduced"),
+    ('sdata.formula("x**2 - 3*x + 1") is the polynomial itself; formula.find_fact("coefficients") gives its '
+     "coefficients", "Poly PurePoly poly poly_from_expr"),
+    # make_simpler(by=), turn_into_sum(by=), turn_into_product(by=)
+    ('sdata.formula("sin(x)**2 + cos(x)**2"), then formula.make_simpler(by="trig functions")', "trigsimp"),
+    ('sdata.formula("exp(x) + exp(-x)"), then formula.make_simpler(by="exponentials and trig")', "exptrigsimp"),
+    ('sdata.formula("sin(x)**4 - cos(x)**4"), then formula.make_simpler(by="trig rules")', "fu FU"),
+    ('sdata.formula("x**a * x**b"), then formula.make_simpler(by="powers")', "powsimp"),
+    ('sdata.formula("(x**a)**b"), then formula.make_simpler(by="powers of powers")', "powdenest"),
+    ('sdata.formula("log(x) + log(y)", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.make_simpler(by="logs")', "logcombine"),
+    ('sdata.formula("(x**2 - 1)/(x - 1) + 1/x"), then formula.make_simpler(by="fractions")', "ratsimp"),
+    ('sdata.formula("(x**2 - 1)/(x - 1)"), then formula.make_simpler(by="common factors")', "cancel"),
+    ('sdata.formula("1/(1 + sqrt(2))"), then formula.make_simpler(by="roots in the bottom")', "radsimp"),
+    ('sdata.formula("sqrt(5 + 2*sqrt(6))"), then formula.make_simpler(by="nested roots")', "sqrtdenest"),
+    ('sdata.formula("gamma(x + 1)/gamma(x)"), then formula.make_simpler(by="gamma functions")', "gammasimp"),
+    ('sdata.formula("factorial(n + 1)/factorial(n)"), then formula.make_simpler(by="factorials")', "combsimp"),
+    ('sdata.formula("besselJ(x, 1) + besselJ(x, 3)"), then formula.make_simpler(by="bessel functions")',
+     "besselsimp"),
+    ('sdata.formula("hyper((1, 1), (2,), x)"), then formula.make_simpler(by="hypergeometric functions")',
+     "hyperexpand"),
+    ('sdata.formula("KroneckerDelta(a, b)**2"), then formula.make_simpler(by="kronecker deltas")', "kroneckersimp"),
+    ('sdata.formula("-(x - 1)"), then formula.make_simpler(by="signs")', "signsimp"),
+    (_HAND_OVER + " collect_const works (SymPy writes its answer unevaluated, so simplydata leaves it to SymPy; "
+     'formula.group_by_powers_of("x") gathers terms by a letter)', "collect_const"),
+    ('sdata.formula("x*y + x"), then formula.make_simpler(by="letters apart")', "separatevars"),
+    ('sdata.formula("Piecewise((x, x > 0), (0, True)) + 1"), then formula.make_simpler(by="conditions")',
+     "piecewise_fold piecewise_exclusive"),
+    ('sdata.formula("0.5*x + 0.25"), then formula.make_simpler(by="decimals as fractions")', "nsimplify"),
+    ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "rcollect"),
+    ('sdata.formula("sqrt(x**2)", letters_are={"x": "positive"}) says what a letter is', "posify"),
+    ('sdata.formula("log(x*y)", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.turn_into_sum(by="logs")', "expand_log"),
+    ('sdata.formula("sin(a + b)"), then formula.turn_into_sum(by="trig functions")', "expand_trig"),
+    ('sdata.formula("x**(a + b)"), then formula.turn_into_sum(by="powers")', "expand_power_exp"),
+    ('sdata.formula("(x*y)**a", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.turn_into_sum(by="power of a product")', "expand_power_base"),
+    ('sdata.formula("x*(y + 1)*(x + 1)"), then formula.turn_into_sum(by="products")', "expand_mul"),
+    ('sdata.formula("(x + y)**3"), then formula.turn_into_sum(by="powers of sums")', "expand_multinomial"),
+    ('sdata.formula("exp(x)"), then formula.turn_into_sum(by="real and imaginary parts")', "expand_complex"),
+    ('sdata.formula("gamma(x + 1)"), then formula.turn_into_sum(by="special functions")', "expand_func"),
+    ('sdata.formula("2*x + 4*x*y"), then formula.turn_into_product(by="common factors")', "factor_terms"),
+    ('sdata.formula("x/2 + x**2/4"), then formula.turn_into_product(by="common factors over one fraction")',
+     "gcd_terms"),
+    ('sdata.formula("x**3 + x**2"), then formula.turn_into_product(by="common power of letters")', "terms_gcd"),
+    ('sdata.formula("x**3 - x**2 - x + 1"), then formula.turn_into_product(by="repeated factors")', "sqf"),
+    ('sdata.formula("x**3 + 2*x + 1"), then formula.turn_into_product(by="nested") (Horner form)', "horner"),
+    # SymPy's own names that formula text writes another way
+    ('sdata.formula("x**(1/3)"): the cbrt of SymPy is the principal cube root x**(1/3); numbers.take_cube_root() gives '
+     "the real cube root of numbers, also below 0", "cbrt"),
+    ("numbers.take_cube_root() gives the real cube root of numbers, also below 0; other real roots: " + _HAND_OVER
+     + " real_root works", "real_root"),
+    ('sdata.formula("x"): a formula of a letter is the letter itself (the Id of SymPy is the identity function)', "Id"),
+    ("sdata.number_grid([[1, 2], [3, 4]]), then grid.swap_rows_and_columns(); for formulas of matrices, "
+     + _HAND_OVER + " transpose and adjoint work", "transpose adjoint"),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="smooth curve"), on a table; '
+     "spline formulas themselves: " + _HAND_OVER + " bspline_basis works",
+     "bspline_basis bspline_basis_set interpolating_spline"),
+    # TODO(full-3, plan section 2.3): sdata.find_zeros_of("spherical bessel j") and formula text legendre(3, x) come
+    # with the maths family; until it is merged these point to the hand-over
+    (_HAND_OVER + " jn_zeros and the polynomial makers work (formula text writes legendre(3, x) and "
+     "chebyshevt(3, x) with the maths family)",
+     "jn_zeros jacobi_normalized chebyshevt_poly chebyshevu_poly hermite_poly hermite_prob_poly jacobi_poly "
+     "laguerre_poly legendre_poly cyclotomic_poly swinnerton_dyer_poly symmetric_poly random_poly itermonomials "
+     "interpolating_poly rational_interpolate"),
+    (_HAND_OVER + " Riemann-surface tools work (simplydata keeps formulas on the ordinary complex numbers)",
+     "exp_polar periodic_argument polar_lift polarify principal_branch unbranched_argument unpolarify"),
+    (_HAND_OVER + " polynomial machinery works (domains, rings, fields, monomial orders and their errors): "
+     "simplydata's polynomial words choose them by themselves",
+     "AlgebraicField CC ComplexField Domain EX EXRAW ExpressionDomain FF FF_gmpy FF_python FiniteField FractionField "
+     "GF GMPYFiniteField GMPYIntegerRing GMPYRationalField IntegerRing PolynomialRing PythonFiniteField "
+     "PythonIntegerRing QQ QQ_I QQ_gmpy QQ_python RR RationalField RealField ZZ ZZ_I ZZ_gmpy ZZ_python Monomial "
+     "Options construct_domain field ring sfield sring vfield vring xfield xring grevlex grlex igrevlex igrlex ilex lex "
+     "parallel_poly_from_expr RootSum is_zero_dimensional sqf_norm field_isomorphism prime_decomp prime_valuation "
+     "primitive_element to_number_field round_two hypersimilar ratsimpmodprime EPath epath CoercionFailed "
+     "ComputationFailed EvaluationFailed ExactQuotientFailed ExtraneousFactors GeneratorsNeeded HeuristicGCDFailed "
+     "HomomorphismFailed IsomorphismFailed NotAlgebraic NotInvertible NotReversible OperationNotSupported "
+     "PolificationFailed PolynomialDivisionFailed RefinementFailed UnificationFailed"),
+    # G11 (approved by Manish 2026-11-28): areas left to SymPy
+    (_HAND_OVER + " sets work (simplydata leaves sets to SymPy; sdata.solve(..., exactly=True) writes the answers "
+     "of rules as ranges)",
+     "Complement ComplexRegion Complexes ConditionSet Contains DisjointUnion EmptySet FiniteSet ImageSet Integers "
+     "Intersection Interval Naturals Naturals0 OmegaPower Ordinal PowerSet ProductSet Range Rationals Reals Set "
+     "SymmetricDifference Union UniversalSet imageset ord0"),
+    (_HAND_OVER + " logic works (simplydata leaves logic formulas to SymPy; numbers.turn_into_yes_or_no(...) makes "
+     "yes or no values of numbers)",
+     "And Equivalent ITE Implies Nand Nor Not Or POSform SOPform Xor bool_map false satisfiable simplify_logic "
+     "to_cnf to_dnf to_nnf true"),
+    (_HAND_OVER + " geometry works (simplydata leaves points, lines and shapes to SymPy; "
+     'table.find_fence_around(x="east", y="north") finds the fence around points of a table)',
+     "Circle Curve Ellipse Line Line2D Line3D Parabola Plane Point Point2D Point3D Polygon Ray Ray2D Ray3D "
+     "RegularPolygon Segment Segment2D Segment3D Triangle are_similar centroid closest_points convex_hull deg "
+     "farthest_points intersection rad"),
+    (_HAND_OVER + " tensors and indexed arrays work (simplydata leaves them to SymPy; sdata.number_block(...) holds "
+     "numbers in three directions)",
+     "DenseNDimArray Idx ImmutableDenseNDimArray ImmutableSparseNDimArray Indexed IndexedBase MutableDenseNDimArray "
+     "MutableSparseNDimArray NDimArray SparseNDimArray derive_by_array get_contraction_structure get_indices "
+     "permutedims tensorcontraction tensordiagonal tensorproduct"),
+    (_HAND_OVER + " number transforms and quaternions work (simplydata leaves them to SymPy; "
+     "numbers.take_fourier_transform() is the Fourier transform of numbers)",
+     "Quaternion fft ntt intt fwht ifwht mobius_transform inverse_mobius_transform covering_product "
+     "intersecting_product"),
+    ("numbers.convolve_with([1, 2, 1])", "convolution"),
+]
+
+
+def _sympy_formula_names() -> list:
+    from ._formula_names import pointer_groups
+
+    return pointer_groups()
+
+
+_SYMPY += _SYMPY_POLYNOMIALS + _sympy_formula_names()
 
 
 # so.<name> and seaborn.objects.<name>: seaborn's objects interface (so.Plot with marks, stats, moves and scales), the
