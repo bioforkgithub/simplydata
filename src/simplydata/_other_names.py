@@ -1398,6 +1398,14 @@ _RANDOM = [
     ('sdata.distribution("geometric", chance=0.2).make_random_numbers(how_many=100)', "geometric"),
     ('sdata.distribution("hypergeometric", marked=10, unmarked=40, drawn=5).make_random_numbers(how_many=100)',
      "hypergeometric"),
+    # families for 100 %, batches 5-6: the joint distributions of a NumPy Generator (G4)
+    ('sdata.distribution("dirichlet", concentrations=[2, 3, 5]).make_random_numbers(how_many=100)', "dirichlet"),
+    ('sdata.distribution("multinomial", tries=10, chances=[0.2, 0.3, 0.5]).make_random_numbers(how_many=100)',
+     "multinomial"),
+    ('sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])'
+     ".make_random_numbers(how_many=100)", "multivariate_normal"),
+    ('sdata.distribution("multivariate hypergeometric", counts=[5, 3, 2], drawn=4).make_random_numbers(how_many=100)',
+     "multivariate_hypergeometric"),
     ('sdata.distribution("negative binomial", size=3, chance=0.4).make_random_numbers(how_many=100)',
      "negative_binomial"),
 ]
@@ -1561,6 +1569,61 @@ _STATS = [
      "test)", "power"),
 ]
 
+
+
+def _plain_distribution_pointers():
+    """Families for 100 %, batches 5-6 (G3): each SciPy distribution without a family of its own points to its plain
+    name, made from the one name table (simplydata._distribution_names.PLAIN)."""
+    from ._distribution_names import PLAIN
+
+    out = []
+    for scipy_name, (plain, _, shapes) in PLAIN.items():
+        names = list(shapes.values())
+        counts = scipy_name in ("betabinom", "betanbinom", "boltzmann", "dlaplace", "logser", "nchypergeom_fisher",
+                                "nchypergeom_wallenius", "nhypergeom", "planck", "poisson_binom", "skellam",
+                                "yulesimon", "zipf", "zipfian")
+        names += [] if counts else ["location", "scale"]
+        given = ", ".join(f"{n}=..." for n in names)
+        out.append((f'sdata.distribution("{plain}"' + (f", {given}" if given else "") + ")", scipy_name))
+    return out
+
+
+_STATS += _plain_distribution_pointers() + [
+    # families for 100 %, batches 5-6: joint distributions (G4), made distributions and functions of a distribution
+    ('sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])',
+     "multivariate_normal"),
+    ('sdata.distribution("multivariate t", location=[0, 0], spread=[[1, 0], [0, 1]], degrees_of_freedom=5)',
+     "multivariate_t"),
+    ('sdata.distribution("dirichlet", concentrations=[2, 3, 5])', "dirichlet"),
+    ('sdata.distribution("multinomial", tries=10, chances=[0.2, 0.3, 0.5])', "multinomial"),
+    ('sdata.distribution("multivariate hypergeometric", counts=[5, 3, 2], drawn=4)', "multivariate_hypergeom"),
+    ('sdata.distribution("dirichlet multinomial", concentrations=[2, 3, 5], tries=10)', "dirichlet_multinomial"),
+    ('sdata.distribution("wishart", degrees_of_freedom=5, scale=[[1, 0], [0, 1]])', "wishart"),
+    ('sdata.distribution("inverse wishart", degrees_of_freedom=5, scale=[[1, 0], [0, 1]])', "invwishart"),
+    ('sdata.distribution("matrix normal", averages=[[0, 0], [0, 0]], row_covariance=..., column_covariance=...)',
+     "matrix_normal"),
+    ('sdata.distribution("matrix t", averages=[[0, 0], [0, 0]], row_spread=..., column_spread=..., '
+     "degrees_of_freedom=5)", "matrix_t"),
+    ('sdata.distribution("von mises-fisher", direction=[0, 0, 1], concentration=10)', "vonmises_fisher"),
+    ('sdata.distribution("uniform direction", dimensions=3)', "uniform_direction"),
+    ('sdata.distribution("random correlation", eigenvalues=[0.5, 1.5, 1.0])', "random_correlation"),
+    ('sdata.distribution("random orthogonal", dimensions=3)', "ortho_group"),
+    ('sdata.distribution("random rotation", dimensions=3)', "special_ortho_group"),
+    ('sdata.distribution("random unitary", dimensions=3)', "unitary_group"),
+    ('sdata.distribution("random table", row_totals=[3, 5], column_totals=[4, 4])', "random_table"),
+    ('sdata.distribution("normal inverse gamma", average=0, precision=1, shape=2, scale=1)', "normal_inverse_gamma"),
+    ('sdata.distribution("mixture", of=[first, second], shares=[0.3, 0.7])', "Mixture"),
+    ('sdata.distribution("from values", values=[1, 2, 5], chances=[0.2, 0.5, 0.3])', "rv_discrete"),
+    ('sdata.distribution("histogram", counts=[3, 9, 4], bin_edges=[0, 1, 2, 3])', "rv_histogram"),
+    ('sdata.distribution("skew normal", shape=4): every SciPy distribution by its plain name or its SciPy name',
+     "make_distribution"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10)', "Normal"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3)', "Binomial"),
+    ('sdata.distribution("lognormal", log_average=0).take_function("log") (also "exp", "absolute value")',
+     "log exp abs"),
+    ('sdata.distribution("normal").take_function("order statistic", rank=2, out_of=5)', "order_statistic"),
+]
+
 # special.<name>: scipy.special (the functions; a formula can use gamma, lgamma, digamma, beta, erf, erfc, besselJ)
 _SPECIAL = [
     ("sdata.count_ways_to_choose(3, out_of=10)", "comb binom"),
@@ -1572,6 +1635,53 @@ _SPECIAL = [
      "erf, erfc and besselJ", "gamma gammaln loggamma digamma psi beta erf erfc jv"),
     ('sdata.distribution("normal").find_chance_that_value(is_below=1.96)', "ndtr log_ndtr"),
     ('sdata.distribution("normal").find_percentile(97.5)', "ndtri"),
+    # families for 100 %, batches 5-6 (approved by Manish 2026-11-28): the distribution functions of scipy.special
+    ('sdata.distribution("binomial", tries=10, chance=0.3).find_chance_that_value(is_at_most=3) (is_above= for the '
+     "upper tail)", "bdtr bdtrc"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3).find_chance_that_value(is_below=7.8)', "chdtr chdtrc"),
+    ('sdata.distribution("F", degrees_of_freedom=[3, 20]).find_chance_that_value(is_below=3.1)', "fdtr fdtrc"),
+    ('sdata.distribution("gamma", shape=2, rate=1).find_chance_that_value(is_below=3)', "gdtr gdtrc"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4).find_chance_that_value(is_at_most=2)',
+     "nbdtr nbdtrc"),
+    ('sdata.distribution("poisson", average=3).find_chance_that_value(is_at_most=2)', "pdtr pdtrc"),
+    ('sdata.distribution("t", degrees_of_freedom=5).find_chance_that_value(is_below=2.0)', "stdtr"),
+    ('sdata.distribution("beta", shape1=2, shape2=5).find_chance_that_value(is_below=0.3)', "btdtr"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_chance_that_value('
+     "is_below=5)", "chndtr"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'
+     ".find_chance_that_value(is_below=3)", "ncfdtr"),
+    ('sdata.distribution("noncentral t", degrees_of_freedom=5, noncentrality=1).find_chance_that_value(is_below=2)',
+     "nctdtr"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3).find_percentile(95)', "chdtri"),
+    ('sdata.distribution("F", degrees_of_freedom=[3, 20]).find_percentile(95)', "fdtri"),
+    ('sdata.distribution("gamma", shape=2, rate=1).find_percentile(95)', "gdtrix"),
+    ('sdata.distribution("t", degrees_of_freedom=5).find_percentile(97.5)', "stdtrit"),
+    ('sdata.distribution("beta", shape1=2, shape2=5).find_percentile(95)', "btdtri"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_percentile(95)',
+     "chndtrix"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'
+     ".find_percentile(95)", "ncfdtri"),
+    ('sdata.distribution("noncentral t", degrees_of_freedom=5, noncentrality=1).find_percentile(95)', "nctdtrit"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3).find_percentile(50), the whole count (as R qbinom)',
+     "bdtrik"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4).find_percentile(50), the whole count',
+     "nbdtrik"),
+    ('sdata.distribution("poisson", average=3).find_percentile(50), the whole count (as R qpois)', "pdtrik"),
+    ('sdata.distribution("normal").find_percentile(97.5), for a chance given as its log: the percentile of '
+     "exp(log chance)", "ndtri_exp"),
+    ('sdata.distribution("kolmogorov-smirnov limit").find_chance_that_value(is_above=1.36)', "kolmogorov"),
+    ('sdata.distribution("kolmogorov-smirnov limit").find_cut_off(with_chance_above=0.05)', "kolmogi"),
+    ('sdata.distribution("kolmogorov-smirnov one-sided", sample_size=20).find_chance_that_value(is_above=0.25)',
+     "smirnov"),
+    ('sdata.distribution("kolmogorov-smirnov one-sided", sample_size=20).find_cut_off(with_chance_above=0.05)',
+     "smirnovi"),
+    ('sdata.distribution("skew normal", shape=2).find_chance_that_value(is_below=1): its chance below is the normal\'s '
+     "minus 2 x Owen's T", "owens_t"),
+    ('sdata.distribution("tukey lambda", shape=0.14).find_chance_that_value(is_below=1)', "tklmbda"),
+    ('sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1) (the missing parameter of t, '
+     "chi-square, F, gamma, beta, binomial, negative binomial, poisson, normal and the noncentral ones)",
+     "stdtridf chdtriv fdtridfd gdtria gdtrib btdtria btdtrib bdtri bdtrin nbdtri nbdtrin pdtri nrdtrimn nrdtrisd "
+     "chndtridf chndtrinc ncfdtridfd ncfdtridfn ncfdtrinc nctdtridf nctdtrinc"),
 ]
 
 # scipy.<name>, optimize., integrate., interpolate., signal., ndimage. and spatial.: names whose word the sdata,

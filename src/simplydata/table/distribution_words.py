@@ -106,7 +106,9 @@ class DistributionTableWords:
             lines.append(f"  {label} ({info['rows']} values): {_d._fit_parts(dist)}; log-likelihood "
                          f"{info['log-likelihood']:.1f}, AIC {info['AIC']:.1f}")
         names = " and ".join(f'"{g}"' for g in groups)
-        title = fits[0]._family.title if isinstance(fits[0]._family, _d.Family) else f"SciPy {fits[0].name}"
+        family = fits[0]._family
+        title = (family.title if isinstance(family, _d.Family) else f"{family.plain} (SciPy {family})"
+                 if getattr(family, "plain", None) else f"SciPy {fits[0].name}")
         article = "an" if title[0].lower() in "aeiou" else "a"
         print(f'Fitted {article} {title} distribution to "{column}" for each {names}:')
         for line in lines[:GROUPS_IN_SENTENCE]:

@@ -153,7 +153,9 @@ GROUPS = [
                        "nums.fit_distribution", "dist.find_chance_that_value", "dist.find_density_at", "dist.find_percentile", "dist.find_cut_off",
                        "dist.find_middle_range", "dist.find_average", "dist.find_median", "dist.find_standard_deviation",
                        "dist.find_variance", "dist.show_summary", "dist.make_random_numbers", "dist.draw_chart", "dist.turn_into_table",
-                       "dist.show_parameters"]),
+                       "dist.show_parameters",
+                       # families for 100 %, batches 5-6 (approved by Manish 2026-11-28)
+                       "dist.take_function", "sdata.find_parameter_that_gives"]),
     ("Models", ["table.explain", "table.add_predicted_column", "table.find_model_averages_of", "table.check_model_of",
                 "table.show_rows_that_pull_model", "table.compare_models",
                 # S3a-3 (checking and comparing): "more"
@@ -860,7 +862,14 @@ HELP_EXAMPLES = {
         print(distribution)
         distribution.find_chance_that_value(is_above=80)
         coins = sdata.distribution("binomial", tries=10, chance=0.5)
-        coins.find_chance_that_value(is_at_most=3)"""),
+        coins.find_chance_that_value(is_at_most=3)
+        skewed = sdata.distribution("skew normal", shape=4, location=10, scale=2)
+        skewed.find_percentile(95)
+        pair = sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])
+        pair.find_density_at([1, 2])
+        later = sdata.distribution("normal", average=80, standard_deviation=5)
+        mixed = sdata.distribution("mixture", of=[distribution, later], shares=[0.7, 0.3])
+        mixed.find_percentile(90)"""),
     "table.fit_distribution_to": _tx("shop", 'fit = table.fit_distribution_to("sales", "lognormal")\n'
                                           "fit.find_chance_that_value(is_above=600)\nfit.turn_into_table()"),
     "table.compare_distributions_for": _tx("shop", 'table.compare_distributions_for("sales")'),
@@ -884,6 +893,15 @@ HELP_EXAMPLES = {
                            'chart.save("distribution.png")'),
     "dist.turn_into_table": _dx("result = distribution.turn_into_table()\nresult.show()"),
     "dist.show_parameters": _dx("print(distribution.show_parameters())"),
+    # families for 100 %, batches 5-6 (approved by Manish 2026-11-28)
+    "dist.take_function": _dx('sizes = distribution.take_function("absolute value")\n'
+                              'times = sdata.distribution("lognormal", log_average=2, log_standard_deviation=0.5)\n'
+                              'log_times = times.take_function("log")\nlog_times.find_percentile(50)'),
+    "sdata.find_parameter_that_gives": textwrap.dedent("""\
+        import simplydata as sdata
+        degrees = sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1)
+        sdata.find_parameter_that_gives("binomial", chance_at_most=0.3, at_value=3, tries=10)
+        sdata.find_parameter_that_gives("normal", chance_below=0.9, at_value=60, average=50)"""),
     "table.compare_spreads_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
                                              'table.compare_spreads_of("marks", for_each_group_in="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),

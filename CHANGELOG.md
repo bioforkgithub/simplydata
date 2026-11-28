@@ -5,6 +5,33 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
+
+Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that
+had no family of their own a plain name and plain parameters; each is tested against SciPy.
+
+- `sdata.distribution("skew normal", shape=4, location=10, scale=2)`, `"truncated normal"`, `"beta binomial"`,
+  `"noncentral t"`, `"log-logistic"`, `"generalised normal"`, `"studentized range"`, `"zipf"` ... every SciPy
+  distribution by its plain name, with plain parameter names (`location=`, `scale=`, `shift=` for counts, and a name
+  for what each shape does: `degrees_of_freedom=`, `tries=`, `lower_end=` ...). SciPy's names keep working
+  (`sdata.distribution("skewnorm", a=4)`), and fitting works by the plain name too.
+- Joint distributions as names of `sdata.distribution` (no new maker): `"multivariate normal"`, `"multivariate t"`,
+  `"dirichlet"`, `"multinomial"`, `"multivariate hypergeometric"`, `"dirichlet multinomial"`, `"wishart"`,
+  `"inverse wishart"`, `"matrix normal"`, `"matrix t"`, `"von mises-fisher"`, `"uniform direction"`,
+  `"random correlation"`, `"random orthogonal"`, `"random rotation"`, `"random unitary"`, `"random table"` and
+  `"normal inverse gamma"`: `find_density_at([1, 2])`, `make_random_numbers(how_many=)` (one row per draw, a block
+  for the matrix ones), `find_average()`, `find_variance()` and, for the normal and t, `find_chance_that_value(
+  is_below=[1, 2])`.
+- `sdata.distribution("mixture", of=[first, second], shares=[0.3, 0.7])` (as SciPy `Mixture`), `"from values"`
+  (`values=`, `chances=`, SciPy `rv_discrete`) and `"histogram"` (`counts=` and `bin_edges=`, or `of=numbers`,
+  SciPy `rv_histogram`).
+- New word `distribution.take_function("log")`: the distribution of the log, `"exp"`, `"absolute value"` or
+  `"order statistic"` (`rank=`, `out_of=`) of the values (SciPy `stats.log`, `exp`, `abs`, `order_statistic`).
+- New word `sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1)`: the one parameter left out
+  (scipy.special `stdtridf`, `bdtri`, `nrdtrisd` and 18 more inverse functions).
+- `sdata.help("scipy.stats.skewnorm")`, `"scipy.special.bdtr"`, `"rng.dirichlet"` and every other distribution name
+  of the plan point to the plain name or the word.
+
 ### Added: the SciPy tests and summaries that had no word yet (families for 100 %, batches 3-4)
 
 Approved by Manish 2026-11-28 (plan section 2.2). Each option value calls scipy.stats, prints the method in a plain

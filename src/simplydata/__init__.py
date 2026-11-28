@@ -48,6 +48,7 @@ from ._calculus import find_area_under, find_path_over_time, find_volume_under  
 from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of series with SymPy
 from .colours import change_colour, pick_colours_with_sliders, show_colours  # seaborn's colour tools
 from ._sensitivity import find_sensitivity_of  # families for 100 %, batches 3-4: SciPy sobol_indices
+from ._parameter_finder import find_parameter_that_gives  # families for 100 %, batches 5-6: scipy.special inverses
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -110,7 +111,8 @@ __all__ = [
     "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "count_ways_to_choose",
     "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_under", "find_chance_of_finding",
-    "find_how_many_needed", "find_inverse_fourier_transform", "find_path_over_time", "find_sensitivity_of",
+    "find_how_many_needed", "find_inverse_fourier_transform", "find_parameter_that_gives", "find_path_over_time",
+    "find_sensitivity_of",
     "find_sum_of_series", "find_volume_under",
     "find_where_biggest", "find_where_smallest", "formula", "frequency_filter", "get_example", "go_to_next_day",
     "help", "hide_stretching_notes", "make_design_table",
