@@ -1880,6 +1880,8 @@ _SYMPY_POLYNOMIALS = [
      "jn_zeros jacobi_normalized chebyshevt_poly chebyshevu_poly hermite_poly hermite_prob_poly jacobi_poly "
      "laguerre_poly legendre_poly cyclotomic_poly swinnerton_dyer_poly symmetric_poly random_poly itermonomials "
      "interpolating_poly rational_interpolate"),
+    (_HAND_OVER + " carmichael works (SymPy's old class for Carmichael numbers; its is_carmichael tests a number)",
+     "carmichael"),
     (_HAND_OVER + " Riemann-surface tools work (simplydata keeps formulas on the ordinary complex numbers)",
      "exp_polar periodic_argument polar_lift polarify principal_branch unbranched_argument unpolarify"),
     (_HAND_OVER + " polynomial machinery works (domains, rings, fields, monomial orders and their errors): "
@@ -1912,7 +1914,7 @@ _SYMPY_POLYNOMIALS = [
      "numbers in three directions)",
      "DenseNDimArray Idx ImmutableDenseNDimArray ImmutableSparseNDimArray Indexed IndexedBase MutableDenseNDimArray "
      "MutableSparseNDimArray NDimArray SparseNDimArray derive_by_array get_contraction_structure get_indices "
-     "permutedims tensorcontraction tensordiagonal tensorproduct"),
+     "permutedims tensorcontraction tensordiagonal tensorproduct shape"),
     (_HAND_OVER + " number transforms and quaternions work (simplydata leaves them to SymPy; "
      "numbers.take_fourier_transform() is the Fourier transform of numbers)",
      "Quaternion fft ntt intt fwht ifwht mobius_transform inverse_mobius_transform covering_product "
