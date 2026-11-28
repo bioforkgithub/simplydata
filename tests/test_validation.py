@@ -35,11 +35,16 @@ NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata
                      # seaborn's colour tools: a set of colours and a changed colour are made from no data
                      "sdata.show_colours", "sdata.change_colour",
                      # families for 100 %, batches 24-26: an equation and its solution, a product of a formula, the
-                     # ways to choose from a few things, facts of whole numbers (number theory) and an exact grid
-                     # of a few cells are their own inputs, checked against closed forms and the OEIS
+                     # ways to choose from a few things and facts of whole numbers (number theory) are their own
+                     # inputs, checked against closed forms and the OEIS
                      "sdata.check_solution", "sdata.find_product_of_series", "sdata.list_ways_to_",
-                     "nums.check_if_prime", "nums.find_prime_factors", "nums.find_number_fact", "sdata.number_grid",
-                     "grid.find_permanent", "grid.make_columns_orthogonal")
+                     "nums.check_if_prime", "nums.find_prime_factors", "nums.find_number_fact")
+# a word whose option alone has no data by nature: an exact grid of a few cells with letters (number_grid(exactly=True))
+NO_DATA_OPTIONS = {("sdata.number_grid", "exactly=")}
+
+
+def _no_data_by_nature(case) -> bool:
+    return case.word.startswith(NO_DATA_BY_NATURE) or (case.word, case.option) in NO_DATA_OPTIONS
 
 
 def test_every_dataset_has_a_source_a_licence_and_its_file():
@@ -63,7 +68,7 @@ def test_every_case_uses_a_known_dataset_and_a_current_word():
         if case.kind in ("published", "closed form"):
             assert case.published, f"{case.title}: a {case.kind} case names its published or worked answer"
         if case.kind == "closed form":
-            assert case.dataset == "closed form (no data)" and case.word.startswith(NO_DATA_BY_NATURE), case.title
+            assert case.dataset == "closed form (no data)" and _no_data_by_nature(case), case.title
         if case.kind == "made-up":
             assert case.dataset == "made-up", case.title
         assert case.published or case.parent or case.r, case.title
@@ -76,7 +81,7 @@ def test_every_underneath_entry_has_a_case_on_real_data():
     # shape is made from a formula, so the answer worked out from that formula is its check; every other word
     # needs a case on real data
     real = {f"{c.word} {c.option}" if c.option else c.word for c in study.CASES
-            if c.kind not in ("made-up", "closed form") or c.word.startswith(NO_DATA_BY_NATURE)}
+            if c.kind not in ("made-up", "closed form") or _no_data_by_nature(c)}
     # a word with nothing underneath (help, undo ...) computes nothing, so there is nothing to check on real data
     computed = {key for key, entry in UNDERNEATH.items() if entry.compare != "none"}
     assert computed <= real, computed - real

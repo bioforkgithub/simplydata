@@ -17,6 +17,8 @@ import textwrap
 CLOSED_FORM = "exact: worked out by hand from the formula"
 TABLES = "Abramowitz and Stegun (1964), Handbook of Mathematical Functions, table 29.3 (Laplace transforms)"
 OEIS = "OEIS (the On-Line Encyclopedia of Integer Sequences)"
+IRIS = '["Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"]'
+IRIS_R = "cor(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width))"
 
 
 def _code(*parts: str) -> str:
@@ -585,47 +587,81 @@ def cases(Case):
                    a = sp.Symbol("a")
                    {"at a = 6": float(sp.Matrix([[1, sp.Rational(1, 3)], [a, 2]]).det().subs(a, 6))}
                """, "SymPy Matrix.det", option="exactly="),
-        closed("grid.find_permanent", "the permanent of the 6 x 6 grid of 1s is 6! = 720 (OEIS A000142); of [[1, 2], "
-               "[3, 4]] it is 10",
-               """
-                   {"ones": sdata.number_grid([[1] * 6] * 6).find_permanent(),
-                    "small": sdata.number_grid([[1, 2], [3, 4]]).find_permanent()}
-               """, {"ones": (720.0, 0.0, OEIS + " A000142: per(J_n) = n!"), "small": (10.0, 0.0, CLOSED_FORM)},
-               """
-                   import sympy as sp
-                   {"ones": float(sp.ones(6, 6).per()), "small": float(sp.Matrix([[1, 2], [3, 4]]).per())}
-               """, "SymPy per"),
-        closed("grid.find_permanent", "exactly=: the permanent of [[1/2, 1], [1, 2]] is 1/2 x 2 + 1 x 1 = 2",
-               """
-                   {"permanent": sdata.number_grid([[0.5, 1], [1, 2]]).find_permanent(exactly=True).find_value_at()}
-               """, {"permanent": (2.0, 0.0, CLOSED_FORM)},
-               """
-                   import sympy as sp
-                   {"permanent": float(sp.Matrix([[sp.Rational(1, 2), 1], [1, 2]]).per())}
-               """, "SymPy per", option="exactly="),
-        closed("grid.make_columns_orthogonal", "Gram-Schmidt on (1, 1) and (1, 0) gives (1, 1) and (1/2, -1/2), at "
-               "right angles",
-               """
-                   grid = sdata.number_grid([[1, 1], [1, 0]])
-                   grid.make_columns_orthogonal()
-                   v = grid.as_numpy()
-                   {"dot": float(v[:, 0] @ v[:, 1]), "second top": float(v[0, 1])}
-               """, {"dot": (0.0, 0.0, CLOSED_FORM), "second top": (0.5, 0.0, CLOSED_FORM + ": (1, 0) - (1/2)(1, 1)")},
-               """
-                   import sympy as sp
-                   c = sp.GramSchmidt([sp.Matrix([1, 1]), sp.Matrix([1, 0])])
-                   {"dot": float(c[0].dot(c[1])), "second top": float(c[1][0])}
-               """, "SymPy GramSchmidt"),
-        closed("grid.make_columns_orthogonal", "of_length_1=: each column then has length 1",
-               """
-                   grid = sdata.number_grid([[3, 1], [4, 2]])
-                   grid.make_columns_orthogonal(of_length_1=True)
-                   v = grid.as_numpy()
-                   {"first length": float((v[:, 0] ** 2).sum()), "second length": float((v[:, 1] ** 2).sum())}
-               """, {"first length": (1.0, 1e-15, CLOSED_FORM), "second length": (1.0, 1e-15, CLOSED_FORM)},
-               """
-                   import sympy as sp
-                   c = sp.GramSchmidt([sp.Matrix([3, 4]), sp.Matrix([1, 2])], True)
-                   {"first length": float(c[0].dot(c[0])), "second length": float(c[1].dot(c[1]))}
-               """, "SymPy GramSchmidt", option="of_length_1="),
+        # ---------------------------------------------------------------- grids on real data
+        Case("grid.find_permanent", "the permanent of the correlations of Fisher's iris measurements",
+             "iris", "real data",
+             ours=f"""
+                 grid = sdata.number_grid(data[{IRIS}].corr().to_numpy().tolist())
+                 {{"permanent": grid.find_permanent()}}
+             """,
+             parent=f"""
+                 import itertools, math
+                 c = data[{IRIS}].corr().to_numpy()
+                 {{"permanent": sum(math.prod(c[i, p[i]] for i in range(4)) for p in itertools.permutations(range(4)))}}
+             """, parent_label="the definition: the sum over every pairing of rows with columns (itertools)",
+             parent_tolerance=1e-12,
+             r=f"""
+                 c <- {IRIS_R}
+                 p <- function(m) if (nrow(m) == 1) m[1, 1] else
+                     sum(sapply(1:ncol(m), function(j) m[1, j] * p(m[-1, -j, drop = FALSE])))
+                 list(permanent = p(c))
+             """, r_tolerance=1e-12),
+        Case("grid.find_permanent", "exactly=True: the permanent of AirPassengers' first 4 years x 4 months, a whole "
+             "number", "AirPassengers", "real data", option="exactly=",
+             ours="""
+                 grid = sdata.number_grid(np.asarray(data["passengers"], dtype=float).reshape(12, 12)[:4, :4].tolist())
+                 exact = grid.find_permanent(exactly=True)
+                 {"permanent": exact.find_value_at(), "whole number": float(exact.as_sympy().is_Integer)}
+             """,
+             parent="""
+                 import sympy as sp
+                 g = np.asarray(data["passengers"], dtype=float).reshape(12, 12)[:4, :4]
+                 d = sp.Matrix(g.astype(int).tolist()).per()
+                 {"permanent": float(d), "whole number": float(d.is_Integer)}
+             """, parent_label="SymPy Matrix.per", parent_tolerance=0.0,
+             r="""
+                 g <- matrix(as.numeric(passengers), nrow = 12, byrow = TRUE)[1:4, 1:4]
+                 p <- function(m) if (nrow(m) == 1) m[1, 1] else
+                     sum(sapply(1:ncol(m), function(j) m[1, j] * p(m[-1, -j, drop = FALSE])))
+                 list(permanent = p(g))
+             """, r_tolerance=0.0),
+        Case("grid.make_columns_orthogonal", "Gram-Schmidt on the columns of the iris correlations: each new column is "
+             "at right angles to those before it, and spans the same space as QR's",
+             "iris", "real data",
+             ours=f"""
+                 grid = sdata.number_grid(data[{IRIS}].corr().to_numpy().tolist())
+                 grid.make_columns_orthogonal()
+                 v = grid.as_numpy()
+                 unit = v / np.sqrt((v ** 2).sum(axis=0))
+                 {{"first two at right angles": abs(round(float(v[:, 0] @ v[:, 1]), 12)),
+                  "last column, cell 1": abs(unit[0, 3]),
+                  "last column, cell 4": abs(unit[3, 3])}}
+             """,
+             parent=f"""
+                 q, r = np.linalg.qr(data[{IRIS}].corr().to_numpy())
+                 {{"first two at right angles": 0.0, "last column, cell 1": abs(q[0, 3]),
+                  "last column, cell 4": abs(q[3, 3])}}
+             """, parent_label="NumPy linalg.qr (Householder; the same columns up to their signs)",
+             parent_tolerance=1e-12,
+             r=f"""
+                 q <- qr.Q(qr({IRIS_R}))
+                 list(`first two at right angles` = 0, `last column, cell 1` = abs(q[1, 4]),
+                      `last column, cell 4` = abs(q[4, 4]))
+             """, r_tolerance=1e-12),
+        Case("grid.make_columns_orthogonal", "of_length_1=True on the iris correlations: the orthonormal columns are "
+             "QR's Q, up to the sign of each column", "iris", "real data", option="of_length_1=",
+             ours=f"""
+                 grid = sdata.number_grid(data[{IRIS}].corr().to_numpy().tolist())
+                 grid.make_columns_orthogonal(of_length_1=True)
+                 v = grid.as_numpy()
+                 {{"cell 1, 1": abs(v[0, 0]), "cell 2, 3": abs(v[1, 2]), "cell 4, 4": abs(v[3, 3])}}
+             """,
+             parent=f"""
+                 q, r = np.linalg.qr(data[{IRIS}].corr().to_numpy())
+                 {{"cell 1, 1": abs(q[0, 0]), "cell 2, 3": abs(q[1, 2]), "cell 4, 4": abs(q[3, 3])}}
+             """, parent_label="NumPy linalg.qr", parent_tolerance=1e-12,
+             r=f"""
+                 q <- qr.Q(qr({IRIS_R}))
+                 list(`cell 1, 1` = abs(q[1, 1]), `cell 2, 3` = abs(q[2, 3]), `cell 4, 4` = abs(q[4, 4]))
+             """, r_tolerance=1e-12),
     ]

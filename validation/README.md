@@ -61,10 +61,10 @@ with Python 3.11 to 3.13 for every change.
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 1097 cases on 101 datasets (94 with a published or certified answer, 863 compared with the
+The study now has 1097 cases on 101 datasets (94 with a published or certified answer, 867 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
-manuals, design tables, worked examples): 23 of the 863 are simulation and formula checks against R that use no data at
-all; the other 840 run on real data. A word passes when it agrees with the reference to the stated, justified
+manuals, design tables, worked examples): 23 of the 867 are simulation and formula checks against R that use no data at
+all; the other 844 run on real data. A word passes when it agrees with the reference to the stated, justified
 tolerance. They cover 603 words, or 919 words and options. Words are added with each release; a word counts as done only
 when its checks pass.
 
