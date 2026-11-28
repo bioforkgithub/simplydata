@@ -34,11 +34,13 @@ from ._base import NOT_GIVEN
 from .numbers_3 import GridWords3, NumberWords3, SharedWords3
 from .numbers_4 import GridWords4
 from .solving_words import SolvingWords  # numbers finishing: solve_for and break_down (P41)
+from .._exact_grid import GridWords26  # families for 100 %, batch 26: find_permanent, make_columns_orthogonal
+from .number_theory_words import NumberTheoryWords  # families for 100 %, batch 26: number theory (G13)
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
-              FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
+              FourierNumberWords, NumberWords3, NumberTheoryWords, SharedWords3, BaseNumbers):
     """A list of numbers. Make one with sdata.number_list([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
@@ -90,7 +92,7 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 GridWords3, GridWords4, SolvingWords, SharedWords3, BaseNumbers):
+                 GridWords3, GridWords4, SolvingWords, GridWords26, SharedWords3, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -617,13 +619,24 @@ _GRID_EXAMPLE = "sdata.number_grid([[1, 2], [3, 4]])   or   sdata.number_grid(ro
 
 
 @friendly
-def number_grid(values=None, rows=None, columns=None, filled_with=0) -> NumberGrid:
+def number_grid(values=None, rows=None, columns=None, filled_with=0, exactly=False) -> NumberGrid:
     """Make a grid of numbers in rows and columns.
 
     sdata.number_grid([[1, 2, 3], [4, 5, 6]])            from rows of numbers (2 rows, 3 columns)
     sdata.number_grid(rows=3, columns=4, filled_with=0)  a grid of 0s (filled_with=1 for 1s, or any number)
     sdata.number_grid([1, 2, 3, 4, 5, 6], columns=3)     a list cut into rows of 3
+    sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True)   an exact grid (SymPy Matrix): fractions stay
+                                                 fractions and a cell may be a formula with letters, up to 12 x 12
     """
+    if not isinstance(exactly, bool):
+        raise SimplydataError("exactly= should be True or False.")
+    if exactly:  # families for 100 %, batch 26 (plan section 2.10, approved by Manish 2026-11-28)
+        if rows is not None or columns is not None:
+            raise SimplydataError("exactly=True takes rows of cells, such as sdata.number_grid([[1, \"1/3\"], "
+                                  "[\"a\", 2]], exactly=True); leave out rows= and columns=.")
+        from .._exact_grid import exact_grid
+
+        return exact_grid(values)
     for option, value in (("rows=", rows), ("columns=", columns)):
         if value is not None:
             check_whole("make_number_grid", option, value, _GRID_EXAMPLE, smallest=1)
