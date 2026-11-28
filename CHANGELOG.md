@@ -21,8 +21,14 @@ names work for numbers and inside formula text: you learn a name once.
 - The same functions inside formula text (`table.add_column`, `table.fit_formula`, `sdata.find_where_smallest`,
   `sdata.solve`, `sdata.formula`): `bessel_j(1, x)`, `erfinv(x)`, SciPy's names and SymPy's own names in SymPy's
   order (`besseli(1, x)`, `LambertW(x)`, `Ei(x)`, `elliptic_k(m)`). `sdata.formula` keeps SymPy's function where
-  SymPy has one, so slopes and series work; a function SymPy lacks keeps its name and is worked out by SciPy.
+  SymPy has one, so slopes, series and limits work for the functions SymPy knows. A function SymPy lacks keeps its
+  name and is worked out by SciPy; its slope comes from the table where the table has one (Kelvin, Struve,
+  parabolic cylinder, the Bessel slopes ...), and otherwise a plain sentence says that no slope formula is known.
   Without brackets these names are still column names and values to find (`y0`, `k1`).
+- One rule on every path (numbers, add_column, sdata.formula for one value and for many): the double factorial
+  follows SciPy (0 for a whole number below 0, empty for one that is not whole); Ci and Chi are empty below 0,
+  where they are complex numbers; an option that must be a whole number (`order=` of expn and polygamma,
+  `degree=` of hermite) stops with a plain sentence when it is not one.
 - New word `sdata.find_zeros_of(name, how_many=5, order=0)`: the zeros of Bessel, Airy and Kelvin functions
   (`jn_zeros`, `ai_zeros`, `ber_zeros` ...), and the complex zeros of the error function and the Fresnel
   integrals as a table of real and imaginary parts.
