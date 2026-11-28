@@ -163,7 +163,7 @@ def check_case(case) -> list[dict]:
 
     missing = version_missing(case.needs)
     if missing:  # a newer version of the package underneath is needed: checked where it is installed
-        return [_skipped(case, missing, local=True)]
+        return [_skipped(case, missing, newer=True)]
     if case.local_data and not os.environ.get(case.local_data):
         # data that may not be passed on (DATA_LICENSES.md): read only from a file the user names
         return [_skipped(case, f"the data file named by {case.local_data} (not shipped; see DATA_LICENSES.md)",
@@ -283,19 +283,20 @@ def _missing(case, name: str, reference: str) -> dict:
     return row
 
 
-def _skipped(case, what: str, local: bool = False) -> dict:
+def _skipped(case, what: str, local: bool = False, newer: bool = False) -> dict:
     """A case that cannot run here. local=True: it needs a data file that is not shipped (DATA_LICENSES.md) and
-    that the user may name, or a newer package version (needs=); such a skip is not a missing R part, so
-    --require-r does not count it."""
+    that the user may name; newer=True: it needs a newer version of a package (needs=), checked where that version is
+    installed. Neither is a missing R part, so --require-r does not count them."""
     return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name="(all)",
                 reference=what, ours=float("nan"), theirs=float("nan"), tolerance="", passed=False,
                 skipped=f"needs {what}, which is not "
-                + ("given here" if local and "or newer" not in what else "installed here"), note="",
-                explained="", local=local)
+                + ("given here" if local else "installed here"), note="",
+                explained="", local=local, newer=newer)
 
 
 def underneath_rows() -> list[dict]:
     from simplydata._underneath import UNDERNEATH
+    from simplydata._underneath import version_missing
     from simplydata._underneath.check import check_entry
 
     rows = []
@@ -314,7 +315,8 @@ def underneath_rows() -> list[dict]:
             outcomes = check_entry(entry)
         for o in outcomes:
             rows.append(dict(word=entry.key, library=o.library, engine=o.engine, compare=o.compare,
-                             tolerance=o.tolerance, passed=o.passed, skipped=o.skipped, differences=o.differences))
+                             tolerance=o.tolerance, passed=o.passed, skipped=o.skipped, differences=o.differences,
+                             newer=bool(o.skipped and version_missing(entry.needs))))
     return rows
 
 
@@ -347,6 +349,7 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
     failed = sum(1 for r in all_rows if not r["passed"] and not r["skipped"])
     skipped = sum(1 for r in all_rows if r["skipped"])
     local = sum(1 for r in all_rows if r.get("local"))
+    newer = sum(1 for r in all_rows if r.get("newer"))
     out = [
         "# simplydata reliability report",
         "",
@@ -360,7 +363,9 @@ def report(case_rows: list[dict], box_rows: list[dict], setup: dict, when: str) 
         "",
         f"**{passed} checks passed, {explained} explained differences, {failed} failed, {skipped} skipped** "
         f"(skipped: R or an R package is not installed on this computer, or, for {local}, the data may not be "
-        "passed on and no file was given; an explained difference falls short of its tolerance for a stated "
+        "passed on and no file was given"
+        + (f", or, for {newer}, a newer version of a package is needed" if newer else "")
+        + "; an explained difference falls short of its tolerance for a stated "
         "reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's "
         "rules, then gives simplydata's numbers), and is listed with that reason).",
         "",
@@ -445,7 +450,7 @@ def build(require_r: bool = False) -> tuple[str, int, int]:
     rows = case_rows + box_rows
     failed = sum(1 for r in rows if not r["passed"] and not r["skipped"])
     skipped = sum(1 for r in rows if r["skipped"])
-    missing_r = sum(1 for r in rows if r["skipped"] and not r.get("local"))
+    missing_r = sum(1 for r in rows if r["skipped"] and not r.get("local") and not r.get("newer"))
     return text, failed + (missing_r if require_r else 0), skipped
 
 

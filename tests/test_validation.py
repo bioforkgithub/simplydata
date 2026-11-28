@@ -95,7 +95,8 @@ def test_case_gives_the_published_and_the_parent_answer(case):
     assert rows
     failed = [r for r in rows if not r["passed"] and not r["skipped"]]
     assert not failed, [(r["name"], r["reference"], r["ours"], r["theirs"], r["tolerance"], r["note"]) for r in failed]
-    skipped = [r for r in rows if r["skipped"] and not r.get("local")]  # a data file that is not shipped: not R
+    # a data file that is not shipped, or a newer package version (checked where it is installed): not R
+    skipped = [r for r in rows if r["skipped"] and not r.get("local") and not r.get("newer")]
     if skipped and os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
         pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but {skipped[0]['skipped']}")
 
