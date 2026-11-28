@@ -123,13 +123,6 @@ jobs:
           Rscript -e 'if (!requireNamespace("qvalue", quietly = TRUE)) { install.packages("BiocManager");
           tryCatch(BiocManager::install("qvalue", update = FALSE, ask = FALSE), error = function(e)
           BiocManager::install("qvalue", version = "devel", update = FALSE, ask = FALSE)) }; library(qvalue)'
-      - name: TEMPORARY diagnostic (PR 79)
-        if: runner.os == 'Linux'
-        continue-on-error: true
-        shell: bash
-        env:
-          PKGS: ${{ steps.rlist.outputs.cran }},${{ steps.rlist.outputs.heavy }},qvalue
-        run: Rscript .github/diag/lda.R
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"

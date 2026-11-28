@@ -339,10 +339,18 @@ def test_the_prior_is_printed_after_envstats_is_attached(needs_rstanarm, capsys)
     # attached EnvStats (found in the full suite); base::print() is used for that reason
     from simplydata._r import r_call
 
+    # EnvStats is detached again at the end (when this test attached it): attached, its predict() also hides R's,
+    # and MASS's predict() of an lda fit in a later test of the same process stopped with "object 'x' not found"
+    # (pytest-xdist, PR #79)
+    attached_before = bool(r_call('"package:EnvStats" %in% search()', _cite=False)[0])
     r_call("1", packages=("EnvStats",))
-    sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], test_method="bayesian")
-    out = capsys.readouterr().out
-    assert "Adjusted prior" in out and "$prior" not in out
+    try:
+        sdata.table(sdata.get_example("school")).explain("marks", using=["hours"], test_method="bayesian")
+        out = capsys.readouterr().out
+        assert "Adjusted prior" in out and "$prior" not in out
+    finally:
+        if not attached_before:
+            r_call('detach("package:EnvStats"); 1', _cite=False)
 
 
 def test_check_model_gives_its_numbers_as_a_table(needs_rstanarm, capsys):
