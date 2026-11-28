@@ -5,6 +5,54 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: polynomial algebra, SymPy's simplifiers and SymPy's names in formulas (families for 100 %, batches 22-23)
+
+Approved by Manish 2026-11-28 (plan section 2.10, G11 and G14). Every answer comes from SymPy, under the one time
+limit; each word and value is tested against SymPy directly, with reliability cases against closed forms, the OEIS
+and R (polyroot, pracma deconv).
+
+- New word `formula.find_roots()`: the roots of a polynomial in one letter, exactly, one row each with how many
+  times it repeats (SymPy `all_roots`; a root without a formula in roots is SymPy's `CRootOf`). `real_only=True`
+  (`real_roots`), `fractions_only=True` (`ground_roots`), `between=[0, 3]`, `exactly=False` (`nroots`, decimals),
+  `show="count"` (`count_roots`) and `show="intervals"` with `within=0.001` (`intervals`).
+- New word `formula.find_degree()`: the highest power (SymPy `degree`); the total degree for several letters
+  (`total_degree`); `for_letter=["x", "y"]` for each (`degree_list`).
+- New word `formula.divide_by("x - 1")`: the quotient and the remainder (SymPy `div`); `show="quotient"` or
+  `"remainder"` (`quo`, `rem`), `without_fractions=True` (pseudo-division: `pdiv`, `pquo`, `prem`) and
+  `with_no_remainder=True` (`exquo`, `pexquo`).
+- New words `formula.find_common_factor_with("x**2 - 1")` (SymPy `gcd`, `gcd_list`; `show="common factor and the
+  rest"`, `"combination"`, `"half combination"`: `cofactors`, `gcdex`, `half_gcdex`) and
+  `formula.find_common_multiple_with(...)` (`lcm`, `lcm_list`).
+- New words `formula.turn_into_one_fraction()` (SymPy `together`, undo-able), `formula.split_into_top_and_bottom()`
+  (`fraction`) and `formula.find_repeated_parts()` (`cse`).
+- New family word `formula.find_fact("discriminant")` for the rarer facts of a polynomial: `"resultant"`,
+  `"subresultants"`, `"groebner basis"`, `"minimal polynomial"`, `"galois group"`, `"sturm sequence"`,
+  `"viete formulas"`, `"leading coefficient"`, `"leading term"`, `"symmetric form"`, `"number factor"`,
+  `"without number factor"`, `"factors"`, `"repeated factors"`, `"square-free part"`, `"factorial factors"`,
+  `"divided by leading coefficient"`, `"parts it is made of"`, `"put into"`, `"inverse modulo"`,
+  `"coefficients modulo"`, `"powers of roots"`, `"term ratio"`, `"remainder by several"` and `"coefficients"`;
+  SymPy's names work too (`"LC"`, `"groebner"`, `"sqf_list"`).
+- `by=` on `formula.make_simpler()` ("trig functions", "exponentials and trig", "trig rules", "powers", "powers of
+  powers", "logs", "fractions", "common factors", "roots in the bottom", "nested roots", "gamma functions",
+  "factorials", "bessel functions", "hypergeometric functions", "kronecker deltas", "signs", "letters apart",
+  "conditions", "decimals as fractions": SymPy `trigsimp`, `exptrigsimp`, `fu`, `powsimp`, `powdenest`,
+  `logcombine` ...), `formula.turn_into_sum()` ("logs", "trig functions", "powers", "power of a product",
+  "products", "powers of sums", "real and imaginary parts", "special functions": `expand_log`, `expand_trig` ...)
+  and `formula.turn_into_product()` ("common factors", "common factors over one fraction", "common power of
+  letters", "repeated factors", "nested": `factor_terms`, `gcd_terms`, `terms_gcd`, `sqf`, `horner`). SymPy's own
+  defaults are kept (a log is split only where the letters allow it).
+- SymPy's own functions by their SymPy names in the text of `sdata.formula`: `cot`, `sec`, `csc` and the other
+  angle and hyperbolic functions, `floor`, `ceiling`, `frac`, `sign`, `Max`, `Min`, `re`, `im`, `arg`,
+  `conjugate`, `Mod`, `Rem`, `ln`, the counting functions (`factorial`, `ff`, `rf`, `fibonacci`, `lucas`, `bell`,
+  `catalan`, `harmonic`, `partition`, `subfactorial`, `totient`, `primepi` ...; the number inside at most 1000, as
+  for gamma), more special functions (`trigamma`, `lerchphi`, `li`, `hankel1`, `mathieuc`, `appellf1`, `hyper`,
+  `meijerg`, `Ynm` ...), `DiracDelta`, `KroneckerDelta`, `LeviCivita`, `SingularityFunction`,
+  `Piecewise((x, x > 0), (0, True))`, and the constants `Catalan`, `EulerGamma`, `GoldenRatio` and
+  `TribonacciConstant`. Without brackets the names stay letters.
+- `sdata.help("sympy.real_roots")`, `"sp.gcdex"`, `"sympy.powsimp"`, `"sympy.fibonacci"` and every SymPy name of
+  these batches point to the word and the value; SymPy's sets, logic, geometry, tensors, number transforms and its
+  polynomial machinery (domains, rings, orders, errors) point to the hand-over `formula.as_sympy()` (G11).
+
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 
 Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that
