@@ -256,13 +256,13 @@ def test_cosine_transform_kinds_and_inverses_match_scipy():
 
 
 # ---------------------------------------------------------------- batches 11-12: grids
-def test_multiply_as_matrix_by_matches_matmul_matvec_vecmat_and_multi_dot():
+def test_multiply_as_matrix_by_matches_matmul_and_multi_dot():  # matvec/vecmat need NumPy 2.2
     a = np.array([[1.0, 2], [3, 4], [5, 6]])
     b = np.array([[0.0, 1, 2], [1, 0, 1]])
     grid = sdata.number_grid(a)
     assert np.allclose(values(grid.multiply_as_matrix_by(b)), a @ b)
-    assert np.allclose(values(grid.multiply_as_matrix_by([1, 2])), np.matvec(a, [1, 2]))
-    assert np.allclose(values(grid.multiply_as_matrix_by([1, 2, 3], from_the_left=True)), np.vecmat([1, 2, 3], a))
+    assert np.allclose(values(grid.multiply_as_matrix_by([1, 2])), np.matmul(a, [1, 2]))
+    assert np.allclose(values(grid.multiply_as_matrix_by([1, 2, 3], from_the_left=True)), np.matmul([1, 2, 3], a))
     c = sdata.number_grid([[1.0], [2.0], [0.5]])
     chain = grid.multiply_as_matrix_by([sdata.number_grid(b), c])
     assert np.allclose(values(chain), np.linalg.multi_dot([a, b, values(c)]))

@@ -509,6 +509,8 @@ def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monk
             text = f"{type(problem).__name__}: {problem}"
             if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
                 pytest.skip(f"{calls} needs R")
+            if "needs SciPy" in text and "or newer" in text:  # checked where that SciPy is installed
+                pytest.skip(f"{calls}: {text.splitlines()[0]}")
             assert not any(bad in text for bad in BAD), f"{calls} on {source or 'POINTER_TABLE'}: {text}"
             errors.append(f"{source or 'POINTER_TABLE'}: {text.splitlines()[0]}")
     pytest.fail(f"{calls} ran on no practice table:\n" + "\n".join(errors[:5]))
@@ -902,6 +904,8 @@ def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
             text = f"{type(problem).__name__}: {problem}"
             if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
                 pytest.skip(f"{calls} needs R")
+            if "needs SciPy" in text and "or newer" in text:  # checked where that SciPy is installed
+                pytest.skip(f"{calls}: {text.splitlines()[0]}")
             assert not any(bad in text for bad in BAD), f"{[c for _, _, c in calls]} on the {shape} grid: {text}"
             errors.append(f"{shape}: {text.splitlines()[0]}")
     pytest.fail(f"{[c for _, _, c in calls]} ran on no grid:\n" + "\n".join(errors))

@@ -26,14 +26,15 @@ SUMMARY = """
 """
 
 
-def _summary(Case, measure, title, parent, parent_label, r="", tolerance=1e-12, r_tolerance=1e-10, option=None):
+def _summary(Case, measure, title, parent, parent_label, r="", tolerance=1e-12, r_tolerance=1e-10, option=None,
+             needs=()):
     """A find_summary_of(show=) case on Michelson's measurements; option= is the label of the measure's box in the
     manual ("power mean p"), the measure's own name when it takes no number."""
     return Case("table.find_summary_of", f"Michelson's speed of light (NIST): {title}", MICHELSON, "real data",
                 option=f'show="{option or measure}"',
                 ours=SUMMARY.format(measure=measure),
                 parent="from scipy import stats\ny = data[\"y\"].to_numpy(float)\n" + parent,
-                parent_label=parent_label, parent_tolerance=tolerance, r=r, r_tolerance=r_tolerance)
+                parent_label=parent_label, parent_tolerance=tolerance, r=r, r_tolerance=r_tolerance, needs=needs)
 
 
 def _summaries(Case):
@@ -74,7 +75,8 @@ def _summaries(Case):
         _summary(Case, "percentile rank 299.875", "the percentile rank of 299.875 (the inverse of R type 7)",
                  '{"value": float(stats.estimated_cdf(y, 299.875)) * 100}', "SciPy stats.estimated_cdf",
                  r="list(value = 100 * uniroot(function(p) quantile(y, p, type = 7, names = FALSE) - 299.875, "
-                   "c(0, 1), tol = 1e-14)$root)", r_tolerance=1e-8, option="percentile rank v"),
+                   "c(0, 1), tol = 1e-14)$root)", r_tolerance=1e-8, option="percentile rank v",
+                 needs=(("scipy", "1.18"),)),
         _summary(Case, "percent at or below 299.9", "the percent of values at or below 299.9",
                  '{"value": stats.percentileofscore(y, 299.9, kind="weak")}', "SciPy stats.percentileofscore",
                  r="list(value = 100 * mean(y <= 299.9))", option="percent at or below v"),

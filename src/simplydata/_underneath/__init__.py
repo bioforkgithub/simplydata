@@ -74,6 +74,7 @@ random numbers, a run of dates) and the help and 30-day words, which run no libr
 from __future__ import annotations
 
 import ast
+import re
 from dataclasses import dataclass, field
 
 # How the test compares the two results
@@ -151,6 +152,7 @@ class Entry:
     r_inputs: str = ""
     r_packages: tuple = ()
     ours_r: tuple = ()
+    needs: tuple = ()  # (("scipy", "1.18"),): skipped, with the reason, where an older version is installed
     python_note: str = ""
     note: str = ""
 
@@ -295,3 +297,20 @@ def underneath_line(entry: Entry) -> str:
         if calls:
             parts.append(f"{library} " + ", ".join(calls))
     return " · ".join(parts)
+
+
+def version_missing(needs: tuple) -> str:
+    """"" when every (package, least version) of needs is installed, else what is missing, in words."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    def numbers(text: str) -> tuple:
+        return tuple(int(part) for part in re.findall(r"\d+", text)[:3])
+
+    for package, least in needs:
+        try:
+            have = version(package)
+        except PackageNotFoundError:
+            return f"{package} {least} or newer (it is not installed)"
+        if numbers(have) < numbers(least):
+            return f"{package} {least} or newer (this computer has {have})"
+    return ""

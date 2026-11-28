@@ -7,12 +7,14 @@ TOLD = "simplydata also says the answer in a sentence, with the method it used."
 TESTED = "simplydata also prints the answer in words, with the test it used, and gives back a one-row result table."
 
 
-def _summary(option, measure, call, data="marks", column="marks", tolerance=1e-12, choices=(), also=TOLD):
+def _summary(option, measure, call, data="marks", column="marks", tolerance=1e-12, choices=(), also=TOLD,
+             needs=()):
     """An entry for a find_summary_of(show=) measure: the measure of one column against one SciPy call."""
     return Entry(
         word="table.find_summary_of",
         option=option,
         data=data,
+        needs=needs,
         ours=f"""
             table = sdata.get_example("{data}")
             summary = table.find_summary_of("{column}", show=["{measure}"])
@@ -104,7 +106,8 @@ ENTRIES = [
                       "above 1000).",)),
     _summary('show="percentile rank v"', "percentile rank 70",
              "float(stats.estimated_cdf(values, 70)) * 100           # (1)",
-             choices=("the inverse of \"percentile p\" (R type 7, SciPy method=\"linear\"), in percent.",)),
+             choices=("the inverse of \"percentile p\" (R type 7, SciPy method=\"linear\"), in percent.",),
+             needs=(("scipy", "1.18"),)),
     _summary('show="percent at or below v"', "percent at or below 70",
              'stats.percentileofscore(values, 70, kind="weak")      # (1)',
              choices=("the values at or below 70 count (kind=\"weak\"), so it is a plain share in percent.",)),
