@@ -54,6 +54,11 @@ ALLOWED = {
     "numbers/numbers_4.py::GridWords4.take_inverse": "grid.take_inverse() is SciPy linalg.inv itself (LAPACK)",
     "numbers/numbers_4.py::GridWords4.find_eigenvalues": "grid.find_eigenvalues() is SciPy linalg.eigvalsh (symmetric "
                                                          "grid) or linalg.eigvals itself (LAPACK)",
+    # numbers finishing (P41): solving and breaking down a grid are SciPy's own linalg calls, handed the grid as it is
+    "numbers/solving_words.py::SolvingWords.solve_for": "grid.solve_for() is SciPy linalg.solve or linalg.lstsq "
+                                                        "itself (LAPACK), as R solve() and qr.solve()",
+    "numbers/solving_words.py::SolvingWords.break_down": "grid.break_down() is SciPy linalg.svd, qr, lu, cholesky, "
+                                                         "schur, polar, ldl, hessenberg or qz itself (LAPACK)",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",

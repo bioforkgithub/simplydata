@@ -211,16 +211,24 @@ def _label_colour_bar(ctx, text):
 
 class LookWords:
     @friendly
-    def use_style(self: _Same, name) -> _Same:
+    def use_style(self: _Same, name, colour_letters=None) -> _Same:
         """The overall look. chart.use_style("school")
 
         "paper" (default), "school", "presentation", "dark" or "black and white": greys instead of colours,
         for print, and each group also gets its own pattern (bars, areas, pies), dashes (lines) or shape
-        (dots). "greyscale" and "grayscale" mean "black and white" too.
+        (dots). "greyscale" and "grayscale" mean "black and white" too. colour_letters="seaborn" makes the
+        one-letter colours "b", "g", "r", "m", "y", "c" and "k" seaborn's softer colours on this chart (seaborn
+        set_color_codes; "deep" is the same, and "muted", "pastel", "dark", "bright" and "colorblind" take
+        another seaborn set); other charts keep matplotlib's letters.
         """
+        from ..colours import LETTER_SETS
+
         name = style_name(name)
         self._check_choice("use_style", "name", name, list(STYLES))
-        return self._set(style=name)
+        if colour_letters is not None:
+            self._check_choice("use_style", "colour_letters", colour_letters, list(LETTER_SETS))
+            colour_letters = "deep" if colour_letters == "seaborn" else colour_letters
+        return self._set(style=name, colour_letters=colour_letters)
 
     @friendly
     def set_size(self: _Same, width=8, height=6, unit="inches") -> _Same:
@@ -244,25 +252,42 @@ class LookWords:
 
     # ------------------------------------------------------------ colours
     @friendly
-    def use_colour(self: _Same, name) -> _Same:
-        """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")"""
+    def use_colour(self: _Same, name, from_colour_list=None) -> _Same:
+        """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")
+
+        from_colour_list="xkcd" reads the name from the 949 colours of xkcd's colour survey ("windows blue"),
+        and "crayon" from Crayola's crayons ("Mahogany") (seaborn xkcd_palette and crayon_palette).
+        """
+        if from_colour_list is not None:
+            from ..colours import colours_from_list
+
+            return self._set(colour=colours_from_list([name], from_colour_list, "use_colour")[0])
         return self._set(colour=check_colour(name, "use_colour"))
 
     use_color = use_colour  # American spelling, same word
 
     @friendly
-    def use_colours(self: _Same, *names, how_many=None) -> _Same:
+    def use_colours(self: _Same, *names, how_many=None, from_colour_list=None) -> _Same:
         """Your own colours for the groups, in order. chart.use_colours("blue", "orange", "green")
 
         Or a named set of colours: chart.use_colours("Set2"), "tab10", "Dark2", "Paired", seaborn's "deep",
         "muted" and "colorblind", or "colour-blind safe" (Okabe-Ito, simplydata's own colours).
         With a colour scale and how_many=, the colours are taken evenly from it:
-        chart.use_colours("viridis", how_many=5).
+        chart.use_colours("viridis", how_many=5). from_colour_list="xkcd" reads the names from xkcd's colour
+        survey (chart.use_colours("windows blue", "amber", from_colour_list="xkcd")), and "crayon" from Crayola's
+        crayons (seaborn xkcd_palette and crayon_palette).
         """
         if len(names) == 1 and is_listlike(names[0]):
             names = tuple(names[0])
         if not names:
             raise SimplydataError('.use_colours() needs at least one colour, for example chart.use_colours("blue", "orange").')
+        if from_colour_list is not None:
+            from ..colours import colours_from_list
+
+            if how_many is not None:
+                raise SimplydataError("how_many= takes colours from a named set; with from_colour_list=, list the "
+                                      "colours themselves.")
+            return self._set(colours=colours_from_list(names, from_colour_list, "use_colours"))
         if how_many is not None and (isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1):
             raise SimplydataError(f"how_many= should be a whole number such as 5, not {how_many!r}.")
         if len(names) == 1 and isinstance(names[0], str) and not mcolors.is_color_like(names[0]):
@@ -275,7 +300,8 @@ class LookWords:
     use_colors = use_colours  # American spelling, same word
 
     @friendly
-    def use_colour_scale(self: _Same, *names, middle=None, log=False, steps=None, between=None) -> _Same:
+    def use_colour_scale(self: _Same, *names, middle=None, log=False, steps=None, between=None,
+                         from_colour_list=None) -> _Same:
         """The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.
         chart.use_colour_scale("magma") (with chart.draw_heatmap(x="month", y="city", value="rain") on sdata.get_example("weather"))
 
@@ -289,8 +315,17 @@ class LookWords:
         that span many sizes. steps=5 cuts the scale into 5 colours, or steps=[0, 5, 10, 20]
         sets where each colour starts. between=[0, 30] fixes the ends of the scale, so
         several charts can share it; values beyond them get the end colour (the colour bar
-        shows an arrow).
+        shows an arrow). from_colour_list="xkcd" or "crayon" reads your own colours from xkcd's colour survey or
+        Crayola's crayons: chart.use_colour_scale("pale yellow", "dark red", from_colour_list="xkcd").
         """
+        if from_colour_list is not None:
+            from ..colours import colours_from_list
+
+            if len(names) < 2:
+                raise SimplydataError("from_colour_list= needs two or more colour names, from the low end to the high "
+                                      'end, for example chart.use_colour_scale("pale yellow", "dark red", '
+                                      'from_colour_list="xkcd").')
+            names = tuple(colours_from_list(names, from_colour_list, "use_colour_scale"))
         cmap, shown = resolve_map(names)
         middle, log, steps, between = check_options(middle, log, steps, between)
         self._set(colour_scale=dict(map=cmap, name=shown, middle=middle, log=log, steps=steps, between=between))

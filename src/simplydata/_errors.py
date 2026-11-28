@@ -72,7 +72,7 @@ def missing_word_error(word: str, known) -> MissingWordError:
 # Names from other tools and everyday maths (minimize, curve_fit, groupby, hist ...) never run:
 # they point to the simplydata word. The list is in _other_names.py.
 _PREFIXES = ("sdata", "table", "chart", "numbers", "grid", "block", "distribution")
-_TARGET = re.compile(r"(?:sdata|table|chart|numbers|nums|grid|block|distribution|dist)\.(\w+)\(")
+_TARGET = re.compile(r"(?:sdata|table|chart|numbers|nums|grid|block|distribution|dist|formula)\.(\w+)\(")
 
 
 def other_name_target(written: str) -> str:

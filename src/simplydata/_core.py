@@ -332,7 +332,14 @@ class BaseChart:
             return self._cache
         with chart_notes():
             self._left_out_rows()
-            return self._render_now()
+            if not self._settings.get("colour_letters"):
+                return self._render_now()
+            kept = self._settings  # use_style(colour_letters=): "b", "g" ... as seaborn's colours, on this chart only
+            self._settings = _style.letters_as_codes(kept)
+            try:
+                return self._render_now()
+            finally:
+                self._settings = kept
 
     def _render_now(self) -> Figure:
         s = self._settings

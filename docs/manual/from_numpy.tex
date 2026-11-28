@@ -1,0 +1,564 @@
+% From NumPy and SciPy to simplydata: written by hand, read by docs/make_manual.py (\input{from_numpy}).
+% The topics follow the order of the NumPy absolute beginners guide and the NumPy user guide (fundamentals), then the
+% SciPy user guide, used as a checklist only: the text and the examples are our own, and each section links to the
+% official page. Every example in a py box is run by tests/test_from_numpy_chapter.py (with "import simplydata as
+% sdata" in front), so it cannot go out of date.
+
+\unchapter{From NumPy and SciPy to simplydata}{from-numpy}
+
+This chapter is for you if you already know NumPy or SciPy, or if you want to learn them after
+simplydata. It follows the topics of the official guides, in their order: the
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{NumPy absolute beginners guide} and
+the \href{https://numpy.org/doc/stable/user/basics.html}{NumPy fundamentals}, then the
+\href{https://docs.scipy.org/doc/scipy/tutorial/index.html}{SciPy user guide}. For each topic it says
+what the job is, which simplydata words do it, and a short example. Some jobs are left to NumPy and
+SciPy on purpose. For those, the chapter shows how to hand the numbers over and how to bring the
+answer back.
+
+Every example starts with \code{import simplydata as sdata}. It is written once here, not in each box.
+
+\unsection{Five things to know first}{from-numpy:first}
+
+\begin{enumerate}
+  \item \textbf{Three makers, one family.} \code{sdata.number\_list} makes a list of numbers (NumPy's
+    1-D array), \code{sdata.number\_grid} makes rows and columns (a 2-D array) and
+    \code{sdata.number\_block} makes numbers in any number of directions, each with a name (an n-D
+    array, or an xarray DataArray). The words of numbers work on grids and blocks too.
+  \item \textbf{Positions count from 1.} \code{numbers.get\_number\_at(1)} is the first number. NumPy
+    counts from 0, so the sentence a word prints gives NumPy's position too.
+  \item \textbf{A word changes the object, and \code{undo} takes it back.} \code{numbers.take\_log()}
+    changes \code{numbers} itself and prints what it did. \code{numbers.undo()} brings back the numbers
+    from before. A word that finds something (an average, a determinant) gives it back and changes
+    nothing.
+  \item \textbf{Empty values stay empty.} NumPy writes a missing value as \code{nan}. simplydata calls it
+    an empty value, says how many there are, and leaves them out of averages and totals, as NumPy's
+    \code{nanmean} does.
+  \item \textbf{The door is always open.} \code{array = numbers.as\_numpy()} gives a plain NumPy array,
+    for any NumPy or SciPy call. \code{sdata.number\_list(array)}, \code{sdata.number\_grid(array)} and
+    \code{sdata.number\_block(array)} bring the answer back.
+\end{enumerate}
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([2.5, 3.1, 4.8, 5.0, 6.2])
+array = numbers.as_numpy()               # a NumPy array: use any NumPy or SciPy code here
+import numpy as np
+steps = np.diff(array)
+back = sdata.number_list(steps)          # and back to simplydata
+back.find_average()
+\end{lstlisting}
+
+Do you know a NumPy, SciPy or SymPy name, but not the simplydata word? Ask:
+\code{sdata.help("np.mean")}, \code{sdata.help("np.linalg.solve")}, \code{sdata.help("rng.normal")}
+or \code{sdata.help("scipy.stats.gamma")}. The name can have \code{np.}, \code{np.linalg.},
+\code{scipy.}, \code{stats.} or \code{optimize.} in front, and the answer is the word for that package:
+\code{np.mean} is the average of numbers, but a bare \code{mean} is the average of a table column.
+
+\unsection{Making numbers, grids and blocks}{from-numpy:making}
+
+\textbf{The job.} Make an array: from a list, as a run of evenly spaced numbers, filled with one
+value, or of a given shape. In the guides:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide}, ``How
+to create a basic array'', and \href{https://numpy.org/doc/stable/user/basics.creation.html}{Array
+creation}.
+
+\textbf{In simplydata.} \code{sdata.number\_list([...])} is \code{np.array}; \code{sdata.number\_list(0,
+to=1, how\_many=11)} is \code{np.linspace} and \code{step=} is \code{np.arange}.
+\code{sdata.number\_grid(rows=2, columns=3, filled\_with=0)} is \code{np.zeros} (and \code{np.full});
+\code{sdata.number\_block(of\_shape=(2, 3, 4), filled\_with=1)} is \code{np.ones} with any shape.
+
+\begin{lstlisting}[style=py]
+temperatures = sdata.number_list([8.3, 10.3, 11.0, 9.2, 7.5])
+steps = sdata.number_list(0, to=1, how_many=11)          # 0, 0.1, ..., 1
+every_five = sdata.number_list(0, to=50, step=5)
+grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
+zeros = sdata.number_grid(rows=2, columns=3, filled_with=0)
+block = sdata.number_block(of_shape=(2, 3, 4), filled_with=1)
+print(grid)
+\end{lstlisting}
+
+\unsection{Shape and size}{from-numpy:shape}
+
+\textbf{The job.} Know how many numbers there are, how many rows and columns, and how many directions
+(NumPy's \code{size}, \code{shape} and \code{ndim}). In the guide:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide}, ``How
+do you know the shape and size of an array?''.
+
+\textbf{In simplydata.} \code{numbers.count()} is \code{size}; \code{grid.find\_shape()} and
+\code{block.find\_shape()} are \code{shape}; \code{block.count\_directions()} is \code{ndim}.
+\code{grid.count\_rows()} and \code{grid.count\_columns()} say one size each.
+
+\begin{lstlisting}[style=py]
+grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
+grid.find_shape()                        # (2, 3)
+grid.count_rows()
+block = sdata.number_block(of_shape=(2, 3, 4), filled_with=0)
+block.count_directions()                 # 3
+\end{lstlisting}
+
+\unsection{Picking numbers out}{from-numpy:indexing}
+
+\textbf{The job.} Take one number, a slice, a row or a column, or the numbers that pass a test
+(NumPy's indexing and slicing, and boolean indexing). In the guides:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide},
+``Indexing and slicing'', and \href{https://numpy.org/doc/stable/user/basics.indexing.html}{Indexing
+on ndarrays}.
+
+\textbf{In simplydata.} \code{get\_number\_at} is \code{a[i]} (from 1); \code{keep\_numbers\_by\_position(2,
+to=4)} is a slice and keeps both ends; \code{grid.get\_row} and \code{grid.get\_column} are \code{a[i, :]}
+and \code{a[:, j]}. \code{keep\_each\_number\_that(is\_above=5)} is \code{a[a > 5]}.
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([4, 8, 15, 16, 23, 42])
+numbers.get_number_at(1)                 # 4, the first number (NumPy's a[0])
+numbers.keep_numbers_by_position(2, to=4)
+print(numbers)                           # 8, 15, 16
+numbers.undo()
+numbers.keep_each_number_that(is_above=10)
+grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
+grid.get_row(2)
+grid.get_column(3)
+\end{lstlisting}
+
+\unsection{Maths on every number}{from-numpy:maths}
+
+\textbf{The job.} Add, multiply, take logs and square roots of every number at once (NumPy's universal
+functions), also between two arrays of the same length. In the guides:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide}, ``Basic
+array operations'', and \href{https://numpy.org/doc/stable/user/basics.ufuncs.html}{Universal
+functions}.
+
+\textbf{In simplydata.} \code{add}, \code{subtract}, \code{times}, \code{divide\_by},
+\code{raise\_to\_power}, \code{take\_square\_root}, \code{take\_log}, \code{take\_exp},
+\code{take\_sin}, \code{round\_to} and their family. Each takes one number or numbers of the same
+length. \code{+}, \code{-}, \code{*} and \code{/} work too and give new numbers.
+
+\begin{lstlisting}[style=py]
+prices = sdata.number_list([1.20, 3.50, 2.25])
+prices.times(1.25)                       # every price with 25 % added
+prices.round_to(with_decimals=2)
+counts = sdata.number_list([10, 100, 1000])
+counts.take_log(base=10)
+both = sdata.number_list([1, 2, 3]) + sdata.number_list([10, 20, 30])
+print(both)
+\end{lstlisting}
+
+\unsection{Stretching to the same shape}{from-numpy:broadcasting}
+
+\textbf{The job.} Work on two arrays of different shapes by stretching the smaller one (NumPy's
+broadcasting). In the guide: \href{https://numpy.org/doc/stable/user/basics.broadcasting.html}%
+{Broadcasting}.
+
+\textbf{In simplydata.} The maths words stretch by themselves, as NumPy does, and print a note when
+they do. \code{block.show\_how\_it\_lines\_up\_with(other)} explains how two blocks line up before you
+use them, and \code{sdata.stretch\_to\_same\_shape(a, b)} gives both at the same shape.
+\code{sdata.hide\_stretching\_notes()} turns the notes off.
+
+\begin{lstlisting}[style=py]
+a = sdata.number_block(of_shape=(3, 4), filled_with=1)
+b = sdata.number_block(of_shape=(1, 4), filled_with=2)
+a.show_how_it_lines_up_with(b)
+a_big, b_big = sdata.stretch_to_same_shape(a, b)
+b_big.find_shape()
+\end{lstlisting}
+
+\unsection{Summaries}{from-numpy:summaries}
+
+\textbf{The job.} The total, average, smallest and biggest number, the standard deviation and
+percentiles, of all numbers or along one direction (NumPy's aggregation functions with
+\code{axis=}). In the guide: \href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the
+absolute beginners guide}, ``More useful array operations''.
+
+\textbf{In simplydata.} \code{find\_total}, \code{find\_average}, \code{find\_median},
+\code{find\_smallest}, \code{find\_biggest}, \code{find\_standard\_deviation} and
+\code{find\_percentile}. On a block, \code{find\_average(over="month")} averages along a named
+direction, as \code{axis=} does with a number. The standard deviation is the sample one (NumPy's
+\code{ddof=1}), as in statistics books.
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([8.3, 10.3, 11.0, 9.2, 7.5])
+numbers.find_average()
+numbers.find_standard_deviation()        # sample standard deviation (NumPy's ddof=1)
+numbers.find_percentile(90)
+block = sdata.number_block(of_shape=(2, 3), filled_with=1, directions_named=["year", "month"])
+block.find_average(over="month")
+\end{lstlisting}
+
+\unsection{Changing the shape}{from-numpy:reshaping}
+
+\textbf{The job.} Reshape, turn rows into columns, join arrays and split them, add or remove a
+direction (NumPy's \code{reshape}, \code{transpose}, \code{concatenate}, \code{split},
+\code{expand\_dims} and \code{squeeze}). In the guide:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide}, ``Can
+you reshape an array?'' and ``Transposing and reshaping a matrix''.
+
+\textbf{In simplydata.} \code{numbers.make\_number\_grid(rows=, columns=)} makes a grid from numbers;
+\code{block.change\_shape\_to(...)} changes a block's own shape. \code{grid.swap\_rows\_and\_columns()}
+is \code{.T}. \code{block.add\_numbers\_from(other, over=)} joins, \code{block.split\_into\_pieces}
+splits, and \code{add\_direction} and \code{remove\_directions\_of\_size\_one} are \code{expand\_dims}
+and \code{squeeze}.
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([1, 2, 3, 4, 5, 6])
+grid = numbers.make_number_grid(rows=2, columns=3)
+grid.swap_rows_and_columns()
+grid.find_shape()                        # (3, 2)
+block = sdata.number_block(of_shape=(2, 6), filled_with=0, directions_named=["row", "column"])
+block.change_shape_to(2, 3, 2)
+block.find_shape()
+\end{lstlisting}
+
+\unsection{Sorting, unique numbers and counts}{from-numpy:sorting}
+
+\textbf{The job.} Sort, keep each different number once, and count how often each comes (NumPy's
+\code{sort}, \code{unique} and \code{unique\_counts}). In the guide:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide},
+``Adding, removing, and sorting elements'' and ``How to get unique items and counts''.
+
+\textbf{In simplydata.} \code{sort} (\code{biggest\_first=True} for the other way),
+\code{remove\_duplicate\_numbers} and \code{count\_each}, which gives a table of each number and its
+count.
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([3, 1, 2, 3, 3, 1])
+numbers.count_each()
+numbers.sort(biggest_first=True)
+numbers.remove_duplicate_numbers()
+print(numbers)
+\end{lstlisting}
+
+\unsection{Yes or no, and conditions}{from-numpy:conditions}
+
+\textbf{The job.} Ask a question of every number and use the answers: count them, keep the numbers
+where the answer is yes, or replace them (NumPy's comparisons, boolean masks, \code{where},
+\code{count\_nonzero}, \code{any} and \code{all}). In the guide:
+\href{https://numpy.org/doc/stable/user/basics.indexing.html}{Indexing on ndarrays}, ``Boolean array
+indexing''.
+
+\textbf{In simplydata.} \code{turn\_into\_yes\_or\_no(is\_above=)} is the mask;
+\code{keep\_numbers\_where}, \code{replace\_numbers\_where} and \code{count\_numbers\_that} use it, and
+\code{check\_if\_any\_number} and \code{check\_if\_all\_numbers} are \code{any} and \code{all}.
+
+\begin{lstlisting}[style=py]
+rain = sdata.number_list([0.0, 2.5, 0.0, 12.1, 4.4, 0.0])
+rain.count_numbers_that(is_above=0)      # 3 days with rain
+wet = rain.turn_into_yes_or_no(is_above=0)
+rain.check_if_any_number(is_above=10)
+rain.replace_numbers_where(wet, with_value=1)
+print(rain)
+\end{lstlisting}
+
+\unsection{Empty values}{from-numpy:empty}
+
+\textbf{The job.} Find the missing values (\code{nan}), work round them, or fill them (NumPy's
+\code{isnan}, the \code{nan} functions such as \code{nanmean}, and \code{nan\_to\_num}). In the guide:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide},
+``More useful array operations''.
+
+\textbf{In simplydata.} An empty value is written \code{None} or \code{float("nan")}.
+\code{count\_empty\_numbers} counts them, the summaries leave them out and say so, and
+\code{fill\_empty\_numbers} fills them.
+
+\begin{lstlisting}[style=py]
+readings = sdata.number_list([4.1, None, 3.9, 4.4, None])
+readings.count_empty_numbers()
+readings.find_average()                  # of the 3 numbers that are there
+readings.fill_empty_numbers(with_value=0)
+\end{lstlisting}
+
+\unsection{Random numbers}{from-numpy:random}
+
+\textbf{The job.} Make random numbers from a distribution, pick at random, and get the same numbers
+again with a seed (NumPy's \code{default\_rng} and its Generator methods). In the guides:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide},
+``Generating random numbers'', and \href{https://numpy.org/doc/stable/reference/random/index.html}%
+{Random sampling}.
+
+\textbf{In simplydata.} \code{sdata.make\_random\_numbers} makes normal or uniform numbers (and whole
+numbers); \code{sdata.distribution("poisson", average=3).make\_random\_numbers(how\_many=10)} makes them
+from any of 28 distributions. \code{numbers.make\_random\_picks} is \code{choice}. \code{with\_seed=}
+is the seed.
+
+\begin{lstlisting}[style=py]
+heights = sdata.make_random_numbers(how_many=100, average=150, standard_deviation=8, with_seed=1)
+dice = sdata.make_random_numbers(how_many=10, between=[1, 6], whole_numbers=True, with_seed=1)
+arrivals = sdata.distribution("poisson", average=3).make_random_numbers(how_many=10, with_seed=1)
+picked = heights.make_random_picks(how_many=5, with_seed=1)
+print(picked)
+\end{lstlisting}
+
+\unsection{Saving and reading numbers}{from-numpy:files}
+
+\textbf{The job.} Write numbers to a file and read them back (NumPy's \code{save}, \code{savetxt},
+\code{loadtxt} and \code{genfromtxt}). In the guide: \href{https://numpy.org/doc/stable/user/basics.io.html}%
+{I/O with NumPy}.
+
+\textbf{In simplydata.} \code{numbers.save("file.csv")} writes CSV, Excel, Parquet, JSON or a sound
+file, as the end of the name says. \code{sdata.number\_list("file.csv")} reads them back, and
+\code{empty\_values=[-999]} is \code{genfromtxt}'s \code{missing\_values}. A netCDF file opens as a
+block with \code{sdata.number\_block("file.nc")}.
+
+\begin{lstlisting}[style=py]
+numbers = sdata.number_list([4.1, 3.9, -999, 4.4])
+numbers.save("readings.csv")
+again = sdata.number_list("readings.csv", empty_values=[-999])
+again.count_empty_numbers()
+\end{lstlisting}
+
+\unsection{Grids as matrices}{from-numpy:matrices}
+
+\textbf{The job.} The determinant, the inverse and the eigenvalues of a square grid, and solving the
+equations grid times x = b (NumPy's \code{np.linalg}). In the guides:
+\href{https://numpy.org/doc/stable/user/absolute_beginners.html}{the absolute beginners guide},
+``Working with mathematical formulas'', and
+\href{https://numpy.org/doc/stable/reference/routines.linalg.html}{Linear algebra}.
+
+\textbf{In simplydata.} \code{find\_determinant}, \code{take\_inverse} and \code{find\_eigenvalues};
+\code{solve\_for(b)} is \code{solve}, and on a grid that is not square it gives the least-squares answer
+(\code{lstsq}) and says so. \code{exactly=True} on each gives SymPy's exact answer, as fractions. To
+solve equations, \code{solve\_for} is better than an inverse.
+
+\begin{lstlisting}[style=py]
+grid = sdata.number_grid([[2, 1], [1, 3]])
+grid.find_determinant()                  # 5
+grid.find_eigenvalues()
+x = grid.solve_for([5, 10])              # x = [1, 3]
+print(x)
+grid.solve_for([1, 1], exactly=True)     # [2/5, 1/5]
+\end{lstlisting}
+
+\unsection{Fourier transforms}{from-numpy:fourier}
+
+\textbf{The job.} Turn readings in time into frequencies, and back (NumPy's and SciPy's \code{fft},
+\code{rfft}, \code{fftfreq} and \code{ifft}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/fft.html}{Discrete Fourier Transforms (scipy.fft)}.
+
+\textbf{In simplydata.} \code{numbers.take\_fourier\_transform(time\_step=)} gives a table with each
+frequency in hertz, its size and its phase: \code{rfft} and \code{rfftfreq} in one word.
+\code{sdata.find\_inverse\_fourier\_transform(table)} goes back. \code{take\_cosine\_transform} is
+\code{dct}. \code{find\_spectrum} gives the power at each frequency.
+
+\begin{lstlisting}[style=py]
+wave = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=200)
+frequencies = wave.take_fourier_transform(time_step=0.01)
+back = sdata.find_inverse_fourier_transform(frequencies)
+back.count()
+\end{lstlisting}
+
+\unsection{Areas, volumes and paths over time}{from-numpy:integration}
+
+\textbf{The job.} The area under a curve, the volume under a surface, the running area under readings,
+and how a quantity changes over time from a rate (SciPy's \code{quad}, \code{dblquad},
+\code{cumulative\_trapezoid} and \code{solve\_ivp}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/integrate.html}{Integration (scipy.integrate)}.
+
+\textbf{In simplydata.} \code{sdata.find\_area\_under}, \code{sdata.find\_volume\_under},
+\code{numbers.turn\_into\_running\_area} and \code{sdata.find\_path\_over\_time}. The formula is written
+as text, with letters.
+
+\begin{lstlisting}[style=py]
+sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])
+sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})
+flow = sdata.number_list([0.0, 1.5, 2.0, 1.0, 0.5])
+flow.turn_into_running_area(time_step=60)
+path = sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 10], known={"r": 0.3})
+\end{lstlisting}
+
+\unsection{Smallest, biggest and solutions}{from-numpy:optimization}
+
+\textbf{The job.} Find where a formula is smallest or biggest, solve equations, fit a curve to data,
+and solve least squares with limits (SciPy's \code{minimize}, \code{root}, \code{curve\_fit},
+\code{linprog}, \code{nnls} and \code{lsq\_linear}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/optimize.html}{Optimization (scipy.optimize)}.
+
+\textbf{In simplydata.} \code{sdata.find\_where\_smallest} and \code{sdata.find\_where\_biggest} (with
+\code{rules=} for linear programming), \code{sdata.solve}, \code{table.fit\_formula} for curves, and
+\code{grid.solve\_for(b, between=[0, None])} for answers that may not be negative, as in a diet mix or
+the unmixing of spectra.
+
+\begin{lstlisting}[style=py]
+sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])
+sdata.find_where_smallest("2*x + 3*y", rules=["x + y >= 4", "x >= 0", "y >= 0"])
+sdata.solve("x**3 - 2*x = 5", between=[0, 3])
+# one row per nutrient (protein, fibre, fat), one column per food: grams of the nutrient in one portion
+foods = sdata.number_grid([[20, 2, 5], [10, 15, 1], [2, 8, 30]])
+amounts = foods.solve_for([60, 40, 50], between=[0, None])          # portions of each food, never below 0
+\end{lstlisting}
+
+\unsection{Values between the points}{from-numpy:interpolation}
+
+\textbf{The job.} Find values between measured points, on a line, on a map or in a block (SciPy's
+\code{interp1d}, \code{CubicSpline}, \code{griddata} and \code{RegularGridInterpolator}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/interpolate.html}{Interpolation (scipy.interpolate)}.
+
+\textbf{In simplydata.} \code{table.find\_values\_at} on a table's columns,
+\code{table.make\_map\_of} for scattered points on a map, and \code{block.find\_values\_at} inside a
+labelled block.
+
+\begin{lstlisting}[style=py]
+growth = sdata.get_example("growth")
+growth.keep_rows_where("country", is_equal_to="Applia")
+growth.find_values_at("population", at={"year": [2001.5, 2003.5]})
+\end{lstlisting}
+
+\unsection{Signals}{from-numpy:signals}
+
+\textbf{The job.} Smooth readings, keep or remove frequencies with a filter, find peaks, and find the
+spectrum (SciPy's \code{savgol\_filter}, \code{butter} with \code{filtfilt}, \code{find\_peaks} and
+\code{welch}). In the guide: \href{https://docs.scipy.org/doc/scipy/tutorial/signal.html}{Signal
+Processing (scipy.signal)}.
+
+\textbf{In simplydata.} \code{smooth}, \code{keep\_each\_frequency\_that} and
+\code{remove\_each\_frequency\_that}, \code{find\_each\_peak\_that} and \code{find\_spectrum}. Each
+takes \code{time\_step=}, the time between readings, so frequencies are in hertz.
+
+\begin{lstlisting}[style=py]
+signal = sdata.make_wave("sine", frequency=2, time_step=0.01, how_many=300)
+noise = sdata.make_random_numbers(how_many=300, average=0, standard_deviation=0.3, with_seed=1)
+signal.add(noise)
+signal.keep_each_frequency_that(is_below=5, time_step=0.01)
+signal.find_each_peak_that(is_at_least=0.5)
+\end{lstlisting}
+
+\unsection{More linear algebra}{from-numpy:linalg}
+
+\textbf{The job.} Break a matrix down into parts (SVD, QR, LU, Cholesky, Schur and more), the matrix
+exponential, and the null space (SciPy's \code{scipy.linalg}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/linalg.html}{Linear Algebra (scipy.linalg)}.
+
+\textbf{In simplydata.} \code{grid.break\_down(test\_method="svd")} gives the parts as a dict of
+grids and prints what each part is; the other methods are \code{"qr"}, \code{"lu"},
+\code{"cholesky"}, \code{"schur"}, \code{"polar"}, \code{"ldl"}, \code{"hessenberg"} and \code{"qz"}.
+\code{take\_matrix\_exp} is \code{expm} and \code{find\_null\_space} is \code{null\_space}.
+
+\begin{lstlisting}[style=py]
+grid = sdata.number_grid([[4, 2], [2, 3]])
+parts = grid.break_down(test_method="cholesky")
+print(parts["U"])
+parts = grid.break_down(test_method="svd")
+print(parts["singular values"])
+grid.find_null_space()
+\end{lstlisting}
+
+\unsection{Points in space}{from-numpy:spatial}
+
+\textbf{The job.} The nearest points, distances between points, and the fence round a set of points
+(SciPy's \code{KDTree}, \code{distance.cdist} and \code{ConvexHull}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/spatial.html}{Spatial data structures and algorithms
+(scipy.spatial)}.
+
+\textbf{In simplydata.} These are table words, because points are rows with an east and a north:
+\code{table.find\_nearest\_rows\_to}, \code{table.find\_distances\_to\_rows\_of} and
+\code{table.find\_fence\_around}.
+
+\begin{lstlisting}[style=py]
+island = sdata.get_example("island")
+island.find_nearest_rows_to({"east": 4, "north": 1}, how_many=3)
+island.find_fence_around(x="east", y="north")
+\end{lstlisting}
+
+\unsection{Special functions}{from-numpy:special}
+
+\textbf{The job.} The gamma and beta functions, the error function, Bessel functions, and the number of
+ways to choose (SciPy's \code{scipy.special}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/special.html}{Special Functions (scipy.special)}.
+
+\textbf{In simplydata.} A formula can use \code{gamma}, \code{lgamma}, \code{digamma}, \code{beta},
+\code{erf}, \code{erfc} and \code{besselJ}. \code{sdata.count\_ways\_to\_choose} is \code{comb} and
+\code{sdata.count\_ways\_to\_order} is \code{perm}; \code{take\_log\_odds} and \code{turn\_into\_chances}
+are \code{logit} and \code{expit}.
+
+\begin{lstlisting}[style=py]
+formula = sdata.formula("gamma(x)")
+formula.find_value_at(x=4.5)
+sdata.count_ways_to_choose(3, out_of=10)                 # 120
+chances = sdata.number_list([0.1, 0.5, 0.9])
+chances.take_log_odds()
+\end{lstlisting}
+
+\unsection{Statistics}{from-numpy:statistics}
+
+\textbf{The job.} Use a distribution (density, chances, percentiles, random numbers), fit one to data,
+and run tests (SciPy's \code{scipy.stats}). In the guide:
+\href{https://docs.scipy.org/doc/scipy/tutorial/stats.html}{Statistics (scipy.stats)}.
+
+\textbf{In simplydata.} \code{sdata.distribution(...)} with \code{find\_density\_at} (\code{pdf}),
+\code{find\_chance\_that\_value} (\code{cdf} and \code{sf}) and \code{find\_percentile} (\code{ppf});
+\code{numbers.fit\_distribution} is \code{fit}. The tests are table words, such as
+\code{table.compare\_averages\_of}; the rest of this manual explains them.
+
+\begin{lstlisting}[style=py]
+distribution = sdata.distribution("normal", average=50, standard_deviation=10)
+distribution.find_chance_that_value(is_below=60)
+distribution.find_percentile(95)
+waits = sdata.make_random_numbers(how_many=200, average=10, standard_deviation=2, with_seed=1)
+waits.fit_distribution("normal")
+\end{lstlisting}
+
+\unsection{Images and grids of cells}{from-numpy:ndimage}
+
+\textbf{The job.} Smooth a grid, find patches of cells that pass a test, turn and resize a grid
+(SciPy's \code{scipy.ndimage}: \code{gaussian\_filter}, \code{label}, \code{rotate} and \code{zoom}).
+In the guide: \href{https://docs.scipy.org/doc/scipy/tutorial/ndimage.html}{Multidimensional image
+processing (scipy.ndimage)}.
+
+\textbf{In simplydata.} \code{grid.smooth}, \code{grid.find\_each\_patch\_that}, \code{grid.rotate} and
+\code{grid.change\_size\_to}; on a block, \code{block.smooth(over=[...])}.
+
+\begin{lstlisting}[style=py]
+grid = sdata.number_grid([[0, 0, 1, 1], [0, 0, 1, 1], [5, 0, 0, 0], [5, 5, 0, 0]])
+grid.find_each_patch_that(is_above=0)
+grid.change_size_to(rows=8, columns=8)
+grid.rotate(by_degrees=15)
+\end{lstlisting}
+
+\unsection{Sound files and other files}{from-numpy:file-io}
+
+\textbf{The job.} Read and write sound files, and other file types (SciPy's \code{scipy.io}, such as
+\code{wavfile}). In the guide: \href{https://docs.scipy.org/doc/scipy/tutorial/io.html}{File IO
+(scipy.io)}.
+
+\textbf{In simplydata.} \code{numbers.save("sound.wav", time\_step=)} and
+\code{sdata.number\_list("sound.wav")}. netCDF files open as a block, and
+\code{sdata.show\_whats\_inside("file.nc")} lists what is in one.
+
+\begin{lstlisting}[style=py]
+tone = sdata.make_wave("sine", frequency=440, time_step=1 / 8000, how_many=8000)
+tone.times(0.5)
+tone.save("tone.wav", time_step=1 / 8000)
+again = sdata.number_list("tone.wav")
+again.count()
+\end{lstlisting}
+
+\unsection{The jobs left to NumPy and SciPy}{from-numpy:left-out}
+
+simplydata does the jobs most people need in research and teaching, with one word each. These jobs are
+left out on purpose. Each one is a hand-over: \code{array = numbers.as\_numpy()} (or
+\code{grid.as\_numpy()}, \code{block.as\_numpy()}), then NumPy or SciPy code, then
+\code{sdata.number\_list(...)}, \code{sdata.number\_grid(...)} or \code{sdata.number\_block(...)} to
+come back.
+\begin{itemize}
+  \item \textbf{Matrix products} (\code{@}, \code{np.dot}, \code{np.matmul}, \code{np.einsum}).
+  \item \textbf{Differences and gradients} (\code{np.diff}, \code{np.gradient}) and products
+    (\code{np.prod}, \code{np.cumprod}).
+  \item \textbf{Histograms as numbers} (\code{np.histogram}, \code{np.digitize}); a chart of them is
+    \code{draw\_histogram}.
+  \item \textbf{Positions after sorting} (\code{np.argsort}, \code{np.lexsort}).
+  \item \textbf{Grids of coordinates} (\code{np.meshgrid}, \code{np.mgrid}).
+  \item \textbf{The norm, rank, trace and diagonal of a matrix} (\code{np.linalg.norm},
+    \code{np.linalg.matrix\_rank}, \code{np.trace}, \code{np.diag}).
+  \item \textbf{Data types, copies and views, structured arrays and strings in arrays}: simplydata keeps
+    numbers as decimals and makes copies, so these questions do not come up.
+  \item \textbf{Sparse arrays} (\code{scipy.sparse}) and their eigenvalue and graph routines.
+  \item \textbf{Polynomials as objects} (\code{np.polynomial}); a fitted curve is
+    \code{table.fit\_curve}.
+\end{itemize}
+
+One more example: a matrix product, and back.
+
+\begin{lstlisting}[style=py]
+a = sdata.number_grid([[1, 2], [3, 4]])
+b = sdata.number_grid([[0, 1], [1, 0]])
+product = a.as_numpy() @ b.as_numpy()    # NumPy's matrix product
+grid = sdata.number_grid(product)        # back to simplydata
+grid.find_determinant()
+\end{lstlisting}

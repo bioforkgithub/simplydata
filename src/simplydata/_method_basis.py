@@ -4978,3 +4978,53 @@ BASIS["grid.find_null_space exactly="] = _b(
     "SymPy's directions are its simplest whole numbers and fractions, easy to read; the sentence says they are not "
     "of length 1, so they are not mistaken for SciPy's.", ("meurer2017",), "P5",
     "Grids up to 12 x 12 with a number in every cell.", "convention")
+# --------------------------------------------------------------- numbers finishing (P41, approved by Manish 2026-11-25)
+# ---------------------------------------------------------------- numbers finishing (P41, approved by Manish 2026-11-25)
+REFERENCES.update({
+    "lawson1995": _ref("Lawson & Hanson 1995", "Lawson CL, Hanson RJ (1995). Solving Least Squares Problems. Society "
+                       "for Industrial and Applied Mathematics, Philadelphia (first published 1974).",
+                       doi="10.1137/1.9781611971217"),
+})
+
+BASIS["grid.solve_for"] = _b(
+    "A square grid: SciPy linalg.solve (the LU decomposition, LAPACK gesv). A grid that is not square: least squares, "
+    "SciPy linalg.lstsq (LAPACK gelsd), the shortest answer when the columns depend on each other; the sentence says "
+    "which.",
+    "with_best_fit=True for least squares on a square grid too; between= for limits; exactly=True for SymPy's exact "
+    "answer.",
+    "LAPACK's LU solver is what R solve(), MATLAB a \\ b and NumPy use (Anderson et al. 1999); a grid with more rows "
+    "than columns has no exact answer, and least squares is the standard best fit (Lawson & Hanson 1995), as MATLAB "
+    "a \\ b gives for a grid that is not square.", ("anderson1999", "lawson1995"), "P3",
+    "A grid with no empty cells; b needs one number per row; a square grid with determinant 0 is refused with "
+    "with_best_fit=True named.", "published")
+BASIS["grid.solve_for between="] = _b(
+    "between=[0, None]: non-negative least squares, SciPy optimize.nnls (the active-set method of Lawson & Hanson). "
+    "Other limits: SciPy optimize.lsq_linear with method=\"bvls\" (bounded-variable least squares).",
+    "Without between=: least squares with no limits (linalg.lstsq).",
+    "The active-set methods end at the exact answer of the problem with limits (no iteration tolerance to choose), as "
+    "R nnls and MATLAB lsqnonneg (Lawson & Hanson 1995).", ("lawson1995",), "P3",
+    "Two values, each a number or None, the low one first; one right side only; not with exactly=True.", "published")
+BASIS["grid.solve_for exactly="] = _b(
+    "The numbers become the fractions they stand for (SymPy nsimplify, rational=True: 0.2 is 1/5), then SymPy LUsolve "
+    "(a square grid) or solve_least_squares (a grid that is not square); x keeps the decimals of the exact answer.",
+    "Without exactly=True: SciPy linalg.solve or linalg.lstsq.",
+    "The same reading of typed decimals as find_determinant(exactly=True); the fractions are printed for reading and "
+    "the decimals kept for working on.", ("meurer2017",), "P5",
+    "Grids up to 12 x 12; a square grid with determinant exactly 0, or a grid whose columns depend on each other, is "
+    "refused.", "convention")
+BASIS["grid.break_down"] = _b(
+    "The singular value decomposition (SciPy linalg.svd), in its short (economic) form: U has as many columns as the "
+    "grid, as R svd().",
+    "test_method=\"qr\", \"lu\", \"cholesky\", \"schur\", \"polar\", \"ldl\", \"hessenberg\" or \"qz\".",
+    "Every grid, square or not, has a singular value decomposition, so the word works without a choice; the short "
+    "form leaves out columns that multiply only zeros (Anderson et al. 1999).", ("anderson1999",), "P3",
+    "A grid with no empty cells.", "published")
+BASIS["grid.break_down test_method="] = _b(
+    "Each method is SciPy linalg's own call with its own defaults: lu gives grid = P L U, cholesky the upper triangle "
+    "(as R chol() and MATLAB chol), schur the real form; qr is the short (economic) form, as R qr(); ldl's row order "
+    "counts from 1, as every position in simplydata.",
+    "Without test_method=: the singular value decomposition.",
+    "SciPy's defaults are LAPACK's (Anderson et al. 1999), which R and MATLAB also call, so the parts agree with "
+    "theirs up to the signs of columns where a decomposition leaves them free.", ("anderson1999",), "P3",
+    "cholesky and ldl need a symmetric grid; cholesky needs eigenvalues above 0; schur, polar, ldl, hessenberg and qz "
+    "need a square grid.", "convention")
