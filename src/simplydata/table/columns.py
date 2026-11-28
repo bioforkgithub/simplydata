@@ -112,7 +112,7 @@ OTHER_TOOL_NAMES = {"mean": "average", "avg": "average", "sum": "total", "min": 
                     "count_matches": "count_text", "busday_offset": "add_working_days",
                     "add_business_days": "add_working_days", "busday_count": "count_working_days",
                     "business_day_count": "count_working_days",
-                    "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "besselJ",
+                    "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "bessel_j",
                     "power": "**", "pow": "**"}
 MAX_FORMULA_LENGTH = 500
 

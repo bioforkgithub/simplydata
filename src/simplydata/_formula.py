@@ -1581,12 +1581,11 @@ class Formula:
         from scipy import special
 
         # lgamma is the log of the size of gamma (SciPy gammaln, as R lgamma and fit_formula), real for every x
-        from ._maths_functions import sympy_numbers
+        from ._maths_functions import lambdify
 
         # the maths family's SymPy functions are worked out as numbers.take_function works them out (families for
         # 100 %, batches 7-9): SciPy names SymPy's printer does not know (elliptic_k) are found that way too
-        function = sp.lambdify([self._symbol(n) for n in letters], self._expr,
-                               modules=[{**sympy_numbers(), "loggamma": special.gammaln}, "scipy", "numpy"])
+        function = lambdify([self._symbol(n) for n in letters], self._expr, {"loggamma": special.gammaln})
         with np.errstate(all="ignore"):
             out = np.asarray(function(*arrays), dtype=complex)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
@@ -1763,7 +1762,10 @@ class Formula:
             return math.inf
         if found == -sp.oo:
             return -math.inf
-        return float_of(found) if found.is_real else complex(decimal_of(found))
+        if found.is_real:
+            return float_of(found)
+        value = complex(decimal_of(found))  # SymPy may not know it is real (besselj(0, 1)): its decimal says
+        return value.real if value.imag == 0 else value
 
     @friendly
     def find_taylor_series(self, around=0, up_to_power=4, for_letter=None) -> Formula:

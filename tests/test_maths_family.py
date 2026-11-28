@@ -82,9 +82,10 @@ EXPECTED = {
     "jahnke emde lambda slope": lambda x, o: _element(lambda v: special.lmbda(o["order"], v)[1][-1], x),
     "legendre Q": lambda x, o: _element(lambda v: special.lqn(o["degree"], v)[0][o["degree"]], x),
     "legendre Q slope": lambda x, o: _element(lambda v: special.lqn(o["degree"], v)[1][o["degree"]], x),
-    "associated legendre Q": lambda x, o: _element(lambda v: special.lqmn(o["order"], o["degree"], v)[0][o["order"],
-                                                                                                        o["degree"]], x),
-    "mathieu even coefficient": lambda x, o: _element(lambda q: special.mathieu_even_coef(o["order"], q)[o["which"]], x),
+    "associated legendre Q": lambda x, o: _element(
+        lambda v: special.lqmn(o["order"], o["degree"], v)[0][o["order"], o["degree"]], x),
+    "mathieu even coefficient": lambda x, o: _element(
+        lambda q: special.mathieu_even_coef(o["order"], q)[o["which"]], x),
     "mathieu odd coefficient": lambda x, o: _element(lambda q: special.mathieu_odd_coef(o["order"], q)[o["which"]], x),
     "ellipsoidal harmonic E": lambda x, o: _element(lambda s: special.ellip_harm(o["h_squared"], o["k_squared"],
                                                                                  o["degree"], o["order"], s), x),
@@ -108,6 +109,10 @@ EXPECTED = {
     "spherical harmonic": lambda x, o: _element(
         lambda t: np.real(np.asarray(special.sph_harm_y(o["degree"], o["order"], t, o["phi"])).ravel()[0]), x),
 }
+# below 0 Ci and Chi are complex numbers: empty (SciPy itself gives the real part); Li2 is SciPy spence(1 - x) up to 1
+EXPECTED["cosine integral"] = lambda x, o: np.where(x < 0, np.nan, special.sici(x)[1])
+EXPECTED["hyperbolic cosine integral"] = lambda x, o: np.where(x < 0, np.nan, special.shichi(x)[1])
+EXPECTED["polylogarithm"] = lambda x, o: np.where(x > 1, np.nan, special.spence(1 - x))
 for _plain, (_name, _slope) in {"spherical bessel j": ("spherical_jn", False),
                                 "spherical bessel j slope": ("spherical_jn", True),
                                 "spherical bessel y": ("spherical_yn", False),
@@ -347,7 +352,8 @@ def _formula_points(entry):
 
 
 def _call(name, order, options, letter="x"):
-    return f"{name}({', '.join(letter if k == 'x' else repr(float(options[k])) for k in order if k in options or k == 'x')})"
+    shown = [letter if k == "x" else repr(float(options[k])) for k in order if k in options or k == "x"]
+    return f"{name}({', '.join(shown)})"
 
 
 @pytest.mark.parametrize("entry", FORMULA_ENTRIES, ids=[e.plain for e in FORMULA_ENTRIES])
@@ -577,3 +583,218 @@ def test_turn_into_yes_or_no_not_a_time_and_mistakes():
         sdata.number_list([1.0]).turn_into_yes_or_no(is_="finite", is_above=0)
     with pytest.raises(sdata.SimplydataError, match="does not know"):
         sdata.number_list([1.0]).turn_into_yes_or_no(is_="prime")
+
+
+# ---------------------------------------------------------------- independent review fixes (2026-11-28)
+# Spot checks written by hand: each SciPy or NumPy call below is written out with its own argument order, so a
+# table row with its inputs in the wrong order, or the wrong part of several answers, fails here.
+SPOT_CHECKS = [
+    ("bessel J", {"order": 2.5}, 1.7, lambda: special.jv(2.5, 1.7)),
+    ("bessel Y", {"order": 1.5}, 2.2, lambda: special.yv(1.5, 2.2)),
+    ("bessel I", {"order": 0.5}, 1.3, lambda: special.iv(0.5, 1.3)),
+    ("bessel K", {"order": 1.5}, 0.8, lambda: special.kv(1.5, 0.8)),
+    ("bessel J scaled", {"order": 2.5}, 1.7, lambda: special.jve(2.5, 1.7)),
+    ("bessel K whole order", {"order": 2}, 1.1, lambda: special.kn(2, 1.1)),
+    ("bessel Y whole order", {"order": 3}, 2.6, lambda: special.yn(3, 2.6)),
+    ("bessel J slope", {"order": 1.5, "how_many_times": 2}, 1.2, lambda: special.jvp(1.5, 1.2, 2)),
+    ("elliptic integral first kind", {"parameter": 0.3}, 1.1, lambda: special.ellipkinc(1.1, 0.3)),
+    ("elliptic integral second kind", {"parameter": 0.3}, 1.1, lambda: special.ellipeinc(1.1, 0.3)),
+    ("hypergeometric 2F1", {"a": 0.3, "b": 1.2, "c": 2.5}, 0.4, lambda: special.hyp2f1(0.3, 1.2, 2.5, 0.4)),
+    ("confluent hypergeometric 1F1", {"a": 0.7, "b": 1.9}, 1.3, lambda: special.hyp1f1(0.7, 1.9, 1.3)),
+    ("hypergeometric 0F1", {"b": 1.5}, 0.8, lambda: special.hyp0f1(1.5, 0.8)),
+    ("confluent hypergeometric U", {"a": 0.5, "b": 1.5}, 2.0, lambda: special.hyperu(0.5, 1.5, 2.0)),
+    ("regularized incomplete beta", {"a": 2.0, "b": 5.0}, 0.3, lambda: special.betainc(2.0, 5.0, 0.3)),
+    ("inverse regularized incomplete beta", {"a": 2.0, "b": 5.0}, 0.3, lambda: special.betaincinv(2.0, 5.0, 0.3)),
+    ("regularized lower incomplete gamma", {"a": 3.0}, 1.7, lambda: special.gammainc(3.0, 1.7)),
+    ("regularized upper incomplete gamma", {"a": 3.0}, 1.7, lambda: special.gammaincc(3.0, 1.7)),
+    ("inverse regularized lower incomplete gamma", {"a": 3.0}, 0.4, lambda: special.gammaincinv(3.0, 0.4)),
+    ("associated legendre function", {"order": 1, "degree": 3}, 0.4, lambda: special.lpmv(1, 3, 0.4)),
+    ("spherical harmonic", {"degree": 3, "order": 2, "phi": 0.7}, 0.5,
+     lambda: np.real(special.sph_harm_y(3, 2, 0.5, 0.7))),
+    ("struve H", {"order": 1.5}, 2.3, lambda: special.struve(1.5, 2.3)),
+    ("struve L", {"order": 0.5}, 1.2, lambda: special.modstruve(0.5, 1.2)),
+    ("exponential integral En", {"order": 3}, 0.9, lambda: special.expn(3, 0.9)),
+    ("polygamma", {"order": 2}, 1.4, lambda: special.polygamma(2, 1.4)),
+    ("jacobi polynomial", {"degree": 3, "alpha": 0.5, "beta": 1.5}, 0.3,
+     lambda: special.eval_jacobi(3, 0.5, 1.5, 0.3)),
+    ("gegenbauer polynomial", {"degree": 4, "alpha": 1.5}, 0.3, lambda: special.eval_gegenbauer(4, 1.5, 0.3)),
+    ("generalized laguerre polynomial", {"degree": 3, "alpha": 1.5}, 0.7,
+     lambda: special.eval_genlaguerre(3, 1.5, 0.7)),
+    ("legendre polynomial", {"degree": 4}, 0.3, lambda: special.eval_legendre(4, 0.3)),
+    ("chebyshev T", {"degree": 5}, 0.3, lambda: special.eval_chebyt(5, 0.3)),
+    ("hermite polynomial", {"degree": 3}, 0.7, lambda: special.eval_hermite(3, 0.7)),
+    ("binomial coefficient", {"k": 2.0}, 5.0, lambda: special.binom(5.0, 2.0)),
+    ("rising factorial", {"steps": 3.0}, 1.5, lambda: special.poch(1.5, 3.0)),
+    ("log of beta size", {"b": 2.5}, 1.5, lambda: special.betaln(1.5, 2.5)),
+    ("x times log y", {"y": 3.0}, 2.0, lambda: special.xlogy(2.0, 3.0)),
+    ("huber loss", {"delta": 1.0}, 2.5, lambda: special.huber(1.0, 2.5)),
+    ("pseudo huber loss", {"delta": 1.0}, 2.5, lambda: special.pseudo_huber(1.0, 2.5)),
+    ("angle of point", {"x_values": -1.0}, 2.0, lambda: np.arctan2(2.0, -1.0)),
+    ("remainder", {"divisor": 3.0}, -7.0, lambda: np.remainder(-7.0, 3.0)),
+    ("times power of two", {"power": 3}, 1.5, lambda: np.ldexp(1.5, 3)),
+    ("mathieu ce", {"order": 1, "q": 0.5}, 30.0, lambda: special.mathieu_cem(1, 0.5, 30.0)[0]),
+    ("parabolic cylinder D", {"order": 1.5}, 0.7, lambda: special.pbdv(1.5, 0.7)[0]),
+    ("airy Bi slope", {}, 0.7, lambda: special.airy(0.7)[3]),
+    ("jacobi cn", {"parameter": 0.3}, 1.1, lambda: special.ellipj(1.1, 0.3)[1]),
+    ("prolate angular function of the first kind", {"order": 0, "degree": 1, "c": 1.0}, 0.3,
+     lambda: special.pro_ang1(0, 1, 1.0, 0.3)[0]),
+    ("carlson RJ", {"y": 1.0, "z": 2.0, "p": 3.0}, 0.5, lambda: special.elliprj(0.5, 1.0, 2.0, 3.0)),
+    ("bessel polynomial integral", {"power": 1.0, "order": 0.0}, 0.6, lambda: special.besselpoly(0.6, 1.0, 0.0)),
+    ("voigt profile", {"sigma": 1.0, "gamma": 0.5}, 0.3, lambda: special.voigt_profile(0.3, 1.0, 0.5)),
+    ("wright bessel", {"a": 0.5, "b": 1.0}, 0.8, lambda: special.wright_bessel(0.5, 1.0, 0.8)),
+    ("box cox", {"power": 0.5}, 2.0, lambda: special.boxcox(2.0, 0.5)),
+    ("lambert W", {"branch": -1}, -0.2, lambda: np.real(special.lambertw(-0.2, -1))),
+    ("zeta", {"shift": 2.0}, 3.0, lambda: special.zeta(3.0, 2.0)),
+    ("sine integral", {}, 1.3, lambda: special.sici(1.3)[0]),
+    ("fresnel C", {}, 0.9, lambda: special.fresnel(0.9)[1]),
+]
+
+
+@pytest.mark.parametrize("plain, options, x, expected", SPOT_CHECKS, ids=[c[0] for c in SPOT_CHECKS])
+def test_spot_checks_written_by_hand_with_the_librarys_argument_order(plain, options, x, expected):
+    values = sdata.number_list([x])
+    values.take_function(plain, **options)
+    assert abs(values.as_numpy()[0] - expected()) <= 1e-12 * max(1.0, abs(expected())), plain
+
+
+FORMULA_SPOT_CHECKS = [  # formula text written by hand, inputs in SciPy's order (or SymPy's, for SymPy's names)
+    ("bessel_j(2.5, x)", 1.7, lambda: special.jv(2.5, 1.7)),
+    ("kv(1.5, x)", 0.8, lambda: special.kv(1.5, 0.8)),
+    ("besseli(0.5, x)", 1.3, lambda: special.iv(0.5, 1.3)),
+    ("ellipkinc(x, 0.3)", 1.1, lambda: special.ellipkinc(1.1, 0.3)),
+    ("elliptic_f(x, 0.3)", 1.1, lambda: special.ellipkinc(1.1, 0.3)),
+    ("elliptic_e(x, 0.3)", 1.1, lambda: special.ellipeinc(1.1, 0.3)),
+    ("hyp2f1(0.3, 1.2, 2.5, x)", 0.4, lambda: special.hyp2f1(0.3, 1.2, 2.5, 0.4)),
+    ("betainc(2, 5, x)", 0.3, lambda: special.betainc(2.0, 5.0, 0.3)),
+    ("gammaincc(3, x)", 1.7, lambda: special.gammaincc(3.0, 1.7)),
+    ("lpmv(1, 3, x)", 0.4, lambda: special.lpmv(1, 3, 0.4)),
+    ("assoc_legendre(3, 1, x)", 0.4, lambda: special.lpmv(1, 3, 0.4)),
+    ("jacobi(3, 0.5, 1.5, x)", 0.3, lambda: special.eval_jacobi(3, 0.5, 1.5, 0.3)),
+    ("expint(3, x)", 0.9, lambda: special.expn(3, 0.9)),
+    ("struve(1.5, x)", 2.3, lambda: special.struve(1.5, 2.3)),
+]
+
+
+@pytest.mark.parametrize("text, x, expected", FORMULA_SPOT_CHECKS, ids=[c[0] for c in FORMULA_SPOT_CHECKS])
+def test_formula_spot_checks_written_by_hand(text, x, expected):
+    table = sdata.table({"x": [x]})
+    table.add_column("y", text)
+    assert abs(table.get_column("y").as_numpy()[0] - expected()) <= 1e-12 * max(1.0, abs(expected()))
+    pytest.importorskip("sympy")
+    assert abs(sdata.formula(text).find_value_at(x=x) - expected()) <= 1e-9 * max(1.0, abs(expected()))
+
+
+def test_double_factorial_follows_scipys_rule_on_every_path():
+    """SciPy's rule everywhere: 0 for a whole number below 0, empty for a number that is not whole (SymPy's own
+    factorial2 gives 1 at -1 and stops at 5.5, so formula text no longer uses it)."""
+    expected = special.factorial2(np.array([-3, -1, 0, 5]), exact=False)
+    values = sdata.number_list([-3.0, -1.0, 0.0, 5.0, 5.5])
+    values.take_function("double factorial")
+    np.testing.assert_array_equal(values.as_numpy()[:4], expected)
+    assert np.isnan(values.as_numpy()[4])
+    table = sdata.table({"x": [-3.0, -1.0, 0.0, 5.0, 5.5]})
+    table.add_column("y", "factorial2(x)")
+    np.testing.assert_array_equal(table.get_column("y").as_numpy()[:4], expected)
+    pytest.importorskip("sympy")
+    formula = sdata.formula("double_factorial(x)")
+    assert formula.find_value_at(x=-1) == 0.0 and formula.find_value_at(x=-3) == 0.0
+    np.testing.assert_array_equal(formula.find_value_at(x=[-3, -1, 0, 5]).as_numpy(), expected)
+    with pytest.raises(sdata.SimplydataError, match="no value among the ordinary numbers"):
+        formula.find_value_at(x=5.5)
+
+
+def test_ci_and_chi_below_zero_are_empty_on_every_path(capsys):
+    for plain, name in (("cosine integral", "Ci"), ("hyperbolic cosine integral", "Chi")):
+        values = sdata.number_list([-1.5, 0.5])
+        values.take_function(plain)
+        assert np.isnan(values.as_numpy()[0]) and "only for numbers above 0" in capsys.readouterr().out
+        table = sdata.table({"x": [-1.5, 0.5]})
+        table.add_column("y", f"{name}(x)")
+        assert np.isnan(table.get_column("y").as_numpy()[0])
+        pytest.importorskip("sympy")
+        formula = sdata.formula(f"{name}(x)")
+        assert np.isnan(formula.find_value_at(x=[-1.5, 0.5]).as_numpy()[0])
+        with pytest.raises(sdata.SimplydataError, match="no value among the ordinary numbers"):
+            formula.find_value_at(x=-1.5)
+
+
+def test_slopes_of_the_tables_own_functions():
+    pytest.importorskip("sympy")
+    slope = sdata.formula("kelvin_ber(x)").find_slope_formula()
+    assert abs(slope.find_value_at(x=1.3) - special.berp(1.3)) < 1e-12
+    np.testing.assert_allclose(slope.find_value_at(x=[1.3, 2.0]).as_numpy(), special.berp([1.3, 2.0]))
+    slope = sdata.formula("struve_h(0, x)").find_slope_formula()
+    assert abs(slope.find_value_at(x=1.2) - (special.struve(-1, 1.2) - special.struve(1, 1.2)) / 2) < 1e-12
+    slope = sdata.formula("bessel_j_slope(1, x)").find_slope_formula()
+    assert abs(slope.find_value_at(x=1.2) - special.jvp(1, 1.2, 2)) < 1e-12
+    slope = sdata.formula("spence(x)").find_slope_formula()  # d/dx Li2(1 - x) = log(x) / (1 - x)
+    x = np.array([0.5, 2.0])
+    np.testing.assert_allclose(slope.find_value_at(x=x.tolist()).as_numpy(), np.log(x) / (1 - x))
+    with pytest.raises(sdata.SimplydataError, match="no slope formula for voigt_profile"):
+        sdata.formula("voigt_profile(x, 1, 0.5)").find_slope_formula()
+    with pytest.raises(sdata.SimplydataError, match="as its order changes"):
+        sdata.formula("struve_h(x, 2)").find_slope_formula()
+
+
+def test_limits_of_real_functions_are_plain_numbers():
+    pytest.importorskip("sympy")
+    found = sdata.formula("bessel_j(0, x)").find_limit_as("x", goes_to=1)
+    assert isinstance(found, float) and abs(found - special.jv(0, 1.0)) < 1e-12
+    found = sdata.formula("struve_h(0, x)").find_limit_as("x", goes_to=1)
+    assert isinstance(found, float) and abs(found - special.struve(0, 1.0)) < 1e-12
+
+
+@pytest.mark.parametrize("plain, name, option", [("exponential integral En", "expint", "order"),
+                                                  ("polygamma", "polygamma", "order"),
+                                                  ("hermite polynomial", "hermite", "degree")])
+def test_an_order_that_must_be_whole_says_so_on_every_path(plain, name, option):
+    with pytest.raises(sdata.SimplydataError, match=f"{option}= of the {plain} must be a whole number"):
+        sdata.number_list([0.9]).take_function(plain, **{option: 2.5})
+    table = sdata.table({"x": [0.9]})
+    with pytest.raises(sdata.SimplydataError, match="must be a whole number"):
+        table.add_column("y", f"{name}(2.5, x)")
+    pytest.importorskip("sympy")
+    with pytest.raises(sdata.SimplydataError, match="must be a whole number"):
+        sdata.formula(f"{name}(2.5, x)")
+
+
+def test_numbers_that_must_be_whole_say_so_in_the_note(capsys):
+    values = sdata.number_list([4.0, 4.5])
+    values.take_function("greatest common divisor", other=6)
+    assert "takes whole numbers only" in capsys.readouterr().out
+
+
+def test_work_on_bits_refuses_numbers_too_big_for_64_bits():
+    with pytest.raises(sdata.SimplydataError, match="fit in 64 bits"):
+        sdata.number_list([2.0 ** 63, 1.0]).work_on_bits("and", with_numbers=1)
+    with pytest.raises(sdata.SimplydataError, match="fit in 64 bits"):
+        sdata.number_list([1, 2]).work_on_bits("or", with_numbers=[2.0 ** 64, 1.0])
+
+
+def test_scipys_jv_points_to_bessel_j_and_sympys_jn_to_spherical_bessel_j(capsys):
+    with pytest.raises(sdata.SimplydataError, match=r"called bessel_j\(\)"):
+        sdata.table({"x": [1.0]}).add_column("y", "jv(1, x)")
+    sdata.help("sp.jn")
+    assert "spherical_bessel_j" in capsys.readouterr().out
+    sdata.help("special.jv")
+    assert 'take_function("bessel J"' in capsys.readouterr().out
+
+
+SYMPY_FORMULA_ENTRIES = [e for e in FORMULA_ENTRIES if e.sympy or e.sympy_expr]
+
+
+@pytest.mark.parametrize("entry", SYMPY_FORMULA_ENTRIES, ids=[e.plain for e in SYMPY_FORMULA_ENTRIES])
+def test_every_formula_with_sympys_function_is_written_back_as_readable_formula_text(entry):
+    """What sdata.formula writes back (formula_text) is formula text again, with the same values (cot, polylog and
+    elliptic_e with two values included)."""
+    pytest.importorskip("sympy")
+    from simplydata._formula import formula_text, parse
+
+    x, options, expected = _formula_points(entry)
+    x, expected = x[x > 0], expected[x > 0]
+    if not x.size:
+        pytest.skip("no sample above 0")
+    written = formula_text(parse(_call(entry.formula_name, entry.inputs, options)))
+    again = sdata.formula(written)
+    np.testing.assert_allclose(again.find_value_at(x=x.tolist()).as_numpy(), expected, rtol=1e-9, atol=1e-12,
+                               err_msg=written)

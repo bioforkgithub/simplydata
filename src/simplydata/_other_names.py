@@ -1461,7 +1461,7 @@ _SPECIAL = [
     ("numbers.take_log_odds()", "logit"),
     ("numbers.turn_into_chances()", "expit"),
     ('sdata.formula("gamma(x)"), then formula.find_value_at(x=4.5): a formula can use gamma, lgamma, digamma, beta, '
-     "erf, erfc and besselJ", "gamma gammaln loggamma digamma psi beta erf erfc jv"),
+     "erf, erfc and besselJ", "gamma gammaln loggamma digamma psi beta erf erfc"),
     ('sdata.distribution("normal").find_chance_that_value(is_below=1.96)', "ndtr log_ndtr"),
     ('sdata.distribution("normal").find_percentile(97.5)', "ndtri"),
 ]

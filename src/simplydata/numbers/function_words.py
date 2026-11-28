@@ -158,6 +158,11 @@ class FunctionWords:
                 inputs.append(None)
                 continue
             inputs.append(self._function_option(entry, key, value, shape))
+        table.check_whole_options(entry, inputs)  # order= of expn must be whole: a plain sentence, not empty answers
+        not_whole = np.zeros(shape, dtype=bool)
+        if "x" in entry.whole:
+            floats = values.astype(float)
+            not_whole = np.isfinite(floats) & (floats != np.round(floats))
         try:
             result = np.asarray(table.work_out(entry, inputs))
         except (TypeError, ValueError) as error:
@@ -183,10 +188,12 @@ class FunctionWords:
                                 + ('; part="imaginary", "size" or "angle" gives another.' if part == "real" else "."))
         filled = ~np.isnan(values.astype(float)) if values.dtype.kind in "fc" else np.ones(shape, dtype=bool)
         if result.dtype.kind == "f":
-            empty = int(np.count_nonzero(np.isnan(result) & filled))
+            note_empty(int(np.count_nonzero(np.isnan(result) & filled & not_whole)),
+                       f"the {entry.plain} takes whole numbers only")
+            empty = int(np.count_nonzero(np.isnan(result) & filled & ~not_whole))
             if empty:
                 where = f"has a value only for numbers {entry.domain}" if entry.domain else \
-                    "has no value there (outside where it is defined, or an option that must be a whole number is not)"
+                    "has no value there (outside where it is defined)"
                 note_empty(empty, f"the {entry.plain} {where}")
             endless = int(np.count_nonzero(np.isinf(result) & filled))
             if endless:
@@ -277,6 +284,8 @@ class FunctionWords:
         values = self._values
         if values.dtype.kind == "b":
             return values.astype(np.int64)
+        if values.dtype.kind == "u" and values.size and values.max() >= 2 ** 63:
+            _fits_in_64_bits(values.astype(float), f'{step}("{key}")')
         if values.dtype.kind in "iu":
             return values.astype(np.int64)
         floats = values.astype(float)
@@ -287,6 +296,7 @@ class FunctionWords:
         if not np.all(floats == np.round(floats)):
             raise SimplydataError(f'{step}("{key}") needs whole numbers; some of these have decimals. Round them '
                                   f"first: {self._name}.round_to(0)")
+        _fits_in_64_bits(floats, f'{step}("{key}")')
         return floats.astype(np.int64)
 
     def _whole_other(self, value, option, key):
@@ -300,6 +310,8 @@ class FunctionWords:
         floats = array.astype(float)
         if np.isnan(floats).any() or not np.all(floats == np.round(floats)):
             raise SimplydataError(f"{option}= needs whole numbers (no decimals, none empty).")
+        if array.dtype.kind not in "iu":
+            _fits_in_64_bits(floats, f"{option}=")
         try:
             np.broadcast_shapes(array.shape, self._values.shape)
         except ValueError:
@@ -325,6 +337,13 @@ class FunctionWords:
             raise SimplydataError(f'work_on_bits("{key}") would change how many directions the numbers have.')
         axis = "" if values.ndim == 1 else ", axis=-1"
         return packed, f"np.{function_name}({self._name}.astype(np.uint8){axis})"
+
+
+def _fits_in_64_bits(floats, what: str) -> None:
+    """Bit words work on 64-bit whole numbers: a number from 2**63 on (or below -2**63) would wrap round silently."""
+    if np.any(np.abs(floats) >= 2.0 ** 63) and not np.all(floats[np.abs(floats) >= 2.0 ** 63] == -2.0 ** 63):
+        raise SimplydataError(f"{what} works on whole numbers that fit in 64 bits (from -2**63 to 2**63 - 1); some of "
+                              "these are bigger, and NumPy would wrap them round to wrong numbers.")
 
 
 def _example_call(entry) -> str:

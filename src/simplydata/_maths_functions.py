@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from ._errors import SimplydataError
+
 # ---------------------------------------------------------------------------------------------------------- groups
 TRIG = "angles and hyperbolic functions"
 POWER = "powers, logs and exponentials"
@@ -318,6 +320,23 @@ def _spence(x):
     return _sp().spence(x)
 
 
+def _above_zero(function, x, which):
+    """One answer of a SciPy function of several, empty for x below 0 (where the true value is complex and SciPy
+    gives only its real part)."""
+    x = np.asarray(x, dtype=float)
+    return np.where(x < 0, np.nan, function(x)[which])
+
+
+def _polylog(order, x):
+    """The polylogarithm Li_order(x) for the orders formula text needs: 0 (x / (1 - x)), 1 (-log(1 - x)) and 2
+    (SciPy spence(1 - x)); empty for x above 1, where it is complex."""
+    order, x = np.broadcast_arrays(np.asarray(order), np.asarray(x, dtype=float))
+    with np.errstate(all="ignore"):
+        out = np.select([order == 0, order == 1, order == 2],
+                        [x / (1 - x), -np.log1p(-x), _sp().spence(1 - x)], np.nan)
+    return np.where(x > 1, np.nan, out)
+
+
 # ---------------------------------------------------------------------------------------------------- the table
 def _f(plain, library, inputs, about, group, **options) -> MathsFunction:
     if isinstance(inputs, str):
@@ -365,7 +384,7 @@ TABLE: list[MathsFunction] = [
     _f("tangent of degrees", "special.tandg", "x", "the tangent of an angle in degrees", TRIG, names="tandg",
        sympy_expr="tan(pi*x/180)", numbers=(-45.0, 0.0, 30.0, 90.0)),
     _f("cotangent of degrees", "special.cotdg", "x", "the cotangent (1 / tangent) of an angle in degrees", TRIG,
-       names="cotdg", sympy_expr="cot(pi*x/180)", numbers=(-45.0, 0.0, 30.0, 90.0)),
+       names="cotdg", sympy_expr="1/tan(pi*x/180)", numbers=(-45.0, 0.0, 30.0, 90.0)),
     _f("degrees minutes seconds to radians", "special.radian", "x minutes seconds", "an angle given as degrees, "
        "minutes and seconds, in radians", TRIG, names="radian", sample={"minutes": 30.0, "seconds": 15.0},
        sympy_expr="pi*(x + minutes/60 + seconds/3600)/180"),
@@ -441,8 +460,9 @@ TABLE: list[MathsFunction] = [
        names="binomial", sympy="binomial(x, k)", sample={"k": 2.0}, numbers=(-1.5, 0.0, 3.0, 6.0)),
     _f("rising factorial", "special.poch", "x steps", "x (x + 1) ... (x + steps - 1), the Pochhammer symbol",
        WHOLE, names="pochhammer", sympy="RisingFactorial(x, steps)", sample={"steps": 3.0}),
-    _f("double factorial", "special.factorial2", "x", "x (x - 2) (x - 4) ... down to 1 or 2 (0 below 0)", WHOLE,
-       sympy="factorial2(x)", numbers=(-1.0, 0.0, 5.0, 6.0), whole=("x",),
+    _f("double factorial", "special.factorial2", "x", "x (x - 2) (x - 4) ... down to 1 or 2, as SciPy: 0 for a "
+       "whole number below 0, and empty for a number that is not whole (SymPy's factorial2 differs below 0, so "
+       "formula text uses SciPy's too)", WHOLE, numbers=(-3.0, -1.0, 0.0, 5.0, 6.0), whole=("x",),
        compute=lambda x: _sp().factorial2(x, exact=False)),
     _f("multifactorial", "special.factorialk", "x k", "x (x - k) (x - 2k) ... (0 below 0)", WHOLE,
        sample={"k": 3}, numbers=(-1.0, 0.0, 5.0, 7.0), whole=("x", "k"),
@@ -495,7 +515,7 @@ TABLE: list[MathsFunction] = [
        names="betaln", sample={"b": 2.0}, numbers=(-1.5, 0.5, 1.0, 4.0)),
     _f("regularized incomplete beta", "special.betainc", "a b x", "the share of beta(a, b) from 0 to x (the beta "
        "distribution's chance below x)", GAMMA, names="betainc", sample={"a": 2.0, "b": 3.0},
-       sympy_expr="betainc_regularized(a, b, 0, x)", numbers=(-0.5, 0.0, 0.5, 1.0), domain="from 0 to 1"),
+       numbers=(-0.5, 0.0, 0.5, 1.0), domain="from 0 to 1"),
     _f("complementary regularized incomplete beta", "special.betaincc", "a b x", "1 - the regularized incomplete "
        "beta", GAMMA, names="betaincc", sample={"a": 2.0, "b": 3.0}, numbers=(-0.5, 0.0, 0.5, 1.0),
        domain="from 0 to 1"),
@@ -536,11 +556,13 @@ TABLE: list[MathsFunction] = [
     _f("sine integral", "special.sici", "x", "Si(x): the area under sin(t) / t from 0 to x", ERROR, part=0,
        sympy="Si(x)"),
     _f("cosine integral", "special.sici", "x", "Ci(x): Euler's gamma + log(x) + the area under (cos(t) - 1) / t; "
-       "for x above 0", ERROR, part=1, sympy="Ci(x)", numbers=(-1.5, 0.0, 0.5, 2.0)),
+       "for x above 0 (below 0 Ci is a complex number: empty, everywhere)", ERROR, part=1, sympy="Ci(x)",
+       numbers=(-1.5, 0.0, 0.5, 2.0), compute=lambda x: _above_zero(_sp().sici, x, 1), domain="above 0"),
     _f("hyperbolic sine integral", "special.shichi", "x", "Shi(x): the area under sinh(t) / t from 0 to x", ERROR,
        part=0, sympy="Shi(x)"),
-    _f("hyperbolic cosine integral", "special.shichi", "x", "Chi(x); for x above 0", ERROR, part=1,
-       sympy="Chi(x)", numbers=(-1.5, 0.0, 0.5, 2.0)),
+    _f("hyperbolic cosine integral", "special.shichi", "x", "Chi(x); for x above 0 (below 0 Chi is a complex "
+       "number: empty, everywhere)", ERROR, part=1, sympy="Chi(x)", numbers=(-1.5, 0.0, 0.5, 2.0),
+       compute=lambda x: _above_zero(_sp().shichi, x, 1), domain="above 0"),
     _f("exponential integral Ei", "special.expi", "x", "Ei(x): the principal value of the area under e**t / t up "
        "to x", ERROR, names="expi Ei", sympy="Ei(x)"),
     _f("exponential integral E1", "special.exp1", "x", "E1(x): the area under e**-t / t from x on, for x above 0",
@@ -895,6 +917,10 @@ TABLE += [
     _f("spence", "special.spence", "x", "the dilogarithm Li2(1 - x) (SymPy polylog(2, 1 - x)), for x of 0 or above",
        OTHER, names="dilogarithm", sympy_expr="polylog(2, 1 - x)", numbers=(-1.5, 0.0, 0.5, 2.0),
        compute=_spence, domain="of 0 or above"),
+    _f("polylogarithm", "special.spence", "order x", "Li_order(x) (SymPy polylog), for the orders 0, 1 and 2 and "
+       "x of 1 or below: x / (1 - x), -log(1 - x) and spence(1 - x); other orders are left to SymPy", OTHER,
+       sympy="polylog(order, x)", sample={"order": 2}, whole=("order",), numbers=(-1.5, 0.0, 0.5, 0.9),
+       compute=_polylog, library_is_name=False, domain="of 1 or below, for the orders 0, 1 and 2"),
     _f("arithmetic geometric mean", "special.agm", "x other", "the arithmetic-geometric mean of two numbers", OTHER,
        names="agm", sample={"other": 2.0}),
     _f("dirichlet kernel", "special.diric", "x n", "the periodic sinc function sin(n x / 2) / (n sin(x / 2))",
@@ -1133,8 +1159,30 @@ def _formula_names() -> dict:
 
 
 FORMULA_NAMES = _formula_names()
+# SymPy names that take more values for another function of the table: elliptic_e(m) is the complete integral,
+# elliptic_e(phi, m) the incomplete one (as SymPy writes both)
+MORE_VALUES = {"elliptic_e": FormulaName("elliptic_e", BY_PLAIN["elliptic integral second kind"], ("x", "parameter"))}
 # fewest and most values of each formula name (the form of table/columns.py FUNCTIONS)
-FORMULA_SIZES = {name: (spec.fewest, spec.most) for name, spec in FORMULA_NAMES.items()}
+FORMULA_SIZES = {name: (spec.fewest, MORE_VALUES[name].most if name in MORE_VALUES else spec.most)
+                 for name, spec in FORMULA_NAMES.items()}
+
+
+def whole_option_error(entry: MathsFunction, key: str, value) -> SimplydataError:
+    """The plain sentence for an option that must be a whole number but is not (expn(2.5, x))."""
+    return SimplydataError(f"{key}= of the {entry.plain} must be a whole number (SciPy's {entry.library_name} takes "
+                           f"whole numbers there); it got {value}.")
+
+
+def check_whole_options(entry: MathsFunction, values: list) -> None:
+    """Every option that must be a whole number is one (empty values are left to be empty answers); the numbers
+    themselves (x) may be decimals, which give empty answers."""
+    for key, value in zip(entry.inputs, values):
+        if key == "x" or key not in entry.whole or value is None:
+            continue
+        array = np.asarray(value, dtype=float)
+        wrong = np.isfinite(array) & (array != np.round(array))
+        if np.any(wrong):
+            raise whole_option_error(entry, key, array[wrong].ravel()[0])
 
 
 def prepare(entry: MathsFunction, values: list) -> tuple[list, np.ndarray | bool]:
@@ -1166,8 +1214,11 @@ def work_out(entry: MathsFunction, values: list):
 
 
 def _value(spec: FormulaName, *values):
+    if len(values) > spec.most and spec.name in MORE_VALUES:
+        spec = MORE_VALUES[spec.name]
     given = dict(zip(spec.order, values))
     inputs = [given.get(key, spec.entry.defaults.get(key)) for key in spec.entry.inputs]
+    check_whole_options(spec.entry, inputs)
     try:
         out = work_out(spec.entry, inputs)
     except (TypeError, ValueError):
@@ -1202,14 +1253,27 @@ def sympy_functions(evaluate: bool = True) -> dict:
     return made
 
 
+def _check_numbers(sp, spec: FormulaName, values) -> None:
+    """In formula text, an option that must be a whole number and is written as a number is a whole number
+    (expn(2.5, x) stops with a plain sentence, as numbers.take_function does)."""
+    for key, value in zip(spec.order, values):
+        if key == "x" or key not in spec.entry.whole:
+            continue
+        number = sp.sympify(value)
+        if number.is_number and number.is_finite is not False and number.is_integer is False:
+            raise whole_option_error(spec.entry, key, number)
+
+
 def _sympy_maker(sp, spec: FormulaName, evaluate: bool):
     entry = spec.entry
     flag = {} if evaluate else {"evaluate": False}
     if spec.sympy_name:  # SymPy's own name, in SymPy's order
         function = getattr(sp, spec.sympy_name)
         defaults = [entry.defaults.get(k) for k in spec.order]
+        more = MORE_VALUES.get(spec.name)
 
         def own(*values, **_):
+            _check_numbers(sp, more if more is not None and len(values) > spec.most else spec, values)
             values = list(values) + defaults[len(values):]
             while values and values[-1] is None:  # zeta(x) and LambertW(x): the optional value left out
                 values.pop()
@@ -1220,6 +1284,7 @@ def _sympy_maker(sp, spec: FormulaName, evaluate: bool):
         names = entry.inputs
 
         def built(*values, **_):
+            _check_numbers(sp, spec, values)
             given = dict(zip(spec.order, values))
             local = {key: given.get(key, entry.defaults.get(key)) for key in names}
             if entry.sympy and any(v is None for v in local.values()):
@@ -1237,6 +1302,7 @@ def _sympy_maker(sp, spec: FormulaName, evaluate: bool):
     function = _implemented(sp, spec.entry)
 
     def numeric(*values, **_):
+        _check_numbers(sp, spec, values)
         given = dict(zip(spec.order, values))
         args = [given.get(k, entry.defaults.get(k)) for k in entry.inputs]
         args = [sp.nan if a is None else a for a in args]
@@ -1281,6 +1347,26 @@ def _table_base():
             return sp.Float(found, prec) if np.isfinite(found) else (sp.nan if np.isnan(found) else
                                                                        sp.oo if found > 0 else -sp.oo)
 
+        def _eval_is_real(self):
+            """Real for real values: SciPy gives these functions as real numbers (or empty)."""
+            return True if all(arg.is_real for arg in self.args) else None
+
+        def fdiff(self, argindex=1):
+            """The slope along x from the table's own slope function (jvp for bessel_j_slope, kelvin_ber_slope for
+            kelvin_ber ...); a plain sentence where simplydata knows none."""
+            entry = _SPECS_BY_CLASS[self.func.__name__].entry
+            where = entry.inputs.index("x") + 1
+            if argindex != where:
+                raise SimplydataError(f"simplydata knows no slope of {self.func.__name__}() as its "
+                                      f"{entry.inputs[argindex - 1]} changes (only as x changes, where the table has "
+                                      "a slope for it).")
+            rule = _SLOPE_RULES.get(entry.plain)
+            if rule is None:
+                raise SimplydataError(f"simplydata knows no slope formula for {self.func.__name__}(): SciPy works out "
+                                      "its values, but neither SciPy nor SymPy gives its slope as a formula. Its "
+                                      "values work (formula.find_value_at, numbers.take_function).")
+            return rule(*self.args)
+
     TableFunction.__module__ = __name__
     TableFunction.__qualname__ = _CLASS_PREFIX + "base"
     _IMPLEMENTED["base"] = TableFunction
@@ -1290,6 +1376,37 @@ def _table_base():
 # the formula name of each entry SymPy does not have -> how it is worked out by number
 _SPECS_BY_CLASS = {entry.formula_name: FormulaName(entry.formula_name, entry, entry.inputs) for entry in TABLE
                    if entry.formula and not (entry.sympy or entry.sympy_expr)}
+
+
+def _slope_of(plain: str):
+    """The slope rule that gives the table's slope function of the same inputs."""
+    return lambda *args: _table_class(BY_PLAIN[plain].formula_name)(*args)
+
+
+def _next_slope(plain: str):
+    """The slope of a slope: one more time (jvp(v, x, n) -> jvp(v, x, n + 1))."""
+    return lambda order, x, times: _table_class(BY_PLAIN[plain].formula_name)(order, x, times + 1)
+
+
+def _struve_slope(sign: int):
+    """dH_v/dx = (H_(v-1) - H_(v+1)) / 2 and dL_v/dx = (L_(v-1) + L_(v+1)) / 2 (DLMF 11.4.25, 11.4.26)."""
+    def rule(order, x):
+        made = _table_class("struve_h" if sign < 0 else "struve_l")
+        return (made(order - 1, x) + sign * made(order + 1, x)) / 2
+    return rule
+
+
+# plain name -> its slope along x, for the table's own functions that have one
+_SLOPE_RULES = {
+    **{f"kelvin {k}": _slope_of(f"kelvin {k} slope") for k in ("ber", "bei", "ker", "kei")},
+    **{f"parabolic cylinder {k}": _slope_of(f"parabolic cylinder {k} slope") for k in ("D", "V", "W")},
+    **{p: _slope_of(f"{p} slope") for p in ("riccati bessel first kind", "riccati bessel second kind",
+                                             "jahnke emde lambda", "legendre Q", "modified spherical bessel i",
+                                             "modified spherical bessel k")},
+    **{p: _next_slope(p) for p in ("bessel J slope", "bessel Y slope", "bessel I slope", "bessel K slope")},
+    "struve H": _struve_slope(-1),
+    "struve L": _struve_slope(1),
+}
 
 
 def _table_class(name: str):
@@ -1324,11 +1441,30 @@ def sympy_numbers() -> dict:
         out[name] = _numbers_in_order(spec)
     out["elliptic_e"] = _elliptic_e_numbers  # elliptic_e(m) is complete, elliptic_e(phi, m) is not
     out["hyper"] = _hyper_numbers
-    out["polylog"] = _polylog_numbers
     out["betainc_regularized"] = _betainc_numbers
     out["jn"] = lambda n, x: _sp().spherical_jn(np.asarray(n).astype(int), x)
     out["yn"] = lambda n, x: _sp().spherical_yn(np.asarray(n).astype(int), x)
     return out
+
+
+def lambdify(symbols, expr, extra: dict | None = None):
+    """SymPy lambdify with NumPy and SciPy, where every SymPy function of the table is worked out as
+    numbers.take_function works it out: SymPy's SciPy printer writes some of them as its own SciPy calls (Ci as the
+    real part of sici below 0), so a printer that writes them by name is used. extra: more names -> functions."""
+    import sympy as sp
+    from sympy.printing.numpy import SciPyPrinter
+
+    numbers = {**sympy_numbers(), **(extra or {})}
+
+    class TablePrinter(SciPyPrinter):
+        """SymPy's SciPy printer, writing the table's functions by name."""
+
+    for head in numbers:
+        setattr(TablePrinter, f"_print_{head}",
+                lambda self, expr, head=head: f"{head}({', '.join(self._print(a) for a in expr.args)})")
+    printer = TablePrinter({"fully_qualified_modules": False, "inline": True, "allow_unknown_functions": True,
+                            "user_functions": {name: name for name in numbers}})
+    return sp.lambdify(symbols, expr, modules=[numbers, "scipy", "numpy"], printer=printer)
 
 
 def _numbers_in_order(spec: FormulaName):
@@ -1340,12 +1476,6 @@ def _numbers_in_order(spec: FormulaName):
 def _elliptic_e_numbers(*values):
     special = _sp()
     return special.ellipe(values[0]) if len(values) == 1 else special.ellipeinc(values[0], values[1])
-
-
-def _polylog_numbers(order, x):
-    if np.any(np.asarray(order) != 2):
-        raise ValueError("polylog is worked out by number for order 2 only (SciPy spence)")
-    return _sp().spence(1 - np.asarray(x, dtype=float))
 
 
 def _betainc_numbers(a, b, low, high):
@@ -1433,6 +1563,9 @@ def pointer_groups(taken: dict) -> dict:
                          f"(in SymPy's order), or {_call_text(entry)} for numbers", [head])
         elif entry.sympy:  # formula text keeps to real numbers: the word for numbers only
             add("sympy", _call_text(entry), [_sympy_parts(entry.sympy)[0]])
+    for head, plain in (("jn", "spherical_bessel_j"), ("yn", "spherical_bessel_y")):  # SymPy's spherical Bessel
+        add("sympy", f'sdata.formula("{plain}(1, x)"): SymPy\'s {head} is the spherical Bessel function; in formula '
+                     f"text {head} is SciPy's (Bessel {head[0].upper()} of a whole order)", [head])
     for name, parts in SEVERAL_PARTS.items():
         kind = "numpy" if name in ("frexp", "divmod") else "special"
         others = ", ".join(f'"{p}"' for p in parts[1:])

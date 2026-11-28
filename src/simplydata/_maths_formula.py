@@ -298,15 +298,13 @@ def _with_conditions(made, known) -> MathsFormula:
     """A formula made with sdata.formula() that holds only under a condition (a SymPy Piecewise, such as the sum of
     r**k for |r| < 1), which formula text cannot write: worked out by SymPy lambdify with NumPy and SciPy, as for
     many values in formula.find_value_at(). Where no condition holds there is no value (NaN)."""
-    import sympy as sp
-
     values = _known_values(known)
     symbols = sorted(made._expr.free_symbols, key=str)
     names = [str(s) for s in symbols if str(s) not in values]
     used = {str(s): values[str(s)] for s in symbols if str(s) in values}
-    from ._maths_functions import sympy_numbers  # the maths family (families for 100 %, batches 7-9)
+    from ._maths_functions import lambdify  # the maths family (families for 100 %, batches 7-9)
 
-    function = sp.lambdify(symbols, made._expr, modules=[sympy_numbers(), "scipy", "numpy"])  # (lgamma: gammaln)
+    function = lambdify(symbols, made._expr)  # SymPy's own SciPy names otherwise (lgamma: gammaln)
 
     def work_out(given, data):
         return function(*[used[str(s)] if str(s) in used else given[str(s)] for s in symbols])
