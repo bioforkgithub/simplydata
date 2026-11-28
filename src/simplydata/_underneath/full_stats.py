@@ -581,7 +581,7 @@ ENTRIES = [
         choices=("the rows where censored_by= says yes are right-censored: their value is only a lower limit.",
                  "no location for the Weibull, as R; simplydata polishes SciPy's search, so the two agree to about "
                  "5 digits.",),
-        also="simplydata also gives the standard errors, the log-likelihood and AIC, and says how many values were "
-             "censored.",
+        also="simplydata also gives the log-likelihood and AIC and says how many values were censored; it gives no "
+             "standard errors for a censored fit (no package it uses gives them).",
     ),
 ]

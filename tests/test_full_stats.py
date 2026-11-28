@@ -484,7 +484,9 @@ def test_censored_weibull_matches_survreg_numbers_on_the_trial_table(capsys):
     params = fit.show_parameters()
     assert params["shape"] == pytest.approx(c, rel=1e-4)
     assert params["scale"] == pytest.approx(scale, rel=1e-4)
-    assert "fitdistrplus::fitdistcens" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "fitdistrplus::fitdistcens" in out and "No standard errors are given" in out
+    assert not any(name.startswith("standard error") for name in fit.turn_into_table().get_column_names())
 
 
 def test_censored_fit_needs_a_yes_no_column_and_one_group():
