@@ -147,6 +147,11 @@ UNDERNEATH = {
     "table.check_if_sorted_by": "pandas (is_monotonic_increasing) or Polars (is_sorted)",
     "table.add_run_number_column": "Polars (rle_id), on pandas and Polars tables",
     "table.turn_into_title_case": "pandas (str.title) or Polars (str.to_titlecase)",
+    # families for 100 %, batches 7-9 (approved by Manish 2026-11-28): the maths family
+    "nums.take_function": "SciPy (scipy.special, e.g. jv, erfinv) or NumPy (e.g. sinh, gcd), from one name table",
+    "nums.work_on_bits": "NumPy (bitwise_and, bitwise_or, bitwise_xor, invert, left_shift, packbits ...)",
+    "sdata.find_zeros_of": "SciPy (scipy.special jn_zeros, ai_zeros, erf_zeros ...)",
+    "sdata.find_area_points": "SciPy (scipy.special roots_legendre ...; scipy.integrate newton_cotes, lebedev_rule)",
     "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
     "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
     "use_shapes": "seaborn (scatterplot style= and markers=)",

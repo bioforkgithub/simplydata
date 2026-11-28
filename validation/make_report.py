@@ -166,7 +166,8 @@ def check_case(case) -> list[dict]:
     if case.ours_r is not None and not r_ready(case.ours_r):
         return [_skipped(case, "R" + (" with " + ", ".join(case.ours_r) if case.ours_r else "")
                          + " (simplydata runs R for this option)")]
-    data = None if case.dataset in ("made-up", "standard normal table", "closed form (no data)") else         study.load(case.dataset)
+    data = None if case.dataset in ("made-up", "standard normal table", "closed form (no data)",
+                                   "published special-function tables (no data)") else study.load(case.dataset)
     try:
         ours = run(case.ours, data)
     except Exception as error:  # noqa: BLE001 - a crash is a failed check, reported
