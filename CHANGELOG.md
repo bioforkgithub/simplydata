@@ -5,6 +5,49 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: NumPy words for lists and grids of numbers, and one maker for polynomials (families for 100 %, batches 10-13)
+
+Approved by Manish 2026-11-28 (plan section 2.4, G5, G8 and G17). Each word calls NumPy, SciPy or SymPy once, says
+which in a plain sentence, has its help example, its "same underneath" box, reliability cases on real data
+(AirPassengers, iris, mtcars) checked against NumPy or SciPy and, where it does the same, R, and tests against the
+library itself. Positions count from 1, as everywhere in simplydata.
+
+- Lists: `numbers.find_product()` (NumPy `nanprod`), `numbers.turn_into_changes(rows_back=, how_many_times=)`
+  (`diff`, R `diff(lag =, differences =)`), `numbers.turn_into_slopes(time_step=)` (`gradient`),
+  `numbers.count_in_bins(edges=)` (`histogram`, `histogram_bin_edges`, and `histogram2d` with `together_with=`),
+  `numbers.find_bin_of_each(edges=)` (`digitize`, R `findInterval`), the set words `keep_numbers_also_in`,
+  `remove_numbers_also_in`, `keep_numbers_in_only_one` and `join_numbers_with` (`intersect1d`, `setdiff1d`,
+  `setxor1d`, `union1d`), `numbers.find_dot_product_with` (`dot`), `numbers.find_cross_product_with` (`cross`),
+  `numbers.find_positions_where(is_above=)` (`flatnonzero`) and `numbers.find_size(kind=)` (`linalg.vector_norm`).
+- New options: `turn_into_running_total(show="product")` (`nancumprod`), `sort(show="positions")` (`argsort`) and
+  `sort(then_by=)` (`lexsort`), `remove_duplicate_numbers(show="positions" | "which number")` (`unique_all`,
+  `unique_inverse`), `sdata.number_list(1, to=1000, how_many=4, spacing="log")` (`geomspace`),
+  `change_angles_to(remove_jumps=True)` (`unwrap`), `replace_numbers_where(at_positions=, rules=)` and other numbers
+  as `with_value=` (`put`, `select`, `copyto`), `take_cosine_transform(kind="sine" | "hankel", inverse=True)` (`dst`,
+  `idct`, `idst`, `fht`, `ifht`), `grid.take_inverse(closest_possible=True)` (SciPy `pinv`, `pinvh`) and
+  `grid.find_determinant(as_log=True)` (`slogdet`).
+- Grids: `grid.multiply_as_matrix_by(other)` (`matmul`, `matvec`, `vecmat`, `linalg.multi_dot`),
+  `grid.find_positions_where(is_above=)` (`argwhere`), `grid.add_border(width=, with_value=)` (`pad`), the grid parts
+  `grid.get_part("upper triangle")` and `grid.replace_part("diagonal", with_value=1)` (G8: `diagonal`, `triu`, `tril`,
+  their `_indices`, `fill_diagonal`), `grid.take_fourier_transform(over=)` (SciPy `fft2`, `rfft2`; back with
+  `sdata.find_inverse_fourier_transform`), `grid.take_cosine_transform()` (`dctn`, `dstn`, `idctn`, `idstn`) and the
+  size words `grid.find_rank()`, `grid.find_size(kind=)`, `grid.find_condition_number()` and
+  `grid.find_column_space()` (`matrix_rank`, `matrix_norm`, `cond`, SciPy `orth`).
+- `sdata.number_grid(kind=...)`: `"identity"`, `"diagonal"`, `"ones below diagonal"`, `"vandermonde"`, `"blocks"`
+  (NumPy `eye`, `diag`, `tri`, `vander`, `block`), `"toeplitz"`, `"hankel"`, `"circulant"`, `"companion"`,
+  `"fiedler"`, `"convolution"`, `"hadamard"`, `"hilbert"`, `"pascal"`, `"leslie"`, `"helmert"`, `"block diagonal"`
+  and their inverses (SciPy linalg) and `"rotation"` (SymPy `rot_axis1-3`); `sdata.number_grid(from_formula="row *
+  column", rows=3, columns=4)` (`fromfunction`); new word `sdata.make_coordinate_grids(x=, y=)` (`meshgrid`, and
+  `indices` with `rows=` and `columns=`).
+- New word `sdata.polynomial("legendre", degree=3)` (G5): one maker for the polynomials of NumPy, scipy.special and
+  SymPy (Legendre, Chebyshev, Hermite, Laguerre, Jacobi, Gegenbauer and their shifted and generalized forms,
+  cyclotomic, Swinnerton-Dyer, Bernoulli, Euler, symmetric, from roots, from numbers, through points), made exactly by
+  SymPy as a formula, so every formula word works on it; each name is tested against scipy.special and
+  numpy.polynomial.
+- `sdata.help("np.argsort")`, `"np.linalg.pinv"`, `"np.fft.fft2"`, `"scipy.linalg.toeplitz"`, `"special.chebyt"`,
+  `"np.polynomial.Hermite"`, `"sp.legendre_poly"` and the other names of plan section 2.4 point to the word. Left to
+  NumPy, with a pointer to the hand-over: `einsum` (G17), `linalg.tensorinv`, `trim_zeros`.
+
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 
 Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that

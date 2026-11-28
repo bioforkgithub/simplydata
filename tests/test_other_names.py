@@ -741,13 +741,13 @@ NUMBER_AUDIT_POINTERS = [
     ("np.square", "numbers.raise_to_power(2)"), ("np.flip", "numbers.reverse()"),
     ("np.unique", "numbers.remove_duplicate_numbers()"), ("np.clip", "numbers.replace_each_number_that("),
     ("np.transpose", "grid.swap_rows_and_columns()"), ("np.isin", "numbers.turn_into_yes_or_no(is_one_of="),
-    ("np.zeros", "sdata.number_grid(rows=2, columns=3, filled_with=0)"), ("np.diff", "np.diff(numbers.as_numpy())"),
+    ("np.zeros", "sdata.number_grid(rows=2, columns=3, filled_with=0)"), ("np.diff", "numbers.turn_into_changes()"),
     ("np.save", 'numbers.save("numbers.csv")'), ("np.cbrt", "numbers.take_cube_root()"),
     ("np.linalg.solve", "grid.solve_for("), ("scipy.linalg.solve_triangular", "grid.solve_for("),
     ("np.linalg.lstsq", "grid.solve_for("), ("np.linalg.svd", 'grid.break_down(test_method="svd")'),
     ("scipy.linalg.lu", 'grid.break_down(test_method="lu")'), ("scipy.linalg.ldl", 'test_method="ldl"'),
     ("scipy.linalg.qz", 'test_method="qz", together_with='), ("np.linalg.det", "grid.find_determinant()"),
-    ("np.linalg.eigh", "grid.find_eigenvalues()"), ("np.linalg.norm", "np.linalg.norm(numbers.as_numpy())"),
+    ("np.linalg.eigh", "grid.find_eigenvalues()"), ("np.linalg.norm", "numbers.find_size()"),
     ("scipy.linalg.expm", "grid.take_matrix_exp()"), ("optimize.nnls", "between=[0, None]"),
     ("scipy.optimize.lsq_linear", "between=[0, 1]"), ("scipy.optimize.minimize", "sdata.find_where_smallest("),
     ("rng.normal", "sdata.make_random_numbers(how_many=100, average=50"),
@@ -785,8 +785,8 @@ def test_every_number_name_the_audit_found_points_to_its_word(typed, word, capsy
     ("np.mean", "numbers.find_average()", "table.find_average_of"),  # a bare mean is the table word
     ("np.zeros", "sdata.number_grid(", "system.zeros"),  # a bare zeros is the system word
     ("np.save", "numbers.save(", "chart.save"),
-    ("np.diff", "np.diff(", "find_slope_formula"),  # a bare diff is SymPy's slope
-    ("np.linalg.norm", "as_numpy()", 'distribution("normal"'),  # a bare norm is scipy.stats.norm
+    ("np.diff", "numbers.turn_into_changes()", "find_slope_formula"),  # a bare diff is SymPy's slope
+    ("np.linalg.norm", "find_size()", 'distribution("normal"'),  # a bare norm is scipy.stats.norm
     ("scipy.special.gamma", 'formula("gamma(x)")', 'distribution("gamma"'),
     ("scipy.stats.gamma", 'distribution("gamma"', 'formula("gamma(x)")'),
     ("np.linalg.solve", "grid.solve_for(", 'sdata.solve("'),
