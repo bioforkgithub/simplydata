@@ -5028,3 +5028,51 @@ BASIS["grid.break_down test_method="] = _b(
     "theirs up to the signs of columns where a decomposition leaves them free.", ("anderson1999",), "P3",
     "cholesky and ldl need a symmetric grid; cholesky needs eigenvalues above 0; schur, polar, ldl, hessenberg and qz "
     "need a square grid.", "convention")
+
+# ---------------------------------------------------------------- families for 100 %, batches 22-23 (approved by Manish
+# 2026-11-28): polynomial algebra on a formula (SymPy)
+BASIS["f.find_roots"] = _b(
+    "Every root of the polynomial, exactly (SymPy all_roots: radicals where SymPy can write them, else its CRootOf, "
+    "worked out to any number of digits), one row for each different root with how many times it repeats; real "
+    "roots first, as SymPy orders them.",
+    "real_only=True (real_roots), fractions_only=True (ground_roots), between= (the real roots in a range), "
+    "exactly=False (nroots), show=\"count\" (count_roots) or show=\"intervals\" (intervals).",
+    "A polynomial of degree n has n roots counted with their repeats (the fundamental theorem of algebra); SymPy "
+    "lists a repeated root once for each time, and one row with the count reads as textbooks write it.",
+    ("meurer2017",), "P5",
+    "One letter, number coefficients (whole numbers or fractions for the exact roots); anything else is refused "
+    "with the word that does it (sdata.solve, exactly=False).", "convention")
+BASIS["f.find_roots fractions_only="] = _b(
+    "The whole-number and fraction roots that factoring over the rationals finds (SymPy ground_roots), smallest "
+    "first.",
+    "Without fractions_only=: every root (all_roots).",
+    "SymPy ground_roots gives a dict without an order; smallest first is the order of the other roots tables.",
+    ("meurer2017",), "P5", "As find_roots.", "convention")
+BASIS["f.find_roots exactly="] = _b(
+    "exactly=False: every root in decimals from SymPy nroots with 15 significant digits, about as many as a float "
+    "keeps.",
+    "exactly=True (the default): exact roots.",
+    "15 digits is nroots' own default (n=15) and what a float can hold, so nothing printed is beyond a float's "
+    "precision.", ("meurer2017",), "P3", "As find_roots; not with real_only= or fractions_only=.", "convention")
+BASIS["f.find_degree"] = _b(
+    "A formula of one letter: its highest power (SymPy degree). A formula of several letters without for_letter=: "
+    "the total degree, the highest sum of powers in one term (SymPy total_degree).",
+    "for_letter=\"x\" gives the degree in one letter (degree); a list gives each (degree_list).",
+    "SymPy degree alone takes the first letter in its own order (alphabetical), which depends on how the letters "
+    "are named; the total degree is the degree of a polynomial of several letters in algebra texts.",
+    ("meurer2017",), "P5", "The formula must be a polynomial in the letters; 0 has degree minus infinity, as in "
+    "SymPy.", "convention")
+BASIS["f.make_simpler by="] = _b(
+    "Each value is one of SymPy's own simplifiers with SymPy's own defaults: \"logs\" is logcombine, which joins "
+    "logs only where the letters allow it (force=False), and \"trig rules\" is fu.",
+    "Without by=: SymPy simplify, which tries many of them and keeps the shortest.",
+    "SymPy's defaults never change a formula into one that is wrong for some values (log(x) + log(y) is log(x*y) "
+    "only for positive x and y); letters_are= says what a letter is, so the step may go further.",
+    ("meurer2017",), "P3", "The plain name or SymPy's name of the simplifier.", "convention")
+BASIS["f.turn_into_sum by="] = _b(
+    "Each value is one of SymPy's expand_* functions with SymPy's own defaults: \"logs\" (expand_log) splits a log "
+    "only where the letters allow it (force=False).",
+    "Without by=: SymPy expand, every kind of step at once.",
+    "As for make_simpler(by=): a step that is wrong for some values is left out unless letters_are= allows it.",
+    ("meurer2017",), "P3", "The plain name or SymPy's name; powers of sums with letters above 100 are refused.",
+    "convention")
