@@ -370,6 +370,20 @@ UNDERNEATH = {
     "sdata.find_sensitivity_of": "SciPy (stats.sobol_indices on a Sobol' sample, Saltelli et al. 2010)",
     "sdata.find_parameter_that_gives": "SciPy (scipy.special inverse functions: stdtridf, bdtri, nrdtrisd ...)",
     "dist.take_function": "SciPy (the change of variables, as stats.log, stats.exp, stats.abs, stats.order_statistic)",
+    # families for 100 %, batches 14-16 (approved by Manish 2026-11-28)
+    "sdata.find_best_pairing": "SciPy (optimize.linear_sum_assignment; quadratic_assignment for with_distances=)",
+    "sdata.find_path_between_ends": "SciPy (integrate.solve_bvp, collocation)",
+    "sdata.curve_through_points": "SciPy (interpolate: make_interp_spline, make_smoothing_spline, make_splrep, "
+                                  "make_lsq_spline, CubicHermiteSpline, make_splprep, RectBivariateSpline ...)",
+    "curve.find_value_at": "SciPy (interpolate.BSpline, as splev)",
+    "curve.find_slope_at": "SciPy (BSpline.derivative, as splev(der=) and spalde)",
+    "curve.find_area_between": "SciPy (BSpline.integrate, as splint)",
+    "curve.find_zeros": "SciPy (PPoly.solve, as sproot)",
+    "curve.turn_into_slope_curve": "SciPy (BSpline.derivative, as splder)",
+    "curve.turn_into_area_curve": "SciPy (BSpline.antiderivative, as splantider)",
+    "curve.show_pieces": "SciPy (PPoly.from_spline, BPoly.from_power_basis)",
+    "curve.show_knots": "SciPy (BSpline t, c, k)",
+    "curve.as_scipy": "SciPy (the BSpline itself)",
     # values between points
     "table.find_values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
