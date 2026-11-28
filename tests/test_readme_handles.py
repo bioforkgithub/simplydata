@@ -2,10 +2,10 @@
 
 The README keeps a short "What simplydata handles" section (the counts and how much is checked); the full lists
 are in docs/what_simplydata_handles.md. Required for every batch of new words: each R package simplydata runs (any
-packages=(...) or r_packages=(...) in src) must be in that page's table of R packages it runs; each R package that
-only the tests (conftest.R_PACKAGES) or the reliability study (validation/*.py) load must be in the table of
-packages used only to check; each Python package of pyproject.toml must be in the Python table. The README
-summary's counts of words, options, R packages and reliability checks must match the code.
+packages=(...), r_packages=(...), need_r(...) or table of R code in src) must be in that page's table of R
+packages it runs; each R package that only the tests (conftest.R_PACKAGES) or the reliability study
+(validation/*.py) load must be in the table of packages used only to check; each Python package of pyproject.toml
+must be in the Python table. The README summary's counts of words, options, R packages and reliability checks must match the code.
 """
 
 import inspect
@@ -27,8 +27,7 @@ OLD_MOTTO = "publication-ready"
 R_BASE = {"base", "stats", "utils", "methods", "graphics", "grDevices", "splines", "grid", "tools", "parallel",
           "stats4", "tcltk", "datasets", "compiler"}
 NAME = re.compile(r"^[A-Za-z][A-Za-z0-9.]*$")
-TUPLE = re.compile(r'\(\s*((?:"[^"\n]+"\s*,\s*)*"[^"\n]+"\s*,?\s*)\)')
-PACKAGES_CALL = re.compile(r"(?<![A-Za-z_])(?:r_)?packages\s*(?:=|\+=)\s*\(([^)]*)\)")
+PACKAGES_CALL = re.compile(r"(?<![A-Za-z_])(?:(?:r_)?packages|ours_r)\s*(?:=|\+=)\s*\(([^)]*)\)")
 RUN_TABLE = ("R packages that simplydata runs", "R packages used only to check")
 CHECK_TABLE = ("R packages used only to check", "## By task")
 PYTHON_TABLE = ("Python packages:", "R packages that simplydata runs")
@@ -54,19 +53,62 @@ def _checking_packages() -> set:
     return found - R_BASE
 
 
-def _run_packages(known: set) -> set:
-    """The R packages simplydata itself runs: every package in a packages=(...) or r_packages=(...) in src, and
-    every tuple in src made only of known R package names (the tables of pair tests and of R refits)."""
+def _run_packages_in(text: str, known: set) -> set:
+    """The R packages one source file runs. Read from the places that load R packages, never from a string that
+    only happens to be an R package's name (get_column("signal") is a column, not R's signal package):
+    - packages=(...), r_packages=(...) and ours_r=(...) (PACKAGES_CALL);
+    - the first argument of need_r(...) and _need(...), the calls that load R packages before R code runs;
+    - a real tuple or list in the code (Python's own parse, so ("signal") in a call is no tuple) made only of known
+      R package names: the tables of R code and its packages (post_hoc._R_CODE, models_r.FIT_PACKAGES ...)."""
+    import ast
+
     found = set()
-    for path in (ROOT / "src" / "simplydata").rglob("*.py"):
-        text = path.read_text(encoding="utf-8")
-        for group in PACKAGES_CALL.findall(text):
-            found |= _names(group)
-        for match in TUPLE.finditer(text):
-            names = re.findall(r'"([^"]+)"', match.group(1))
-            if names and all(n in known for n in names):
+    for group in PACKAGES_CALL.findall(text):
+        found |= _names(group)
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, ast.Call) and node.args:
+            called = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+            first = node.args[0]
+            if called in ("need_r", "_need") and isinstance(first, (ast.Tuple, ast.List, ast.Set)):
+                found |= {e.value for e in first.elts if isinstance(e, ast.Constant) and isinstance(e.value, str)
+                          and NAME.match(e.value)}
+        if isinstance(node, (ast.Tuple, ast.List)) and node.elts:
+            names = [e.value for e in node.elts if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+            if len(names) == len(node.elts) and all(n in known for n in names):
                 found |= set(names)
     return found - R_BASE
+
+
+def _run_packages(known: set) -> set:
+    """The R packages simplydata itself runs (_run_packages_in, over every file of src)."""
+    found = set()
+    for path in (ROOT / "src" / "simplydata").rglob("*.py"):
+        found |= _run_packages_in(path.read_text(encoding="utf-8"), known)
+    return found
+
+
+def test_run_scan_finds_every_way_src_loads_an_r_package_and_no_column_name():
+    """The scan of the R packages simplydata runs is not weaker than before: each real way of loading an R package
+    is found, and a string that is only a name (a column, a word) is not."""
+    known = {"fakepkg", "otherpkg", "MASS"}
+    assert _run_packages_in('need_r(["fakepkg"], "a fake test")', known) == {"fakepkg"}
+    assert _run_packages_in('_need(("fakepkg", "otherpkg"), "x")', known) == {"fakepkg", "otherpkg"}
+    assert _run_packages_in('r_call("x", packages=("fakepkg",))', known) == {"fakepkg"}
+    assert _run_packages_in('Case("w", r_packages=("fakepkg",), ours_r=("otherpkg",))', known) == {"fakepkg",
+                                                                                                  "otherpkg"}
+    assert _run_packages_in('CODE = {"a": ("library(x)", ("fakepkg",))}', known) == {"fakepkg"}
+    assert _run_packages_in('FIT = {"negbin": ("MASS",), "multinom": ["otherpkg"]}', known) == {"MASS", "otherpkg"}
+    assert _run_packages_in('x = ("fakepkg", "otherpkg")', known) == {"fakepkg", "otherpkg"}
+    # a name in a call, or a tuple with something that is not an R package, is not a package simplydata runs
+    assert _run_packages_in('table.get_column("fakepkg"); f("fakepkg"); t = ("fakepkg", "time")', known) == set()
+
+
+def test_run_scan_still_finds_every_package_of_the_runs_table():
+    """Every R package in the table of packages simplydata runs is still found by the scan of src."""
+    run = _run_packages(_checking_packages())
+    listed = _first_column(*RUN_TABLE) & (_checking_packages() | run)
+    assert listed <= run, sorted(listed - run)
+    assert {"FSA", "ca", "nnet", "rstatix"} <= run  # found only in tables of R code and in _need((...))
 
 
 def _first_column(start: str, end: str) -> set:
