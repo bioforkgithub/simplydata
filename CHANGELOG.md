@@ -5,6 +5,71 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
+
+Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that
+had no family of their own a plain name and plain parameters; each is tested against SciPy.
+
+- `sdata.distribution("skew normal", shape=4, location=10, scale=2)`, `"truncated normal"`, `"beta binomial"`,
+  `"noncentral t"`, `"log-logistic"`, `"generalised normal"`, `"studentized range"`, `"zipf"` ... every SciPy
+  distribution by its plain name, with plain parameter names (`location=`, `scale=`, `shift=` for counts, and a name
+  for what each shape does: `degrees_of_freedom=`, `tries=`, `lower_end=` ...). SciPy's names keep working
+  (`sdata.distribution("skewnorm", a=4)`), and fitting works by the plain name too.
+- Joint distributions as names of `sdata.distribution` (no new maker): `"multivariate normal"`, `"multivariate t"`,
+  `"dirichlet"`, `"multinomial"`, `"multivariate hypergeometric"`, `"dirichlet multinomial"`, `"wishart"`,
+  `"inverse wishart"`, `"matrix normal"`, `"matrix t"`, `"von mises-fisher"`, `"uniform direction"`,
+  `"random correlation"`, `"random orthogonal"`, `"random rotation"`, `"random unitary"`, `"random table"` and
+  `"normal inverse gamma"`: `find_density_at([1, 2])`, `make_random_numbers(how_many=)` (one row per draw, a block
+  for the matrix ones), `find_average()`, `find_variance()` and, for the normal and t, `find_chance_that_value(
+  is_below=[1, 2])`.
+- `sdata.distribution("mixture", of=[first, second], shares=[0.3, 0.7])` (as SciPy `Mixture`), `"from values"`
+  (`values=`, `chances=`, SciPy `rv_discrete`) and `"histogram"` (`counts=` and `bin_edges=`, or `of=numbers`,
+  SciPy `rv_histogram`).
+- New word `distribution.take_function("log")`: the distribution of the log, `"exp"`, `"absolute value"` or
+  `"order statistic"` (`rank=`, `out_of=`) of the values (SciPy `stats.log`, `exp`, `abs`, `order_statistic`).
+- New word `sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1)`: the one parameter left out
+  (scipy.special `stdtridf`, `bdtri`, `nrdtrisd` and 18 more inverse functions).
+- `sdata.help("scipy.stats.skewnorm")`, `"scipy.special.bdtr"`, `"rng.dirichlet"` and every other distribution name
+  of the plan point to the plain name or the word.
+
+### Added: the SciPy tests and summaries that had no word yet (families for 100 %, batches 3-4)
+
+Approved by Manish 2026-11-28 (plan section 2.2). Each option value calls scipy.stats, prints the method in a plain
+sentence, has its help text, its "same underneath" box and reliability cases on real data (NIST, mtcars, iris,
+warpbreaks, lung, turtles, hedenfalk), checked against SciPy and, where it does the same, R.
+
+- `find_summary_of(show=)`: `"geometric standard deviation"` (`gstd`), `"power mean 3"` (`pmean`), `"cumulant 2"`
+  and `"cumulant variance 2"` (`kstat`, `kstatvar`), `"l-moment 2"` (`lmoment`), `"central moment 3"` (`moment`),
+  `"expectile 90"`, `"average between 40 and 80"` with the same for the standard deviation, variance and standard
+  error (`tmean`, `tstd`, `tvar`, `tsem`), `"smallest from 40"` and `"biggest up to 80"` (`tmin`, `tmax`),
+  `"circular average"`, `"circular standard deviation"` and `"circular variance"` (also `"... in degrees"`),
+  `"differential entropy"`, `"percentile rank 70"` (`estimated_cdf`), `"percent at or below 70"`
+  (`percentileofscore`) and `"sigma-clipped average"` (`sigmaclip`).
+- `find_summary_of(in_bins_of={"depth": 10})` summarises the values in bins of another column (`binned_statistic`,
+  `binned_statistic_2d`, `binned_statistic_dd`), with `show=["running count"]` (`cumfreq`) and `"share of values"`
+  (`relfreq`).
+- New `test_method=` values: `compare_averages_of` `"wilcoxon rank sum"` (`ranksums`) and
+  `"baumgartner-weiss-schindler"` (`bws_test`); `compare_shapes_of(test_method=)` (new option) `"cramer-von mises"`
+  and `"epps-singleton"`; `compare_shape_to` `"skewness"` and `"kurtosis"` (`skewtest`, `kurtosistest`);
+  `compare_counts_to(test_method=)` (new option) `"g"`, `"freeman-tukey"`, `"neyman"`, `"modified g"` and
+  `"cressie-read"` (`power_divergence`); `compare_spreads_of` `"o'brien"` (`obrientransform`);
+  `find_correlation_between` `"chatterjee xi"`, `"weighted kendall"` and `"multiscale graph"`;
+  `compare_rates(test_method="e-test")` (`poisson_means_test`); `find_interval_of(test_method="bayesian")`
+  (`bayes_mvs`).
+- `combine_studies(p_values="p")` combines the p-values of independent studies (`combine_pvalues`: Fisher, Stouffer,
+  Pearson, Tippett, Mudholkar-George), no R needed.
+- `find_best_power_of(show=)`: `"log-likelihood"` and `"normal plot correlation"` give a table of the powers from -2
+  to 2 (`boxcox_llf`, `yeojohnson_llf`, `boxcox_normplot`, `yeojohnson_normplot`), `"best by normal plot"`
+  (`boxcox_normmax(method="pearsonr")`); `test_method="tukey lambda"` (`ppcc_max`, `ppcc_plot`).
+- `compare_distributions_for(show="wasserstein distance")` and `"energy distance"`: the distance between the values
+  of each pair of groups (`wasserstein_distance`, `wasserstein_distance_nd`, `energy_distance`).
+- `fit_distribution_to(censored_by="still_alive")`: a fit that allows for right-censored values (`CensoredData`, as R
+  `fitdistrplus::fitdistcens` and `survival::survreg`).
+- New word `sdata.find_sensitivity_of("a * x**2 + b", ranges={...})`: which input of a formula matters most
+  (Sobol' indices, SciPy `sobol_indices`).
+- `sdata.help("scipy.stats.ranksums")` and every other scipy.stats test and summary of the plan now names its word
+  and value.
+
 ### Added: the last pandas and Polars jobs, and seaborn's Path, Shift and Dash (families for 100 %, batches 1-2)
 
 Approved by Manish 2026-11-28. Each word and option calls pandas, Polars, NumPy, SciPy or seaborn, gives one

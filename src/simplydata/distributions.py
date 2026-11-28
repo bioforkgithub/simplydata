@@ -624,16 +624,22 @@ def _find_family(name, step="distribution"):
     found = _LOOKUP.get(_key(name))
     if found:
         return FAMILY[found]
+    from ._distribution_names import LOOKUP as PLAIN_LOOKUP, Named
+
+    plain = PLAIN_LOOKUP.get(_key(name))
+    if plain:  # families for 100 %, batches 5-6: a SciPy distribution by its plain name ("skew normal")
+        return Named(plain)
     stats = _st()
     scipy_name = name.strip()
     candidate = getattr(stats, scipy_name, None)
     if isinstance(candidate, (stats.rv_continuous, stats.rv_discrete)):
         return scipy_name
-    every = list(_LOOKUP)
+    every = list(_LOOKUP) + list(PLAIN_LOOKUP)
     guesses = suggest(_key(name), every, n=1)
     lines = [f'.{step}() does not know the distribution "{name}".']
     if guesses:
-        lines.append(f'Did you mean "{_LOOKUP[guesses[0]]}"?')
+        guess = _LOOKUP.get(guesses[0]) or Named(PLAIN_LOOKUP[guesses[0]]).plain
+        lines.append(f'Did you mean "{guess}"?')
     lines.append("Names you can use: " + ", ".join(f'"{n}"' for n in NAMES) + ", or any SciPy distribution by its "
                  'SciPy name (for example "burr12").')
     raise SimplydataError("\n".join(lines))
@@ -755,41 +761,73 @@ def _read_params(family, given: dict, step="distribution") -> dict:
 
 
 def _scipy_params(scipy_name, given):
+    from ._distribution_names import Named
+
     stats = _st()
     dist = getattr(stats, scipy_name)
     shapes = [s.strip() for s in (dist.shapes or "").split(",") if s.strip()]
     allowed = shapes + ["loc"] + ([] if isinstance(dist, stats.rv_discrete) else ["scale"])
-    example = f'sdata.distribution("{scipy_name}", ' + ", ".join(f"{s}=2" for s in shapes) + ")"
+    named = isinstance(scipy_name, Named)
+    say = scipy_name.names.get if named else (lambda s, d=None: s)  # how a parameter is written
+    what = f"The {scipy_name.plain} distribution (SciPy {scipy_name})" if named else f"SciPy's {scipy_name}"
+    example = (f'sdata.distribution("{scipy_name.plain if named else scipy_name}", '
+               + ", ".join(f"{say(s, s)}={'[0.2, 0.5, 0.7]' if scipy_name == 'poisson_binom' else 2}" for s in shapes)
+               + ")")
     unknown = [k for k in given if k not in allowed]
     if unknown:
+        names = ", ".join(f"{say(a, a)}=" for a in allowed)
         raise SimplydataError(
-            f"SciPy's {scipy_name} has no parameter called {unknown[0]}=. Its parameters (SciPy's names): "
-            + ", ".join(f"{a}=" for a in allowed) + f".\nFor example:  {example}")
+            f"{what} has no parameter called {unknown[0]}=. Its parameters"
+            + (f": {names} (SciPy's names work too: " + ", ".join(f"{a}=" for a in allowed) + ")" if named
+               else f" (SciPy's names): {names}") + f".\nFor example:  {example}")
     missing = [s for s in shapes if s not in given]
     if missing:
+        where = "location= and scale=" if named else "loc= and scale="
         raise SimplydataError(
-            f"SciPy's {scipy_name} needs {', '.join(m + '=' for m in missing)} (its shape parameters; loc= and "
-            f"scale= are optional).\nFor example:  {example}")
+            f"{what} needs {', '.join(say(m, m) + '=' for m in missing)} (its shape parameters; {where} are "
+            f"optional).\nFor example:  {example}")
     for k, v in given.items():
+        if scipy_name == "poisson_binom" and k == "p":
+            ok = (isinstance(v, (list, tuple, np.ndarray)) and len(v) > 0 and all(
+                _is_number(c) and 0 <= c <= 1 for c in v))
+            if not ok:
+                raise SimplydataError(f"{say(k, k)}= needs a list of chances from 0 to 1, one for each try.\n"
+                                      f"For example:  {example}")
+            continue
         if not _is_number(v) or not math.isfinite(v):
-            raise SimplydataError(f"{k}= needs a number.\nFor example:  {example}")
-    params = {s: float(given[s]) for s in shapes}
+            raise SimplydataError(f"{say(k, k)}= needs a number.\nFor example:  {example}")
+    params = {s: (tuple(float(c) for c in given[s]) if scipy_name == "poisson_binom" and s == "p" else
+                  float(given[s])) for s in shapes}
     params["loc"] = float(given.get("loc", 0))
     if "scale" in allowed:
         params["scale"] = float(given.get("scale", 1))
     frozen = _scipy_generic(scipy_name, params)
-    args = [params[s] for s in shapes]
+    args = [np.asarray(params[s]) for s in shapes]
     ok = bool(np.all(dist._argcheck(*args))) and params.get("scale", 1) > 0
     if not ok:
-        raise SimplydataError(f"These values are not allowed for SciPy's {scipy_name}: "
-                              + ", ".join(f"{k}={_say(v)}" for k, v in params.items()) + ".")
+        raise SimplydataError(f"These values are not allowed for {what}: "
+                              + ", ".join(f"{say(k, k)}={_say_value(v)}" for k, v in params.items()) + ".")
     del frozen
     return params
+
+
+def _say_value(value) -> str:
+    """A parameter for a sentence: a number, or a list of numbers (the chances of a poisson binomial)."""
+    if isinstance(value, (tuple, list, np.ndarray)):
+        return "[" + ", ".join(_say(v) for v in value) + "]"
+    return _say(value)
 
 
 def _scipy_generic(scipy_name, params):
     dist = getattr(_st(), scipy_name)
     return dist(**params)
+
+
+def _named_example(family) -> str:
+    stats = _st()
+    dist = getattr(stats, family)
+    shapes = [s.strip() for s in (dist.shapes or "").split(",") if s.strip()]
+    return (f'sdata.distribution("{family.plain}", ' + ", ".join(f"{family.names[s]}=2" for s in shapes) + ")")
 
 
 @friendly
@@ -798,6 +836,14 @@ def distribution(name=None, *values, **parameters) -> Distribution:
 
     distribution = sdata.distribution("normal", average=50, standard_deviation=10)
     then distribution.find_chance_that_value(is_above=80), distribution.find_percentile(95), distribution.make_random_numbers(how_many=100, with_seed=1).
+    Every other SciPy distribution by its plain name (families for 100 %): "skew normal", "truncated normal", "beta
+    binomial", "noncentral t", "log-logistic", "zipf" ... with plain parameters (location=, scale=, shape=, and a
+    name for what each shape does): sdata.distribution("skew normal", shape=4, location=10, scale=2); SciPy's names
+    work too (sdata.distribution("skewnorm", a=4, loc=10, scale=2)). Joint distributions of several values:
+    sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]]), "multivariate t",
+    "dirichlet", "multinomial", "wishart", "matrix normal", "von mises-fisher", "random correlation" and more.
+    "mixture" (of=[first, second], shares=[0.3, 0.7]), "from values" (values=, chances=) and "histogram" (counts=,
+    bin_edges=, or of=numbers) make a distribution from others or from numbers.
     Names: normal, lognormal, exponential, gamma, beta, uniform, t, chi-square, F, weibull,
     cauchy, logistic, laplace, gumbel, pareto, triangular, half-normal, inverse gaussian,
     von mises; for counts binomial, bernoulli, poisson, negative binomial, geometric,
@@ -805,9 +851,25 @@ def distribution(name=None, *values, **parameters) -> Distribution:
     (mean=, sd=, prob=, size=, df=, ...) work too. Any other SciPy distribution by its SciPy
     name and SciPy's parameters: sdata.distribution("burr12", c=2, d=3).
     """
+    from ._distribution_names import Named
+    from ._distributions_more import kind_of, make
+
+    if kind_of(name):  # families for 100 %, batches 5-6: joint distributions, "mixture", "from values", "histogram"
+        if values:
+            raise SimplydataError(f'Write the parameters with their names, for example sdata.distribution("{name}", '
+                                  "...=...).")
+        return make(name, parameters)
     family = _find_family(name)
     if isinstance(family, Distribution):
         return family
+    if values and isinstance(family, Named):
+        raise SimplydataError(f"Write the parameters with their names.\nFor example:  {_named_example(family)}")
+    if isinstance(family, Named):
+        return Distribution(family, _scipy_params(family, family.to_scipy(parameters)))
+    from ._distribution_names import PLAIN
+
+    if isinstance(family, str) and family in PLAIN:  # "skewnorm" with shape= works as "skew normal" does
+        return Distribution(family, _scipy_params(family, Named(family).to_scipy(parameters)))
     if values:
         example = _example(family) if isinstance(family, Family) else f'sdata.distribution("{family}", c=2)'
         raise SimplydataError(f"Write the parameters with their names.\nFor example:  {example}")
@@ -844,7 +906,7 @@ class Distribution:
 
     Words: find_chance_that_value, find_density_at, find_percentile, find_cut_off, find_middle_range,
     find_average, find_median, find_standard_deviation, find_variance, show_summary, make_random_numbers,
-    draw_chart, turn_into_table, show_parameters.
+    draw_chart, turn_into_table, show_parameters, take_function.
     """
 
     # Old names that still work for one release (with a note the first time): old -> new.
@@ -862,7 +924,9 @@ class Distribution:
 
     def __init__(self, family, params, fit_info=None, backend=None):
         object.__setattr__(self, "_family", family)
-        object.__setattr__(self, "_params", {k: (None if v is None else float(v)) for k, v in params.items()})
+        object.__setattr__(self, "_params", {k: (None if v is None else tuple(float(c) for c in v)
+                                                 if isinstance(v, (tuple, list, np.ndarray)) else float(v))
+                                             for k, v in params.items()})
         object.__setattr__(self, "_fit_info", fit_info)
         object.__setattr__(self, "_backend", backend)
         if isinstance(family, Family):
@@ -889,6 +953,9 @@ class Distribution:
     def label(self) -> str:
         """A short label for sentences and legends: 'normal, average 50, standard deviation 10'."""
         family = self._family
+        if getattr(family, "plain", None):
+            text = self._param_text()
+            return f"{family.plain}, {text}" if text else family.plain
         if not isinstance(family, Family):
             return f"SciPy {family}, {self._param_text()}"
         if family.short:
@@ -920,6 +987,9 @@ class Distribution:
     # ------------------------------------------------------------------ words for sentences
     def _describe(self) -> str:
         family = self._family
+        if getattr(family, "plain", None):
+            text = self._param_text()
+            return f"{family.plain} distribution (SciPy {family})" + (f" with {text}" if text else "")
         if not isinstance(family, Family):
             return f"SciPy's {family} with {self._param_text()}"
         words = family.describe(self._params) if family.describe else _with(self._params, family)
@@ -987,7 +1057,9 @@ class Distribution:
             lines.append(f"Fitted by maximum likelihood to {info['rows']} values"
                          + (f' of "{info["column"]}"' if info.get("column") else "")
                          + f": log-likelihood {info['log-likelihood']:.4g}, AIC {info['AIC']:.6g}. "
-                           "fit.turn_into_table() gives the standard errors.")
+                         + ("Censored values were allowed for; no standard errors are given."
+                            if info.get("method") == "censored" else
+                            "fit.turn_into_table() gives the standard errors."))
         return "\n".join(lines)
 
     def __getattr__(self, name):
@@ -1387,6 +1459,11 @@ class Distribution:
         if isinstance(self._family, Family):
             return ", ".join(f"{p.shown} {_say(self._params[p.name])}" for p in self._family.params
                              if self._params.get(p.name) is not None)
+        if getattr(self._family, "plain", None):
+            family = self._family
+            return ", ".join(f"{family.shown(k)} {_say_value(family.data_value(k, v, self._params))}"
+                             for k, v in self._params.items()
+                             if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
         return ", ".join(f"{k}={_say(v)}" for k, v in self._params.items()
                          if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
 
@@ -1416,6 +1493,9 @@ class Distribution:
     @friendly
     def show_parameters(self):
         """The parameters as a dictionary of plain names: {"average": 50, "standard_deviation": 10}. distribution.show_parameters()"""
+        if getattr(self._family, "plain", None):
+            family = self._family
+            return {family.names.get(k, k): family.data_value(k, v, self._params) for k, v in self._params.items()}
         return dict(self._params)
 
     # ------------------------------------------------------------------ random numbers
@@ -1451,6 +1531,20 @@ class Distribution:
         print(f"Drew {count} random numbers from the {self.label} distribution ({seed_text}{r_text}).")
         return NumberGrid(values) if isinstance(size, tuple) else Numbers(values)
 
+    # ------------------------------------------------------------------ functions of the values
+    @friendly(renamed={"function": "name"}, others={"r": "rank", "n": "out_of"})
+    def take_function(self, name=None, rank=None, out_of=None):
+        """The distribution of a function of the values. sizes = distribution.take_function("absolute value")
+
+        sizes = distribution.take_function("absolute value")
+        "log" (values above 0), "exp", "absolute value" and "order statistic" (rank=2, out_of=5: the 2nd smallest of
+        5 values drawn) give a new distribution to ask chances, percentiles and random numbers of, by the change of
+        variables (as SciPy stats.log, stats.exp, stats.abs and stats.order_statistic). For smooth distributions.
+        """
+        from ._distributions_more import take_function
+
+        return take_function(self, name, rank, out_of)
+
     # ------------------------------------------------------------------ chart and table
     @friendly
     def draw_chart(self, show="density", between=None):
@@ -1481,10 +1575,13 @@ class Distribution:
         return self._table({**row, **info["row"]})
 
     def _shown(self, name):
+        if getattr(self._family, "plain", None):
+            return self._family.shown(name)
         return name.replace("_", " ") if isinstance(self._family, Family) else name
 
 
-WORDS = ["find_chance_that_value", "find_density_at", "find_percentile", "find_cut_off", "find_middle_range",
+WORDS = ["take_function", "find_chance_that_value", "find_density_at", "find_percentile", "find_cut_off",
+         "find_middle_range",
          "find_average", "find_median", "find_standard_deviation", "find_variance", "show_summary",
          "make_random_numbers", "draw_chart", "turn_into_table", "show_parameters"]
 
@@ -1859,6 +1956,8 @@ def _read_fixed(family, fixed):
         return {}
     if not isinstance(fixed, dict) or not all(_is_number(v) for v in fixed.values()):
         raise SimplydataError('fixed= holds parameters at a value, like fixed={"shape": 2}.')
+    if getattr(family, "plain", None):
+        return family.to_scipy(fixed)  # plain names (or SciPy's) -> SciPy's names
     if isinstance(family, str):
         return dict(fixed)
     spelled = {}
@@ -2032,7 +2131,8 @@ def fit(values, name="normal", fixed=None, say=False, column=None, backend=None)
     aic = -2 * result.loglik + 2 * k
     bic = -2 * result.loglik + k * math.log(n)
     params = result.params
-    shown = (lambda s: s.replace("_", " ")) if isinstance(family, Family) else (lambda s: s)
+    shown = ((lambda s: s.replace("_", " ")) if isinstance(family, Family) else family.shown
+             if getattr(family, "plain", None) else (lambda s: s))
     row = {}
     for key, value in params.items():
         if value is None:
@@ -2055,6 +2155,95 @@ def fit(values, name="normal", fixed=None, say=False, column=None, backend=None)
         dist = Distribution(family, params, fit_info=info, backend=backend)
     if say:
         _say_fit(dist, column)
+    return dist
+
+
+def fit_censored(values, censored, name="weibull", fixed=None, say=False, column=None, backend=None,
+                 censored_by=None) -> Distribution:
+    """Families for 100 %, batches 3-4 (approved by Manish 2026-11-28): fit_distribution_to(censored_by=). Maximum
+    likelihood with right-censored values (a censored value is only a lower limit: the event had not happened yet):
+    the log-likelihood adds log density for each value seen and log chance above for each censored one, as SciPy
+    fit(CensoredData(uncensored=, right=)) and R fitdistrplus::fitdistcens() / survival::survreg(). Families without a
+    location in R keep it at 0, as for the plain fit."""
+    family = _find_family(name, "fit_distribution")
+    if isinstance(family, Distribution) or _is_kernel(name):
+        raise SimplydataError("censored_by= goes with the name of a distribution to fit, such as \"weibull\".")
+    discrete = family.discrete if isinstance(family, Family) else isinstance(getattr(_st(), family), _st().rv_discrete)
+    if discrete:
+        raise SimplydataError("censored_by= fits smooth (continuous) distributions, such as \"weibull\", "
+                              "\"lognormal\", \"gamma\" or \"exponential\"; not counts.")
+    if isinstance(family, Family) and family.fit is None:
+        raise SimplydataError(f"A {family.title} distribution cannot be fitted here: {family.not_fittable}.")
+    x = np.asarray(values, dtype=float).ravel()
+    right = np.asarray(censored, dtype=bool).ravel()
+    what = f'"{column}"' if column else "the numbers"
+    if len(x) - int(right.sum()) < 2:
+        raise SimplydataError(f"A fit with censored values needs at least 2 values that are not censored; {what} has "
+                              f"{len(x) - int(right.sum())}.")
+    if isinstance(family, Family):
+        problem = _data_problem(family, x, what)
+        if problem:
+            raise SimplydataError(f"Cannot fit: {problem}.")
+    held = _read_fixed(family, fixed)
+    seen, cut = x[~right], x[right]
+
+    def loglik(params):
+        frozen = family.scipy(params) if isinstance(family, Family) else _scipy_generic(family, params)
+        with np.errstate(all="ignore"):
+            total = float(np.sum(frozen.logpdf(seen)) + np.sum(frozen.logsf(cut)))
+        return total if math.isfinite(total) else -math.inf
+
+    start = _fit_values(family, x, held).params  # the fit that treats every value as seen: a starting point
+    start = {k: v for k, v in start.items() if v is not None}
+    if isinstance(family, Family):
+        kinds = {p.name: p.kind for p in family.params}
+        names = [p.name for p in family.params if start.get(p.name) is not None]
+    else:
+        names = list(start)
+        kinds = {k: ("positive" if k == "scale" else "real") for k in names}
+    free = [k for k in names if k not in held]
+    if not free:
+        raise SimplydataError("Every parameter is held fixed, so there is nothing to fit.")
+    params, ok = _maximise(loglik, start, free, kinds)
+    ll = loglik(params)
+    if not math.isfinite(ll):
+        raise SimplydataError(f"simplydata could not fit this distribution to {what} with its censored values.")
+    # no standard errors: no package simplydata uses gives them for a censored fit of these families (SciPy's fit
+    # of CensoredData gives only the estimates), and simplydata does not work them out itself
+    errors = {k: math.nan for k in free}
+    n, k = len(x), len(free)
+    aic, bic = -2 * ll + 2 * k, -2 * ll + k * math.log(n)
+    shown = ((lambda t: t.replace("_", " ")) if isinstance(family, Family) else family.shown
+             if getattr(family, "plain", None) else (lambda t: t))
+    row = {shown(key): float(v) for key, v in params.items() if v is not None}
+    row.update({"log-likelihood": ll, "AIC": aic, "BIC": bic, "rows": n, "censored": int(right.sum()),
+                "held fixed": ", ".join(shown(h) for h in held) if held else "",
+                "method": "maximum likelihood with censored values (numerical search)",
+                "settled": "yes" if ok else "no"})
+    info = {"rows": n, "column": column, "log-likelihood": ll, "AIC": aic, "BIC": bic, "errors": errors,
+            "free": free, "held": held, "row": row, "settled": ok, "method": "censored", "censored": int(right.sum())}
+    if isinstance(family, Family):
+        dist = Distribution(family, {p.name: params.get(p.name) for p in family.params}, fit_info=info,
+                            backend=backend)
+    else:
+        dist = Distribution(family, params, fit_info=info, backend=backend)
+    if say:
+        title = (family.title if isinstance(family, Family) else f"{family.plain} (SciPy {family})"
+                 if getattr(family, "plain", None) else f"SciPy {family}")
+        article = "an" if title[0].lower() in "aeiou" else "a"
+        by = f', where "{censored_by}" says so' if censored_by else ""
+        parts = ", ".join(f"{dist._shown(key)} = {_answer(v)}" + (" (held fixed)" if key in held else "")
+                          for key, v in dist._params.items() if v is not None)
+        print(f"Fitted {article} {title} distribution to {what} ({n} values, {int(right.sum())} of them censored"
+              f"{by}): {parts}. Log-likelihood {ll:.1f}, AIC {aic:.1f}.")
+        print("No standard errors are given: no package simplydata uses gives them for a censored fit (R "
+              "survival::survreg gives them for its own parameters: log scale and intercept).")
+        print("Method: maximum likelihood with right-censored values: each value seen adds its log density, each "
+              "censored one the log chance of a value above it (SciPy fit(CensoredData(uncensored=, right=)), as R "
+              "fitdistrplus::fitdistcens(); for a Weibull, R survival::survreg(Surv(time, event) ~ 1, dist = "
+              '"weibull") gives the same fit, written as shape = 1 / scale and scale = exp(intercept)).')
+        if not ok:
+            print("Note: the search did not settle; the values may not be the best. Try fixed= for one parameter.")
     return dist
 
 
@@ -2087,7 +2276,8 @@ def _r_fit_text(dist) -> str:
 def _say_fit(dist, column=None, check_word="table.compare_shape_to"):
     info = dist._fit_info
     family = dist._family
-    title = family.title if isinstance(family, Family) else f"SciPy {family}"
+    title = (family.title if isinstance(family, Family) else f"{family.plain} (SciPy {family})"
+             if getattr(family, "plain", None) else f"SciPy {family}")
     what = f'"{column}"' if column else "the numbers"
     article = "an" if title[0].lower() in "aeiou" else "a"
     print(f"Fitted {article} {title} distribution to {what} ({info['rows']} values): {_fit_parts(dist)}. "

@@ -1,6 +1,6 @@
-"""The same work in the packages underneath: tested entries for 591 of simplydata's 591 words.
+"""The same work in the packages underneath: tested entries for 594 of simplydata's 594 words.
 
-Every word has an entry. There are 798 entries: one for each of 591 words, plus one for each option of those
+Every word has an entry. There are 848 entries: one for each of 594 words, plus one for each option of those
 words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
 Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
@@ -48,6 +48,9 @@ charts_seaborn.py (seaborn's colour tools: show_colours, change_colour, the slid
 colour_letters=).
 full_tables.py (families for 100 %, batches 1-2: the table words and options for the pandas and Polars gaps, and the
 seaborn.objects marks and moves), and full_options.py (their new options and values of existing words).
+full_stats.py (families for 100 %, batches 3-4: the scipy.stats tests, summaries, bins, best powers, distances,
+sensitivity and censored fits), full_distributions.py (batches 5-6: the SciPy distributions by plain names, the
+joint ones, mixtures, functions of a distribution and find_parameter_that_gives).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -161,7 +164,7 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, charts_seaborn, checking,
-                   combining, communities, full_options, full_tables,
+                   combining, communities, full_distributions, full_options, full_stats, full_tables,
                    hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_4, numbers_5,
                    numbers_batch1, places, planning, planning_surveys, signals, small_additions, starting, statistics,
                    survival, tables)
@@ -170,7 +173,8 @@ def _join() -> dict[str, Entry]:
     for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
                    more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3,
-                   numbers_4, numbers_5, charts_seaborn, full_tables, full_options):
+                   numbers_4, numbers_5, charts_seaborn, full_tables, full_options, full_stats,
+                   full_distributions):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

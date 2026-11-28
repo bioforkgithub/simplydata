@@ -1404,6 +1404,14 @@ _RANDOM = [
     ('sdata.distribution("geometric", chance=0.2).make_random_numbers(how_many=100)', "geometric"),
     ('sdata.distribution("hypergeometric", marked=10, unmarked=40, drawn=5).make_random_numbers(how_many=100)',
      "hypergeometric"),
+    # families for 100 %, batches 5-6: the joint distributions of a NumPy Generator (G4)
+    ('sdata.distribution("dirichlet", concentrations=[2, 3, 5]).make_random_numbers(how_many=100)', "dirichlet"),
+    ('sdata.distribution("multinomial", tries=10, chances=[0.2, 0.3, 0.5]).make_random_numbers(how_many=100)',
+     "multinomial"),
+    ('sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])'
+     ".make_random_numbers(how_many=100)", "multivariate_normal"),
+    ('sdata.distribution("multivariate hypergeometric", counts=[5, 3, 2], drawn=4).make_random_numbers(how_many=100)',
+     "multivariate_hypergeometric"),
     ('sdata.distribution("negative binomial", size=3, chance=0.4).make_random_numbers(how_many=100)',
      "negative_binomial"),
 ]
@@ -1454,6 +1462,172 @@ _STATS = [
     ('table.add_rank_column("rank", from_column="marks")', "rankdata"),
     ('table.compare_shape_to("marks", "normal"), on one subject (one row per child)', "kstest ks_1samp jarque_bera"),
     ('chart.draw_cumulative_share(x="marks")', "ecdf"),
+    # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): the scipy.stats tests and summaries of plan
+    # section 2.2, each to the word and the option value that runs it
+    ('table.compare_averages_of("marks", for_each_group_in="class", test_method="alexander-govern"), on one subject',
+     "alexandergovern"),
+    ('table.compare_averages_of("days", for_each_group_in="treatment", test_method="brunner-munzel"), on two groups',
+     "brunnermunzel"),
+    ('table.compare_averages_of("days", for_each_group_in="treatment", test_method="wilcoxon rank sum")',
+     "ranksums"),
+    ('table.compare_averages_of("days", for_each_group_in="treatment", test_method="baumgartner-weiss-schindler")',
+     "bws_test"),
+    ('table.compare_averages_of("marks", for_each_group_in="class", test_method="median") (Mood\'s median test)',
+     "median_test"),
+    ('table.compare_averages_of("days", for_each_group_in="treatment", test_method="mann-whitney"), which allows '
+     "for ties itself", "tiecorrect"),
+    ('table.compare_average_to("marks", value=60), on one subject', "ttest_1samp"),
+    ('table.compare_each_pair_of("marks", for_each_group_in="class", test_method="tukey")', "tukey_hsd"),
+    ('table.compare_spreads_of("marks", for_each_group_in="class", test_method="levene"), on one subject', "levene"),
+    ('table.compare_spreads_of("marks", for_each_group_in="class", test_method="bartlett")', "bartlett"),
+    ('table.compare_spreads_of("marks", for_each_group_in="class", test_method="fligner")', "fligner"),
+    ('table.compare_spreads_of("days", for_each_group_in="treatment", test_method="ansari")', "ansari"),
+    ('table.compare_spreads_of("days", for_each_group_in="treatment", test_method="mood")', "mood"),
+    ('table.compare_spreads_of("marks", for_each_group_in="class", test_method="o\'brien")', "obrientransform"),
+    ('table.compare_shapes_of("days", for_each_group_in="treatment", test_method="cramer-von mises")',
+     "cramervonmises_2samp"),
+    ('table.compare_shapes_of("days", for_each_group_in="treatment", test_method="epps-singleton")',
+     "epps_singleton_2samp"),
+    ('table.compare_shape_to("marks", sdata.distribution("normal", average=60, standard_deviation=15), '
+     'test_method="cramer-von-mises")', "cramervonmises"),
+    ('table.compare_shape_to("days", "gamma"), Anderson-Darling with a fitted distribution', "goodness_of_fit"),
+    ('table.compare_shape_to("marks", "normal", test_method="skewness")', "skewtest"),
+    ('table.compare_shape_to("marks", "normal", test_method="kurtosis")', "kurtosistest"),
+    ('table.compare_counts_of("died", for_each_group_in="treatment", test_method="barnard"), on a 2 x 2 table',
+     "barnard_exact"),
+    ('table.compare_counts_of("died", for_each_group_in="treatment", test_method="boschloo"), on a 2 x 2 table',
+     "boschloo_exact"),
+    ('table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})', "chisquare"),
+    ('table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4}, test_method="g") (also "freeman-tukey", '
+     '"neyman", "modified g", "cressie-read")', "power_divergence"),
+    ('table.compare_percent_to("breakfast", value="yes", percent=50)', "binomtest"),
+    ('table.find_median_of("marks", interval=95), or table.find_percentile_of("marks", 90, interval=95): the exact '
+     "interval from the order of the values", "quantile_test"),
+    ('table.compare_rates("infections", time="patient_days", for_each_group_in="ward", test_method="e-test")',
+     "poisson_means_test"),
+    ('table.compare_averages_of("days", for_each_group_in="treatment", p_value_by="shuffling"), and p_value_by= on '
+     "the other tests", "permutation_test monte_carlo_test PermutationMethod MonteCarloMethod"),
+    ('table.find_interval_of("marks", "median", test_method="bootstrap")', "BootstrapMethod"),
+    ('table.find_interval_of("marks", "average", test_method="bayesian") (also "variance", "standard deviation")',
+     "bayes_mvs mvsdist"),
+    ('table.find_correlation_between("hours", "marks", test_method="chatterjee xi"), on one subject', "chatterjeexi"),
+    ('table.find_correlation_between("hours", "marks", test_method="weighted kendall")', "weightedtau"),
+    ('table.find_correlation_between("hours", "marks", test_method="multiscale graph")', "multiscale_graphcorr"),
+    ('table.find_correlation_between("hours", "marks", test_method="spearman")', "spearmanrho"),
+    ('table.find_correlation_between("hours", "marks"): Pearson\'s r, the point-biserial one with a 0/1 column',
+     "pointbiserialr"),
+    ('table.combine_studies(names="gene", p_values="p-value", test_method="fisher") (also "stouffer", "pearson", '
+     '"tippett", "mudholkar-george")', "combine_pvalues"),
+    ('table.find_summary_of("marks", show=["geometric standard deviation"])', "gstd"),
+    ('table.find_summary_of("marks", show=["geometric mean"])', "gmean"),
+    ('table.find_summary_of("marks", show=["harmonic mean"])', "hmean"),
+    ('table.find_summary_of("marks", show=["power mean 3"])', "pmean"),
+    ('table.find_summary_of("marks", show=["interquartile range"])', "iqr"),
+    ('table.find_summary_of("marks", show=["median absolute deviation"])', "median_abs_deviation"),
+    ('table.find_summary_of("marks", show=["coefficient of variation"])', "variation"),
+    ('table.find_summary_of("marks", show=["trimmed average 10"]), or table.keep_rows_where(...) to cut the ends',
+     "trim_mean trim1 trimboth"),
+    ('table.find_summary_of("marks", show=["cumulant 2"]) (1 to 4)', "kstat"),
+    ('table.find_summary_of("marks", show=["cumulant variance 2"]) (1 or 2)', "kstatvar"),
+    ('table.find_summary_of("marks", show=["l-moment 2"])', "lmoment"),
+    ('table.find_summary_of("marks", show=["central moment 3"])', "moment"),
+    ('table.find_summary_of("marks", show=["expectile 90"])', "expectile"),
+    ('table.find_summary_of("marks", show=["average between 40 and 80"])', "tmean"),
+    ('table.find_summary_of("marks", show=["standard deviation between 40 and 80"])', "tstd"),
+    ('table.find_summary_of("marks", show=["variance between 40 and 80"])', "tvar"),
+    ('table.find_summary_of("marks", show=["standard error between 40 and 80"])', "tsem"),
+    ('table.find_summary_of("marks", show=["smallest from 40"])', "tmin"),
+    ('table.find_summary_of("marks", show=["biggest up to 80"])', "tmax"),
+    ('table.find_summary_of("wind_direction", show=["circular standard deviation in degrees"]), or '
+     'table.find_average_direction_of("wind_direction", full_turn=360)', "circstd"),
+    ('table.find_summary_of("wind_direction", show=["circular variance in degrees"]), or '
+     'table.find_average_direction_of("wind_direction", full_turn=360)', "circvar"),
+    ('table.find_average_direction_of("wind_direction", full_turn=360) (the average direction and its spread)',
+     "directional_stats"),
+    ('table.find_summary_of("marks", show=["differential entropy"])', "differential_entropy"),
+    ('table.find_summary_of("count", show=["entropy"])', "entropy"),
+    ('table.find_summary_of("marks", show=["percentile rank 70"]) (the inverse of "percentile 90")', "estimated_cdf"),
+    ('table.find_summary_of("marks", show=["percent at or below 70"])', "percentileofscore"),
+    ('table.find_summary_of("marks", show=["percentile 90"]), or table.find_percentile_of("marks", 90)',
+     "scoreatpercentile"),
+    ('table.find_summary_of("marks", show=["sigma-clipped average"])', "sigmaclip"),
+    ('table.find_summary_of("marks", show=["average"], in_bins_of={"hours": 2}); two columns or more in in_bins_of= '
+     "for 2D bins", "binned_statistic binned_statistic_2d binned_statistic_dd"),
+    ('table.find_summary_of("hours", show=["running count"], in_bins_of={"hours": 2})', "cumfreq"),
+    ('table.find_summary_of("hours", show=["share of values"], in_bins_of={"hours": 2})', "relfreq"),
+    ('table.add_z_score_column("marks_z", from_column="marks"), or on the log of the values for the geometric one',
+     "zmap gzscore"),
+    ('table.find_best_power_of("days", show="best by normal plot") (SciPy boxcox_normmax\'s default, the '
+     "straightest normal plot); show=\"power\" gives the power by maximum likelihood", "boxcox_normmax"),
+    ('table.find_best_power_of("days", test_method="yeo-johnson")', "yeojohnson_normmax"),
+    ('table.find_best_power_of("days", show="log-likelihood")', "boxcox_llf yeojohnson_llf"),
+    ('table.find_best_power_of("days", show="normal plot correlation")', "boxcox_normplot yeojohnson_normplot"),
+    ('table.find_best_power_of("days", test_method="tukey lambda") (show="normal plot correlation" for the table)',
+     "ppcc_max ppcc_plot"),
+    ('chart.draw_qq_dots("marks") (the normal probability plot)', "probplot"),
+    ('table.compare_distributions_for("marks", for_each_group_in="class", show="wasserstein distance"); a list of '
+     "columns for points", "wasserstein_distance wasserstein_distance_nd"),
+    ('table.compare_distributions_for("marks", for_each_group_in="class", show="energy distance")', "energy_distance"),
+    ('sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})', "sobol_indices"),
+    ('table.add_group_column("still_alive", rules={\'died == "no"\': "yes"}, otherwise="no"), then '
+     'table.fit_distribution_to("days", "weibull", censored_by="still_alive")', "CensoredData"),
+    ('sdata.find_chance_of_finding(for_test="compare_averages", effect_size=0.5, values_per_group=30) (the power of a '
+     "test)", "power"),
+]
+
+
+
+def _plain_distribution_pointers():
+    """Families for 100 %, batches 5-6 (G3): each SciPy distribution without a family of its own points to its plain
+    name, made from the one name table (simplydata._distribution_names.PLAIN)."""
+    from ._distribution_names import PLAIN
+
+    out = []
+    for scipy_name, (plain, _, shapes) in PLAIN.items():
+        names = list(shapes.values())
+        counts = scipy_name in ("betabinom", "betanbinom", "boltzmann", "dlaplace", "logser", "nchypergeom_fisher",
+                                "nchypergeom_wallenius", "nhypergeom", "planck", "poisson_binom", "skellam",
+                                "yulesimon", "zipf", "zipfian")
+        names += [] if counts else ["location", "scale"]
+        given = ", ".join(f"{n}=..." for n in names)
+        out.append((f'sdata.distribution("{plain}"' + (f", {given}" if given else "") + ")", scipy_name))
+    return out
+
+
+_STATS += _plain_distribution_pointers() + [
+    # families for 100 %, batches 5-6: joint distributions (G4), made distributions and functions of a distribution
+    ('sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])',
+     "multivariate_normal"),
+    ('sdata.distribution("multivariate t", location=[0, 0], spread=[[1, 0], [0, 1]], degrees_of_freedom=5)',
+     "multivariate_t"),
+    ('sdata.distribution("dirichlet", concentrations=[2, 3, 5])', "dirichlet"),
+    ('sdata.distribution("multinomial", tries=10, chances=[0.2, 0.3, 0.5])', "multinomial"),
+    ('sdata.distribution("multivariate hypergeometric", counts=[5, 3, 2], drawn=4)', "multivariate_hypergeom"),
+    ('sdata.distribution("dirichlet multinomial", concentrations=[2, 3, 5], tries=10)', "dirichlet_multinomial"),
+    ('sdata.distribution("wishart", degrees_of_freedom=5, scale=[[1, 0], [0, 1]])', "wishart"),
+    ('sdata.distribution("inverse wishart", degrees_of_freedom=5, scale=[[1, 0], [0, 1]])', "invwishart"),
+    ('sdata.distribution("matrix normal", averages=[[0, 0], [0, 0]], row_covariance=..., column_covariance=...)',
+     "matrix_normal"),
+    ('sdata.distribution("matrix t", averages=[[0, 0], [0, 0]], row_spread=..., column_spread=..., '
+     "degrees_of_freedom=5)", "matrix_t"),
+    ('sdata.distribution("von mises-fisher", direction=[0, 0, 1], concentration=10)', "vonmises_fisher"),
+    ('sdata.distribution("uniform direction", dimensions=3)', "uniform_direction"),
+    ('sdata.distribution("random correlation", eigenvalues=[0.5, 1.5, 1.0])', "random_correlation"),
+    ('sdata.distribution("random orthogonal", dimensions=3)', "ortho_group"),
+    ('sdata.distribution("random rotation", dimensions=3)', "special_ortho_group"),
+    ('sdata.distribution("random unitary", dimensions=3)', "unitary_group"),
+    ('sdata.distribution("random table", row_totals=[3, 5], column_totals=[4, 4])', "random_table"),
+    ('sdata.distribution("normal inverse gamma", average=0, precision=1, shape=2, scale=1)', "normal_inverse_gamma"),
+    ('sdata.distribution("mixture", of=[first, second], shares=[0.3, 0.7])', "Mixture"),
+    ('sdata.distribution("from values", values=[1, 2, 5], chances=[0.2, 0.5, 0.3])', "rv_discrete"),
+    ('sdata.distribution("histogram", counts=[3, 9, 4], bin_edges=[0, 1, 2, 3])', "rv_histogram"),
+    ('sdata.distribution("skew normal", shape=4): every SciPy distribution by its plain name or its SciPy name',
+     "make_distribution"),
+    ('sdata.distribution("normal", average=50, standard_deviation=10)', "Normal"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3)', "Binomial"),
+    ('sdata.distribution("lognormal", log_average=0).take_function("log") (also "exp", "absolute value")',
+     "log exp abs"),
+    ('sdata.distribution("normal").take_function("order statistic", rank=2, out_of=5)', "order_statistic"),
 ]
 
 # special.<name>: scipy.special (the functions; a formula can use gamma, lgamma, digamma, beta, erf, erfc, besselJ)
@@ -1467,6 +1641,51 @@ _SPECIAL = [
      "erf, erfc and besselJ", "gamma gammaln loggamma digamma psi beta erf erfc jv"),
     ('sdata.distribution("normal").find_chance_that_value(is_below=1.96)', "ndtr log_ndtr"),
     ('sdata.distribution("normal").find_percentile(97.5)', "ndtri"),
+    # families for 100 %, batches 5-6 (approved by Manish 2026-11-28): the distribution functions of scipy.special
+    ('sdata.distribution("binomial", tries=10, chance=0.3).find_chance_that_value(is_at_most=3) (is_above= for the '
+     "upper tail)", "bdtr bdtrc"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3).find_chance_that_value(is_below=7.8)', "chdtr chdtrc"),
+    ('sdata.distribution("F", degrees_of_freedom=[3, 20]).find_chance_that_value(is_below=3.1)', "fdtr fdtrc"),
+    ('sdata.distribution("gamma", shape=2, rate=1).find_chance_that_value(is_below=3)', "gdtr gdtrc"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4).find_chance_that_value(is_at_most=2)',
+     "nbdtr nbdtrc"),
+    ('sdata.distribution("poisson", average=3).find_chance_that_value(is_at_most=2)', "pdtr pdtrc"),
+    ('sdata.distribution("t", degrees_of_freedom=5).find_chance_that_value(is_below=2.0)', "stdtr"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_chance_that_value('
+     "is_below=5)", "chndtr"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'
+     ".find_chance_that_value(is_below=3)", "ncfdtr"),
+    ('sdata.distribution("noncentral t", degrees_of_freedom=5, noncentrality=1).find_chance_that_value(is_below=2)',
+     "nctdtr"),
+    ('sdata.distribution("chi-square", degrees_of_freedom=3).find_percentile(95)', "chdtri"),
+    ('sdata.distribution("F", degrees_of_freedom=[3, 20]).find_percentile(95)', "fdtri"),
+    ('sdata.distribution("gamma", shape=2, rate=1).find_percentile(95)', "gdtrix"),
+    ('sdata.distribution("t", degrees_of_freedom=5).find_percentile(97.5)', "stdtrit"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_percentile(95)',
+     "chndtrix"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'
+     ".find_percentile(95)", "ncfdtri"),
+    ('sdata.distribution("noncentral t", degrees_of_freedom=5, noncentrality=1).find_percentile(95)', "nctdtrit"),
+    ('sdata.distribution("binomial", tries=10, chance=0.3).find_percentile(50), the whole count (as R qbinom)',
+     "bdtrik"),
+    ('sdata.distribution("negative binomial", size=3, chance=0.4).find_percentile(50), the whole count',
+     "nbdtrik"),
+    ('sdata.distribution("poisson", average=3).find_percentile(50), the whole count (as R qpois)', "pdtrik"),
+    ('sdata.distribution("normal").find_percentile(97.5), for a chance given as its log: the percentile of '
+     "exp(log chance)", "ndtri_exp"),
+    ('sdata.distribution("kolmogorov-smirnov limit").find_chance_that_value(is_above=1.36)', "kolmogorov"),
+    ('sdata.distribution("kolmogorov-smirnov limit").find_cut_off(with_chance_above=0.05)', "kolmogi"),
+    ('sdata.distribution("kolmogorov-smirnov one-sided", sample_size=20).find_chance_that_value(is_above=0.25)',
+     "smirnov"),
+    ('sdata.distribution("kolmogorov-smirnov one-sided", sample_size=20).find_cut_off(with_chance_above=0.05)',
+     "smirnovi"),
+    ('sdata.distribution("skew normal", shape=2).find_chance_that_value(is_below=1): its chance below is the normal\'s '
+     "minus 2 x Owen's T", "owens_t"),
+    ('sdata.distribution("tukey lambda", shape=0.14).find_chance_that_value(is_below=1)', "tklmbda"),
+    ('sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1) (the missing parameter of t, '
+     "chi-square, F, gamma, beta, binomial, negative binomial, poisson, normal and the noncentral ones)",
+     "stdtridf chdtriv fdtridfd gdtria gdtrib btdtria btdtrib bdtri bdtrin nbdtri nbdtrin pdtri nrdtrimn nrdtrisd "
+     "chndtridf chndtrinc ncfdtridfd ncfdtridfn ncfdtrinc nctdtridf nctdtrinc"),
 ]
 
 # scipy.<name>, optimize., integrate., interpolate., signal., ndimage. and spatial.: names whose word the sdata,
