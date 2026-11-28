@@ -30,7 +30,8 @@ One direction (one column in at=):
   point, in the stable barycentric form: SciPy BarycentricInterpolator, the same curve as lagrange and
   KroghInterpolator, as R pracma::barylag()), "rational curve" (a ratio of polynomials without poles, Floater and
   Hormann 2007 of degree 3: SciPy FloaterHormannInterpolator) and "aaa" (the AAA rational curve of Nakatsukasa,
-  Sete and Trefethen 2018: SciPy AAA, as R has none).
+  Sete and Trefethen 2018: SciPy AAA, as R has none; a place between two known points where the curve has a
+  pole is left empty, with a note).
 * smoothness="auto" or a number: a smoothing spline that does NOT pass through every
   point. With x rescaled to run from 0 to 1 (as R does), it makes
   sum (y - curve)**2 + smoothness * integral(curve''**2)  as small as possible, with a knot
@@ -283,7 +284,28 @@ def _curve_through(x, y, how):
         return interpolate.FloaterHormannInterpolator(x, y, d=min(3, len(x) - 1))
     if how == "aaa":
         curve = interpolate.AAA(x, y)
-        return lambda at: np.real(curve(np.asarray(at, dtype=float)))
+        poles = np.asarray(curve.poles(), dtype=complex)
+        scale = max(1.0, float(np.max(np.abs(x))))
+        real = np.array([z.real for z in poles if abs(z.imag) <= 1e-9 * scale and x[0] <= z.real <= x[-1]])
+
+        def evaluate(at):
+            at = np.asarray(at, dtype=float)
+            values = np.real(curve(at))
+            if real.size:
+                # a place between the same two known points as a real pole: the curve shoots to infinity in that gap,
+                # so its value there means nothing
+                gap_of = lambda v: np.searchsorted(x, v, side="right")  # noqa: E731
+                bad = np.isin(gap_of(at), gap_of(real)) & (at >= x[0]) & (at <= x[-1])
+                if bad.any():
+                    values = np.where(bad, np.nan, values)
+                    count = int(bad.sum())
+                    print(f"Note: the AAA curve has a pole (it shoots to infinity) at "
+                          f"{', '.join(f'{v:.6g}' for v in np.sort(real)[:5])}, between known points; {count} "
+                          f"place{'s' if count > 1 else ''} in the same gap {'are' if count > 1 else 'is'} left empty. "
+                          'joined_by="rational curve" has no poles.')
+            return values
+
+        return evaluate
     raise ValueError(how)  # pragma: no cover
 
 
@@ -379,7 +401,8 @@ def join_many_directions(points, values, at, how="straight lines", smoothness=0.
             raise SimplydataError('outside="extend" needs joined_by="smooth surface"; smooth triangles end at the '
                                   'outline of the points. Use outside="nearest end".')
         try:
-            out = interpolate.CloughTocher2DInterpolator(points, values, tol=1e-12, maxiter=10000)(at)  # slopes to 1e-12
+            # the slopes at the points, found step by step, to 1e-12
+            out = interpolate.CloughTocher2DInterpolator(points, values, tol=1e-12, maxiter=10000)(at)
         except Exception:
             raise SimplydataError("The points lie on one line, so no triangles can be made between them. Use "
                                   'joined_by="nearest", or one direction only.') from None

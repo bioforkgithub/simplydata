@@ -718,7 +718,9 @@ class FittingWords:
         groups = self._fit_data(step, [x, y], for_each_group_in, weights, example)
         rows, said = [], []
         for label, group_key, arrays in groups:
-            order = np.argsort(arrays[x], kind="stable")
+            # rows in the order of x, and at a tied x the biggest y first when rising (smallest first when falling),
+            # as R isoreg() orders them (order(x, -y)), so the values at a tied x are pooled
+            order = np.lexsort((-arrays[y] if rising else arrays[y], arrays[x]))
             xs, ys = arrays[x][order], arrays[y][order]
             w = None if weights is None else arrays[weights][order]
             if w is not None and np.any(w <= 0):
@@ -737,9 +739,12 @@ class FittingWords:
             print(f"The closest curve that only {word}{where}: {steps} level{'s' if steps != 1 else ''} through "
                   f"{n} rows (sum of squared distances {change:.6g}).")
         r_call = f"isoreg({x}, {y})" if rising else f"-isoreg({x}, -{y})"
-        weighted = f', weights "{weights}"' if weights is not None else ""
-        print(f"Method: isotonic regression (pool adjacent violators{weighted}), SciPy optimize.isotonic_regression, "
-              f"as R {r_call}$yf.")
+        if weights is None:
+            print(f"Method: isotonic regression (pool adjacent violators), SciPy optimize.isotonic_regression, as R "
+                  f"{r_call}$yf.")
+        else:  # R isoreg() takes no weights
+            print(f'Method: weighted isotonic regression (pool adjacent violators, weights "{weights}"), SciPy '
+                  "optimize.isotonic_regression; R isoreg() has no weights.")
         return self._rows_table(rows)
 
     # ------------------------------------------------------------------ fit_curve
@@ -766,7 +771,8 @@ class FittingWords:
         (SSbiexp). Prints each value with what it means and its 95 % interval.
         always="rising" (or "falling") fits the closest curve that never goes down (or up): steps through the
         points by isotonic regression (pool adjacent violators, SciPy optimize.isotonic_regression, as R
-        isoreg()); gives back x, y and the fitted value of each row, in the order of x.
+        isoreg(), which also pools the values at a tied x); gives back x, y and the fitted value of each row, in the
+        order of x.
         """
         st = _st()
         step = "fit_curve"

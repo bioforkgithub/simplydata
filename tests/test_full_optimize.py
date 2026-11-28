@@ -36,34 +36,6 @@ def rosen(v):
     return (1 - v[0]) ** 2 + 100 * (v[1] - v[0] ** 2) ** 2
 
 
-def central(f):
-    h = np.finfo(float).eps ** (1 / 3)
-
-    def slopes(v):
-        v = np.asarray(v, dtype=float)
-        out = np.empty_like(v)
-        for i in range(v.size):
-            step = h * max(1.0, abs(v[i]))
-            up, down = v.copy(), v.copy()
-            up[i] += step
-            down[i] -= step
-            out[i] = (f(up) - f(down)) / (2 * step)
-        return out
-
-    return slopes
-
-
-def bends(slopes):
-    h = np.finfo(float).eps ** (1 / 3)
-
-    def product(v, p):
-        v, p = np.asarray(v, dtype=float), np.asarray(p, dtype=float)
-        k = h * max(1.0, np.linalg.norm(v)) / np.linalg.norm(p)
-        return (slopes(v + k * p) - slopes(v - k * p)) / (2 * k)
-
-    return product
-
-
 # ---------------------------------------------------------------- batch 14: find_where_smallest
 def test_golden_section_on_a_range_is_scipy_golden_on_the_best_scan_bracket(capsys):
     found = first(sdata.find_where_smallest(WAVY, between=[0, 5], test_method="golden section"))
@@ -80,10 +52,22 @@ def test_golden_section_on_a_range_is_scipy_golden_on_the_best_scan_bracket(caps
     assert "Search: golden-section search; it settled (converged) after" in out and "worked out" in out
 
 
-def test_golden_is_its_own_method_now_and_works_from_a_start():
-    found = first(sdata.find_where_smallest(WAVY, start=1.5, test_method="golden"))
+def test_golden_section_works_from_a_start_and_golden_keeps_meaning_brent():
+    found = first(sdata.find_where_smallest(WAVY, start=1.5, test_method="golden section"))
     assert found["method"] == "golden-section search from the start"
     assert found["x"] == pytest.approx(2.184353, abs=1e-5)
+    # review fix: "golden" meant Brent's method before these batches, and scripts that use it keep working the same
+    old = first(sdata.find_where_smallest(WAVY, between=[0, 5], test_method="golden"))
+    assert old["method"] == "Brent's method on the range"
+
+
+@pytest.mark.parametrize("formula, value", [("abs(x) + abs(x - 1)", 1.0), ("floor(x*2)**2", 0.0),
+                                            ("abs(x + 2)", 0.0)])
+def test_golden_section_on_a_flat_bottom_or_an_end_gives_an_answer_not_an_error(formula, value, capsys):
+    found = first(sdata.find_where_smallest(formula, between=[-2, 3], test_method="golden section"))
+    assert found["smallest value"] == pytest.approx(value, abs=1e-9)
+    out = capsys.readouterr().out
+    assert "Note:" in out and "Traceback" not in out
 
 
 def test_grid_search_is_scipy_brute_then_a_bounded_polish(capsys):
@@ -93,8 +77,9 @@ def test_grid_search_is_scipy_brute_then_a_bounded_polish(capsys):
     theirs = optimize.minimize(f, np.atleast_1d(corner), method="L-BFGS-B", bounds=[(0, 5)],
                                options={"ftol": 1e-15, "gtol": 1e-10})
     assert found["x"] == pytest.approx(theirs.x[0], rel=1e-9)
-    assert found["iterations"] == 20000 and found["evaluations"] > 20000
-    assert "(20,000 points) then a local polish (L-BFGS-B)" in capsys.readouterr().out
+    assert found["iterations"] == theirs.nit and found["evaluations"] > 20000  # grid points are not steps
+    assert found["settled"] == ("yes" if theirs.success else "no")
+    assert "(searched 20,000 grid points) then a local polish (L-BFGS-B" in capsys.readouterr().out
     two = first(sdata.find_where_smallest(ROSENBROCK, between={"x": [-2, 2], "y": [-1, 3]}, search="whole range",
                                           test_method="brute"))
     assert two["x"] == pytest.approx(1, abs=1e-6) and two["y"] == pytest.approx(1, abs=1e-6)
@@ -111,12 +96,30 @@ def test_grid_search_refuses_too_many_names():
     ("newton conjugate gradient", "Newton-CG", {"xtol": 1e-10, "maxiter": 10000}),
     ("truncated newton", "TNC", {"xtol": 1e-12, "ftol": 1e-15, "gtol": 1e-10, "maxfun": 20000}),
 ])
-def test_the_two_slope_methods_are_scipy_minimize_with_central_slopes(value, scipy_name, options):
+def test_the_two_slope_methods_reach_the_minimum_with_library_slopes(value, scipy_name, options, capsys):
     found = first(sdata.find_where_smallest(ROSENBROCK, start={"x": -1.2, "y": 1}, test_method=value))
-    extra = {"hessp": bends(central(rosen))} if scipy_name == "Newton-CG" else {}
-    theirs = optimize.minimize(rosen, [-1.2, 1], method=scipy_name, jac=central(rosen), options=options, **extra)
-    assert [found["x"], found["y"]] == pytest.approx(list(theirs.x), rel=1e-6)
-    assert [found["x"], found["y"]] == pytest.approx([1, 1], abs=1e-5)
+    assert [found["x"], found["y"]] == pytest.approx([1, 1], abs=1e-6)  # the Rosenbrock minimum, known by hand
+    # SciPy on its own, with its own slopes (analytic here, so nothing of simplydata's is in the reference)
+    theirs = optimize.minimize(optimize.rosen, [-1.2, 1], method=scipy_name, jac=optimize.rosen_der,
+                               options=options)
+    assert [found["x"], found["y"]] == pytest.approx(list(theirs.x), abs=1e-6)
+    assert "needs a smooth formula" in capsys.readouterr().out
+
+
+def test_the_slope_methods_use_library_differentiation_not_own_code():
+    import inspect
+
+    from simplydata import finding
+
+    source = inspect.getsource(finding)
+    assert "_central_slopes" not in source and "_central_bends" not in source
+    assert "differentiate.jacobian" in source and '"3-point"' in source
+
+
+@pytest.mark.parametrize("value", ["newton conjugate gradient", "truncated newton"])
+def test_a_slope_method_on_a_formula_with_a_corner_says_so(value, capsys):
+    sdata.find_where_smallest("abs(x - 1) + abs(y)", start={"x": 0.3, "y": 0.4}, test_method=value)
+    assert "has a corner or a jump" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("legacy, value", [
@@ -279,7 +282,8 @@ def test_find_volume_under_takes_the_new_integrators(value):
     if value == "cubature":
         theirs = integrate.cubature(lambda p: p[:, 0] * p[:, 1] ** 2, [0, 0], [1, 2]).estimate
     else:
-        theirs = integrate.qmc_quad(lambda p: p[0] * p[1] ** 2, [0, 0], [1, 2], qrng=stats.qmc.Halton(2, rng=1)).integral
+        engine = stats.qmc.Halton(2, rng=1)
+        theirs = integrate.qmc_quad(lambda p: p[0] * p[1] ** 2, [0, 0], [1, 2], qrng=engine).integral
     assert ours == pytest.approx(theirs, rel=1e-13)
     assert ours == pytest.approx(4 / 3, rel=1e-2)
     with pytest.raises(SimplydataError, match="test_method"):
@@ -435,8 +439,8 @@ def test_a_path_a_surface_and_a_surface_on_a_sphere():
     lat, lon = np.meshgrid([-60.0, -30, 0, 30, 60], np.arange(0.0, 360, 45), indexing="ij")
     values = np.cos(np.radians(lat)) + 0.1 * np.sin(np.radians(lon))
     sphere = sdata.curve_through_points(x=lat.ravel(), y=lon.ravel(), z=values.ravel(), on_sphere=True)
-    assert sphere.find_value_at(10, 100) == pytest.approx(math.cos(math.radians(10)) + 0.1 * math.sin(math.radians(100)),
-                                                          abs=2e-3)
+    expected = math.cos(math.radians(10)) + 0.1 * math.sin(math.radians(100))
+    assert sphere.find_value_at(10, 100) == pytest.approx(expected, abs=2e-3)
 
 
 def test_curve_errors_are_plain():
@@ -490,3 +494,56 @@ def test_each_new_word_is_registered_with_a_help_example_and_an_underneath_entry
 def test_the_scipy_names_of_section_2_6_point_to_their_word(typed, word, capsys):
     sdata.help(typed)
     assert word in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- review fixes (independent review, 2026-11-28)
+def test_fit_curve_always_pools_tied_x_as_r_isoreg(capsys):
+    table = sdata.table({"x": [1, 2, 2, 3], "y": [0, 1, 3, 4]})
+    rising = table.fit_curve(x="x", y="y", always="rising").as_pandas()
+    assert list(rising["fitted y"]) == pytest.approx([0, 2, 2, 4])  # R: isoreg(c(1, 2, 2, 3), c(0, 1, 3, 4))$yf
+    falling = table.fit_curve(x="x", y="y", always="falling").as_pandas()
+    assert list(falling["fitted y"]) == pytest.approx([2, 2, 2, 2])  # R: -isoreg(x, -y)$yf
+    capsys.readouterr()
+    table = sdata.table({"x": [1, 2, 3], "y": [3, 1, 2], "w": [1, 2, 1]})
+    table.fit_curve(x="x", y="y", always="rising", weights="w")
+    out = capsys.readouterr().out
+    assert "as R isoreg" not in out and "R isoreg() has no weights" in out
+
+
+def test_aaa_leaves_places_near_a_pole_between_the_points_empty(capsys):
+    table = sdata.table({"t": [0, 1, 2, 3, 4, 5], "y": [math.exp(t) for t in range(6)]})
+    found = column(table.find_values_at("y", at={"t": [2.6249, 0.5, 4.5]}, joined_by="aaa"), "y")
+    assert math.isnan(found[0])  # SciPy AAA has a real pole at t = 2.612 (16,940 at 2.6249)
+    x = np.arange(6.0)
+    assert np.allclose(found[1:], np.real(interpolate.AAA(x, np.exp(x))([0.5, 4.5])), rtol=1e-10)
+    assert "has a pole" in capsys.readouterr().out
+
+
+def test_grid_search_settles_by_its_polish_and_fixed_point_says_when_it_left_between(capsys):
+    sdata.solve("x = cos(x)", start=2.5, between=[2, 3], test_method="fixed point")
+    assert "outside between=" in capsys.readouterr().out
+
+
+def test_mixing_solvers_say_how_to_write_the_equations():
+    with pytest.raises(SimplydataError, match='alone on the left.*"x = ...", "y = ..."'):
+        sdata.solve(["x = 3*y + 1", "y = 3*x + 1"], start={"x": 0, "y": 0}, test_method="linear mixing")
+
+
+def test_a_method_that_cannot_keep_limits_says_the_answer_is_outside(capsys):
+    sdata.find_where_smallest("(x - 5)**2 + (y - 5)**2", between={"x": [0, 1], "y": [0, 1]}, test_method="bfgs")
+    assert "the answer is outside between=" in capsys.readouterr().out
+
+
+def test_a_surface_is_empty_outside_its_points(capsys):
+    east, north = np.meshgrid(np.arange(6.0), np.arange(4.0), indexing="ij")
+    surface = sdata.curve_through_points(x=east.ravel(), y=north.ravel(), z=(east + north).ravel())
+    capsys.readouterr()
+    assert math.isnan(surface.find_value_at(10, 2))
+    assert "outside the points" in capsys.readouterr().out
+    assert surface.find_value_at(2.5, 1.5) == pytest.approx(4.0, rel=1e-12)
+
+
+def test_weighted_curve_names_make_splrep(capsys):
+    sdata.curve_through_points(x=X, y=Y, allowed_error=0.5, weights=[1, 1, 2, 2, 1, 1])
+    out = capsys.readouterr().out
+    assert "make_splrep" in out and "as splrep(s=)" not in out
