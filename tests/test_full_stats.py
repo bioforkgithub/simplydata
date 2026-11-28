@@ -61,7 +61,8 @@ MEASURES = [
     ("circular variance in radians", lambda v: stats.circvar(v)),
     ("circular average in hours", lambda v: stats.circmean(v, high=24)),
     ("differential entropy", lambda v: stats.differential_entropy(v)),
-    ("percentile rank 70", lambda v: stats.estimated_cdf(v, 70) * 100),
+    pytest.param("percentile rank 70", lambda v: stats.estimated_cdf(v, 70) * 100,
+                 marks=pytest.mark.skipif(not hasattr(stats, "estimated_cdf"), reason="SciPy 1.18 or newer")),
     ("percent at or below 70", lambda v: stats.percentileofscore(v, 70, kind="weak")),
     ("sigma-clipped average", lambda v: np.mean(stats.sigmaclip(v).clipped)),
     ("sigma-clipped average 1.5", lambda v: np.mean(stats.sigmaclip(v, 1.5, 1.5).clipped)),
@@ -69,7 +70,8 @@ MEASURES = [
 
 
 @pytest.mark.parametrize("fast", ENGINES)
-@pytest.mark.parametrize("name, scipy_measure", MEASURES, ids=[m[0] for m in MEASURES])
+@pytest.mark.parametrize("name, scipy_measure", MEASURES,
+                         ids=[(m.values if hasattr(m, "values") else m)[0] for m in MEASURES])
 def test_each_new_summary_measure_matches_scipy_for_each_group(name, scipy_measure, fast, capsys):
     df = _frame("marks")
     result = _table("marks", fast).find_summary_of("marks", show=[name], for_each_group_in="class")
@@ -100,6 +102,7 @@ def test_circular_measures_need_the_unit_of_the_angles(show):
     assert _cell(found, "circular average in degrees") == pytest.approx(stats.circmean(df["angle"], high=360))
 
 
+@pytest.mark.skipif(not hasattr(stats, "estimated_cdf"), reason="percentile rank needs SciPy 1.18 or newer")
 def test_each_new_measure_prints_its_method_and_units(capsys):
     df = pd.DataFrame({"angle": [350.0, 10.0, 20.0, 5.0, 355.0, 3.0, 8.0, 12.0, 351.0, 2.0, 4.0]})
     sdata.table(df).find_summary_of("angle", show=["circular average in degrees", "circular variance in degrees",
@@ -543,3 +546,10 @@ def test_every_scipy_stats_name_of_batches_3_4_points_to_its_word(name, capsys):
     out = capsys.readouterr().out
     assert "name from other tools" in out.splitlines()[0], out
     assert STATS_POINTERS[name] in out, out
+
+
+@pytest.mark.skipif(hasattr(stats, "estimated_cdf"), reason="only on SciPy older than 1.18")
+def test_percentile_rank_says_plainly_it_needs_scipy_1_18():
+    df = pd.DataFrame({"x": [1.0, 2.0, 3.0]})
+    with pytest.raises(sdata.SimplydataError, match="needs SciPy 1.18 or newer"):
+        sdata.table(df).find_summary_of("x", show=["percentile rank 2"])

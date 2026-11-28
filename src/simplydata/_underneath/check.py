@@ -679,6 +679,11 @@ def check_entry(entry: Entry) -> list[Outcome]:
     if entry.compare == "none":
         return [Outcome(entry.key, "-", "-", "none", 0.0, bool(entry.note.strip()),
                         [] if entry.note.strip() else ["a word with nothing underneath needs a note="])]
+    from . import version_missing
+
+    missing = version_missing(entry.needs)
+    if missing:  # a newer version of the package underneath is needed: checked where it is installed
+        return [Outcome(entry.key, "-", "-", entry.compare, entry.tolerance, False, skipped="needs " + missing)]
     for engine in engines(entry):
         try:
             if entry.uses_r:

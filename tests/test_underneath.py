@@ -18,7 +18,8 @@ import pytest
 
 import simplydata as sdata
 from simplydata import learn
-from simplydata._underneath import CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line
+from simplydata._underneath import (CHART_FACTS, COMPARE_KINDS, R_LABEL, UNDERNEATH, Entry, underneath_line,
+                                    version_missing)
 from simplydata._underneath.check import (chart_facts, check_entry, compare_charts, compare_legend_numbers, run_ours,
                                           run_python)
 from conftest import example_frame
@@ -33,7 +34,8 @@ def test_the_word_and_the_library_give_the_same_result(entry):
     assert outcomes, entry.word
     skipped = [o for o in outcomes if o.skipped]
     if skipped:
-        if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1":
+        # a newer package version (needs=) is checked on the jobs that install it; R parts must run where R is
+        if os.environ.get("SIMPLYDATA_REQUIRE_R") == "1" and not version_missing(entry.needs):
             pytest.fail(f"SIMPLYDATA_REQUIRE_R=1 but {entry.word} could not run: {skipped[0].skipped}")
         pytest.skip(skipped[0].skipped)
     failed = [f"{o.library} on a {o.engine} table: " + "; ".join(o.differences) for o in outcomes if not o.passed]
@@ -57,6 +59,8 @@ def test_keys_are_current_words_not_old_names(entry):
 
 @pytest.mark.parametrize("entry", [e for e in ENTRIES if not e.uses_r], ids=[e.word for e in ENTRIES if not e.uses_r])
 def test_ours_prints_no_old_name_note(entry):
+    if version_missing(entry.needs):
+        pytest.skip("needs " + version_missing(entry.needs))
     _, printed = run_ours(entry)
     assert "is now called" not in printed, printed
     plt.close("all")

@@ -159,6 +159,11 @@ def check_case(case) -> list[dict]:
     if case.dataset in r_data and not r_ready(r_data[case.dataset]):
         packages = ", ".join(r_data[case.dataset])
         return [_skipped(case, f"R with {packages} (the data come from {packages})")]
+    from simplydata._underneath import version_missing
+
+    missing = version_missing(case.needs)
+    if missing:  # a newer version of the package underneath is needed: checked where it is installed
+        return [_skipped(case, missing, local=True)]
     if case.local_data and not os.environ.get(case.local_data):
         # data that may not be passed on (DATA_LICENSES.md): read only from a file the user names
         return [_skipped(case, f"the data file named by {case.local_data} (not shipped; see DATA_LICENSES.md)",
@@ -280,10 +285,12 @@ def _missing(case, name: str, reference: str) -> dict:
 
 def _skipped(case, what: str, local: bool = False) -> dict:
     """A case that cannot run here. local=True: it needs a data file that is not shipped (DATA_LICENSES.md) and
-    that the user may name; such a skip is not a missing R part, so --require-r does not count it."""
+    that the user may name, or a newer package version (needs=); such a skip is not a missing R part, so
+    --require-r does not count it."""
     return dict(word=_key(case), case=case.title, dataset=case.dataset, kind=case.kind, name="(all)",
                 reference=what, ours=float("nan"), theirs=float("nan"), tolerance="", passed=False,
-                skipped=f"needs {what}, which is not " + ("given here" if local else "installed here"), note="",
+                skipped=f"needs {what}, which is not "
+                + ("given here" if local and "or newer" not in what else "installed here"), note="",
                 explained="", local=local)
 
 

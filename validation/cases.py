@@ -269,6 +269,7 @@ class Case:
     # (suffix, reason): R also gives each number worked out on simplydata's rules as "<name><suffix>"; a number that
     # differs from R is an explained difference only when all of those agree with simplydata (make_report._explain)
     r_explained: tuple = ()
+    needs: tuple = ()             # (("scipy", "1.18"),): skipped, with the reason, on an older version
     local_data: str = ""          # the environment variable naming a data file that is not shipped; skipped without
 
     def __post_init__(self):

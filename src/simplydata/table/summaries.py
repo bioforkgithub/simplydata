@@ -834,6 +834,12 @@ def _scipy_measure(name: str, values):
             return None, "needs more values (SciPy's estimate needs a window of values)", None
         return found, None, None
     if name.startswith("percentile rank "):
+        if not hasattr(stats, "estimated_cdf"):
+            import scipy
+
+            raise SimplydataError(f'show="{name}" needs SciPy 1.18 or newer (this computer has SciPy '
+                                  f"{scipy.__version__}): pip install --upgrade scipy. SciPy 1.18 needs Python 3.12 or "
+                                  'newer. "percent at or below v" works with every SciPy.')
         return float(stats.estimated_cdf(values, number)) * 100, None, None
     if name.startswith("percent at or below "):
         return float(stats.percentileofscore(values, number, kind="weak")), None, None
