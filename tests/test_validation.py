@@ -33,7 +33,13 @@ NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata
                      # numbers phase, batch 4: the sum of a formula's series has no data either
                      "sdata.find_sum_of_series",
                      # seaborn's colour tools: a set of colours and a changed colour are made from no data
-                     "sdata.show_colours", "sdata.change_colour")
+                     "sdata.show_colours", "sdata.change_colour",
+                     # families for 100 %, batches 24-26: an equation and its solution, a product of a formula, the
+                     # ways to choose from a few things, facts of whole numbers (number theory) and an exact grid
+                     # of a few cells are their own inputs, checked against closed forms and the OEIS
+                     "sdata.check_solution", "sdata.find_product_of_series", "sdata.list_ways_to_",
+                     "nums.check_if_prime", "nums.find_prime_factors", "nums.find_number_fact", "sdata.number_grid",
+                     "grid.find_permanent", "grid.make_columns_orthogonal")
 
 
 def test_every_dataset_has_a_source_a_licence_and_its_file():

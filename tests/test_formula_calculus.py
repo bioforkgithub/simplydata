@@ -190,7 +190,8 @@ def test_hessian_wronskian_and_casoratian_are_sympy():
     assert grid.as_sympy() == sp.hessian(x ** 2 * y + y ** 3, [x, y])
     assert _quiet(_formula("exp(x)").find_wronskian, ["exp(2*x)"]).as_sympy() == sp.exp(3 * x)  # by hand
     found = _quiet(_formula("2**n").find_wronskian, ["3**n"], whole_numbers_only=True)
-    assert found.as_sympy() == sp.casoratian([2 ** n, 3 ** n], n)
+    assert found.as_sympy() == sp.casoratian([2 ** n, 3 ** n], n, zero=False)
+    assert sp.simplify(found.as_sympy() - 6 ** n) == 0  # 2^n 3^(n+1) - 3^n 2^(n+1) = 6^n
 
 
 # ------------------------------------------------------------------------------------------------ code and trees

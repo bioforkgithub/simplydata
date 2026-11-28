@@ -568,7 +568,8 @@ class _CalculusWords:
         x = next(s for e in (self._expr, *items) for s in e.free_symbols if str(s) == for_letter)
         functions = [self._expr, *items]
         name = "casoratian" if whole_numbers_only else "wronskian"
-        found = _guarded(getattr(sp, name), functions, x, what=f"SymPy {name}")
+        named = {"zero": False} if whole_numbers_only else {}  # the Casoratian as a formula in n, not at n = 0
+        found = _guarded(getattr(sp, name), functions, x, what=f"SymPy {name}", **named)
         said = ", ".join(_show(f) for f in functions)
         print(f"The {name.capitalize()} of {said} in {x}: {_show(found)}   (SymPy {name})")
         return Formula(found)
