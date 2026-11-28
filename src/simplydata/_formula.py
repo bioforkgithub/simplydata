@@ -754,6 +754,8 @@ def _work_out(sp, tree, text: str):
                     size = _size_of_number(sp, value)
                     if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
                         raise _too_big_special(text, type(node).__name__)
+                if node.free_symbols:
+                    _formula_names.check_letters(node, text, _formula_error)
             found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
         elif isinstance(node, sp.exp):
             power = worked_out(node.args[0])[0] if node.args[0].has(sp.log) else node.args[0]
@@ -1634,8 +1636,12 @@ class Formula(_AlgebraWords):
         # lgamma is the log of the size of gamma (SciPy gammaln, as R lgamma and fit_formula), real for every x
         function = sp.lambdify([self._symbol(n) for n in letters], self._expr,
                                modules=[{"loggamma": special.gammaln}, "scipy", "numpy"])
-        with np.errstate(all="ignore"):
-            out = np.asarray(function(*arrays), dtype=complex)
+        try:
+            with np.errstate(all="ignore"):
+                out = np.asarray(function(*arrays), dtype=complex)
+        except _formula_names.BY_VALUE_ERRORS if self._expr.has(*_formula_names.sympy_classes()) else ():
+            # batches 22-23: a SymPy function NumPy and SciPy do not have (fibonacci, lerchphi ...), value by value
+            out = _formula_names.value_by_value(self._expr, [self._symbol(n) for n in letters], arrays)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
         out = np.broadcast_to(out, shape)
         if np.any(np.abs(out.imag) > 1e-12 * np.maximum(1.0, np.abs(out.real))):

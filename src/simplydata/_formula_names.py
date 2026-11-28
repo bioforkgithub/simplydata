@@ -282,3 +282,52 @@ def pointer_groups() -> list:
         out.append((f'sdata.formula("{name}"): SymPy\'s constant {name} inside formula text '
                     f"({CONSTANTS_ABOUT[name]})", name))
     return out
+
+
+# SymPy functions that NumPy and SciPy cannot work out (lambdify writes their name, which NumPy does not know):
+# find_value_at works them out value by value with SymPy evalf instead, each under the time limit
+BY_VALUE_ERRORS = (NameError, TypeError, ValueError, RecursionError)
+NO_VALUE = (TypeError, ValueError, KeyError, ZeroDivisionError, ArithmeticError)  # SymPy's ways of saying "no value"
+MAX_BY_VALUE = 10_000  # values worked out one at a time at most
+
+
+def value_by_value(expr, symbols: list, arrays: list):
+    """The values of expr at each combination of the arrays (broadcast), each from SymPy evalf with subs under the
+    time limit: complex numbers, NaN where SymPy gives no number."""
+    import numpy as np
+
+    from ._errors import SimplydataError
+    from ._formula import _guarded
+
+    columns = np.broadcast_arrays(*[np.asarray(a, dtype=float) for a in arrays])
+    shape = columns[0].shape
+    if columns[0].size > MAX_BY_VALUE:
+        raise SimplydataError(f"This formula has a SymPy function that NumPy and SciPy do not have, so each value is "
+                              f"worked out by SymPy on its own; give at most {MAX_BY_VALUE:,} values.")
+    print("NumPy and SciPy do not have every SymPy function of this formula, so SymPy works out each value on its "
+          "own (SymPy evalf).")
+    out = np.empty(shape, dtype=complex)
+    for at in np.ndindex(shape):
+        swaps = {s: c[at] for s, c in zip(symbols, columns)}
+        if any(np.isnan(v) for v in swaps.values()):
+            out[at] = np.nan
+            continue
+        try:
+            found = _guarded(expr.evalf, 15, subs={s: float(v) for s, v in swaps.items()}, what="SymPy evalf")
+            out[at] = complex(found)
+        except NO_VALUE:  # a pole (zeta(1)), zoo, nan or a value with letters: no number there
+            out[at] = np.nan
+    return out
+
+
+def check_letters(node, text: str, error) -> None:
+    """A counting function with a letter inside: SymPy must take the letter (motzkin(n) and chebyshevt_root(n, 0) take
+    whole numbers only, and SymPy stops while it makes them). SymPy makes it under the time limit; error(problem) is
+    the formula reader's error."""
+    from ._formula import _guarded
+
+    try:
+        _guarded(type(node), *node.args, what="SymPy " + type(node).__name__)
+    except (ValueError, TypeError, NotImplementedError, AttributeError) as problem:
+        raise error(f'"{text}": the SymPy function {type(node).__name__}() takes whole numbers here, not letters '
+                    f"({problem}). Put a number in its place.") from None

@@ -374,7 +374,8 @@ def test_every_make_simpler_value_is_its_sympy_function(value):
                "logs": "log(x) + log(y)", "fractions": "(x**2 - 1)/(x - 1) + 1/x", "common factors":
                "(x**2 - 1)/(x - 1)", "roots in the bottom": "1/(1 + sqrt(2))", "nested roots": "sqrt(5 + 2*sqrt(6))",
                "gamma functions": "gamma(x + 1)/gamma(x)", "factorials": "factorial(n + 1)/factorial(n)",
-               "bessel functions": "besselJ(x, 1) + besselJ(x, 3)", "hypergeometric functions": "hyper((1, 1), (2,), x)",
+               "bessel functions": "besselJ(x, 1) + besselJ(x, 3)",
+               "hypergeometric functions": "hyper((1, 1), (2,), x)",
                "kronecker deltas": "KroneckerDelta(a, b)*KroneckerDelta(a, b)", "signs": "-(x - 1)",
                "letters apart": "x*y + x", "conditions":
                "Piecewise((x, x > 0), (0, True)) + 1", "decimals as fractions": "0.5*x + 0.25"}
@@ -542,3 +543,22 @@ def test_every_sympy_name_of_these_batches_has_a_pointer(capsys):
         assert value[0] in names, value[0]
     for name, (function, *_) in _formula_algebra.FACTS.items():
         assert function.split(".")[-1].replace("all_coeffs", "Poly") in names or function in names, function
+
+
+def test_many_values_of_a_function_numpy_lacks_are_worked_out_by_sympy_value_by_value(sympy_calls):
+    import sympy as sp
+
+    found = _quiet(_formula("fibonacci(n) + lerchphi(1/2, 2, n)").find_value_at, n=[1, 2, 3])
+    expected = [float(sp.fibonacci(k) + sp.lerchphi(sp.Rational(1, 2), 2, k)) for k in (1, 2, 3)]
+    assert found.as_numpy().tolist() == pytest.approx(expected, rel=1e-14)
+    assert sympy_calls.count("evalf") >= 3  # each value by SymPy evalf, under the time limit
+    poles = _quiet(_formula("dirichlet_eta(s)").find_value_at, s=[1, 2])
+    assert poles.as_numpy()[1] == pytest.approx(float(sp.dirichlet_eta(2)), rel=1e-14)
+
+
+def test_a_counting_function_that_takes_whole_numbers_only_refuses_a_letter():
+    with pytest.raises(sdata.SimplydataError, match="takes whole numbers here, not letters"):
+        _formula("motzkin(n)")
+    import sympy as sp
+
+    assert _quiet(_formula("motzkin(10)").find_value_at) == float(sp.motzkin(10))
