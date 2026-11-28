@@ -65,6 +65,9 @@ creation}.
 to=1, how\_many=11)} is \code{np.linspace} and \code{step=} is \code{np.arange}.
 \code{sdata.number\_grid(rows=2, columns=3, filled\_with=0)} is \code{np.zeros} (and \code{np.full});
 \code{sdata.number\_block(of\_shape=(2, 3, 4), filled\_with=1)} is \code{np.ones} with any shape.
+Special grids come from \code{kind=}: \code{sdata.number\_grid(kind="identity", size=3)} is \code{np.eye},
+\code{kind="diagonal"} is \code{np.diag}, and \code{"toeplitz"}, \code{"hilbert"} or \code{"pascal"} are the
+grids of \code{scipy.linalg}. \code{sdata.make\_coordinate\_grids(x=..., y=...)} is \code{np.meshgrid}.
 
 \begin{lstlisting}[style=py]
 temperatures = sdata.number_list([8.3, 10.3, 11.0, 9.2, 7.5])
@@ -74,6 +77,8 @@ grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
 zeros = sdata.number_grid(rows=2, columns=3, filled_with=0)
 block = sdata.number_block(of_shape=(2, 3, 4), filled_with=1)
 print(grid)
+grid = sdata.number_grid(kind="identity", size=3)       # NumPy's eye
+a, b = sdata.make_coordinate_grids(x=[0, 1, 2], y=[10, 20])    # NumPy's meshgrid
 \end{lstlisting}
 
 \unsection{Shape and size}{from-numpy:shape}
@@ -106,6 +111,8 @@ on ndarrays}.
 \textbf{In simplydata.} \code{get\_number\_at} is \code{a[i]} (from 1); \code{keep\_numbers\_by\_position(2,
 to=4)} is a slice and keeps both ends; \code{grid.get\_row} and \code{grid.get\_column} are \code{a[i, :]}
 and \code{a[:, j]}. \code{keep\_each\_number\_that(is\_above=5)} is \code{a[a > 5]}.
+\code{grid.get\_part("diagonal")} and \code{grid.get\_part("upper triangle")} are \code{np.diagonal} and
+\code{np.triu}; \code{find\_positions\_where(is\_above=5)} is \code{np.nonzero} (counting from 1).
 
 \begin{lstlisting}[style=py]
 numbers = sdata.number_list([4, 8, 15, 16, 23, 42])
@@ -117,6 +124,7 @@ numbers.keep_each_number_that(is_above=10)
 grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
 grid.get_row(2)
 grid.get_column(3)
+grid.get_part("diagonal")                # 1 and 5
 \end{lstlisting}
 
 \unsection{Maths on every number}{from-numpy:maths}
@@ -131,6 +139,12 @@ functions}.
 \code{raise\_to\_power}, \code{take\_square\_root}, \code{take\_log}, \code{take\_exp},
 \code{take\_sin}, \code{round\_to} and their family. Each takes one number or numbers of the same
 length. \code{+}, \code{-}, \code{*} and \code{/} work too and give new numbers.
+Every other function of NumPy and \code{scipy.special} is one family word:
+\code{numbers.take\_function("hyperbolic sine")} is \code{np.sinh}, and
+\code{take\_function("bessel J", order=1)} is \code{special.jv}. The library names work too, and
+\code{numbers.take\_function()} with no name lists them all. \code{work\_on\_bits} does the bit operations
+(\code{np.bitwise\_and} and the rest). \code{turn\_into\_changes} is \code{np.diff},
+\code{turn\_into\_slopes} is \code{np.gradient} and \code{find\_product} is \code{np.prod}.
 
 \begin{lstlisting}[style=py]
 prices = sdata.number_list([1.20, 3.50, 2.25])
@@ -140,6 +154,12 @@ counts = sdata.number_list([10, 100, 1000])
 counts.take_log(base=10)
 both = sdata.number_list([1, 2, 3]) + sdata.number_list([10, 20, 30])
 print(both)
+numbers = sdata.number_list([0.5, 1.0, 2.0])
+numbers.take_function("hyperbolic sine")                 # NumPy's sinh
+numbers.undo()
+numbers.take_function("bessel J", order=1)               # SciPy's special.jv
+numbers = sdata.number_list([3, 5, 9, 10])
+numbers.turn_into_changes()                              # 2, 4, 1: NumPy's diff
 \end{lstlisting}
 
 \unsection{Stretching to the same shape}{from-numpy:broadcasting}
@@ -216,7 +236,8 @@ block.find_shape()
 
 \textbf{In simplydata.} \code{sort} (\code{biggest\_first=True} for the other way),
 \code{remove\_duplicate\_numbers} and \code{count\_each}, which gives a table of each number and its
-count.
+count. \code{sort(show="positions")} is \code{np.argsort}, and \code{count\_in\_bins(how\_many\_bins=3)} is
+\code{np.histogram} as numbers.
 
 \begin{lstlisting}[style=py]
 numbers = sdata.number_list([3, 1, 2, 3, 3, 1])
@@ -224,6 +245,8 @@ numbers.count_each()
 numbers.sort(biggest_first=True)
 numbers.remove_duplicate_numbers()
 print(numbers)
+numbers = sdata.number_list([3, 1, 2, 3, 3, 1])
+numbers.count_in_bins(how_many_bins=3)
 \end{lstlisting}
 
 \unsection{Yes or no, and conditions}{from-numpy:conditions}
@@ -315,7 +338,9 @@ equations grid times x = b (NumPy's \code{np.linalg}). In the guides:
 \textbf{In simplydata.} \code{find\_determinant}, \code{take\_inverse} and \code{find\_eigenvalues};
 \code{solve\_for(b)} is \code{solve}, and on a grid that is not square it gives the least-squares answer
 (\code{lstsq}) and says so. \code{exactly=True} on each gives SymPy's exact answer, as fractions. To
-solve equations, \code{solve\_for} is better than an inverse.
+solve equations, \code{solve\_for} is better than an inverse. \code{multiply\_as\_matrix\_by} is the
+matrix product (\code{@}, \code{np.matmul}); \code{find\_rank}, \code{find\_size} and
+\code{find\_condition\_number} are \code{matrix\_rank}, \code{norm} and \code{cond}.
 
 \begin{lstlisting}[style=py]
 grid = sdata.number_grid([[2, 1], [1, 3]])
@@ -324,6 +349,8 @@ grid.find_eigenvalues()
 x = grid.solve_for([5, 10])              # x = [1, 3]
 print(x)
 grid.solve_for([1, 1], exactly=True)     # [2/5, 1/5]
+grid.multiply_as_matrix_by(sdata.number_grid([[0, 1], [1, 0]]))
+grid.find_rank()                         # 2
 \end{lstlisting}
 
 \unsection{Fourier transforms}{from-numpy:fourier}
@@ -353,7 +380,9 @@ and how a quantity changes over time from a rate (SciPy's \code{quad}, \code{dbl
 
 \textbf{In simplydata.} \code{sdata.find\_area\_under}, \code{sdata.find\_volume\_under},
 \code{numbers.turn\_into\_running\_area} and \code{sdata.find\_path\_over\_time}. The formula is written
-as text, with letters.
+as text, with letters. \code{sdata.find\_path\_between\_ends} is \code{solve\_bvp}, for a path with a value
+given at each end, and \code{sdata.find\_area\_points} gives the points and weights of Gaussian quadrature
+(\code{roots\_legendre} and its kin).
 
 \begin{lstlisting}[style=py]
 sdata.find_area_under("exp(-x**2)", between=[0, "infinity"])
@@ -373,7 +402,8 @@ and solve least squares with limits (SciPy's \code{minimize}, \code{root}, \code
 \textbf{In simplydata.} \code{sdata.find\_where\_smallest} and \code{sdata.find\_where\_biggest} (with
 \code{rules=} for linear programming), \code{sdata.solve}, \code{table.fit\_formula} for curves, and
 \code{grid.solve\_for(b, between=[0, None])} for answers that may not be negative, as in a diet mix or
-the unmixing of spectra.
+the unmixing of spectra. \code{sdata.find\_best\_pairing(costs=grid)} is \code{linear\_sum\_assignment}: it
+pairs each row with one column so that the total cost is smallest.
 
 \begin{lstlisting}[style=py]
 sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])
@@ -382,6 +412,8 @@ sdata.solve("x**3 - 2*x = 5", between=[0, 3])
 # one row per nutrient (protein, fibre, fat), one column per food: grams of the nutrient in one portion
 foods = sdata.number_grid([[20, 2, 5], [10, 15, 1], [2, 8, 30]])
 amounts = foods.solve_for([60, 40, 50], between=[0, None])          # portions of each food, never below 0
+grid = sdata.number_grid([[4, 1, 3], [2, 0, 5], [3, 2, 2]])         # cost of each worker (row) for each job
+sdata.find_best_pairing(costs=grid)
 \end{lstlisting}
 
 \unsection{Values between the points}{from-numpy:interpolation}
@@ -392,12 +424,17 @@ amounts = foods.solve_for([60, 40, 50], between=[0, None])          # portions o
 
 \textbf{In simplydata.} \code{table.find\_values\_at} on a table's columns,
 \code{table.make\_map\_of} for scattered points on a map, and \code{block.find\_values\_at} inside a
-labelled block.
+labelled block. \code{sdata.curve\_through\_points(x=..., y=...)} is a spline you can keep (SciPy's
+\code{make\_interp\_spline} and \code{CubicSpline}): read it anywhere with \code{curve.find\_value\_at}, and
+take its slope, area and zeros with \code{find\_slope\_at}, \code{find\_area\_between} and \code{find\_zeros}.
 
 \begin{lstlisting}[style=py]
 growth = sdata.get_example("growth")
 growth.keep_rows_where("country", is_equal_to="Applia")
 growth.find_values_at("population", at={"year": [2001.5, 2003.5]})
+curve = sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0])
+curve.find_value_at(12)
+curve.find_slope_at(12)
 \end{lstlisting}
 
 \unsection{Signals}{from-numpy:signals}
@@ -409,7 +446,10 @@ Processing (scipy.signal)}.
 
 \textbf{In simplydata.} \code{smooth}, \code{keep\_each\_frequency\_that} and
 \code{remove\_each\_frequency\_that}, \code{find\_each\_peak\_that} and \code{find\_spectrum}. Each
-takes \code{time\_step=}, the time between readings, so frequencies are in hertz.
+takes \code{time\_step=}, the time between readings, so frequencies are in hertz. The filter designs of
+\code{scipy.signal} (Butterworth, Chebyshev, elliptic, Bessel and FIR filters) are values of
+\code{sdata.frequency\_filter}; \code{system.move\_poles\_to} is \code{place\_poles}, and
+\code{find\_phase\_locking\_to} measures how steady the phase is.
 
 \begin{lstlisting}[style=py]
 signal = sdata.make_wave("sine", frequency=2, time_step=0.01, how_many=300)
@@ -428,7 +468,10 @@ exponential, and the null space (SciPy's \code{scipy.linalg}). In the guide:
 \textbf{In simplydata.} \code{grid.break\_down(test\_method="svd")} gives the parts as a dict of
 grids and prints what each part is; the other methods are \code{"qr"}, \code{"lu"},
 \code{"cholesky"}, \code{"schur"}, \code{"polar"}, \code{"ldl"}, \code{"hessenberg"} and \code{"qz"}.
-\code{take\_matrix\_exp} is \code{expm} and \code{find\_null\_space} is \code{null\_space}.
+\code{take\_matrix\_exp} is \code{expm} and \code{find\_null\_space} is \code{null\_space}. The other
+matrix functions are one family word, \code{grid.take\_matrix\_function("log")} (\code{logm}, \code{sqrtm},
+\code{cosm} ...); \code{check\_if\_grid\_is("symmetric")} checks a kind of grid, and
+\code{sdata.solve\_matrix\_equation} solves the Sylvester, Lyapunov and Riccati equations.
 
 \begin{lstlisting}[style=py]
 grid = sdata.number_grid([[4, 2], [2, 3]])
@@ -437,6 +480,8 @@ print(parts["U"])
 parts = grid.break_down(test_method="svd")
 print(parts["singular values"])
 grid.find_null_space()
+grid.take_matrix_function("square root")                 # SciPy's sqrtm
+grid.check_if_grid_is("symmetric")
 \end{lstlisting}
 
 \unsection{Points in space}{from-numpy:spatial}
@@ -448,12 +493,15 @@ grid.find_null_space()
 
 \textbf{In simplydata.} These are table words, because points are rows with an east and a north:
 \code{table.find\_nearest\_rows\_to}, \code{table.find\_distances\_to\_rows\_of} and
-\code{table.find\_fence\_around}.
+\code{table.find\_fence\_around}. \code{table.find\_triangles\_between\_points} is \code{Delaunay} and
+\code{table.find\_regions\_around\_points} is \code{Voronoi}, with the area of each region.
 
 \begin{lstlisting}[style=py]
 island = sdata.get_example("island")
 island.find_nearest_rows_to({"east": 4, "north": 1}, how_many=3)
 island.find_fence_around(x="east", y="north")
+island = sdata.get_example("island")
+island.find_triangles_between_points(x="east", y="north")
 \end{lstlisting}
 
 \unsection{Special functions}{from-numpy:special}
@@ -465,7 +513,11 @@ ways to choose (SciPy's \code{scipy.special}). In the guide:
 \textbf{In simplydata.} A formula can use \code{gamma}, \code{lgamma}, \code{digamma}, \code{beta},
 \code{erf}, \code{erfc} and \code{besselJ}. \code{sdata.count\_ways\_to\_choose} is \code{comb} and
 \code{sdata.count\_ways\_to\_order} is \code{perm}; \code{take\_log\_odds} and \code{turn\_into\_chances}
-are \code{logit} and \code{expit}.
+are \code{logit} and \code{expit}. Every other function of \code{scipy.special} is a name of
+\code{numbers.take\_function} (see ``Maths on every number''), and the same names work in a formula with
+\code{\_} for spaces, such as \code{bessel\_j(1, x)}. \code{sdata.find\_zeros\_of("bessel J")} gives the zeros
+(\code{jn\_zeros} and its kin), and \code{sdata.polynomial("legendre", degree=3)} makes the polynomials of
+\code{scipy.special} and \code{np.polynomial} as formulas.
 
 \begin{lstlisting}[style=py]
 formula = sdata.formula("gamma(x)")
@@ -473,6 +525,9 @@ formula.find_value_at(x=4.5)
 sdata.count_ways_to_choose(3, out_of=10)                 # 120
 chances = sdata.number_list([0.1, 0.5, 0.9])
 chances.take_log_odds()
+sdata.find_zeros_of("bessel J", how_many=3)
+formula = sdata.polynomial("legendre", degree=3)
+formula.find_value_at(x=0.5)
 \end{lstlisting}
 
 \unsection{Statistics}{from-numpy:statistics}
@@ -484,7 +539,8 @@ and run tests (SciPy's \code{scipy.stats}). In the guide:
 \textbf{In simplydata.} \code{sdata.distribution(...)} with \code{find\_density\_at} (\code{pdf}),
 \code{find\_chance\_that\_value} (\code{cdf} and \code{sf}) and \code{find\_percentile} (\code{ppf});
 \code{numbers.fit\_distribution} is \code{fit}. The tests are table words, such as
-\code{table.compare\_averages\_of}; the rest of this manual explains them.
+\code{table.compare\_averages\_of}; the rest of this manual explains them. Every distribution of
+\code{scipy.stats} has a plain name, such as \code{sdata.distribution("skew normal", shape=4)}.
 
 \begin{lstlisting}[style=py]
 distribution = sdata.distribution("normal", average=50, standard_deviation=10)
@@ -502,13 +558,18 @@ In the guide: \href{https://docs.scipy.org/doc/scipy/tutorial/ndimage.html}{Mult
 processing (scipy.ndimage)}.
 
 \textbf{In simplydata.} \code{grid.smooth}, \code{grid.find\_each\_patch\_that}, \code{grid.rotate} and
-\code{grid.change\_size\_to}; on a block, \code{block.smooth(over=[...])}.
+\code{grid.change\_size\_to}; on a block, \code{block.smooth(over=[...])}. \code{grid.find\_edges()} is
+\code{sobel}; \code{grid.change\_patch\_shapes("grow")} is one family word for \code{binary\_dilation},
+\code{binary\_erosion}, opening, closing and filling holes; \code{find\_distance\_to\_nearest} is
+\code{distance\_transform\_edt}.
 
 \begin{lstlisting}[style=py]
 grid = sdata.number_grid([[0, 0, 1, 1], [0, 0, 1, 1], [5, 0, 0, 0], [5, 5, 0, 0]])
 grid.find_each_patch_that(is_above=0)
 grid.change_size_to(rows=8, columns=8)
 grid.rotate(by_degrees=15)
+grid = sdata.number_grid([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
+grid.find_edges()
 \end{lstlisting}
 
 \unsection{Sound files and other files}{from-numpy:file-io}
@@ -531,26 +592,24 @@ again.count()
 
 \unsection{The jobs left to NumPy and SciPy}{from-numpy:left-out}
 
-simplydata does the jobs most people need in research and teaching, with one word each. These jobs are
-left out on purpose. Each one is a hand-over: \code{array = numbers.as\_numpy()} (or
-\code{grid.as\_numpy()}, \code{block.as\_numpy()}), then NumPy or SciPy code, then
-\code{sdata.number\_list(...)}, \code{sdata.number\_grid(...)} or \code{sdata.number\_block(...)} to
-come back.
+simplydata does the jobs most people need in research and teaching, with one word each. Many jobs that
+were once left to NumPy now have words: \code{np.diff} is \code{turn\_into\_changes}, \code{np.histogram} is
+\code{count\_in\_bins}, \code{np.argsort} is \code{sort(show="positions")}, \code{np.meshgrid} is
+\code{sdata.make\_coordinate\_grids}, \code{np.linalg.norm} is \code{find\_size}, the matrix product is
+\code{multiply\_as\_matrix\_by}, and \code{np.polynomial} is \code{sdata.polynomial}. These jobs are left out
+on purpose. Each one is a hand-over: \code{array = numbers.as\_numpy()} (or \code{grid.as\_numpy()},
+\code{block.as\_numpy()}), then NumPy or SciPy code, then \code{sdata.number\_list(...)},
+\code{sdata.number\_grid(...)} or \code{sdata.number\_block(...)} to come back.
 \begin{itemize}
-  \item \textbf{Matrix products} (\code{@}, \code{np.dot}, \code{np.matmul}, \code{np.einsum}).
-  \item \textbf{Differences and gradients} (\code{np.diff}, \code{np.gradient}) and products
-    (\code{np.prod}, \code{np.cumprod}).
-  \item \textbf{Histograms as numbers} (\code{np.histogram}, \code{np.digitize}); a chart of them is
-    \code{draw\_histogram}.
-  \item \textbf{Positions after sorting} (\code{np.argsort}, \code{np.lexsort}).
-  \item \textbf{Grids of coordinates} (\code{np.meshgrid}, \code{np.mgrid}).
-  \item \textbf{The norm, rank, trace and diagonal of a matrix} (\code{np.linalg.norm},
-    \code{np.linalg.matrix\_rank}, \code{np.trace}, \code{np.diag}).
+  \item \textbf{Sums over named indices} (\code{np.einsum}, \code{np.linalg.tensorinv}): einsum is its own
+    notation; \code{multiply\_as\_matrix\_by} covers the usual uses.
   \item \textbf{Data types, copies and views, structured arrays and strings in arrays}: simplydata keeps
     numbers as decimals and makes copies, so these questions do not come up.
   \item \textbf{Sparse arrays} (\code{scipy.sparse}) and their eigenvalue and graph routines.
-  \item \textbf{Polynomials as objects} (\code{np.polynomial}); a fitted curve is
-    \code{table.fit\_curve}.
+  \item \textbf{The intersection of half-spaces} (\code{scipy.spatial.HalfspaceIntersection}), expert
+    geometry with no data job.
+  \item \textbf{Steps inside a solver} (\code{qr\_update}, \code{expm\_frechet}, the BLAS and LAPACK
+    functions): \code{sdata.help} names the word that runs them.
 \end{itemize}
 
 One more example: a matrix product, and back.
@@ -562,3 +621,18 @@ product = a.as_numpy() @ b.as_numpy()    # NumPy's matrix product
 grid = sdata.number_grid(product)        # back to simplydata
 grid.find_determinant()
 \end{lstlisting}
+
+\paragraph{How complete is simplydata?}
+We typed every public name of these parts of the library into \code{sdata.help()} (the versions of November 2026).
+NumPy: the top level, \code{linalg}, \code{fft}, a random Generator and \code{np.random}, the methods of an
+array, \code{np.polynomial}, \code{np.ma} and \code{np.strings}, 986 names. 756 lead to a simplydata word or
+option, 119 hand over to NumPy with a note, and 3 are left to NumPy on purpose (\code{einsum}, \code{einsum\_path}
+and \code{tensorinv}); the other 108 are data types, classes and settings, which simplydata chooses by itself.
+Not checked name by name: \code{np.char}, \code{np.rec}, \code{np.emath}, \code{np.lib} and \code{np.testing}.
+SciPy: \code{stats} (with \code{stats.qmc}), \code{optimize}, \code{integrate}, \code{interpolate},
+\code{signal}, \code{linalg}, \code{special}, \code{fft}, \code{ndimage}, \code{spatial} (with
+\code{distance} and \code{transform}), \code{sparse} (with \code{sparse.linalg} and \code{csgraph}),
+\code{cluster}, \code{io} and \code{constants}, 1,612 names. 1,246 lead to a word or option, 324 hand over to
+SciPy with a note (most of them physical constants and units, sparse storage, graph routines and file formats),
+one is left to SciPy on purpose (\code{HalfspaceIntersection}), and 41 are classes, warnings and settings. Not
+checked name by name: SciPy's \code{odr}, \code{datasets}, \code{differentiate} and \code{misc}.

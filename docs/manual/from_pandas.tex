@@ -810,3 +810,14 @@ simplydata leaves these jobs to pandas and Polars on purpose. Each is shown abov
 \end{description}
 The Polars guide has a page for readers who move the other way, from pandas to Polars:
 \href{https://docs.pola.rs/user-guide/migration/pandas/}{Coming from pandas}.
+
+\paragraph{How complete is simplydata?}
+We typed every public name of these parts of the library into \code{sdata.help()} (the versions of November 2026).
+pandas: DataFrame, Series, groupby, \code{.str}, \code{.dt}, the functions and classes at the top level, and the
+rolling, expanding, ewm and resample objects, 800 names. 671 lead to a simplydata word or option, 92 hand over to
+pandas with a note, 36 are left to pandas on purpose because simplydata has no row index and no \code{pipe}, and
+one is a setting. Polars: DataFrame, Series, expressions, \code{.str}, \code{.dt}, \code{.list}, group\_by and the
+functions and classes at the top level, 958 names. 787 lead to a word or option, 96 hand over to Polars with a
+note (such as its exponentially weighted spread, folds, struct and JSON columns, engines and settings), 74 are
+left to Polars on purpose (list columns, because simplydata keeps one value in each cell, and lazy plans), and
+one is a setting. Every other name has an answer in \code{sdata.help()}.

@@ -39,12 +39,14 @@ from .numpy_list_words import NumPyListWords, NumPySharedWords  # families for 1
 from .numpy_grid_words import NumPyGridWords  # families for 100 %, batches 11-12 (plan section 2.4)
 from .image_words import ImageWords  # families for 100 %, batches 20-21: a grid as a picture (ndimage)
 from .matrix_words import MatrixWords  # families for 100 %, batch 19: scipy.linalg on a grid
+from .._exact_grid import GridWords26  # families for 100 %, batch 26: find_permanent, make_columns_orthogonal
+from .number_theory_words import NumberTheoryWords  # families for 100 %, batch 26: number theory (G13)
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
-              FourierNumberWords, SignalNumberWords2, NumberWords3, SharedWords3, NumPyListWords, NumPySharedWords,
-              BaseNumbers):
+              FourierNumberWords, SignalNumberWords2, NumberWords3, NumberTheoryWords, SharedWords3, NumPyListWords,
+              NumPySharedWords, BaseNumbers):
     """A list of numbers. Make one with sdata.number_list([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
@@ -96,8 +98,8 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(ImageWords, MatrixWords, SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords,
-                 GridSummaryWords, MathsWords, GridWords3, GridWords4, SolvingWords, SharedWords3, NumPyGridWords,
-                 NumPySharedWords, BaseNumbers):
+                 GridSummaryWords, MathsWords, GridWords3, GridWords4, SolvingWords, GridWords26, SharedWords3,
+                 NumPyGridWords, NumPySharedWords, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -655,7 +657,7 @@ EXAMPLE_KIND = 'sdata.number_grid(kind="toeplitz", first_column=[1, 2, 3])'
 @friendly
 def number_grid(values=None, rows=None, columns=None, filled_with=0, kind=None, size=None, first_column=None,
                 first_row=None, last_row=None, of=None, shifted_by=0, survival=None, axis=None, by_degrees=None,
-                from_formula=None) -> NumberGrid:
+                from_formula=None, exactly=False) -> NumberGrid:
     """Make a grid of numbers in rows and columns.
 
     sdata.number_grid([[1, 2, 3], [4, 5, 6]])            from rows of numbers (2 rows, 3 columns)
@@ -671,7 +673,28 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0, kind=None, 
         shifted_by=1 moves a diagonal one place up, -1 down.
     sdata.number_grid(from_formula="row * column", rows=3, columns=4)   each cell from a formula of its row and
         column, counting from 1 (NumPy fromfunction)
+    sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True)   an exact grid (SymPy Matrix): fractions stay
+                                                 fractions and a cell may be a formula with letters, up to 12 x 12
     """
+    if not isinstance(exactly, bool):
+        raise SimplydataError("exactly= should be True or False.")
+    if exactly:  # families for 100 %, batch 26 (plan section 2.10, approved by Manish 2026-11-28)
+        if rows is not None or columns is not None:
+            raise SimplydataError("exactly=True takes rows of cells, such as sdata.number_grid([[1, \"1/3\"], "
+                                  "[\"a\", 2]], exactly=True); leave out rows= and columns=.")
+        others = {"kind": kind, "from_formula": from_formula, "size": size, "first_column": first_column,
+                  "first_row": first_row, "last_row": last_row, "of": of, "survival": survival, "axis": axis,
+                  "by_degrees": by_degrees}
+        given_too = [name + "=" for name, value in others.items() if value is not None] + (
+            ["shifted_by="] if shifted_by else [])
+        if isinstance(filled_with, bool) or not (isinstance(filled_with, (int, float)) and filled_with == 0):
+            given_too.append("filled_with=")  # an exact grid is made from your cells only (review of numbers-int-2)
+        if given_too:
+            raise SimplydataError(f"exactly=True makes a grid from your rows of cells; leave out {', '.join(given_too)}"
+                                  " (for a special grid, use kind= without exactly=).")
+        from .._exact_grid import exact_grid
+
+        return exact_grid(values)
     if kind is not None or from_formula is not None:
         from .special_grids import grid_from_formula, say_kind, special_grid
 

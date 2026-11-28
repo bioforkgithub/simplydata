@@ -772,7 +772,7 @@ NUMBER_AUDIT_POINTERS = [
     ("sympy.integrate", "formula.find_area_formula()"), ("sp.diff", "formula.find_slope_formula()"),
     ("sympy.Matrix", "sdata.number_grid("), ("sympy.Matrix.det", "grid.find_determinant(exactly=True)"),
     ("sp.Matrix.LUsolve", "grid.solve_for([5, 10], exactly=True)"), ("sympy.dsolve", "exactly=True"),
-    ("sp.srepr", "formula.as_sympy()"),
+    ("sp.srepr", 'formula.show_as_code("sympy tree")'),  # batch 26 gives srepr a word
     # a name in capitals keeps them when a list has it (scipy.interpolate.CubicSpline was not found, as cubicspline)
     ("scipy.interpolate.CubicSpline", "table.find_values_at("), ("scipy.spatial.KDTree", "find_nearest_rows_to"),
     ("scipy.signal.TransferFunction", "sdata.system("), ("scipy.stats.logrank", "compare_survival"),
@@ -838,7 +838,11 @@ def test_other_name_parts_reads_numpy_scipy_and_sympy_names():
     assert other_name_parts("rng.integers(1, 7)") == ("random", "integers")
     assert other_name_parts("scipy.stats.norm.pdf") == ("stats", "pdf")
     assert other_name_parts("scipy.optimize.nnls") == ("scipy", "nnls")
-    assert other_name_parts("sp.Matrix([[1, 2]]).det") == ("sympy", "det")
+    # second review of numbers-int-2: a SymPy Matrix method has its own list (falling back on SymPy's)
+    assert other_name_parts("sp.Matrix([[1, 2]]).det") == ("matrix", "det")
+    assert other_name_parts("sympy.stats.Normal") == ("sympystats", "Normal")
+    assert other_name_parts("scipy.sparse.linalg.spsolve") == ("sparse", "spsolve")
+    assert other_name_parts("np.strings.add") == ("npstrings", "add")
 
 
 # Every call of numbers, a grid, a formula or a distribution written in a pointer runs (with the sdata words that make
@@ -919,11 +923,111 @@ def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
     ("np.greater_equal", "is_at_least=20", "is_above"), ("np.less_equal", "is_at_most=20", "is_above"),
     ("np.equal", "is_equal_to=20", "is_above"), ("np.not_equal", "is_not_equal_to=20", "is_above"),
     ("np.logical_xor", "np.logical_xor(", "is_above"),
-    ("sympy.factorint", "formula.as_sympy()", "turn_into_product"),
+    ("sympy.factorint", "numbers.find_prime_factors()", "turn_into_product"),  # batch 26 gives it a word
     ("sp.nsolve", "between=[0, 3]", "exactly=True"),
     ("np.random.sample", "keep_random_numbers(5", "numbers.count()"),
 ])
 def test_review_fixes_of_the_number_pointers(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out
+
+
+# review of numbers-int-2 (2026-11-28): each name points to the word that does the same job
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("np.concat", "add_numbers_from", "join_numbers_with"),  # concat keeps the order and the repeats
+    ("np.e", "exp(1)", "(E in a formula)"),  # E is a letter in formula text
+    ("pl.Expr.is_finite", "is_between=[-1e300, 1e300]", "is_below=1e300"),  # -inf is not finite
+    ("pl.Expr.nan_max", "find_biggest_of", "count_empty_cells_in"),
+    ("pl.Expr.nan_min", "find_smallest_of", "count_empty_cells_in"),
+    ("pl.Expr.over", "for_each_group_in=", "keep_columns"),
+    ("pl.DataFrame.clear", "as_polars()", "make_copy(), as in"),
+    ("pl.Expr.bitwise_count_ones", 'work_on_bits("count ones")', '"and"'),
+    ("pl.Expr.rolling_rank", "as_polars()", "add_rank_column(\"rank\", from_column"),
+    ("pl.Expr.rolling_skew", 'show="skewness"', "left to pandas"),
+    ("np.log2", "take_log(base=2)", "base=10"),
+    ("np.rint", "with_decimals=0", "with_decimals=2"),
+    ("pd.Series.size", "table.count_rows() is how many values", "for_each_group_in"),
+    ("sympy.deg", "change_angles_to", "geometry"),
+    ("np.c_", "add_numbers_from", "show_all_words"),
+    ("np.datetime64", "make_run_of_dates", "show_all_words"),
+    ("np.array2string", "numbers.show()", "show_all_words"),
+    ("sympy.preorder_traversal", "show_as_tree", "show_all_words"),
+])
+def test_review_fixes_of_the_final_pointers(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out
+
+
+def test_a_table_name_in_front_narrows_a_shared_word_to_the_table_word(capsys):
+    sdata.help("pl.DataFrame.show")
+    out = capsys.readouterr().out
+    assert out.startswith("table.show()") and "can mean more than one word" not in out, out[:300]
+
+
+# second review of numbers-int-2: the probed parts of NumPy, SciPy and SymPy (np.strings, np.ma, ndarray, Matrix,
+# sympy.stats, cluster.hierarchy, sparse) have their own lists, so a pandas or Polars name never gets their meaning
+_FOREIGN = ("Matrix", "np.ma", "np.strings", "ndarray", "sympy.stats", "hierarchy", "scipy.sparse", "sparse storage",
+            "as_sympy", "polynomial", "NumPy's memory")
+
+
+def _table_library_names():
+    import pandas as pd
+    import polars as pl
+
+    names = set()
+    for front, owner in (("pd", pd.DataFrame), ("pd", pd.Series), ("pl", pl.DataFrame), ("pl", pl.Series),
+                         ("pl", pl.Expr)):
+        names |= {f"{front}.{owner.__name__}.{n}" for n in dir(owner) if not n.startswith("_")}
+    names |= {f"{front}.{n}" for front, module in (("pd", pd), ("pl", pl)) for n in dir(module)
+              if not n.startswith("_")}
+    return sorted(names)
+
+
+def test_a_pandas_or_polars_name_never_gets_the_meaning_of_another_library():
+    bad = []
+    for typed in _table_library_names():
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            sdata.help(typed)
+        text = out.getvalue()
+        hits = [mark for mark in _FOREIGN if mark in text]
+        if hits:
+            bad.append(f"{typed}: {hits}")
+    assert not bad, bad[:20]
+
+
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("np.strings.add", "by_joining_text", "numbers.add"),
+    ("np.strings.multiply", "as_pandas()", "numbers.times"),
+    ("np.strings.less", "as_pandas", "is_below"),
+    ("np.less", "is_below=20", "is_above"),
+    ("np.ndarray.choose", "choose works", "show_all_words"),
+    ("sympy.Matrix.exp", "take_matrix_exp", "take_exp()"),
+    ("sympy.Matrix.solve", "grid.solve_for(", 'sdata.solve("'),
+    ("sympy.Matrix.ones", "filled_with=1", "show_all_words"),
+    ("sympy.stats.median", "find_median()", "find_median_of"),
+    ("sympy.stats.Weibull", 'distribution("weibull"', "show_all_words"),
+    ("sympy.stats.Wald", "as_sympy()", 'distribution("wald"'),
+    ("sympy.stats.covariance", "as_sympy()", "find_correlation_between"),
+    ("scipy.cluster.hierarchy.complete", 'linkage="complete"', "show_all_words"),
+    ("scipy.cluster.hierarchy.median", "as_numpy()", "find_median"),
+    ("scipy.sparse.kron", "kron works", "show_all_words"),
+    ("scipy.sparse.linalg.onenormest", 'kind="biggest column total"', "show_all_words"),
+    ("df.ewm(span=3).mean", "adjust=False", "show_all_words"),
+    ("df.ewm().adjust", "as_pandas()", "show_all_words"),
+    ("df.resample().bfill", '"value below"', '"value above"'),
+    ("np.ma.masked_where", "with_value=None", "with_value=100"),
+    ("np.ma.make_mask", "as_numpy()", "show_all_words"),
+    ("np.strings.ljust", "as_pandas()", "add_zeros_in_front_of"),
+    ("np.strings.rfind", "as_pandas()", "position_of"),
+    ("scipy.spatial.distance.sqeuclidean", "as_numpy()", "find_distances_between_rows"),
+    ("sympy.Matrix.left_eigenvects", "as_sympy", "find_eigenvalues"),
+    ("scipy.sparse.csgraph.connected_components", "as_numpy()", "find_each_patch_that"),
+    ("scipy.constants.c", "as_numpy()", "show_all_words"),
+])
+def test_second_review_fixes_of_the_probed_parts(typed, word, not_word, capsys):
     sdata.help(typed)
     out = capsys.readouterr().out
     assert word in out and not_word not in out, out

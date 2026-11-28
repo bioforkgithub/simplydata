@@ -5,6 +5,72 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: the proof of 100 %: the last help pointers, the final audit and the chapters (families for 100 %, batches 27-28)
+
+Approved by Manish 2026-11-28 (plan section 4, G21). 5,719 public names were typed into `sdata.help()`:
+pandas 3.1 (DataFrame, Series, groupby, `.str`, `.dt`, the top level and its classes, the rolling, expanding, ewm
+and resample objects), Polars 2.1 (DataFrame, Series, expressions, `.str`, `.dt`, `.list`, group_by, the top level
+and its classes), NumPy 2.5 (top level, `linalg`, `fft`, a Generator, `np.random`, array methods, `np.polynomial`,
+`np.ma`, `np.strings`), SciPy 1.18 (stats with qmc, optimize, integrate, interpolate, signal, linalg, special, fft,
+ndimage, spatial with distance and transform, sparse with sparse.linalg and csgraph, cluster, io, constants), SymPy
+1.14 (top level, Matrix methods, sympy.stats) and seaborn 0.13 (with seaborn.objects). 4,336 lead to a word or an
+option value, 1,016 to the hand-over with a one-line note, and 196 to the approved "leave" areas (SymPy sets, logic,
+geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in tables; `einsum`,
+`einsum_path` and `tensorinv`; `HalfspaceIntersection`). The other 171 are data types, classes, warnings and
+settings, which simplydata chooses by itself; no other name is left without an answer. Not checked name by name:
+NumPy's `char`, `rec`, `emath`, `lib` and `testing`, SciPy's `odr`, `datasets`, `differentiate` and `misc`, and
+SymPy's submodules other than `stats`.
+
+- Help pointers in bulk for the last names: pandas' and Polars' arithmetic and comparison methods (`sub`, `rmul`,
+  `eq`, `is_close`), bins, ranks and positions (`bin`, `arg_sort`, `search_sorted`), rolling and exponential
+  summaries (`ewm_std`, `rolling_skew`), readers and writers (`read_orc`, `write_delta`), options and memory layout;
+  NumPy's constants (`np.pi`, `np.inf`, `np.nan`), `vectorize` and `apply_along_axis`; NumPy Generator's
+  `rayleigh`, `zipf`, `logseries`, `noncentral_f` ...; SymPy's core classes and utilities (`Add`, `Mul`, `Dummy`,
+  `Lambda`, `Wild`, `prod`, `count_ops`, `flatten`, `sift`, `numbered_symbols`, `topological_sort`, `timed` ...)
+  and `gamma`, `digamma`, `beta`, `factorial2`, `E1`; seaborn.objects' `Mark`, `Stat`, `Move` and `Boolean`.
+- `sdata.help("pl.DataFrame.show")` explains the word when a library's name with `pd.` or `pl.` in front is a
+  simplydata word too, and an old name of a word (`pl.DataFrame.row`) gives the word.
+- The manual chapters "From NumPy and SciPy" and "From SymPy" teach the family words in their topics
+  (`take_function`, `polynomial`, `curve_through_points`, `find_best_pairing`, `take_matrix_function`,
+  `find_edges`, `take_transform`, `find_roots`, `find_fact`, `show_as_code`, `check_solution`, exact grids ...);
+  their lists of jobs left to the library now say which names have words. Each "From" chapter ends with a short
+  "How complete is simplydata?" paragraph with the counts of the audit.
+
+### Fixed: where the SymPy batches 22-26 meet batches 1-21
+
+- Review of numbers-int-2: `np.concat` points to the word that joins in order, `np.e` to `exp(1)`, Polars
+  `is_finite` keeps both bounds, `nan_max`/`nan_min` point to `find_biggest_of`/`find_smallest_of`, `over` to
+  `for_each_group_in=`, `bitwise_count_ones` to `work_on_bits("count ones")`, `rolling_skew` to
+  `show="skewness"`, `np.log2` to `take_log(base=2)`, `np.rint` to rounding to whole numbers and `pd.Series.size`
+  to the count of values; Polars-only jobs (exponentially weighted spread, folds, struct and JSON columns,
+  `clear`, `rolling_rank`) hand over to Polars; SymPy `deg` and `rad` point to `change_angles_to`.
+- `formula.find_value_at` gives 0 for a true 0 that SymPy's `subs` leaves unsimplified
+  (`sin(x)**2 + cos(x)**2 - 1` at 0.3), checked by SymPy `equals` under the time limit.
+- `sdata.number_grid(..., exactly=True)` refuses `filled_with=`.
+- `sdata.help("pl.DataFrame.show")` and `"pd.Series.size"` give the table's meaning when a pandas or Polars table
+  is in front; `df.rolling(3).mean`, `df.expanding().sum`, `df.ewm(span=3).mean` and `df.resample("M").sum` have
+  their own help namespaces.
+- validation/README.md names the 155 closed-form checks of the reliability study.
+- Second review of numbers-int-2: each probed part of a library (np.strings, np.ma, ndarray, sympy.Matrix,
+  sympy.stats, cluster.hierarchy, sparse) has its own help list, so `np.strings.add` joins text and a pandas name
+  never gets a SymPy or NumPy meaning; the jobs these parts leave to the library (SciPy constants, NumPy's bit
+  generators, `stats.qmc`, most of `sympy.stats`) say so and count as hand-overs; the SymPy distributions simplydata
+  has point to `sdata.distribution`; `df.ewm().mean` is `adjust=False`, `df.resample().bfill` takes the value
+  below, `onenormest` is `find_size(kind="biggest column total")`, and `find_value_at` gives the exact value when
+  SymPy shows that a tiny value is not 0.
+- The maths family's formula names (batches 7-9) and the SymPy names of batches 22-23 both work in formula text; no
+  name is in both tables.
+- `sdata.number_grid` keeps `kind=` and `from_formula=` and gains `exactly=True`; giving both says which to leave
+  out.
+- Help pointers that waited for words now name them: `jn_zeros` and the SymPy polynomial makers point to
+  `sdata.find_zeros_of` and `sdata.polynomial`; SymPy's `Identity`, `diag`, `BlockMatrix`, `Trace`, `banded` and
+  `randMatrix` point to `number_grid(kind=...)`, `grid.get_part("diagonal")` and `make_random_numbers(rows=,
+  columns=)`; `factorint` points to `numbers.find_prime_factors()` and `srepr` to `formula.show_as_code("sympy
+  tree")`.
+- Pointers of batches 24-26 that the pointer checks of batches 1-21 run: each call now runs (number facts on numbers
+  where they have an answer, `make_random_numbers(with_seed=)`), and the exact-grid hand-over goes through
+  `formula.as_sympy()`.
+
 ### Fixed: where the families for 100 % batches 1-21 meet
 
 - Every choice simplydata makes in batches 1-21 has its basis in "How simplydata chooses methods" (113 new entries,
@@ -174,6 +240,99 @@ manual and cases in the reliability study.
   (`expm_frechet`, `qr_update`, `matrix_balance` ...) point to the hand-over. Left to the library, as approved:
   `scipy.spatial.HalfspaceIntersection`.
 - The reliability study gains the dataset `state.center` (R datasets), read from R.
+### Added: calculus checks, series, transforms, code, number theory, ways and exact grids (families for 100 %, batches 24-26)
+
+Approved by Manish 2026-11-28 (plan section 2.10, G11, G13 and G15). Every answer comes from SymPy, under the one
+time limit; each word and value is tested against SymPy directly, with reliability cases against closed forms (the
+Laplace tables of Abramowitz and Stegun), the OEIS and R (pracma isprime and factors, base R choose and factorial).
+
+- New family word `formula.take_transform("laplace")`: the Laplace, Fourier, Mellin, sine, cosine and Hankel
+  transforms and their inverses (SymPy `laplace_transform` ... with `noconds=True`); `from_letter=`, `to_letter=`,
+  `order=` (Hankel) and `between=` (the strip of the inverse Mellin transform).
+- New word `formula.find_area_along_path(path="x = cos(t), y = sin(t)", between=[0, "2*pi"])`: the line integral
+  (SymPy `line_integrate`).
+- New family word `formula.check_if_always("rising", between=[0, 5])`: "rising", "falling", "strictly rising",
+  "strictly falling", "one way only" and "bending up" (SymPy `is_increasing` ... `is_convex`); None when SymPy cannot
+  tell, said plainly.
+- New words `formula.find_turning_points()` (SymPy `stationary_points`), `formula.find_where_undefined()`
+  (`singularities`) and `formula.find_period()` (`periodicity`).
+- New words `formula.find_fourier_series(between=["-pi", "pi"], how_many_terms=3)` (SymPy `fourier_series`),
+  `formula.find_residue_at(0)` (`residue`), `formula.list_terms(between=[1, 10])` (`sequence`),
+  `formula.find_hessian()` (`hessian`, as an exact grid) and `formula.find_wronskian(["exp(2*x)"])` (`wronskian`;
+  `whole_numbers_only=True` gives the Casoratian as a formula).
+- New family word `formula.show_as_code("r")`: C, C++, Fortran, GLSL, JavaScript, Julia, Maple, Mathematica,
+  MathML, Octave/MATLAB, Python, R, Rust, SMT-LIB, SymPy, text and SymPy's full form (SymPy's code printers), and
+  `formula.show_as_tree()` (`print_tree`; `as_graphviz=True`: `dotprint`).
+- New options: `find_taylor_series(all_terms=True)` (SymPy `fps`, every term), `find_limit_as(...,
+  whole_numbers_only=True)` (`limit_seq`), `find_slope_formula(step=1)` (a forward difference,
+  `differentiate_finite`; `difference_delta` for step 1) and `show_as_latex(left_side="y", over_lines=True)`
+  (`multiline_latex`).
+- New word `sdata.check_solution("dy/dx = y", "y = 3*exp(x)")`: SymPy `checksol`, `checkodesol` and `checkpdesol`.
+- New word `sdata.find_product_of_series("k/(k + 1)", between=[1, "n"])` (SymPy `product`).
+- `sdata.solve(..., exactly=True)` also solves in whole numbers (`whole_numbers_only=True`, SymPy `diophantine`
+  with every sign and order), sequences ("a(n + 2) = a(n + 1) + a(n)" with `at_start={0: 0, 1: 1}`, `rsolve`) and
+  partial differential equations ("du/dx + 2*du/dy = 0", `pdsolve`).
+- New words `sdata.list_ways_to_choose(2, out_of=[...])` (SymPy `subsets`; `with_repeats=True`; `one_from_each=`:
+  `cartes`) and `sdata.list_ways_to_order(2, out_of=[...])` (`variations`), up to 100,000 ways.
+- New words on numbers (G13): `numbers.check_if_prime()` (SymPy `isprime`), `numbers.find_prime_factors()`
+  (`factorint`; `show="different primes"`: `primefactors`; a fraction: `factorrat`) and the family
+  `numbers.find_number_fact("divisors")` for SymPy's other number theory (46 facts: divisors, perfect, next prime,
+  primorial, partitions, inverse modulo, discrete log, continued fractions, egyptian fractions ...). Numbers above
+  2**53 are refused; an answer above it is given exactly as text.
+- `sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True)`: an exact grid (SymPy Matrix) with fractions and letters,
+  with find_determinant, take_inverse, find_eigenvalues, find_null_space, solve_for, find_permanent,
+  make_columns_orthogonal and find_value_at; new grid words `grid.find_permanent()` (SymPy `per`) and
+  `grid.make_columns_orthogonal()` (`GramSchmidt`).
+- Help pointers for every SymPy name of these batches; matrix expressions, ODE classifiers and the like point to
+  the hand-over `formula.as_sympy()`.
+
+### Added: polynomial algebra, SymPy's simplifiers and SymPy's names in formulas (families for 100 %, batches 22-23)
+
+Approved by Manish 2026-11-28 (plan section 2.10, G11 and G14). Every answer comes from SymPy, under the one time
+limit; each word and value is tested against SymPy directly, with reliability cases against closed forms, the OEIS
+and R (polyroot, pracma deconv).
+
+- New word `formula.find_roots()`: the roots of a polynomial in one letter, exactly, one row each with how many
+  times it repeats (SymPy `all_roots`; a root without a formula in roots is SymPy's `CRootOf`). `real_only=True`
+  (`real_roots`), `fractions_only=True` (`ground_roots`), `between=[0, 3]`, `exactly=False` (`nroots`, decimals),
+  `show="count"` (`count_roots`) and `show="intervals"` with `within=0.001` (`intervals`).
+- New word `formula.find_degree()`: the highest power (SymPy `degree`); the total degree for several letters
+  (`total_degree`); `for_letter=["x", "y"]` for each (`degree_list`).
+- New word `formula.divide_by("x - 1")`: the quotient and the remainder (SymPy `div`); `show="quotient"` or
+  `"remainder"` (`quo`, `rem`), `without_fractions=True` (pseudo-division: `pdiv`, `pquo`, `prem`) and
+  `with_no_remainder=True` (`exquo`, `pexquo`).
+- New words `formula.find_common_factor_with("x**2 - 1")` (SymPy `gcd`, `gcd_list`; `show="common factor and the
+  rest"`, `"combination"`, `"half combination"`: `cofactors`, `gcdex`, `half_gcdex`) and
+  `formula.find_common_multiple_with(...)` (`lcm`, `lcm_list`).
+- New words `formula.turn_into_one_fraction()` (SymPy `together`, undo-able), `formula.split_into_top_and_bottom()`
+  (`fraction`) and `formula.find_repeated_parts()` (`cse`).
+- New family word `formula.find_fact("discriminant")` for the rarer facts of a polynomial: `"resultant"`,
+  `"subresultants"`, `"groebner basis"`, `"minimal polynomial"`, `"galois group"`, `"sturm sequence"`,
+  `"viete formulas"`, `"leading coefficient"`, `"leading term"`, `"symmetric form"`, `"number factor"`,
+  `"without number factor"`, `"factors"`, `"repeated factors"`, `"square-free part"`, `"factorial factors"`,
+  `"divided by leading coefficient"`, `"parts it is made of"`, `"put into"`, `"inverse modulo"`,
+  `"coefficients modulo"`, `"powers of roots"`, `"term ratio"`, `"remainder by several"` and `"coefficients"`;
+  SymPy's names work too (`"LC"`, `"groebner"`, `"sqf_list"`).
+- `by=` on `formula.make_simpler()` ("trig functions", "exponentials and trig", "trig rules", "powers", "powers of
+  powers", "logs", "fractions", "common factors", "roots in the bottom", "nested roots", "gamma functions",
+  "factorials", "bessel functions", "hypergeometric functions", "kronecker deltas", "signs", "letters apart",
+  "conditions", "decimals as fractions": SymPy `trigsimp`, `exptrigsimp`, `fu`, `powsimp`, `powdenest`,
+  `logcombine` ...), `formula.turn_into_sum()` ("logs", "trig functions", "powers", "power of a product",
+  "products", "powers of sums", "real and imaginary parts", "special functions": `expand_log`, `expand_trig` ...)
+  and `formula.turn_into_product()` ("common factors", "common factors over one fraction", "common power of
+  letters", "repeated factors", "nested": `factor_terms`, `gcd_terms`, `terms_gcd`, `sqf`, `horner`). SymPy's own
+  defaults are kept (a log is split only where the letters allow it).
+- SymPy's own functions by their SymPy names in the text of `sdata.formula`: `cot`, `sec`, `csc` and the other
+  angle and hyperbolic functions, `floor`, `ceiling`, `frac`, `sign`, `Max`, `Min`, `re`, `im`, `arg`,
+  `conjugate`, `Mod`, `Rem`, `ln`, the counting functions (`factorial`, `ff`, `rf`, `fibonacci`, `lucas`, `bell`,
+  `catalan`, `harmonic`, `partition`, `subfactorial`, `totient`, `primepi` ...; the number inside at most 1000, as
+  for gamma), more special functions (`trigamma`, `lerchphi`, `li`, `hankel1`, `mathieuc`, `appellf1`, `hyper`,
+  `meijerg`, `Ynm` ...), `DiracDelta`, `KroneckerDelta`, `LeviCivita`, `SingularityFunction`,
+  `Piecewise((x, x > 0), (0, True))`, and the constants `Catalan`, `EulerGamma`, `GoldenRatio` and
+  `TribonacciConstant`. Without brackets the names stay letters.
+- `sdata.help("sympy.real_roots")`, `"sp.gcdex"`, `"sympy.powsimp"`, `"sympy.fibonacci"` and every SymPy name of
+  these batches point to the word and the value; SymPy's sets, logic, geometry, tensors, number transforms and its
+  polynomial machinery (domains, rings, orders, errors) point to the hand-over `formula.as_sympy()` (G11).
 
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 

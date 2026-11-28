@@ -1007,7 +1007,8 @@ _NUMBERS = [
     ("numbers.turn_into_chances()", "expit sigmoid plogis logsig logistic"),
     ("numbers.count_each()", "value_counts tabulate"),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): words on numbers, grids and blocks alike
-    ("numbers.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater less logical"),
+    ("numbers.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater logical"),
+    ("numbers.turn_into_yes_or_no(is_below=20)", "less"),  # second review of numbers-int-2: less is below
     ("numbers.keep_numbers_where(yes_no)", "compress extract"),
     ('numbers.replace_numbers_where(yes_no, with_value="empty")', "ifelse"),
     ("numbers.count_numbers_that(is_above=25)", "count_nonzero nnz"),
@@ -1313,12 +1314,14 @@ _NUMPY = [
     ("numbers.take_square_root()", "sqrt"),
     ("numbers.take_absolute_value()", "abs absolute fabs"),
     ("numbers.take_exp()", "exp"),
-    ('numbers.take_log() for the natural log, or numbers.take_log(base=10)', "log log10 log2"),
+    ('numbers.take_log() for the natural log, or numbers.take_log(base=10)', "log log10"),
+    ("numbers.take_log(base=2)", "log2"),
     ("numbers.raise_to_power(2)", "power pow float_power square"),
     ("numbers.times(3)", "multiply"),
     ("numbers.times(-1)", "negative"),
     ("numbers.divide_by(2)", "divide true_divide"),
-    ("numbers.round_to(with_decimals=2)", "round around rint"),
+    ("numbers.round_to(with_decimals=2)", "round around"),
+    ("numbers.round_to(with_decimals=0) rounds to whole numbers", "rint"),
     ("numbers.reverse() for numbers, or block.reverse(over=\"row\") for a block", "flip"),
     ("numbers.remove_duplicate_numbers()", "unique unique_values"),
     ("numbers.count_each()", "unique_counts bincount"),
@@ -2296,8 +2299,8 @@ _SYMPY = [
     ('sdata.formula("x**3 - 2*x"), then formula.find_area_formula()', "integrate Integral"),
     ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], exactly=True)', "quad"),
     ('sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2)', "subs evalf N lambdify"),
-    ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify nsimplify trigsimp radsimp cancel"),
-    ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand expand_trig"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify"),
+    ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand"),
     ('sdata.formula("x**2 - 4"), then formula.turn_into_product()', "factor"),
     ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()', "apart"),
     ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "collect"),
@@ -2317,8 +2320,8 @@ _SYMPY = [
     ("grid.solve_for([5, 10], exactly=True), on a grid of 2 rows", "LUsolve solve_least_squares"),
     ("numbers.show_as_fraction()", "Rational"),
     ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"})', "assumptions refine Q"),
-    ("formula.as_sympy() hands the formula to SymPy, where the SymPy call works (factorint finds the prime factors "
-     "of a whole number)", "srepr factorint"),
+    ("numbers.find_prime_factors() (on numbers = sdata.number_list([12, 35]))", "factorint"),
+    ('sdata.formula("x**2 + 1"), then formula.show_as_code("sympy tree")', "srepr"),
     # families for 100 %, batches 11 and 13 (approved by Manish 2026-11-28, plan section 2.4)
     ('sdata.polynomial("legendre", degree=3)', "legendre_poly legendre"),
     ('sdata.polynomial("chebyshev", degree=3)', "chebyshevt_poly chebyshevt"),
@@ -2335,7 +2338,8 @@ _SYMPY = [
     ('sdata.polynomial("through points", x=[0, 1, 2], y=[1, 3, 7])', "interpolating_poly"),
     ('sdata.polynomial("bernoulli", degree=3)', "bernoulli"),
     ('sdata.polynomial("euler", degree=3)', "euler"),
-    ('sdata.polynomial("from numbers", numbers=[1, 0, -2]): a polynomial as a formula', "Poly PurePoly poly"),
+    ('sdata.polynomial("from numbers", numbers=[1, 0, -2]): a polynomial as a formula; on a formula, '
+     'formula.find_fact("coefficients") gives its coefficients', "Poly PurePoly poly"),
     ('sdata.polynomial("from numbers", numbers=sdata.make_random_numbers(how_many=4, between=[-5, 5], '
      "whole_numbers=True, with_seed=1))", "random_poly"),
     ('sdata.number_grid(kind="rotation", axis="x", by_degrees=30) (a counterclockwise turn; axis="y", "z" for '
@@ -2345,6 +2349,418 @@ _SYMPY = [
     ('sdata.number_grid(kind="identity", size=3)', "eye"),
     ('sdata.number_grid([1, 2, 3], kind="diagonal")', "diag"),
 ]
+
+
+# families for 100 %, batches 22-23 (plan section 2.10, approved by Manish 2026-11-28, G11 and G14): SymPy's
+# polynomial algebra, simplifiers and expand steps, each to the formula word and option value that runs it; SymPy's
+# names in formula text (made from _formula_names.py); and the SymPy areas left to SymPy (sets, logic, geometry,
+# tensors, number transforms), which point to the hand-over.
+_HAND_OVER = "formula.as_sympy() hands the formula to SymPy, where SymPy's"
+_SYMPY_POLYNOMIALS = [
+    ('sdata.formula("x**3 - 2*x**2 - x + 2"), then formula.find_roots(): every root exactly, with how many times it '
+     "repeats (SymPy's CRootOf for a root without a formula in roots)",
+     "all_roots rootof RootOf CRootOf ComplexRootOf"),
+    ('sdata.formula("x**5 - x + 1"), then formula.find_roots(real_only=True)', "real_roots"),
+    ('sdata.formula("2*x**3 - 3*x**2 - 2*x + 3"), then formula.find_roots(fractions_only=True)', "ground_roots"),
+    ('sdata.formula("x**3 - 2"), then formula.find_roots(exactly=False) (decimals)', "nroots"),
+    ('sdata.formula("x**3 - 2*x**2 - x + 2"), then formula.find_roots(show="count") (between=[0, 3] for a range)',
+     "count_roots"),
+    ('sdata.formula("x**2 - 2"), then formula.find_roots(show="intervals", within=0.001)',
+     "intervals isolate refine_root"),
+    ('sdata.formula("x**3*y + x*y**2 + 1"), then formula.find_degree() (the total degree with several letters)',
+     "degree total_degree"),
+    ('sdata.formula("x**3*y + x*y**2 + 1"), then formula.find_degree(for_letter=["x", "y"])', "degree_list"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1")', "div"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1", show="quotient")', "quo"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("x - 1", show="remainder")', "rem"),
+    ('sdata.formula("x**3 - 2*x + 5"), then formula.divide_by("2*x - 1", without_fractions=True) (show= for one '
+     "part)", "pdiv pquo prem"),
+    ('sdata.formula("x**3 - 1"), then formula.divide_by("x - 1", with_no_remainder=True)', "exquo pexquo"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with("x**2 - 1")', "gcd"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with(["x**2 - 1", "x**3 + 1"])', "gcd_list"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_factor_with("x**2 - 1", show="common factor and the '
+     'rest")', "cofactors"),
+    ('sdata.formula("x**2 - 1"), then formula.find_common_factor_with("x**2 + 3*x + 2", show="combination")',
+     "gcdex"),
+    ('sdata.formula("x**2 - 1"), then formula.find_common_factor_with("x**2 + 3*x + 2", show="half combination")',
+     "half_gcdex"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.find_common_multiple_with("x**2 - 1") (a list for several)',
+     "lcm lcm_list"),
+    ('sdata.formula("1/x + 1/(x + 1)"), then formula.turn_into_one_fraction()', "together"),
+    ('sdata.formula("(x + 1)/(x - 2)"), then top, bottom = formula.split_into_top_and_bottom()',
+     "fraction numer denom"),
+    ('sdata.formula("(x + 1)**2 + sin(x + 1)"), then formula.find_repeated_parts()', "cse"),
+    ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()',
+     "apart_list assemble_partfrac_list"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("discriminant")', "discriminant"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("resultant", other="x - 1")', "resultant"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("subresultants", other="x - 1")', "subresultants"),
+    ('sdata.formula("x**2*y - 1"), then formula.find_fact("groebner basis", other=["x*y - 1"])',
+     "groebner GroebnerBasis"),
+    ('sdata.formula("sqrt(2) + sqrt(3)"), then formula.find_fact("minimal polynomial")', "minimal_polynomial minpoly"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("galois group")', "galois_group"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("sturm sequence")', "sturm"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("viete formulas")', "viete"),
+    ('sdata.formula("3*x**2 - 3*x + 1"), then formula.find_fact("leading coefficient")', "LC"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("leading term")', "LT"),
+    ('sdata.formula("x**2 + y**2"), then formula.find_fact("symmetric form")', "symmetrize"),
+    ('sdata.formula("6*x**2 + 4"), then formula.find_fact("number factor")', "content"),
+    ('sdata.formula("6*x**2 + 4"), then formula.find_fact("without number factor")', "primitive"),
+    ('sdata.formula("2*x**2 - 2"), then formula.find_fact("factors")', "factor_list"),
+    ('sdata.formula("(x - 1)**2*(x + 1)"), then formula.find_fact("repeated factors")', "sqf_list"),
+    ('sdata.formula("x**4 - 1"), then formula.find_fact("square-free part")', "sqf_part"),
+    ('sdata.formula("x**3 - x"), then formula.find_fact("factorial factors") (SymPy gff itself is not written for '
+     "letters)", "gff_list gff"),
+    ('sdata.formula("2*x**2 + 4"), then formula.find_fact("divided by leading coefficient")', "monic"),
+    ('sdata.formula("x**4 + 2*x**2 + 1"), then formula.find_fact("parts it is made of")', "decompose"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("put into", other="x + 1")', "compose"),
+    ('sdata.formula("x"), then formula.find_fact("inverse modulo", other="x**2 + 1")', "invert"),
+    ('sdata.formula("5*x + 7"), then formula.find_fact("coefficients modulo", other=3)', "trunc"),
+    ('sdata.formula("x**2 - 3*x + 1"), then formula.find_fact("powers of roots", power=2)', "nth_power_roots_poly"),
+    ('sdata.formula("factorial(k)"), then formula.find_fact("term ratio")', "hypersimp"),
+    ('sdata.formula("x**2 + 1"), then formula.find_fact("remainder by several", other=["x - 1"])', "reduced"),
+    ('sdata.formula("x**2 - 3*x + 1") is the polynomial itself; formula.find_fact("coefficients") gives its '
+     "coefficients", "poly_from_expr"),
+    # make_simpler(by=), turn_into_sum(by=), turn_into_product(by=)
+    ('sdata.formula("sin(x)**2 + cos(x)**2"), then formula.make_simpler(by="trig functions")', "trigsimp"),
+    ('sdata.formula("exp(x) + exp(-x)"), then formula.make_simpler(by="exponentials and trig")', "exptrigsimp"),
+    ('sdata.formula("sin(x)**4 - cos(x)**4"), then formula.make_simpler(by="trig rules")', "fu FU"),
+    ('sdata.formula("x**a * x**b"), then formula.make_simpler(by="powers")', "powsimp"),
+    ('sdata.formula("(x**a)**b"), then formula.make_simpler(by="powers of powers")', "powdenest"),
+    ('sdata.formula("log(x) + log(y)", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.make_simpler(by="logs")', "logcombine"),
+    ('sdata.formula("(x**2 - 1)/(x - 1) + 1/x"), then formula.make_simpler(by="fractions")', "ratsimp"),
+    ('sdata.formula("(x**2 - 1)/(x - 1)"), then formula.make_simpler(by="common factors")', "cancel"),
+    ('sdata.formula("1/(1 + sqrt(2))"), then formula.make_simpler(by="roots in the bottom")', "radsimp"),
+    ('sdata.formula("sqrt(5 + 2*sqrt(6))"), then formula.make_simpler(by="nested roots")', "sqrtdenest"),
+    ('sdata.formula("gamma(x + 1)/gamma(x)"), then formula.make_simpler(by="gamma functions")', "gammasimp"),
+    ('sdata.formula("factorial(n + 1)/factorial(n)"), then formula.make_simpler(by="factorials")', "combsimp"),
+    ('sdata.formula("besselJ(x, 1) + besselJ(x, 3)"), then formula.make_simpler(by="bessel functions")',
+     "besselsimp"),
+    ('sdata.formula("hyper((1, 1), (2,), x)"), then formula.make_simpler(by="hypergeometric functions")',
+     "hyperexpand"),
+    ('sdata.formula("KroneckerDelta(a, b)**2"), then formula.make_simpler(by="kronecker deltas")', "kroneckersimp"),
+    ('sdata.formula("-(x - 1)"), then formula.make_simpler(by="signs")', "signsimp"),
+    (_HAND_OVER + " collect_const works (SymPy writes its answer unevaluated, so simplydata leaves it to SymPy; "
+     'formula.group_by_powers_of("x") gathers terms by a letter)', "collect_const"),
+    ('sdata.formula("x*y + x"), then formula.make_simpler(by="letters apart")', "separatevars"),
+    ('sdata.formula("Piecewise((x, x > 0), (0, True)) + 1"), then formula.make_simpler(by="conditions")',
+     "piecewise_fold"),
+    (_HAND_OVER + " piecewise_exclusive works (it rewrites the conditions of a Piecewise so they never overlap)",
+     "piecewise_exclusive"),
+    ('sdata.formula("0.5*x + 0.25"), then formula.make_simpler(by="decimals as fractions")', "nsimplify"),
+    ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "rcollect"),
+    ('sdata.formula("sqrt(x**2)", letters_are={"x": "positive"}) says what a letter is', "posify"),
+    ('sdata.formula("log(x*y)", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.turn_into_sum(by="logs")', "expand_log"),
+    ('sdata.formula("sin(a + b)"), then formula.turn_into_sum(by="trig functions")', "expand_trig"),
+    ('sdata.formula("x**(a + b)"), then formula.turn_into_sum(by="powers")', "expand_power_exp"),
+    ('sdata.formula("(x*y)**a", letters_are={"x": "positive", "y": "positive"}), then '
+     'formula.turn_into_sum(by="power of a product")', "expand_power_base"),
+    ('sdata.formula("x*(y + 1)*(x + 1)"), then formula.turn_into_sum(by="products")', "expand_mul"),
+    ('sdata.formula("(x + y)**3"), then formula.turn_into_sum(by="powers of sums")', "expand_multinomial"),
+    ('sdata.formula("exp(x)"), then formula.turn_into_sum(by="real and imaginary parts")', "expand_complex"),
+    ('sdata.formula("gamma(x + 1)"), then formula.turn_into_sum(by="special functions")', "expand_func"),
+    ('sdata.formula("2*x + 4*x*y"), then formula.turn_into_product(by="common factors")', "factor_terms"),
+    ('sdata.formula("x/2 + x**2/4"), then formula.turn_into_product(by="common factors over one fraction")',
+     "gcd_terms"),
+    ('sdata.formula("x**3 + x**2"), then formula.turn_into_product(by="common power of letters")', "terms_gcd"),
+    ('sdata.formula("x**3 - x**2 - x + 1"), then formula.turn_into_product(by="repeated factors")', "sqf"),
+    ('sdata.formula("x**3 + 2*x + 1"), then formula.turn_into_product(by="nested") (Horner form)', "horner"),
+    # SymPy's own names that formula text writes another way
+    ('sdata.formula("x**(1/3)"): the cbrt of SymPy is the principal cube root x**(1/3); numbers.take_cube_root() gives '
+     "the real cube root of numbers, also below 0", "cbrt"),
+    ("numbers.take_cube_root() gives the real cube root of numbers, also below 0; other real roots: " + _HAND_OVER
+     + " real_root works", "real_root"),
+    ('sdata.formula("x"): a formula of a letter is the letter itself (the Id of SymPy is the identity function)', "Id"),
+    ("sdata.number_grid([[1, 2], [3, 4]]), then grid.swap_rows_and_columns(); for formulas of matrices, "
+     + _HAND_OVER + " transpose and adjoint work", "transpose adjoint"),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="smooth curve"), on a table; '
+     "spline formulas themselves: " + _HAND_OVER + " bspline_basis works",
+     "bspline_basis bspline_basis_set interpolating_spline"),
+    # the polynomial makers (legendre_poly, chebyshevt_poly ...) point to sdata.polynomial in the list above, and
+    # formula text writes legendre(3, x) with the maths family (_maths_functions.py)
+    ('sdata.find_zeros_of("bessel J", how_many=5) gives the zeros of the ordinary Bessel functions; for the zeros of '
+     "the spherical ones, " + _HAND_OVER + " jn_zeros works", "jn_zeros"),
+    ('sdata.polynomial("jacobi", degree=3, alpha=1, beta=2) gives the Jacobi polynomial; the normalized one: '
+     + _HAND_OVER + " jacobi_normalized works", "jacobi_normalized"),
+    ('sdata.polynomial("symmetric", degree=2, letters=["x", "y", "z"]) makes one kind of polynomial in several '
+     "letters; the list of all monomials up to a degree: " + _HAND_OVER + " itermonomials works", "itermonomials"),
+    ('sdata.polynomial("through points", x=[0, 1, 2], y=[1, 3, 7]) gives the polynomial through points; a fraction '
+     "of two polynomials through points: " + _HAND_OVER + " rational_interpolate works", "rational_interpolate"),
+    (_HAND_OVER + " carmichael works (SymPy's old class for Carmichael numbers; its is_carmichael tests a number)",
+     "carmichael"),
+    (_HAND_OVER + " Riemann-surface tools work (simplydata keeps formulas on the ordinary complex numbers)",
+     "exp_polar periodic_argument polar_lift polarify principal_branch unbranched_argument unpolarify"),
+    (_HAND_OVER + " polynomial machinery works (domains, rings, fields, monomial orders and their errors): "
+     "simplydata's polynomial words choose them by themselves",
+     "AlgebraicField CC ComplexField Domain EX EXRAW ExpressionDomain FF FF_gmpy FF_python FiniteField FractionField "
+     "GF GMPYFiniteField GMPYIntegerRing GMPYRationalField IntegerRing PolynomialRing PythonFiniteField "
+     "PythonIntegerRing QQ QQ_I QQ_gmpy QQ_python RR RationalField RealField ZZ ZZ_I ZZ_gmpy ZZ_python Monomial "
+     "Options construct_domain field ring sfield sring vfield vring xfield xring grevlex grlex igrevlex igrlex ilex "
+     "lex "
+     "parallel_poly_from_expr RootSum is_zero_dimensional sqf_norm field_isomorphism prime_decomp prime_valuation "
+     "primitive_element to_number_field round_two hypersimilar ratsimpmodprime EPath epath CoercionFailed "
+     "ComputationFailed EvaluationFailed ExactQuotientFailed ExtraneousFactors GeneratorsNeeded HeuristicGCDFailed "
+     "HomomorphismFailed IsomorphismFailed NotAlgebraic NotInvertible NotReversible OperationNotSupported "
+     "PolificationFailed PolynomialDivisionFailed RefinementFailed UnificationFailed"),
+    # G11 (approved by Manish 2026-11-28): areas left to SymPy
+    (_HAND_OVER + " sets work (simplydata leaves sets to SymPy; sdata.solve(..., exactly=True) writes the answers "
+     "of rules as ranges)",
+     "Complement ComplexRegion Complexes ConditionSet Contains DisjointUnion EmptySet FiniteSet ImageSet Integers "
+     "Intersection Interval Naturals Naturals0 OmegaPower Ordinal PowerSet ProductSet Range Rationals Reals Set "
+     "SymmetricDifference Union UniversalSet imageset ord0"),
+    (_HAND_OVER + " logic works (simplydata leaves logic formulas to SymPy; numbers.turn_into_yes_or_no(...) makes "
+     "yes or no values of numbers)",
+     "And Equivalent ITE Implies Nand Nor Not Or POSform SOPform Xor bool_map false satisfiable simplify_logic "
+     "to_cnf to_dnf to_nnf true"),
+    (_HAND_OVER + " geometry works (simplydata leaves points, lines and shapes to SymPy; "
+     'table.find_fence_around(x="east", y="north") finds the fence around points of a table)',
+     "Circle Curve Ellipse Line Line2D Line3D Parabola Plane Point Point2D Point3D Polygon Ray Ray2D Ray3D "
+     "RegularPolygon Segment Segment2D Segment3D Triangle are_similar centroid closest_points convex_hull "
+     "farthest_points intersection"),
+    (_HAND_OVER + " tensors and indexed arrays work (simplydata leaves them to SymPy; sdata.number_block(...) holds "
+     "numbers in three directions)",
+     "DenseNDimArray Idx ImmutableDenseNDimArray ImmutableSparseNDimArray Indexed IndexedBase MutableDenseNDimArray "
+     "MutableSparseNDimArray NDimArray SparseNDimArray derive_by_array get_contraction_structure get_indices "
+     "permutedims tensorcontraction tensordiagonal tensorproduct shape"),
+    (_HAND_OVER + " number transforms and quaternions work (simplydata leaves them to SymPy; "
+     "numbers.take_fourier_transform() is the Fourier transform of numbers)",
+     "Quaternion fft ntt intt fwht ifwht mobius_transform inverse_mobius_transform covering_product "
+     "intersecting_product"),
+    ("numbers.convolve_with([1, 2, 1])", "convolution"),
+]
+
+
+def _sympy_formula_names() -> list:
+    from ._formula_names import pointer_groups
+
+    return pointer_groups()
+
+
+# families for 100 %, batches 24-26 (plan section 2.10, approved by Manish 2026-11-28, G11, G13 and G15): SymPy's
+# calculus checks, series, solvers, transforms, printers, number theory, ways and matrices, each to the simplydata
+# word and option that runs it; the matrix expressions and other machinery point to the hand-over.
+_GRID_HAND_OVER = ("formula.as_sympy() hands the formula to SymPy (and as_sympy on an exact grid, "
+                   "sdata.number_grid(..., exactly=True), hands its SymPy Matrix), where SymPy's")
+_SYMPY_CALCULUS = [
+    # transforms (F40)
+    ('sdata.formula("exp(-2*t)"), then formula.take_transform("laplace")', "laplace_transform LaplaceTransform"),
+    ('sdata.formula("1/(s + 2)"), then formula.take_transform("inverse laplace")',
+     "inverse_laplace_transform InverseLaplaceTransform"),
+    ('sdata.formula("exp(-x**2)"), then formula.take_transform("fourier")', "fourier_transform FourierTransform"),
+    ('sdata.formula("exp(-k**2)"), then formula.take_transform("inverse fourier")',
+     "inverse_fourier_transform InverseFourierTransform"),
+    ('sdata.formula("exp(-x)"), then formula.take_transform("mellin")', "mellin_transform MellinTransform"),
+    ('sdata.formula("gamma(s)"), then formula.take_transform("inverse mellin", between=[0, "infinity"])',
+     "inverse_mellin_transform InverseMellinTransform"),
+    ('sdata.formula("exp(-x)"), then formula.take_transform("sine")', "sine_transform SineTransform"),
+    ('sdata.formula("exp(-k)"), then formula.take_transform("inverse sine")',
+     "inverse_sine_transform InverseSineTransform"),
+    ('sdata.formula("exp(-x)"), then formula.take_transform("cosine")', "cosine_transform CosineTransform"),
+    ('sdata.formula("exp(-k)"), then formula.take_transform("inverse cosine")',
+     "inverse_cosine_transform InverseCosineTransform"),
+    ('sdata.formula("exp(-r)"), then formula.take_transform("hankel", order=0)', "hankel_transform HankelTransform"),
+    ('sdata.formula("exp(-k)"), then formula.take_transform("inverse hankel", order=0)',
+     "inverse_hankel_transform InverseHankelTransform"),
+    ('sdata.find_path_over_time("d2y/dt2 = -y", at_start={"y": 1, "dy/dt": 0}, between=[0, 10], exactly=True) '
+     "solves the equation with its starting values (SymPy dsolve); formula.take_transform(\"laplace\") gives each "
+     "transform", "laplace_correspondence laplace_initial_conds"),
+    ('sdata.formula("x**2 + y**2"), then formula.find_area_along_path(path="x = cos(t), y = sin(t)", '
+     'between=[0, "2*pi"])', "line_integrate"),
+    (_HAND_OVER + " singularityintegrate works (simplydata's formulas have no singularity functions; "
+     "formula.find_area_formula() integrates the others)", "singularityintegrate"),
+    # calculus checks (F45)
+    ('sdata.formula("x**3"), then formula.check_if_always("rising", between=[-1, 1])', "is_increasing"),
+    ('sdata.formula("-x**3"), then formula.check_if_always("falling")', "is_decreasing"),
+    ('sdata.formula("exp(x)"), then formula.check_if_always("strictly rising")', "is_strictly_increasing"),
+    ('sdata.formula("exp(-x)"), then formula.check_if_always("strictly falling")', "is_strictly_decreasing"),
+    ('sdata.formula("x**3 + x"), then formula.check_if_always("one way only")', "is_monotonic"),
+    ('sdata.formula("x**2"), then formula.check_if_always("bending up")', "is_convex"),
+    ('sdata.formula("x**3 - 3*x"), then formula.find_turning_points()', "stationary_points"),
+    ('sdata.formula("1/(x**2 - 1)"), then formula.find_where_undefined()', "singularities"),
+    ('sdata.formula("sin(2*x)"), then formula.find_period()', "periodicity"),
+    ('sdata.formula("x**2"), then formula.find_slope_formula(step="h") (a forward difference)',
+     "differentiate_finite"),
+    ('sdata.formula("n**2"), then formula.find_slope_formula(step=1): the step between neighbouring terms',
+     "difference_delta"),
+    (_HAND_OVER + " finite_diff_weights and apply_finite_diff work (the weights of finite-difference formulas)",
+     "finite_diff_weights apply_finite_diff"),
+    (_HAND_OVER + " euler_equations works (the Euler-Lagrange equations of a Lagrangian; "
+     "formula.find_slope_formula() takes each slope)", "euler_equations"),
+    ('formula.find_limit_as("x", goes_to=...) says when the formula keeps swinging and has no limit, as '
+     "sdata.formula(\"sin(1/x)\") does at 0 (SymPy's AccumBounds)", "AccumBounds"),
+    (_HAND_OVER + " not_empty_in works (sdata.solve(\"...\", exactly=True) with rules gives where a formula is "
+     "defined and true)", "not_empty_in"),
+    # series (F37)
+    ('sdata.formula("x"), then formula.find_fourier_series(between=["-pi", "pi"])', "fourier_series"),
+    ('sdata.formula("exp(x)/x**3"), then formula.find_residue_at(0)', "residue"),
+    ('sdata.formula("n**2"), then formula.list_terms(between=[1, 10])',
+     "sequence SeqFormula SeqPer SeqAdd SeqMul EmptySequence"),
+    ('sdata.find_product_of_series("k/(k + 1)", between=[1, "n"])', "product Product"),
+    ('sdata.formula("exp(x)"), then formula.find_taylor_series(all_terms=True)', "fps"),
+    ('sdata.formula("(-1)**n/n"), then formula.find_limit_as("n", goes_to="infinity", whole_numbers_only=True)',
+     "limit_seq"),
+    ('sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to="infinity") (SymPy limit uses the '
+     "Gruntz algorithm)", "gruntz"),
+    ('sdata.formula("sin(x)"), then formula.find_taylor_series(around=0, up_to_power=4) leaves out the rest, '
+     "which SymPy writes O(x**5)", "O Order"),
+    (_HAND_OVER + " approximants works (rational approximants of a list of numbers; "
+     "formula.find_taylor_series() gives a series)", "approximants"),
+    # solving (F39)
+    ('sdata.check_solution("x**2 = 4", "x = 2")', "checksol"),
+    ('sdata.check_solution("dy/dx = y", "y = 3*exp(x)")', "checkodesol"),
+    ('sdata.check_solution("du/dx + du/dy = 0", "u = (x - y)**2")', "checkpdesol"),
+    ('sdata.solve("x**2 + y**2 = 25", exactly=True, whole_numbers_only=True)', "diophantine"),
+    ('sdata.solve("a(n + 2) = a(n + 1) + a(n)", exactly=True, at_start={0: 0, 1: 1})',
+     "rsolve rsolve_hyper rsolve_poly rsolve_ratio"),
+    ('sdata.solve("du/dx + 2*du/dy = 0", exactly=True)', "pdsolve"),
+    ('sdata.solve(["x + y = 3", "x - y = 1"], exactly=True) (SymPy solve chooses its own method)',
+     "solve_linear solve_linear_system solve_linear_system_LU solve_poly_system solve_triangulated "
+     "solve_undetermined_coeffs substitution factor_system linear_eq_to_matrix"),
+    ('sdata.solve("abs(x - 1) < 2", exactly=True) (rules give ranges, SymPy solveset and reduce_inequalities)',
+     "reduce_abs_inequalities reduce_abs_inequality solve_rational_inequalities"),
+    ("grid.find_determinant(exactly=True) and grid.take_inverse(exactly=True)", "det_quick inv_quick"),
+    (_HAND_OVER + " ODE and PDE tools work (classify_ode lists the methods dsolve could use; "
+     "sdata.find_path_over_time(..., exactly=True) and sdata.solve(..., exactly=True) choose one by themselves)",
+     "classify_ode classify_pde ode_order homogeneous_order pde_separate pde_separate_add pde_separate_mul"),
+    ('sdata.formula("sin(x**2)"), then formula.find_repeated_parts(); the functions a formula is made of: '
+     + _HAND_OVER + " decompogen works", "decompogen"),
+    # printers (F41)
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("c")', "ccode print_ccode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("c++")', "cxxcode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("fortran")', "fcode print_fcode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("glsl")', "glsl_code print_glsl"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("javascript")', "jscode print_jscode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("julia")', "julia_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("maple")', "maple_code print_maple_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("mathematica")', "mathematica_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("mathml")', "mathml print_mathml"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("octave") (MATLAB too)', "octave_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("python")', "pycode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("r")', "rcode print_rcode"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("rust")', "rust_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("smt-lib")', "smtlib_code"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("sympy")', "python print_python"),
+    ('sdata.formula("sin(x)**2"), then formula.show_as_code("text")', "sstr sstrrepr StrPrinter"),
+    ('sdata.formula("x**2 + 1"), then formula.show_as_tree()', "print_tree"),
+    ('sdata.formula("x**2 + 1"), then formula.show_as_tree(as_graphviz=True)', "dotprint"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_latex(over_lines=True)', "multiline_latex"),
+    ('sdata.formula("x**2"), then formula.show_as_latex()', "print_latex"),
+    ('sdata.formula("x**2 + 1"), then print(formula) shows it (in Jupyter a formula is typeset by itself)',
+     "pretty_print pprint_use_unicode pprint_try_use_unicode pager_print"),
+    (_HAND_OVER + " preview and print_gtk work (they open a window with the typeset formula; "
+     "formula.show_as_latex() gives the LaTeX)", "preview print_gtk"),
+    ("sdata.table({...}) shows rows and columns; then table.show()", "TableForm"),
+    ("formula.find_value_at(x=[0, 1, 2]) gives the values, and chart.draw_curve(formula) draws them; a text plot: "
+     + _HAND_OVER + " textplot works", "textplot"),
+    # plots (F48): chart words
+    ('sdata.formula("x**3 - 3*x"), then chart.draw_curve(formula, between=[-2, 2]); an implicit curve: '
+     'sdata.solve("x**2 + y**2 = 1", for_letter="y", exactly=True) gives each branch to draw',
+     "plot_implicit"),
+    ("sdata.number_list(0, to=6.28, how_many=200), then a table of x(t) and y(t) with table.add_column, then "
+     "chart.draw_lines(x=..., y=..., in_row_order=True) (a curve given by t)", "plot_parametric"),
+    # number theory (F36 and the whole-number tools of F46)
+    ("numbers.check_if_prime() (on numbers = sdata.number_list([2, 9, 11]))", "isprime"),
+    ("numbers.find_prime_factors(show=\"different primes\")", "primefactors"),
+    ("numbers.find_prime_factors() on a number with a decimal part (0.75 is 3/4)", "factorrat"),
+    ("numbers.find_prime_factors() (SymPy factorint uses Pollard's rho and p - 1 methods by itself)",
+     "pollard_rho pollard_pm1 factor_cache"),
+    ('numbers.find_number_fact("primes up to") (SymPy\'s sieve)', "Sieve sieve primerange"),
+    ('numbers.find_number_fact("divisors")', "divisors"),
+    ('numbers.find_number_fact("number of divisors")', "divisor_count"),
+    ('numbers.find_number_fact("proper divisors")', "proper_divisors"),
+    ('numbers.find_number_fact("number of proper divisors")', "proper_divisor_count"),
+    ('numbers.find_number_fact("abundance")', "abundance"),
+    ('numbers.find_number_fact("perfect")', "is_perfect"),
+    ('numbers.find_number_fact("abundant")', "is_abundant"),
+    ('numbers.find_number_fact("deficient")', "is_deficient"),
+    ('numbers.find_number_fact("amicable with", other=284)', "is_amicable"),
+    ('numbers.find_number_fact("carmichael")', "is_carmichael"),
+    ('numbers.find_number_fact("mersenne prime")', "is_mersenne_prime"),
+    ('numbers.find_number_fact("nth mersenne exponent")', "mersenne_prime_exponent"),
+    ('numbers.find_number_fact("perfect power")', "perfect_power"),
+    ('numbers.find_number_fact("next prime")', "nextprime"),
+    ('numbers.find_number_fact("previous prime") (on numbers = sdata.number_list([10, 20]))', "prevprime"),
+    ('numbers.find_number_fact("nth prime")', "prime"),
+    ('numbers.find_number_fact("nth composite")', "composite"),
+    ('numbers.find_number_fact("number of composites up to")', "compositepi"),
+    ('numbers.find_number_fact("primorial")', "primorial"),
+    ('numbers.find_number_fact("partitions")', "npartitions"),
+    ('numbers.find_number_fact("binomial coefficients")', "binomial_coefficients binomial_coefficients_list"),
+    ('numbers.find_number_fact("multinomial coefficients", other=3)', "multinomial_coefficients"),
+    ('numbers.find_number_fact("times divisible by", other=2)', "multiplicity"),
+    ('numbers.find_number_fact("primitive root") (on numbers = sdata.number_list([7, 11]))', "primitive_root"),
+    ('numbers.find_number_fact("primitive root modulo", modulo=7) (on numbers = sdata.number_list([3, 5]))',
+     "is_primitive_root"),
+    ('numbers.find_number_fact("quadratic residue modulo", modulo=7)', "is_quad_residue"),
+    ('numbers.find_number_fact("power residue modulo", modulo=7, power=3)', "is_nthpow_residue"),
+    ('numbers.find_number_fact("order modulo", modulo=7) (on numbers = sdata.number_list([2, 3]))', "n_order"),
+    ('numbers.find_number_fact("discrete log", modulo=41, base=7)', "discrete_log"),
+    ('numbers.find_number_fact("square roots modulo", modulo=13)', "sqrt_mod sqrt_mod_iter"),
+    ('numbers.find_number_fact("nth roots modulo", modulo=7, power=3)', "nthroot_mod"),
+    ('numbers.find_number_fact("quadratic residues")', "quadratic_residues"),
+    ('numbers.find_number_fact("quadratic congruence", modulo=8) on the list [a, b, c] (numbers = '
+     "sdata.number_list([1, 0, -1]) for x**2 - 1)", "quadratic_congruence"),
+    ('numbers.find_number_fact("inverse modulo", modulo=7) (on numbers = sdata.number_list([2, 3]))', "mod_inverse"),
+    ('numbers.find_number_fact("whole nth root", power=2)', "integer_nthroot"),
+    ('numbers.find_number_fact("whole log", base=2)', "integer_log"),
+    ('numbers.find_number_fact("number of digits")', "num_digits"),
+    ('numbers.find_number_fact("trailing zero bits")', "trailing"),
+    ('numbers.find_number_fact("greatest common divisor") of the whole list', "igcd"),
+    ('numbers.find_number_fact("least common multiple") of the whole list', "ilcm"),
+    ('numbers.find_number_fact("continued fraction")', "continued_fraction continued_fraction_iterator"),
+    ('numbers.find_number_fact("continued fraction convergents")', "continued_fraction_convergents"),
+    ('numbers.find_number_fact("number from continued fraction") of the whole list', "continued_fraction_reduce"),
+    ('numbers.find_number_fact("periodic continued fraction") of the list [p, q, d] (numbers = '
+     "sdata.number_list([0, 1, 2]) for sqrt(2))", "continued_fraction_periodic"),
+    ('numbers.find_number_fact("egyptian fraction") (on numbers = sdata.number_list([0.75, 0.4]))',
+     "egyptian_fraction"),
+    (_HAND_OVER + " cycle_length and randprime work (simplydata's random numbers come from NumPy with a seed: "
+     "sdata.make_random_numbers(how_many=10, with_seed=1))", "cycle_length randprime"),
+    # ways (F49)
+    ('sdata.list_ways_to_choose(2, out_of=["A", "B", "C", "D"])', "subsets"),
+    ('sdata.list_ways_to_order(2, out_of=["A", "B", "C"])', "variations"),
+    ('sdata.list_ways_to_choose(one_from_each=[["red", "blue"], ["S", "M"]])', "cartes"),
+    ('sdata.formula("sqrt(x**2)", letters_are={"x": "positive"}) says what a letter is', "ask assuming"),
+    # matrices (F33)
+    ('sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True): an exact grid, with letters',
+     "MutableDenseMatrix MutableMatrix ImmutableDenseMatrix MatrixBase"),
+    ('sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True), then grid.find_determinant()', "Determinant"),
+    ('sdata.number_grid([[2, 1], [1, 2]], exactly=True), then grid.take_inverse()', "Inverse"),
+    ('sdata.number_grid([[1, 2], [3, 4]], exactly=True), then grid.swap_rows_and_columns()', "Transpose"),
+    ("grid.find_permanent()", "Permanent per"),
+    ("grid.make_columns_orthogonal()", "GramSchmidt"),
+    ('sdata.formula("x**2*y + y**3"), then formula.find_hessian()', "hessian"),
+    ('sdata.formula("exp(x)"), then formula.find_wronskian(["exp(2*x)"])', "wronskian"),
+    ('sdata.formula("2**n"), then formula.find_wronskian(["3**n"], whole_numbers_only=True)', "casoratian"),
+    ("grid.as_numpy() gives the grid's numbers to NumPy (an exact grid gives a grid of decimals first with its "
+     "find_value_at)", "matrix2numpy list2numpy"),
+    ("sdata.number_grid([[1, 2], [3, 4]]), then grid.times(grid) multiplies two grids cell by cell",
+     "HadamardProduct hadamard_product matrix_multiply_elementwise"),
+    ("grid.raise_to_power(2) raises each cell", "HadamardPower"),
+    # the matrix makers that have simplydata words (eye, diag and the rotations point to number_grid(kind=...) in
+    # _SYMPY above); the matrix expressions and the rest point to the hand-over
+    ('sdata.number_grid(kind="identity", size=3) (a grid of numbers; SymPy Identity is a symbol for one)',
+     "Identity"),
+    ('sdata.number_grid([1, 2, 3], kind="diagonal") (a grid of numbers)', "DiagMatrix DiagonalMatrix"),
+    ('sdata.number_grid(kind="blocks", of=[[first, second], [third, fourth]])', "BlockMatrix"),
+    ('sdata.number_grid(kind="block diagonal", of=[first, second])', "BlockDiagMatrix"),
+    ('grid.get_part("diagonal") gives the numbers on a diagonal; grid.get_part("diagonal").find_total() is the trace',
+     "Trace trace DiagonalOf"),
+    ('sdata.number_grid([4, 1, 0], kind="diagonal") + sdata.number_grid([1, 1], kind="diagonal", shifted_by=1): a '
+     'banded grid from its diagonals; grid.check_if_grid_is("banded") checks one', "banded"),
+    ("sdata.make_random_numbers(rows=3, columns=3, between=[0, 9], whole_numbers=True, with_seed=1): a random grid",
+     "randMatrix"),
+    ("numbers.make_pair_table_with(other) gives the products of two lists; for grids, "
+     + _GRID_HAND_OVER + " kronecker_product works", "kronecker_product KroneckerProduct"),
+    (_GRID_HAND_OVER + " matrix expressions work (symbols for whole grids and their sums, products and slices); "
+     "simplydata's exact grid holds the cells themselves",
+     "DeferredVector DotProduct FunctionMatrix ImmutableSparseMatrix MatAdd MatMul MatPow MatrixExpr MatrixPermute "
+     "MatrixSlice MatrixSymbol MutableSparseMatrix OneMatrix PermutationMatrix SparseMatrix ZeroMatrix "
+     "block_collapse blockcut diagonalize_vector jordan_cell matrix_symbols rot_givens symarray"),
+]
+_SYMPY += _SYMPY_POLYNOMIALS + _sympy_formula_names() + _SYMPY_CALCULUS
 
 
 # so.<name> and seaborn.objects.<name>: seaborn's objects interface (so.Plot with marks, stats, moves and scales), the
@@ -2411,6 +2827,967 @@ _SEABORN_MORE = [
 ]
 
 
+# families for 100 %, batches 27-28 (plan section 4, G21, approved by Manish 2026-11-28): the pointers in bulk for
+# every public name the final audit of pandas, Polars, NumPy, SciPy, SymPy and seaborn found without one. Plumbing
+# (SymPy's core classes, Polars' memory layout, pandas' options) points to the hand-over with a one-line note.
+_PANDAS_HAND_OVER = "table.as_pandas() hands the table to pandas, where"
+_POLARS_HAND_OVER = "table.as_polars() hands the table to Polars, where"
+_TABLE_FINAL = [
+    # arithmetic and comparisons of whole columns
+    ('table.add_column("marks_per_hour", "marks / hours"): a formula with + - * / ** // and % works on whole columns',
+     "sub subtract mul truediv truncdiv radd rsub rmul rdiv rtruediv rfloordiv rmod rpow rdivmod neg"),
+    ('table.keep_rows_where("marks", is_above=50) keeps rows by a comparison (is_below=, is_equal_to=, '
+     "is_at_least=, is_at_most=, is_not_equal_to=); a written condition such as \"marks > 50\" works in rules=",
+     "eq ne lt le gt ge eq_missing ne_missing is_close"),
+    ('table.keep_rows_where("class", is_one_of=["A", "B"]) and the other options join conditions; a written '
+     'condition joins them with and, or and not: table.add_group_column("good", rules={"marks > 60 and hours > 6": '
+     '"yes"}, otherwise="no")', "and_ or_ xor not_"),
+    ('table.add_column("marks_per_hour", "marks / hours"): the formula is written as text', "eval"),
+    # empty and special values
+    ('table.count_empty_cells_in() counts the empty cells; simplydata keeps one kind of empty value, so NaN and '
+     "null are the same", "is_nan is_not_nan drop_nans"),
+    ('table.find_biggest_of("marks") skips empty cells (as nan_max does)', "nan_max"),
+    ('table.find_smallest_of("marks") skips empty cells (as nan_min does)', "nan_min"),
+    ('table.keep_rows_where("marks", is_between=[-1e300, 1e300]) keeps the rows with a finite number (not inf or '
+     "-inf); a yes or no column of it is left to pandas: table.as_pandas()", "is_finite is_infinite"),
+    # the same value again, first and last
+    ('table.show_duplicate_rows(columns=["name", "subject"]) shows the rows whose values come again',
+     "is_unique is_first_distinct is_last_distinct arg_unique"),
+    ('table.count_different_values_in("name") (Polars approx_n_unique counts them roughly; simplydata counts '
+     "exactly)", "approx_n_unique"),
+    ('table.find_percentile_of("marks", 90) (exactly; Polars approx_quantile estimates it)', "approx_quantile"),
+    # positions and order
+    ('table.add_rank_column("rank", from_column="marks") gives the place of each row in the order of a column',
+     "arg_sort"),
+    (_POLARS_HAND_OVER + " rolling_rank works (the rank inside each moving window; table.add_rank_column ranks the "
+     "whole column)", "rolling_rank rolling_rank_by"),
+    ('table.add_row_number_column("number", for_each_group_in="station"), then table.keep_rows_where(...) gives '
+     "the row numbers where a condition holds", "arg_true index_of search_sorted lower_bound upper_bound"),
+    ('table.sort_by("marks"): Polars set_sorted only marks a column as sorted, which simplydata does not need',
+     "set_sorted"),
+    # bins
+    ('table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"]) puts '
+     'values into bins (into_equal_groups=4 for bins of the same size)',
+     "bin bin_intervals bin_quantiles bin_ranks"),
+    # running, rolling and smoothed values
+    (_POLARS_HAND_OVER + " the spread and sum of an exponentially weighted window work; the weighted average itself "
+     'is table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time")',
+     "ewm_std ewm_sum ewm_sum_by ewm_var"),
+    ('table.add_rolling_column("skew", from_column="temperature", show="skewness") (show="kurtosis" for the '
+     "kurtosis of each window)", "rolling_skew rolling_kurtosis"),
+    (_PANDAS_HAND_OVER + " a function of your own on each window works (df.rolling(3).apply(f)); the usual summaries "
+     'are table.add_rolling_column("spread", from_column="temperature", show="standard deviation")', "rolling_map"),
+    (_POLARS_HAND_OVER + " folds and running steps of your own work; the usual running totals are "
+     'table.add_running_column("sales_so_far", from_column="sales", show="total") (show="product", "biggest", '
+     '"smallest", "count"), and a total across columns is table.add_column("both", "marks + hours")',
+     "cumulative_eval cum_fold cum_reduce cum_sum_horizontal fold reduce"),
+    ('table.find_each_peak_that("temperature", is_at_least=10) finds the peaks of a column (find_each_dip_that the '
+     "dips)", "peak_max peak_min"),
+    # bits
+    ('table.get_column("marks"), then numbers.work_on_bits("count ones") counts the 1 bits of each whole number',
+     "bitwise_count_ones"),
+    (_POLARS_HAND_OVER + " the other bit counts work (zeros, leading and trailing bits); numbers.work_on_bits("
+     '"count ones") counts the 1 bits', "bitwise_count_zeros bitwise_leading_ones bitwise_leading_zeros "
+     "bitwise_trailing_ones bitwise_trailing_zeros"),
+    # building and joining columns
+    ('table.add_column("year_2", "year") adds a column, the same as pandas assign and Polars with_columns; the order '
+     "of steps is the order you write them", "with_columns_seq select_seq replace_column isetitem hstack"),
+    (_POLARS_HAND_OVER + " struct columns work (several values in each cell); joining columns into one text is "
+     'table.add_column("kind", by_joining_text=["class", "name"], separator=" ")', "struct to_struct unnest"),
+    (_POLARS_HAND_OVER + " zip_with works (a value from one of two columns, row by row, by a yes or no column)",
+     "zip_with"),
+    ('table.keep_columns("name", "marks") keeps columns (table.remove_columns(...) leaves some out); Polars '
+     "expressions such as col(\"marks\").alias(...) are written as words", "exclude alias name meta inspect"),
+    ('table.add_column("share", "marks / total(marks) * 100", for_each_group_in="class") works out a formula within '
+     "each group (Polars over)", "over"),
+    ('table.add_rows_from(other_table) adds the rows of another table below', "extend extend_constant"),
+    ('table.split_into_rows("genes", separator=";") gives each value a row of its own', "repeat repeat_by"),
+    ('table.remove_columns("marks")', "drop_in_place pop remove"),
+    ('table.get_column_names() lists the columns; table.describe_columns() gives the kind of each',
+     "keys schema collect_schema get_column_index"),
+    ('table.get_column("marks") gives the values of one column; table.as_list() gives every row',
+     "items get_columns iter_columns iter_slices to_frame"),
+    ("table.get_row(3) gives one row (counting from 1); table.as_list() gives every row",
+     "rows rows_by_key new_from_index"),
+    ('table.count_rows() for the rows, or table.count_columns() for the columns', "ndim is_empty"),
+    ("table.count_rows() is how many values a column has (empty ones too); table.count_empty_cells_in() counts the "
+     "empty ones", "size"),
+    (_POLARS_HAND_OVER + " clear works (an empty table with the same columns); table.make_copy() copies a table",
+     "clear"),
+    ("table.swap_rows_and_columns() turns rows into columns; other shapes are left to pandas: table.as_pandas()",
+     "reshape squeeze"),
+    # second review of numbers-int-2: pandas and Polars classes whose names SymPy uses too
+    ('table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"]) puts '
+     "values into intervals (a pandas Interval is one of them)", "Interval"),
+    ('table.add_column("marks_per_hour", "marks / hours"): a Polars expression is written as a word and a formula',
+     "Expr"),
+    (_POLARS_HAND_OVER + " field works (one field of a struct column; simplydata keeps one value in each cell)",
+     "field"),
+    ('table.turn_into_dates("date") turns text or numbers into dates', "to_timestamp"),
+    # saving and handing over
+    ('table.save("results.csv"): the end of the file name chooses the type (.csv, .xlsx, .parquet, .json, .feather, '
+     ".dta, .html); HDF5, ORC, XML, pickle, Avro, Delta and Iceberg files are left to pandas and Polars: "
+     "table.as_pandas() or table.as_polars()",
+     "to_hdf to_orc to_xml to_pickle to_iceberg write_avro write_delta write_iceberg write_ipc_stream serialize "
+     "deserialize"),
+    ("table.as_pandas() gives the table as pandas, table.as_polars() as Polars (and Arrow from there)",
+     "to_pandas to_arrow to_init_repr"),
+    # plumbing: Polars' memory layout and pandas' flags and attributes
+    (_POLARS_HAND_OVER + " its memory layout and types work (simplydata chooses them by itself)",
+     "rechunk n_chunks chunk_lengths get_chunks reinterpret to_physical ext match_to_schema"),
+    (_PANDAS_HAND_OVER + " its flags, attributes and sparse values work (simplydata keeps plain columns)",
+     "attrs flags set_flags set_axis sparse nbytes"),
+    (_POLARS_HAND_OVER + " hashing works (table.show_duplicate_rows() finds rows that come again)",
+     "hash hash_rows"),
+]
+_TEXT_FINAL = [
+    ('table.keep_rows_where("name", matches_pattern="^[A-Z]+$") keeps text that matches a pattern (letters in '
+     "capitals, small letters or spaces)", "isupper islower istitle isspace isascii"),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) splits text at the separator',
+     "partition rpartition"),
+    ('table.replace_text_in("name", "Mr ", with_value="") replaces part of a text', "slice_replace translate"),
+    ('table.add_column("name_twice", by_joining_text=["name", "name"], separator="") joins text; repeating it is '
+     "left to pandas: table.as_pandas()", "repeat"),
+    ('table.add_column("name_length", "length(name)") counts the characters; bytes, wrapping and codes are left to '
+     "pandas and Polars: table.as_pandas()", "len_bytes wrap encode decode"),
+    ('table.keep_rows_where("name", contains="an") reads the text as it is; a pattern goes in matches_pattern=, where '
+     "\\. matches a dot", "escape_regex"),
+    (_POLARS_HAND_OVER + " JSON text inside a column works (str.json_decode); a JSON file is read by "
+     'sdata.table("samples.json")', "json_decode json_path_match"),
+]
+_DATES_FINAL = [
+    ('table.add_column_with_part_of_date("second", from_column="time", part="second"): simplydata keeps time to the '
+     "second; parts below it are left to pandas: table.as_pandas()",
+     "microsecond millisecond nanosecond total_microseconds total_milliseconds total_nanoseconds"),
+    ('table.add_column_with_part_of_date("year", from_column="date", part="year") (the century and millennium follow '
+     "from the year)", "century millennium"),
+    ('table.change_time_zone_in("time", to="UTC", recorded_in="Europe/Oslo") changes and names time zones',
+     "tz base_utc_offset dst_offset timetz"),
+    ('table.turn_into_dates("date"): simplydata keeps dates and times in one unit; units and Python objects are left '
+     "to pandas: table.as_pandas()", "as_unit unit cast_time_unit to_pydatetime"),
+    ('table.add_missing_dates("date", every="day") fills a run of dates; the step of a column (freq) is left to '
+     "pandas: table.as_pandas()", "freq"),
+]
+_GROUPS_FINAL = [
+    ('chart.draw_boxes(x="class", y="marks") draws one box for each group', "boxplot"),
+    ('chart.draw_histogram(x="marks", colour="class") draws the groups together', "hist"),
+    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time")',
+     "ewm"),
+    ('table.make_one_table_for_each_group_in("class") gives a table for each group; table.count_rows('
+     'for_each_group_in="class") counts the rows of each', "groups indices keys predicates df by named_by level"),
+    ('table.count_different_values_in("class") counts the groups', "ngroups ndim"),
+    ('table.find_average_of("sales", for_each_group_in="date", every="month") (every= works in every find_..._of '
+     "word)", "resample"),
+    ('table.find_summary_of("marks", show=["average"], for_each_group_in="class") keeps the groups in the order they '
+     "first come", "maintain_order"),
+]
+_SDATA_FINAL = [
+    ('sdata.table("my_file.csv") reads CSV, Excel, Parquet, JSON, Stata, SPSS and more by the end of the name; HDF5, '
+     "ORC, pickle, Avro, Delta, Iceberg, ODS and Arrow streams are left to pandas and Polars (then give the table to "
+     "sdata.table)",
+     "read_hdf read_orc read_pickle read_avro read_delta read_iceberg read_ods read_ipc_stream read_ipc_schema "
+     "read_parquet_metadata read_parquet_schema read_database_uri read_lines from_torch from_repr"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes a run of dates or times',
+     "date_ranges datetime_ranges time_range time_ranges timedelta_range interval_range datetime duration "
+     "to_timedelta infer_freq"),
+    ("sdata.number_list(0, to=1, how_many=11) makes a run of numbers", "linear_space linear_spaces int_range "
+     "int_ranges"),
+    ('sdata.table({"name": ["Asha", "Ben"], "marks": [61, 73]}) makes a table; Polars expressions (col, lit, '
+     "element, struct) are written as words with column names", "col lit element struct_with_fields wrap_df "
+     "wrap_s concat_arr concat_list arg_where arg_sort_by sql_expr dtype_of self_dtype"),
+    ('sdata.run_sql("SELECT station, avg(nitrate) AS nitrate FROM \'river.csv\' GROUP BY station") runs SQL on files',
+     "delete_iceberg"),
+    ("sdata.make_random_numbers(how_many=10, with_seed=1): with_seed= in each word sets the seed", "set_random_seed"),
+    ('table.spread_into_yes_no_columns("class") makes yes/no columns; back from them: table.gather_into_rows(...)',
+     "from_dummies lreshape"),
+    ("sdata.show_packages_used() lists the packages and versions simplydata uses; options, caches and threads of "
+     "pandas and Polars are left to them (simplydata sets what it needs)",
+     "show_versions build_info get_option set_option reset_option describe_option option_context "
+     "set_eng_float_format thread_pool_size enable_string_cache disable_string_cache using_string_cache "
+     "get_index_type get_extension_type register_extension_type unregister_extension_type "
+     "CredentialProviderFunction CredentialProviderFunctionReturn"),
+]
+_NUMPY_FINAL = [
+    ('block.add_numbers_from(other, over="row") joins numbers in their order (the r_ and c_ shorthands of NumPy)',
+     "r_ c_"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes dates, and '
+     'table.add_column("days", by_subtracting=["end", "start"], counted_in="days") gives time spans; the date '
+     "types of NumPy are left to NumPy: " + _NUMPY_HAND_OVER, "datetime64 timedelta64"),
+    ("numbers.round_to(with_decimals=2), then numbers.show() shows the numbers as you want them written",
+     "array2string array_str array_repr format_float_positional format_float_scientific"),
+    ('sdata.help("find_average") explains a word, with an example you can run', "info"),
+    ('sdata.number_block("big_file.nc") reads a big file of numbers; memory-mapped arrays are left to NumPy: '
+     + _NUMPY_HAND_OVER, "memmap"),
+    ('numbers.take_function("hyperbolic sine") takes a function of every number; a formula of your own: '
+     'sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2])', "frompyfunc"),
+    ('sdata.formula("pi * r**2"): pi is written in a formula',
+     "pi"),
+    ('sdata.formula("exp(1)") is e; the Euler-Mascheroni constant is EulerGamma in a formula',
+     "e euler_gamma"),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"]): infinity is written "infinity"', "inf"),
+    ("numbers.count_empty_numbers(): an empty number is written None or float(\"nan\")", "nan"),
+    ('block.add_numbers_from(other, over="row") joins numbers in their order, as concatenate does', "concat"),
+    ('block.find_average(over="month") works along a named direction; a function of your own along one: '
+     + _NUMPY_HAND_OVER, "apply_along_axis apply_over_axes"),
+    ('numbers.take_function("hyperbolic sine") takes a function of every number; a formula of your own: '
+     'sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2])', "vectorize"),
+    ('numbers.work_on_bits("and", with_numbers=1) works on the bits; writing them as text is left to NumPy: '
+     + _NUMPY_HAND_OVER, "base_repr binary_repr"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes dates; dates in arrays are left to '
+     "NumPy: " + _NUMPY_HAND_OVER, "datetime_as_string datetime_data"),
+    ('numbers.turn_into_yes_or_no(is_="complex") checks every number; simplydata numbers are real numbers, so '
+     "complex arrays are left to NumPy: " + _NUMPY_HAND_OVER, "iscomplexobj isrealobj real_if_close sort_complex"),
+    ("numbers.round_to(with_decimals=0) gives whole numbers; NumPy's number types are left to NumPy: "
+     + _NUMPY_HAND_OVER, "int_"),
+]
+_RANDOM_FINAL = [
+    ('sdata.distribution("rayleigh").make_random_numbers(how_many=100)', "rayleigh"),
+    ('sdata.distribution("zipf", shape=2).make_random_numbers(how_many=100)', "zipf"),
+    ('sdata.distribution("logarithmic", chance=0.5).make_random_numbers(how_many=100)', "logseries"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).make_random_numbers('
+     "how_many=100)", "noncentral_chisquare"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=10, noncentrality=2)'
+     ".make_random_numbers(how_many=100)", "noncentral_f"),
+    ('sdata.distribution("power function", shape=2).make_random_numbers(how_many=100)', "power"),
+    ("sdata.make_random_numbers(how_many=10, between=[0, 255], whole_numbers=True, with_seed=1); random bytes are "
+     "left to NumPy: numbers.as_numpy()", "bytes"),
+]
+_SCIPY_FINAL = [
+    ('sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5]) prints what it found (SciPy keeps it in an '
+     "OptimizeResult; its updating strategies are chosen by test_method=)", "OptimizeResult HessianUpdateStrategy"),
+    ('table.find_fence_around(x="east", y="north") finds the fence around points; the intersection of half-spaces '
+     "is left to SciPy (approved: expert geometry with no data job): numbers.as_numpy(), then "
+     "spatial.HalfspaceIntersection", "HalfspaceIntersection"),
+]
+_FFT_FINAL = [
+    ("numbers.take_fourier_transform(time_step=0.01) chooses the length by itself; a fast length is left to SciPy: "
+     "numbers.as_numpy()", "next_fast_len prev_fast_len"),
+]
+_SEABORN_OBJECTS_FINAL = [
+    ('chart.draw_dots(x="hours", y="marks"): every mark is a draw word (draw_dots, draw_lines, draw_bars ...)',
+     "Mark"),
+    ('chart.draw_bars(x="class", y="marks"): the summary is chosen by show= ("average", "total" ...)', "Stat"),
+    ('chart.draw_bars(x="subject", y="marks", colour="class"): the groups stand side by side by themselves; '
+     "move_layer_by= moves a layer", "Move"),
+    ('chart.draw_dots(x="hours", y="marks", colour="class"): a yes or no column colours the dots in two colours',
+     "Boolean"),
+]
+_SYMPY_FINAL = [
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_tree() shows every part of a formula, in order',
+     "preorder_traversal postorder_traversal"),
+    ('sdata.formula("x**2 + 1") is shown as typeset maths in Jupyter by itself; formula.show_as_latex() gives the '
+     "LaTeX", "init_printing"),
+    # functions written in formula text
+    ('sdata.formula("gamma(x)"): the gamma function inside formula text', "gamma"),
+    ('sdata.formula("digamma(x)"): the digamma function inside formula text', "digamma"),
+    ('sdata.formula("beta(x, 2)"): the beta function inside formula text', "beta"),
+    ('numbers.take_function("double factorial") (as SciPy: 0 for a whole number below 0)', "factorial2"),
+    ('numbers.take_function("exponential integral E1"), or expint(1, x) in formula text', "E1"),
+    ('numbers.take_function("regularized incomplete beta", a=2, b=3) gives the share of beta(a, b) up to x; SymPy\'s '
+     "betainc is the incomplete beta itself: " + _HAND_OVER + " betainc works", "betainc"),
+    ("numbers.find_product() multiplies the numbers together", "prod"),
+    ('sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2]) works it out at many values', "vectorize"),
+    ('sdata.formula("x**2 + 1") is a function of x; a formula is the function (SymPy Lambda)', "Lambda"),
+    ('sdata.formula("x + y"): the letters of the text are the symbols', "var"),
+    ('sdata.formula("1/3"), then formula.show_as_decimal(digits=10) writes it in decimals',
+     "Float RealNumber nfloat"),
+    ("numbers.show_as_fraction() writes numbers as fractions; whole numbers are numbers", "Integer PythonRational"),
+    ("numbers.count_empty_numbers(): an empty number is None; SymPy's nan and zoo (no number, complex infinity) are "
+     "said in words when a formula has no value", "nan zoo"),
+    ('sdata.solve("x**2 - 4 > 0", exactly=True): equations and rules are written as text with =, <, >, <= and >=',
+     "Equality Unequality Rel Ge Gt Le Lt Ne GreaterThan LessThan StrictGreaterThan StrictLessThan"),
+    ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"}) says what a letter is; the assumption system '
+     "itself: " + _HAND_OVER + " predicates work",
+     "AppliedPredicate AssumptionsContext Predicate check_assumptions failing_assumptions register_handler "
+     "remove_handler"),
+    ("grid.get_all_numbers() gives the numbers of a grid in one list; numbers.make_number_grid(rows=4, columns=5) "
+     "makes a grid of a list", "flatten unflatten reshape"),
+    ("numbers.keep_first_numbers(3) keeps the first numbers", "take"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_tree() shows the parts a formula is built of; '
+     "building one by hand: " + _HAND_OVER + " Add, Mul, Pow and the other classes work",
+     "Add Mul Pow Atom AtomicExpr Basic Expr Number NumberSymbol AlgebraicNumber Tuple Dict FunctionClass "
+     "UnevaluatedExpr count_ops"),
+    # F46 core plumbing and F49 utilities: the hand-over
+    (_HAND_OVER + " Dummy, Wild and pattern matching work (simplydata words find their own letters)",
+     "Dummy Wild WildFunction numbered_symbols"),
+    (_HAND_OVER + " its tree-walking and expression tools work (simplydata words choose them by themselves)",
+     "bottom_up postfixes prefixes capture comp evaluate factor_nc threaded xthreaded arity"),
+    (_HAND_OVER + " its list tools work (sorting, grouping and sifting lists: simplydata's numbers words do it for "
+     "numbers: numbers.sort(), numbers.count_each())",
+     "sift group has_dups has_variety rotations topological_sort dict_merge"),
+    (_HAND_OVER + " its development tools work (doctests, timing, debugging and settings: not a data job)",
+     "doctest timed public filldedent memoize_property lazy_function use SYMPY_DEBUG PrecisionExhausted"),
+    ('sdata.formula("x**3 - 3*x"), then chart.draw_curve(formula, between=[-2, 2]) draws a formula; SymPy\'s plot '
+     "backends are left to SymPy", "plot_backends"),
+    (_HAND_OVER + " the imaginary unit I works (simplydata formulas stay on the real numbers)", "I"),
+    ('numbers.change_angles_to("degrees") (or "radians") turns angles from one unit into the other; in a formula, '
+     'sdata.formula("x * pi / 180")', "deg rad"),
+]
+
+
+# review of numbers-int-2 (2026-11-28): the namespaces the first final audit skipped. Classes at the pandas and Polars
+# top level, NumPy ndarray methods, np.random, np.polynomial, np.ma and np.strings, SciPy sparse, cluster, io,
+# constants, stats.qmc, spatial.distance and spatial.transform, SymPy Matrix methods and sympy.stats, and pandas'
+# rolling, expanding, ewm and resample objects (df.rolling(3).mean). Made from the audit's list of names help did not
+# know: each points to the word or option that does the job, or to the hand-over with a one-line note.
+_SCIPY_HAND_OVER = ("numbers.as_numpy() hands the numbers to NumPy (a grid too: grid.as_numpy()), where SciPy's call "
+                    "works")
+
+_TABLE_REVIEW = [
+    ('table.get_column("marks") gives one column (a pandas Series is one column)',
+     'Series'),
+    ('table.as_pandas(), then pandas: simplydata tables have no row index (rows are counted from 1: '
+     'table.get_row(3)); give the result to sdata.table to come back',
+     'Index RangeIndex MultiIndex CategoricalIndex DatetimeIndex IntervalIndex PeriodIndex TimedeltaIndex'),
+    ('table.describe_columns() shows the kind of each column, and table.turn_into_numbers("price") '
+     '(or turn_into_text, turn_into_dates, turn_into_categories) changes it; simplydata chooses the '
+     'storage types',
+     'ArrowDtype BooleanDtype DatetimeTZDtype Float32Dtype Float64Dtype Int8Dtype Int16Dtype Int32Dtype '
+     'Int64Dtype UInt8Dtype UInt16Dtype UInt32Dtype UInt64Dtype IntervalDtype PeriodDtype SparseDtype '
+     'StringDtype'),
+    ('table.turn_into_dates("date") turns a column into dates (a pandas Timestamp is one date and ' 'time)',
+     'Timestamp Period'),
+    ('table.add_column("days", by_subtracting=["end", "start"], counted_in="days") gives the time '
+     'between two dates',
+     'Timedelta'),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") steps by a day, "week", '
+     '"month" or "working day"',
+     'DateOffset'),
+    ('table.find_average_of("sales", for_each_group_in="date", every="month") groups by a column and'
+     ' a step of time',
+     'Grouper'),
+    ('table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, '
+     'for_each_group_in="class") names each summary',
+     'NamedAgg NamedFunc'),
+    ('sdata.table("my_file.csv") reads Excel files too, by the end of the name',
+     'ExcelFile'),
+    (_PANDAS_HAND_OVER + ' its HDF5 store and flags work',
+     'Flags HDFStore'),
+    ('table.as_polars(), then Polars: every word already runs at once (fast=True runs Polars '
+     'underneath), so simplydata has no lazy plans',
+     'LazyFrame'),
+    ('table.split_into_rows("genes", separator=";"): simplydata keeps one value in each cell; list '
+     'columns are left to Polars: table.as_polars()',
+     'List Array'),
+    ('table.describe_columns() shows the kind of each column, and table.turn_into_numbers("price") '
+     '(or turn_into_text, turn_into_dates, turn_into_categories) changes it; simplydata chooses the '
+     'storage types',
+     'Any Binary Categories DataType DataTypeExpr Date Datetime Decimal Duration Float16 Float32 Float64 '
+     'Int8 Int16 Int32 Int64 Int128 UInt8 UInt16 UInt32 UInt64 UInt128 Null Object String Time Unknown '
+     'Utf8 Field Schema'),
+    ('sdata.run_sql("SELECT station, avg(nitrate) AS nitrate FROM \'river.csv\' GROUP BY station") '
+     'runs SQL',
+     'SQLContext'),
+    (_POLARS_HAND_OVER
+     + ' its engines, settings, catalogs, credentials, struct and extension types work (simplydata '
+     'chooses how Polars runs)',
+     'BaseExtension Catalog CompatLevel Config CredentialProvider CredentialProviderAWS '
+     'CredentialProviderAzure CredentialProviderGCP Engine Extension FileProviderArgs GPUEngine '
+     'InMemoryEngine Map ParquetDecryptionProperties ParquetEncryptionProperties PartitionBy QueryOptFlags '
+     'RemoteEngine ScanCastOptions StreamingEngine StringCache Struct'),
+]
+_NDARRAY = [
+    ('grid.swap_rows_and_columns()',
+     'T mT'),
+    ('grid.get_all_numbers() gives every number of a grid in one list',
+     'flatten flat'),
+    ('numbers.get_number_at(1) gives one number (counting from 1)',
+     'item'),
+    ('numbers.as_numpy() gives the numbers to NumPy, where .tolist() makes a Python list',
+     'tolist'),
+    ('numbers.save("numbers.csv") writes the numbers to a file',
+     'dump dumps tobytes'),
+    ('sdata.number_grid(rows=2, columns=3, filled_with=0) makes a grid of one number',
+     'fill'),
+    (_NUMPY_HAND_OVER
+     + ' choose works (a value from one of several lists, by position); a yes or no list picks from '
+     'two: numbers.replace_numbers_where(yes_no, with_value=0)',
+     'choose'),
+    (_NUMPY_HAND_OVER + ': its memory, types and devices (simplydata keeps plain decimals)',
+     'base byteswap ctypes data device dtype flags getfield itemsize nbytes setfield setflags strides '
+     'to_device view'),
+]
+_RANDOM_REVIEW = [
+    ('sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)',
+     'ranf'),
+    (_NUMPY_HAND_OVER
+     + ' the bit generators and their states work; with_seed= in sdata.make_random_numbers gives the '
+     'same numbers again',
+     'BitGenerator MT19937 PCG64 PCG64DXSM Philox SFC64 get_bit_generator get_state set_bit_generator '
+     'set_state'),
+]
+_NUMPY_REVIEW = [
+    ('sdata.polynomial("legendre", degree=3), then formula.show_as_latex() writes it as you want it',
+     'set_default_printstyle'),
+]
+_NPMA = [
+    ('numbers.remove_empty_numbers() leaves out the empty numbers (a masked value is an empty number'
+     ' in simplydata)',
+     'compressed compress_cols compress_nd compress_rowcols compress_rows'),
+    ('numbers.fill_empty_numbers(with_value=0) fills the empty numbers',
+     'filled fix_invalid'),
+    ('numbers.count_empty_numbers() counts the empty numbers (a masked value is an empty number in '
+     'simplydata)',
+     'count_masked is_masked'),
+    ('numbers.replace_each_number_that(is_above=100, with_value=None) makes the numbers that pass a '
+     'test empty (what NumPy masks), and every word leaves empty numbers out',
+     'masked_where masked_greater masked_greater_equal masked_less masked_less_equal masked_equal '
+     'masked_not_equal masked_inside masked_outside masked_invalid masked_values masked_object '
+     'masked_array'),
+    (_NUMPY_HAND_OVER
+     + ': its masked arrays, masks and fill values (simplydata keeps an empty number, None, where '
+     'NumPy masks one)',
+     'MAError MaskError MaskType MaskedArray allequal anom anomalies append atleast_1d atleast_2d '
+     'atleast_3d bool_ clump_masked clump_unmasked common_fill_value concatenate default_fill_value '
+     'expand_dims flatnotmasked_contiguous flatnotmasked_edges flatten_mask flatten_structured_array '
+     'fromflex getdata getmask getmaskarray harden_mask hsplit hstack ids in1d innerproduct isMA '
+     'isMaskedArray is_mask isarray make_mask make_mask_descr make_mask_none mask_cols mask_or '
+     'mask_rowcols mask_rows masked masked_all masked_all_like masked_print_option masked_singleton '
+     'maximum_fill_value minimum_fill_value mr_ mvoid ndenumerate ndim nomask notmasked_contiguous '
+     'notmasked_edges outerproduct repeat reshape resize round_ row_stack set_fill_value shape soften_mask '
+     'squeeze swapaxes take vstack'),
+]
+_NPSTRINGS = [
+    ('table.turn_into_uppercase("name")',
+     'upper'),
+    ('table.turn_into_lowercase("name")',
+     'lower'),
+    ('table.turn_into_title_case("name")',
+     'title capitalize'),
+    ('table.remove_extra_spaces_in("name")',
+     'strip lstrip rstrip'),
+    ('table.replace_text_in("name", "Mr ", with_value="")',
+     'replace'),
+    ('table.keep_rows_where("name", starts_with="Dr") (ends_with= for the end)',
+     'startswith endswith'),
+    ('table.add_zeros_in_front_of("sample_id", to_length=3), which pads at the start',
+     'zfill rjust'),
+    ('table.add_column("name_length", "length(name)")',
+     'str_len'),
+    ('table.add_column_with_part_of_text("code", from_column="sample_id", characters=[2, 4])',
+     'slice'),
+    ('table.add_column_with_part_of_text("where_an", from_column="name", position_of="an") (the '
+     'first match)',
+     'find index'),
+    ('table.add_column("semicolons", "count_text(genes, \';\')") counts a text inside each cell',
+     'count'),
+    ('table.add_column("name_and_class", by_joining_text=["name", "class"], separator=" ") joins ' 'text',
+     'add'),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) splits text at the'
+     ' separator',
+     'partition'),
+    ('table.keep_rows_where("name", is_equal_to="Chen Li") compares text (is_not_equal_to= for the '
+     'opposite)',
+     'equal not_equal'),
+    ('table.keep_rows_where("sample_id", matches_pattern="^[0-9]+$") keeps text made of digits '
+     '(letters: "^[A-Za-z]+$")',
+     'isalnum isalpha isdecimal isdigit isnumeric islower isupper isspace istitle'),
+    (_PANDAS_HAND_OVER
+     + ' the other text steps on arrays work (padding at the end or both ends, the last match, '
+     'repeating, formatting, comparing text by order, codes); text in simplydata lives in table ' 'columns',
+     'center decode encode expandtabs greater greater_equal less less_equal ljust mod multiply rfind '
+     'rindex rpartition swapcase translate'),
+]
+_SPARSE = [
+    ('sdata.number_grid(kind="identity", size=3)',
+     'eye eye_array identity'),
+    ('sdata.number_grid([1, 2, 3], kind="diagonal")',
+     'diags diags_array spdiags'),
+    ('sdata.number_grid(kind="block diagonal", of=[first, second])',
+     'block_diag'),
+    ('sdata.number_grid(kind="blocks", of=[[first, second], [third, fourth]])',
+     'bmat block_array'),
+    ('grid.get_part("upper triangle") (or "lower triangle")',
+     'triu tril'),
+    ('sdata.make_random_numbers(rows=3, columns=3, between=[0, 9], whole_numbers=True, with_seed=1)',
+     'random_array'),
+    ('grid.swap_rows_and_columns()',
+     'matrix_transpose'),
+    (_SCIPY_HAND_OVER + ' kron works (the Kronecker product of two sparse grids); for two lists of numbers, '
+     'numbers.make_pair_table_with(other) gives every product',
+     'kron'),
+    (_SCIPY_HAND_OVER
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
+     'SparseEfficiencyWarning SparseWarning bsr_array bsr_matrix coo_array coo_matrix csc_array csc_matrix '
+     'csr_array csr_matrix dia_array dia_matrix dok_array dok_matrix expand_dims find get_index_dtype '
+     'hstack issparse isspmatrix isspmatrix_bsr isspmatrix_coo isspmatrix_csc isspmatrix_csr '
+     'isspmatrix_dia isspmatrix_dok isspmatrix_lil kronsum lil_array lil_matrix load_npz permute_dims rand '
+     'random safely_cast_index_arrays save_npz sparray spmatrix swapaxes vstack'),
+    ('grid.solve_for([1, 2, 3]) solves the equations grid times x = b (a full grid; sparse solvers '
+     'are left to SciPy: grid.as_numpy())',
+     'spsolve spsolve_triangular bicg bicgstab cg cgs gcrotmk gmres lgmres minres qmr tfqmr lsqr lsmr'),
+    ('grid.find_eigenvalues() (a full grid; the sparse eigenvalue solvers are left to SciPy: '
+     'grid.as_numpy())',
+     'eigs eigsh lobpcg'),
+    ('grid.break_down(test_method="svd")',
+     'svds'),
+    ('grid.break_down(test_method="lu")',
+     'splu spilu factorized SuperLU'),
+    ('grid.take_matrix_exp()',
+     'expm_multiply'),
+    ('grid.find_size(kind="biggest column total") (onenormest estimates it for a big sparse grid)',
+     'onenormest'),
+    ('grid.check_if_grid_is("banded"), which prints how many diagonals below and above hold numbers',
+     'spbandwidth'),
+    ('grid.check_if_grid_is("upper triangle") (or "lower triangle")',
+     'is_sptriangular'),
+    (_SCIPY_HAND_OVER
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
+     'ArpackError ArpackNoConvergence LaplacianNd LinearOperator MatrixRankWarning aslinearoperator expm '
+     'funm_multiply_krylov inv matrix_power norm use_solver'),
+    ('sdata.find_best_pairing(costs=grid) pairs each row with one column',
+     'maximum_bipartite_matching min_weight_full_bipartite_matching'),
+    (_SCIPY_HAND_OVER
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
+     'NegativeCycleError bellman_ford breadth_first_order breadth_first_tree connected_components '
+     'construct_dist_matrix csgraph_from_dense csgraph_from_masked csgraph_masked_from_dense '
+     'csgraph_to_dense csgraph_to_masked depth_first_order depth_first_tree dijkstra floyd_warshall '
+     'johnson laplacian maximum_flow minimum_spanning_tree reconstruct_path reverse_cuthill_mckee '
+     'shortest_path structural_rank yen'),
+]
+_SCIPY_REVIEW = [
+    ('table.add_clusters(how_many=3)',
+     'kmeans2 vq py_vq'),
+    ('table.add_clusters(how_many=3) puts each column on the same scale first (same_scale=True)',
+     'whiten'),
+    ('table.add_clusters(how_many=3)',
+     'ClusterError'),
+    ('sdata.number_block("file.nc") reads a netCDF file',
+     'netcdf_file netcdf_variable'),
+    (_SCIPY_HAND_OVER
+     + ' MATLAB, IDL, Matrix Market, Harwell-Boeing and Fortran files work (then give the numbers to '
+     'sdata.number_list or sdata.table)',
+     'FortranEOFError FortranFile FortranFormattingError hb_read hb_write loadmat mminfo mmread mmwrite '
+     'readsav savemat whosmat'),
+    (_SCIPY_HAND_OVER
+     + ' its physical constants and units work (simplydata has none of its own; a constant goes into a'
+     ' formula with formula.put_in)',
+     'Avogadro Boltzmann Btu Btu_IT Btu_th ConstantWarning G Julian_year N_A Planck R Rydberg '
+     'Stefan_Boltzmann Wien acre angstrom arcmin arcminute arcsec arcsecond astronomical_unit atm '
+     'atmosphere atomic_mass atto au bar barrel bbl blob c calorie calorie_IT calorie_th carat centi '
+     'convert_temperature day deci degree degree_Fahrenheit deka dyn dyne e eV electron_mass electron_volt '
+     'elementary_charge epsilon_0 erg exa exbi femto fermi fine_structure fluid_ounce fluid_ounce_US '
+     'fluid_ounce_imp foot g gallon gallon_US gallon_imp gas_constant gibi giga golden_ratio grain gram '
+     'gravitational_constant h hbar hectare hecto horsepower hour hp inch k kgf kibi kilo kilogram_force '
+     'kmh knot lambda2nu lb lbf light_year liter litre long_ton m_e m_n m_p m_u mach mebi mega metric_ton '
+     'micro micron mil mile milli minute mmHg mph mu_0 nano nautical_mile neutron_mass nu2lambda ounce oz '
+     'parsec pebi peta physical_constants pi pico point pound pound_force precision proton_mass psi pt '
+     'quecto quetta ronna ronto short_ton sigma slinch slug speed_of_light speed_of_sound stone '
+     'survey_foot survey_mile tebi tera ton_TNT torr troy_ounce troy_pound u unit value week yard year '
+     'yobi yocto yotta zebi zepto zero_Celsius zetta'),
+    ('table.find_distances_between_rows(measure="bray-curtis") (also "euclidean", "manhattan", '
+     '"jaccard", "minkowski" with power=, "hellinger", "aitchison")',
+     'braycurtis euclidean cityblock jaccard minkowski squareform'),
+    ('table.find_distances_to_rows_of(other, using=["east", "north"]) (measure= "chebyshev", '
+     '"canberra" or "cosine" too)',
+     'chebyshev canberra cosine'),
+    (_SCIPY_HAND_OVER
+     + ' the other distances work (squared Euclidean, correlation, Mahalanobis, Jensen-Shannon, Dice, '
+     'Yule ...)',
+     'CDistMetricWrapper Callable MetricInfo PDistMetricWrapper correlation dice directed_hausdorff '
+     'is_valid_dm is_valid_y jensenshannon mahalanobis num_obs_dm num_obs_y partial rel_entr '
+     'rogerstanimoto russellrao seuclidean sokalsneath sqeuclidean yule'),
+    ('sdata.number_grid(kind="rotation", axis="x", by_degrees=30) makes a rotation; '
+     'grid.find_best_rotation_to(...) finds the best one between two sets of points',
+     'Rotation'),
+    (_SCIPY_HAND_OVER + ' rotations in time and rigid moves work',
+     'RigidTransform RotationSpline Slerp'),
+]
+_HIERARCHY = [
+    ('table.add_clusters(how_many=3, test_method="hierarchical") (linkage="ward" by default for '
+     'straight-line distances)',
+     'linkage ward fcluster fclusterdata cut_tree leaders'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="average")',
+     'average'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="single")',
+     'single'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="complete")',
+     'complete'),
+    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])',
+     'dendrogram set_link_color_palette'),
+    (_SCIPY_HAND_OVER
+     + " the cluster tree's other tools work (centroid, median and weighted linkage, cophenetic "
+     'distances, checks and conversions); the clusters are table.add_clusters(how_many=3, '
+     'test_method="hierarchical")',
+     'ClusterNode ClusterWarning DisjointSet centroid cophenet correspond from_mlab_linkage inconsistent '
+     'is_isomorphic is_monotonic is_valid_im is_valid_linkage leaves_list maxRstat maxdists maxinconsts '
+     'median num_obs_linkage optimal_leaf_ordering to_mlab_linkage to_tree weighted'),
+]
+_STATS_REVIEW = [
+    (_SCIPY_HAND_OVER
+     + ' stats.qmc works (spread-out, quasi-random points and their discrepancy); random numbers are '
+     'sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)',
+     'Halton LatinHypercube MultinomialQMC MultivariateNormalQMC PoissonDisk QMCEngine Sobol discrepancy '
+     'geometric_discrepancy scale update_discrepancy'),
+]
+_MATRIX = [
+    ('grid.find_determinant(exactly=True)',
+     'det_LU_decomposition det_bareis berkowitz_det'),
+    ('grid.take_inverse(exactly=True)',
+     'inverse_ADJ inverse_BLOCK inverse_CH inverse_GE inverse_LDL inverse_LU inverse_QR'),
+    ('grid.find_eigenvalues(exactly=True)',
+     'eigenvects berkowitz_eigenvals'),
+    ('grid.solve_for([5, 10], exactly=True), on a grid of 2 rows',
+     'solve LDLsolve QRsolve cholesky_solve cramer_solve diagonal_solve gauss_jordan_solve '
+     'lower_triangular_solve upper_triangular_solve pinv_solve'),
+    ('grid.break_down(test_method="lu")',
+     'LUdecomposition LUdecompositionFF LUdecomposition_Simple'),
+    ('grid.break_down(test_method="qr")',
+     'QRdecomposition'),
+    ('grid.break_down(test_method="cholesky")',
+     'cholesky'),
+    ('grid.break_down(test_method="ldl")',
+     'LDLdecomposition'),
+    ('grid.break_down(test_method="svd")',
+     'singular_value_decomposition singular_values'),
+    ('grid.break_down(test_method="hessenberg")',
+     'upper_hessenberg_decomposition'),
+    ('grid.break_down(test_method="jordan") (families for 100 %, batch 19)',
+     'jordan_cells'),
+    ('grid.swap_rows_and_columns()',
+     'T'),
+    ('grid.find_rank()',
+     'rank'),
+    ('grid.find_column_space()',
+     'columnspace'),
+    ('grid.find_condition_number()',
+     'condition_number'),
+    ('grid.take_inverse(closest_possible=True)',
+     'pinv'),
+    ('grid.find_size() (kind= for the other matrix norms)',
+     'norm'),
+    ('grid.take_matrix_exp()',
+     'exp'),
+    ('grid.take_matrix_function("log")',
+     'log'),
+    ('grid.check_if_grid_is("symmetric")',
+     'is_symmetric'),
+    ('grid.check_if_grid_is("hermitian")',
+     'is_hermitian'),
+    ('grid.check_if_grid_is("diagonal")',
+     'is_diagonal'),
+    ('grid.check_if_grid_is("upper triangle")',
+     'is_upper'),
+    ('grid.check_if_grid_is("lower triangle")',
+     'is_lower'),
+    ('numbers.find_dot_product_with(other_numbers)',
+     'dot'),
+    ('numbers.find_cross_product_with(other_numbers)',
+     'cross'),
+    ('grid.multiply_as_matrix_by(grid)',
+     'multiply'),
+    ('grid.times(grid) multiplies two grids cell by cell',
+     'multiply_elementwise'),
+    ('grid.make_columns_orthogonal()',
+     'orthogonalize'),
+    ('grid.get_part("diagonal")',
+     'diagonal'),
+    ('grid.get_row(1)',
+     'row'),
+    ('grid.get_column(1)',
+     'col'),
+    ('grid.find_shape() gives the rows and columns',
+     'shape'),
+    ('sdata.number_grid(rows=2, columns=3, filled_with=1) makes a grid of ones',
+     'ones'),
+    ('sdata.number_grid(rows=2, columns=3, filled_with=0) makes a grid of zeros',
+     'zeros'),
+    ('sdata.number_grid(kind="identity", size=3)',
+     'eye'),
+    ('grid.get_all_numbers()',
+     'flat tolist'),
+    ('grid.get_part("upper triangle") (or "lower triangle")',
+     'upper_triangular lower_triangular'),
+    ('numbers.take_function("hyperbolic sine") takes a function of every number',
+     'applyfunc'),
+    (_GRID_HAND_OVER
+     + ' Matrix methods work (row operations, forms such as rref, left eigenvectors, the non-zero '
+     'values, stacking into a vector and the other matrix tools)',
+     'C D H add adjugate analytic_func as_immutable as_mutable as_real_imag atoms berkowitz '
+     'berkowitz_charpoly berkowitz_minors bidiagonal_decomposition bidiagonalize charpoly cofactor '
+     'cofactorMatrix cofactor_matrix col_del col_insert col_join col_op col_swap companion '
+     'connected_components connected_components_decomposition copy copyin_list copyin_matrix diagonalize '
+     'doit dual echelon_form elementary_col_op elementary_row_op equals extract fill free_symbols from_dok '
+     'get_diag_blocks has hat hstack inv_mod irregular is_Identity is_Matrix is_MatrixExpr '
+     'is_anti_symmetric is_diagonalizable is_echelon is_indefinite is_lower_hessenberg '
+     'is_negative_definite is_negative_semidefinite is_nilpotent is_positive_definite '
+     'is_positive_semidefinite is_square is_strongly_diagonally_dominant is_symbolic is_upper_hessenberg '
+     'is_weakly_diagonally_dominant is_zero is_zero_matrix iter_items iter_values jacobian jordan_block '
+     'key2bounds key2ij kind left_eigenvects lll lll_transform minor minorEntry minorMatrix '
+     'minor_submatrix n normalized one permute permuteBkwd permuteFwd permute_cols permute_rows pow '
+     'print_nonzero project rank_decomposition replace rmultiply rot90 row_add row_del row_insert row_join '
+     'row_mult row_op row_swap rowspace rref rref_rhs strongly_connected_components '
+     'strongly_connected_components_decomposition table to_DM todod todok values vec vech vee vstack '
+     'wilkinson xreplace zero zip_row_op'),
+]
+_SYMPYSTATS = [
+    ('sdata.distribution("arcsine", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Arcsin'),
+    ('sdata.distribution("bernoulli", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Bernoulli'),
+    ('sdata.distribution("beta", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Beta'),
+    ('sdata.distribution("beta binomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'BetaBinomial'),
+    ('sdata.distribution("beta prime", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'BetaPrime'),
+    ('sdata.distribution("binomial", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Binomial'),
+    ('sdata.distribution("cauchy", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Cauchy'),
+    ('sdata.distribution("chi", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Chi'),
+    ('sdata.distribution("chi-square", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'ChiSquared'),
+    ('sdata.distribution("burr type iii", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Dagum'),
+    ('sdata.distribution("dirichlet", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Dirichlet'),
+    ('sdata.distribution("whole number uniform", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'DiscreteUniform'),
+    ('sdata.distribution("erlang", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Erlang'),
+    ('sdata.distribution("exponentially modified normal", ...) (worked out by SciPy; SymPy\'s exact '
+     'one: formula.as_sympy())',
+     'ExGaussian'),
+    ('sdata.distribution("exponential", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Exponential'),
+    ('sdata.distribution("exponential power", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'ExponentialPower'),
+    ('sdata.distribution("F", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'FDistribution'),
+    ('sdata.distribution("inverse weibull", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Frechet'),
+    ('sdata.distribution("gamma", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Gamma'),
+    ('sdata.distribution("inverse gamma", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'GammaInverse'),
+    ('sdata.distribution("inverse gaussian", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'GaussianInverse'),
+    ('sdata.distribution("geometric", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Geometric'),
+    ('sdata.distribution("gompertz", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Gompertz'),
+    ('sdata.distribution("gumbel", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Gumbel'),
+    ('sdata.distribution("hypergeometric", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Hypergeometric'),
+    ('sdata.distribution("laplace", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Laplace'),
+    ('sdata.distribution("levy", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Levy'),
+    ('sdata.distribution("log-logistic", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'LogLogistic'),
+    ('sdata.distribution("lognormal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'LogNormal'),
+    ('sdata.distribution("logarithmic", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Logarithmic'),
+    ('sdata.distribution("logistic", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Logistic'),
+    ('sdata.distribution("lomax", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Lomax'),
+    ('sdata.distribution("maxwell", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Maxwell'),
+    ('sdata.distribution("moyal", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Moyal'),
+    ('sdata.distribution("multinomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Multinomial'),
+    ('sdata.distribution("multivariate normal", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'MultivariateNormal'),
+    ('sdata.distribution("multivariate t", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'MultivariateT'),
+    ('sdata.distribution("nakagami", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Nakagami'),
+    ('sdata.distribution("negative binomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'NegativeBinomial'),
+    ('sdata.distribution("normal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Normal'),
+    ('sdata.distribution("pareto", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Pareto'),
+    ('sdata.distribution("poisson", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Poisson'),
+    ('sdata.distribution("power function", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'PowerFunction'),
+    ('sdata.distribution("cosine", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'RaisedCosine'),
+    ('sdata.distribution("rayleigh", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Rayleigh'),
+    ('sdata.distribution("reciprocal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Reciprocal'),
+    ('sdata.distribution("skellam", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Skellam'),
+    ('sdata.distribution("t", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'StudentT'),
+    ('sdata.distribution("trapezoidal", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Trapezoidal'),
+    ('sdata.distribution("triangular", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Triangular'),
+    ('sdata.distribution("uniform", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Uniform'),
+    ('sdata.distribution("irwin-hall", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'UniformSum'),
+    ('sdata.distribution("von mises", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'VonMises'),
+    ('sdata.distribution("weibull", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Weibull'),
+    ('sdata.distribution("semicircular", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'WignerSemicircle'),
+    ('sdata.distribution("wishart", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Wishart'),
+    ('sdata.distribution("yule-simon", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'YuleSimon'),
+    ('sdata.distribution("zipf", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Zeta'),
+    ('sdata.distribution("normal", average=50, ' 'standard_deviation=10).find_chance_that_value(is_below=60)',
+     'P Probability cdf'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_average()',
+     'E Expectation'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()',
+     'Variance variance'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_standard_deviation()',
+     'std'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_median()',
+     'median'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_density_at(60)',
+     'density'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_percentile(95)',
+     'quantile'),
+    ('sdata.distribution("normal", average=50, ' 'standard_deviation=10).make_random_numbers(how_many=10)',
+     'sample sample_iter'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary() (with the '
+     'skewness, excess kurtosis and entropy)',
+     'skewness kurtosis entropy'),
+    (_HAND_OVER
+     + ' its other probability tools work (moments, covariance and correlation of random letters, '
+     'conditions, processes, random matrices and the distributions simplydata does not have); every '
+     'distribution simplydata has: sdata.distribution("normal", average=50, standard_deviation=10)',
+     'Benini BernoulliProcess BetaNoncentral BoundedPareto CentralMoment ChiNoncentral CircularEnsemble '
+     'CircularOrthogonalEnsemble CircularSymplecticEnsemble CircularUnitaryEnsemble Coin '
+     'ContinuousDistributionHandmade ContinuousMarkovChain ContinuousRV Covariance CrossCovarianceMatrix '
+     'Davis Die DiscreteDistributionHandmade DiscreteMarkovChain DiscreteRV DiscreteTimeStochasticProcess '
+     'ExpectationMatrix FiniteDistributionHandmade FiniteRV FisherZ FlorySchulz GammaProcess '
+     'GaussianEnsemble GaussianOrthogonalEnsemble GaussianSymplecticEnsemble GaussianUnitaryEnsemble '
+     'GeneralizedMultivariateLogGamma GeneralizedMultivariateLogGammaOmega GeneratorMatrixOf H Hermite '
+     'IdealSoliton JointEigenDistribution JointRV Kumaraswamy LogCauchy LogitNormal MatrixGamma '
+     'MatrixNormal MatrixStudentT Moment MultivariateBeta MultivariateEwens MultivariateLaplace '
+     'NegativeMultinomial NormalGamma PoissonProcess QuadraticU Rademacher RobustSoliton ShiftedGompertz '
+     'StochasticProcess StochasticStateSpaceOf TransitionMatrixOf VarianceMatrix Wald WienerProcess '
+     'characteristic_function cmoment correlation coskewness covariance dependent factorial_moment given '
+     'independent joint_eigen_distribution level_spacing_distribution marginal_distribution moment '
+     'moment_generating_function pspace random_symbols sample_stochastic_process sampling_density smoment '
+     'where'),
+]
+_ROLLING = [
+    ('table.add_rolling_column("smooth", from_column="temperature", show="average")',
+     'mean'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="total")',
+     'sum'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="median")',
+     'median'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="smallest")',
+     'min'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="biggest")',
+     'max'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="standard deviation")',
+     'std'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="variance")',
+     'var'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="skewness")',
+     'skew'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="kurtosis", window=4)',
+     'kurt'),
+    ('table.add_rolling_column("smooth", from_column="temperature", show="count")',
+     'count'),
+    ('table.add_rolling_column("high", from_column="temperature", show="percentile", percent=90)',
+     'quantile'),
+    ('table.add_rolling_column("link", from_column="hours", with_column="marks", show="correlation",'
+     ' window=3)',
+     'corr'),
+    ('table.add_rolling_column("joint", from_column="hours", with_column="marks", show="covariance",'
+     ' window=3)',
+     'cov'),
+    ('table.add_rolling_column("smooth", from_column="temperature", window=3, show="average"): show='
+     ' the summary, window= the size, sorted_by= the order',
+     'agg aggregate window center closed min_periods on step'),
+    (_PANDAS_HAND_OVER
+     + ' the other rolling steps work (a function of your own, ranks, first and last values)',
+     'apply exclusions first last method ndim nunique obj pipe rank sem win_type'),
+]
+_EXPANDING = [
+    ('table.add_running_column("so_far", from_column="sales", show="average")',
+     'mean'),
+    ('table.add_running_column("so_far", from_column="sales", show="total")',
+     'sum'),
+    ('table.add_running_column("so_far", from_column="sales", show="smallest")',
+     'min'),
+    ('table.add_running_column("so_far", from_column="sales", show="biggest")',
+     'max'),
+    ('table.add_running_column("so_far", from_column="sales", show="count")',
+     'count'),
+    ('table.add_running_column("so_far", from_column="sales", show="total"): show= the running '
+     'summary, sorted_by= the order',
+     'agg aggregate min_periods'),
+    (_PANDAS_HAND_OVER + ' the other growing-window steps work (spread, percentiles, a function of your own)',
+     'apply center closed corr cov exclusions first kurt last median method ndim nunique obj on pipe '
+     'quantile rank sem skew std step var win_type window'),
+]
+_EWM = [
+    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", '
+     'sorted_by="time") (as ewm(span=3, adjust=False).mean(): each value is weighted from the start)',
+     'mean agg aggregate'),
+    (_PANDAS_HAND_OVER
+     + " ewm(adjust=True) works (weights that start afresh, pandas' default); simplydata's smoothing "
+     'is adjust=False',
+     'adjust'),
+    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", span=3, '
+     'sorted_by="time") (alpha=, span=, half_life= or com= sets the weights)',
+     'alpha span halflife com'),
+    (_PANDAS_HAND_OVER
+     + ' the spread and sum of an exponentially weighted window work; the weighted average is '
+     'table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", '
+     'sorted_by="time")',
+     'center closed corr cov exclusions ignore_na method min_periods ndim obj on online std step sum times '
+     'var win_type window'),
+]
+_RESAMPLE = [
+    ('table.find_average_of("sales", for_each_group_in="date", every="month")',
+     'mean agg aggregate'),
+    ('table.find_summary_of("sales", show=["total", "smallest", "biggest", "median", "count"], '
+     'for_each_group_in="date", every="month")',
+     'sum min max median count size first last prod std var sem nunique quantile ohlc'),
+    ('table.add_missing_dates("date", every="day")',
+     'asfreq'),
+    ('table.fill_empty_cells_in("price", with_the="value above")',
+     'ffill'),
+    ('table.fill_empty_cells_in("price", with_the="value below")',
+     'bfill'),
+    ('table.fill_empty_cells_in("price", with_the="line between neighbours")',
+     'interpolate'),
+    (_PANDAS_HAND_OVER + ' the other resampling steps work (the groups themselves, a function of your own)',
+     'a apply ax binner get_group groups indices ndim nearest ngroups pipe transform'),
+]
+
 # families for 100 %, batches 7-9 (plan section 2.3, approved by Manish 2026-11-28): the pointers of the maths family,
 # made from its one name table (_maths_functions.py): numbers.take_function, work_on_bits, turn_into_yes_or_no(is_=),
 # sdata.find_zeros_of and sdata.find_area_points. A name a list above already points keeps that pointer.
@@ -2425,17 +3802,28 @@ def _maths_family() -> dict:
 
 _MATHS = _maths_family()
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
+OTHER_NAMES = {"sdata": _build(_SDATA + _SDATA_FINAL), "table": _build(_TABLE + _TABLE_FINAL + _TABLE_REVIEW),
                "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4 + _SEABORN_MORE), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
-               "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
+               "text": _build(_TEXT + _TEXT_FINAL), "dates": _build(_DATES + _DATES_FINAL),
+               "groups": _build(_GROUPS + _GROUPS_FINAL),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
-               "numpy": _build(_NUMPY + _MATHS["numpy"]), "linalg": _build(_LINALG), "random": _build(_RANDOM),
-               "fft": _build(_FFT),
-               "stats": _build(_STATS), "special": _build(_SPECIAL + _MATHS["special"]),
-               "scipy": _build(_SCIPY + _MATHS["scipy"]), "sympy": _build(_SYMPY + _MATHS["sympy"]),
-               "so": _build(_SEABORN_OBJECTS),
-               "lists": _build(_LISTS)}  # families for 100 %, batches 1-2 (G12)
+               "numpy": _build(_NUMPY + _NUMPY_FINAL + _NUMPY_REVIEW + _MATHS["numpy"]),
+               "linalg": _build(_LINALG),
+               "random": _build(_RANDOM + _RANDOM_FINAL + _RANDOM_REVIEW),
+               "fft": _build(_FFT + _FFT_FINAL),
+               "stats": _build(_STATS + _STATS_REVIEW), "special": _build(_SPECIAL + _MATHS["special"]),
+               "scipy": _build(_SCIPY + _SCIPY_FINAL + _SCIPY_REVIEW + _MATHS["scipy"]),
+               "sympy": _build(_SYMPY + _SYMPY_FINAL + _MATHS["sympy"]),
+               "so": _build(_SEABORN_OBJECTS + _SEABORN_OBJECTS_FINAL),
+               "lists": _build(_LISTS),  # families for 100 %, batches 1-2 (G12)
+               # review of numbers-int-2: pandas' window and resample objects, df.rolling(3).mean
+               "rolling": _build(_ROLLING), "expanding": _build(_EXPANDING), "ewm": _build(_EWM),
+               "resample": _build(_RESAMPLE),
+               # second review of numbers-int-2: each probed part of a library has its own list
+               "ndarray": _build(_NDARRAY), "npma": _build(_NPMA), "npstrings": _build(_NPSTRINGS),
+               "matrix": _build(_MATRIX), "sympystats": _build(_SYMPYSTATS), "hierarchy": _build(_HIERARCHY),
+               "sparse": _build(_SPARSE)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -2452,11 +3840,17 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "Generator": "random", "RandomState": "random", "fft": "fft", "stats": "stats", "special": "special",
               "scipy": "scipy", "optimize": "scipy", "integrate": "scipy", "interpolate": "scipy",
               "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
-              "Matrix": "sympy",
+              "Matrix": "matrix",
               # seaborn's objects interface: so.Dot, so.Plot.facet, seaborn.objects.Hist
               "so": "so", "objects": "so",
               # Polars list and array columns (G12): pl.col("genes").list.sum, Series.arr.max
-              "list": "lists", "arr": "lists"}
+              "list": "lists", "arr": "lists",
+              # review of numbers-int-2: pandas' window and resample objects (df.rolling(3).mean, df.resample("M").sum)
+              "rolling": "rolling", "expanding": "expanding", "ewm": "ewm", "resample": "resample",
+              # second review of numbers-int-2: each probed part of a library has its own list, so a name keeps its
+              # own meaning (np.strings.add joins text, np.add adds numbers)
+              "strings": "npstrings", "ma": "npma", "ndarray": "ndarray", "hierarchy": "hierarchy",
+              "sparse": "sparse", "csgraph": "sparse"}
 NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
 # list. and arr. names (Polars list columns) are looked up only with list. or arr. in front: a bare sum, first or
 # unique means the table's word, so the list namespace is not among the ones a bare name lists
@@ -2470,7 +3864,16 @@ NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "char
                       "random": ("numbers", "sdata"), "fft": ("numbers", "sdata"),
                       "stats": ("sdata", "numbers", "table"), "special": ("numbers", "sdata"),
                       "scipy": ("sdata", "numbers", "block", "table"), "sympy": ("sdata",),
-                      "so": ("chart", "sdata")}
+                      "so": ("chart", "sdata"),
+                      # second review of numbers-int-2: the probed parts fall back only on lists that mean the same
+                      "ndarray": ("numpy", "numbers", "block", "sdata"), "npma": ("numpy", "numbers", "sdata"),
+                      "npstrings": (), "matrix": ("sympy", "sdata"), "sympystats": (), "hierarchy": (),
+                      "sparse": ()}
+# The probed parts that are not searched for a bare name (np.strings.add must not answer a bare "add"), and how each
+# is shown; ndarray and np.ma names may be words of numbers (np.ndarray.sort is numbers.sort)
+PROBED_SPACES = {"ndarray": "ndarray", "npma": "np.ma", "npstrings": "np.strings", "matrix": "Matrix",
+                 "sympystats": "sympy.stats", "hierarchy": "hierarchy", "sparse": "sparse"}
+WORD_SPACES = ("ndarray", "npma")
 # The NumPy, SciPy and SymPy namespaces (numbers finishing PR) and seaborn.objects, and how a bare name shows each
 NUMBER_SPACES = {"numpy": "np", "linalg": "linalg", "random": "rng", "fft": "fft", "stats": "stats",
                  "special": "special", "scipy": "scipy", "sympy": "sympy",
@@ -2523,7 +3926,12 @@ def _name_parts(typed: str) -> tuple[str | None, str | None, str] | None:
             return part, "so", name
     for part in reversed(before):
         if part.lower() in spaces:
-            return part, spaces[part.lower()], name
+            kind = spaces[part.lower()]
+            if kind == "stats" and any(p in ("sp", "sympy") for p in before):  # sympy.stats.Normal is not SciPy's
+                return part, "sympystats", name
+            if kind == "linalg" and "sparse" in before:  # scipy.sparse.linalg.spsolve
+                return "sparse", "sparse", name
+            return part, kind, name
     if before[0] in SIMPLYDATA_OBJECTS:
         return None
     if all(part in QUALIFIERS for part in before) or len(before) == 1:

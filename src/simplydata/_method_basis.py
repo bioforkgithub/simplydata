@@ -6294,3 +6294,141 @@ BASIS["curve.as_scipy"] = _b(
     "None; SciPy's own words work on the object.",
     "Handing over the object itself lets every number be checked in SciPy; extrapolate=False keeps simplydata's rule "
     "of no guesswork beyond the points.", (), "P5", "", "convention")
+# ---------------------------------------------------------------- families for 100 %, batches 22-23 (approved by Manish
+# 2026-11-28): polynomial algebra on a formula (SymPy)
+BASIS["f.find_roots"] = _b(
+    "Every root of the polynomial, exactly (SymPy all_roots: radicals where SymPy can write them, else its CRootOf, "
+    "worked out to any number of digits), one row for each different root with how many times it repeats; real "
+    "roots first, as SymPy orders them.",
+    "real_only=True (real_roots), fractions_only=True (ground_roots), between= (the real roots in a range), "
+    "exactly=False (nroots), show=\"count\" (count_roots) or show=\"intervals\" (intervals).",
+    "A polynomial of degree n has n roots counted with their repeats (the fundamental theorem of algebra); SymPy "
+    "lists a repeated root once for each time, and one row with the count reads as textbooks write it.",
+    ("meurer2017",), "P5",
+    "One letter, number coefficients (whole numbers or fractions for the exact roots); anything else is refused "
+    "with the word that does it (sdata.solve, exactly=False).", "convention")
+BASIS["f.find_roots fractions_only="] = _b(
+    "The whole-number and fraction roots that factoring over the rationals finds (SymPy ground_roots), smallest "
+    "first.",
+    "Without fractions_only=: every root (all_roots).",
+    "SymPy ground_roots gives a dict without an order; smallest first is the order of the other roots tables.",
+    ("meurer2017",), "P5", "As find_roots.", "convention")
+BASIS["f.find_roots exactly="] = _b(
+    "exactly=False: every root in decimals from SymPy nroots with 15 significant digits, about as many as a float "
+    "keeps.",
+    "exactly=True (the default): exact roots.",
+    "15 digits is nroots' own default (n=15) and what a float can hold, so nothing printed is beyond a float's "
+    "precision.", ("meurer2017",), "P3", "As find_roots; not with real_only= or fractions_only=.", "convention")
+BASIS["f.find_degree"] = _b(
+    "A formula of one letter: its highest power (SymPy degree). A formula of several letters without for_letter=: "
+    "the total degree, the highest sum of powers in one term (SymPy total_degree).",
+    "for_letter=\"x\" gives the degree in one letter (degree); a list gives each (degree_list).",
+    "SymPy degree alone takes the first letter in its own order (alphabetical), which depends on how the letters "
+    "are named; the total degree is the degree of a polynomial of several letters in algebra texts.",
+    ("meurer2017",), "P5", "The formula must be a polynomial in the letters; 0 has degree minus infinity, as in "
+    "SymPy.", "convention")
+BASIS["f.make_simpler by="] = _b(
+    "Each value is one of SymPy's own simplifiers with SymPy's own defaults: \"logs\" is logcombine, which joins "
+    "logs only where the letters allow it (force=False), and \"trig rules\" is fu.",
+    "Without by=: SymPy simplify, which tries many of them and keeps the shortest.",
+    "SymPy's defaults never change a formula into one that is wrong for some values (log(x) + log(y) is log(x*y) "
+    "only for positive x and y); letters_are= says what a letter is, so the step may go further.",
+    ("meurer2017",), "P3", "The plain name or SymPy's name of the simplifier.", "convention")
+BASIS["f.turn_into_sum by="] = _b(
+    "Each value is one of SymPy's expand_* functions with SymPy's own defaults: \"logs\" (expand_log) splits a log "
+    "only where the letters allow it (force=False).",
+    "Without by=: SymPy expand, every kind of step at once.",
+    "As for make_simpler(by=): a step that is wrong for some values is left out unless letters_are= allows it.",
+    ("meurer2017",), "P3", "The plain name or SymPy's name; powers of sums with letters above 100 are refused.",
+    "convention")
+
+# ---------------------------------------------------------------- families for 100 %, batches 24-26 (approved by Manish
+# 2026-11-28, G13 and G15): calculus checks, series, transforms, number theory and exact grids (SymPy)
+BASIS["f.take_transform"] = _b(
+    "The transform, from the letter t to s for Laplace, x to k for Fourier, sine and cosine, x to s for Mellin, r "
+    "to k for Hankel (each the other way for the inverse); the Laplace transform is printed with where it holds "
+    "(Re(s) > a, from SymPy) and the Mellin transform with its strip; the others are given without SymPy's "
+    "conditions (noconds=True). The Fourier transform has SymPy's convention, 2*pi in the power "
+    "(exp(-2*pi*I*x*k)).",
+    "from_letter= and to_letter= other letters; order= the order of the Hankel transform's Bessel function; "
+    "between= the strip of s of the inverse Mellin transform.",
+    "Where a Laplace or Mellin transform holds is part of its answer, as in the tables of Abramowitz and Stegun "
+    "(1964, chapter 29); the letters are the ones tables use, and the Fourier convention with 2*pi in the power "
+    "has the same form forwards and back.",
+    ("meurer2017",), "P3",
+    "The name or SymPy's name of the transform; to_letter= must be a new letter; an unworked answer is refused.",
+    "convention")
+BASIS["f.check_if_always between="] = _b(
+    "Without between=, every real number; with it, the range between the two ends. The check is made inside the "
+    "part of that range where the formula has a value (SymPy continuous_domain), so sqrt(x) is rising and log(x) "
+    "on [0, infinity] is rising; a formula with a gap inside the range (1/x) gives None.",
+    "between=[low, high] for a range.",
+    "A formula rises or falls where it has a value; SymPy's own check on a closed range with an end where the "
+    "slope has no value (log(x) at 0, sqrt(x) at 0) answers False, which is wrong for these formulas.",
+    ("meurer2017",), "P3", "between= needs the low end first; SymPy's None (it cannot tell) is said plainly.",
+    "convention")
+BASIS["f.find_fourier_series"] = _b(
+    "Over -pi to pi, the first 3 parts of the series that are not 0, the constant being one part and each "
+    "frequency (its cosine and sine together) one part (SymPy fourier_series, then truncate with its default of "
+    "3).",
+    "between= another range of finite length; how_many_terms= from 1 to 100.",
+    "-pi to pi is the range of the Fourier series in textbooks, and SymPy truncate keeps 3 parts by default.",
+    ("meurer2017",), "P3", "between= must have finite ends.", "convention")
+BASIS["f.find_slope_formula step="] = _b(
+    "The forward difference (f(x + step) - f(x))/step: SymPy differentiate_finite at the points x and x + step; "
+    "with step=1 it is SymPy difference_delta, the step between neighbouring terms of a sequence.",
+    "Without step=: the slope itself (SymPy diff).",
+    "SymPy's own default for differentiate_finite is the central difference at x - 1/2 and x + 1/2, which for a "
+    "sequence uses half-steps that are not terms; the forward difference is the one of sequences and of "
+    "difference equations.", ("meurer2017",), "P5",
+    "step= is a number other than 0 or a new letter; one letter, how_many_times=1.", "convention")
+BASIS["f.show_as_tree"] = _b(
+    "Each part on its own line with its kind (Add, Pow, Symbol), without the assumptions SymPy's print_tree lists "
+    "for each part by default.",
+    "as_graphviz=True gives the tree in Graphviz's dot language (SymPy dotprint).",
+    "The assumptions (commutative, complex, finite ...) fill about ten lines for each part and hide the shape of "
+    "the formula, which is what the word shows.", (), "P5", "None.", "starting value")
+BASIS["sdata.find_product_of_series"] = _b(
+    "The letter that counts is a whole number (SymPy integer=True), as in find_sum_of_series; a finite product has "
+    "at most 1000 terms; SymPy's answer is given as SymPy writes it.",
+    "between= with a letter at the end gives the formula of the product up to it.",
+    "A product of a series runs over whole numbers by definition; 1000 terms keeps factorial(1000), the biggest "
+    "counting number formula text allows.", ("meurer2017",), "P3",
+    "The ends are whole numbers, \"infinity\" or a letter; an unworked product is refused.", "convention")
+BASIS["sdata.solve whole_numbers_only="] = _b(
+    "The whole-number solutions SymPy diophantine gives, with each change of sign and order (permute=True), and "
+    "the kind of equation SymPy finds (classify_diop); a family of solutions keeps SymPy's letters (t_0, p, q), any "
+    "whole numbers, and is said to be SymPy's family, which may leave out multiples and swaps of its members.",
+    "Without whole_numbers_only=: the solutions among all numbers (SymPy solve).",
+    "SymPy's default (permute=False) gives one solution of each kind only, so x**2 + y**2 = 25 would miss most "
+    "of its 12 solutions; for some equations (x**2 + y**2 = z**2) SymPy gives only its primitive family, so "
+    "simplydata never calls a family every solution.",
+    ("meurer2017",), "P4", "One polynomial equation (=), with exactly=True.", "convention")
+BASIS["sdata.number_grid exactly="] = _b(
+    "A grid of exact cells (SymPy Matrix): a typed decimal is the exact fraction it stands for (0.2 is 1/5), text "
+    "is read as a formula (\"1/3\", \"a\", \"x**2\"); up to 12 x 12.",
+    "Without exactly=True: a grid of decimals (NumPy).",
+    "As in the other exact words (exact_number): the fraction a decimal stands for is what the researcher typed; "
+    "12 x 12 keeps exact determinants and inverses within the time limit.", ("meurer2017",), "P3",
+    "Every row the same length; numbers and formula text only.", "convention")
+BASIS["grid.find_permanent"] = _b(
+    "SymPy per on the grid's numbers as exact fractions, given as a decimal (exactly=True gives the exact answer), "
+    "for grids up to 12 x 12.",
+    "exactly=True for the exact answer as a formula.",
+    "SciPy and NumPy have no permanent; exact fractions add no rounding on the way, and the permanent takes about "
+    "n! steps, so 12 x 12 is the limit (as for the exact determinant).", ("meurer2017",), "P3",
+    "A square grid with a number in every cell.", "convention")
+BASIS["nums.find_prime_factors"] = _b(
+    "Each prime factor with how many times it divides the number (SymPy factorint); a number with a decimal part "
+    "is the fraction it stands for, its bottom's primes with minus times (factorrat); 1 has no prime factor, and a "
+    "number below 0 has the primes of its size, its minus sign said and not listed as a prime; 0 is refused, as "
+    "every prime divides it.",
+    "show=\"different primes\" (primefactors) lists each prime once.",
+    "factorint is exact for every whole number a list of numbers holds (up to 2**53).", ("meurer2017",), "P3",
+    "No empty numbers, none above 2**53.", "convention")
+BASIS["f.find_wronskian whole_numbers_only="] = _b(
+    "The Casoratian as a formula in the letter (SymPy casoratian with zero=False), not made simpler.",
+    "Without whole_numbers_only=: the Wronskian (SymPy wronskian).",
+    "SymPy's own default (zero=True) puts 0 in for the letter, which gives a number where a reader of a "
+    "difference-equation text expects the formula; the formula at 0 is then find_value_at(n=0).",
+    ("meurer2017",), "P4", "The letter that counts is the formulas' one letter, or for_letter=.", "convention")

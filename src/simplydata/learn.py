@@ -136,7 +136,9 @@ GROUPS = [
                              # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy sobol_indices
                              "sdata.find_sensitivity_of",
                              # families for 100 %, batch 14: SciPy linear_sum_assignment and quadratic_assignment
-                             "sdata.find_best_pairing"]),
+                             "sdata.find_best_pairing",
+                             # families for 100 %, batches 24-25 (plan section 2.10): SymPy checksol
+                             "sdata.check_solution"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
     # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
     ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
@@ -146,13 +148,26 @@ GROUPS = [
                                     "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
                                     "f.as_sympy",
                                     # families for 100 %, batch 13 (G5, approved by Manish 2026-11-28)
-                                    "sdata.polynomial"]),
+                                    "sdata.polynomial",
+                                    # families for 100 %, batches 22-23 (plan section 2.10, approved by Manish
+                                    # 2026-11-28, G14): polynomial algebra and the family find_fact
+                                    "f.find_roots", "f.find_degree", "f.divide_by", "f.find_common_factor_with",
+                                    "f.find_common_multiple_with", "f.turn_into_one_fraction",
+                                    "f.split_into_top_and_bottom", "f.find_repeated_parts", "f.find_fact",
+                                    # families for 100 %, batches 24-26 (plan section 2.10, approved by Manish
+                                    # 2026-11-28, G15): calculus checks, series, transforms and code
+                                    "f.take_transform", "f.find_area_along_path", "f.check_if_always",
+                                    "f.find_turning_points", "f.find_where_undefined", "f.find_period",
+                                    "f.find_fourier_series", "f.find_residue_at", "f.list_terms", "f.find_hessian",
+                                    "f.find_wronskian", "f.show_as_code", "f.show_as_tree"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
                                    "sdata.find_sum_of_series",
                                    # families for 100 %, batch 15: SciPy solve_bvp
-                                   "sdata.find_path_between_ends"]),
+                                   "sdata.find_path_between_ends",
+                                   # families for 100 %, batches 24-25 (plan section 2.10): SymPy product
+                                   "sdata.find_product_of_series"]),
     ("Values between points", ["table.find_values_at", "table.make_map_of",
                                # families for 100 %, batch 16 (G6): "curve.name" is a step on a curve,
                                # curve = sdata.curve_through_points(x=..., y=...), then curve.find_value_at(12)
@@ -242,7 +257,10 @@ GROUPS = [
                                  "sdata.find_area_points",
                                  # families for 100 %, batch 10 (approved by Manish 2026-11-28, plan section 2.4)
                                  "nums.find_product", "nums.turn_into_changes", "nums.turn_into_slopes",
-                                 "nums.find_dot_product_with", "nums.find_cross_product_with", "nums.find_size"]),
+                                 "nums.find_dot_product_with", "nums.find_cross_product_with", "nums.find_size",
+                                 # families for 100 %, batch 26 (plan section 2.10, approved by Manish 2026-11-28,
+                                 # G13): number theory with SymPy
+                                 "nums.check_if_prime", "nums.find_prime_factors", "nums.find_number_fact"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
@@ -284,7 +302,10 @@ GROUPS = [
                                             # ndimage, and scipy.signal's 2-D names)
                                             "grid.find_edges", "grid.change_patch_shapes",
                                             "grid.find_distance_to_nearest", "grid.split_touching_patches",
-                                            "grid.move_and_stretch_by", "grid.convolve_with", "grid.find_envelope"]),
+                                            "grid.move_and_stretch_by", "grid.convolve_with", "grid.find_envelope",
+                                            # families for 100 %, batch 26 (plan section 2.10): SymPy per and
+                                            # GramSchmidt
+                                            "grid.find_permanent", "grid.make_columns_orthogonal"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -316,7 +337,10 @@ GROUPS = [
                                           "block.get_numbers_nearest_to", "block.turn_into_change_from_average",
                                           "block.smooth", "block.change_size_to", "grid.smooth"]),
     ("Numbers: chances and random picks", ["nums.make_random_picks", "nums.take_log_odds", "nums.turn_into_chances",
-                                           "sdata.count_ways_to_choose", "sdata.count_ways_to_order"]),
+                                           "sdata.count_ways_to_choose", "sdata.count_ways_to_order",
+                                           # families for 100 %, batch 26 (plan section 2.10): SymPy subsets,
+                                           # variations and cartes
+                                           "sdata.list_ways_to_choose", "sdata.list_ways_to_order"]),
     # "system.name" is a step on a system: system = sdata.system("1 / (s**2 + 2*s + 5)"), then system.poles().
     ("Waves and systems", ["nums.convolve_with", "nums.deconvolve_by", "nums.change_time_step", "sdata.make_wave",
                            "sdata.make_window_shape", "sdata.system", "system.step_response", "system.impulse_response",
@@ -899,7 +923,9 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         sdata.solve("x**3 - 2*x = 5", between=[0, 3])
         sdata.solve("x**2 - 2*x + 5 = 0")
-        sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1})"""),
+        sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1})
+        sdata.solve("x**2 + y**2 = 25", exactly=True, whole_numbers_only=True)
+        sdata.solve("a(n + 2) = a(n + 1) + a(n)", exactly=True, at_start={0: 0, 1: 1})"""),
     "sdata.find_sensitivity_of": textwrap.dedent("""\
         import simplydata as sdata
         answer = sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})
@@ -1433,7 +1459,9 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         grid = sdata.number_grid([[1, 2, 3], [4, 5, 6]])
         print(grid)
-        print(sdata.number_grid(rows=2, columns=3, filled_with=0))"""),
+        print(sdata.number_grid(rows=2, columns=3, filled_with=0))
+        exact = sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True)
+        exact.find_determinant()"""),
     "nums.make_number_grid": _nx("grid = numbers.make_number_grid(columns=3)\nprint(grid)", "[1, 2, 3, 4, 5, 6]"),
     "grid.count_rows": _gx("print(grid.count_rows())"),
     "grid.count_columns": _gx("print(grid.count_columns())"),
@@ -1756,9 +1784,12 @@ def _lines(*lines: str) -> str:
 # numbers phase, batch 3 (approved by Manish 2026-11-25)
 HELP_EXAMPLES.update({
     "sdata.formula": _lines('formula = sdata.formula("(x + 2)**2 - 4")', "print(formula)"),
-    "f.make_simpler": _fx("formula.make_simpler()", "(x**2 - 1) / (x - 1)"),
-    "f.turn_into_sum": _fx("formula.turn_into_sum()"),
-    "f.turn_into_product": _fx("formula.turn_into_product()", "x**2 + 4*x"),
+    "f.make_simpler": _fx('formula.make_simpler()\nother = sdata.formula("sin(x)**2 + cos(x)**2")\n'
+                          'other.make_simpler(by="trig functions")', "(x**2 - 1) / (x - 1)"),
+    "f.turn_into_sum": _fx('formula.turn_into_sum()\nother = sdata.formula("sin(a + b)")\n'
+                           'other.turn_into_sum(by="trig functions")'),
+    "f.turn_into_product": _fx('formula.turn_into_product()\nformula.undo()\nformula.turn_into_product(by="nested")',
+                               "x**2 + 4*x"),
     "f.find_slope_formula": _fx("slope = formula.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
     "f.find_area_formula": _fx("area = formula.find_area_formula()", "x**3 - 2*x"),
     "f.find_value_at": _fx("formula.find_value_at(x=2)\nformula.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
@@ -1808,6 +1839,24 @@ HELP_EXAMPLES.update({
     "f.group_by_powers_of": _fx('formula.group_by_powers_of("x")\nformula.undo()', "a*x**2 + b*x**2 + a*x - x"),
     "f.turn_into_partial_fractions": _fx("formula.turn_into_partial_fractions()", "(3*x + 5) / ((x + 1)*(x + 2))"),
     "f.as_sympy": _fx("expr = formula.as_sympy()\nprint(type(expr))"),
+    # families for 100 %, batches 22-23 (approved by Manish 2026-11-28): polynomial algebra (SymPy)
+    "f.find_roots": _fx('roots = formula.find_roots()\nroots.show()\nformula.find_roots(show="count")\n'
+                        "formula.find_roots(exactly=False)", "x**3 - 2*x**2 - x + 2"),
+    "f.find_degree": _fx('formula.find_degree()\nformula.find_degree(for_letter="x")', "x**3*y + x*y**2 + 1"),
+    "f.divide_by": _fx('quotient, remainder = formula.divide_by("x - 1")\nprint(quotient)\nprint(remainder)\n'
+                       'formula.divide_by("x - 1", show="remainder")', "x**3 - 2*x + 5"),
+    "f.find_common_factor_with": _fx('factor = formula.find_common_factor_with("x**2 - 1")\nprint(factor)\n'
+                                     'formula.find_common_factor_with("x**2 - 1", show="common factor and the rest")',
+                                     "x**2 + 2*x + 1"),
+    "f.find_common_multiple_with": _fx('multiple = formula.find_common_multiple_with("x**2 - 1")\n'
+                                       "multiple.turn_into_product()", "x**2 + 2*x + 1"),
+    "f.turn_into_one_fraction": _fx("formula.turn_into_one_fraction()\nformula.undo()", "1/x + 1/(x + 1)"),
+    "f.split_into_top_and_bottom": _fx("top, bottom = formula.split_into_top_and_bottom()\ntop.find_roots()",
+                                       "(x**2 - 1)/(x - 2)"),
+    "f.find_repeated_parts": _fx("parts, shorter = formula.find_repeated_parts()\nprint(parts)\nprint(shorter)",
+                                 "(x + 1)**2 + sin(x + 1)"),
+    "f.find_fact": _fx('formula.find_fact("discriminant")\nformula.find_fact("resultant", other="x - 1")\n'
+                       'formula.find_fact("viete formulas")\nformula.find_fact("galois group")', "x**2 - 3*x + 1"),
     "sdata.find_sum_of_series": _lines('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
                                        'sdata.find_sum_of_series("k", between=[1, "n"])',
                                        'sdata.find_sum_of_series("1/k", between=[1, "infinity"])'),
@@ -1881,6 +1930,49 @@ HELP_EXAMPLES.update({
                                  "grid.find_envelope()", "print(grid)"),
     "table.find_regions_around_points": _tx("stations", 'regions = table.find_regions_around_points(x="east", '
                                                         'y="north")\nregions.show_first_rows(5)'),
+})
+
+# Families for 100 %, batches 24-26 (plan section 2.10, approved by Manish 2026-11-28, G13 and G15): SymPy's calculus
+# checks, series, transforms, code, number theory, ways and exact grids
+HELP_EXAMPLES.update({
+    "f.take_transform": _fx('formula.take_transform("laplace")\nback = sdata.formula("1/(s + 2)")\n'
+                            'back.take_transform("inverse laplace")', "exp(-2*t)"),
+    "f.find_area_along_path": _fx('formula.find_area_along_path(path="x = cos(t), y = sin(t)", between=[0, "2*pi"])',
+                                  "x**2 + y**2"),
+    "f.check_if_always": _fx('formula.check_if_always("rising", between=[-1, 1])\n'
+                             'formula.check_if_always("bending up")', "x**3"),
+    "f.find_turning_points": _fx("points = formula.find_turning_points()\npoints.show()", "x**3 - 3*x"),
+    "f.find_where_undefined": _fx("points = formula.find_where_undefined()\npoints.show()", "1/(x**2 - 1)"),
+    "f.find_period": _fx("formula.find_period()", "sin(2*x)"),
+    "f.find_fourier_series": _fx('series = formula.find_fourier_series(between=["-pi", "pi"], how_many_terms=4)\n'
+                                 "print(series)", "x"),
+    "f.find_residue_at": _fx("formula.find_residue_at(0)", "exp(x)/x**3"),
+    "f.list_terms": _fx("terms = formula.list_terms(between=[1, 10])\nterms.show()", "n**2"),
+    "f.find_hessian": _fx("grid = formula.find_hessian()\nprint(grid)\ngrid.find_determinant()", "x**2*y + y**3"),
+    "f.find_wronskian": _fx('formula.find_wronskian(["exp(2*x)"])', "exp(x)"),
+    "f.show_as_code": _fx('formula.show_as_code("r")\nformula.show_as_code("julia")\nformula.show_as_code("c")',
+                          "sin(x)**2 + exp(-x)"),
+    "f.show_as_tree": _fx("formula.show_as_tree()", "x**2 + 1"),
+    "sdata.check_solution": _lines('sdata.check_solution("dy/dx = y", "y = 3*exp(x)")',
+                                   'sdata.check_solution("x**2 = 4", "x = -2")',
+                                   'sdata.check_solution("du/dx + du/dy = 0", "u = (x - y)**2")'),
+    "sdata.find_product_of_series": _lines('product = sdata.find_product_of_series("k/(k + 1)", between=[1, "n"])',
+                                           'product.make_simpler(by="gamma functions")',
+                                           'sdata.find_product_of_series("k", between=[1, 10])'),
+    "nums.check_if_prime": _nx("answer = numbers.check_if_prime()\nprint(answer)", "[2, 9, 11, 561]"),
+    "nums.find_prime_factors": _nx("factors = numbers.find_prime_factors()\nfactors.show()", "[12, 35, 360]"),
+    "nums.find_number_fact": _nx('divisors = numbers.find_number_fact("divisors")\ndivisors.show()\n'
+                                 'numbers.find_number_fact("perfect")\nnumbers.find_number_fact("next prime")',
+                                 "[12, 28]"),
+    "grid.find_permanent": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])", "grid.find_permanent()",
+                                  "grid.find_determinant()"),
+    "grid.make_columns_orthogonal": _lines("grid = sdata.number_grid([[1, 1], [1, 0]])",
+                                           "grid.make_columns_orthogonal()", "print(grid)", "grid.undo()",
+                                           "grid.make_columns_orthogonal(of_length_1=True)"),
+    "sdata.list_ways_to_choose": _lines('ways = sdata.list_ways_to_choose(2, out_of=["A", "B", "C", "D"])',
+                                        "ways.show()",
+                                        'sdata.list_ways_to_choose(one_from_each=[["red", "blue"], ["S", "M"]])'),
+    "sdata.list_ways_to_order": _lines('ways = sdata.list_ways_to_order(2, out_of=["A", "B", "C"])', "ways.show()"),
 })
 
 # Families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the table words for the pandas and Polars gaps
@@ -2530,6 +2622,10 @@ def _print_one(key: str) -> None:
     print(textwrap.indent(HELP_EXAMPLES[key], "    "))
 
 
+# What in front of a name says it is a pandas or Polars table's name (review of numbers-int-2)
+_TABLE_FRONTS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame"}
+
+
 def _print_other_names(word) -> bool:
     """sdata.help("minimize"): a name from another tool points to the simplydata word (it never runs).
 
@@ -2540,7 +2636,8 @@ def _print_other_names(word) -> bool:
     matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
     pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, other_name_parts, other_name_space
+    from ._other_names import (NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, PROBED_SPACES, other_name_parts,
+                               other_name_space)
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
@@ -2561,6 +2658,10 @@ def _print_other_names(word) -> bool:
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
                                                                  *NAMESPACE_SHOWN)]
         found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+        # a pandas or Polars table in front (pd.Series.size, pl.DataFrame.clear) means the table's own meaning
+        front = set(str(word).strip().split(".")[:-1])
+        if front & _TABLE_FRONTS and any(kind in ("table", "sdata") for kind, _ in found):
+            found = [(kind, pointer) for kind, pointer in found if kind in ("table", "sdata")]
         if not found:  # lstsq, svd, rfftfreq: names only NumPy, SciPy or SymPy use (numbers finishing PR)
             found = [(kind, other_name_pointer(kind, w)) for kind in NUMBER_SPACES]
             found = [(kind, pointer) for kind, pointer in found if pointer is not None]
@@ -2572,7 +2673,9 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or _SHOWN.get(kind, kind)}.{w}: "
+            shown_kind = (NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or PROBED_SPACES.get(kind)
+                          or _SHOWN.get(kind, kind))
+            print(f"  {shown_kind}.{w}: "
                   f"{pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
@@ -2590,7 +2693,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
     if isinstance(word, str):
         keys = _lookup_all(word)
         if not keys:  # weather.draw_bars, students.save: a name of your own in front of a simplydata word
-            from ._other_names import NUMBER_SPACES, QUALIFIERS, other_name_parts
+            from ._other_names import NUMBER_SPACES, QUALIFIERS, WORD_SPACES, other_name_parts
 
             parts = other_name_parts(_normalise(word))
             own = str(word).strip().split(".", 1)[0]
@@ -2608,7 +2711,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
                         word = name
                     else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
                         keys = _lookup_all(name)
-            elif parts is not None and parts[0] in NUMBER_SPACES:  # np.sort, np.add: a word of numbers
+            elif parts is not None and (parts[0] in NUMBER_SPACES or parts[0] in WORD_SPACES):  # np.sort: numbers
                 from ._other_names import NAMESPACE_FALLBACK, OTHER_NAMES
 
                 name = parts[1]
@@ -2641,6 +2744,18 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
         return None
     if not keys and _print_shared_option(word):
         return None
+    if not keys and isinstance(word, str):  # pl.DataFrame.show, pl.Series.clear: the library's name is a word too
+        from ._other_names import other_name_parts
+
+        parts = other_name_parts(_normalise(word))
+        if parts is not None and parts[0] is None and _normalise(word) != parts[1]:
+            keys = _lookup_all(parts[1])
+            if not keys and _old_names(parts[1]):  # pl.DataFrame.row: an old name of a word (row is get_row)
+                return help(parts[1])
+            # a pandas or Polars table in front means the table word: pl.DataFrame.show is table.show, not chart.show
+            front = set(str(word).strip().split(".")[:-1])
+            if front & _TABLE_FRONTS:
+                keys = [k for k in keys if _kind(k) == "table"] or keys
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})
         lines = [f'simplydata has no word called "{word}".']
