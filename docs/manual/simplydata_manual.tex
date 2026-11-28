@@ -6155,7 +6155,9 @@ ax.set_ylabel("percent of total marks")                                     # (2
 \wordentry{chart.draw\_lines()}{word:draw-lines}
 Lines. \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\textquotedbl{},\allowbreak{} y=\textquotedbl{}temperature\textquotedbl{},\allowbreak{} colour=\textquotedbl{}city\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})})
 
-\code{colour=\textquotedbl{}city\textquotedbl{}} draws one line per group. \code{with\_\allowbreak{}dots=True} marks each point. \code{dashed=True} draws a dashed line; \code{dashed=\textquotedbl{}city\textquotedbl{}} gives each city its own dash pattern (with \code{colour=\textquotedbl{}city\textquotedbl{}} too, the lines differ in colour and dashes). \code{dotted=True} draws a dotted line. \code{show=} works as in bars (not \code{\textquotedbl{}count\textquotedbl{}}). \code{error=\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}standard error\textquotedbl{}} or \code{\textquotedbl{}confidence interval\textquotedbl{}} adds a shaded band; a line says which one was drawn. \code{thickness=3} draws thicker lines (normal is 2, in points); \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid). \code{joined\_\allowbreak{}by=} says how the points are joined, as in \code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}: \code{\textquotedbl{}straight lines\textquotedbl{}} (normal), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}} (each value stays until the next point), \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Curves need numbers on x and y.
+\code{colour=\textquotedbl{}city\textquotedbl{}} draws one line per group. \code{with\_\allowbreak{}dots=True} marks each point. \code{dashed=True} draws a dashed line; \code{dashed=\textquotedbl{}city\textquotedbl{}} gives each city its own dash pattern (with \code{colour=\textquotedbl{}city\textquotedbl{}} too, the lines differ in colour and dashes). \code{dotted=True} draws a dotted line. \code{show=} works as in bars (not \code{\textquotedbl{}count\textquotedbl{}}). \code{error=\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}standard error\textquotedbl{}} or \code{\textquotedbl{}confidence interval\textquotedbl{}} adds a shaded band; a line says which one was drawn. \code{thickness=3} draws thicker lines (normal is 2, in points); \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid). \code{joined\_\allowbreak{}by=} says how the points are joined, as in \code{table.\allowbreak{}find\_\allowbreak{}values\_\allowbreak{}at()}: \code{\textquotedbl{}straight lines\textquotedbl{}} (normal), \code{\textquotedbl{}smooth curve\textquotedbl{}} (natural cubic spline), \code{\textquotedbl{}curve without overshoot\textquotedbl{}} (PCHIP), \code{\textquotedbl{}steps\textquotedbl{}} (each value stays until the next point), \code{\textquotedbl{}nearest\textquotedbl{}}; experts: \code{\textquotedbl{}akima\textquotedbl{}}, \code{\textquotedbl{}makima\textquotedbl{}}, \code{\textquotedbl{}not-a-knot\textquotedbl{}}, \code{\textquotedbl{}periodic\textquotedbl{}}. Curves need numbers on x and y. \code{in\_\allowbreak{}row\_\allowbreak{}order=True} joins the points in the order of the rows, not from the smallest x, and draws every row (no average): a path, such as a ship's track by longitude and latitude (seaborn so.Path, \code{lineplot( sort=False,\allowbreak{} estimator=None)}):\\
+\codeline{chart.draw\_lines(x=\textquotedbl{}longitude\textquotedbl{}, y=\textquotedbl{}latitude\textquotedbl{}, in\_row\_order=True)}\\
+\code{move\_\allowbreak{}layer\_\allowbreak{}by=0.\allowbreak{}2} moves the lines 0.2 along x (a group on a group axis is 1 wide), so two layers sit side by side (seaborn so.Shift).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6170,6 +6172,8 @@ Lines. \code{chart.\allowbreak{}draw\_\allowbreak{}lines(x=\textquotedbl{}month\
 \code{transparency=} & \\
 \code{joined\_\allowbreak{}by=} & normally \code{\textquotedbl{}straight lines\textquotedbl{}}\\
 \code{dotted=} & normally \code{False}\\
+\code{in\_\allowbreak{}row\_\allowbreak{}order=} & normally \code{False}\\
+\code{move\_\allowbreak{}layer\_\allowbreak{}by=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-lines]{How simplydata chooses methods}, page \pageref{basis:draw-lines}: the default, the evidence and the checks.}
@@ -6204,10 +6208,33 @@ sns.lineplot(df, x="class", y="marks", hue="subject",
 \undertext{Month and weekday names come in calendar order. \code{joined\_\allowbreak{}by=} draws smooth curves or steps instead of straight lines. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the lines, the filled shapes, the axis labels, the tick labels, the legend and the axis ranges (the chart's data, not its pixels).}
 \end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_lines_in_row_order.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same lines, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{in\_\allowbreak{}row\_\allowbreak{}order=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+df = pd.read_csv("weather.csv")
+fig, ax = plt.subplots()
+# draw_lines(x="temperature", y="rain", in_row_order=True): seaborn so.Path
+sns.lineplot(df, x="temperature", y="rain", sort=False, estimator=None, errorbar=None, ax=ax)   # (1)
+fig
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every row, joined in the order of the rows (no average, no sorting by x).}
+\undertext{simplydata also sets its own look (colours, fonts, frame).}
+\undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.draw\_dots()}{word:draw-dots}
 Dots (a scatter chart). \code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\textquotedbl{}hours\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
 
-\code{colour=\textquotedbl{}class\textquotedbl{}} colours dots by group. \code{size=\textquotedbl{}height\textquotedbl{}} makes dots bigger for bigger values, or \code{size=10} makes all dots that big. \code{shape=\textquotedbl{}subject\textquotedbl{}} gives each group a shape. \code{transparency=0.\allowbreak{}5} makes dots half see-through, so dots on top of each other show. \code{hollow=True} draws only the outline of each dot, in its colour, so dots on top of each other show and groups differ in print. \code{chart.\allowbreak{}use\_\allowbreak{}shapes(\textquotedbl{}circle\textquotedbl{},\allowbreak{} \textquotedbl{}square\textquotedbl{})} chooses the shapes. With \code{colour=} a number column and \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(.\allowbreak{}.\allowbreak{}.\allowbreak{})}, dots get a smooth colour scale and a colour bar. \code{show=\textquotedbl{}average\textquotedbl{}} draws one dot per group of x instead (or \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}} ..., as on bars), and \code{error=\textquotedbl{}standard error\textquotedbl{}} (or \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}confidence interval\textquotedbl{}}) adds error bars to it.
+\code{colour=\textquotedbl{}class\textquotedbl{}} colours dots by group. \code{size=\textquotedbl{}height\textquotedbl{}} makes dots bigger for bigger values, or \code{size=10} makes all dots that big. \code{shape=\textquotedbl{}subject\textquotedbl{}} gives each group a shape. \code{transparency=0.\allowbreak{}5} makes dots half see-through, so dots on top of each other show. \code{hollow=True} draws only the outline of each dot, in its colour, so dots on top of each other show and groups differ in print. \code{chart.\allowbreak{}use\_\allowbreak{}shapes(\textquotedbl{}circle\textquotedbl{},\allowbreak{} \textquotedbl{}square\textquotedbl{})} chooses the shapes. With \code{colour=} a number column and \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(.\allowbreak{}.\allowbreak{}.\allowbreak{})}, dots get a smooth colour scale and a colour bar. \code{show=\textquotedbl{}average\textquotedbl{}} draws one dot per group of x instead (or \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}} ..., as on bars), and \code{error=\textquotedbl{}standard error\textquotedbl{}} (or \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}confidence interval\textquotedbl{}}) adds error bars to it. \code{move\_\allowbreak{}layer\_\allowbreak{}by=0.\allowbreak{}2} moves the dots (and their error bars) 0.2 along x, so a second layer of dots sits beside the first (seaborn \code{so.\allowbreak{}Shift(x=0.\allowbreak{}2)}); a group on a group axis is 1 wide:\\
+\codeline{chart.draw\_dots(x=\textquotedbl{}class\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}, show=\textquotedbl{}average\textquotedbl{}, error=\textquotedbl{}standard error\textquotedbl{}, move\_layer\_by=0.2)}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -6220,6 +6247,7 @@ Dots (a scatter chart). \code{chart.\allowbreak{}draw\_\allowbreak{}dots(x=\text
 \code{hollow=} & normally \code{False}\\
 \code{show=} & \\
 \code{error=} & \\
+\code{move\_\allowbreak{}layer\_\allowbreak{}by=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-dots-show-eq]{How simplydata chooses methods}, page \pageref{basis:draw-dots-show-eq}: the default, the evidence and the checks.}
@@ -6272,6 +6300,28 @@ sns.pointplot(df, x="class", y="marks", estimator="mean", errorbar="se",
 \undertext{(1) no line joins the dots (it would suggest a trend between groups), small caps on the error bars, and colour groups side by side so their error bars do not cover each other.}
 \undertext{A line says which error was drawn. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the lines (the chart's data, not its pixels).}
+\end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_dots_move_layer_by.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{move\_\allowbreak{}layer\_\allowbreak{}by=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# draw_dots(x="hours", y="marks", move_layer_by=0.5): seaborn so.Shift(x=0.5)
+sns.scatterplot(df.assign(hours=df["hours"] + 0.5), x="hours", y="marks", ax=ax)   # (1)
+fig
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the dots move 0.5 along x; on a group axis each group is 1 wide.}
+\undertext{\code{draw\_\allowbreak{}lines}, \code{draw\_\allowbreak{}all\_\allowbreak{}dots} and \code{draw\_\allowbreak{}dashes} take \code{move\_\allowbreak{}layer\_\allowbreak{}by=} too. simplydata also sets its own look (colours, fonts, frame).}
+\undertext{\textit{Checked:} a test runs both and compares the dots (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.draw\_area()}{word:draw-area}
 A line with the space under it coloured in.\\
@@ -7063,6 +7113,58 @@ ax.set(xlabel="month_number", ylabel="rain")
 \undertext{(2) a thin line marks 0, behind the sticks, so values below 0 hang down from it.}
 \undertext{matplotlib's \code{stem()} draws the same kind of chart. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the short lines drawn as one set, the lines, the legend and the axis labels (the chart's data, not its pixels).}
+\end{underneathbox}
+\wordentry{chart.draw\_dashes()}{word:draw-dashes}
+A short flat line for each value. \code{chart.\allowbreak{}draw\_\allowbreak{}dashes(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
+
+Each value is a dash across its group's place on the x axis, so values that are the same lie on top of each other and the spread of each group shows at a glance (seaborn so.Dash; a strip of dots without the sideways spread). \code{width=0.\allowbreak{}8} is how wide each dash is (a group on a group axis is 1 wide); \code{colour=\textquotedbl{}subject\textquotedbl{}} colours the dashes by group; \code{thickness=3} draws thicker dashes (normal is 2, in points); \code{transparency=0.\allowbreak{}5} makes them half see-through, so a pile of the same values looks darker. \code{move\_\allowbreak{}layer\_\allowbreak{}by=0.\allowbreak{}2} moves them along x (seaborn so.Shift), beside another layer.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{x=} & \\
+\code{y=} & \\
+\code{colour=} & \\
+\code{width=} & normally \code{0.\allowbreak{}8}\\
+\code{thickness=} & \\
+\code{transparency=} & \\
+\code{move\_\allowbreak{}layer\_\allowbreak{}by=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{seaborn \code{stripplot()}, \code{get\_\allowbreak{}offsets()}, \code{remove()}, \code{add\_\allowbreak{}collection()}, \code{LineCollection()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dashes(x="class", y="marks", transparency=0.4)
+chart.draw_dots(x="class", y="marks", show="average", move_layer_by=0.45)
+chart.save("draw_dashes.png")
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_draw_dashes.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same short lines drawn as one set, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from matplotlib.collections import LineCollection
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# draw_dashes(x="class", y="marks"): seaborn so.Dash, each value at its group's place
+sns.stripplot(df, x="class", y="marks", jitter=False, ax=ax)                 # (1)
+dots = list(ax.collections)  # one set of dots for each class, each dot made a dash
+dashes = [[(x - 0.4, y), (x + 0.4, y)] for d in dots for x, y in d.get_offsets()]
+[d.remove() for d in dots]
+ax.add_collection(LineCollection(dashes, linewidths=2))
+fig
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each dash is 0.8 wide (\code{width=}), centred on its group, as \code{so.\allowbreak{}Dash(width=0.\allowbreak{}8)}.}
+\undertext{simplydata also sets its own look (colours, fonts, frame).}
+\undertext{\textit{Checked:} a test runs both and compares the short lines drawn as one set (the chart's data, not its pixels).}
 \end{underneathbox}
 \unsection{Statistics}{group:Statistics}
 \wordentry{show=}{word:show-eq}
@@ -7987,7 +8089,7 @@ sns.countplot(df, x="fruit", hue="shop", palette=["#0072B2", "#E69F00"],
 Every value as a dot, spread out so no dot hides another.\\
 \codeline{chart.draw\_all\_dots(x=\textquotedbl{}class\textquotedbl{}, y=\textquotedbl{}marks\textquotedbl{}) (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
 
-Good on top of .draw\_boxes() or .draw\_violins(), to show each value as well; there the dots are dark grey, so they stand out (\code{colour=} still chooses your own). \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid).
+Good on top of .draw\_boxes() or .draw\_violins(), to show each value as well; there the dots are dark grey, so they stand out (\code{colour=} still chooses your own). \code{transparency=0.\allowbreak{}5} makes them half see-through (0 is solid). \code{move\_\allowbreak{}layer\_\allowbreak{}by=0.\allowbreak{}3} moves the dots 0.3 along x, beside the boxes instead of on them (seaborn so.Shift).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -7995,6 +8097,7 @@ Good on top of .draw\_boxes() or .draw\_violins(), to show each value as well; t
 \code{y=} & \\
 \code{colour=} & \\
 \code{transparency=} & \\
+\code{move\_\allowbreak{}layer\_\allowbreak{}by=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:draw-all-dots]{How simplydata chooses methods}, page \pageref{basis:draw-all-dots}: the default, the evidence and the checks.}
@@ -12492,7 +12595,12 @@ As pandas \code{read\_\allowbreak{}csv(usecols=,\allowbreak{} header=None,\allow
 \codeline{sdata.table(\textquotedbl{}weather.csv\textquotedbl{}, columns=[\textquotedbl{}month\textquotedbl{}, \textquotedbl{}city\textquotedbl{}, \textquotedbl{}rain\textquotedbl{}])}\\
 More file types, by the end of the name (each read by pandas itself): \code{.\allowbreak{}csv}.gz and \code{.\allowbreak{}tsv}.gz (compressed), .zip (one CSV file inside), .feather and .arrow, .jsonl and .ndjson (one JSON row per line), .xml, .sas7bdat (SAS), and the databases .sqlite, .db and .duckdb. \code{table\_\allowbreak{}name=\textquotedbl{}samples\textquotedbl{}} reads one table of a database file (the mirror of \code{table.\allowbreak{}save(in\_\allowbreak{}table=)}):\\
 \codeline{sdata.table(\textquotedbl{}lab.sqlite\textquotedbl{}, table\_name=\textquotedbl{}samples\textquotedbl{})}\\
-A database with one table needs no \code{table\_\allowbreak{}name=}. .duckdb files need DuckDB (pip install \code{\textquotedbl{}simplydata[sql]\textquotedbl{}}); they are opened read-only, with no extensions.
+A database with one table needs no \code{table\_\allowbreak{}name=}. .duckdb files need DuckDB (pip install \code{\textquotedbl{}simplydata[sql]\textquotedbl{}}); they are opened read-only, with no extensions. A web page saved on this computer (.html or .htm) gives its first table, or the one \code{table\_\allowbreak{}number=} picks (pandas \code{read\_\allowbreak{}html}; pip install \code{\textquotedbl{}simplydata[files]\textquotedbl{}} for lxml):\\
+\codeline{sdata.table(\textquotedbl{}stations.html\textquotedbl{}, table\_number=2)}\\
+\code{fixed\_\allowbreak{}widths=[10,\allowbreak{} 6,\allowbreak{} 6]} reads a text file whose columns stand at fixed places, each column that many characters wide (pandas \code{read\_\allowbreak{}fwf(widths=)}); \code{fixed\_\allowbreak{}widths=True} lets pandas find the columns:\\
+\codeline{sdata.table(\textquotedbl{}station.txt\textquotedbl{}, fixed\_widths=[10, 6, 6])}\\
+\codeline{sdata.table(\textquotedbl{}clipboard\textquotedbl{}) reads what you copied, from Excel, a web page or a text file (pandas}\\
+\code{read\_\allowbreak{}clipboard}); \code{table.\allowbreak{}save(\textquotedbl{}clipboard\textquotedbl{})} copies the table, to paste into Excel. Nothing leaves this computer. A \code{.\allowbreak{}json} file whose rows hold values inside values (\{\code{\textquotedbl{}site\textquotedbl{}}: \{\code{\textquotedbl{}name\textquotedbl{}}: \code{\textquotedbl{}N1\textquotedbl{}}\}\}) gets a column for each part (site.name), as pandas \code{json\_\allowbreak{}normalize}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -12511,6 +12619,7 @@ A database with one table needs no \code{table\_\allowbreak{}name=}. .duckdb fil
 \code{column\_\allowbreak{}names=} & \\
 \code{skip\_\allowbreak{}lines\_\allowbreak{}starting\_\allowbreak{}with=} & \\
 \code{table\_\allowbreak{}name=} & \\
+\code{fixed\_\allowbreak{}widths=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:sdata.table]{How simplydata chooses methods}, page \pageref{basis:sdata.table}: the default, the evidence and the checks.}
@@ -12942,6 +13051,158 @@ df.equals(original)                                                  # (1)
 \undertext{simplydata also names the first difference: a column, a row and the two values, or the kinds.}
 \undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
 \end{underneathbox}
+\wordentry{table.check\_if\_all\_values\_in()}{word:table.check-if-all-values-in}
+Check whether every value of a column meets a condition. \code{table.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}all\_\allowbreak{}values\_\allowbreak{}in(\textquotedbl{}marks\textquotedbl{},\allowbreak{} is\_\allowbreak{}above=0)}
+
+\codeline{answer = table.check\_if\_all\_values\_in(\textquotedbl{}marks\textquotedbl{}, is\_above=0)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+The conditions are the \code{keep\_\allowbreak{}rows\_\allowbreak{}where} ones, one at a time: \code{is\_\allowbreak{}above}, \code{is\_\allowbreak{}below}, \code{is\_\allowbreak{}at\_\allowbreak{}least}, \code{is\_\allowbreak{}at\_\allowbreak{}most}, \code{is\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}between=[low,\allowbreak{} high]}, \code{is\_\allowbreak{}one\_\allowbreak{}of=[.\allowbreak{}.\allowbreak{}.\allowbreak{}]}, contains, \code{starts\_\allowbreak{}with}, \code{ends\_\allowbreak{}with}, \code{matches\_\allowbreak{}pattern}, \code{is\_\allowbreak{}after} and \code{is\_\allowbreak{}before}; a column of True and False needs none. Gives back True or False, so it also works in an if, and says how many values fail, and the first row that does. Empty cells are left out, with a note (pandas \code{Series.\allowbreak{}all()} and Polars \code{all()} leave them out too). A list of columns checks every value of all of them (Polars \code{all\_\allowbreak{}horizontal}, then all): \code{table.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}all\_\allowbreak{}values\_\allowbreak{}in([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} is\_\allowbreak{}above=0)}. \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} gives a table with the answer for each group (pandas \code{groupby()}.all()). \code{capitals\_\allowbreak{}matter=False} makes the text conditions read any capitals alike.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{is\_\allowbreak{}above=} & \\
+\code{is\_\allowbreak{}below=} & \\
+\code{is\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{is\_\allowbreak{}at\_\allowbreak{}most=} & \\
+\code{is\_\allowbreak{}equal\_\allowbreak{}to=} & \\
+\code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=} & \\
+\code{is\_\allowbreak{}between=} & \\
+\code{is\_\allowbreak{}one\_\allowbreak{}of=} & \\
+\code{contains=} & \\
+\code{starts\_\allowbreak{}with=} & \\
+\code{ends\_\allowbreak{}with=} & \\
+\code{is\_\allowbreak{}after=} & \\
+\code{is\_\allowbreak{}before=} & \\
+\code{matches\_\allowbreak{}pattern=} & \\
+\code{capitals\_\allowbreak{}matter=} & normally \code{True}\\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{dropna()}, \code{bool()}, \code{all()} \textperiodcentered{} Polars \code{select().\allowbreak{}item()}, \code{all()}, \code{col().\allowbreak{}drop\_\allowbreak{}nulls()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+answer = table.check_if_all_values_in("marks", is_above=0)
+table.check_if_all_values_in("marks", is_above=40, for_each_group_in="class")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+# check_if_all_values_in("marks", is_above=40)
+marks = df["marks"].dropna()                                          # (1)
+bool((marks > 40).all())
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv")
+# check_if_all_values_in("marks", is_above=40)
+df.select((pl.col("marks").drop_nulls() > 40).all()).item()           # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty cells are left out, as pandas \code{all()} and Polars \code{all()} leave them out.}
+\undertext{It says how many values fail and the first row that does; a list of columns checks them all (Polars \code{all\_\allowbreak{}horizontal}), and \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} gives the answer for each group (pandas \code{groupby()}.all()).}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.check\_if\_any\_value\_in()}{word:table.check-if-any-value-in}
+Check whether any value of a column meets a condition. \code{table.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}any\_\allowbreak{}value\_\allowbreak{}in(\textquotedbl{}marks\textquotedbl{},\allowbreak{} is\_\allowbreak{}above=90)}
+
+\codeline{answer = table.check\_if\_any\_value\_in(\textquotedbl{}marks\textquotedbl{}, is\_above=90)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+The conditions are the \code{keep\_\allowbreak{}rows\_\allowbreak{}where} ones, as in \code{check\_\allowbreak{}if\_\allowbreak{}all\_\allowbreak{}values\_\allowbreak{}in}; a column of True and False needs none. Gives back True or False, and says how many values meet it and the first row that does. Empty cells are left out, with a note (pandas \code{Series.\allowbreak{}any()} and Polars \code{any()} leave them out too). A list of columns checks the values of all of them (Polars \code{any\_\allowbreak{}horizontal}, then any). \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}class\textquotedbl{}} gives a table with the answer for each group (pandas \code{groupby()}.any()).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{is\_\allowbreak{}above=} & \\
+\code{is\_\allowbreak{}below=} & \\
+\code{is\_\allowbreak{}at\_\allowbreak{}least=} & \\
+\code{is\_\allowbreak{}at\_\allowbreak{}most=} & \\
+\code{is\_\allowbreak{}equal\_\allowbreak{}to=} & \\
+\code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to=} & \\
+\code{is\_\allowbreak{}between=} & \\
+\code{is\_\allowbreak{}one\_\allowbreak{}of=} & \\
+\code{contains=} & \\
+\code{starts\_\allowbreak{}with=} & \\
+\code{ends\_\allowbreak{}with=} & \\
+\code{is\_\allowbreak{}after=} & \\
+\code{is\_\allowbreak{}before=} & \\
+\code{matches\_\allowbreak{}pattern=} & \\
+\code{capitals\_\allowbreak{}matter=} & normally \code{True}\\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{bool()}, \code{any()}, \code{dropna()} \textperiodcentered{} Polars \code{select().\allowbreak{}item()}, \code{any()}, \code{col().\allowbreak{}drop\_\allowbreak{}nulls()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+answer = table.check_if_any_value_in("marks", is_above=90)
+table.check_if_any_value_in("name", contains="an")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+# check_if_any_value_in("marks", is_above=90)
+bool((df["marks"].dropna() > 90).any())                               # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv")
+# check_if_any_value_in("marks", is_above=90)
+df.select((pl.col("marks").drop_nulls() > 90).any()).item()           # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) empty cells are left out, as pandas \code{any()} and Polars \code{any()} leave them out.}
+\undertext{It says how many values meet the condition and the first row that does (Polars \code{any\_\allowbreak{}horizontal} for a list of columns, pandas \code{groupby()}.any() with \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=}).}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.check\_if\_sorted\_by()}{word:table.check-if-sorted-by}
+Check whether the rows are in order of a column, smallest first. \code{table.\allowbreak{}check\_\allowbreak{}if\_\allowbreak{}sorted\_\allowbreak{}by(\textquotedbl{}month\_\allowbreak{}number\textquotedbl{})}
+
+\codeline{answer = table.check\_if\_sorted\_by(\textquotedbl{}month\_number\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}\\
+Values that tie may follow each other (pandas \code{is\_\allowbreak{}monotonic\_\allowbreak{}increasing}, Polars \code{is\_\allowbreak{}sorted()}). \code{biggest\_\allowbreak{}first=True} checks the other direction (pandas \code{is\_\allowbreak{}monotonic\_\allowbreak{}decreasing}, Polars \code{is\_\allowbreak{}sorted(descending=True)}). Gives back True or False, and names the first row that is out of order. Empty cells are left out, with a note. Text is in the order of its letters (capitals before small letters, as \code{sort\_\allowbreak{}by} puts them); dates and times from the earliest.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\code{biggest\_\allowbreak{}first=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{bool()}, \code{dropna()} \textperiodcentered{} Polars \code{drop\_\allowbreak{}nulls().\allowbreak{}is\_\allowbreak{}sorted()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("weather"))
+answer = table.check_if_sorted_by("month_number")
+table.sort_by("city", "month_number")
+table.check_if_sorted_by("city")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("weather.csv").sort_values(["city", "month_number"], kind="stable")
+# check_if_sorted_by("city")
+bool(df["city"].dropna().is_monotonic_increasing)                     # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv").sort(["city", "month_number"], maintain_order=True)
+# check_if_sorted_by("city")
+df["city"].drop_nulls().is_sorted()                                   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) values that tie may follow each other, and empty cells are left out (pandas \code{is\_\allowbreak{}monotonic\_\allowbreak{}increasing} says False for a column with an empty cell).}
+\undertext{\code{biggest\_\allowbreak{}first=True} checks the other direction (\code{is\_\allowbreak{}monotonic\_\allowbreak{}decreasing}, \code{is\_\allowbreak{}sorted(descending=True)}); it names the first row that is out of order. simplydata also says the answer in a sentence.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
+\end{underneathbox}
 \unsection{Choose columns}{group:Choose-columns}
 \wordentry{table.keep\_columns()}{word:table.keep-columns}
 Keep only these columns: by name (in the order you list them), a run of names, or by kind.
@@ -13295,7 +13556,9 @@ Keep only the rows that match a condition.
 \codeline{table.keep\_rows\_where(\textquotedbl{}marks \textgreater{} 50 and class == 'A'\textquotedbl{})}\enspace a written condition\\
 Plain words: \code{is\_\allowbreak{}above}, \code{is\_\allowbreak{}below}, \code{is\_\allowbreak{}at\_\allowbreak{}least}, \code{is\_\allowbreak{}at\_\allowbreak{}most}, \code{is\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}not\_\allowbreak{}equal\_\allowbreak{}to}, \code{is\_\allowbreak{}between=[low,\allowbreak{} high]} (both ends included), \code{is\_\allowbreak{}one\_\allowbreak{}of=[.\allowbreak{}.\allowbreak{}.\allowbreak{}]}, contains, \code{starts\_\allowbreak{}with}, \code{ends\_\allowbreak{}with} (capital letters matter), \code{is\_\allowbreak{}empty=True}, and \code{is\_\allowbreak{}after=} / \code{is\_\allowbreak{}before=} for dates. Written conditions use == != \textless{} \textless{}= \textgreater{} \textgreater{}=, and, or, not, brackets, in [...], is empty; text and dates go in quotes. Empty cells only match \code{is\_\allowbreak{}empty} / is empty. \code{capitals\_\allowbreak{}matter=False} makes \code{\textquotedbl{}maths\textquotedbl{}}, \code{\textquotedbl{}Maths\textquotedbl{}} and \code{\textquotedbl{}MATHS\textquotedbl{}} the same in the text words. One rule on both engines: pandas \code{str.\allowbreak{}casefold()}, the Unicode case folding (O$\Delta$O$\Sigma$ matches o$\delta$o$\varsigma$, Stra\ss{}e matches STRASSE; the Turkish \.I folds to i with a dot, so \.Istanbul does not match istanbul). \code{matches\_\allowbreak{}pattern=} takes a regular expression, a pattern language for text, read by Polars str.contains on every table (no look-ahead or look-behind; \code{\textquotedbl{}\$\textquotedbl{}} is the very end of the text):\\
 \codeline{table.keep\_rows\_where(\textquotedbl{}subject\textquotedbl{}, is\_equal\_to=\textquotedbl{}maths\textquotedbl{}, capitals\_matter=False)}\\
-\codeline{table.keep\_rows\_where(\textquotedbl{}name\textquotedbl{}, matches\_pattern=r\textquotedbl{}\textasciicircum{}A\textquotedbl{})}\enspace names that start with A
+\codeline{table.keep\_rows\_where(\textquotedbl{}name\textquotedbl{}, matches\_pattern=r\textquotedbl{}\textasciicircum{}A\textquotedbl{})}\enspace names that start with A\\
+\code{time\_\allowbreak{}of\_\allowbreak{}day\_\allowbreak{}between=[\textquotedbl{}08:00\textquotedbl{},\allowbreak{} \textquotedbl{}17:00\textquotedbl{}]} keeps the rows whose time of day is between the two clock times, both included, on any day (pandas \code{between\_\allowbreak{}time}, Polars \code{dt.\allowbreak{}time()}.is\_between()); [\code{\textquotedbl{}22:00\textquotedbl{}}, \code{\textquotedbl{}06:00\textquotedbl{}}] goes past midnight. Seconds work too (\code{\textquotedbl{}08:00:30\textquotedbl{}}), and [\code{\textquotedbl{}08:00\textquotedbl{}}, \code{\textquotedbl{}08:00\textquotedbl{}}] keeps one clock time (pandas \code{at\_\allowbreak{}time}):\\
+\codeline{table.keep\_rows\_where(\textquotedbl{}time\textquotedbl{}, time\_of\_day\_between=[\textquotedbl{}08:00\textquotedbl{}, \textquotedbl{}17:00\textquotedbl{}])}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -13316,6 +13579,7 @@ Plain words: \code{is\_\allowbreak{}above}, \code{is\_\allowbreak{}below}, \code
 \code{is\_\allowbreak{}before=} & \\
 \code{matches\_\allowbreak{}pattern=} & \\
 \code{capitals\_\allowbreak{}matter=} & normally \code{True}\\
+\code{time\_\allowbreak{}of\_\allowbreak{}day\_\allowbreak{}between=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.keep-rows-where]{How simplydata chooses methods}, page \pageref{basis:table.keep-rows-where}: the default, the evidence and the checks.}
@@ -13366,6 +13630,31 @@ df = pl.read_csv("marks.csv")
 df.filter(pl.col("subject").str.to_lowercase() == "maths")
 \end{lstlisting}
 \undertext{\code{matches\_\allowbreak{}pattern=} takes a regular expression (pandas and Polars str.contains), and \code{capitals\_\allowbreak{}matter=False} puts (?i) in front of it. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{time\_\allowbreak{}of\_\allowbreak{}day\_\allowbreak{}between=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("fjord_samples.csv")
+df["sampled_local"] = pd.to_datetime(df["sampled_local"])
+# keep_rows_where("sampled_local", time_of_day_between=["09:00", "12:00"])
+kept = df.set_index("sampled_local", drop=False).between_time("09:00", "12:00")   # (1)
+kept.reset_index(drop=True)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import datetime
+import polars as pl
+df = pl.read_csv("fjord_samples.csv").with_columns(pl.col("sampled_local").str.to_datetime())
+# keep_rows_where("sampled_local", time_of_day_between=["09:00", "12:00"])
+clock = pl.col("sampled_local").dt.time()
+df.filter(clock.is_between(datetime.time(9), datetime.time(12)))          # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) both clock times included, on any day; a start after the end goes past midnight, as pandas \code{between\_\allowbreak{}time}.}
+\undertext{[\code{\textquotedbl{}08:00\textquotedbl{}}, \code{\textquotedbl{}08:00\textquotedbl{}}] keeps one clock time (pandas \code{at\_\allowbreak{}time}). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.remove\_rows\_where()}{word:table.remove-rows-where}
@@ -14481,11 +14770,13 @@ print(f"{holes.height} rows of {df.height} have an empty cell:")
 Turn a column into numbers; cells that are not numbers become empty.
 
 \codeline{table.turn\_into\_numbers(\textquotedbl{}marks\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
-Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
+Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma). \code{show\_\allowbreak{}problems=True} first shows the cells that would become empty, with their row and text (such as \code{\textquotedbl{}\textless{}0.\allowbreak{}5\textquotedbl{}} or \code{\textquotedbl{}n.\allowbreak{}d.\allowbreak{}\textquotedbl{}}), and leaves the table as it is, so you can fix them first (as pandas \code{str.\allowbreak{}isnumeric()} or \code{to\_\allowbreak{}numeric(errors=\textquotedbl{}coerce\textquotedbl{})}.isna() find them):\\
+\codeline{table.turn\_into\_numbers(\textquotedbl{}dose\textquotedbl{}, show\_problems=True)}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
+\code{show\_\allowbreak{}problems=} & normally \code{False}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.turn-into-numbers]{How simplydata chooses methods}, page \pageref{basis:table.turn-into-numbers}: the default, the evidence and the checks.}
@@ -14518,6 +14809,7 @@ df.assign(price=text.where(number).astype(float))                          # (3)
 \undertext{Spaces inside a number are left out first (1 200). A true/false column becomes 1 and 0, and a column that is already numbers is left as it is.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\undertext{\textit{Nothing underneath:} simplydata's own look before a step: the filled cells that \code{turn\_\allowbreak{}into\_\allowbreak{}numbers} would make empty (what pandas \code{str.\allowbreak{}isnumeric()} or \code{to\_\allowbreak{}numeric(errors=\textquotedbl{}coerce\textquotedbl{})}.isna() find), named with their rows; the table does not change.}
 \wordentry{table.turn\_into\_text()}{word:table.turn-into-text}
 Turn a column into text.
 
@@ -14589,13 +14881,16 @@ Turn a column into dates; cells that are not dates become empty.
 Understands 2026-03-15, 15/03/2026, 15.03.2026, 15 March 2026, March 15, 2026, 2026-03 and 2026. 03/04/2026 is read day first, as 3 April (month first only when day first cannot work). \code{order=} says how the dates are written, so nothing is guessed: \code{\textquotedbl{}day month year\textquotedbl{}} (15/03/2026), \code{\textquotedbl{}month day year\textquotedbl{}} (03/15/2026) or \code{\textquotedbl{}year month day\textquotedbl{}} (2026/03/15).\\
 \codeline{table.turn\_into\_dates(\textquotedbl{}when\textquotedbl{}, order=\textquotedbl{}month day year\textquotedbl{})}\\
 \code{written\_\allowbreak{}like=} gives an example date written the way the column writes them, so any layout can be read: \code{written\_\allowbreak{}like=\textquotedbl{}03/15/2026 14:30\textquotedbl{}} (the day must be above 12, so it is not taken for the month). Month names are read written out or short (\code{\textquotedbl{}September\textquotedbl{}} and \code{\textquotedbl{}Sep\textquotedbl{}}) whichever the example uses. Cells written another way become empty, and the sentence counts them. \% codes (\code{written\_\allowbreak{}like=\textquotedbl{}\%d.\allowbreak{}\%m.\allowbreak{}\%y\textquotedbl{}}) work too. As pandas \code{pd.\allowbreak{}to\_\allowbreak{}datetime(format=\textquotedbl{}\%m/\%d/\%Y \%H:\%M\textquotedbl{})} and Polars \code{str.\allowbreak{}strptime(pl.\allowbreak{}Datetime,\allowbreak{} \textquotedbl{}\%m/\%d/\%Y \%H:\%M\textquotedbl{})}:\\
-\codeline{table.turn\_into\_dates(\textquotedbl{}when\textquotedbl{}, written\_like=\textquotedbl{}03/15/2026\textquotedbl{})}
+\codeline{table.turn\_into\_dates(\textquotedbl{}when\textquotedbl{}, written\_like=\textquotedbl{}03/15/2026\textquotedbl{})}\\
+\code{from\_\allowbreak{}unix\_\allowbreak{}seconds=True} reads a column of numbers as seconds since 1 January 1970 (Unix time, as computers and loggers often write it) and gives dates and times on the UTC clock (pandas \code{to\_\allowbreak{}datetime(unit=\textquotedbl{}s\textquotedbl{})}, Polars \code{from\_\allowbreak{}epoch(unit=\textquotedbl{}s\textquotedbl{})}):\\
+\codeline{table.turn\_into\_dates(\textquotedbl{}logged\textquotedbl{}, from\_unix\_seconds=True)}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
 \code{order=} & \\
 \code{written\_\allowbreak{}like=} & \\
+\code{from\_\allowbreak{}unix\_\allowbreak{}seconds=} & normally \code{False}\\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.turn-into-dates]{How simplydata chooses methods}, page \pageref{basis:table.turn-into-dates}: the default, the evidence and the checks.}
@@ -14631,6 +14926,28 @@ df.with_columns(pl.coalesce(found).alias("when"))
 \undertext{(1) each cell gets the first way of writing that fits, day first before month first: 03/04/2026 is 3 April, and 12/25/2026 can only be 25 December. simplydata's list holds 26 ways (dots, dashes, month names, times of day); these 3 are the ones these cells need.}
 \undertext{(2) a cell that fits none of them becomes empty (\code{errors=\textquotedbl{}coerce\textquotedbl{}}, \code{strict=False}); simplydata says how many and shows one (\code{\textquotedbl{}soon\textquotedbl{}}).}
 \undertext{\code{order=\textquotedbl{}month day year\textquotedbl{}} (or another order) uses only the ways in that order, so nothing is guessed. Whole years such as 2026 become 1 January of that year, \code{\textquotedbl{}2026-03\textquotedbl{}} becomes 1 March, and spaces at the ends of a cell are left out. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{from\_\allowbreak{}unix\_\allowbreak{}seconds=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.DataFrame({"logged": [1764288000, 1764291600.5, 0]})
+# turn_into_dates("logged", from_unix_seconds=True)
+df.assign(logged=pd.to_datetime(df["logged"], unit="s").dt.as_unit("us"))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.DataFrame({"logged": [1764288000.0, 1764291600.5, 0.0]})
+# turn_into_dates("logged", from_unix_seconds=True)
+micro = (pl.col("logged") * 1_000_000).round(0).cast(pl.Int64)
+df.with_columns(pl.from_epoch(micro, time_unit="us").alias("logged"))      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) dates and times on the UTC clock, to the microsecond (Polars \code{from\_\allowbreak{}epoch}).}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.turn\_into\_lowercase()}{word:table.turn-into-lowercase}
@@ -14807,12 +15124,14 @@ df.with_columns(pl.when(subject == "Maths").then(pl.lit("Math")).otherwise(subje
 Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
 \codeline{table.round\_numbers\_in(\textquotedbl{}hours\textquotedbl{}, 0)}\enspace \code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in([\textquotedbl{}hours\textquotedbl{},\allowbreak{} \textquotedbl{}marks\textquotedbl{}],\allowbreak{} 1)} \code{table.\allowbreak{}round\_\allowbreak{}numbers\_\allowbreak{}in(1)}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}) A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4), like R and NumPy; this stops a run of halves from always pushing totals up. \code{round\_\allowbreak{}numbers\_\allowbreak{}in(\textquotedbl{}price\textquotedbl{},\allowbreak{} with\_\allowbreak{}decimals=0)} gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2) (pandas \code{round(-1)}; Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}) A number exactly halfway goes to the even neighbour (2.5 becomes 2, 3.5 becomes 4), like R and NumPy; this stops a run of halves from always pushing totals up. \code{round\_\allowbreak{}numbers\_\allowbreak{}in(\textquotedbl{}price\textquotedbl{},\allowbreak{} with\_\allowbreak{}decimals=0)} gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2) (pandas \code{round(-1)}; Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round). \code{significant\_\allowbreak{}figures=3} keeps 3 digits that count, whatever the size (123.456 becomes 123, 0.0012345 becomes 0.00123), on both engines: each number as it is written, a half to the even digit as everywhere in simplydata (5.25 becomes 5.2; Polars \code{round\_\allowbreak{}sig\_\allowbreak{}figs} would give 5.3). That is R \code{signif(x,\allowbreak{} 3)} in nearly every case; R works on the number as stored, so a few numbers whose last digit is a 5 go the other way there (0.639075 at 5 figures: R 0.63907, simplydata 0.63908, the even digit of the number as written):\\
+\codeline{table.round\_numbers\_in(\textquotedbl{}hours\textquotedbl{}, significant\_figures=2)}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{column=} & \\
 \code{with\_\allowbreak{}decimals=} & \\
+\code{significant\_\allowbreak{}figures=} & \\
 \end{optiontable}
 
 \wordfield{Underneath}{pandas \code{DataFrame()}, \code{assign()}, \code{round()} \textperiodcentered{} Polars \code{DataFrame()}, \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}round()}}
@@ -14839,6 +15158,24 @@ df = pl.DataFrame({"price": [0.5, 1.5, 2.5, 3.25]})
 df.with_columns(pl.col("price").round(0))
 \end{lstlisting}
 \undertext{A number exactly halfway goes to the even neighbour (0.5 to 0, 1.5 and 2.5 to 2), as pandas, NumPy and R \code{round()} do, and Polars whose \code{round()} rounds halves to even by default (\code{mode=\textquotedbl{}half\_\allowbreak{}to\_\allowbreak{}even\textquotedbl{}}; older Polars releases rounded halves away from zero); this keeps a run of halves from pushing totals up. A negative number of places rounds to tens or hundreds, and \code{round\_\allowbreak{}numbers\_\allowbreak{}in(1)} rounds every number column. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{significant\_\allowbreak{}figures=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("river.csv", parse_dates=["date"])
+# round_numbers_in("nitrate", significant_figures=2)
+from decimal import ROUND_HALF_EVEN, Decimal
+def signif(v):
+    d = Decimal(repr(v))
+    return float(d.quantize(Decimal(1).scaleb(d.adjusted() - 1), rounding=ROUND_HALF_EVEN))
+df.assign(nitrate=[signif(v) if v == v else v for v in df["nitrate"]])   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each number as it is written, a half to the even digit, R \code{signif()} in nearly every case (R works on the stored number, so 0.639075 at 5 figures is 0.63907 there); Polars \code{round\_\allowbreak{}sig\_\allowbreak{}figs} takes a half away from 0: 5.25 would be 5.3.}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.change\_column()}{word:table.change-column}
@@ -14969,6 +15306,47 @@ df.with_row_index().sort("nurse_rating", "index").drop("index")
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) a value that is not in \code{in\_\allowbreak{}order=} stops the word with its name (pandas Categorical would turn it into an empty cell without a word; Polars Enum refuses it too); without \code{in\_\allowbreak{}order=} the order is the one in which the values first appear.}
 \undertext{simplydata also says the order in a sentence and names the listed values the column does not hold yet. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.turn\_into\_title\_case()}{word:table.turn-into-title-case}
+Start each word with a capital letter (\code{\textquotedbl{}asha ali\textquotedbl{}} becomes \code{\textquotedbl{}Asha Ali\textquotedbl{}}). \code{table.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}title\_\allowbreak{}case(\textquotedbl{}name\textquotedbl{})}
+
+\codeline{table.turn\_into\_title\_case(\textquotedbl{}name\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+The other letters of each word become small (\code{\textquotedbl{}McDONALD\textquotedbl{}} becomes \code{\textquotedbl{}Mcdonald\textquotedbl{}}). A new word starts after anything that is not a letter, so \code{\textquotedbl{}o'neil\textquotedbl{}} becomes \code{\textquotedbl{}O'Neil\textquotedbl{}} and \code{\textquotedbl{}2nd\textquotedbl{}} becomes \code{\textquotedbl{}2Nd\textquotedbl{}} (pandas \code{str.\allowbreak{}title()}, on both engines; Polars \code{str.\allowbreak{}to\_\allowbreak{}titlecase()} gives the same answer except for ligatures and letter pairs, such as the fi ligature U+FB01 and the dz letter U+01C6).
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{str.\allowbreak{}lower()}, \code{assign()}, \code{str.\allowbreak{}title()} \textperiodcentered{} Polars \code{col().\allowbreak{}str.\allowbreak{}to\_\allowbreak{}lowercase()}, \code{with\_\allowbreak{}columns()}, \code{col().\allowbreak{}str.\allowbreak{}to\_\allowbreak{}titlecase()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+table.turn_into_lowercase("name")
+table.turn_into_title_case("name")
+table.show_first_rows()
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+df["name"] = df["name"].str.lower()
+# turn_into_title_case("name")
+df.assign(name=df["name"].str.title())                                # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv").with_columns(pl.col("name").str.to_lowercase())
+# turn_into_title_case("name")
+df.with_columns(pl.col("name").str.to_titlecase())                    # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a new word starts after anything that is not a letter (\code{\textquotedbl{}o'neil\textquotedbl{}} becomes \code{\textquotedbl{}O'Neil\textquotedbl{}}): pandas \code{str.\allowbreak{}title()} and Polars \code{str.\allowbreak{}to\_\allowbreak{}titlecase()} agree on this.}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \unsection{Sort and new columns}{group:Sort-and-new-columns}
@@ -15134,6 +15512,52 @@ df.with_columns((pl.col("check_on") - pl.col("date")).dt.total_hours().alias("ho
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) whole units, counted towards zero, as for days: 1 hour 59 minutes is 1 hour (Polars \code{total\_\allowbreak{}hours()}; pandas gives 1.98 until it is truncated).}
 \undertext{\code{plus=} and \code{minus=} on a date column take \code{\textquotedbl{}1 month\textquotedbl{}}, \code{\textquotedbl{}2 weeks\textquotedbl{}}, \code{\textquotedbl{}30 days\textquotedbl{}} or \code{\textquotedbl{}12 hours\textquotedbl{}} (pandas DateOffset, Polars dt.offset\_by). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}\libbadge{Polars}}
+\undertext{\textbf{With \code{floor() ceil() log10() log1p() sign() cbrt()}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = pd.read_csv("weather.csv")
+# add_column("tens", "floor(rain / 10)"); add_column("log_rain", "log1p(rain)")
+df.assign(tens=np.floor(df["rain"] / 10), log_rain=np.log1p(df["rain"]))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv")
+# add_column("tens", "floor(rain / 10)"); add_column("log_rain", "log1p(rain)")
+df.with_columns((pl.col("rain") / 10).floor().alias("tens"),
+                pl.col("rain").log1p().alias("log_rain"))                 # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) worked out with NumPy on both engines; an answer that is not a number gives an empty cell.}
+\undertext{log10, sign, cbrt and ceil work the same way. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}\libbadge{Polars}}
+\undertext{\textbf{With \code{add\_\allowbreak{}working\_\allowbreak{}days() count\_\allowbreak{}working\_\allowbreak{}days()}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
+# add_column("reply_by", "add_working_days(date, 10)")
+days = df["date"].values.astype("datetime64[D]")
+df.assign(reply_by=np.busday_offset(days, 10, roll="forward").astype("datetime64[us]"))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("shop.csv", try_parse_dates=True)
+# add_column("reply_by", "add_working_days(date, 10)")
+df.with_columns(pl.col("date").dt.add_business_days(10, roll="forward").alias("reply_by"))   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a date on a weekend first moves to the Monday (\code{roll=\textquotedbl{}forward\textquotedbl{}}); Monday to Friday, no holidays.}
+\undertext{\code{count\_\allowbreak{}working\_\allowbreak{}days(start,\allowbreak{} end)} counts them, the end date not counted (NumPy \code{busday\_\allowbreak{}count}, Polars \code{business\_\allowbreak{}day\_\allowbreak{}count}). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_group\_column()}{word:table.add-group-column}
@@ -15422,7 +15846,7 @@ Add a column with one part of each date, such as its year, month or weekday.
 
 \code{part=} can be \code{\textquotedbl{}year\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} (1 to 4), \code{\textquotedbl{}month\textquotedbl{}} (1 to 12), \code{\textquotedbl{}month name\textquotedbl{}} (\code{\textquotedbl{}March\textquotedbl{}}), \code{\textquotedbl{}week\textquotedbl{}} (the ISO week number, 1 to 53), \code{\textquotedbl{}day\textquotedbl{}} (day of the month), \code{\textquotedbl{}weekday\textquotedbl{}} (1 is Monday ... 7 is Sunday, as in the ISO 8601 standard), \code{\textquotedbl{}weekday name\textquotedbl{}} (\code{\textquotedbl{}Monday\textquotedbl{}}), \code{\textquotedbl{}day of year\textquotedbl{}} (1 to 366), \code{\textquotedbl{}hour\textquotedbl{}} or \code{\textquotedbl{}minute\textquotedbl{}}. Empty dates give empty cells.\\
 \codeline{table.add\_column\_with\_part\_of\_date(\textquotedbl{}weekday\textquotedbl{}, from\_column=\textquotedbl{}date\textquotedbl{}, part=\textquotedbl{}weekday name\textquotedbl{})}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})}: which weekday was each day?) More parts: \code{\textquotedbl{}date\textquotedbl{}} (the day, without the time), \code{\textquotedbl{}time\textquotedbl{}} (the time of day), \code{\textquotedbl{}second\textquotedbl{}}, \code{\textquotedbl{}is weekend\textquotedbl{}} (True on Saturday and Sunday), \code{\textquotedbl{}days in month\textquotedbl{}} (28 to 31), \code{\textquotedbl{}is month end\textquotedbl{}} (True on the last day of a month), \code{\textquotedbl{}is leap year\textquotedbl{}}, and \code{\textquotedbl{}year and month\textquotedbl{}} (text such as \code{\textquotedbl{}2026-03\textquotedbl{}}, to group by month across years). As pandas \code{dt.\allowbreak{}normalize()}, dt.time, dt.second, dt.dayofweek \textgreater{}= 5, dt.days\_in\_month, dt.is\_month\_end, dt.is\_leap\_year and \code{dt.\allowbreak{}strftime(\textquotedbl{}\%Y-\%m\textquotedbl{})}, and Polars \code{dt.\allowbreak{}truncate(\textquotedbl{}1d\textquotedbl{})}, \code{dt.\allowbreak{}time()}, \code{dt.\allowbreak{}second()}, \code{dt.\allowbreak{}weekday()} \textgreater{}= 6, \code{dt.\allowbreak{}days\_\allowbreak{}in\_\allowbreak{}month()}, \code{dt.\allowbreak{}month\_\allowbreak{}end()}, \code{dt.\allowbreak{}is\_\allowbreak{}leap\_\allowbreak{}year()} and \code{dt.\allowbreak{}to\_\allowbreak{}string(\textquotedbl{}\%Y-\%m\textquotedbl{})}:\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}shop\textquotedbl{})}: which weekday was each day?) More parts: \code{\textquotedbl{}date\textquotedbl{}} (the day, without the time), \code{\textquotedbl{}time\textquotedbl{}} (the time of day), \code{\textquotedbl{}second\textquotedbl{}}, \code{\textquotedbl{}is weekend\textquotedbl{}} (True on Saturday and Sunday), \code{\textquotedbl{}days in month\textquotedbl{}} (28 to 31), \code{\textquotedbl{}is month end\textquotedbl{}} (True on the last day of a month), \code{\textquotedbl{}is leap year\textquotedbl{}}, and \code{\textquotedbl{}year and month\textquotedbl{}} (text such as \code{\textquotedbl{}2026-03\textquotedbl{}}, to group by month across years). And \code{\textquotedbl{}is month start\textquotedbl{}}, \code{\textquotedbl{}is quarter start\textquotedbl{}}, \code{\textquotedbl{}is quarter end\textquotedbl{}}, \code{\textquotedbl{}is year start\textquotedbl{}}, \code{\textquotedbl{}is year end\textquotedbl{}} (True or False, as pandas dt.is\_month\_start ...), \code{\textquotedbl{}month end\textquotedbl{}} (the date of the last day of the month, Polars \code{dt.\allowbreak{}month\_\allowbreak{}end()}), \code{\textquotedbl{}is working day\textquotedbl{}} (Monday to Friday, as NumPy \code{is\_\allowbreak{}busday} and Polars \code{dt.\allowbreak{}is\_\allowbreak{}business\_\allowbreak{}day()}) and \code{\textquotedbl{}unix time\textquotedbl{}} (seconds since 1 January 1970 UTC, Polars \code{dt.\allowbreak{}epoch(\textquotedbl{}s\textquotedbl{})}). As pandas \code{dt.\allowbreak{}normalize()}, dt.time, dt.second, dt.dayofweek \textgreater{}= 5, dt.days\_in\_month, dt.is\_month\_end, dt.is\_leap\_year and \code{dt.\allowbreak{}strftime(\textquotedbl{}\%Y-\%m\textquotedbl{})}, and Polars \code{dt.\allowbreak{}truncate(\textquotedbl{}1d\textquotedbl{})}, \code{dt.\allowbreak{}time()}, \code{dt.\allowbreak{}second()}, \code{dt.\allowbreak{}weekday()} \textgreater{}= 6, \code{dt.\allowbreak{}days\_\allowbreak{}in\_\allowbreak{}month()}, \code{dt.\allowbreak{}month\_\allowbreak{}end()}, \code{dt.\allowbreak{}is\_\allowbreak{}leap\_\allowbreak{}year()} and \code{dt.\allowbreak{}to\_\allowbreak{}string(\textquotedbl{}\%Y-\%m\textquotedbl{})}:\\
 \codeline{table.add\_column\_with\_part\_of\_date(\textquotedbl{}weekend\textquotedbl{}, from\_column=\textquotedbl{}date\textquotedbl{}, part=\textquotedbl{}is weekend\textquotedbl{})}\\
 A column with a time zone is read on its own clock by Polars, on a pandas table too: local clock times before 1970 follow the main world time-zone data (IANA), the same on every computer.
 
@@ -15462,6 +15886,71 @@ df.with_columns(pl.col("date").dt.weekday().alias("weekday"))   # (1)
 \undertext{\code{part=} also takes \code{\textquotedbl{}year\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}month name\textquotedbl{}}, \code{\textquotedbl{}week\textquotedbl{}} (the ISO week), \code{\textquotedbl{}day\textquotedbl{}}, \code{\textquotedbl{}weekday name\textquotedbl{}}, \code{\textquotedbl{}day of year\textquotedbl{}}, \code{\textquotedbl{}hour\textquotedbl{}} and \code{\textquotedbl{}minute\textquotedbl{}}. Empty dates give empty cells. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{part=\textquotedbl{}is month start\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
+# add_column_with_part_of_date("first_day", from_column="date", part="is month start")
+df.assign(first_day=df["date"].dt.is_month_start)                        # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("shop.csv", try_parse_dates=True)
+# add_column_with_part_of_date("first_day", from_column="date", part="is month start")
+df.with_columns((pl.col("date").dt.day() == 1).alias("first_day"))       # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) worked out by Polars on both engines; an empty date gives an empty cell (pandas gives False).}
+\undertext{\code{\textquotedbl{}is quarter start\textquotedbl{}}, \code{\textquotedbl{}is quarter end\textquotedbl{}}, \code{\textquotedbl{}is year start\textquotedbl{}}, \code{\textquotedbl{}is year end\textquotedbl{}} and \code{\textquotedbl{}month end\textquotedbl{}} (the date of the month's last day, Polars \code{dt.\allowbreak{}month\_\allowbreak{}end()}) work the same way. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{NumPy}\libbadge{Polars}}
+\undertext{\textbf{With \code{part=\textquotedbl{}is working day\textquotedbl{}}}: the same job with this option.}
+\underlib{NumPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
+# add_column_with_part_of_date("working", from_column="date", part="is working day")
+df.assign(working=np.is_busday(df["date"].values.astype("datetime64[D]")))   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("shop.csv", try_parse_dates=True)
+# add_column_with_part_of_date("working", from_column="date", part="is working day")
+df.with_columns(pl.col("date").dt.is_business_day().alias("working"))      # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Monday to Friday; no public holidays are left out.}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{part=\textquotedbl{}unix time\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("shop.csv", parse_dates=["date"])
+# add_column_with_part_of_date("seconds", from_column="date", part="unix time")
+seconds = (df["date"] - pd.Timestamp("1970-01-01")) // pd.Timedelta(seconds=1)   # (1)
+df.assign(seconds=seconds)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("shop.csv", try_parse_dates=True)
+# add_column_with_part_of_date("seconds", from_column="date", part="unix time")
+df.with_columns(pl.col("date").dt.epoch("s").alias("seconds"))            # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) whole seconds since 1 January 1970 on the UTC clock (Polars \code{dt.\allowbreak{}epoch(\textquotedbl{}s\textquotedbl{})}).}
+\undertext{\code{turn\_\allowbreak{}into\_\allowbreak{}dates(from\_\allowbreak{}unix\_\allowbreak{}seconds=True)} turns such seconds back into dates. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_column\_with\_part\_of\_text()}{word:table.add-column-with-part-of-text}
 Add a column with one part of each text, such as its first letters or the text before a mark.
 
@@ -15473,7 +15962,11 @@ Choose one way:\\
 \codeline{after=\textquotedbl{} \textquotedbl{}}\enspace the text after the first \code{\textquotedbl{} \textquotedbl{}}\\
 \codeline{matches\_pattern=r\textquotedbl{}\textbackslash{}d+\textquotedbl{}}\enspace the first piece that fits a regular expression; with\\
 brackets ( ) in it, only the part inside the first brackets Cells where the mark or pattern is not found give empty cells.\\
-\codeline{table.add\_column\_with\_part\_of\_text(\textquotedbl{}initial\textquotedbl{}, from\_column=\textquotedbl{}name\textquotedbl{}, first\_characters=1)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}
+\codeline{table.add\_column\_with\_part\_of\_text(\textquotedbl{}initial\textquotedbl{}, from\_column=\textquotedbl{}name\textquotedbl{}, first\_characters=1)   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+\code{every\_\allowbreak{}match=True} with \code{matches\_\allowbreak{}pattern=} keeps every piece that fits, not only the first, joined with \code{\textquotedbl{};\textquotedbl{}} (\code{separator=} for another mark), as pandas str.findall and Polars str.extract\_all; \code{split\_\allowbreak{}into\_\allowbreak{}rows} then gives one row for each piece:\\
+\codeline{table.add\_column\_with\_part\_of\_text(\textquotedbl{}genes\textquotedbl{}, from\_column=\textquotedbl{}note\textquotedbl{}, matches\_pattern=r\textquotedbl{}bla[A-Z]+\textbackslash{}d*\textquotedbl{},}\\
+\code{every\_\allowbreak{}match=True}) \code{position\_\allowbreak{}of=\textquotedbl{}an\textquotedbl{}} gives where a piece of text starts, counting from 1, and an empty cell where it is not found (pandas str.find, plus 1; capital letters matter):\\
+\codeline{table.add\_column\_with\_part\_of\_text(\textquotedbl{}where\_an\textquotedbl{}, from\_column=\textquotedbl{}name\textquotedbl{}, position\_of=\textquotedbl{}an\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -15485,6 +15978,9 @@ brackets ( ) in it, only the part inside the first brackets Cells where the mark
 \code{before=} & \\
 \code{after=} & \\
 \code{matches\_\allowbreak{}pattern=} & \\
+\code{every\_\allowbreak{}match=} & normally \code{False}\\
+\code{separator=} & \\
+\code{position\_\allowbreak{}of=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-column-with-part-of-text]{How simplydata chooses methods}, page \pageref{basis:table.add-column-with-part-of-text}: the default, the evidence and the checks.}
@@ -15517,6 +16013,44 @@ df.with_columns(part.str.strip_chars().alias("first_word"))      # (2)
 \undertext{(1) the text before the first comma (\code{\textquotedbl{}Big Market\textquotedbl{}}, not \code{\textquotedbl{}Big Market ,\allowbreak{} east\textquotedbl{}}); a cell without a comma gives an empty cell, and simplydata says how many.}
 \undertext{(2) spaces at the ends of the part are removed (\code{\textquotedbl{}Big Market \textquotedbl{}} becomes \code{\textquotedbl{}Big Market\textquotedbl{}}), and a part that is blank becomes empty.}
 \undertext{\code{first\_\allowbreak{}characters=}, \code{last\_\allowbreak{}characters=}, \code{characters=[2,\allowbreak{} 4]}, \code{after=} and \code{matches\_\allowbreak{}pattern=} take other parts. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{every\_\allowbreak{}match=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("fjord_samples.csv", parse_dates=["sampled_local"])
+# add_column_with_part_of_text("people", from_column="crew", matches_pattern=..., every_match=True)
+found = df["crew"].str.findall("[A-Z]{2}")                                 # (1)
+df.assign(people=found.map(lambda v: ";".join(v) if isinstance(v, list) and v else None))
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("fjord_samples.csv", try_parse_dates=True)
+# add_column_with_part_of_text("people", from_column="crew", matches_pattern=..., every_match=True)
+found = pl.col("crew").str.extract_all("[A-Z]{2}").list.join(";")           # (1)
+df.with_columns(pl.when(found != "").then(found).alias("people"))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) every piece that fits, joined with \code{\textquotedbl{};\textquotedbl{}} (\code{separator=} for another mark); a text with none gives an empty cell.}
+\undertext{\code{split\_\allowbreak{}into\_\allowbreak{}rows} then gives one row for each piece. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{position\_\allowbreak{}of=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+# add_column_with_part_of_text("where_a", from_column="name", position_of="a")
+found = df["name"].str.find("a")                                          # (1)
+df.assign(where_a=(found + 1).where(found >= 0))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) counted from 1, and an empty cell where it is not found (pandas \code{find()} gives -1); characters are counted on both engines (Polars str.find counts bytes).}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.split\_column()}{word:table.split-column}
@@ -15816,7 +16350,7 @@ df.with_columns(pl.col("sample_id").cast(pl.String).str.zfill(3))     # (1)
 \wordentry{table.add\_rolling\_column()}{word:table.add-rolling-column}
 Add a rolling (moving) summary: for each row, the average of this row and the rows just before it.
 
-\code{window=} is how many rows go into each summary (this row and the window - 1 rows before it). The first rows of each group are empty until there are enough rows, and a window with an empty cell in it gives an empty cell. \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}skewness\textquotedbl{}}, \code{\textquotedbl{}kurtosis\textquotedbl{}} (excess, both adjusted for small windows as pandas skew and kurt), \code{\textquotedbl{}percentile\textquotedbl{}} (with \code{percent=90}; as R quantile type 7), \code{\textquotedbl{}count\textquotedbl{}} (readings in the window), or \code{\textquotedbl{}correlation\textquotedbl{}} and \code{\textquotedbl{}covariance\textquotedbl{}} (\code{from\_\allowbreak{}column=} two columns). \code{sorted\_\allowbreak{}by=} works it out in the order of a column such as a date (the rows themselves keep their place).\\
+\code{window=} is how many rows go into each summary (this row and the window - 1 rows before it). The first rows of each group are empty until there are enough rows, and a window with an empty cell in it gives an empty cell. \code{show=} can be \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}}, \code{\textquotedbl{}variance\textquotedbl{}}, \code{\textquotedbl{}skewness\textquotedbl{}}, \code{\textquotedbl{}kurtosis\textquotedbl{}} (excess, both adjusted for small windows as pandas skew and kurt), \code{\textquotedbl{}percentile\textquotedbl{}} (with \code{percent=90}; as R quantile type 7), \code{\textquotedbl{}count\textquotedbl{}} (readings in the window), or \code{\textquotedbl{}correlation\textquotedbl{}} and \code{\textquotedbl{}covariance\textquotedbl{}} (\code{from\_\allowbreak{}column=} and \code{with\_\allowbreak{}column=}, or \code{from\_\allowbreak{}column=} two columns: pandas \code{rolling()}.corr() and \code{rolling()}.cov(), Polars \code{rolling\_\allowbreak{}corr} and \code{rolling\_\allowbreak{}cov}). \code{sorted\_\allowbreak{}by=} works it out in the order of a column such as a date (the rows themselves keep their place).\\
 \codeline{table.add\_rolling\_column(\textquotedbl{}rain\_3\_months\textquotedbl{}, from\_column=\textquotedbl{}rain\textquotedbl{}, window=3, show=\textquotedbl{}total\textquotedbl{},}\\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}) \code{window=\textquotedbl{}7 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}2 weeks\textquotedbl{}}) is a window of time ending at this row's date: this day and the 6 days before, with whatever readings fall in it (\code{sorted\_\allowbreak{}by=} a date column; empty cells are left out), as pandas \code{rolling(\textquotedbl{}7D\textquotedbl{})}. \code{centre=True} puts the window's middle on the row (an odd window such as 7), as R stats::\code{filter(x,\allowbreak{} rep(1/7,\allowbreak{} 7),\allowbreak{} sides = 2)}.
 
@@ -15831,6 +16365,7 @@ Add a rolling (moving) summary: for each row, the average of this row and the ro
 \code{centre=} & normally \code{False}\\
 \code{percent=} & \\
 \code{center=} & \\
+\code{with\_\allowbreak{}column=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-rolling-column]{How simplydata chooses methods}, page \pageref{basis:table.add-rolling-column}: the default, the evidence and the checks.}
@@ -15866,12 +16401,39 @@ df.with_columns(total.alias("rain_3_months"))
 \undertext{\code{centre=True} centres the window, \code{window=\textquotedbl{}7 days\textquotedbl{}} makes it a span of time, and \code{show=} takes the median, standard deviation, a percentile and more. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{with\_\allowbreak{}column=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("weather.csv")
+# add_rolling_column("link", from_column="temperature", with_column="rain", show="correlation", ...)
+ordered = df.sort_values("month_number", kind="stable")
+link = ordered.groupby("city", group_keys=False).apply(
+    lambda g: g["temperature"].rolling(4).corr(g["rain"]))                # (1)
+df.assign(link=link)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv").with_row_index("row")
+# add_rolling_column("link", from_column="temperature", with_column="rain", show="correlation", ...)
+link = pl.rolling_corr("temperature", "rain", window_size=4).over("city", order_by="month_number")
+df.with_columns(link.alias("link")).drop("row")                           # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the same as \code{from\_\allowbreak{}column=[\textquotedbl{}temperature\textquotedbl{},\allowbreak{} \textquotedbl{}rain\textquotedbl{}]}; the first rows of each group are empty until the window is full.}
+\undertext{\code{show=\textquotedbl{}covariance\textquotedbl{}} works the same way (pandas \code{rolling()}.cov(), Polars \code{rolling\_\allowbreak{}cov}). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
 \wordentry{table.add\_previous\_value\_column()}{word:table.add-previous-value-column}
 Add a column with the value from the row before (or \code{rows\_\allowbreak{}back=} rows before).
 
 The first row of each group has no row before it, so it gets an empty cell.\\
 \codeline{table.add\_previous\_value\_column(\textquotedbl{}last\_month\textquotedbl{}, from\_column=\textquotedbl{}temperature\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}city\textquotedbl{},}\\
-\code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})})
+\code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})   (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}weather\textquotedbl{})}) \code{rows\_\allowbreak{}ahead=1} takes the value from the row after instead (the next value, a lead: pandas and Polars \code{shift(-1)}, R dplyr \code{lead()}); the last row of each group then gets the empty cell:\\
+\codeline{table.add\_previous\_value\_column(\textquotedbl{}next\_month\textquotedbl{}, from\_column=\textquotedbl{}temperature\textquotedbl{}, rows\_ahead=1,}\\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=\textquotedbl{}city\textquotedbl{}}, \code{sorted\_\allowbreak{}by=\textquotedbl{}month\_\allowbreak{}number\textquotedbl{}})
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -15880,6 +16442,7 @@ The first row of each group has no row before it, so it gets an empty cell.\\
 \code{rows\_\allowbreak{}back=} & normally \code{1}\\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \code{sorted\_\allowbreak{}by=} & \\
+\code{rows\_\allowbreak{}ahead=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.add-previous-value-column]{How simplydata chooses methods}, page \pageref{basis:table.add-previous-value-column}: the default, the evidence and the checks.}
@@ -15913,6 +16476,30 @@ df.with_columns(before.alias("last_month"))
 \undertext{(1) \code{\textquotedbl{}the row before\textquotedbl{}} follows \code{sorted\_\allowbreak{}by=}, but the rows keep their place in the table (here sorted by temperature; assign lines the values up by row).}
 \undertext{(2) within each city; the first month of each city has no row before it and stays empty.}
 \undertext{\code{rows\_\allowbreak{}back=2} takes the value from 2 rows before. Without \code{sorted\_\allowbreak{}by=} the rows are taken in the order they are in now. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{rows\_\allowbreak{}ahead=}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("weather.csv")
+# add_previous_value_column("next_month", from_column="temperature", rows_ahead=1, ...)
+ordered = df.sort_values("month_number", kind="stable")
+after = ordered.groupby("city")["temperature"].shift(-1)                  # (1)
+df.assign(next_month=after)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv")
+# add_previous_value_column("next_month", from_column="temperature", rows_ahead=1, ...)
+after = pl.col("temperature").shift(-1).over("city", order_by="month_number")   # (1)
+df.with_columns(after.alias("next_month"))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the next value (a lead, R dplyr \code{lead()}): the last month of each city has no row after it and stays empty.}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_change\_column()}{word:table.add-change-column}
@@ -16014,6 +16601,60 @@ df.with_columns(so_far.alias("sales_so_far"))
 \undertext{(1) the sum follows \code{sorted\_\allowbreak{}by=} (here the date) while the rows keep their place in the table;}
 \undertext{(2) an empty cell stays empty and is left out of the rows after it (for \code{show=\textquotedbl{}average\textquotedbl{}} too, whose pandas \code{expanding()}.mean() would carry the average on).}
 \undertext{\code{show=} also gives the running average, smallest, biggest, count or product. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.add\_run\_number\_column()}{word:table.add-run-number-column}
+Number each run of the same value. \code{table.\allowbreak{}add\_\allowbreak{}run\_\allowbreak{}number\_\allowbreak{}column(\textquotedbl{}spell\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\_\allowbreak{}band\textquotedbl{})}
+
+\codeline{table.add\_run\_number\_column(\textquotedbl{}spell\textquotedbl{}, from\_column=\textquotedbl{}level\_band\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}station\textquotedbl{}, sorted\_by=\textquotedbl{}date\textquotedbl{})}\\
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}river\textquotedbl{})}, after \code{table.\allowbreak{}add\_\allowbreak{}group\_\allowbreak{}column(\textquotedbl{}level\_\allowbreak{}band\textquotedbl{},\allowbreak{} from\_\allowbreak{}column=\textquotedbl{}level\textquotedbl{},\allowbreak{} cut\_\allowbreak{}at=[2.\allowbreak{}5],\allowbreak{} names=[\textquotedbl{}low\textquotedbl{},\allowbreak{} \textquotedbl{}high\textquotedbl{}])}: each spell of low or high water at each station) A run is a stretch of rows in a row with the same value; the number goes up by one each time the value changes, as Polars \code{rle\_\allowbreak{}id()} (plus 1, to count from 1) and pandas (s != \code{s.\allowbreak{}shift()}).cumsum(). Empty cells next to each other are one run (as Polars counts them). \code{sorted\_\allowbreak{}by=} works in the order of a column such as a date (the rows keep their place); \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} starts again at 1 in each group. Then\\
+\codeline{table.count\_rows(for\_each\_group\_in=[\textquotedbl{}station\textquotedbl{}, \textquotedbl{}spell\textquotedbl{}]) gives the length of each run (Polars rle()).}
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{name=} & \\
+\code{from\_\allowbreak{}column=} & \\
+\code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
+\code{sorted\_\allowbreak{}by=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{select()}, \code{sort\_\allowbreak{}values()}, \code{groupby().\allowbreak{}transform()}, \code{cumsum()}, \code{fillna()}, \code{fillna().\allowbreak{}shift()}, \code{assign()} \textperiodcentered{} Polars \code{when().\allowbreak{}then().\allowbreak{}when().\allowbreak{}then()}, \code{col()}, \code{lit()}, \code{with\_\allowbreak{}columns()}, \code{alias()}, \code{over()}, \code{col().\allowbreak{}rle\_\allowbreak{}id()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("river"))
+table.add_group_column("level_band", from_column="level", cut_at=[2.5], names=["low", "high"])
+table.add_run_number_column("spell", from_column="level_band", for_each_group_in="station", sorted_by="date")
+table.count_rows(for_each_group_in=["station", "spell"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import numpy as np
+import pandas as pd
+df = pd.read_csv("river.csv", parse_dates=["date"])
+df["band"] = np.select([df["level"] >= 2.5, df["level"] < 2.5], ["high", "low"], default=None)
+# add_run_number_column("spell", from_column="band", for_each_group_in="station", sorted_by="date")
+ordered = df.sort_values("date", kind="stable")                      # (1)
+spell = ordered.groupby("station")["band"].transform(
+    lambda s: (s.fillna("") != s.fillna("").shift()).cumsum())        # (2)
+df.assign(spell=spell)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("river.csv", try_parse_dates=True)
+band = pl.when(pl.col("level") >= 2.5).then(pl.lit("high")).when(pl.col("level") < 2.5).then(
+    pl.lit("low"))
+df = df.with_columns(band.alias("band"))
+# add_run_number_column("spell", from_column="band", for_each_group_in="station", sorted_by="date")
+spell = (pl.col("band").rle_id() + 1).over("station", order_by="date")   # (1) (2)
+df.with_columns(spell.alias("spell"))
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the runs follow \code{sorted\_\allowbreak{}by=}, but the rows keep their place in the table.}
+\undertext{(2) within each station, counted from 1 (Polars \code{rle\_\allowbreak{}id()} counts from 0); empty cells next to each other are one run, as Polars counts them.}
+\undertext{\code{count\_\allowbreak{}rows(for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=[\textquotedbl{}station\textquotedbl{},\allowbreak{} \textquotedbl{}spell\textquotedbl{}])} then gives the length of each run (Polars \code{rle()}). simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \unsection{Summaries}{group:Summaries}
@@ -16441,7 +17082,11 @@ df.group_by("class").agg(pl.col("marks").std(ddof=1)).sort("class")      # (1) (
 Several measures of one or more columns at once, in one tidy table.
 
 \codeline{table.find\_summary\_of(\textquotedbl{}marks\textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{}, show=[\textquotedbl{}average\textquotedbl{}, \textquotedbl{}standard deviation\textquotedbl{}, \textquotedbl{}count\textquotedbl{}])}\\
-(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}). Several columns: \code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of([\textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}hours\textquotedbl{}])}. \code{show=} takes any of: \code{\textquotedbl{}count\textquotedbl{}} (numbers, empty cells left out), \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}variance\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}standard error\textquotedbl{}} (of the average), \code{\textquotedbl{}confidence interval\textquotedbl{}} (95 \% t interval of the average, as R t.test), \code{\textquotedbl{}range\textquotedbl{}} (biggest minus smallest), \code{\textquotedbl{}interquartile range\textquotedbl{}} (upper quartile minus lower quartile, R type 7), \code{\textquotedbl{}empty cells\textquotedbl{}}, and these, with the definitions R uses: \code{\textquotedbl{}geometric mean\textquotedbl{}} (numbers above 0), \code{\textquotedbl{}skewness\textquotedbl{}} and \code{\textquotedbl{}kurtosis\textquotedbl{}} (the bias-corrected sample values G1 and G2, as SciPy skew/\code{kurtosis(bias=False)}, R e1071 type 2 and Excel; kurtosis is excess kurtosis, 0 for a bell shape), \code{\textquotedbl{}coefficient of variation\textquotedbl{}} (standard deviation / average, a ratio), \code{\textquotedbl{}median absolute deviation\textquotedbl{}} (as R \code{mad()}, times 1.4826), \code{\textquotedbl{}trimmed average\textquotedbl{}} (10 \% cut from each end, as R \code{mean(trim = 0.\allowbreak{}1)}; \code{\textquotedbl{}trimmed average 20\textquotedbl{}} cuts 20 \%), \code{\textquotedbl{}most common\textquotedbl{}} (the smallest if tied), \code{\textquotedbl{}percentile 90\textquotedbl{}} (any percent, R quantile type 7), \code{\textquotedbl{}harmonic mean\textquotedbl{}} (numbers above 0, SciPy hmean, as R psych::harmonic.mean) and \code{\textquotedbl{}winsorised average\textquotedbl{}} (the lowest and highest 20 \% set to the nearest value kept, then the average; SciPy, as R WRS2::\code{winmean(tr = 0.\allowbreak{}2)}; \code{\textquotedbl{}winsorised average 10\textquotedbl{}} pulls in 10 \%), and \code{\textquotedbl{}first\textquotedbl{}} and \code{\textquotedbl{}last\textquotedbl{}} (the first and last filled value, in the order of the rows: sort first with \code{sort\_\allowbreak{}by}, as pandas \code{groupby()}.first() / \code{last()} and Polars \code{first()} / \code{last()}). With \code{every=\textquotedbl{}month\textquotedbl{}}, \code{show=[\textquotedbl{}first\textquotedbl{},\allowbreak{} \textquotedbl{}biggest\textquotedbl{},\allowbreak{} \textquotedbl{}smallest\textquotedbl{},\allowbreak{} \textquotedbl{}last\textquotedbl{}]} gives each month's open, high, low and close. Without \code{show=}: count, average, standard deviation, smallest, median, biggest. A measure of your own also works: a function that gets one group's numbers (a NumPy array) and gives back one number, \code{show=[\textquotedbl{}average\textquotedbl{},\allowbreak{} my\_\allowbreak{}measure]}. The new table has one row for each column (and each group), so it can be saved or charted. \code{every=} groups a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} by \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}year\textquotedbl{}} ...
+(with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})}). Several columns: \code{table.\allowbreak{}find\_\allowbreak{}summary\_\allowbreak{}of([\textquotedbl{}marks\textquotedbl{},\allowbreak{} \textquotedbl{}hours\textquotedbl{}])}. \code{show=} takes any of: \code{\textquotedbl{}count\textquotedbl{}} (numbers, empty cells left out), \code{\textquotedbl{}average\textquotedbl{}}, \code{\textquotedbl{}median\textquotedbl{}}, \code{\textquotedbl{}total\textquotedbl{}}, \code{\textquotedbl{}smallest\textquotedbl{}}, \code{\textquotedbl{}biggest\textquotedbl{}}, \code{\textquotedbl{}standard deviation\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}variance\textquotedbl{}} (sample, n - 1), \code{\textquotedbl{}standard error\textquotedbl{}} (of the average), \code{\textquotedbl{}confidence interval\textquotedbl{}} (95 \% t interval of the average, as R t.test), \code{\textquotedbl{}range\textquotedbl{}} (biggest minus smallest), \code{\textquotedbl{}interquartile range\textquotedbl{}} (upper quartile minus lower quartile, R type 7), \code{\textquotedbl{}empty cells\textquotedbl{}}, and these, with the definitions R uses: \code{\textquotedbl{}geometric mean\textquotedbl{}} (numbers above 0), \code{\textquotedbl{}skewness\textquotedbl{}} and \code{\textquotedbl{}kurtosis\textquotedbl{}} (the bias-corrected sample values G1 and G2, as SciPy skew/\code{kurtosis(bias=False)}, R e1071 type 2 and Excel; kurtosis is excess kurtosis, 0 for a bell shape), \code{\textquotedbl{}coefficient of variation\textquotedbl{}} (standard deviation / average, a ratio), \code{\textquotedbl{}median absolute deviation\textquotedbl{}} (as R \code{mad()}, times 1.4826), \code{\textquotedbl{}trimmed average\textquotedbl{}} (10 \% cut from each end, as R \code{mean(trim = 0.\allowbreak{}1)}; \code{\textquotedbl{}trimmed average 20\textquotedbl{}} cuts 20 \%), \code{\textquotedbl{}most common\textquotedbl{}} (the smallest if tied), \code{\textquotedbl{}percentile 90\textquotedbl{}} (any percent, R quantile type 7), \code{\textquotedbl{}harmonic mean\textquotedbl{}} (numbers above 0, SciPy hmean, as R psych::harmonic.mean) and \code{\textquotedbl{}winsorised average\textquotedbl{}} (the lowest and highest 20 \% set to the nearest value kept, then the average; SciPy, as R WRS2::\code{winmean(tr = 0.\allowbreak{}2)}; \code{\textquotedbl{}winsorised average 10\textquotedbl{}} pulls in 10 \%), and \code{\textquotedbl{}first\textquotedbl{}} and \code{\textquotedbl{}last\textquotedbl{}} (the first and last filled value, in the order of the rows: sort first with \code{sort\_\allowbreak{}by}, as pandas \code{groupby()}.first() / \code{last()} and Polars \code{first()} / \code{last()}). With \code{every=\textquotedbl{}month\textquotedbl{}}, \code{show=[\textquotedbl{}first\textquotedbl{},\allowbreak{} \textquotedbl{}biggest\textquotedbl{},\allowbreak{} \textquotedbl{}smallest\textquotedbl{},\allowbreak{} \textquotedbl{}last\textquotedbl{}]} gives each month's open, high, low and close. Without \code{show=}: count, average, standard deviation, smallest, median, biggest. A measure of your own also works: a function that gets one group's numbers (a NumPy array) and gives back one number, \code{show=[\textquotedbl{}average\textquotedbl{},\allowbreak{} my\_\allowbreak{}measure]}. The new table has one row for each column (and each group), so it can be saved or charted. \code{every=} groups a date column in \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} by \code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}year\textquotedbl{}} ... \code{\textquotedbl{}product\textquotedbl{}} multiplies the values together (pandas \code{prod()}, Polars \code{product()}) and \code{\textquotedbl{}entropy\textquotedbl{}} is the Shannon entropy of the values as shares of their total, natural log (SciPy entropy, Polars \code{entropy()}). \code{show=[\textquotedbl{}joined text\textquotedbl{}]} joins the text of each group into one cell, \code{\textquotedbl{}; \textquotedbl{}} between them (\code{separator=} for another), the mirror of \code{split\_\allowbreak{}into\_\allowbreak{}rows} (pandas \code{groupby()}.agg(\code{\textquotedbl{}; \textquotedbl{}}.join), Polars str.join):\\
+\codeline{table.find\_summary\_of(\textquotedbl{}name\textquotedbl{}, show=[\textquotedbl{}joined text\textquotedbl{}], separator=\textquotedbl{}, \textquotedbl{}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})}\\
+Different measures for different columns, one row for each group (pandas named aggregation, Polars \code{group\_\allowbreak{}by()}.agg()): \code{show=} a dict of column: measures, and leave out the column:\\
+\codeline{table.find\_summary\_of(show=\{\textquotedbl{}marks\textquotedbl{}: [\textquotedbl{}average\textquotedbl{}, \textquotedbl{}count\textquotedbl{}], \textquotedbl{}hours\textquotedbl{}: [\textquotedbl{}total\textquotedbl{}]\}, for\_each\_group\_in=\textquotedbl{}class\textquotedbl{})}\\
+The columns of that table are called \code{\textquotedbl{}marks average\textquotedbl{}}, \code{\textquotedbl{}marks count\textquotedbl{}} and \code{\textquotedbl{}hours total\textquotedbl{}}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -16449,6 +17094,7 @@ Several measures of one or more columns at once, in one tidy table.
 \code{show=} & \\
 \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} & \\
 \code{every=} & \\
+\code{separator=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.find-summary-of]{How simplydata chooses methods}, page \pageref{basis:table.find-summary-of}: the default, the evidence and the checks.}
@@ -16510,6 +17156,99 @@ df.group_by("station", maintain_order=True).agg(
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) \code{\textquotedbl{}first\textquotedbl{}} and \code{\textquotedbl{}last\textquotedbl{}} are the first and last filled value in the order of the rows (pandas groupby \code{first()} and \code{last()} skip empty cells; Polars \code{drop\_\allowbreak{}nulls()} then \code{first()} and \code{last()}): sort first with \code{sort\_\allowbreak{}by} for another order.}
 \undertext{With \code{every=\textquotedbl{}month\textquotedbl{}} the same four give each month's open, high, low and close (pandas \code{resample()}.ohlc()).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{show=\textquotedbl{}product\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("weather.csv")
+# find_summary_of("rain", show=["product"], for_each_group_in="city")
+found = df.groupby("city")["rain"].apply(lambda r: r.astype(float).prod())   # (1)
+found = found.rename("product").reset_index()
+found.insert(0, "column", "rain")
+found
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv")
+# find_summary_of("rain", show=["product"], for_each_group_in="city")
+df.group_by("city").agg(pl.lit("rain").alias("column"),
+                        pl.col("rain").cast(pl.Float64).product().alias("product")).sort(
+    "city").select("column", "city", "product")                              # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) in decimals, so a product of whole numbers never wraps round (pandas \code{prod()} of int64 would); empty cells are left out (pandas \code{prod()} and Polars \code{product()} skip them).}
+\undertext{The product of many values gets big fast: \code{entropy=} and the geometric mean are often what is wanted.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{Polars}}
+\undertext{\textbf{With \code{show=\textquotedbl{}entropy\textquotedbl{}}}: the same job with this option.}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("weather.csv")
+# find_summary_of("rain", show=["entropy"], for_each_group_in="city")
+df.group_by("city").agg(pl.lit("rain").alias("column"),
+                        pl.col("rain").drop_nulls().entropy().alias("entropy")).sort(
+    "city").select("column", "city", "entropy")                              # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the values are shared out to 1 (each value over the total) and the log is the natural log: Polars \code{entropy(base=e,\allowbreak{} normalize=True)} and SciPy entropy, which simplydata calls.}
+\undertext{Negative values give an empty cell, with a note (a share cannot be below 0).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{show=\textquotedbl{}joined text\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+df = df[df["subject"] == "Maths"]
+# find_summary_of("name", show=["joined text"], separator=", ", for_each_group_in="class")
+found = df.groupby("class")["name"].agg(lambda s: ", ".join(s.dropna().astype(str)))   # (1)
+found = found.rename("joined text").reset_index()
+found.insert(0, "column", "name")
+found
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv").filter(pl.col("subject") == "Maths")
+# find_summary_of("name", show=["joined text"], separator=", ", for_each_group_in="class")
+df.group_by("class", maintain_order=True).agg(
+    pl.col("name").drop_nulls().str.join(", ").alias("joined text")).sort("class").select(
+    pl.lit("name").alias("column"), "class", "joined text")                   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the texts of each group in the order of the rows, empty cells left out, \code{\textquotedbl{}; \textquotedbl{}} between them unless \code{separator=} says otherwise.}
+\undertext{It is the mirror of \code{split\_\allowbreak{}into\_\allowbreak{}rows}, which makes one row for each piece again.}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\undertext{\textbf{With \code{show=\{column: measures\}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+# find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")
+df.groupby("class").agg(**{"marks average": ("marks", "mean"), "marks count": ("marks", "count"),
+                           "hours total": ("hours", "sum")}).reset_index()   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv")
+# find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")
+df.group_by("class").agg(pl.col("marks").mean().alias("marks average"),
+                         pl.col("marks").count().alias("marks count"),
+                         pl.col("hours").sum().alias("hours total")).sort("class")   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) one row for each group, the columns named column then measure (pandas named aggregation).}
+\undertext{Every measure of \code{find\_\allowbreak{}summary\_\allowbreak{}of} works here, the percentiles and your own functions too.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.find\_percent\_of\_rows\_where()}{word:table.find-percent-of-rows-where}
@@ -16613,6 +17352,45 @@ df.group_by("school").agg(pl.col("sleep").drop_nulls().n_unique()).sort("school"
 \undertext{(2) one row for each school, the schools sorted A to Z.}
 \undertext{Capital letters matter: \code{\textquotedbl{}Apple\textquotedbl{}} and \code{\textquotedbl{}apple\textquotedbl{}} are two values. Without \code{for\_\allowbreak{}each\_\allowbreak{}group\_\allowbreak{}in=} it gives one number.}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\wordentry{table.get\_different\_values\_in()}{word:table.get-different-values-in}
+The different values of a column, each once. classes = \code{table.\allowbreak{}get\_\allowbreak{}different\_\allowbreak{}values\_\allowbreak{}in(\textquotedbl{}class\textquotedbl{})}
+
+\codeline{classes = table.get\_different\_values\_in(\textquotedbl{}class\textquotedbl{})   (with sdata.get\_example(\textquotedbl{}marks\textquotedbl{}))}\\
+The values come in the order they first turn up in the table (pandas \code{Series.\allowbreak{}unique()}, Polars \code{unique(maintain\_\allowbreak{}order=True)}), so sort the table first (\code{sort\_\allowbreak{}by}) for another order. Empty cells are left out, with a note, as \code{count\_\allowbreak{}different\_\allowbreak{}values\_\allowbreak{}in} leaves them out. A column of numbers gives \code{sdata.\allowbreak{}number\_\allowbreak{}list}, any other column a plain list, as \code{get\_\allowbreak{}column} does. Capital letters matter: \code{\textquotedbl{}Apple\textquotedbl{}} and \code{\textquotedbl{}apple\textquotedbl{}} are two values. The table does not change.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{column=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{pandas \code{dropna().\allowbreak{}unique()} \textperiodcentered{} Polars \code{drop\_\allowbreak{}nulls().\allowbreak{}unique().\allowbreak{}to\_\allowbreak{}list()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+table = sdata.table(sdata.get_example("marks"))
+classes = table.get_different_values_in("class")
+print(classes)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}\libbadge{Polars}}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("marks.csv")
+# get_different_values_in("class")
+list(df["class"].dropna().unique())                                   # (1)
+\end{lstlisting}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("marks.csv")
+# get_different_values_in("class")
+df["class"].drop_nulls().unique(maintain_order=True).to_list()        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the values in the order they first turn up, empty cells left out (pandas \code{unique()} keeps an empty value; Polars \code{unique()} needs \code{maintain\_\allowbreak{}order=True} for this order).}
+\undertext{A column of numbers comes back as \code{sdata.\allowbreak{}number\_\allowbreak{}list}, any other as a plain list, as \code{get\_\allowbreak{}column} does. simplydata also says the answer in a sentence.}
+\undertext{\textit{Checked:} a test runs both and compares the number (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.find\_percentile\_of()}{word:table.find-percentile-of}
 The value below which a given percent of the numbers lie; empty cells are skipped.
@@ -24066,7 +24844,8 @@ A table with one column, \code{\textquotedbl{}date\textquotedbl{}}: regular date
 \codeline{sdata.make\_run\_of\_dates(\textquotedbl{}2026-01-01\textquotedbl{}, to=\textquotedbl{}2026-12-31\textquotedbl{}, every=\textquotedbl{}day\textquotedbl{})}\\
 Give \code{to=} (the last date, included when a step lands on it) or \code{how\_\allowbreak{}many=} (how many dates):\\
 \codeline{sdata.make\_run\_of\_dates(\textquotedbl{}2026-01\textquotedbl{}, how\_many=24, every=\textquotedbl{}month\textquotedbl{}). every= is \textquotedbl{}second\textquotedbl{}, \textquotedbl{}minute\textquotedbl{}, \textquotedbl{}hour\textquotedbl{}, \textquotedbl{}day\textquotedbl{},}\\
-\code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} or \code{\textquotedbl{}year\textquotedbl{}}, or a count and a unit such as \code{\textquotedbl{}15 minutes\textquotedbl{}} or \code{\textquotedbl{}2 weeks\textquotedbl{}}. Month steps are counted from the first date: from the 31st the dates stay on the 31st, or on the month's last day when the month is shorter (2026-01-31, 2026-02-28, 2026-03-31), as pandas DateOffset and Polars \code{\textquotedbl{}1mo\textquotedbl{}}; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} overflows into the next month instead. For other steps the dates are those of R \code{seq(as.\allowbreak{}Date(start),\allowbreak{} as.\allowbreak{}Date(to),\allowbreak{} by = \textquotedbl{}day\textquotedbl{})}. \code{fast=True} gives a Polars table. The table joins with others (\code{join\_\allowbreak{}with}) and charts like any table.
+\code{\textquotedbl{}week\textquotedbl{}}, \code{\textquotedbl{}month\textquotedbl{}}, \code{\textquotedbl{}quarter\textquotedbl{}} or \code{\textquotedbl{}year\textquotedbl{}}, or a count and a unit such as \code{\textquotedbl{}15 minutes\textquotedbl{}} or \code{\textquotedbl{}2 weeks\textquotedbl{}}. Month steps are counted from the first date: from the 31st the dates stay on the 31st, or on the month's last day when the month is shorter (2026-01-31, 2026-02-28, 2026-03-31), as pandas DateOffset and Polars \code{\textquotedbl{}1mo\textquotedbl{}}; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} overflows into the next month instead. For other steps the dates are those of R \code{seq(as.\allowbreak{}Date(start),\allowbreak{} as.\allowbreak{}Date(to),\allowbreak{} by = \textquotedbl{}day\textquotedbl{})}. \code{fast=True} gives a Polars table. The table joins with others (\code{join\_\allowbreak{}with}) and charts like any table. \code{every=\textquotedbl{}working day\textquotedbl{}} gives the days from Monday to Friday only (pandas \code{bdate\_\allowbreak{}range}, NumPy \code{busday\_\allowbreak{}offset}; no public holidays are left out):\\
+\codeline{sdata.make\_run\_of\_dates(\textquotedbl{}2026-12-01\textquotedbl{}, to=\textquotedbl{}2026-12-31\textquotedbl{}, every=\textquotedbl{}working day\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -24096,6 +24875,19 @@ pd.DataFrame({"date": dates})
 \undertext{\textbf{simplydata chooses}}
 \undertext{(1) each month is counted from the first date, so the dates stay on the 30th, or on the month's last day when it is shorter (30 January, 28 February, 30 March, 30 April). pandas' \code{date\_\allowbreak{}range(freq=DateOffset(months=1))} steps from the date before instead and stays on the 28th; R's \code{seq(by = \textquotedbl{}month\textquotedbl{})} runs over into March.}
 \undertext{simplydata also says how many dates it made. \code{to=} gives the last date instead of \code{how\_\allowbreak{}many=}, and \code{fast=True} gives a Polars table.}
+\undertext{\textit{Checked:} a test runs both and compares the table.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{pandas}}
+\undertext{\textbf{With \code{every=\textquotedbl{}working day\textquotedbl{}}}: the same job with this option.}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+# make_run_of_dates("2026-12-01", to="2026-12-31", every="working day")
+pd.DataFrame({"date": pd.bdate_range("2026-12-01", "2026-12-31")})        # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) Monday to Friday; no public holidays are left out.}
+\undertext{\code{how\_\allowbreak{}many=} gives that many working days instead of \code{to=}.}
 \undertext{\textit{Checked:} a test runs both and compares the table.}
 \end{underneathbox}
 \wordentry{table.add\_missing\_dates()}{word:table.add-missing-dates}
@@ -26479,7 +27271,7 @@ When the two tables name the column differently, pair the names, this table's fi
 \codeline{\textquotedbl{}each row has one match\textquotedbl{}}\enspace a key appears at most once in the other table (\code{validate=\textquotedbl{}many\_\allowbreak{}to\_\allowbreak{}one\textquotedbl{}})\\
 \code{\textquotedbl{}each key appears once in both\textquotedbl{}}  at most once in each table (\code{validate=\textquotedbl{}one\_\allowbreak{}to\_\allowbreak{}one\textquotedbl{}})\\
 \codeline{\textquotedbl{}each key appears once here\textquotedbl{}}\enspace at most once in this table (\code{validate=\textquotedbl{}one\_\allowbreak{}to\_\allowbreak{}many\textquotedbl{}})\\
-\code{with\_\allowbreak{}match\_\allowbreak{}column=True} adds a column \code{\textquotedbl{}found in\textquotedbl{}} that says, for each row, \code{\textquotedbl{}both\textquotedbl{}}, \code{\textquotedbl{}this table only\textquotedbl{}} or \code{\textquotedbl{}other table only\textquotedbl{}} (pandas \code{merge(indicator=True)}), so rows without a match are easy to find. \code{on=} (pandas merge) and \code{by=} (R merge, dplyr joins) work too, with a note once: they are \code{using=} here; \code{how=\textquotedbl{}left\textquotedbl{}} (and inner, right, outer) runs as the \code{keep=} value with a note once. \code{match=\textquotedbl{}nearest before\textquotedbl{}} joins each row to the row of the other table with the nearest earlier (or equal) date, \code{\textquotedbl{}nearest after\textquotedbl{}} the nearest later one and \code{\textquotedbl{}nearest\textquotedbl{}} the nearest either way; \code{within=\textquotedbl{}2 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}1 week\textquotedbl{}}; a number for a column of numbers) is the furthest it looks. The last \code{using=} column is matched to the nearest value and the others exactly (\code{using=[\textquotedbl{}station\textquotedbl{},\allowbreak{} \textquotedbl{}date\textquotedbl{}]}); the other table's date comes in as \code{\textquotedbl{}date\_\allowbreak{}other\textquotedbl{}}. \code{keep=\textquotedbl{}matching rows\textquotedbl{}} leaves out rows with nothing near enough; \code{keep=\textquotedbl{}all rows from this table\textquotedbl{}} keeps them with empty cells. Both pandas and Polars tables run through Polars \code{join\_\allowbreak{}asof(strategy=\textquotedbl{}backward\textquotedbl{},\allowbreak{} tolerance=\textquotedbl{}2d\textquotedbl{})}, so they give the same rows; both tables are sorted by the date first, keeping the order of rows with the same date. When the other table has several rows with the same date, \code{\textquotedbl{}nearest before\textquotedbl{}} takes the last of them and \code{\textquotedbl{}nearest after\textquotedbl{}} the first; with \code{\textquotedbl{}nearest\textquotedbl{}}, a date as far before as after goes to the later one (Polars' rules). An empty value in an exact \code{using=} column never matches, as in every join; whole numbers and decimals match: \code{river.\allowbreak{}join\_\allowbreak{}with(rain,\allowbreak{} using=\textquotedbl{}date\textquotedbl{},\allowbreak{} match=\textquotedbl{}nearest before\textquotedbl{},\allowbreak{} within=\textquotedbl{}2 days\textquotedbl{})} \code{keep=\textquotedbl{}every combination\textquotedbl{}} pairs every row with every row, without \code{using=} (a cross join: pandas \code{merge(how=\textquotedbl{}cross\textquotedbl{})}, Polars \code{join(how=\textquotedbl{}cross\textquotedbl{})}).
+\code{with\_\allowbreak{}match\_\allowbreak{}column=True} adds a column \code{\textquotedbl{}found in\textquotedbl{}} that says, for each row, \code{\textquotedbl{}both\textquotedbl{}}, \code{\textquotedbl{}this table only\textquotedbl{}} or \code{\textquotedbl{}other table only\textquotedbl{}} (pandas \code{merge(indicator=True)}), so rows without a match are easy to find. \code{on=} (pandas merge) and \code{by=} (R merge, dplyr joins) work too, with a note once: they are \code{using=} here; \code{how=\textquotedbl{}left\textquotedbl{}} (and inner, right, outer) runs as the \code{keep=} value with a note once. \code{match=\textquotedbl{}nearest before\textquotedbl{}} joins each row to the row of the other table with the nearest earlier (or equal) date, \code{\textquotedbl{}nearest after\textquotedbl{}} the nearest later one and \code{\textquotedbl{}nearest\textquotedbl{}} the nearest either way; \code{within=\textquotedbl{}2 days\textquotedbl{}} (or \code{\textquotedbl{}12 hours\textquotedbl{}}, \code{\textquotedbl{}1 week\textquotedbl{}}; a number for a column of numbers) is the furthest it looks. The last \code{using=} column is matched to the nearest value and the others exactly (\code{using=[\textquotedbl{}station\textquotedbl{},\allowbreak{} \textquotedbl{}date\textquotedbl{}]}); the other table's date comes in as \code{\textquotedbl{}date\_\allowbreak{}other\textquotedbl{}}. \code{keep=\textquotedbl{}matching rows\textquotedbl{}} leaves out rows with nothing near enough; \code{keep=\textquotedbl{}all rows from this table\textquotedbl{}} keeps them with empty cells. Both pandas and Polars tables run through Polars \code{join\_\allowbreak{}asof(strategy=\textquotedbl{}backward\textquotedbl{},\allowbreak{} tolerance=\textquotedbl{}2d\textquotedbl{})}, so they give the same rows; both tables are sorted by the date first, keeping the order of rows with the same date. When the other table has several rows with the same date, \code{\textquotedbl{}nearest before\textquotedbl{}} takes the last of them and \code{\textquotedbl{}nearest after\textquotedbl{}} the first; with \code{\textquotedbl{}nearest\textquotedbl{}}, a date as far before as after goes to the later one (Polars' rules). An empty value in an exact \code{using=} column never matches, as in every join; whole numbers and decimals match: \code{river.\allowbreak{}join\_\allowbreak{}with(rain,\allowbreak{} using=\textquotedbl{}date\textquotedbl{},\allowbreak{} match=\textquotedbl{}nearest before\textquotedbl{},\allowbreak{} within=\textquotedbl{}2 days\textquotedbl{})} \code{keep=\textquotedbl{}every combination\textquotedbl{}} pairs every row with every row, without \code{using=} (a cross join: pandas \code{merge(how=\textquotedbl{}cross\textquotedbl{})}, Polars \code{join(how=\textquotedbl{}cross\textquotedbl{})}). \code{where=\textquotedbl{}time \textgreater{}= start and time \textless{} end\textquotedbl{}} pairs each row with the rows of the other table that meet a written condition (the \code{keep\_\allowbreak{}rows\_\allowbreak{}where} kind) on the columns of both, without \code{using=} (Polars \code{join\_\allowbreak{}where}; pandas \code{merge(how=\textquotedbl{}cross\textquotedbl{})} then the condition). A column found in both tables is called \code{name\_\allowbreak{}other} for the other table's copy in the condition. The rows keep this table's order, each followed by its partners: \code{readings.\allowbreak{}join\_\allowbreak{}with(periods,\allowbreak{} where=\textquotedbl{}time \textgreater{}= start and time \textless{} end\textquotedbl{})}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -26490,6 +27282,7 @@ When the two tables name the column differently, pair the names, this table's fi
 \code{with\_\allowbreak{}match\_\allowbreak{}column=} & normally \code{False}\\
 \code{match=} & \\
 \code{within=} & \\
+\code{where=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:table.join-with]{How simplydata chooses methods}, page \pageref{basis:table.join-with}: the default, the evidence and the checks.}
@@ -26605,6 +27398,35 @@ terms = pl.DataFrame({"term": ["autumn", "spring"]})
 df.join(terms, how="cross")
 \end{lstlisting}
 \undertext{simplydata also says how many rows came out: 54 x 2 = 108. simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
+\undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{Polars}\libbadge{pandas}}
+\undertext{\textbf{With \code{where=}}: the same job with this option.}
+\underlib{Polars}
+\begin{lstlisting}[style=under]
+import polars as pl
+df = pl.read_csv("river.csv", try_parse_dates=True)
+periods = pl.DataFrame({"start": ["2024-01-01", "2024-04-01"], "end": ["2024-02-01", "2024-05-01"],
+                        "period": ["winter", "spring"]}).with_columns(
+    pl.col("start", "end").str.to_datetime())
+# join_with(periods, where="date >= start and date < end")
+pairs = df.join_where(periods, pl.col("date") >= pl.col("start"), pl.col("date") < pl.col("end"))
+pairs.sort(["station", "date"]).select(df.columns + periods.columns)       # (1)
+\end{lstlisting}
+\underlib{pandas}
+\begin{lstlisting}[style=under]
+import pandas as pd
+df = pd.read_csv("river.csv", parse_dates=["date"])
+periods = pd.DataFrame({"start": pd.to_datetime(["2024-01-01", "2024-04-01"]),
+                        "end": pd.to_datetime(["2024-02-01", "2024-05-01"]),
+                        "period": ["winter", "spring"]})
+# join_with(periods, where="date >= start and date < end")
+pairs = df.merge(periods, how="cross")
+pairs[(pairs["date"] >= pairs["start"]) & (pairs["date"] < pairs["end"])].reset_index(drop=True)   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the rows keep this table's order, each followed by its partners (Polars \code{join\_\allowbreak{}where} gives no order of its own, so the Polars box sorts); a row without a partner is left out.}
+\undertext{simplydata also says in a sentence what changed, and keeps the table before the step (undo).}
 \undertext{\textit{Checked:} a test runs both and compares the table (on a pandas and on a Polars table).}
 \end{underneathbox}
 \wordentry{table.add\_rows\_from()}{word:table.add-rows-from}
@@ -27227,6 +28049,10 @@ A \code{.\allowbreak{}csv} file is written the way pandas writes it, on both eng
 Times with a time zone: \code{.\allowbreak{}parquet} and .feather keep the zone. A \code{.\allowbreak{}csv} or \code{.\allowbreak{}tsv} file has no place for it, so the times are written with their UTC offset (2024-07-01 23:45:00-04:00, on both engines) and \code{sdata.\allowbreak{}table()} reads them back as the same moments on the UTC clock; a note names the zone, to put back with \code{table.\allowbreak{}change\_\allowbreak{}time\_\allowbreak{}zone\_\allowbreak{}in(\textquotedbl{}t\textquotedbl{},\allowbreak{} to=\textquotedbl{}America/New\_\allowbreak{}York\textquotedbl{})}. Excel and Stata have no time zones, so the clock times of the zone are saved (Polars \code{dt.\allowbreak{}replace\_\allowbreak{}time\_\allowbreak{}zone(None)}, on both engines), with a note naming the zone. Polars reads the clock of a time zone for every date word, on both engines: local clock times before 1970 follow the main world time-zone data (IANA), the same on every computer.
 
 More file types: \code{.\allowbreak{}csv}.gz and \code{.\allowbreak{}tsv}.gz (compressed), .feather (Arrow), .jsonl (one JSON row per line), .dta (Stata) and .html (a web page table), each written by pandas. A database file (.sqlite, .db, .duckdb) holds tables by name, so it needs \code{in\_\allowbreak{}table=}, the mirror of \code{in\_\allowbreak{}sheet=}: \code{table.\allowbreak{}save(\textquotedbl{}results.\allowbreak{}sqlite\textquotedbl{},\allowbreak{} in\_\allowbreak{}table=\textquotedbl{}river\textquotedbl{})} replaces that table and keeps the others (pandas \code{to\_\allowbreak{}sql(if\_\allowbreak{}exists=\textquotedbl{}replace\textquotedbl{})}; DuckDB CREATE OR REPLACE TABLE). Read it back with \code{sdata.\allowbreak{}table(\textquotedbl{}results.\allowbreak{}sqlite\textquotedbl{},\allowbreak{} table\_\allowbreak{}name=\textquotedbl{}river\textquotedbl{})}.
+
+A finished table for a paper: .md (a Markdown table, as Polars writes one), .tex (a LaTeX tabular, pandas \code{to\_\allowbreak{}latex}) and .docx (a Word table, python-docx: pip install \code{\textquotedbl{}simplydata[files]\textquotedbl{}}). Each writes every row and column as it is; round the numbers first with \code{round\_\allowbreak{}numbers\_\allowbreak{}in}.\\
+\codeline{table.save(\textquotedbl{}clipboard\textquotedbl{}) copies the table, to paste into Excel or a document (pandas}\\
+\code{to\_\allowbreak{}clipboard}; nothing leaves this computer).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -39101,6 +39927,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.add-row-number-column}{table.add\_row\_number\_column()}
 \indexline{word:table.add-row-summary-column}{table.add\_row\_summary\_column()}
 \indexline{word:table.add-rows-from}{table.add\_rows\_from()}
+\indexline{word:table.add-run-number-column}{table.add\_run\_number\_column()}
 \indexline{word:table.add-running-column}{table.add\_running\_column()}
 \indexline{word:add-second-x}{chart.add\_second\_x()}
 \indexline{word:add-second-y}{chart.add\_second\_y()}
@@ -39132,10 +39959,13 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:system.chart}{system.chart()}
 \indexline{word:table.check-hidden-factors}{table.check\_hidden\_factors()}
 \indexline{word:nums.check-if-all-numbers}{numbers.check\_if\_all\_numbers()}
+\indexline{word:table.check-if-all-values-in}{table.check\_if\_all\_values\_in()}
 \indexline{word:nums.check-if-any-number}{numbers.check\_if\_any\_number()}
+\indexline{word:table.check-if-any-value-in}{table.check\_if\_any\_value\_in()}
 \indexline{word:table.check-if-random-order}{table.check\_if\_random\_order()}
 \indexline{word:nums.check-if-same-as}{numbers.check\_if\_same\_as()}
 \indexline{word:table.check-if-same-as}{table.check\_if\_same\_as()}
+\indexline{word:table.check-if-sorted-by}{table.check\_if\_sorted\_by()}
 \indexline{word:table.check-model-of}{table.check\_model\_of()}
 \indexline{word:table.check-steady-over-time}{table.check\_steady\_over\_time()}
 \indexline{word:table.clean-column-names}{table.clean\_column\_names()}
@@ -39204,6 +40034,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:draw-cross-correlation-bars}{chart.draw\_cross\_correlation\_bars()}
 \indexline{word:draw-cumulative-share}{chart.draw\_cumulative\_share()}
 \indexline{word:draw-curve}{chart.draw\_curve()}
+\indexline{word:draw-dashes}{chart.draw\_dashes()}
 \indexline{word:draw-density}{chart.draw\_density()}
 \indexline{word:draw-difference-dots}{chart.draw\_difference\_dots()}
 \indexline{word:draw-dots}{chart.draw\_dots()}
@@ -39361,6 +40192,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:grid.get-column}{grid.get\_column()}
 \indexline{word:table.get-column}{table.get\_column()}
 \indexline{word:table.get-column-names}{table.get\_column\_names()}
+\indexline{word:table.get-different-values-in}{table.get\_different\_values\_in()}
 \indexline{word:sdata.get-example}{sdata.get\_example()}
 \indexline{word:block.get-labels-of}{block.get\_labels\_of()}
 \indexline{word:block.get-number-at}{block.get\_number\_at()}
@@ -39635,6 +40467,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:dist.turn-into-table}{distribution.turn\_into\_table()}
 \indexline{word:nums.turn-into-table}{numbers.turn\_into\_table()}
 \indexline{word:table.turn-into-text}{table.turn\_into\_text()}
+\indexline{word:table.turn-into-title-case}{table.turn\_into\_title\_case()}
 \indexline{word:table.turn-into-uppercase}{table.turn\_into\_uppercase()}
 \indexline{word:nums.turn-into-yes-or-no}{numbers.turn\_into\_yes\_or\_no()}
 \indexline{word:undo}{chart.undo()}

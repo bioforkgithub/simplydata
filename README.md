@@ -222,8 +222,8 @@ on your own computer, and in Jupyter or IPython on the server you press Tab. See
 
 ## What simplydata handles
 
-**584 words (commands) in 67 groups, with 470 different options, on top of 20 Python packages (10 installed always, 10 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 16 more used only to check its answers), checked by 46210 reliability checks.** Every word hands the work to
+**591 words (commands) in 67 groups, with 481 different options, on top of 20 Python packages (10 installed always, 10 with an extra; patsy comes with statsmodels) and
+87 R packages that it runs (plus R's own `stats`, and 16 more used only to check its answers), checked by 46513 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
 `[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
@@ -241,8 +241,8 @@ lessons one by one, and short examples by area.
 
 Every number comes from an established package, named in
 [What simplydata handles](docs/what_simplydata_handles.md#packages-underneath). How much of that is checked, counted on 2026-11-23: the public
-[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 584 of the
-584 words with the package underneath and with R (46210 checks), and the separate test repository
+[reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md) compares 591 of the
+591 words with the package underneath and with R (46513 checks), and the separate test repository
 [simplydata_tests](https://github.com/bioforkgithub/simplydata_tests#what-the-comparisons-found) makes 26,718
 comparisons on published reference data in 32 notebooks: 26,265 agree, 422 differ for a reason it explains, 29 are
 simplydata errors being fixed and 2 were skipped. The other 0 words are not compared in the reliability study yet. The
@@ -556,7 +556,7 @@ The design follows what the research on learning and on programming languages sa
   pandas, Polars, NumPy, SciPy, statsmodels or R code it runs underneath, so you can move on to those libraries
   whenever you want.
 - **Trust comes from checking.** simplydata does not compute statistics itself: every number comes from the
-  established package, and a public reliability study compares most words (584 of the 584 so far) with that
+  established package, and a public reliability study compares most words (591 of the 591 so far) with that
   package, with R and with published certified values.
 
 ### References
