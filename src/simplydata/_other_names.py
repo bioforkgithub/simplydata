@@ -45,8 +45,12 @@ _SDATA = [
     ('table.fit_curve(x="hours", y="marks", of_degree=2), on one subject (one row per child), on a table', "polyfit"),
     ('table.fit_line(x="hours", y="marks"), on one subject (one row per child), on a table', "linregress lm ols"),
     ('table.find_values_at("population", at={"year": [2001, 2003]}), on a table',
-     "interpolate interp interp1d approx approxfun spline splinefun CubicSpline pchip PchipInterpolator "
+     "interpolate interp interp1d approx approxfun splinefun CubicSpline pchip PchipInterpolator "
      "make_interp_spline"),
+    # families for 100 %, batch 16 (G6): "spline" is the other name of curve_through_points
+    ("sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.find_value_at(12): a smooth "
+     'curve to read anywhere; table.find_values_at("population", at={"year": [2001, 2003]}) gives values in a table',
+     "spline"),
     ('table.make_map_of("height", across=["east", "north"]), on a table', "griddata interp2d RBFInterpolator"),
     ('sdata.distribution("normal", average=50, standard_deviation=10).find_density_at(60)', "pdf dnorm pmf dbinom"),
     ('sdata.distribution("normal", average=50, standard_deviation=10).find_chance_that_value(is_below=60)',
@@ -1712,6 +1716,201 @@ _SCIPY = [
     ("grid.find_null_space()", "null_space"),
 ]
 
+# families for 100 %, batches 14-16 (approved by Manish 2026-11-28): the names of scipy.optimize, integrate and
+# interpolate (plan section 2.6); newton_cotes and lebedev_rule are sdata.find_area_points (batch 9)
+_SCIPY += [
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", test_method="basin '
+     'hopping")',
+     'basinhopping'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", '
+     'test_method="differential evolution")',
+     'differential_evolution'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", '
+     'test_method="direct")',
+     'direct'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", test_method="dual '
+     'annealing")',
+     'dual_annealing'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", test_method="shgo")',
+     'shgo'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], search="whole range", test_method="grid '
+     'search")',
+     'brute'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], test_method="golden section")',
+     'golden'),
+    ('sdata.find_where_smallest("(x - 2)**2 + sin(5*x)", between=[0, 5], test_method="brent")',
+     'brent'),
+    ('sdata.find_where_smallest("(x - 2)**2", start=0): from a start, the search first finds a bracket around the '
+     'dip, then searches along it (SciPy bracket, and the line searches inside minimize)',
+     'bracket line_search'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, '
+     'test_method="nelder-mead")',
+     'fmin'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="bfgs"): '
+     "BFGS and SR1 are the updates of the slopes inside SciPy's quasi-Newton and trust-region methods "
+     '(test_method="trust region")',
+     'fmin_bfgs BFGS SR1 LbfgsInvHessProduct'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="conjugate '
+     'gradient")',
+     'fmin_cg'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="cobyla")',
+     'fmin_cobyla'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, '
+     'test_method="l-bfgs-b")',
+     'fmin_l_bfgs_b'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="newton '
+     'conjugate gradient")',
+     'fmin_ncg'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="powell")',
+     'fmin_powell'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="slsqp")',
+     'fmin_slsqp'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}, test_method="truncated '
+     'newton")',
+     'fmin_tnc'),
+    ('sdata.find_where_smallest("x**2 + y**2", start={"x": 1, "y": 1}, between={"x": [0.5, 2], "y": [-1, 1]}): '
+     'between= gives the limits of each name (SciPy Bounds)',
+     'Bounds'),
+    ('sdata.find_where_smallest("2*x + 3*y", rules=["x + y >= 4", "x >= 0", "y >= 0"]): rules= are the constraints, '
+     'straight-line or not (SciPy LinearConstraint, NonlinearConstraint)',
+     'LinearConstraint NonlinearConstraint'),
+    ('sdata.find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start={"x": -1.2, "y": 1}): the Rosenbrock test '
+     'function written as a formula; formula.find_slope_formula() gives its slopes',
+     'rosen rosen_der rosen_hess rosen_hess_prod'),
+    ('sdata.formula("x**3 - 2*x"), then formula.find_slope_formula().find_value_at(x=2): the exact slope, which '
+     'approx_fprime estimates by differences and check_grad compares with yours',
+     'approx_fprime check_grad'),
+    ('sdata.solve("x**3 - 2*x = 5", between=[0, 3]): the sentence says whether the search settled (converged) and '
+     'how many times the equations were worked out',
+     'NoConvergence RootResults'),
+    ('sdata.solve("x**3 - 2*x = 5", between=[0, 3], test_method="ridder")',
+     'ridder'),
+    ('sdata.solve("x**3 - 2*x = 5", between=[0, 3], test_method="toms748")',
+     'toms748'),
+    ('sdata.solve("x = cos(x)", start=1, test_method="fixed point")',
+     'fixed_point'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="broyden") '
+     '(BroydenFirst and InverseJacobian are its parts inside SciPy)',
+     'broyden1 BroydenFirst InverseJacobian'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="broyden second")',
+     'broyden2'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="diagonal broyden")',
+     'diagbroyden'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="linear mixing")',
+     'linearmixing'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="exciting mixing")',
+     'excitingmixing'),
+    ('sdata.solve(["x = 0.5*cos(y)", "y = 0.5*sin(x)"], start={"x": 0, "y": 0}, test_method="newton-krylov") '
+     '(KrylovJacobian is its part inside SciPy)',
+     'newton_krylov KrylovJacobian'),
+    ('table.fit_curve(x="hours", y="marks", always="rising"), on a table',
+     'isotonic_regression'),
+    ('sdata.find_best_pairing(sdata.number_grid([[4, 1, 3], [2, 0, 5], [3, 2, 2]]))',
+     'linear_sum_assignment'),
+    ('sdata.find_best_pairing(flows, with_distances=distances), with two square grids',
+     'quadratic_assignment'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     'test_method="RK45")',
+     'RK45'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     'test_method="RK23")',
+     'RK23'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     'test_method="DOP853")',
+     'DOP853'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     'test_method="stiff") (Radau)',
+     'Radau'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     'test_method="BDF")',
+     'BDF'),
+    ('sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 50], known={"r": 0.3}, '
+     "time_step=0.5): the table holds the path at even times, from the solver's own dense output",
+     'DenseOutput OdeSolution OdeSolver'),
+    ('sdata.find_path_over_time(["du/dt = -v", "dv/dt = u"], at_start={"u": 1, "v": 0}, between=[0, 5]): the real '
+     'and imaginary parts of a complex equation as two equations',
+     'complex_ode'),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], test_method="tanh-sinh")',
+     'tanhsinh'),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"], test_method="cubature"), or '
+     'sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]}, test_method="cubature")',
+     'cubature'),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, 2], test_method="quasi monte carlo")',
+     'qmc_quad'),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, 2], test_method="romberg on even steps")',
+     'romb'),
+    ('sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])',
+     'solve_bvp'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="aaa"), on a table',
+     'AAA'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="akima"), on a table',
+     'Akima1DInterpolator'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="polynomial"), on a table',
+     'BarycentricInterpolator barycentric_interpolate KroghInterpolator krogh_interpolate lagrange'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="rational curve"), on a table',
+     'FloaterHormannInterpolator'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, joined_by="curve without overshoot"), on a '
+     'table',
+     'pchip_interpolate'),
+    ('table.find_values_at("population", at={"year": [2001, 2003]}, smoothness=0.001), on a table',
+     'make_smoothing_spline'),
+    ('table.find_values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]}, joined_by="smooth triangles"), on '
+     'a table',
+     'CloughTocher2DInterpolator'),
+    ('table.find_values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]}), on a table (flat triangles '
+     'between scattered points)',
+     'LinearNDInterpolator'),
+    ('table.find_values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]}, joined_by="nearest"), on a table',
+     'NearestNDInterpolator'),
+    ('table.find_values_at("height", at={"east": [1.5, 2.5], "north": [3, 4.5]}, joined_by="smooth surface"), on a '
+     "table (SciPy's newer RBFInterpolator)",
+     'Rbf'),
+    ('sdata.formula("exp(x)"), then formula.find_taylor_series(around=0, up_to_power=4): the Taylor polynomial, '
+     'exact (approximate_taylor_polynomial estimates it; pade turns it into a fraction, with formula.as_sympy())',
+     'approximate_taylor_polynomial pade'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), the cubic spline through every point (a '
+     'BSpline; curve.as_scipy() hands it over)',
+     'BSpline InterpolatedUnivariateSpline'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.show_pieces(): its '
+     'polynomial pieces (PPoly), or show_pieces(basis="bernstein") (BPoly)',
+     'PPoly BPoly'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.show_knots(): its knots and '
+     'coefficients',
+     'splrep'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.find_value_at(12)',
+     'splev'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.find_slope_at(12) '
+     '(order="all" gives every slope at one place)',
+     'spalde'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.turn_into_slope_curve()',
+     'splder'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.turn_into_area_curve()',
+     'splantider'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.find_area_between(0, 20)',
+     'splint'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20], y=[8.1, 7.9, 6.2, 5.0]), then curve.find_zeros()',
+     'sproot'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20, 30], y=[8.1, 7.9, 6.2, 5.0, 4.4], allowed_error=0.5): the fewest '
+     'knots that keep the sum of squared distances at most 0.5 (FITPACK s)',
+     'UnivariateSpline make_splrep generate_knots'),
+    ('sdata.curve_through_points(x=[0, 5, 10, 20, 30], y=[8.1, 7.9, 6.2, 5.0, 4.4], knots=[15]): least squares with '
+     'those inner knots',
+     'LSQUnivariateSpline make_lsq_spline'),
+    ('sdata.curve_through_points(x=[0, 5, 10], y=[8.1, 7.9, 6.2], slopes=[0, -0.2, -0.3])',
+     'CubicHermiteSpline'),
+    ('sdata.curve_through_points(x=[0, 1, 2, 1], y=[0, 1, 0, -1], in_order=True): a path through the points in '
+     'their order',
+     'splprep make_splprep'),
+    ('sdata.curve_through_points(x=east, y=north, z=height): a surface (RectBivariateSpline on a full grid, '
+     'SmoothBivariateSpline for scattered points, LSQBivariateSpline with knots=)',
+     'BivariateSpline RectBivariateSpline SmoothBivariateSpline LSQBivariateSpline bisplrep bisplev'),
+    ('sdata.curve_through_points(x=latitude, y=longitude, z=values, on_sphere=True): a surface on a sphere',
+     'RectSphereBivariateSpline SmoothSphereBivariateSpline LSQSphereBivariateSpline'),
+    ('sdata.curve_through_points(x=east, y=north, z=height) for two directions; for three or more, grid.as_numpy() '
+     'hands the numbers to SciPy NdBSpline',
+     'NdBSpline NdPPoly'),
+]
+
 # sp.<name> and sympy.<name>: SymPy's top level (and Matrix methods such as Matrix.det)
 _SYMPY = [
     ('sdata.solve("x**2 = 2", exactly=True)', "solve solveset linsolve nonlinsolve roots"),
@@ -1867,7 +2066,7 @@ QUALIFIERS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr
               "data", "dplyr", "tidyr", "base"}
 # How simplydata's own objects are written: chart.draw_bars is a simplydata word, not a name from another tool
 SIMPLYDATA_OBJECTS = {"simplydata", "sd", "sdata", "table", "chart", "charts", "page", "numbers", "nums", "grid",
-                      "block", "distribution", "dist", "formula", "f", "system"}
+                      "block", "distribution", "dist", "formula", "f", "system", "curve"}
 
 
 def other_name_parts(typed: str) -> tuple[str | None, str] | None:
