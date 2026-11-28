@@ -39,6 +39,15 @@ if os.environ.get("PYTEST_XDIST_WORKER"):
     for _name in ("TMPDIR", "TEMP", "TMP"):
         os.environ[_name] = _OWN_TEMP
     tempfile.tempdir = _OWN_TEMP
+    # jedi (tests/test_editor_completion.py) keeps parsed files as pickles in one folder per user, written without
+    # a lock (parso's cache): each worker gets its own folder, so no worker reads a pickle another is still writing
+    # (PR #79: "EOFError: Ran out of input" in parso/cache.py when the workers shared ~/.cache/jedi).
+    try:
+        import jedi.settings
+    except ImportError:
+        pass
+    else:
+        jedi.settings.cache_directory = os.path.join(_OWN_TEMP, "jedi")
 
 NETWORK = {"loopback allowed": False, "attempts": []}
 _LOOPBACK = {"127.0.0.1", "::1", "localhost"}
