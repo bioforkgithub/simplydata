@@ -118,8 +118,9 @@ def find_best_pairing(costs=None, aim_for="smallest total", with_distances=None,
     elif numbers.shape[0] > numbers.shape[1]:
         left = numbers.shape[0] - len(row_at)
         print(f"{left} row{'s stay' if left > 1 else ' stays'} without a partner: there are more rows than columns.")
+    direction = ', direction = "max"' if biggest else ""
     print(f"Method: the linear assignment problem, solved exactly (SciPy optimize.linear_sum_assignment, shortest "
-          f"augmenting path), as R lpSolve::lp.assign(costs{', direction = \"max\"' if biggest else ''}).")
+          f"augmenting path), as R lpSolve::lp.assign(costs{direction}).")
     import pandas as pd
 
     from .table import table
