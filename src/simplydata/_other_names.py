@@ -1775,7 +1775,10 @@ _SCIPY = [
     ('numbers.smooth(test_method="savitzky-golay", window=11, of_degree=2) (SciPy savgol_filter, which uses '
      "savgol_coeffs)", "savgol_coeffs"),
     ('numbers.keep_each_frequency_that(is_below=0.2, time_step=1, both_ways=False, start_from="first value") (SciPy '
-     "sosfilt_zi; lfilter_zi for FIR filters): the filter starts in its steady state", "lfilter_zi sosfilt_zi lfiltic"),
+     "sosfilt_zi; lfilter_zi for FIR filters): the filter starts in its steady state", "lfilter_zi sosfilt_zi"),
+    ('numbers.keep_each_frequency_that(is_below=0.2, time_step=1, both_ways=False, start_from="first value") is '
+     "related, not the same: it starts the filter in its steady state for the first reading, while SciPy lfiltic "
+     "builds the start from earlier inputs and outputs you give (left to SciPy after numbers.as_numpy())", "lfiltic"),
     ('sdata.make_wave("maximum length sequence", time_step=0.01, how_many=127) (SciPy max_len_seq)', "max_len_seq"),
     ('sdata.make_wave("chirp", sweep="polynomial", frequency=[2, 1], time_step=0.01, how_many=500) (SciPy sweep_poly)',
      "sweep_poly"),
