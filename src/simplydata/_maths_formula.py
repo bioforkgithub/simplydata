@@ -38,6 +38,8 @@ MATHS_HELP = (
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
     "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
+    "  bessel_j(1, x)  erfinv(x)  the maths functions of numbers.take_function, by formula name (_ for spaces),\n"
+    "                             SciPy name or SymPy name; sdata.help(\"take_function\") lists them\n"
     'Example: sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])'
 )
 # signs between the two sides of an equation or rule; the first spelling is the one used
@@ -302,7 +304,9 @@ def _with_conditions(made, known) -> MathsFormula:
     symbols = sorted(made._expr.free_symbols, key=str)
     names = [str(s) for s in symbols if str(s) not in values]
     used = {str(s): values[str(s)] for s in symbols if str(s) in values}
-    function = sp.lambdify(symbols, made._expr, modules=["scipy", "numpy"])  # SymPy's own SciPy names (lgamma: gammaln)
+    from ._maths_functions import sympy_numbers  # the maths family (families for 100 %, batches 7-9)
+
+    function = sp.lambdify(symbols, made._expr, modules=[sympy_numbers(), "scipy", "numpy"])  # (lgamma: gammaln)
 
     def work_out(given, data):
         return function(*[used[str(s)] if str(s) in used else given[str(s)] for s in symbols])
