@@ -196,7 +196,9 @@ GROUPS = [
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform",
                             # numbers phase, batch 3
-                            "nums.find_coherence_with", "nums.take_cosine_transform"]),
+                            "nums.find_coherence_with", "nums.take_cosine_transform",
+                            # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+                            "nums.find_phase_locking_to"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
@@ -276,7 +278,9 @@ GROUPS = [
                            "system.response_to",
                            "system.frequency_response", "system.poles", "system.zeros", "system.is_stable",
                            "system.steady_gain", "system.in_steps", "system.then", "system.add",
-                           "system.with_feedback", "system.table", "system.chart"]),
+                           "system.with_feedback", "system.table", "system.chart",
+                           # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+                           "system.move_poles_to"]),
     ("Help", ["sdata.show_all_words", "sdata.help", "sdata.show_lesson", "sdata.show_packages_used"]),
     ("30 days of simplydata", ["sdata.start_30_days", "sdata.show_today", "sdata.show_day", "sdata.show_answers",
                                "sdata.go_to_next_day"]),
@@ -1106,7 +1110,9 @@ HELP_EXAMPLES = {
     "draw_threshold_check": _ex("rain", 'chart.draw_threshold_check(x="rain", between=[10, 30])', "rain_threshold"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
-    "nums.find_spectrum": _nx("numbers.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_spectrum": _nx("numbers.find_spectrum(time_step=0.005)\n"
+                              "numbers.find_spectrum(time_step=0.005, over_time=True, window=100)",
+                              values='sdata.get_example("sensor").get_column("signal")'),
     "table.check_steady_over_time": _tx("sensor", 'table.check_steady_over_time("signal", sorted_by="time")'),
     "table.find_autocorrelation_of": _tx("sensor", 'table.find_autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
     "table.add_trend_and_season": _tx("visitors", """\
@@ -1121,7 +1127,13 @@ HELP_EXAMPLES = {
                                                'test_method="savitzky-golay", window=11, sorted_by="time")'),
     "nums.smooth": _nx('numbers.smooth(test_method="median", window=5)', values='sdata.get_example("sensor").get_column("signal")'),
     "nums.remove_trend": _nx("numbers.remove_trend()", values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.keep_each_frequency_that": _nx("numbers.keep_each_frequency_that(is_below=10, time_step=0.005)",
+    "nums.keep_each_frequency_that": _nx("numbers.keep_each_frequency_that(is_below=10, time_step=0.005)\n"
+                                         "numbers.undo()\n"
+                                         'numbers.keep_each_frequency_that(is_below=10, time_step=0.005, '
+                                         'test_method="fir")\n'
+                                         "numbers.undo()\n"
+                                         'numbers.keep_each_frequency_that(is_below=10, time_step=0.005, '
+                                         'find_order_for={"loss_at": 20})',
                                  values='sdata.get_example("sensor").get_column("signal")'),
     "nums.remove_each_frequency_that": _nx("numbers.remove_each_frequency_that(is_equal_to=50, time_step=0.005)",
                                    values='sdata.get_example("sensor").get_column("signal")'),
@@ -1131,19 +1143,34 @@ HELP_EXAMPLES = {
     "nums.find_each_dip_that": _nx("numbers.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.find_each_peak_that": _tx("sensor", 'table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)'),
     "table.find_each_dip_that": _tx("sensor", 'table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.05)'),
-    "nums.take_fourier_transform": _nx("numbers.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.take_fourier_transform": _nx("numbers.take_fourier_transform(time_step=0.005)\n"
+                                       "numbers.take_fourier_transform(time_step=0.005, over_time=True, window=100)\n"
+                                       "numbers.take_fourier_transform(time_step=0.005, between=[45, 55], "
+                                       "how_many=21)",
+                                       values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.find_inverse_fourier_transform": _nx("""        table = numbers.take_fourier_transform()
         back = sdata.find_inverse_fourier_transform(table)""", values="[1, 2, 3, 4]"),
     "nums.find_envelope": _nx("numbers.find_envelope()", values='sdata.get_example("sensor").get_column("signal")'),
     "nums.convolve_with": _nx("numbers.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
     "nums.deconvolve_by": _nx("numbers.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
-    "nums.change_time_step": _nx("numbers.change_time_step(to=0.01, time_step=0.005)",
+    "nums.change_time_step": _nx("numbers.change_time_step(to=0.01, time_step=0.005)\n"
+                                 "numbers.undo()\n"
+                                 'numbers.change_time_step(to=0.0025, time_step=0.005, test_method="cubic spline")',
                                  values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.make_wave": "\n".join(["import simplydata as sdata",
-                              'numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)']),
+                              'numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)',
+                              'sweep = sdata.make_wave("chirp", sweep="polynomial", frequency=[2, 1], time_step=0.01, '
+                              'how_many=500)',
+                              'test_input = sdata.make_wave("maximum length sequence", time_step=0.01, how_many=127)']),
     "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'numbers = sdata.make_window_shape("hann", how_many=64)']),
     "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
-    "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
+    "sdata.frequency_filter": "\n".join(['import simplydata as sdata',
+                                     'system = sdata.frequency_filter(keep_below=10, time_step=0.005)',
+                                     'system.frequency_response(between=[1, 90])',
+                                     'smallest = sdata.frequency_filter(keep_below=10, time_step=0.005, '
+                                     'find_order_for={"loss_at": 20})',
+                                     'analog = sdata.frequency_filter(keep_between=[1, 5], analog=True)',
+                                     'analog.table(form="poles and zeros")']),
     "draw_sticks": _ex("weather", 'chart.draw_sticks(x="month_number", y="rain", colour="city")', "draw_sticks"),
     "draw_autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.draw_autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
     "draw_cross_correlation_bars": _ex("sensor", 'chart.draw_cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "draw_cross_correlation_bars"),
@@ -1166,8 +1193,14 @@ HELP_EXAMPLES = {
     "system.then": _system_x('system.then(sdata.system("1 / s"))'),
     "system.add": _system_x('system.add(sdata.system("1 / (s + 3)"))'),
     "system.with_feedback": _system_x("system.with_feedback()"),
-    "system.table": _system_x('system.table()\nsystem.table(form="state space")'),
+    "system.table": _system_x('system.table()\nsystem.table(form="state space")\n'
+                              'system.table(form="partial fractions")\nsystem.table(form="sections")'),
     "system.chart": _system_x('chart = system.chart()\nchart.save("bode.png")'),
+    # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+    "system.move_poles_to": _system_x("faster = system.move_poles_to([-2, -3])\nfaster.step_response(until=5)"),
+    "nums.find_phase_locking_to": _nx("numbers.find_phase_locking_to(period=0.1)\n"
+                                      "numbers.find_phase_locking_to(period=[0.1, 0.2])",
+                                      values="[0.01, 0.11, 0.205, 0.31, 0.4, 0.52]"),
     "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
                                       'repeats_every="year", for_each_group_in="museum")'),
     "nums.forecast": _nx("numbers.forecast(steps_ahead=12, repeats_every=12)",
