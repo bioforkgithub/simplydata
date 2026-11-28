@@ -65,7 +65,7 @@ The study now has 1053 cases on 101 datasets (94 with a published or certified a
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
 manuals, design tables, worked examples): 23 of the 899 are simulation and formula checks against R that use no data at
 all; the other 876 run on real data. A word passes when it agrees with the reference to the stated, justified
-tolerance. They cover 598 words, or 881 words and options. Words are added with each release; a word counts as done only
+tolerance. They cover 598 words, or 882 words and options. Words are added with each release; a word counts as done only
 when its checks pass.
 
 ### Which words are compared, and where

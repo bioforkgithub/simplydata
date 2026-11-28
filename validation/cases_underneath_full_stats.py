@@ -43,11 +43,11 @@ def _summaries(Case):
         _summary(Case, "power mean 3", "the power mean of order 3", '{"value": stats.pmean(y, 3)}',
                  "SciPy stats.pmean", r="list(value = mean(y^3)^(1/3))", option="power mean p"),
 
-        _summary(Case, "l-moment 3", "the L-skewness (the third L-moment ratio)",
+        _summary(Case, "l-skewness", "the L-skewness (the third L-moment ratio)",
                  '{"value": stats.lmoment(y, order=3)}', "SciPy stats.lmoment",
                  r="x <- sort(y); n <- length(x); i <- 0:(n - 1); b0 <- mean(x); b1 <- sum(i * x) / (n * (n - 1)); "
                    "b2 <- sum(i * (i - 1) * x) / (n * (n - 1) * (n - 2)); "
-                   "list(value = (6 * b2 - 6 * b1 + b0) / (2 * b1 - b0))", r_tolerance=1e-7, option="l-moment k"),
+                   "list(value = (6 * b2 - 6 * b1 + b0) / (2 * b1 - b0))", r_tolerance=1e-7, option="l-skewness"),
 
         _summary(Case, "l-moment 2", "the second L-moment", '{"value": stats.lmoment(y, order=2)}',
                  "SciPy stats.lmoment",
@@ -579,5 +579,6 @@ def _sensitivity_and_censoring(Case):
 
 
 def cases(Case):
-    return (_summaries(Case) + _cumulants(Case) + _circular(Case) + _bins(Case) + _tests(Case) + _powers_and_distances(Case)
+    return (_summaries(Case) + _cumulants(Case) + _circular(Case) + _bins(Case) + _tests(Case)
+            + _powers_and_distances(Case)
             + _sensitivity_and_censoring(Case))

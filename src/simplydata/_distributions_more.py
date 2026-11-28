@@ -108,6 +108,30 @@ def _as_values(value):
     return value
 
 
+GRIDS = ("covariance", "spread", "scale", "row_covariance", "column_covariance", "row_spread", "column_spread")
+
+
+def _check_joint_input(plain, name, value, example):
+    """A covariance (or spread or scale) grid must be square, symmetric and positive semidefinite; chances must add
+    up to 1. SciPy checks some of this, and quietly fixes up the rest (a multinomial's last chance)."""
+    if name in GRIDS and isinstance(value, np.ndarray) and value.ndim > 0:
+        grid = np.atleast_2d(value).astype(float)
+        if grid.ndim != 2 or grid.shape[0] != grid.shape[1]:
+            raise SimplydataError(f"{name}= of the {plain} distribution needs a square grid.\nFor example:  {example}")
+        if not np.allclose(grid, grid.T, rtol=1e-10, atol=1e-12):
+            raise SimplydataError(f"{name}= needs a symmetric grid (row i, column j the same as row j, column i).\n"
+                                  f"For example:  {example}")
+        try:  # SciPy's own check of a covariance (positive semidefinite)
+            _st().multivariate_normal(mean=np.zeros(grid.shape[0]), cov=grid, allow_singular=True)
+        except ValueError:
+            raise SimplydataError(f"{name}= is not a possible covariance: it has a negative eigenvalue (no set of "
+                                  f"values can spread like that).\nFor example:  {example}") from None
+    if name == "chances" and isinstance(value, np.ndarray):
+        if np.any(value < 0) or not math.isclose(float(value.sum()), 1.0, abs_tol=1e-9):
+            raise SimplydataError(f"chances= needs chances of 0 or more that add up to 1 (they add up to "
+                                  f"{_say(float(value.sum()))}).\nFor example:  {example}")
+
+
 class JointDistribution(Distribution):
     """A joint (multivariate) distribution of several values at once, made by sdata.distribution("multivariate
     normal", averages=[0, 0], covariance=grid) and the other joint names: find_density_at([1, 2]),
@@ -134,6 +158,7 @@ class JointDistribution(Distribution):
                     raise SimplydataError(f"The {plain} distribution needs {plain_name}=.\nFor example:  {example}")
                 continue
             given[scipy_param] = _as_values(value)
+            _check_joint_input(plain, plain_name, given[scipy_param], example)
         try:
             frozen = getattr(stats, scipy_name)(**given)
         except Exception as error:  # SciPy says what is wrong with the numbers: say it in plain words
@@ -197,8 +222,12 @@ class JointDistribution(Distribution):
         function = getattr(self._frozen, "pmf" if self.is_discrete else "pdf", None)
         if function is None:
             self._none("density", " in SciPy")
+        self._check_point(point)
         try:
-            found = float(np.asarray(function(point)).reshape(-1)[0])
+            if self._joint[1] == "pair":  # normal inverse gamma: a value and its variance
+                found = float(function(float(point[0]), float(point[1])))
+            else:
+                found = float(np.asarray(function(point)).reshape(-1)[0])
         except Exception as error:  # noqa: BLE001 - a value of the wrong size: SciPy's words, in plain words
             raise SimplydataError(f"{_shown_value(point)} is not a value of this {self._family} distribution: "
                                   f"{error}") from None
@@ -222,11 +251,36 @@ class JointDistribution(Distribution):
                                   "below its own limit), for example distribution.find_chance_that_value(is_below=[1, "
                                   "2]).")
         point = _as_values(given)
+        self._check_point(point)
         rng = np.random.default_rng(SEED)
-        found = float(self._frozen.cdf(point, rng=rng))
+        if self._joint[0] == "multivariate_t":
+            found = float(self._frozen.cdf(point, random_state=rng))
+        else:
+            found = float(self._frozen.cdf(point, rng=rng))
         print(f"The chance that each value is below {_shown_value(point)} is {_percent(found)} ({self._family}, SciPy "
               f"{self._joint[0]}.cdf, worked out by quasi-Monte Carlo integration with seed {SEED}).")
         return found
+
+    def _shape(self):
+        """The shape of one value: from one draw, or from the parameters where SciPy draws nothing."""
+        if self._joint[1] == "pair":
+            return (2,)
+        if hasattr(self._frozen, "rvs"):
+            one = self._frozen.rvs(random_state=np.random.default_rng(0))
+            return np.shape(np.asarray(one))[-2:] if self._joint[1] == "matrix" else (np.size(one),)
+        first = next(iter(self._params.values()))
+        return (np.size(first),)
+
+    def _check_point(self, point):
+        """Exactly one value of the right shape: no broadcasting over several, no first row taken quietly."""
+        shape = self._shape()
+        if not isinstance(point, np.ndarray) or point.shape != tuple(shape):
+            what = "a grid of " + " x ".join(map(str, shape)) if len(shape) == 2 else f"a list of {shape[0]} numbers"
+            if self._joint[1] == "pair":
+                what = "a pair [value, variance]"
+            raise SimplydataError(f"A value of this {self._family} distribution is {what}; "
+                                  f"{_shown_value(point) if isinstance(point, np.ndarray) else point!r} is not.\n"
+                                  f"For example:  distribution.find_density_at({_value_example(self)})")
 
     @friendly(renamed={"seed": "with_seed"})
     def make_random_numbers(self, how_many=None, with_seed=SEED, rows=None, columns=None):
@@ -362,7 +416,8 @@ def _shown_value(value) -> str:
 
 def _value_example(dist) -> str:
     return {"multinomial": "[3, 5, 2]", "multivariate_hypergeom": "[2, 1, 1]",
-            "dirichlet_multinomial": "[3, 5, 2]", "dirichlet": "[0.2, 0.3, 0.5]"}.get(dist._joint[0], "[1, 2]")
+            "dirichlet_multinomial": "[3, 5, 2]", "dirichlet": "[0.2, 0.3, 0.5]",
+            "normal_inverse_gamma": "[0.5, 1.2]"}.get(dist._joint[0], "[1, 2]")
 
 
 def _joint_example(plain) -> str:

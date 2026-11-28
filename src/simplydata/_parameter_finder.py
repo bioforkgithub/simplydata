@@ -123,9 +123,21 @@ def find_parameter_that_gives(distribution=None, chance_below=None, chance_at_mo
     if need:
         raise SimplydataError(f"To find {target}= the {family} distribution needs {', '.join(n + '=' for n in need)}.")
     found = float(getattr(special, function_name)(*[values[a] for a in arguments]))
-    if not math.isfinite(found):
+    # scipy.special answers "no such value" with codes such as 1e100 or 1e-100: put the answer back into the forward
+    # function and keep it only when it gives the chance, inside the parameter's range
+    back = None
+    if math.isfinite(found) and abs(found) < 1e99 and _in_domain(family, target, found):
+        back = _forward(family, {**params, target: found}, x)
+    if back is None or not math.isfinite(back) or abs(back - p) > 1e-5:  # cdflib's searches give about 6 digits
         raise SimplydataError(f"No {target.replace('_', ' ')} gives that chance at {_say(at_value)} with these "
-                              "values (scipy.special says so).")
+                              "values (scipy.special finds none).")
+    whole_note = ""
+    if family == "binomial" and target == "tries" and not float(found).is_integer():
+        low, high = math.floor(found), math.ceil(found)
+        chance_low, chance_high = (_forward(family, {**params, "tries": n}, x) for n in (low, high))
+        whole_note = (f" A binomial needs a whole number of tries: {low} tries give a chance of {_say(chance_low)} at "
+                      f"or below {_say(x)}, {high} tries {_say(chance_high)} (scipy.special bdtrin gives the number "
+                      "between them).")
     words = {"chance_below": "below", "chance_at_most": "at or below", "chance_above": "above",
              "chance_at_least": "at or above"}[next(iter(given))]
     if counts:
@@ -135,8 +147,48 @@ def find_parameter_that_gives(distribution=None, chance_below=None, chance_at_mo
     print(f"The {target.replace('_', ' ')} (the parameter) that gives a chance of {_say(chance)} of a value {words} "
           f"{_say(at_value)} "
           f"in a {family} distribution{' with ' + known_text if known_text else ''} is {_answer(found)} (scipy.special "
-          f"{function_name}).")
+          f"{function_name}; put back into the distribution, it gives the chance again).{whole_note}")
     return found
+
+
+POSITIVE = ("degrees_of_freedom", "degrees_of_freedom_1", "degrees_of_freedom_2", "rate", "shape", "shape1", "shape2",
+            "tries", "size", "standard_deviation")
+
+
+def _in_domain(family, target, value) -> bool:
+    """The parameter's own range: above 0 for the spreads, shapes, sizes and degrees of freedom, a chance from 0 to 1,
+    0 or more for a noncentrality and a Poisson average."""
+    if target in POSITIVE:
+        return value > 0
+    if target == "chance":
+        return 0 < value <= 1
+    if target == "noncentrality" or (target == "average" and family == "poisson"):
+        return value >= 0
+    return True
+
+
+def _forward(family, params, x):
+    """The chance at or below x with these parameters: scipy.special's forward functions."""
+    from scipy import special
+
+    q = params.get
+    forward = {
+        "t": lambda: special.stdtr(q("degrees_of_freedom"), x),
+        "chi-square": lambda: special.chdtr(q("degrees_of_freedom"), x),
+        "F": lambda: special.fdtr(q("degrees_of_freedom_1"), q("degrees_of_freedom_2"), x),
+        "gamma": lambda: special.gdtr(q("rate"), q("shape"), x),
+        "beta": lambda: special.betainc(q("shape1"), q("shape2"), x),
+        # the incomplete beta forms, which also take a number of tries between whole numbers (bdtr would cut it)
+        "binomial": lambda: special.betainc(q("tries") - x, x + 1, 1 - q("chance")) if q("tries") > x else 1.0,
+        "negative binomial": lambda: special.betainc(q("size"), x + 1, q("chance")),
+        "poisson": lambda: special.pdtr(x, q("average")),
+        "normal": lambda: special.ndtr((x - q("average")) / q("standard_deviation")),
+        "noncentral chi-square": lambda: special.chndtr(x, q("degrees_of_freedom"), q("noncentrality")),
+        "noncentral F": lambda: special.ncfdtr(q("degrees_of_freedom_1"), q("degrees_of_freedom_2"),
+                                               q("noncentrality"), x),
+        "noncentral t": lambda: special.nctdtr(q("degrees_of_freedom"), q("noncentrality"), x),
+    }[family]
+    return float(forward())
 
 
 def _spelled(family, known):
