@@ -1457,14 +1457,59 @@ _SEABORN_MORE = [
 ]
 
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
+# Circular plots, batch 1 (approved by Manish 2026-11-27, B13): names from Circos and from R circlize. A name of
+# several words ("chord diagram") is written with | between the names, so that a space can be part of a name.
+_CIRCLE_START = ('table.start_circle_chart(), then circle_chart.draw_links(links_from="site", links_to="gene") and the '
+                 "other circle chart words: R circlize draws them (circos-style plots without writing Circos files)")
+_CIRCLE_PHRASES = [
+    (_CIRCLE_START, "circos|Circos|circlize|circos plot|Circos plot|circos_plot|circular plot|circular plots|"
+                    "circle plot|track plot"),
+    ('table.start_circle_chart().draw_links(links_from="site", links_to="gene", strength="copies"): a chord diagram',
+     "chordDiagram|chord_diagram|chord diagram|Chord diagram|chorddiagram|chord plot|chordDiagramFromDataFrame|"
+     "chordDiagramFromMatrix|tableviewer"),
+    ('table.start_circle_chart(around="site"): the groups round the circle from a column (with sizes=, their sizes)',
+     "ideogram|karyotype"),
+]
+
+
+def _build_phrases(groups):
+    table = {}
+    for written, names in groups:
+        for name in names.split("|"):
+            assert name not in table, f"other name {name} is listed twice"
+            table[name] = written
+    return table
+
+
+# circos.<name>: circlize's own functions (circos.link, circos.par ...), typed with circos. in front
+_CIRCLIZE = [
+    ('circle_chart.draw_links(links_from="query", links_to="subject", from_between=["qstart", "qend"], '
+     'to_between=["sstart", "send"]): links between places on the groups', "link genomicLink"),
+    ('table.start_circle_chart(around="site"): the groups round the circle from a column (with sizes=, their sizes)',
+     "initialize initializeWithIdeogram genomicInitialize initializeCircularGenome"),
+    ("table.start_circle_chart(gap=0.02) with circle_chart.rotate(by_degrees=90) and circle_chart.flip_x(): the gaps "
+     "(gap.after), where the circle starts (start.degree) and which way it goes (clock.wise)", "par"),
+    ('circle_chart.save("chord_diagram.svg"): simplydata clears circlize before and after every picture', "clear"),
+    ("circle_chart.get_numbers_drawn(): the groups and links circlize drew, read back", "info"),
+]
+# circlize's colour helpers (decision B3): simplydata's colour words make the colours and hand circlize a plain list
+_CIRCLIZE_COLOURS = [
+    ('circle_chart.use_colour_scale("white", "navy", between=[70, 100])', "colorRamp2"),
+    ('circle_chart.draw_links(links_from="site", links_to="gene", transparency=0.3)', "add_transparency"),
+    ('circle_chart.use_colours("colour-blind safe"), or your own colours', "rand_color"),
+]
+
+OTHER_NAMES = {"sdata": {**_build(_SDATA), **_build_phrases(_CIRCLE_PHRASES), **_build(_CIRCLIZE_COLOURS)},
+               "table": _build(_TABLE),
                "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4 + _SEABORN_MORE), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
                "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
                "numpy": _build(_NUMPY), "linalg": _build(_LINALG), "random": _build(_RANDOM), "fft": _build(_FFT),
                "stats": _build(_STATS), "special": _build(_SPECIAL), "scipy": _build(_SCIPY),
-               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS)}
+               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS),
+               # circular plots, batch 1: circos.link, circos.par ... (R circlize)
+               "circlize": _build(_CIRCLIZE)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -1483,8 +1528,10 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
               "Matrix": "sympy",
               # seaborn's objects interface: so.Dot, so.Plot.facet, seaborn.objects.Hist
-              "so": "so", "objects": "so"}
-NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
+              "so": "so", "objects": "so",
+              # R circlize's functions: circos.link, circos.par, circos.initialize (circular plots, batch 1)
+              "circos": "circlize"}
+NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D", "circlize": "circos"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
 # A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word

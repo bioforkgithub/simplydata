@@ -209,7 +209,9 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "AER", "alr4", "HH", "mediation",
               # reliability study only (validation/cases_underneath_signals.py): gsignal (envelopes, windows, filters),
               # control (steady gain, step response) and pracma
-              "gsignal", "control", "pracma")
+              "gsignal", "control", "pracma",
+              # circular plots (circle charts are drawn by circlize; decision Z13)
+              "circlize")
 # S3d-3: the large optional packages of the Bayesian models (rstanarm with Stan). CI installs them in a step of their
 # own; the needs_r fixture does not ask for them, so without rstanarm only its own tests skip (test_s3d3_bayesian.py)
 R_PACKAGES_HEAVY = ("rstanarm", "rstan", "posterior")
@@ -401,6 +403,8 @@ R_ENTRY_POINTS = {
     ("table/bayes_r.py", "predictive_check"),
     # reference-test fixes A9 and A13: R's exact p-values (each falls back to the approximation without R)
     ("table/stat_tests.py", "_mann_whitney"), ("table/summaries.py", "_spearman_p_from_r"),
+    # circular plots, batch 1: every circle chart is drawn by R circlize
+    ("_circlize.py", "need_circlize"), ("_circlize.py", "run"),
 }
 
 

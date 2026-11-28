@@ -641,7 +641,11 @@ def _run_with_r(entry: Entry):
             found = r_call(source, what=f"the underneath code of {entry.word}",
                            **_r_values(entry))
             for k, v in (found or {}).items():
-                arr = np.asarray(v, dtype=float)
+                arr = np.asarray(v)
+                if arr.dtype.kind not in "biuf":  # text, such as the groups circlize drew, stays text
+                    namespace[k] = arr
+                    continue
+                arr = arr.astype(float)
                 namespace[k] = arr if arr.size != 1 else float(arr.reshape(-1)[0])
             seen_r = True
         elif seen_r:

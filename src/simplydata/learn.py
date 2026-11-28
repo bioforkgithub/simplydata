@@ -72,6 +72,12 @@ GROUPS = [
     ("Breaks and other scales", ["break_between_y", "use_scale_x", "use_scale_y", "use_background_colour"]),
     ("More marks", ["draw_hexagon_bins", "draw_time_bars", "draw_rectangle", "draw_circle", "draw_residual_dots",
                     "draw_event_lines", "draw_bars_3d"]),
+    # Circular plots, batch 1 (approved by Manish 2026-11-27, "circular plots, best of Circos and circlize"):
+    # "circle_chart.name" is a step on a circle chart (circle_chart = table.start_circle_chart()), drawn by R circlize
+    ("Circular plots", ["table.start_circle_chart", "circle_chart.draw_links", "circle_chart.use_colours",
+                        "circle_chart.use_colour_scale", "circle_chart.set_size", "circle_chart.rotate",
+                        "circle_chart.flip_x", "circle_chart.save", "circle_chart.show", "circle_chart.show_steps",
+                        "circle_chart.get_numbers_drawn"]),
     # Table words: "table.name" is a step on a table (table.name(...)).
     ("Tables: start and look", ["sdata.table", "table.show_first_rows", "table.show_last_rows",
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
@@ -1658,6 +1664,47 @@ HELP_EXAMPLES.update({
 })
 
 
+def _cx(*lines: str) -> str:
+    """A runnable circle chart example (needs R with circlize): which genes are found at which sites, as a chord
+    diagram of the resistome practice table."""
+    return "\n".join(["import simplydata as sdata", 'table = sdata.get_example("resistome")',
+                      'genes_table = table.gather_into_rows(columns=["blaTEM", "blaCTXM", "sul1", "tetA"], '
+                      'names_to="gene", values_to="copies")', "circle_chart = genes_table.start_circle_chart()",
+                      'circle_chart.draw_links(links_from="site", links_to="gene", strength="copies")', *lines])
+
+
+# Circular plots, batch 1 (approved by Manish 2026-11-27): each example draws with R circlize
+HELP_EXAMPLES.update({
+    "table.start_circle_chart": _cx('circle_chart.save("genes_by_site.svg")',
+                                    'sites_chart = table.start_circle_chart(around="site", gap=0.02)',
+                                    'sites_chart.save("sites.png")'),
+    "circle_chart.draw_links": _cx('circle_chart.save("genes_by_site.svg")',
+                                   "arrows_chart = genes_table.start_circle_chart()",
+                                   'arrows_chart.draw_links(links_from="site", links_to="gene", strength="copies", '
+                                   'with_direction=True, direction_drawn_as="arrows", colour="to", '
+                                   'links_ordered_by="strength", biggest_on_top=True)',
+                                   'arrows_chart.save("genes_by_site_arrows.svg")'),
+    "circle_chart.use_colours": _cx('circle_chart.use_colours("colour-blind safe")',
+                                    'circle_chart.save("genes_by_site.png")'),
+    "circle_chart.use_colour_scale": "\n".join([
+        "import simplydata as sdata", 'table = sdata.get_example("resistome")',
+        'genes_table = table.gather_into_rows(columns=["blaTEM", "blaCTXM", "sul1", "tetA"], names_to="gene", '
+        'values_to="copies")', "circle_chart = genes_table.start_circle_chart()",
+        'circle_chart.draw_links(links_from="site", links_to="gene", strength="copies", colour="temperature")',
+        'circle_chart.use_colour_scale("white", "navy")', 'circle_chart.save("genes_by_temperature.png")']),
+    "circle_chart.set_size": _cx('circle_chart.set_size(width=12, height=12, unit="cm")',
+                                 'circle_chart.save("genes_by_site.pdf")'),
+    "circle_chart.rotate": _cx("circle_chart.rotate(by_degrees=90)", 'circle_chart.save("genes_by_site.png")'),
+    "circle_chart.flip_x": _cx("circle_chart.flip_x()", 'circle_chart.save("genes_by_site.png")'),
+    "circle_chart.save": _cx('circle_chart.save("genes_by_site.svg")', 'circle_chart.save("genes_by_site.pdf")',
+                             'circle_chart.save("genes_by_site.png", resolution=600)'),
+    "circle_chart.show": _cx("circle_chart.show()", 'circle_chart.save("genes_by_site.png")'),
+    "circle_chart.show_steps": _cx("circle_chart.show_steps()", 'circle_chart.save("genes_by_site.png")'),
+    "circle_chart.get_numbers_drawn": _cx("drawn = circle_chart.get_numbers_drawn()",
+                                          'drawn.keep_rows_where("part", is_equal_to="group")', "drawn.show()"),
+})
+
+
 # ---------------------------------------------------------------- finding words
 def _ps():
     import simplydata  # late import: simplydata imports this file
@@ -1691,14 +1738,15 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system",
+           "formula": "f", "circle": "circle_chart"}
 # Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
 # distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
 _WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}
 # How a word is shown to people (headings, help, word lists): the object written in full in front. The keys of
 # GROUPS keep the short names (nums.find_average), and sdata.help() takes either spelling.
 _SHOWN = {"table": "table", "numbers": "numbers", "grid": "grid", "block": "block", "dist": "distribution",
-          "system": "system", "formula": "formula"}
+          "system": "system", "formula": "formula", "circle": "circle_chart"}
 # A short name typed in front of a word, and how it is shown: sdata.help("nums.average") says "numbers.average".
 _SHOWN_TYPED = {"nums": "numbers", "dist": "distribution", "f": "formula"}
 
@@ -1735,12 +1783,18 @@ def _formula_class():
     return Formula
 
 
+def _circle_chart_class():
+    from .circle_chart import CircleChart
+
+    return CircleChart
+
+
 def _classes():
     """(class, kind) for every object with steps."""
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
             (_grid_class(), "grid"), (_block_class(), "block"), (_distribution_class(), "dist"),
             (_system_class(), "system"),
-            (_formula_class(), "formula")]
+            (_formula_class(), "formula"), (_circle_chart_class(), "circle")]
 
 
 def _kind(key: str) -> str:
@@ -1909,6 +1963,8 @@ def show_all_words() -> None:
           "system.step_response().")
     print('Formula words are steps on a formula: formula = sdata.formula("(x + 2)**2 - 4"), then '
           "formula.turn_into_sum().")
+    print("Circle chart words are steps on a circle chart (drawn by R circlize): circle_chart = "
+          'table.start_circle_chart(), then circle_chart.draw_links(links_from="site", links_to="gene").')
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1926,7 +1982,8 @@ def show_all_words() -> None:
 # ---------------------------------------------------------------- sdata.help()
 def _normalise(word: str) -> str:
     w = str(word).strip()
-    for start in ("simplydata.", "sdata.", "sd.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.",
+    for start in ("circle_chart.", "simplydata.", "sdata.", "sd.", "chart.", "charts.", "table.", "page.", "numbers.",
+                  "nums.", "grid.",
                   "block.", "distribution.", "dist.", "system.", "formula.", "f.", "."):
         if w.startswith(start):
             w = w[len(start):]
@@ -1997,7 +2054,8 @@ def _lookup_all(word) -> list[str]:
 _TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
                 "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
                 "system": {"system"}, "f": {"formula"},
-                "numbers": {"numbers"}, "distribution": {"dist"}, "formula": {"formula"}}
+                "numbers": {"numbers"}, "distribution": {"dist"}, "formula": {"formula"},
+                "circle_chart": {"circle"}}
 
 
 def _old_names(word) -> list[tuple[str, str, str]]:

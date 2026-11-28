@@ -18,6 +18,7 @@ from simplydata._errors import MissingWordError, other_name_target
 from simplydata._other_names import OTHER_NAMES
 from simplydata._formula import Formula
 from simplydata.chart import Chart
+from simplydata.circle_chart import CircleChart
 from simplydata.distributions import Distribution
 from simplydata.numbers.blocks import NumberBlock
 from simplydata.numbers.numbers import NumberGrid, Numbers
@@ -30,7 +31,8 @@ PREFIX = {"table": "table", "chart": "chart", "numbers": "nums", "block": "block
 def _target_exists(written: str) -> bool:
     word = other_name_target(written)
     for prefix, owner in (("sdata.", sdata), ("table.", Table), ("chart.", Chart), ("numbers.", Numbers),
-                          ("block.", NumberBlock), ("grid.", NumberGrid), ("formula.", Formula)):
+                          ("block.", NumberBlock), ("grid.", NumberGrid), ("formula.", Formula),
+                          ("circle_chart.", CircleChart)):
         if written.startswith(prefix):
             return word in owner.__dict__ or word in dir(owner) and not word.startswith("_")
     return False
@@ -371,7 +373,7 @@ def test_a_name_of_your_own_in_front_of_a_word_finds_the_word(typed, heading, ca
 #    where R is missing; the calls in NEEDS_PREP need a step first that the pointer does not write.
 
 OWNERS = {"sdata": sdata, "table": Table, "chart": Chart, "numbers": Numbers, "nums": Numbers, "grid": NumberGrid,
-          "block": NumberBlock, "formula": Formula, "distribution": Distribution}
+          "block": NumberBlock, "formula": Formula, "distribution": Distribution, "circle_chart": CircleChart}
 # A call is not run when it writes "..." (a shortened list), or uses a name of yours the pointer does not make
 # (your own function make_label, another table called rain or national): KNOWN_NAMES are the ones the test gives.
 KNOWN_NAMES = {"table", "sdata", "other_table", "other", "True", "False", "None"}
@@ -400,7 +402,7 @@ NEEDS_PREP = {
 def _pointer_calls(written: str):
     """The calls a pointer writes: [(object, word, call text)], in order."""
     found = []
-    for m in re.finditer(r"(?<![\w.\"])(sdata|table|chart|numbers|grid|block|formula|distribution)\.(\w+)\(",
+    for m in re.finditer(r"(?<![\w.\"])(sdata|table|circle_chart|chart|numbers|grid|block|formula|distribution)\.(\w+)\(",
                          written):
         depth, i = 1, m.end()
         while i < len(written) and depth:

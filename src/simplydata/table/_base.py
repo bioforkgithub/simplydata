@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..chart import Chart
+    from ..circle_chart import CircleChart
 
 from pathlib import Path
 
@@ -323,6 +324,41 @@ class BaseTable:
         from ..chart import chart
 
         return chart(self)
+
+    @friendly
+    def start_circle_chart(self, around=None, sizes=None, names=None, in_order=None, gap=None, big_gap=None,
+                           colour=None, outline_colour=None, thickness=None, with_names=True, text_size=None,
+                           group_widths=None, same_size_groups=False, in_groups_of=None,
+                           hide_groups_smaller_than=None, space_around_circle=None) -> CircleChart:
+        """Start a circle chart (a circular plot, drawn by R circlize). table.start_circle_chart(around="site")
+
+        A chord diagram: circle_chart = table.start_circle_chart(), then circle_chart.draw_links(links_from=,
+        links_to=, strength=); the groups round the circle come from the links. For groups from a column, such as
+        the contigs of a genome: table.start_circle_chart(around="contig", sizes="length") (sizes= is one column
+        with each group's size, or two columns with where each group starts and ends; one row per group).
+        names= is a column with the name to write for each group; in_order= a list of the groups in order round the
+        circle, or "natural" (chr2 before chr10). gap= is the gap between groups, as a share of the circle (0.02)
+        or "2 degrees"; gap={("A", "B"): "10 degrees", "between others": "1 degree"} sets one gap; big_gap= is the
+        gap between the two sides of a chord diagram (rows and columns), or between the sets of in_groups_of=
+        (a dict of each group's set, such as {"harbour": "sites", "blaTEM": "genes"}).
+        colour= is one colour for every group, a column (with around=) or a dict {"A": "teal"}; normally
+        simplydata's colour-blind-safe colours (circle_chart.use_colours(...) to change them). outline_colour=
+        draws the group ring's edge; thickness= is how thick the ring is (a share of the radius, or "2 mm";
+        0 leaves it out). with_names=False leaves out the group names; text_size= is their size in points.
+        group_widths= (a column or a dict) gives each group its own share of the circle; same_size_groups=True
+        gives every group of a chord diagram the same size; hide_groups_smaller_than=0.01 leaves out groups below
+        1 % of the total; space_around_circle= (a share of the radius) leaves room round the circle.
+        Nothing is drawn until circle_chart.save("x.svg") or circle_chart.show(); R and the R package circlize
+        do the drawing (in R: install.packages("circlize"); with conda: conda install -c conda-forge r-circlize).
+        """
+        from ..circle_chart import start_circle_chart
+
+        return start_circle_chart(self, around=around, sizes=sizes, names=names, in_order=in_order, gap=gap,
+                                  big_gap=big_gap, colour=colour, outline_colour=outline_colour, thickness=thickness,
+                                  with_names=with_names, text_size=text_size, group_widths=group_widths,
+                                  same_size_groups=same_size_groups, in_groups_of=in_groups_of,
+                                  hide_groups_smaller_than=hide_groups_smaller_than,
+                                  space_around_circle=space_around_circle)
 
     @friendly(others={"sheet_name": "in_sheet", "sheetName": "in_sheet", "name": "in_table"},
               pointers={"if_exists": 'in_table="river", which replaces that table and keeps the others'})

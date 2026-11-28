@@ -1443,6 +1443,8 @@ def _family(keys: list[str]) -> str | None:
     kinds = {learn._kind(k) for k in keys} - {"sdata"}
     if not kinds:
         return "help" if "sdata.help" in keys else None
+    if "circle" in kinds:  # circular plots start from a table (table.start_circle_chart) but are charts
+        return "chart"
     if "table" in kinds:
         return "table"
     if kinds & {"chart", "option"}:
