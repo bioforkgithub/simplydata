@@ -141,18 +141,6 @@ jobs:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
           RPY2_CFFI_MODE: ${{ runner.os == 'Windows' && 'ABI' || 'BOTH' }}
-      - name: TEMPORARY diagnostic 2 (PR 79)
-        if: runner.os == 'Linux'
-        continue-on-error: true
-        shell: bash
-        env:
-          SIMPLYDATA_REQUIRE_R: "1"
-        run: |
-          echo "=== A plain"; python .github/diag/rosner.py 2>&1 | grep -E "before|after|predict in|Error"
-          mkdir -p /tmp/own; echo "=== B TMPDIR"; TMPDIR=/tmp/own python .github/diag/rosner.py 2>&1 | grep -E "before|after|predict in|Error"
-          echo "=== C pytest -n 2"; python -m pytest -q -p no:cacheprovider -n 2 tests/test_s3c1_communities.py -k rosners 2>&1 | tail -3
-          echo "=== D pytest"; python -m pytest -q -p no:cacheprovider tests/test_s3c1_communities.py -k rosners 2>&1 | tail -3
-          echo "=== E env"; env | grep -iE "^(R_|TMP|SIMPLYDATA|PYTHON)" | sort
       # In parallel inside the job (pytest-xdist): one worker per processor of the runner. loadgroup keeps tests
       # marked @pytest.mark.xdist_group(name) on one worker; every other test goes to whichever worker is free.
       - name: Run tests

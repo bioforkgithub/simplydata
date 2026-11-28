@@ -291,6 +291,11 @@ def test_discriminant_axes_after_rosners_test_in_the_same_session(needs_r, tmp_p
         import simplydata as sdata
         x = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 25.6, 3.0, 13.3]
         sdata.table(pd.DataFrame({"v": x})).show_rows_with_outliers("v", test_method="rosner")
+        import os
+        from simplydata._r import r_call
+        print("DIAG search", list(r_call("search()", _cite=False)))
+        print("DIAG env", sorted((k, v) for k, v in os.environ.items() if k.startswith(("R_", "PYTHON", "TMP"))))
+        print("DIAG sdata", sdata.__file__)
         table = sdata.table(sdata.get_example("resistome")).add_axes_that_separate_groups(
             columns=["temperature", "salinity"], for_each_group_in="site")
         print("AXES", [c for c in table.as_pandas().columns if c.startswith("LD")])
