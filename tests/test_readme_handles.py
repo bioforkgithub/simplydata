@@ -5,7 +5,8 @@ are in docs/what_simplydata_handles.md. Required for every batch of new words: e
 packages=(...), r_packages=(...), need_r(...) or table of R code in src) must be in that page's table of R
 packages it runs; each R package that only the tests (conftest.R_PACKAGES) or the reliability study
 (validation/*.py) load must be in the table of packages used only to check; each Python package of pyproject.toml
-must be in the Python table. The README summary's counts of words, options, R packages and reliability checks must match the code.
+must be in the Python table. The README summary's counts of words, options, R packages and reliability checks
+must match the code.
 """
 
 import inspect
