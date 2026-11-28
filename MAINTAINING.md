@@ -48,14 +48,18 @@ Open every pull request as a **draft** and mark it **ready for review** when the
 ## How CI runs the tests quickly
 
 - The tests run in parallel inside each job with pytest-xdist (`python -m pytest -q -n auto
-  --dist loadgroup`): one worker process per processor of the runner. Every worker has its own
-  temporary folder (`tests/conftest.py`), so no two workers write the same file. A test that
-  must share a worker with others gets `@pytest.mark.xdist_group("name")`. On your own computer
+  --dist loadgroup`): one worker process per processor of the runner (2 on macOS, whose runners
+  have 7 GB of memory for 3 processors). Every worker has its own temporary folder and jedi
+  cache (`tests/conftest.py`), so no two workers write the same file. Each worker runs the tests
+  in a different order, so a test must not leave R's session changed: a test that attaches an R
+  package detaches it again (an attached EnvStats hides R's `predict()`). A test that must share
+  a worker with others gets `@pytest.mark.xdist_group("name")`. On your own computer
   `python -m pytest -q` (one process) still works and runs exactly the same tests.
 - pip's downloads are cached by `actions/setup-python` (keyed on `pyproject.toml`).
 - The installed R packages are cached for a week per system and R version; the key also holds
-  a hash of the R package list, which lives in one place, `tests/conftest.py` (`R_PACKAGES`,
-  `R_PACKAGES_HEAVY`). A change to the list starts a fresh library. On a cache hit only the
+  a hash of the R package list, which CI reads from one place, the `env` of the test job in
+  `tests.yml` (`tests/test_r_bridge.py` checks it holds every package of `tests/conftest.py`).
+  A change to the list starts a fresh library. On a cache hit only the
   missing packages are installed, and every package is still loaded (`library()`) before the
   tests run, so a package that does not load fails the install step.
 

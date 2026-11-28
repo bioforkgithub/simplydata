@@ -94,9 +94,9 @@ jobs:
           restore-keys: rlib-${{ runner.os }}-${{ steps.rlist.outputs.rversion }}-${{ steps.rlist.outputs.week }}-
       # setup-r sets the repositories (binary packages from Posit's public repository where it has them). Only the
       # packages not already in the kept library are installed; every package is ALWAYS loaded, so the step fails
-      # when any package does not load, not later in the tests.
+      # when any package does not load, not later in the tests. The runner's own shell (PowerShell on Windows): on
+      # Windows "bash" is Rtools' bash, in which R does not see the repositories setup-r set.
       - name: Install R packages
-        shell: bash
         env:
           PKGS: ${{ steps.rlist.outputs.cran }}
         run: >-
@@ -107,7 +107,6 @@ jobs:
       # its other packages). Ready-made builds come from CRAN (Windows, macOS) and Posit's public package manager
       # (Linux), so nothing is compiled here; the posterior package gives R-hat and the effective draws.
       - name: Install R packages for Bayesian models
-        shell: bash
         env:
           PKGS: ${{ steps.rlist.outputs.heavy }}
         run: >-
@@ -118,7 +117,6 @@ jobs:
       # has no compiled code. update = FALSE leaves the CRAN packages above as they are. Between a new R release and
       # the Bioconductor release for it (each spring), BiocManager refuses the release; then the devel branch is used.
       - name: Install Bioconductor packages
-        shell: bash
         run: >-
           Rscript -e 'if (!requireNamespace("qvalue", quietly = TRUE)) { install.packages("BiocManager");
           tryCatch(BiocManager::install("qvalue", update = FALSE, ask = FALSE), error = function(e)
@@ -134,10 +132,12 @@ jobs:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
           RPY2_CFFI_MODE: ${{ runner.os == 'Windows' && 'ABI' || 'BOTH' }}
-      # In parallel inside the job (pytest-xdist): one worker per processor of the runner. loadgroup keeps tests
-      # marked @pytest.mark.xdist_group(name) on one worker; every other test goes to whichever worker is free.
+      # In parallel inside the job (pytest-xdist): one worker per processor of the runner, but 2 on macOS, whose
+      # runners have 7 GB of memory for 3 processors (3 workers, each with R and rstanarm, starved one runner).
+      # loadgroup keeps tests marked @pytest.mark.xdist_group(name) on one worker; every other test goes to
+      # whichever worker is free.
       - name: Run tests
-        run: python -m pytest -q -n auto --dist loadgroup
+        run: python -m pytest -q -n ${{ runner.os == 'macOS' && '2' || 'auto' }} --dist loadgroup
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
