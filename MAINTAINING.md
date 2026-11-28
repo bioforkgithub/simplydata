@@ -73,13 +73,13 @@ differences"** there, with the new FAILs.
 
 ## The Dependabot pull requests
 
-`.github/dependabot.yml` opens update pull requests every week, at most 5 open at a time:
+`.github/dependabot.yml` opens at most two update pull requests a week: one with every Python package update
+of the week and one with every GitHub Actions update (minor, patch and major together), so the full test matrix
+runs once a week instead of once per package:
 
-- **Grouped minor and patch updates** (Python packages, GitHub Actions): if all checks pass,
-  merge.
-- **A new major release** comes alone and widens a range (for example `pandas>=2.2,<4` to
-  `pandas>=2.2,<5`). Merge it only when all checks pass; if they fail, fix the words first (see
-  below), in the same pull request or a new one.
+- **If all checks pass,** merge.
+- **If a major release breaks a word,** fix the word first (see below), in the same pull request or a new one.
+  A major release may also need a range widened by hand (for example `pandas>=2.2,<4` to `pandas>=2.2,<5`).
 
 ## How to fix a broken word
 
