@@ -255,7 +255,7 @@ class LookWords:
     def use_colour(self: _Same, name, from_colour_list=None) -> _Same:
         """One colour for the whole chart. chart.use_colour("blue") or chart.use_colour("#0072B2")
 
-        from_colour_list="xkcd" reads the name from the 954 colours of xkcd's colour survey ("windows blue"),
+        from_colour_list="xkcd" reads the name from the 949 colours of xkcd's colour survey ("windows blue"),
         and "crayon" from Crayola's crayons ("Mahogany") (seaborn xkcd_palette and crayon_palette).
         """
         if from_colour_list is not None:

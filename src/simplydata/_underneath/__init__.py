@@ -161,7 +161,8 @@ def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, charts_seaborn, checking,
                    combining, communities,
                    hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_4, numbers_5,
-                   numbers_batch1, places, planning, planning_surveys, signals, small_additions, starting, statistics, survival, tables)
+                   numbers_batch1, places, planning, planning_surveys, signals, small_additions, starting, statistics,
+                   survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,

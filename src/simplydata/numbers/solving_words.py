@@ -121,12 +121,16 @@ def _exact_solve(values, right, least_squares: bool):
     from .._formula import MAX_EXACT_GRID, exact_matrix, run_exactly
 
     matrix = exact_matrix(values, "solve_for", MAX_EXACT_GRID)
+    if right.ndim == 2 and right.shape[1] > MAX_EXACT_GRID:
+        raise SimplydataError(f"solve_for(exactly=True) works with up to {MAX_EXACT_GRID} right sides; b has "
+                              f"{right.shape[1]} columns. Leave out exactly=True for the decimal answer.")
     side = exact_matrix(right.reshape(len(right), -1), "solve_for", max(MAX_EXACT_GRID, right.shape[0]))
     if least_squares:
         if run_exactly(matrix.rank, what="SymPy rank") < matrix.cols:
-            raise SimplydataError("solve_for(exactly=True) with a grid that is not square needs columns that are "
-                                  "independent (no column made of the others): many answers would fit equally "
-                                  "well. Leave out exactly=True for the shortest one (SciPy linalg.lstsq).")
+            raise SimplydataError("solve_for(exactly=True) with least squares (a grid that is not square, or "
+                                  "with_best_fit=True) needs columns that are independent (no column made of the "
+                                  "others): many answers would fit equally well. Leave out exactly=True for the "
+                                  "shortest one (SciPy linalg.lstsq).")
         found = run_exactly(matrix.solve_least_squares, side, what="SymPy solve_least_squares")
     else:
         if run_exactly(matrix.det, what="SymPy det") == 0:
@@ -164,6 +168,9 @@ class SolvingWords:
                                   + self._example("solve_for([5, 10])"))
         values = np.asarray(self._values, dtype=float)
         _no_empty(values, "solve_for")
+        if not np.isfinite(values).all():
+            raise SimplydataError("solve_for() needs a finite number in every cell of the grid; this one has an "
+                                  "infinite one.")
         rows, columns = values.shape
         right = _values_of(b, "solve_for", f"{self._name}.solve_for([5, 10])")
         if right.shape[0] != rows:
@@ -200,10 +207,12 @@ class SolvingWords:
                     raise SimplydataError(f"The {rows} x {rows} grid has no single answer: its determinant is 0 (it "
                                           "is singular). with_best_fit=True gives the least-squares answer (SciPy "
                                           "linalg.lstsq).") from None
-            print(f"x solves grid times x = b exactly: {_shown(out)}   (SciPy linalg.solve, LU decomposition)")
-            for w in caught:
-                if issubclass(w.category, (linalg.LinAlgWarning, RuntimeWarning)):
-                    print(f"Note from SciPy: {str(w.message).strip().splitlines()[0]}")
+            notes = [w for w in caught if issubclass(w.category, (linalg.LinAlgWarning, RuntimeWarning))]
+            # a grid close to having no inverse (ill-conditioned): the answer may be far off, so not "exactly"
+            print(f"x solves grid times x = b{'' if notes else ' exactly'}: {_shown(out)}   (SciPy linalg.solve, LU "
+                  "decomposition)")
+            for w in notes:
+                print(f"Note from SciPy: {str(w.message).strip().splitlines()[0]}")
             return wrap(out)
         out, _, rank, _ = linalg.lstsq(values, right)
         if rows > columns:

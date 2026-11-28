@@ -898,3 +898,21 @@ def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
             assert not any(bad in text for bad in BAD), f"{[c for _, _, c in calls]} on the {shape} grid: {text}"
             errors.append(f"{shape}: {text.splitlines()[0]}")
     pytest.fail(f"{[c for _, _, c in calls]} ran on no grid:\n" + "\n".join(errors))
+
+
+# review fixes (2026-11-28): R-style stats.<summary> keeps the table words; each comparison names its own option
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("stats.median", "table.find_median_of(", "distribution("),
+    ("stats.mean", "table.find_average_of(", "distribution("),
+    ("stats.var", "table.find_summary_of(", "find_variance"),
+    ("np.greater_equal", "is_at_least=20", "is_above"), ("np.less_equal", "is_at_most=20", "is_above"),
+    ("np.equal", "is_equal_to=20", "is_above"), ("np.not_equal", "is_not_equal_to=20", "is_above"),
+    ("np.logical_xor", "np.logical_xor(", "is_above"),
+    ("sympy.factorint", "formula.as_sympy()", "turn_into_product"),
+    ("sp.nsolve", "between=[0, 3]", "exactly=True"),
+    ("np.random.sample", "keep_random_numbers(5", "numbers.count()"),
+])
+def test_review_fixes_of_the_number_pointers(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out

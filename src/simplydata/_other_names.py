@@ -1176,7 +1176,11 @@ _NUMPY = [
     ('numbers.replace_each_number_that(is_above=100, with_value=100), or numbers.replace_numbers_where(yes_no, '
      'with_value=0) with a yes or no list', "where"),
     ("numbers.turn_into_yes_or_no(is_one_of=[1, 2])", "isin"),
-    ("numbers.turn_into_yes_or_no(is_above=20)", "greater_equal less_equal equal not_equal logical_xor"),
+    ("numbers.turn_into_yes_or_no(is_at_least=20)", "greater_equal"),
+    ("numbers.turn_into_yes_or_no(is_at_most=20)", "less_equal"),
+    ("numbers.turn_into_yes_or_no(is_equal_to=20)", "equal"),
+    ("numbers.turn_into_yes_or_no(is_not_equal_to=20)", "not_equal"),
+    (_NUMPY_HAND_OVER + ": np.logical_xor(first_yes_no.as_numpy(), second_yes_no.as_numpy())", "logical_xor"),
     ("grid.swap_rows_and_columns()", "transpose matrix_transpose"),
     ("grid.get_all_numbers()", "ravel"),
     ("grid.get_numbers_from_each_row_at(columns=[2, 1, 3])", "take_along_axis"),
@@ -1238,7 +1242,8 @@ _RANDOM = [
      "seed default_rng Generator RandomState SeedSequence"),
     ("numbers.make_random_picks(how_many=40, with_seed=1)", "choice choices"),
     ("numbers.keep_random_numbers(numbers.count(), with_seed=1) puts every number in a random order",
-     "permutation shuffle permuted sample"),
+     "permutation shuffle permuted"),
+    ("numbers.keep_random_numbers(5, with_seed=1) keeps 5 numbers at random, each once", "sample"),
     ('sdata.distribution("binomial", tries=10, chance=0.3).make_random_numbers(how_many=100)', "binomial"),
     ('sdata.distribution("poisson", average=3).make_random_numbers(how_many=100)', "poisson"),
     ('sdata.distribution("gamma", shape=2).make_random_numbers(how_many=100)',
@@ -1312,11 +1317,6 @@ _STATS = [
     ('sdata.distribution("hypergeometric", marked=10, unmarked=40, drawn=5)', "hypergeom"),
     ('sdata.distribution("whole number uniform", lowest=1, highest=6)', "randint"),
     ('sdata.distribution("normal", average=50, standard_deviation=10).find_middle_range(95)', "interval"),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_average()', "mean"),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_median()', "median"),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_standard_deviation()', "std"),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()', "var"),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary()', "stats"),
     ('table.compare_survival(time="days", event="died", for_each_group_in="treatment")', "logrank"),
     ('table.add_adjusted_p_value_column("p_adjusted", test_method="benjamini-hochberg")', "false_discovery_control"),
     ('table.add_rank_column("rank", from_column="marks")', "rankdata"),
@@ -1361,7 +1361,8 @@ _SCIPY = [
 
 # sp.<name> and sympy.<name>: SymPy's top level (and Matrix methods such as Matrix.det)
 _SYMPY = [
-    ('sdata.solve("x**2 = 2", exactly=True)', "solve solveset linsolve nonlinsolve nsolve roots"),
+    ('sdata.solve("x**2 = 2", exactly=True)', "solve solveset linsolve nonlinsolve roots"),
+    ('sdata.solve("x**3 - 2*x = 5", between=[0, 3]) (in decimals, as SymPy nsolve)', "nsolve"),
     ('sdata.formula("(x + 2)**2 - 4")', "symbols Symbol sympify parse_expr S Eq Function"),
     ('sdata.formula("sqrt(2) * sin(x) + exp(-x)"): SymPy functions are written inside the formula text '
      "(exp, log, sqrt, abs, sin, cos, tan, arcsin, arccos, arctan, erf, erfc, gamma, beta, besselJ, sinc)",
@@ -1372,7 +1373,7 @@ _SYMPY = [
     ('sdata.formula("x**3 - 2*x"), then formula.find_value_at(x=2)', "subs evalf N lambdify"),
     ('sdata.formula("(x + 2)**2 - 4"), then formula.make_simpler()', "simplify nsimplify trigsimp radsimp cancel"),
     ('sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum()', "expand expand_trig"),
-    ('sdata.formula("x**2 - 4"), then formula.turn_into_product()', "factor factorint"),
+    ('sdata.formula("x**2 - 4"), then formula.turn_into_product()', "factor"),
     ('sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))"), then formula.turn_into_partial_fractions()', "apart"),
     ('sdata.formula("a*x**2 + b*x**2 + a*x - x"), then formula.group_by_powers_of("x")', "collect"),
     ('sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to=0)', "limit Limit"),
@@ -1391,7 +1392,8 @@ _SYMPY = [
     ("grid.solve_for([5, 10], exactly=True), on a grid of 2 rows", "LUsolve solve_least_squares"),
     ("numbers.show_as_fraction()", "Rational"),
     ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"})', "assumptions refine Q"),
-    ("formula.as_sympy() hands the formula to SymPy, where the SymPy call works", "srepr"),
+    ("formula.as_sympy() hands the formula to SymPy, where the SymPy call works (factorint finds the prime factors "
+     "of a whole number)", "srepr factorint"),
 ]
 
 

@@ -176,3 +176,26 @@ def test_a_plot_method_that_is_a_chart_word_explains_it(typed, heading, capsys):
 def test_a_seaborn_name_on_a_chart_never_runs():
     with pytest.raises(MissingWordError, match="show_colours"):
         sdata.chart().palplot  # noqa: B018 - a pointer, never a word
+
+
+def test_colour_letters_come_back_after_a_render_error(monkeypatch):
+    from simplydata import _style
+
+    with pytest.raises(ValueError):
+        with _style.colour_letters("deep"):
+            assert mcolors.to_hex("b") != "#0000ff"
+            raise ValueError("drawing failed")
+    assert mcolors.to_hex("b") == "#0000ff"
+    chart = sdata.chart(sdata.get_example("marks"))
+    chart.draw_bars(x="class", y="marks", colour="class")
+    chart.use_colours("b", "g", "r")
+    chart.use_style("paper", colour_letters="seaborn")
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("drawing failed")
+
+    monkeypatch.setattr(type(chart), "_draw_panel", boom)
+    with pytest.raises(RuntimeError):
+        chart._render()
+    assert mcolors.to_hex("b") == "#0000ff" and mcolors.to_hex("g") == "#008000"
+    assert chart._settings["colours"] == ["b", "g", "r"]  # the chart keeps the letters as written

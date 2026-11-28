@@ -379,8 +379,9 @@ the unmixing of spectra.
 sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5])
 sdata.find_where_smallest("2*x + 3*y", rules=["x + y >= 4", "x >= 0", "y >= 0"])
 sdata.solve("x**3 - 2*x = 5", between=[0, 3])
-foods = sdata.number_grid([[20, 2, 5], [10, 15, 1], [2, 8, 30]])   # protein, fibre, fat in each food
-amounts = foods.solve_for([60, 40, 50], between=[0, None])          # how much of each food, never below 0
+# one row per nutrient (protein, fibre, fat), one column per food: grams of the nutrient in one portion
+foods = sdata.number_grid([[20, 2, 5], [10, 15, 1], [2, 8, 30]])
+amounts = foods.solve_for([60, 40, 50], between=[0, None])          # portions of each food, never below 0
 \end{lstlisting}
 
 \unsection{Values between the points}{from-numpy:interpolation}

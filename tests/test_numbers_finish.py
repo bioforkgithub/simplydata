@@ -199,3 +199,29 @@ def test_help_has_an_example_for_both(capsys):
     sdata.help("grid.break_down")
     out = capsys.readouterr().out
     assert "between=[0, None]" in out and 'test_method="cholesky"' in out
+
+
+# ---------------------------------------------------------------- review fixes (2026-11-28)
+def test_an_infinite_cell_is_refused_in_plain_words():
+    with pytest.raises(SimplydataError, match="finite number in every cell"):
+        sdata.number_grid([[1.0, float("inf")], [0.0, 1.0]]).solve_for([1, 2])
+
+
+def test_exact_least_squares_on_a_square_grid_names_least_squares_not_the_shape():
+    with pytest.raises(SimplydataError, match="with least squares") as info:
+        sdata.number_grid([[1, 2], [2, 4]]).solve_for([1, 2], exactly=True, with_best_fit=True)
+    assert "not square needs" not in str(info.value)
+
+
+def test_exact_with_too_many_right_sides_names_b():
+    b = [[1] * 13, [2] * 13]
+    with pytest.raises(SimplydataError, match="b has 13 columns"):
+        sdata.number_grid([[2, 1], [1, 3]]).solve_for(b, exactly=True)
+
+
+def test_a_grid_close_to_no_inverse_is_not_called_exact(capsys):
+    sdata.number_grid(linalg.hilbert(12).tolist()).solve_for([1] * 12)  # rcond about 3e-17
+    out = capsys.readouterr().out
+    assert "Note from SciPy" in out and "b exactly" not in out
+    sdata.number_grid(SQUARE).solve_for([1, 2, 3])
+    assert "b exactly" in capsys.readouterr().out
