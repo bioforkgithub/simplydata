@@ -574,7 +574,7 @@ ENTRIES = [
             seen, alive = df.loc[df["died"] == "yes", "days"], df.loc[df["died"] == "no", "days"]
             data = stats.CensoredData(uncensored=seen, right=alive)          # (1)
             shape, _, scale = stats.weibull_min.fit(data, floc=0)            # (2)
-            stats.weibull_min(shape, scale=scale).median()
+            stats.weibull_min(shape, scale=scale).ppf(0.5)                  # the middle value
         """},
         compare="value",
         tolerance=1e-4,
