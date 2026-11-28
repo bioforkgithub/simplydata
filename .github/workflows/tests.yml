@@ -148,7 +148,8 @@ jobs:
         env:
           SIMPLYDATA_REQUIRE_R: "1"
         run: |
-          git show origin/main:src/simplydata/table/rows.py > src/simplydata/table/rows.py
+          git fetch -q --depth=1 origin main
+          git show FETCH_HEAD:src/simplydata/table/rows.py > src/simplydata/table/rows.py
           python -m pytest -q -p no:cacheprovider tests/test_s3c1_communities.py -k rosners || echo "OLD CODE FAILS (expected)"
           git checkout -- src/simplydata/table/rows.py
           python -m pytest -q -p no:cacheprovider tests/test_s3c1_communities.py -k rosners && echo "NEW CODE PASSES"
