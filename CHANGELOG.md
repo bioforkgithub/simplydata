@@ -5,6 +5,46 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: the proof of 100 %: the last help pointers, the final audit and the chapters (families for 100 %, batches 27-28)
+
+Approved by Manish 2026-11-28 (plan section 4, G21). Every public name of pandas 3.1, Polars 2.1, NumPy 2.5,
+SciPy 1.18 (stats, optimize, integrate, interpolate, signal, linalg, special, fft, ndimage, spatial), SymPy 1.14
+and seaborn 0.13 (with seaborn.objects), 4,324 names, was typed into `sdata.help()`. Each now leads to a word or an
+option value (3,681), to the hand-over with a one-line note (253), or to one of the approved "leave" areas (211:
+SymPy sets, logic, geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in
+tables; `einsum` and `tensorinv`; `HalfspaceIntersection`). The other 179 are data types, classes, warnings and
+settings. No name is left without an answer.
+
+- Help pointers in bulk for the last names: pandas' and Polars' arithmetic and comparison methods (`sub`, `rmul`,
+  `eq`, `is_close`), bins, ranks and positions (`bin`, `arg_sort`, `search_sorted`), rolling and exponential
+  summaries (`ewm_std`, `rolling_skew`), readers and writers (`read_orc`, `write_delta`), options and memory layout;
+  NumPy's constants (`np.pi`, `np.inf`, `np.nan`), `vectorize` and `apply_along_axis`; NumPy Generator's
+  `rayleigh`, `zipf`, `logseries`, `noncentral_f` ...; SymPy's core classes and utilities (`Add`, `Mul`, `Dummy`,
+  `Lambda`, `Wild`, `prod`, `count_ops`, `flatten`, `sift`, `numbered_symbols`, `topological_sort`, `timed` ...)
+  and `gamma`, `digamma`, `beta`, `factorial2`, `E1`; seaborn.objects' `Mark`, `Stat`, `Move` and `Boolean`.
+- `sdata.help("pl.DataFrame.show")` explains the word when a library's name with `pd.` or `pl.` in front is a
+  simplydata word too, and an old name of a word (`pl.DataFrame.row`) gives the word.
+- The manual chapters "From NumPy and SciPy" and "From SymPy" teach the family words in their topics
+  (`take_function`, `polynomial`, `curve_through_points`, `find_best_pairing`, `take_matrix_function`,
+  `find_edges`, `take_transform`, `find_roots`, `find_fact`, `show_as_code`, `check_solution`, exact grids ...);
+  their lists of jobs left to the library now say which names have words. Each "From" chapter ends with a short
+  "How complete is simplydata?" paragraph with the counts of the audit.
+
+### Fixed: where the SymPy batches 22-26 meet batches 1-21
+
+- The maths family's formula names (batches 7-9) and the SymPy names of batches 22-23 both work in formula text; no
+  name is in both tables.
+- `sdata.number_grid` keeps `kind=` and `from_formula=` and gains `exactly=True`; giving both says which to leave
+  out.
+- Help pointers that waited for words now name them: `jn_zeros` and the SymPy polynomial makers point to
+  `sdata.find_zeros_of` and `sdata.polynomial`; SymPy's `Identity`, `diag`, `BlockMatrix`, `Trace`, `banded` and
+  `randMatrix` point to `number_grid(kind=...)`, `grid.get_part("diagonal")` and `make_random_numbers(rows=,
+  columns=)`; `factorint` points to `numbers.find_prime_factors()` and `srepr` to `formula.show_as_code("sympy
+  tree")`.
+- Pointers of batches 24-26 that the pointer checks of batches 1-21 run: each call now runs (number facts on numbers
+  where they have an answer, `make_random_numbers(with_seed=)`), and the exact-grid hand-over goes through
+  `formula.as_sympy()`.
+
 ### Fixed: where the families for 100 % batches 1-21 meet
 
 - Every choice simplydata makes in batches 1-21 has its basis in "How simplydata chooses methods" (113 new entries,

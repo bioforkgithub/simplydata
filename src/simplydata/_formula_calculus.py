@@ -6,8 +6,8 @@ find_hessian, find_wronskian, show_as_code("r") and show_as_tree.
 Every answer comes from SymPy, each call under simplydata's one time limit (_time_limit.py), with the SymPy function
 named in what is printed:
 
-* take_transform: laplace_transform, fourier_transform, mellin_transform, sine_transform, cosine_transform,
-  hankel_transform and their inverses (Laplace with where it holds, Mellin with its strip, the others with
+* take_transform: SymPy's laplace_transform and its kin for the Fourier, Mellin, sine, cosine and Hankel
+  transforms, and their inverses (Laplace with where it holds, Mellin with its strip, the others with
   noconds=True);
 * find_area_along_path: line_integrate along SymPy's Curve; check_if_always: is_increasing, is_decreasing,
   is_strictly_increasing, is_strictly_decreasing, is_monotonic, is_convex; find_turning_points: stationary_points;
