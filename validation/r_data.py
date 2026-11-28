@@ -44,6 +44,9 @@ TABLES = {
                        "tension = as.character(d$tension))"),
     "lake_huron": ((), "x <- datasets::LakeHuron; list(year = as.integer(round(stats::time(x))), "
                        "level = as.numeric(x))"),
+    # families for 100 %, batch 21: the centres of the 50 US states, for regions on the earth (SphericalVoronoi)
+    "state_center": ((), "list(state = datasets::state.name, lon = datasets::state.center$x, "
+                         "lat = datasets::state.center$y)"),
     "air_passengers": ((), "x <- datasets::AirPassengers; "
                            "list(month = format(seq(as.Date('1949-01-01'), by = 'month', length.out = length(x))), "
                            "passengers = as.integer(x))"),
