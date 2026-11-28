@@ -46,6 +46,8 @@ of a grid in decimals and exactly).
 numbers_5.py (numbers finishing: grid.solve_for and grid.break_down, P41 and the designed matrix words).
 charts_seaborn.py (seaborn's colour tools: show_colours, change_colour, the sliders, from_colour_list= and
 colour_letters=).
+full_tables.py (families for 100 %, batches 1-2: the table words and options for the pandas and Polars gaps, and the
+seaborn.objects marks and moves).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -159,7 +161,7 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, charts_seaborn, checking,
-                   combining, communities,
+                   combining, communities, full_tables,
                    hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_4, numbers_5,
                    numbers_batch1, places, planning, planning_surveys, signals, small_additions, starting, statistics,
                    survival, tables)
@@ -168,7 +170,7 @@ def _join() -> dict[str, Entry]:
     for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
                    more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3,
-                   numbers_4, numbers_5, charts_seaborn):
+                   numbers_4, numbers_5, charts_seaborn, full_tables):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

@@ -17,6 +17,7 @@ from .distribution_words import DistributionTableWords
 from .factor_words import HiddenFactorWords
 from .fitting import FittingWords
 from .forecasts import ForecastWords
+from .full_words import FullWords
 from .lines_more import LinesMoreWords
 from .meta_words import MetaWords
 from .model_tools import ModelToolWords
@@ -46,7 +47,7 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, BaseTable):
+            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, FullWords, BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 

@@ -77,7 +77,10 @@ GROUPS = [
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
                                 "table.get_row", "table.get_cell_at",
                                 "table.count_columns", "table.show_differences_from",
-                                "table.check_if_same_as"]),
+                                "table.check_if_same_as",
+                                # families for 100 %, batches 1-2 (approved by Manish 2026-11-28)
+                                "table.check_if_all_values_in", "table.check_if_any_value_in",
+                                "table.check_if_sorted_by"]),
     ("Choose columns", ["table.keep_columns", "table.remove_columns", "table.keep_columns_by_position",
                         "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names",
                         "table.rename_columns", "table.move_columns"]),
@@ -94,7 +97,7 @@ GROUPS = [
     ("Fix columns", ["table.turn_into_numbers", "table.turn_into_text", "table.turn_into_dates",
                      "table.turn_into_lowercase", "table.turn_into_uppercase", "table.remove_extra_spaces_in",
                      "table.replace_values_in", "table.round_numbers_in", "table.change_column",
-                     "table.turn_into_categories"]),
+                     "table.turn_into_categories", "table.turn_into_title_case"]),
     ("Sort and new columns", ["table.sort_by", "table.add_column", "table.add_group_column",
                               "table.add_rank_column", "table.add_z_score_column", "table.add_row_summary_column",
                               "table.add_row_number_column"]),
@@ -102,11 +105,11 @@ GROUPS = [
                         "table.replace_text_in", "table.split_into_rows",
                         "table.round_dates_in", "table.change_time_zone_in", "table.add_zeros_in_front_of"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column",
-                       "table.add_running_column"]),
+                       "table.add_running_column", "table.add_run_number_column"]),
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
                    "table.find_total_of", "table.find_smallest_of", "table.find_biggest_of",
                    "table.find_standard_deviation_of", "table.find_summary_of", "table.find_percent_of_rows_where",
-                   "table.count_different_values_in", "table.find_percentile_of", "table.find_most_common_of",
+                   "table.count_different_values_in", "table.get_different_values_in", "table.find_percentile_of", "table.find_most_common_of",
                    "table.find_interval_of", "table.find_correlation_between"]),
     ("Statistical tests", ["table.compare_averages_of", "table.compare_each_pair_of", "table.compare_before_and_after",
                            "table.compare_average_to", "table.compare_counts_of", "table.compare_shape_to",
@@ -1655,6 +1658,27 @@ HELP_EXAMPLES.update({
     "grid.break_down": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
                               'parts = grid.break_down(test_method="cholesky")', 'print(parts["U"])',
                               'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])'),
+})
+
+# Families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the table words for the pandas and Polars gaps
+HELP_EXAMPLES.update({
+    "table.get_different_values_in": _tx("marks", 'classes = table.get_different_values_in("class")\n'
+                                                  "print(classes)"),
+    "table.check_if_all_values_in": _tx("marks", 'answer = table.check_if_all_values_in("marks", is_above=0)\n'
+                                                 'table.check_if_all_values_in("marks", is_above=40, '
+                                                 'for_each_group_in="class")'),
+    "table.check_if_any_value_in": _tx("marks", 'answer = table.check_if_any_value_in("marks", is_above=90)\n'
+                                                'table.check_if_any_value_in("name", contains="an")'),
+    "table.check_if_sorted_by": _tx("weather", 'answer = table.check_if_sorted_by("month_number")\n'
+                                               'table.sort_by("city", "month_number")\n'
+                                               'table.check_if_sorted_by("city")'),
+    "table.add_run_number_column": _tx("river", 'table.add_group_column("level_band", from_column="level", '
+                                                'cut_at=[2.5], names=["low", "high"])\n'
+                                                'table.add_run_number_column("spell", from_column="level_band", '
+                                                'for_each_group_in="station", sorted_by="date")\n'
+                                                'table.count_rows(for_each_group_in=["station", "spell"])'),
+    "table.turn_into_title_case": _tx("marks", 'table.turn_into_lowercase("name")\n'
+                                               'table.turn_into_title_case("name")\ntable.show_first_rows()'),
 })
 
 
