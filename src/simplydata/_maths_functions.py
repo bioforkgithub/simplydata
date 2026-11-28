@@ -1543,8 +1543,12 @@ def pointer_groups(taken: dict) -> dict:
     groups: dict = {"special": [], "numpy": [], "sympy": [], "scipy": []}
     used: dict = {kind: set(taken.get(kind, ())) for kind in groups}
 
+    from scipy import special
+
     def add(kind, written, names):
         fresh = [n for n in dict.fromkeys(names) if n.isidentifier() and n not in used[kind]]
+        if kind == "special":  # special.<name> points only from names scipy.special has (plain names live elsewhere)
+            fresh = [n for n in fresh if hasattr(special, n)]
         used[kind].update(fresh)
         if fresh:
             groups[kind].append((written, " ".join(fresh)))

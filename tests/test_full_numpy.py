@@ -563,7 +563,8 @@ def test_from_formula_with_a_constant_prints_one_line(capsys):
 
 def test_pointers_after_the_review(capsys):
     for typed, word in [("scipy.fft.dst", 'take_cosine_transform(kind="sine")'), ("np.astype", "astype(int)"),
-                        ("np.linalg.logm", "scipy.linalg.logm"), ("scipy.linalg.sqrtm", "scipy.linalg.sqrtm")]:
+                        ("np.linalg.logm", 'take_matrix_function("log")'),
+                        ("scipy.linalg.sqrtm", 'take_matrix_function("square root")')]:  # words since batch 19
         sdata.help(typed)
         assert word in capsys.readouterr().out, typed
 

@@ -428,9 +428,14 @@ def test_help_points_scipy_signal_names_to_their_word(typed, word, capsys):
 
 
 def test_two_dimensional_and_helper_names_point_to_the_hand_over(capsys):
-    for name in ("order_filter", "hilbert2", "correlate2d", "check_COLA", "symiirorder1"):
+    for name in ("check_COLA", "symiirorder1"):
         sdata.help(f"scipy.signal.{name}")
         assert "as_numpy() hands" in capsys.readouterr().out, name
+    # the 2-D names became grid words in batches 20-21: their pointers name the word
+    for name, word in (("order_filter", 'grid.smooth(test_method="rank"'), ("hilbert2", "grid.find_envelope()"),
+                       ("correlate2d", "grid.convolve_with(")):
+        sdata.help(f"scipy.signal.{name}")
+        assert word in capsys.readouterr().out, name
 
 
 # ---------------------------------------------------------------------------------------- independent review fixes
