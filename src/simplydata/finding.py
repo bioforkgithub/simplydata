@@ -1038,7 +1038,7 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     real numbers); letters_are={"c": "positive"} says what a letter is. A formula made with sdata.formula() means
     formula = 0: sdata.solve(formula.find_slope_formula(), exactly=True) finds where the slope is flat. Equations
     already written as a grid of numbers (grid times x = b) are solved by grid.solve_for(b). With exactly=True also:
-    whole_numbers_only=True gives every solution in whole numbers (sdata.solve("x**2 + y**2 = 25", exactly=True,
+    whole_numbers_only=True gives the solutions in whole numbers (sdata.solve("x**2 + y**2 = 25", exactly=True,
     whole_numbers_only=True); SymPy diophantine); a sequence, "a(n + 2) = a(n + 1) + a(n)" with at_start={0: 0,
     1: 1}, gives the formula of its terms (SymPy rsolve); an equation with slopes in two letters, "du/dx + 2*du/dy =
     0", gives the formula of u (SymPy pdsolve; F stands for any function).

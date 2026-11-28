@@ -5,7 +5,8 @@ kinds of equations sdata.solve(..., exactly=True) takes besides ordinary ones: w
 ("du/dx + 2*du/dy = 0").
 
 Every answer comes from SymPy, each call under simplydata's one time limit (_time_limit.py): checksol, checkodesol
-and checkpdesol; product; diophantine (permute=True: every solution, signs and orders included); rsolve; pdsolve;
+and checkpdesol; product; diophantine (permute=True: signs and orders included; a family is said to be SymPy's);
+rsolve; pdsolve;
 subsets, variations and cartes (SymPy's generators, listed in this process once SymPy has counted the ways under the
 time limit: binomial, ff, or a power). Own code is glue only: reading the text, naming the letters and functions, and
 writing SymPy's answers back as tables and formulas.
@@ -20,10 +21,13 @@ from ._errors import SimplydataError, friendly
 from ._time_limit import one_deadline
 
 MAX_WAYS = 100_000  # list_ways_to_*: at most this many ways listed
+MAX_CHOSEN = 100  # list_ways_to_*: at most this many things in one way (the columns of the table)
+MAX_WAY_CELLS = 1_000_000  # list_ways_to_*: ways times things in each, the cells of the table
 MAX_PRODUCT_TERMS = 1000  # a finite product of more terms is refused (as factorial(1000) at most in formula text)
 _SECOND = re.compile(r"(?<![\w])d\s*\^?\s*2\s*([A-Za-z]\w*?)\s*/\s*d\s*([A-Za-z][A-Za-z_]*?)\s*\^?\s*2(?![\w])")
 _FIRST = re.compile(r"(?<![\w])d([A-Za-z]\w*?)\s*/\s*d([A-Za-z]\w*?)(?![\w])")
 _CALL = re.compile(r"(?<![\w.])([A-Za-z]\w*)\s*\(")
+_SHIFT = re.compile(r"^\s*([A-Za-z]\w*)\s*(?:([+-])\s*(\d+))?\s*$")  # n, n + 1, n - 2: a term of a sequence
 ORDINALS = ("1st", "2nd", "3rd")
 
 
@@ -33,20 +37,58 @@ def _column(i: int) -> str:
 
 # ------------------------------------------------------------------------------------------------ reading text
 def _changes_in(text: str):
-    """The derivatives written in an equation: [(token, function name, letter, order)] for dy/dx and d2y/dx2."""
+    """The derivatives written in an equation: [(token, function name, letter, order)] for dy/dx and d2y/dx2.
+
+    d, a name, /d and a name is read as a slope only when each name is one letter (dy/dx, dN/dt) or is a letter of
+    the equation elsewhere (dvolume/dt = -volume): distance/duration and dose/dw are letters divided, not slopes."""
     found = []
     for match in _SECOND.finditer(text):
         found.append((match.group(0), match.group(1), match.group(2), 2))
     rest = _SECOND.sub(" ", text)
     for match in _FIRST.finditer(rest):
         found.append((match.group(0), match.group(1), match.group(2), 1))
-    return found
+    outside = text
+    for token, *_ in found:
+        outside = outside.replace(token, " ")
+    words = set(re.findall(r"[A-Za-z]\w*", outside))
+    return [item for item in found if all(len(part) == 1 or part in words for part in item[1:3])]
+
+
+def _unknown_calls(text: str) -> list:
+    """(name, start, end, inside) of each call of a name that is not a function of formula text: a(n + 1)."""
+    from ._formula import FUNCTIONS, SPELLINGS
+
+    out, position = [], 0
+    for match in _CALL.finditer(text):
+        if match.group(1) in FUNCTIONS or match.group(1) in SPELLINGS or match.start() < position:
+            continue
+        depth, end = 0, None
+        for i in range(match.end() - 1, len(text)):
+            depth += {"(": 1, ")": -1}.get(text[i], 0)
+            if depth == 0:
+                end = i
+                break
+        if end is None:
+            return out
+        out.append((match.group(1), match.start(), end, text[match.end():end]))
+        position = end + 1
+    return out
+
+
+def _is_sequence(text: str) -> bool:
+    """Whether the text is a sequence: one name written with at least two whole-number steps of one letter, such as
+    a(n + 1) and a(n). abs-like names (Abs(x) = 2), f(x) = 2 and a(x + 1) = 4 are not."""
+    shifts: dict = {}
+    for name, _, _, inside in _unknown_calls(text):
+        found = _SHIFT.match(inside)
+        if found:
+            step = int(found.group(3) or 0) * (-1 if found.group(2) == "-" else 1)
+            shifts.setdefault((name, found.group(1)), set()).add(step)
+    return any(len(steps) >= 2 for steps in shifts.values())
 
 
 def kind_of_equations(texts) -> str | None:
     """"sequence" for a(n + 1) = ..., "partial" for an equation with du/dx and du/dy, else None."""
-    from ._formula import FUNCTIONS, SPELLINGS
-
     for text in texts:
         if not isinstance(text, str):
             continue
@@ -56,7 +98,7 @@ def kind_of_equations(texts) -> str | None:
             letters_by_function.setdefault(name, set()).add(letter)
         if any(len(v) > 1 for v in letters_by_function.values()):
             return "partial"
-        if any(m.group(1) not in FUNCTIONS and m.group(1) not in SPELLINGS for m in _CALL.finditer(text)):
+        if _is_sequence(text):
             return "sequence"
     return None
 
@@ -153,10 +195,22 @@ def check_solution(equation=None, solution=None, known=None):
     if unknown:
         raise SimplydataError(f"{', '.join(unknown)} {'is' if len(unknown) == 1 else 'are'} not a letter of "
                               f'"{equation}"; its letters: {", ".join(sorted(letters)) or "none"}.')
+    missing = sorted(k for k in letters if k not in pairs)
+    if missing:
+        example = ", ".join(repr(k) + ": 1" for k in sorted(letters))
+        raise SimplydataError(f"The solution gives no value for {', '.join(missing)}: a solution of \"{equation}\" "
+                              f"gives every letter a value, such as {{{example}}}.")
     chosen = {letters[k]: (parse(v, "check_solution()", values) if isinstance(v, str) else exact_number(sp, v))
               for k, v in pairs.items()}
-    found = _guarded(sp.checksol, relation, chosen, what="SymPy checksol")
     said = ", ".join(f"{k} = {_show(v)}" for k, v in chosen.items())
+    if sign != "=":  # a rule: put the values in and let SymPy say whether it holds
+        holds = _guarded(relation.subs, chosen, what="SymPy subs")
+        if holds not in (sp.true, sp.false):
+            print(f"SymPy cannot tell whether {said} makes {equation} true   (SymPy subs)")
+            return None
+        print(f"{said} {'makes' if holds == sp.true else 'does not make'} {equation} true   (SymPy subs)")
+        return holds == sp.true
+    found = _guarded(sp.checksol, relation, chosen, what="SymPy checksol")
     if found is None:
         print(f"SymPy cannot tell whether {said} makes {equation} true   (SymPy checksol)")
         return None
@@ -273,10 +327,22 @@ def _ways_table(ways, fast: bool, size: int):
     return _result_rows([{_column(i): item for i, item in enumerate(way)} for way in ways], fast)
 
 
-def _count_check(count, step: str):
+def _size_check(how_many: int, step: str):
+    """Refuse a way of more than MAX_CHOSEN things before SymPy counts or makes any way."""
+    if how_many > MAX_CHOSEN:
+        raise SimplydataError(f"{step}() lists ways of up to {MAX_CHOSEN} things each (one column for each); "
+                              f"{how_many:,} is too many. sdata.count_ways_to_choose() and count_ways_to_order() count "
+                              "ways of any size without listing them.")
+
+
+def _count_check(count, step: str, how_many: int = 1):
+    """Refuse more than MAX_WAYS ways, or a table of more than MAX_WAY_CELLS cells, before any way is made."""
     if int(count) > MAX_WAYS:
         raise SimplydataError(f"{step}() lists up to {MAX_WAYS:,} ways; there are {int(count):,}. "
                               "sdata.count_ways_to_choose() and count_ways_to_order() count them without listing.")
+    if int(count) * max(how_many, 1) > MAX_WAY_CELLS:
+        raise SimplydataError(f"{step}() would make a table of {int(count) * how_many:,} cells ({int(count):,} ways of "
+                              f"{how_many} things); it makes up to {MAX_WAY_CELLS:,}. Choose fewer things.")
 
 
 @friendly
@@ -304,8 +370,9 @@ def list_ways_to_choose(how_many=None, out_of=None, with_repeats=False, one_from
                 isinstance(group, (list, tuple)) and group for group in one_from_each):
             raise SimplydataError('one_from_each= needs two or more lists, such as one_from_each=[["red", "blue"], '
                                   '["S", "M", "L"]].')
+        _size_check(len(one_from_each), "list_ways_to_choose")
         count = _guarded(sp.prod, [len(g) for g in one_from_each], what="SymPy prod")
-        _count_check(count, "list_ways_to_choose")
+        _count_check(count, "list_ways_to_choose", len(one_from_each))
         ways = list(sp.cartes(*one_from_each))  # SymPy's generator, after the count
         print(f"{int(count):,} way{'s' if count != 1 else ''} to take one from each list   (SymPy cartes)")
         return _ways_table(ways, fast, len(one_from_each))
@@ -315,8 +382,9 @@ def list_ways_to_choose(how_many=None, out_of=None, with_repeats=False, one_from
             how_many > n and not with_repeats):
         raise SimplydataError(f"how_many is how many to choose, a whole number from 0 to {n} (more with "
                               f"with_repeats=True).\nFor example:  {example}")
+    _size_check(how_many, "list_ways_to_choose")
     count = _guarded(sp.binomial, n + how_many - 1 if with_repeats else n, how_many, what="SymPy binomial")
-    _count_check(count, "list_ways_to_choose")
+    _count_check(count, "list_ways_to_choose", how_many)
     ways = list(sp.subsets(things, how_many, repetition=with_repeats))  # SymPy's generator, after the count
     print(f"{int(count):,} way{'s' if count != 1 else ''} to choose {how_many} out of {n}"
           f"{' with repeats' if with_repeats else ''} (order does not matter)   (SymPy subsets)")
@@ -345,9 +413,10 @@ def list_ways_to_order(how_many=None, out_of=None, with_repeats=False, fast=Fals
             how_many > n and not with_repeats):
         raise SimplydataError(f"how_many is how many to pick, a whole number from 0 to {n} (more with "
                               f"with_repeats=True).\nFor example:  {example}")
+    _size_check(how_many, "list_ways_to_order")
     count = (_guarded(sp.Pow, n, how_many, what="SymPy Pow") if with_repeats
              else _guarded(sp.ff, n, how_many, what="SymPy ff"))
-    _count_check(count, "list_ways_to_order")
+    _count_check(count, "list_ways_to_order", how_many)
     ways = list(sp.variations(things, how_many, repetition=with_repeats))  # SymPy's generator, after the count
     print(f"{int(count):,} way{'s' if count != 1 else ''} to order {how_many} out of {n}"
           f"{' with repeats' if with_repeats else ''} (order matters)   (SymPy variations)")
@@ -401,28 +470,18 @@ def _partial(sp, text, values):
 
 
 def _sequence(sp, text, values, at_start):
-    from ._formula import FUNCTIONS, SPELLINGS, Formula, _guarded, _show, exact_number, parse
+    from ._formula import Formula, _guarded, _show, exact_number, parse
     from ._maths_formula import split_equation
 
     calls, written, name = [], "", None
     position = 0
-    for match in _CALL.finditer(text):
-        if match.group(1) in FUNCTIONS or match.group(1) in SPELLINGS or match.start() < position:
-            continue
-        if name is not None and match.group(1) != name:
-            raise SimplydataError(f'"{text}" has two sequences ({name} and {match.group(1)}); simplydata solves one.')
-        name = match.group(1)
-        depth, end = 0, None
-        for i in range(match.end() - 1, len(text)):
-            depth += {"(": 1, ")": -1}.get(text[i], 0)
-            if depth == 0:
-                end = i
-                break
-        if end is None:
-            raise SimplydataError(f'"{text}" has a bracket that is not closed.')
+    for found_name, start_at, end, inside in _unknown_calls(text):
+        if name is not None and found_name != name:
+            raise SimplydataError(f'"{text}" has two sequences ({name} and {found_name}); simplydata solves one.')
+        name = found_name
         place = f"{name}_term_{len(calls)}"
-        calls.append((place, text[match.end():end]))
-        written += text[position:match.start()] + f" {place} "
+        calls.append((place, inside))
+        written += text[position:start_at] + f" {place} "
         position = end + 1
     written += text[position:]
     inner = [parse(t, "solve()", values) for _, t in calls]
@@ -459,6 +518,13 @@ def _sequence(sp, text, values, at_start):
                 raise SimplydataError(f"at_start= names terms by whole numbers, such as {{0: 1}}; {key!r} is not one.")
             start[function(key)] = exact_number(sp, value) if not isinstance(value, str) else parse(value, "solve()")
     found = _guarded(sp.rsolve, equation, function(n), start, what="SymPy rsolve")
+    if found is None and start:
+        general = _guarded(sp.rsolve, equation, function(n), what="SymPy rsolve")
+        if general is not None:
+            said = ", ".join(f"{k} = {_show(v)}" for k, v in start.items())
+            raise SimplydataError(f"The starting values {said} contradict {text}: no sequence of it has them. Its "
+                                  f"terms are {name}({n}) = {_show(general)} (SymPy rsolve); give fewer starting "
+                                  "values, or ones that fit.")
     if found is None:
         raise SimplydataError(f"SymPy found no formula for {text} (SymPy rsolve).")
     starts = (" with " + ", ".join(f"{k} = {_show(v)}" for k, v in start.items())) if start else ""
@@ -493,10 +559,14 @@ def _whole_numbers(sp, text, values, fast, for_letter):
     if not expr.is_polynomial(*symbols):
         raise SimplydataError(f'whole_numbers_only=True solves polynomial equations (whole powers of letters) in whole '
                               f'numbers; "{text}" is not one.')
+    from sympy.solvers.diophantine.diophantine import classify_diop
+
     try:
+        kind = _guarded(classify_diop, sp.expand(expr), what="SymPy classify_diop")[2].replace("_", " ")
         found = _guarded(sp.diophantine, expr, what="SymPy diophantine", syms=tuple(symbols), permute=True)
-    except (NotImplementedError, TypeError) as error:
+    except (NotImplementedError, TypeError, ValueError) as error:
         raise SimplydataError(f"SymPy cannot solve {text} in whole numbers ({error}).") from None
+    method = f"SymPy diophantine ({kind}, whole numbers)"
     rows, said, free = [], [], set()
     for solution in sorted(found, key=lambda s: [str(v) for v in s]):
         row = {}
@@ -507,15 +577,24 @@ def _whole_numbers(sp, text, values, fast, for_letter):
             else:
                 row[n] = float(value)
             row[f"{n} exactly"] = _show(value)
-        row["method"] = "SymPy diophantine (whole numbers)"
+        row["method"] = method
         rows.append(row)
         said.append(", ".join(f"{n} = {_show(v)}" for n, v in zip(order, solution)))
     if not rows:
-        print(f"{text} has no solution in whole numbers   (SymPy diophantine)")
-        return _result_rows([{**{n: math.nan for n in order}, "method": "SymPy diophantine (whole numbers)"}], fast)
+        print(f"{text} has no whole-number solutions   ({method})")
+        import pandas as pd
+
+        from .table import table
+
+        columns = [c for n in order for c in (n, f"{n} exactly")] + ["method"]
+        return table(pd.DataFrame(columns=columns), fast=fast)
     shown = "; ".join(said[:12]) + (" ..." if len(said) > 12 else "")
-    print(f"{text} in whole numbers: {shown}   (SymPy diophantine, every solution)")
     if free:
+        print(f"{text} in whole numbers: {shown}   ({method}: SymPy's family of solutions)")
         print(f"{' and '.join(sorted(free))} {'is any whole number' if len(free) == 1 else 'are any whole numbers'}: "
-              "each gives a solution.")
+              "each gives a solution. The family may leave solutions out: for some equations multiples and swaps "
+              "of its members are solutions too (x**2 + y**2 = z**2 has 9, 12, 15 and 4, 3, 5, which SymPy's "
+              "primitive family leaves out).")
+    else:
+        print(f"{text} in whole numbers: {shown}   ({method}, with every sign and order)")
     return _result_rows(rows, fast)

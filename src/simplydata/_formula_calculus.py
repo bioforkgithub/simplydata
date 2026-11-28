@@ -7,7 +7,8 @@ Every answer comes from SymPy, each call under simplydata's one time limit (_tim
 named in what is printed:
 
 * take_transform: laplace_transform, fourier_transform, mellin_transform, sine_transform, cosine_transform,
-  hankel_transform and their inverses (noconds=True: the transform itself, without SymPy's conditions);
+  hankel_transform and their inverses (Laplace with where it holds, Mellin with its strip, the others with
+  noconds=True);
 * find_area_along_path: line_integrate along SymPy's Curve; check_if_always: is_increasing, is_decreasing,
   is_strictly_increasing, is_strictly_decreasing, is_monotonic, is_convex; find_turning_points: stationary_points;
   find_where_undefined: singularities; find_period: periodicity;
@@ -98,6 +99,18 @@ MAX_FOURIER_TERMS = 100  # find_fourier_series(how_many_terms=)
 _PATH_PART = re.compile(r"^\s*([A-Za-z]\w*)\s*=\s*(.+?)\s*$", re.S)
 
 
+def digits_of(expr) -> int:
+    """The most digits of a whole number or of the top or bottom of a fraction in a SymPy answer, from the size of
+    each number in bits (no number is written out)."""
+    import sympy as sp
+
+    most = 0
+    for atom in getattr(expr, "atoms", lambda *_: ())(sp.Rational):
+        for part in (atom.p, atom.q):
+            most = max(most, math.floor(abs(int(part)).bit_length() * math.log10(2)) + 1)
+    return most
+
+
 def _value(table: dict, spellings: dict, value, step: str, option: str):
     from ._formula_algebra import _value as checked
 
@@ -138,8 +151,33 @@ def _domain(sp, ends):
     return sp.S.Reals if ends is None else sp.Interval(*ends)
 
 
-def _points_table(sp, points, what: str, fast: bool, value_of=None):
-    """A finite set of points as a table: at, at exactly (and the value there)."""
+MAX_KIND_ORDER = 10  # find_turning_points: the kind of a point is read from the slopes up to this order
+
+
+def _turning_kind(sp, expr, x, point) -> str:
+    """The kind of a point where the slope is 0, from the first slope after the first that is not 0 there (the
+    higher-derivative test): an even one above 0 is a lowest point, below 0 a highest point; an odd one makes a flat
+    step. Each slope and its value come from SymPy (diff, subs), under the time limit."""
+    from ._formula import _guarded
+
+    slope = expr
+    for order in range(1, MAX_KIND_ORDER + 1):
+        slope = _guarded(sp.diff, slope, x, what="SymPy diff")
+        if order == 1:
+            continue
+        value = _guarded(sp.simplify, slope.subs(x, point), what="SymPy simplify")
+        if value.is_zero:
+            continue
+        if value.is_zero is None or not value.is_real:
+            return "cannot tell"
+        if order % 2:
+            return "flat step"
+        return "lowest point" if value.is_positive else "highest point"
+    return "cannot tell"
+
+
+def _points_table(sp, points, what: str, fast: bool, value_of=None, kind_of=None):
+    """A finite set of points as a table: at, at exactly (and the value there, and the kind of point)."""
     from ._formula import _result_rows, _show, float_of
 
     rows = []
@@ -149,6 +187,8 @@ def _points_table(sp, points, what: str, fast: bool, value_of=None):
             value = value_of(point)
             row["value"] = float_of(value) if not value.free_symbols else math.nan
             row["value exactly"] = _show(value)
+        if kind_of is not None:
+            row["kind"] = kind_of(point)
         rows.append(row)
     if not rows:
         import pandas as pd
@@ -156,6 +196,7 @@ def _points_table(sp, points, what: str, fast: bool, value_of=None):
         from .table import table
 
         columns = ["at", "at exactly"] + (["value", "value exactly"] if value_of is not None else [])
+        columns += ["kind"] if kind_of is not None else []
         return table(pd.DataFrame(columns=columns), fast=fast)
     return _result_rows(rows, fast)
 
@@ -176,8 +217,10 @@ class _CalculusWords:
         to_letter= the letter of the answer (s for Laplace, k for Fourier). The Fourier transform has SymPy's
         convention, with 2*pi in the power: the integral of f(x)*exp(-2*pi*I*x*k). order= is the order of the Bessel
         function of the Hankel transform (0 by itself); between= is the strip of s for "inverse mellin", such as
-        between=[0, "infinity"]. SymPy's names work too ("laplace_transform"). Gives a new formula; this one does
-        not change. As SymPy laplace_transform(noconds=True); MATLAB laplace.
+        between=[0, "infinity"]. The Laplace transform is printed with where it holds (for Re(s) > 2) and the Mellin
+        transform with its strip; the others are given without SymPy's conditions. SymPy's names work too
+        ("laplace_transform"). Gives a new formula; this one does not change. As SymPy laplace_transform; MATLAB
+        laplace.
         """
         from ._errors import SimplydataError
         from ._formula import Formula, _guarded, _show, exact_number, need_sympy
@@ -193,7 +236,10 @@ class _CalculusWords:
         if from_letter is None:
             from_letter = usual_from if usual_from in letters or len(letters) != 1 else letters[0]
         example = f'take_transform("{key}", from_letter="{usual_from}", to_letter="{usual_to}")'
-        x = self._letter("take_transform", from_letter, example)
+        if from_letter is None or not isinstance(from_letter, str) or from_letter not in letters:
+            raise SimplydataError(f"from_letter= needs one of the letters of the formula in quotes: "
+                                  f"{', '.join(repr(n) for n in letters) or 'none'}.\nFor example:  formula.{example}")
+        x = self._symbol(from_letter)
         if to_letter is None:
             to_letter = usual_to
         if not isinstance(to_letter, str) or not to_letter.isidentifier():
@@ -220,18 +266,24 @@ class _CalculusWords:
             values.append(ends)
         elif between is not None:
             raise SimplydataError(f'between= goes with "inverse mellin" (the strip of s); leave it out for "{key}".')
-        else:
+        elif key not in ("laplace", "mellin"):
             named["noconds"] = True
         found = _guarded(getattr(sp, function_name), *values, what=f"SymPy {function_name}", **named)
         from sympy.integrals.transforms import IntegralTransform
 
-        if isinstance(found, tuple):  # (transform, strip or condition)
+        where = ""
+        if isinstance(found, tuple):  # (transform, where it holds, condition)
+            if key == "laplace" and len(found) == 3 and found[1] != -sp.oo:
+                where = f", for Re({y}) > {_show(found[1])}"
+            elif key == "mellin" and len(found) == 3:
+                low, high = found[1]
+                where = f", for {_show(low)} < Re({y}) < {_show(high)}"
             found = found[0]
         if found.has(IntegralTransform):
             raise SimplydataError(f"SymPy found no formula for the {key} transform of {_show(self._expr)} (SymPy "
                                   f"{function_name} gave it back unworked). formula.as_sympy() hands the formula to "
                                   "SymPy itself.")
-        print(f"The {key} transform of {_show(self._expr)} ({about}): {_show(found)}   (SymPy {function_name})")
+        print(f"The {key} transform of {_show(self._expr)} ({about}): {_show(found)}{where}   (SymPy {function_name})")
         return Formula(found)
 
     # ------------------------------------------------------------------------------------------- along a path
@@ -320,7 +372,10 @@ class _CalculusWords:
         is_increasing). Kinds: "rising" (never goes down), "falling" (never goes up), "strictly rising" (always goes
         up), "strictly falling" (always goes down), "one way only" (always up or always down: strictly monotonic,
         is_monotonic) and "bending up" (convex, is_convex). between= is the range of the letter (every real number
-        when left out). Gives True or False; None when SymPy cannot tell, which simplydata says. As SymPy
+        when left out). The check is made where the formula has a value in that range (SymPy continuous_domain):
+        sqrt(x) is always rising, from 0 on, and log(x) on [0, "infinity"] is rising where it is defined, above 0.
+        When the formula has a gap inside the range (1/x at 0), the pieces cannot be compared, so the answer is None,
+        said plainly; give between= one piece. Gives True or False; None when SymPy cannot tell. As SymPy
         is_increasing.
         """
         from ._errors import SimplydataError
@@ -334,18 +389,37 @@ class _CalculusWords:
         function_name, meaning = ALWAYS[key]
         x = self._letter("check_if_always", for_letter, f'check_if_always("{key}", for_letter="x")')
         ends = _range(sp, between, "between=", f'formula.check_if_always("{key}", between=[0, 5])')
-        domain = _domain(sp, ends)
+        wanted = sp.S.Reals if ends is None else sp.Interval.open(*ends)
+        from sympy.calculus.util import continuous_domain
+
+        defined = _guarded(continuous_domain, self._expr, x, wanted, what="SymPy continuous_domain")
+        where = f"for {x} from {_show(ends[0])} to {_show(ends[1])}" if ends else f"for every real {x}"
+        if defined == sp.S.EmptySet:
+            raise SimplydataError(f"{_show(self._expr)} has no value {where}, so it is neither rising nor falling "
+                                  "there (SymPy continuous_domain).")
+        if not isinstance(defined, sp.Interval):
+            print(f"{_show(self._expr)} has a gap {where}: it has a value only on {defined} (SymPy "
+                  "continuous_domain), so the pieces cannot be checked as one. Give between= one piece, such as "
+                  f"between=[{_show(defined.args[0].inf) if isinstance(defined, sp.Union) else 0}, "
+                  f"{_show(defined.args[0].sup) if isinstance(defined, sp.Union) else 1}].")
+            return None
+        domain = sp.Interval.open(defined.inf, defined.sup)  # inside: the slope may have no value at an end
+        if defined != wanted:
+            where += (f", where it has a value (from {_show(defined.inf)} to {_show(defined.sup)}; SymPy "
+                      "continuous_domain)")
         if function_name == "is_convex":
             found = _guarded(sp.is_convex, self._expr, x, what="SymPy is_convex", domain=domain)
         else:
             found = _guarded(getattr(sp, function_name), self._expr, domain, x, what=f"SymPy {function_name}")
-        where = f"for {x} from {_show(ends[0])} to {_show(ends[1])}" if ends else f"for every real {x}"
         if found is None:
             print(f"SymPy cannot tell whether {_show(self._expr)} is always {key} {where}   (SymPy {function_name})")
             return None
         answer = bool(found)
-        print(f"{_show(self._expr)} is {'' if answer else 'not '}always {key} {where}: it "
-              f"{meaning if answer else 'does not: ' + meaning}   (SymPy {function_name})")
+        if answer:
+            print(f"{_show(self._expr)} is always {key} {where}: it {meaning}   (SymPy {function_name})")
+        else:
+            print(f"{_show(self._expr)} is not always {key} {where} (always {key}: it {meaning})   (SymPy "
+                  f"{function_name})")
         return answer
 
     @friendly
@@ -354,9 +428,11 @@ class _CalculusWords:
         """Where the slope of the formula is 0: its turning points. points = formula.find_turning_points()
 
         formula = sdata.formula("x**3 - 3*x"), then formula.find_turning_points() gives -1 and 1, with the value of the
-        formula at each (SymPy stationary_points). between= keeps the points in a range of the letter; a repeating
-        formula (sin(x)) needs a range of finite length. Gives a table: at, at exactly, value, value exactly. As SymPy
-        stationary_points.
+        formula at each (SymPy stationary_points). The column kind says "highest point", "lowest point" or "flat
+        step" (the slope is 0 but the formula goes on the same way, as x**3 at 0), from the first higher slope that is
+        not 0 there; "cannot tell" when SymPy cannot. between= keeps the points in a range of the letter; a repeating
+        formula (sin(x)) needs a range of finite length. A formula with no such point gives an empty table. Gives a
+        table: at, at exactly, value, value exactly, kind. As SymPy stationary_points.
         """
         from ._formula import _guarded, need_sympy
 
@@ -388,7 +464,13 @@ class _CalculusWords:
         from ._formula import _guarded, _show
 
         where = f" for {x} from {_show(ends[0])} to {_show(ends[1])}" if ends else ""
-        if not isinstance(found, sp.FiniteSet):
+        empty = found == sp.S.EmptySet or getattr(found, "is_empty", None) is True  # none: an empty table
+        if isinstance(found, sp.ConditionSet):
+            raise SimplydataError(f"SymPy cannot tell where the {what} of {_show(self._expr)}{where} are: it can "
+                                  f"only write them as the solutions of {_show(found.condition)} (SymPy "
+                                  f"{function_name}). sdata.solve(\"...\", between=[...]) finds such points in "
+                                  "numbers.")
+        if not empty and not isinstance(found, sp.FiniteSet):
             raise SimplydataError(f"The {what} of {_show(self._expr)}{where} are endless: {found} (SymPy "
                                   f"{function_name}). Keep the letter to a range of finite length with between=, "
                                   "such as between=[0, 7].")
@@ -396,10 +478,11 @@ class _CalculusWords:
         def value_of(point):
             return _guarded(self._expr.subs, x, point, what="SymPy subs")
 
-        points = list(found)
+        points = [] if empty else list(found)
         said = ", ".join(_show(p) for p in sorted(points, key=lambda p: (not p.is_real, str(p)))) or "none"
         print(f"The {what} of {_show(self._expr)}{where}: {said}   (SymPy {function_name})")
-        return _points_table(sp, points, what, fast, value_of if with_value else None)
+        kind_of = (lambda point: _turning_kind(sp, self._expr, x, point)) if with_value else None
+        return _points_table(sp, points, what, fast, value_of if with_value else None, kind_of)
 
     @friendly
     def find_period(self, for_letter=None):
@@ -430,9 +513,10 @@ class _CalculusWords:
         series = formula.find_fourier_series(between=["-pi", "pi"])
 
         formula = sdata.formula("x"), then formula.find_fourier_series(between=["-pi", "pi"]) gives 2*sin(x) -
-        sin(2*x) + 2*sin(3*x)/3: the first how_many_terms= terms that are not 0 (3 by itself, up to 100) of the
-        series that repeats the formula over the range (SymPy fourier_series, then truncate). between= is the range
-        that repeats, ["-pi", "pi"] by itself. Gives a new formula. As SymPy fourier_series.
+        sin(2*x) + 2*sin(3*x)/3: the first how_many_terms= parts of the series that are not 0 (3 by itself, up to
+        100), where the constant is one part and each frequency, its cosine and its sine together, is one part
+        (SymPy fourier_series, then truncate). between= is the range that repeats, ["-pi", "pi"] by itself. Gives a
+        new formula. As SymPy fourier_series.
         """
         from ._errors import SimplydataError
         from ._formula import Formula, _guarded, _show, _whole, need_sympy
@@ -449,7 +533,8 @@ class _CalculusWords:
         series = _guarded(sp.fourier_series, self._expr, (x, *ends), what="SymPy fourier_series")
         found = _guarded(series.truncate, count, what="SymPy truncate")
         print(f"{_show(self._expr)} as a Fourier series over {x} from {_show(ends[0])} to {_show(ends[1])}, the "
-              f"first {count} term{'s' if count != 1 else ''}: {_show(found)}   (SymPy fourier_series)")
+              f"first {count} part{'s' if count != 1 else ''} that are not 0 (the constant, and each frequency "
+              f"with its cosine and sine): {_show(found)}   (SymPy fourier_series)")
         return Formula(found)
 
     @friendly
@@ -458,16 +543,36 @@ class _CalculusWords:
         """The residue of the formula at a point (complex analysis). residue = formula.find_residue_at(0)
 
         formula = sdata.formula("exp(x)/x**3"), then formula.find_residue_at(0) gives 1/2: the number in front of
-        1/x in the series of the formula around x = 0 (SymPy residue). at= is the point: a number, or a formula of
-        numbers such as "pi". Gives a number, or a formula when letters are left. As SymPy residue.
+        1/x in the series of the formula around x = 0 (SymPy residue). at= is the point: a number, a complex number
+        (1j, or "I" in text: 1/(x**2 + 1) has the residue -I/2 at "I"), or a formula of numbers such as "pi" or
+        "2*I". Gives a number, or a formula when letters are left. As SymPy residue.
         """
-        from ._formula import _guarded, _show, need_sympy
+        from ._errors import SimplydataError
+        from ._formula import _guarded, _show, exact_number, need_sympy, parse
         from ._formula_algebra import _back
 
         sp = need_sympy("formula.find_residue_at()")
         x = self._letter("find_residue_at", for_letter, 'find_residue_at(0, for_letter="x")')
-        point = _end_value(sp, at, "at=")
-        found = _guarded(sp.residue, self._expr, x, point, what="SymPy residue")
+        if isinstance(at, complex):
+            point = exact_number(sp, at.real) + sp.I * exact_number(sp, at.imag)
+        elif isinstance(at, str) and at.strip().lower() not in ("infinity", "inf", "oo", "-infinity", "-inf",
+                                                               "-oo", "minus infinity", "+infinity"):
+            point = parse(at, "at=")
+            point = point.xreplace({s: sp.I for s in point.free_symbols if str(s) in ("I", "i")})
+            if point.free_symbols:
+                raise SimplydataError(f'at= takes a point: a number, or a formula of numbers such as "pi" or "2*I"; '
+                                      f'"{at}" has letters.')
+        else:
+            point = _end_value(sp, at, "at=")
+            if not point.is_finite:
+                raise SimplydataError("at= takes a point at a finite place; the residue at infinity is not one of "
+                                      "simplydata's words (formula.as_sympy() hands the formula to SymPy).")
+        try:
+            found = _guarded(sp.residue, self._expr, x, point, what="SymPy residue")
+        except NotImplementedError as error:
+            raise SimplydataError(f"SymPy cannot find the residue of {_show(self._expr)} at {x} = {_show(point)} "
+                                  f"(SymPy residue: {error}); such a point (an essential singularity) needs the "
+                                  "series by hand.") from None
         print(f"The residue of {_show(self._expr)} at {x} = {_show(point)}: {_show(found)}   (SymPy residue)")
         return _back(sp, found)
 
@@ -496,16 +601,33 @@ class _CalculusWords:
         if high - low + 1 > MAX_TERMS:
             raise SimplydataError(f"list_terms() lists up to {MAX_TERMS:,} terms; [{low}, {high}] has "
                                   f"{high - low + 1:,}. Use a shorter range.")
+        from ._formula import MAX_DIGITS, float_of
+
+        said = f"The terms of {_show(self._expr)} for {x} from {low} to {high}"
+        for end in sorted({low, (low + high) // 2, high}):  # the size of a term, from SymPy evalf, before any is made
+            try:
+                size = _guarded(self._expr.evalf, 15, subs={x: end}, what="SymPy evalf")
+            except (ValueError, TypeError, ZeroDivisionError):
+                continue
+            if size.is_number and size.is_finite and size != 0 and size.is_real:
+                digits = _guarded(sp.log, sp.Abs(size), 10, what="SymPy log")
+                if digits.is_real and digits > MAX_DIGITS:
+                    raise SimplydataError(f"{said}: the term at {x} = {end} has about {int(digits):,} digits; a term "
+                                          f"may have up to {MAX_DIGITS} digits. Use a shorter range.")
         sequence = _guarded(sp.sequence, self._expr, (x, low, high), what="SymPy sequence")
         terms = _guarded(sequence.__getitem__, slice(None), what="SymPy sequence")
+        too_long = [position for position, term in zip(range(low, high + 1), terms) if digits_of(term) > MAX_DIGITS]
+        if too_long:
+            raise SimplydataError(f"{said}: the term at {x} = {too_long[0]} has more than {MAX_DIGITS} digits "
+                                  f"({len(too_long)} term{'s' if len(too_long) != 1 else ''} in all); a term may have "
+                                  f"up to {MAX_DIGITS} digits. Use a shorter range.")
         rows = []
         name = str(x)
         for position, term in zip(range(low, high + 1), terms):
-            from ._formula_algebra import _back
-
-            value = _back(sp, term)
-            rows.append({name: position, "term": value if isinstance(value, float) else math.nan,
-                         "term exactly": _show(term)})
+            decimal = math.nan
+            if not term.free_symbols and digits_of(term) <= 300 and term.is_real:
+                decimal = float_of(term)
+            rows.append({name: position, "term": decimal, "term exactly": _show(term)})
         shown = ", ".join(r["term exactly"] for r in rows[:10]) + (" ..." if len(rows) > 10 else "")
         print(f"The terms of {_show(self._expr)} for {name} from {low} to {high}: {shown}   (SymPy sequence)")
         return _result_rows(rows, fast)
@@ -588,13 +710,23 @@ class _CalculusWords:
         from ._errors import SimplydataError
         from ._formula import _guarded, need_sympy
 
+        from ._formula import _show
+
         sp = need_sympy("formula.show_as_code()")
         if language is None:
             raise SimplydataError('formula.show_as_code() needs a language, such as formula.show_as_code("r"). '
                                   "Languages: " + ", ".join(f'"{n}"' for n in LANGUAGES))
         key = _value(LANGUAGES, LANGUAGE_SPELLINGS, language, "show_as_code", "language")
         printer = getattr(sp, LANGUAGES[key][0])
-        text = str(_guarded(printer, self._expr, what=f"SymPy {LANGUAGES[key][0]}"))
+        from sympy.printing.codeprinter import PrintMethodNotImplementedError
+
+        try:
+            text = str(_guarded(printer, self._expr, what=f"SymPy {LANGUAGES[key][0]}"))
+        except PrintMethodNotImplementedError as error:
+            function = str(error).split(":")[-1].strip().split()[0] if ":" in str(error) else "a function"
+            raise SimplydataError(f"{LANGUAGES[key][1]} has no {function} that SymPy can write: SymPy "
+                                  f"{LANGUAGES[key][0]} cannot write {_show(self._expr)}. Try another language, such "
+                                  'as show_as_code("python") or show_as_code("text").') from None
         print(text)
         return text
 

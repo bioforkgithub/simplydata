@@ -313,7 +313,9 @@ def test_every_fact_is_named_and_tested():
 
 
 def _sympy_answer(sp, name, v, options):
-    function = getattr(sp, number_theory_words.FACTS[name][0])
+    from sympy.functions.combinatorial.numbers import partition
+
+    function = partition if name == "partitions" else getattr(sp, number_theory_words.FACTS[name][0])
     args = number_theory_words.NumberTheoryWords._arguments(sp, name, v, options)
     if name == "primes up to":
         return list(sp.primerange(2, v + 1))
@@ -418,3 +420,151 @@ def test_every_sympy_name_of_the_new_words_points_to_its_word():
                "periodicity", "fourier_series", "residue", "sequence", "hessian", "wronskian", "casoratian",
                "GramSchmidt", "per", "print_tree", "dotprint"])
     assert [n for n in used if n not in names] == []
+
+
+# ----------------------------------------------------------------------------------- review fixes (2026-11-28)
+def test_no_point_is_an_empty_table_not_endless():
+    assert _quiet(_formula("x**2").find_where_undefined).count_rows() == 0
+    assert _quiet(_formula("sqrt(x)").find_turning_points).count_rows() == 0
+    assert _column(_quiet(_formula("1/(x**2 + 1)").find_turning_points), "at") == [0.0]
+    with pytest.raises(sdata.SimplydataError, match="cannot tell"):
+        _quiet(_formula("exp(x)/x**3 + x").find_turning_points)
+
+
+def test_turning_points_say_their_kind():
+    assert _column(_quiet(_formula("x**3 - 3*x").find_turning_points), "kind") == ["highest point", "lowest point"]
+    assert _column(_quiet(_formula("x**3").find_turning_points), "kind") == ["flat step"]
+    assert _column(_quiet(_formula("x**4").find_turning_points), "kind") == ["lowest point"]
+
+
+def test_check_if_always_works_where_the_formula_has_a_value():
+    assert _quiet(_formula("log(x)").check_if_always, "rising", between=[0, "infinity"]) is True
+    assert _quiet(_formula("sqrt(x)").check_if_always, "rising") is True
+    assert _quiet(_formula("1/x").check_if_always, "falling") is None  # a gap at 0: the pieces are not one
+    assert _quiet(_formula("1/x").check_if_always, "falling", between=[0, 5]) is True
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        _formula("x**2").check_if_always("rising")
+    assert "does not:" not in out.getvalue() and "is not always rising" in out.getvalue()
+
+
+def test_whole_number_families_are_not_called_every_solution():
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        table = sdata.solve("x**2 + y**2 = z**2", exactly=True, whole_numbers_only=True)
+    said = out.getvalue()
+    assert "every solution" not in said and "family" in said and "multiples and swaps" in said
+    assert "homogeneous ternary quadratic" in _column(table, "method")[0]
+    none = _quiet(sdata.solve, "2*x + 4*y = 1", exactly=True, whole_numbers_only=True)
+    assert none.count_rows() == 0  # no NaN row
+
+
+def test_only_a_name_with_two_steps_of_one_letter_is_a_sequence():
+    from simplydata._solve_more import kind_of_equations
+
+    assert kind_of_equations(["a(n + 1) = 2*a(n)"]) == "sequence"
+    for text in ("Abs(x) = 2", "a(x + 1) = 4", "f(x) = 2"):
+        assert kind_of_equations([text]) is None, text
+        with pytest.raises(sdata.SimplydataError):
+            _quiet(sdata.solve, text, exactly=True)
+
+
+def test_list_ways_refuse_huge_ways_before_making_them():
+    with pytest.raises(sdata.SimplydataError, match="up to 100 things"):
+        _quiet(sdata.list_ways_to_choose, 200_000, out_of=100_000, with_repeats=True)
+    with pytest.raises(sdata.SimplydataError, match="up to 100 things"):
+        _quiet(sdata.list_ways_to_order, 10 ** 9, out_of=5, with_repeats=True)
+    with pytest.raises(sdata.SimplydataError, match="cells"):
+        _quiet(sdata.list_ways_to_choose, 30, out_of=34)  # 46,376 ways of 30 things: 1.4 million cells
+    assert _quiet(sdata.list_ways_to_choose, 1, out_of=100).count_rows() == 100
+
+
+def test_answers_keep_to_the_1000_digit_rule():
+    with pytest.raises(sdata.SimplydataError, match="digits"):
+        _quiet(sdata.number_list(list(range(1, 3001))).find_number_fact, "least common multiple")
+    with pytest.raises(sdata.SimplydataError, match="digits"):
+        _quiet(_formula("2**(2**n)").list_terms, between=[1, 30])
+    with pytest.raises(sdata.SimplydataError, match="digits"):
+        _quiet(sdata.number_grid([["10**900", 1], [1, "10**900"]], exactly=True).find_determinant)
+    with pytest.raises(sdata.SimplydataError, match="digits"):
+        _quiet(sdata.number_list([10 ** 15] * 200).find_number_fact, "number from continued fraction")
+    with pytest.raises(sdata.SimplydataError, match="12 rows"):
+        _quiet(_formula(" + ".join(f"x{i}**2" for i in range(13))).find_hessian)
+
+
+def test_show_as_code_says_plainly_what_a_language_cannot_write():
+    for language, text in (("python", "besselJ(x, 1)"), ("javascript", "fibonacci(x)"), ("rust", "gamma(x)")):
+        with pytest.raises(sdata.SimplydataError, match="cannot write"):
+            _quiet(_formula(text).show_as_code, language)
+
+
+def test_check_solution_of_rules_and_with_missing_letters():
+    assert _quiet(sdata.check_solution, "x > 2", "x = 3") is True
+    assert _quiet(sdata.check_solution, "x > 2", "x = 1") is False
+    with pytest.raises(sdata.SimplydataError, match="no value for y"):
+        _quiet(sdata.check_solution, "x + y = 3", {"x": 1})
+
+
+def test_letters_that_start_with_d_are_not_slopes():
+    from simplydata._solve_more import _changes_in
+
+    assert _changes_in("distance/duration = 3") == []
+    assert _changes_in("dose/dw = 2") == []
+    assert [t[1:] for t in _changes_in("dy/dx = y")] == [("y", "x", 1)]
+    assert _quiet(sdata.check_solution, "distance/duration = 3", {"distance": 6, "duration": 2}) is True
+
+
+def test_residue_at_complex_points_and_plain_refusals():
+    assert _quiet(_formula("1/(x**2 + 1)").find_residue_at, "I") == pytest.approx(-0.5j)
+    assert _quiet(_formula("1/(x**2 + 1)").find_residue_at, 1j) == pytest.approx(-0.5j)
+    with pytest.raises(sdata.SimplydataError, match="finite place"):
+        _quiet(_formula("1/x").find_residue_at, "infinity")
+    with pytest.raises(sdata.SimplydataError, match="cannot find the residue"):
+        _quiet(_formula("exp(1/x)").find_residue_at, 0)
+
+
+def test_laplace_says_where_it_holds_and_transform_errors_name_from_letter():
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        _formula("exp(2*t)").take_transform("laplace")
+    assert "for Re(s) > 2" in out.getvalue()
+    with pytest.raises(sdata.SimplydataError, match="from_letter="):
+        _quiet(_formula("exp(-a*t)").take_transform, "laplace", from_letter="u")
+
+
+def test_partitions_one_number_gcd_and_prime_factors_of_0_and_minus():
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # npartitions is deprecated in SymPy
+        assert _quiet(sdata.number_list([100]).find_number_fact, "partitions").as_numpy().tolist() == [190569292]
+    with pytest.raises(sdata.SimplydataError, match="two numbers"):
+        _quiet(sdata.number_list([12]).find_number_fact, "greatest common divisor")
+    with pytest.raises(sdata.SimplydataError, match="0 has no prime factors"):
+        _quiet(sdata.number_list([0, 6]).find_prime_factors)
+    minus = _quiet(sdata.number_list([-12]).find_prime_factors)
+    assert _column(minus, "prime") == [2.0, 3.0]
+
+
+def test_rsolve_starting_values_that_contradict():
+    with pytest.raises(sdata.SimplydataError, match="contradict"):
+        _quiet(sdata.solve, "a(n + 1) = 2*a(n)", exactly=True, at_start={0: 1, 1: 5})
+
+
+def test_fourier_series_counts_parts_as_sympy_truncate():
+    sp = _sp()
+    x = sp.Symbol("x")
+    found = _quiet(_formula("x + x**2").find_fourier_series, between=["-pi", "pi"], how_many_terms=2)
+    assert found.as_sympy() == sp.fourier_series(x + x ** 2, (x, -sp.pi, sp.pi)).truncate(2)
+    from simplydata._method_basis import BASIS
+
+    doc = " ".join(_formula_calculus._CalculusWords.find_fourier_series.__doc__.split())
+    assert "terms that are not 0" not in doc and "its cosine and its sine together, is one part" in doc
+    assert "each frequency (its cosine and sine together) one part" in BASIS["f.find_fourier_series"].default
+
+
+def test_list_terms_says_too_big_once():
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out), pytest.raises(sdata.SimplydataError):
+        _formula("10**(n*100)").list_terms(between=[1, 20])
+    assert out.getvalue().count("too big") <= 1

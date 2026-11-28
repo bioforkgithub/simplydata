@@ -71,6 +71,34 @@ def _run(call, *values, what: str, **named):
     return run_exactly(call, *values, what=what, **named)
 
 
+def _check_size(matrix, step: str) -> None:
+    """Refuse a determinant, permanent or inverse whose numbers could have more than MAX_DIGITS digits, before SymPy
+    works them out: each is a sum of products of n cells, so it has at most n times the digits of the longest cell,
+    plus the digits of n! (the number of products)."""
+    from ._formula import MAX_DIGITS
+    from ._formula_calculus import digits_of
+
+    n = max(matrix.shape)
+    longest = max((digits_of(cell) for cell in matrix), default=0)
+    bound = n * longest + math.lgamma(n + 1) / math.log(10)
+    if bound > MAX_DIGITS:
+        raise SimplydataError(f"grid.{step}() of this grid could have about {int(bound):,} digits ({n} rows of numbers "
+                              f"with up to {longest} digits); exact answers may have up to {MAX_DIGITS} digits. Use "
+                              "smaller numbers.")
+
+
+def _checked(found, step: str):
+    """An exact answer kept to the 1000-digit rule of the formula words."""
+    from ._formula import MAX_DIGITS
+    from ._formula_calculus import digits_of
+
+    digits = digits_of(found)
+    if digits > MAX_DIGITS:
+        raise SimplydataError(f"grid.{step}() gives a number of {digits:,} digits; exact answers may have up to "
+                              f"{MAX_DIGITS} digits. Use smaller numbers.")
+    return found
+
+
 class ExactGrid:
     """A grid whose cells are exact (fractions, square roots, pi) or formulas with letters, as a SymPy Matrix. Make
     one with sdata.number_grid([[1, "1/3"], ["a", 2]], exactly=True).
@@ -81,6 +109,9 @@ class ExactGrid:
     """
 
     def __init__(self, matrix):
+        if max(matrix.shape) > MAX_EXACT_CELLS:
+            raise SimplydataError(f"An exact grid has up to {MAX_EXACT_CELLS} rows and {MAX_EXACT_CELLS} columns; this "
+                                  f"one would be {matrix.rows} x {matrix.cols}.")
         object.__setattr__(self, "_matrix", matrix)
         object.__setattr__(self, "_history", [])
 
@@ -176,9 +207,10 @@ class ExactGrid:
     def take_inverse(self):
         """Turn a square exact grid into its inverse, exactly. grid.take_inverse()"""
         n = self._square("take_inverse")
+        _check_size(self._matrix, "take_inverse")
         if _run(self._matrix.det, what="SymPy det") == 0:
             raise SimplydataError(f"The {n} x {n} grid has no inverse: its determinant is exactly 0 (SymPy det).")
-        new = _run(self._matrix.inv, what="SymPy inv")
+        new = _checked(_run(self._matrix.inv, what="SymPy inv"), "take_inverse")
         print(f"The inverse of the {n} x {n} grid, exactly (SymPy inv):")
         for line in _rows_text(new):
             print("  " + line)
@@ -198,7 +230,8 @@ class ExactGrid:
         from ._formula import Formula, _show
 
         n = self._square("find_determinant")
-        found = _run(self._matrix.det, what="SymPy det")
+        _check_size(self._matrix, "find_determinant")
+        found = _checked(_run(self._matrix.det, what="SymPy det"), "find_determinant")
         print(f"The determinant of the {n} x {n} grid, exactly: {_show(found)}   (SymPy det)")
         return Formula(found)
 
@@ -208,7 +241,8 @@ class ExactGrid:
         from ._formula import Formula, _show
 
         n = self._square("find_permanent")
-        found = _run(self._matrix.per, what="SymPy per")
+        _check_size(self._matrix, "find_permanent")
+        found = _checked(_run(self._matrix.per, what="SymPy per"), "find_permanent")
         print(f"The permanent of the {n} x {n} grid, exactly: {_show(found)}   (SymPy per)")
         return Formula(found)
 
@@ -255,7 +289,8 @@ class ExactGrid:
         if _run(self._matrix.det, what="SymPy det") == 0:
             raise SimplydataError(f"The {n} x {n} grid has determinant 0, so grid times x = right side has no single "
                                   "answer (SymPy det).")
-        found = _run(self._matrix.LUsolve, b, what="SymPy LUsolve")
+        _check_size(self._matrix, "solve_for")
+        found = _checked(_run(self._matrix.LUsolve, b, what="SymPy LUsolve"), "solve_for")
         print("x, exactly: " + _rows_text(found.T)[0] + "   (SymPy LUsolve)")
         return ExactGrid(found)
 
@@ -294,8 +329,9 @@ def _gram_schmidt(matrix, of_length_1: bool):
     if _run(matrix.rank, what="SymPy rank") < len(columns):
         raise SimplydataError("The columns of the grid depend on each other (its rank is less than its number of "
                               "columns), so they cannot all be made orthogonal (SymPy rank).")
+    _check_size(matrix, "make_columns_orthogonal")
     found = _run(sp.GramSchmidt, columns, of_length_1, what="SymPy GramSchmidt")
-    new = sp.Matrix.hstack(*found)
+    new = _checked(sp.Matrix.hstack(*found), "make_columns_orthogonal")
     print(f"The columns made orthogonal{' and of length 1' if of_length_1 else ''} (Gram-Schmidt, SymPy "
           "GramSchmidt):")
     for line in _rows_text(new):
@@ -322,7 +358,8 @@ class GridWords26:
         values = self._square("find_permanent")
         n = values.shape[0]
         matrix = exact_matrix(values, "find_permanent", MAX_EXACT_GRID)
-        found = _run(matrix.per, what="SymPy per")
+        _check_size(matrix, "find_permanent")
+        found = _checked(_run(matrix.per, what="SymPy per"), "find_permanent")
         if exactly:
             print(f"The permanent of the {n} x {n} grid, exactly: {_show(found)}   (SymPy per)")
             return Formula(found)

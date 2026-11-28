@@ -54,7 +54,7 @@ FACTS = {
     "number of composites up to": ("compositepi", None, "number", "how many composite numbers are up to it",
                                    10 ** 12),
     "primorial": ("primorial", None, "number", "the product of the first n primes", 300),
-    "partitions": ("npartitions", None, "number", "the number of ways to write it as a sum of whole numbers",
+    "partitions": ("partition", None, "number", "the number of ways to write it as a sum of whole numbers",
                    100_000),
     "nth mersenne exponent": ("mersenne_prime_exponent", None, "number", "the power p of the nth Mersenne prime "
                               "2**p - 1", 51),
@@ -110,6 +110,7 @@ FACT_SPELLINGS.update({"divisor count": "number of divisors", "is_perfect": "per
                        "primes": "primes up to", "gcd": "greatest common divisor", "lcm": "least common multiple",
                        "mod_inverse": "inverse modulo", "modular inverse": "inverse modulo",
                        "multiplicity": "times divisible by", "npartitions": "partitions",
+                       "partition": "partitions",
                        "binomial_coefficients": "binomial coefficients", "pascal row": "binomial coefficients",
                        "sqrt_mod_iter": "square roots modulo", "continued_fraction_iterator": "continued fraction",
                        "digits": "number of digits", "order": "order modulo", "discrete logarithm": "discrete log"})
@@ -195,8 +196,9 @@ class NumberTheoryWords:
         numbers = sdata.number_list([12, 35]), then numbers.find_prime_factors() gives the table 12: 2 (2 times) and
         3 (once); 35: 5 and 7 (SymPy factorint). show="different primes" lists each prime once, without times
         (SymPy primefactors). A number with a decimal part is taken as the fraction it stands for, and the primes of
-        its bottom get a minus number of times (0.75 = 3/4: 2 -2 times, 3 once; SymPy factorrat). Gives a table:
-        number, prime, times. As SymPy factorint; R gmp::factorize.
+        its bottom get a minus number of times (0.75 = 3/4: 2 -2 times, 3 once; SymPy factorrat). A number below 0
+        has the primes of its size (its minus sign is said, not listed as a prime); 0 is refused, as every prime
+        divides it, and 1 has none. Gives a table: number, prime, times. As SymPy factorint; R gmp::factorize.
         """
         from .._formula import _guarded, _result_rows, need_sympy
         from .._formula_algebra import _value
@@ -204,6 +206,9 @@ class NumberTheoryWords:
         sp = need_sympy("numbers.find_prime_factors()")
         key = _value({k: k for k in FACTORS_SHOW}, FACTORS_SPELLINGS, show, "find_prime_factors", "show")
         values = _whole_numbers(self._values, "find_prime_factors", allow_fraction=True)
+        if 0 in values:
+            raise SimplydataError("0 has no prime factors (every prime divides it); remove it first, such as "
+                                  "numbers.remove_each_number_that(is_equal_to=0).")
         rows, said, used = [], [], set()
         for v in values:
             if isinstance(v, float):
@@ -219,14 +224,15 @@ class NumberTheoryWords:
                 found = {p: None for p in _guarded(sp.primefactors, v, what="SymPy primefactors")}
                 how = "primefactors"
             used.add(how)
-            pairs = sorted(found.items(), key=lambda item: int(item[0]))
+            sign = "-" if v < 0 else ""
+            pairs = sorted(((p, t) for p, t in found.items() if p != -1), key=lambda item: int(item[0]))
             for prime, times in pairs:
                 row = {"number": float(v), "prime": float(prime)}
                 if key == "factors":
                     row["times"] = int(times)
                 rows.append(row)
             written = " * ".join(f"{p}" + (f"**{t}" if t not in (None, 1) else "") for p, t in pairs)
-            said.append(f"{v:g} = {written or '1 (no prime factor)'}" if key == "factors" else
+            said.append(f"{v:g} = {sign}{written or '1 (no prime factor)'}" if key == "factors" else
                         f"{v:g}: {', '.join(str(p) for p, _ in pairs) or 'none'}")
         shown = "; ".join(said[:10]) + (" ..." if len(said) > 10 else "")
         print(f"The prime factors: {shown}   (SymPy {' and '.join(sorted(used))})")
@@ -271,7 +277,10 @@ class NumberTheoryWords:
                                   'numbers.find_number_fact("divisors"). Names: ' + ", ".join(f'"{n}"' for n in FACTS))
         key = _value(FACTS, FACT_SPELLINGS, name, "find_number_fact", "name")
         function_name, needs, gives, about, most = FACTS[key]
-        call = getattr(sp, function_name)
+        if function_name == "partition":  # sympy.functions.combinatorial.numbers (npartitions is deprecated)
+            from sympy.functions.combinatorial.numbers import partition as call
+        else:
+            call = getattr(sp, function_name)
         what = f"SymPy {function_name}"
         needs = needs or ""
         wanted = {"other": "other" in needs or key in ("amicable with", "multinomial coefficients",
@@ -425,14 +434,26 @@ class NumberTheoryWords:
         from .._formula import _guarded, _result_rows, _show
         from .._formula_algebra import _back
 
+        from .._formula import MAX_DIGITS
+        from .._formula_calculus import digits_of
+
+        listed = ", ".join(str(v) for v in values[:12]) + (" ..." if len(values) > 12 else "")
         if key == "greatest common divisor" or key == "least common multiple":
-            found = _guarded(call, *values, what=what)
-            print(f"The {key} of {', '.join(str(v) for v in values[:12])}"
-                  f"{' ...' if len(values) > 12 else ''}: {found}   ({what})")
+            if len(values) < 2:
+                raise SimplydataError(f'find_number_fact("{key}") is a fact of two numbers or more; the list has one.')
+            found = sp.Integer(_guarded(call, *values, what=what))
+            if digits_of(found) > MAX_DIGITS:
+                raise SimplydataError(f"The {key} of {listed} has {digits_of(found):,} digits; answers may have up "
+                                      f"to {MAX_DIGITS} digits ({what}).")
+            print(f"The {key} of {listed}: {_show(found)}   ({what})")
             return _out_number(int(found)) if _out_number(int(found)) is not None else _show(found)
         if key == "number from continued fraction":
             found = _guarded(call, values, what=what)
-            print(f"The number with the continued fraction {values}: {_show(found)}   ({what})")
+            if digits_of(found) > MAX_DIGITS:
+                raise SimplydataError(f"The number with the continued fraction {listed} has {digits_of(found):,} "
+                                      f"digits in its top or bottom; answers may have up to {MAX_DIGITS} digits "
+                                      f"({what}).")
+            print(f"The number with the continued fraction {listed}: {_show(found)}   ({what})")
             return _back(sp, found)
         if key == "periodic continued fraction":
             if len(values) != 3 or values[1] == 0 or values[2] < 0:
