@@ -407,8 +407,51 @@ def _draw_bars(ctx, x, y, colour, show, error, stacked, sideways, transparency=N
 
 
 # ---------------------------------------------------------------- lines
+def check_move(word, by):
+    """move_layer_by= (seaborn so.Shift): a number of x units, or None."""
+    if by is None:
+        return None
+    if isinstance(by, bool) or not isinstance(by, (int, float)) or by != by:
+        raise SimplydataError(f".{word}() needs move_layer_by= as a number, such as move_layer_by=0.2 (a group on a "
+                              "group axis is 1 wide).")
+    return float(by)
+
+
+def _draw_dashes(ctx, x, y, colour, width=0.8, thickness=None, transparency=None):
+    """seaborn so.Dash: a short flat line for each value, across its group's place on the x axis."""
+    import numpy as np
+    from matplotlib.collections import LineCollection
+
+    group, fixed = colour_role(ctx.data, colour)
+    table, n = _frame(ctx, x=x, y=y, colour=group)
+    # seaborn stripplot(jitter=False) puts each value at its group's place (and colour) on the axis; each dot then
+    # becomes a flat dash, as so.Dash does
+    kw = dict(data=table, x=n["x"], y=n["y"], **_hue(table, n), ax=ctx.ax, jitter=False, dodge=False)
+    if n["colour"]:
+        kw["palette"] = palette_for(table, n["colour"], ctx.settings)
+    else:
+        kw["color"] = default_colour(ctx.settings, fixed)
+    before = list(ctx.ax.collections)
+    sns.stripplot(**kw)
+    dashes, colours = [], []
+    for collection in ctx.ax.collections:
+        if collection in before:
+            continue
+        offsets = np.asarray(collection.get_offsets(), dtype=float)
+        faces = collection.get_facecolors()
+        for i, (cx, cy) in enumerate(offsets):
+            dashes.append([(cx - width / 2, cy), (cx + width / 2, cy)])
+            colours.append(faces[i % len(faces)] if len(faces) else default_colour(ctx.settings, fixed))
+        collection.remove()
+    lines = LineCollection(dashes, colors=colours, linewidths=2 if thickness is None else thickness,
+                           alpha=None if transparency is None else opacity(transparency))
+    ctx.ax.add_collection(lines)
+    ctx.ax.autoscale_view()
+    _remember(ctx, "dashes", table, n)
+
+
 def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None, thickness=None,
-                joined_by="straight lines", dotted=False):
+                joined_by="straight lines", dotted=False, in_row_order=False):
     group, fixed = colour_role(ctx.data, colour)
     dash_column = dashed if isinstance(dashed, str) else None  # dashed="city": a dash pattern for each city
     table, n = _frame(ctx, measure=SHOW[show], size_role="y", x=x, y=y, colour=group, dashed=dash_column)
@@ -447,6 +490,8 @@ def _draw_lines(ctx, x, y, colour, show, error, dots, dashed, transparency=None,
         kw["linewidth"] = thickness
     if joined_by == "steps":
         kw["drawstyle"] = "steps-post"  # each value stays until the next point, as R approx(f = 0)
+    if in_row_order:  # seaborn so.Path: every row, joined in the order of the rows
+        kw.update(sort=False, estimator=None, errorbar=None)
     sns.lineplot(**kw)
     _remember(ctx, "lines", table, n, show=show)
 
@@ -1257,7 +1302,8 @@ class ChartWords:
 
     @friendly(renamed={"dots": "with_dots"})
     def draw_lines(self: _Same, x=None, y=None, colour=None, show="average", error=None, with_dots=False, dashed=False,
-                   thickness=None, transparency=None, joined_by="straight lines", dotted=False) -> _Same:
+                   thickness=None, transparency=None, joined_by="straight lines", dotted=False, in_row_order=False,
+                   move_layer_by=None) -> _Same:
         """Lines. chart.draw_lines(x="month", y="temperature", colour="city") (with sdata.get_example("weather"))
 
         colour="city" draws one line per group. with_dots=True marks each point.
@@ -1272,6 +1318,12 @@ class ChartWords:
         (normal), "smooth curve" (natural cubic spline), "curve without overshoot" (PCHIP),
         "steps" (each value stays until the next point), "nearest"; experts: "akima",
         "makima", "not-a-knot", "periodic". Curves need numbers on x and y.
+        in_row_order=True joins the points in the order of the rows, not from the smallest x, and draws every row
+        (no average): a path, such as a ship's track by longitude and latitude (seaborn so.Path, lineplot(
+        sort=False, estimator=None)):
+          chart.draw_lines(x="longitude", y="latitude", in_row_order=True)
+        move_layer_by=0.2 moves the lines 0.2 along x (a group on a group axis is 1 wide), so two layers sit
+        side by side (seaborn so.Shift).
         """
         from ..table.between import join_choice
 
@@ -1301,15 +1353,23 @@ class ChartWords:
         if error and joined_by not in ("straight lines", "steps"):
             raise SimplydataError(f'error= draws a band around straight lines; with joined_by="{joined_by}" leave '
                                   'out error= (or use joined_by="straight lines").')
+        cues.check_switch("draw_lines", "in_row_order", in_row_order)
+        if in_row_order and (error or show != "average" or joined_by != "straight lines"):
+            raise SimplydataError("in_row_order=True draws every row as it is, joined in row order, so it takes no "
+                                  "show=, error= or joined_by=.")
+        move_layer_by = check_move("draw_lines", move_layer_by)
         if error:
             say_error(error, "Shaded band")
+        extra = {"in_row_order": True} if in_row_order else {}
+        if move_layer_by:
+            extra["move_layer_by"] = move_layer_by
         return self._add("lines", "draw", _draw_lines, x=x, y=y, colour=colour, show=show,
                          error=error, dots=with_dots, dashed=dashed, transparency=transparency,
-                         thickness=thickness, joined_by=joined_by, dotted=dotted)
+                         thickness=thickness, joined_by=joined_by, dotted=dotted, **extra)
 
     @friendly
     def draw_dots(self: _Same, x=None, y=None, colour=None, size=None, shape=None, transparency=None,
-                  hollow=False, show=None, error=None) -> _Same:
+                  hollow=False, show=None, error=None, move_layer_by=None) -> _Same:
         """Dots (a scatter chart). chart.draw_dots(x="hours", y="marks") (with sdata.get_example("marks"))
 
         colour="class" colours dots by group. size="height" makes dots bigger for bigger
@@ -1321,8 +1381,13 @@ class ChartWords:
         scale and a colour bar.
         show="average" draws one dot per group of x instead (or "median", "total" ..., as on bars), and
         error="standard error" (or "standard deviation", "confidence interval") adds error bars to it.
+        move_layer_by=0.2 moves the dots (and their error bars) 0.2 along x, so a second layer of dots sits
+        beside the first (seaborn so.Shift(x=0.2)); a group on a group axis is 1 wide:
+          chart.draw_dots(x="class", y="marks", show="average", error="standard error", move_layer_by=0.2)
         """
         transparency = check_transparency("draw_dots", transparency)
+        move = check_move("draw_dots", move_layer_by)
+        extra = {"move_layer_by": move} if move else {}
         cues.check_switch("draw_dots", "hollow", hollow)
         x, y = single_list(x, y)
         if x is None or y is None:
@@ -1344,13 +1409,13 @@ class ChartWords:
             from .more_charts import draw_average_dots
 
             return self._add("dots", "draw", draw_average_dots, x=x, y=y, colour=colour, show=show, error=error,
-                             transparency=transparency)
+                             transparency=transparency, **extra)
         group, _ = colour_role(self._data, colour)
         size_col = size if not isinstance(size, (int, float)) else None
         check(self._data, x=x, y=y, colour=group, size=size_col, shape=shape)
         self._need_axes("draw_dots")
         return self._add("dots", "draw", _draw_dots, x=x, y=y, colour=colour, size=size, shape=shape,
-                         transparency=transparency, hollow=hollow)
+                         transparency=transparency, hollow=hollow, **extra)
 
 
     @staticmethod
@@ -1539,15 +1604,17 @@ class ChartWords:
                          error=None, stacked=False, sideways=sideways, transparency=transparency)
 
     @friendly
-    def draw_all_dots(self: _Same, x=None, y=None, colour=None, transparency=None) -> _Same:
+    def draw_all_dots(self: _Same, x=None, y=None, colour=None, transparency=None, move_layer_by=None) -> _Same:
         """Every value as a dot, spread out so no dot hides another.
         chart.draw_all_dots(x="class", y="marks") (with sdata.get_example("marks"))
 
         Good on top of .draw_boxes() or .draw_violins(), to show each value as well; there the dots are dark
         grey, so they stand out (colour= still chooses your own).
         transparency=0.5 makes them half see-through (0 is solid).
+        move_layer_by=0.3 moves the dots 0.3 along x, beside the boxes instead of on them (seaborn so.Shift).
         """
         transparency = check_transparency("draw_all_dots", transparency)
+        move = check_move("draw_all_dots", move_layer_by)
         if x is None and y is None:
             raise SimplydataError(
                 '.draw_all_dots() needs y= (and usually x=), for example chart.draw_all_dots(x="class", y="marks").'
@@ -1555,7 +1622,36 @@ class ChartWords:
         group, _ = colour_role(self._data, colour)
         check(self._data, x=x, y=y, colour=group)
         self._need_axes("draw_all_dots")
-        return self._add("all_dots", "draw", _draw_all_dots, x=x, y=y, colour=colour, transparency=transparency)
+        return self._add("all_dots", "draw", _draw_all_dots, x=x, y=y, colour=colour, transparency=transparency,
+                         **({"move_layer_by": move} if move else {}))
+
+    @friendly
+    def draw_dashes(self: _Same, x=None, y=None, colour=None, width=0.8, thickness=None, transparency=None,
+                    move_layer_by=None) -> _Same:
+        """A short flat line for each value. chart.draw_dashes(x="class", y="marks") (with sdata.get_example("marks"))
+
+        Each value is a dash across its group's place on the x axis, so values that are the same lie on top of
+        each other and the spread of each group shows at a glance (seaborn so.Dash; a strip of dots without the
+        sideways spread). width=0.8 is how wide each dash is (a group on a group axis is 1 wide);
+        colour="subject" colours the dashes by group; thickness=3 draws thicker dashes (normal is 2, in
+        points); transparency=0.5 makes them half see-through, so a pile of the same values looks darker.
+        move_layer_by=0.2 moves them along x (seaborn so.Shift), beside another layer.
+        """
+        transparency = check_transparency("draw_dashes", transparency)
+        thickness = check_thickness("draw_dashes", thickness)
+        if isinstance(width, bool) or not isinstance(width, (int, float)) or not 0 < width <= 1:
+            raise SimplydataError(".draw_dashes() needs width= as a number above 0 and at most 1, such as width=0.8.")
+        x, y = single_list(x, y)
+        if x is None or y is None:
+            raise SimplydataError('.draw_dashes() needs x= and y=, for example chart.draw_dashes(x="class", '
+                                  'y="marks").')
+        group, _ = colour_role(self._data, colour)
+        check(self._data, x=x, y=y, colour=group)
+        _check_numbers(self._data, "draw_dashes", y=y)
+        self._need_axes("draw_dashes")
+        move = check_move("draw_dashes", move_layer_by)
+        return self._add("dashes", "draw", _draw_dashes, x=x, y=y, colour=colour, width=float(width),
+                         thickness=thickness, transparency=transparency, **({"move_layer_by": move} if move else {}))
 
     @friendly
     def draw_density(self: _Same, x=None, colour=None, transparency=None, thickness=None, y=None) -> _Same:

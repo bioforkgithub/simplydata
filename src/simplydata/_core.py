@@ -103,6 +103,30 @@ def _drawn_artists(ctx) -> set:
     return found
 
 
+def _move_new_artists(ctx, before, by):
+    """move_layer_by=0.2: what a step drew moves 0.2 along x (a group on a group axis is 1 wide), as seaborn
+    so.Shift(x=0.2): the dots, lines and error bars of the layer, so it sits beside another layer."""
+    import numpy as np
+    from matplotlib.collections import LineCollection, PathCollection
+    from matplotlib.lines import Line2D
+
+    ax = ctx.ax
+    for artist in ax.get_children():
+        if id(artist) in before:
+            continue
+        if isinstance(artist, PathCollection):
+            offsets = np.asarray(artist.get_offsets(), dtype=float)
+            if offsets.size:
+                artist.set_offsets(offsets + np.array([by, 0.0]))
+        elif isinstance(artist, Line2D):
+            xs = np.asarray(artist.get_xdata(), dtype=float)
+            artist.set_xdata(xs + by)
+        elif isinstance(artist, LineCollection):
+            artist.set_segments([np.asarray(seg, dtype=float) + np.array([by, 0.0]) for seg in artist.get_segments()])
+    ax.relim()
+    ax.autoscale_view()
+
+
 def _tag_new_artists(ctx, before, step):
     """Each artist a step drew remembers the step (simplydata_step): a web page then knows whether a mark is one
     row of the table or a summary of several (show_when_pointing, simplydata._web.raw_step)."""
@@ -259,7 +283,11 @@ class BaseChart:
         for step in sorted(steps, key=lambda s: (s.phase, s.order)):
             before = _drawn_artists(ctx)
             try:
-                step.func(ctx, **step.kwargs)
+                kwargs = dict(step.kwargs)
+                move = kwargs.pop("move_layer_by", None)  # families for 100 %, batches 1-2: seaborn so.Shift
+                step.func(ctx, **kwargs)
+                if move:
+                    _move_new_artists(ctx, before, move)
                 _tag_new_artists(ctx, before, step)
             except SimplydataError as exc:
                 if exc.args and isinstance(exc.args[0], str):  # the words as they are written now

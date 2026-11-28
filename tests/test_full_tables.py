@@ -106,3 +106,216 @@ def test_turn_into_title_case_matches_pandas_title_and_polars_to_titlecase(fast,
         in capsys.readouterr().out
     table.undo()
     assert table.get_column("name")[0] == "o'neil mcDONALD"
+
+
+# ---------------------------------------------------------------- new options and values of existing words
+@pytest.mark.parametrize("fast", ENGINES)
+def test_find_summary_of_product_entropy_joined_text_and_a_dict(fast):
+    from scipy import stats
+
+    df = _frame("weather")
+    table = sdata.table(df, fast=fast)
+    found = table.find_summary_of("rain", show=["product", "entropy"], for_each_group_in="city")
+    want = df.astype({"rain": float}).groupby("city")["rain"]  # decimals: an int64 product overflows
+    assert found.get_column("product").as_numpy() == pytest.approx(want.prod().to_numpy(), rel=1e-12)
+    assert found.get_column("entropy").as_numpy() == pytest.approx(
+        pl.from_pandas(df).group_by("city").agg(pl.col("rain").entropy()).sort("city")["rain"].to_numpy(), rel=1e-12)
+    assert found.get_column("entropy").as_numpy() == pytest.approx(want.apply(stats.entropy).to_numpy(), rel=1e-12)
+    joined = table.find_summary_of("city", show=["joined text"], separator="|", for_each_group_in="month_number")
+    assert joined.get_column("joined text")[0] == "|".join(df[df["month_number"] == 1]["city"])
+    wide = table.find_summary_of(show={"rain": ["total"], "temperature": ["average", "count"]},
+                                 for_each_group_in="city")
+    named = df.groupby("city").agg(**{"rain total": ("rain", "sum"), "temperature average": ("temperature", "mean"),
+                                      "temperature count": ("temperature", "count")}).reset_index()
+    assert wide.get_column_names() == list(named.columns)
+    for name in named.columns[1:]:
+        assert wide.get_column(name).as_numpy() == pytest.approx(named[name].to_numpy(dtype=float), rel=1e-12)
+    with pytest.raises(sdata.SimplydataError, match="separator= goes with"):
+        table.find_summary_of("rain", show=["total"], separator=";")
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_rows_ahead_is_shift_minus_one(fast):
+    df = _frame("weather")
+    table = sdata.table(df, fast=fast).add_previous_value_column("next", from_column="temperature", rows_ahead=1,
+                                                                 for_each_group_in="city", sorted_by="month_number")
+    ordered = df.sort_values("month_number", kind="stable")
+    want = ordered.groupby("city")["temperature"].shift(-1).reindex(df.index)
+    np.testing.assert_allclose(table.get_column("next").as_numpy(), want.to_numpy(dtype=float))
+    with pytest.raises(sdata.SimplydataError, match="not both"):
+        sdata.table(df).add_previous_value_column("x", from_column="rain", rows_back=2, rows_ahead=1)
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_significant_figures_round_halves_to_even_as_r_signif(fast):
+    table = sdata.table({"x": [123.456, 0.0012345, None, 3.15, 5.25, -98765.0]}, fast=fast)
+    table.round_numbers_in("x", significant_figures=2)
+    # R: signif(c(123.456, 0.0012345, NA, 3.15, 5.25, -98765), 2)
+    np.testing.assert_allclose(table.get_column("x").as_numpy(), [120, 0.0012, np.nan, 3.2, 5.2, -99000])
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_time_of_day_between_is_between_time(fast):
+    df = _frame("fjord_samples")
+    df["sampled_local"] = pd.to_datetime(df["sampled_local"])
+    table = sdata.table(df, fast=fast).keep_rows_where("sampled_local", time_of_day_between=["09:00", "12:00"])
+    assert table.count_rows() == len(df.set_index("sampled_local").between_time("09:00", "12:00"))
+    night = sdata.table(df, fast=fast).keep_rows_where("sampled_local", time_of_day_between=["12:00", "09:00"])
+    assert night.count_rows() == len(df.set_index("sampled_local").between_time("12:00", "09:00"))
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_contains_in_written_conditions_is_str_contains(fast):
+    df = pd.DataFrame({"gene": ["blaTEM", "sul1", None, "blaCTX-M"], "n": [1, 2, 3, 4]})
+    table = sdata.table(df, fast=fast)
+    table.add_group_column("group", rules={"gene contains 'bla'": "beta-lactamase"}, otherwise="other")
+    hits = df["gene"].str.contains("bla", regex=False).fillna(False).astype(bool)
+    assert table.get_column("group") == ["beta-lactamase" if h else "other" for h in hits]
+    assert table.keep_rows_where("gene contains 'bla' and n > 1").count_rows() == 1
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_show_problems_names_the_cells_and_changes_nothing(fast, capsys):
+    table = sdata.table({"dose": ["1.5", "<0.5", "n.d.", None, "2,5"]}, fast=fast)
+    table.turn_into_numbers("dose", show_problems=True)
+    out = capsys.readouterr().out
+    assert 'row 2 "<0.5", row 3 "n.d."' in out and "The table is unchanged" in out
+    assert table.get_column("dose")[1] == "<0.5"
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_new_date_parts_match_pandas_and_polars(fast):
+    df = _frame("shop")
+    df["date"] = pd.to_datetime(df["date"])
+    table = sdata.table(df, fast=fast)
+    d = df["date"].dt
+    for part, want in [("is month start", d.is_month_start), ("is quarter start", d.is_quarter_start),
+                       ("is quarter end", d.is_quarter_end), ("is year start", d.is_year_start),
+                       ("is year end", d.is_year_end),
+                       ("is working day", pd.Series(np.is_busday(df["date"].values.astype("datetime64[D]")))),
+                       ("unix time", (df["date"] - pd.Timestamp("1970-01-01")) // pd.Timedelta(seconds=1))]:
+        table.add_column_with_part_of_date("x", from_column="date", part=part)
+        got = table.get_column("x")
+        got = got.as_numpy().tolist() if part == "unix time" else got
+        assert list(got) == list(want), part
+    table.add_column_with_part_of_date("x", from_column="date", part="month end")
+    want = pl.from_pandas(df)["date"].dt.month_end().to_list()
+    assert [pd.Timestamp(v) for v in table.get_column("x")] == [pd.Timestamp(v) for v in want]
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_formula_names_and_working_days(fast):
+    df = _frame("shop")
+    df["date"] = pd.to_datetime(df["date"])
+    table = sdata.table(df, fast=fast)
+    for name in ("log10", "log1p", "sign", "cbrt", "floor", "ceil"):
+        table.add_column("x", f"{name}(sales / 7)")
+        want = getattr(np, name)(df["sales"] / 7)
+        np.testing.assert_allclose(table.get_column("x").as_numpy(), want.to_numpy(dtype=float), err_msg=name)
+    table.add_column("due", "add_working_days(date, 10)")
+    days = df["date"].values.astype("datetime64[D]")
+    due = np.busday_offset(days, 10, roll="forward")
+    assert [pd.Timestamp(v) for v in table.get_column("due")] == [pd.Timestamp(v) for v in due]
+    table.add_column("n", "count_working_days(date, due)")
+    assert table.get_column("n").as_numpy().tolist() == np.busday_count(days, due).tolist()
+
+
+def test_make_run_of_dates_every_working_day_is_bdate_range():
+    table = sdata.make_run_of_dates("2026-11-28", to="2026-12-31", every="working day")
+    assert [pd.Timestamp(v) for v in table.get_column("date")] == list(pd.bdate_range("2026-11-28", "2026-12-31"))
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_from_unix_seconds_is_from_epoch(fast):
+    seconds = [1764288000, 1764291600.5, None, 0]
+    table = sdata.table({"t": seconds}, fast=fast).turn_into_dates("t", from_unix_seconds=True)
+    want = pd.to_datetime(pd.Series(seconds, dtype=float), unit="s")
+    assert [None if v is None else pd.Timestamp(v) for v in table.get_column("t")] == \
+        [None if pd.isna(v) else v for v in want]
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_every_match_and_position_of(fast):
+    df = pd.DataFrame({"note": ["blaTEM1 and blaCTX", "sul1", None, "blaOXA48"], "name": ["Dana", "Ben", "Ann", None]})
+    table = sdata.table(df, fast=fast)
+    table.add_column_with_part_of_text("genes", from_column="note", matches_pattern=r"bla[A-Z]+\d*", every_match=True)
+    want = [";".join(v) if isinstance(v, list) and v else None for v in df["note"].str.findall(r"bla[A-Z]+\d*")]
+    assert table.get_column("genes") == want
+    table.add_column_with_part_of_text("at", from_column="name", position_of="an")
+    found = df["name"].str.find("an")
+    np.testing.assert_allclose(table.get_column("at").as_numpy(),
+                               (found + 1).where((found >= 0) & df["name"].notna()).to_numpy(dtype=float))
+
+
+@pytest.mark.parametrize("fast", ENGINES)
+def test_rolling_with_column_and_join_where(fast):
+    df = _frame("weather")
+    table = sdata.table(df, fast=fast)
+    table.add_rolling_column("a", from_column="temperature", with_column="rain", show="correlation", window=4)
+    table.add_rolling_column("b", from_column=["temperature", "rain"], show="correlation", window=4)
+    np.testing.assert_allclose(table.get_column("a").as_numpy(), table.get_column("b").as_numpy())
+    np.testing.assert_allclose(table.get_column("a").as_numpy(),
+                               df["temperature"].rolling(4).corr(df["rain"]).to_numpy())
+    readings = sdata.table({"time": [1, 5, 9, 12]}, fast=fast)
+    periods = pd.DataFrame({"start": [0, 8], "end": [6, 10], "period": ["a", "b"]})
+    readings.join_with(periods, where="time >= start and time < end")
+    want = pl.DataFrame({"time": [1, 5, 9, 12]}).join_where(pl.from_pandas(periods), pl.col("time") >= pl.col("start"),
+                                                            pl.col("time") < pl.col("end")).sort("time")
+    assert readings.get_column("period") == want["period"].to_list()
+
+
+def test_paper_files_clipboard_html_fixed_widths_and_nested_json(tmp_path, monkeypatch):
+    import json
+
+    monkeypatch.chdir(tmp_path)
+    table = sdata.table({"site": ["N1", "S2"], "depth": [30.5, None], "n": [1, 2]})
+    table.save("t.md")
+    assert (tmp_path / "t.md").read_text().splitlines()[2] == "| N1   | 30.5  | 1 |"
+    table.save("t.tex")
+    tex = (tmp_path / "t.tex").read_text()
+    assert "N1 & 30.5 & 1" in tex and "begin{tabular}{lrr}" in tex
+    table.save("t.docx")
+    assert sdata.table("t.docx").get_column("site") == ["N1", "S2"]
+    table.save("t.html")
+    assert sdata.table("t.html").get_column("site") == list(pd.read_html(str(tmp_path / "t.html"))[0]["site"])
+    (tmp_path / "w.txt").write_text("site  depth n\nN1    30.5  1\nS2    12.0  2\n")
+    assert sdata.table("w.txt", fixed_widths=[6, 6, 1]).get_column("depth").as_numpy().tolist() == [30.5, 12.0]
+    rows = [{"id": 1, "site": {"name": "N1", "depth": 30}}, {"id": 2, "site": {"name": "S2", "depth": 12}}]
+    (tmp_path / "n.json").write_text(json.dumps(rows))
+    assert sdata.table("n.json").get_column_names() == list(pd.json_normalize(rows).columns)
+    copied = {}
+    monkeypatch.setattr(pd.DataFrame, "to_clipboard", lambda self, **kw: copied.setdefault("df", self))
+    monkeypatch.setattr(pd, "read_clipboard", lambda **kw: copied["df"])
+    table.save("clipboard")
+    assert sdata.table("clipboard").get_column("site") == ["N1", "S2"]
+
+
+# ---------------------------------------------------------------- seaborn.objects: Path, Shift, Dash
+def test_in_row_order_move_layer_by_and_draw_dashes_match_seaborn():
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    df = pd.DataFrame({"lon": [5, 6, 5.5, 4], "lat": [60, 61, 62, 60.5]})
+    chart = sdata.chart(sdata.table(df))
+    chart.draw_lines(x="lon", y="lat", in_row_order=True)
+    fig, ax = plt.subplots()
+    sns.lineplot(df, x="lon", y="lat", sort=False, estimator=None, ax=ax)
+    assert chart.as_matplotlib().axes[0].lines[0].get_xydata().tolist() == ax.lines[0].get_xydata().tolist()
+    plt.close(fig)
+    marks = sdata.get_example("marks")
+    chart = sdata.chart(marks)
+    chart.draw_dots(x="hours", y="marks", move_layer_by=0.5)
+    offsets = chart.as_matplotlib().axes[0].collections[0].get_offsets()
+    np.testing.assert_allclose(offsets[:, 0], marks.as_pandas()["hours"].to_numpy() + 0.5)
+    chart = sdata.chart(marks)
+    chart.draw_dashes(x="class", y="marks")
+    segments = chart.as_matplotlib().axes[0].collections[0].get_segments()
+    fig, ax = plt.subplots()
+    sns.stripplot(marks.as_pandas(), x="class", y="marks", jitter=False, ax=ax)
+    places = np.concatenate([c.get_offsets() for c in ax.collections])
+    plt.close(fig)
+    middles = np.array([[(s[0][0] + s[1][0]) / 2, s[0][1]] for s in segments])
+    np.testing.assert_allclose(middles, places)
+    assert all(abs(s[1][0] - s[0][0] - 0.8) < 1e-12 for s in segments)
+    with pytest.raises(sdata.SimplydataError, match="in_row_order=True"):
+        sdata.chart(marks).draw_lines(x="hours", y="marks", in_row_order=True, error="standard error")

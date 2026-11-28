@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 
 MOVE_TO = ("start", "end")
 # join_with(match=): pandas merge_asof(direction=) and Polars join_asof(strategy=)
+WHERE_PAIRS_LIMIT = 20_000_000  # join_with(where=) looks at every pair of rows: at most this many
 MATCH_CHOICES = {"nearest before": "backward", "nearest after": "forward", "nearest": "nearest"}
 # join_with(within="2 days"): the units of a time limit, as Python's datetime.timedelta takes them
 _WITHIN_UNITS = ("second", "minute", "hour", "day", "week")
@@ -453,6 +454,29 @@ class MoreTableWordsThree:
         frame = self._frame.join(right, how="cross", suffix=JOIN_SUFFIX)
         print(f"Every row with every row: {len(self._frame)} x {len(right)} = {_rows(len(frame))}.")
         return self._change("join with another table (keep every combination)", frame)
+
+    def _join_where(self, other, where):
+        """join_with(where="time >= start and time < end"): every pair of rows that meets the condition (Polars
+        join_where); both engines make the pairs (pandas merge(how="cross"), Polars join(how="cross")) and keep
+        the ones that meet it, so the rows are in this table's order, each followed by its partners."""
+        if not isinstance(where, str) or not where.strip():
+            raise SimplydataError('where= is a written condition in quotes, such as where="time >= start and time '
+                                  '< end".')
+        right = self._other_frame(other, "join_with")
+        pairs = len(self._frame) * len(right)
+        if pairs > WHERE_PAIRS_LIMIT:
+            raise SimplydataError(f"where= looks at every pair of rows, and these tables make {pairs:,} pairs (more "
+                                  f"than {WHERE_PAIRS_LIMIT:,}). Keep fewer rows first, or join on a column with "
+                                  "using= and then keep_rows_where.")
+        frame = self._frame.join(right, how="cross", suffix=JOIN_SUFFIX)  # every pair, the other's names _other
+        joined = self._new_table(frame)
+        cond, note = joined._read_condition("join_with", where)
+        kept = frame.filter(cond)
+        print(f"Paired each row with the rows of the other table where {where}: {_rows(len(kept))} "
+              f"(of {pairs:,} pairs).")
+        if note:
+            print(note)
+        return self._change(f"join with another table where {where}", kept)
 
     def _join_nearest(self, other, using, keep, match, within, check_that, with_match_column):
         """join_with(match="nearest before", within="2 days"): Polars join_asof, for pandas and Polars tables alike.

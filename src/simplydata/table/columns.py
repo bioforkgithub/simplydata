@@ -58,6 +58,11 @@ FORMULA_HELP = (
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
     "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
+    "  log10(x)  log1p(x)         log to base 10, and log(1 + x) for x near 0 (as NumPy)\n"
+    "  floor(x)  ceil(x)          round down, round up to a whole number\n"
+    "  sign(x)  cbrt(x)           -1, 0 or 1 for the sign, and the cube root\n"
+    "  add_working_days(d, 10)    the date 10 working days (Monday to Friday) after a date column\n"
+    "  count_working_days(a, b)   working days from date a up to (not counting) date b\n"
     "  length(x)                  how many characters the text in a column has\n"
     "  count_text(x, \";\")         how many times a piece of text is in the text of a column\n"
     "  average(x)  median(x)      summary words: one value for the whole column,\n"
@@ -69,9 +74,17 @@ FORMULA_HELP = (
 
 FUNCTIONS = {"round": (1, 2), "abs": (1, 1), "sqrt": (1, 1), "log": (1, 2), "exp": (1, 1),
              "sin": (1, 1), "cos": (1, 1), "tan": (1, 1), "erf": (1, 1), "erfc": (1, 1), "gamma": (1, 1),
-             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2), "sinc": (1, 1)}
+             "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2), "besselJ": (2, 2), "sinc": (1, 1),
+             # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): NumPy log10, log1p, sign, cbrt,
+             # floor and ceil (Polars log10, log1p, sign, cbrt, floor, ceil)
+             "log10": (1, 1), "log1p": (1, 1), "sign": (1, 1), "cbrt": (1, 1), "floor": (1, 1), "ceil": (1, 1)}
 # functions worked out with SciPy / NumPy on the numbers themselves (narwhals has no word for them)
-SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ", "sinc")
+SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta", "besselJ", "sinc",
+                     "log10", "log1p", "sign", "cbrt", "floor", "ceil")
+# working days in formulas (families for 100 %, batches 1-2): add_working_days(sent, 10) is Polars
+# dt.add_business_days(10, roll="forward") (NumPy busday_offset(roll="forward")); count_working_days(start, end) is
+# Polars business_day_count (NumPy busday_count): Monday to Friday, the end date not counted
+DATE_FUNCTIONS = {"add_working_days": 2, "count_working_days": 2}
 FUNCTION_SPELLINGS = {"besselj": "besselJ"}  # both spellings work
 CONSTANTS = {"pi": math.pi}
 # text functions (tables phase, batch 3): how many things inside the brackets. length(name) is pandas str.len() and
@@ -85,7 +98,9 @@ SUMMARY_WORDS = {"average": "mean", "median": "median", "total": "sum",
 OTHER_TOOL_NAMES = {"mean": "average", "avg": "average", "sum": "total", "min": "smallest",
                     "max": "biggest", "n": "count", "len": "length", "nchar": "length", "str_length": "length",
                     "len_chars": "length", "str_len": "length", "str_count": "count_text",
-                    "count_matches": "count_text",
+                    "count_matches": "count_text", "busday_offset": "add_working_days",
+                    "add_business_days": "add_working_days", "busday_count": "count_working_days",
+                    "business_day_count": "count_working_days",
                     "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "besselJ",
                     "power": "**", "pow": "**"}
 MAX_FORMULA_LENGTH = 500
@@ -178,6 +193,8 @@ def special_function(name: str, *values):
             return special.jv(values[1], values[0])
         if name == "sinc":
             return np.sinc(values[0])
+        if name in ("log10", "log1p", "sign", "cbrt", "floor", "ceil"):
+            return getattr(np, name)(values[0])  # NumPy log10, log1p, sign, cbrt, floor, ceil
         found = {"erf": special.erf, "erfc": special.erfc, "gamma": special.gamma,
                  "lgamma": special.gammaln, "digamma": special.digamma}[name]
         return found(values[0])
@@ -345,6 +362,8 @@ class _FormulaReader:
             return self._summary(node)
         if isinstance(node.func, ast.Name) and node.func.id in TEXT_FUNCTIONS:
             return self._text_function(node)
+        if isinstance(node.func, ast.Name) and node.func.id in DATE_FUNCTIONS:
+            return self._working_days(node)
         if isinstance(node.func, ast.Name) and node.func.id in FUNCTION_SPELLINGS:
             node.func.id = FUNCTION_SPELLINGS[node.func.id]
         if not isinstance(node.func, ast.Name) or node.func.id not in FUNCTIONS:
@@ -424,6 +443,40 @@ class _FormulaReader:
         self.steps.append(("count_text", key, inner, piece.value))
         return nw.col(key)
 
+    def _working_days(self, node):
+        """add_working_days(sent, 10) and count_working_days(start, end): dates and working days (Monday to
+        Friday), worked out by Polars on both engines (families for 100 %, batches 1-2)."""
+        name = node.func.id
+        example = "add_working_days(sent, 10)" if name == "add_working_days" else "count_working_days(start, end)"
+        if node.keywords or any(isinstance(a, ast.Starred) for a in node.args) or len(node.args) != 2:
+            what = "a date column and a number of days" if name == "add_working_days" else "two date columns"
+            raise self._error(f"{name}() takes {what}, for example {example}.")
+        first = self._column_name(node.args[0])
+        if first is None:
+            raise self._error(f"The first thing in {name}() is a column of dates, for example {example}.")
+        inside = [first]
+        second = node.args[1]
+        if name == "count_working_days":
+            other = self._column_name(second)
+            if other is None:
+                raise self._error(f"count_working_days() takes two date columns, for example {example}.")
+            inside.append(other)
+        elif isinstance(second, ast.Constant) and isinstance(second.value, int) and not isinstance(second.value,
+                                                                                                     bool):
+            inside.append(second.value)
+        elif self._column_name(second) is not None:
+            inside.append(self._column_name(second))
+        else:
+            raise self._error(f"The second thing in add_working_days() is a whole number of days or a column of "
+                              f"them, for example {example}.")
+        for item in inside:
+            if isinstance(item, str):
+                self._column(item, needs_number=False)
+        key = f"_simplydata_special_{len(self.steps)}_"
+        self.specials.append((key, [], name))
+        self.steps.append(("working_days", key, inside, name))
+        return nw.col(key)
+
     def _summary(self, node):
         """average(marks), total(marks) ...: one value for the whole column (or each group)."""
         name = node.func.id
@@ -459,6 +512,10 @@ def _apply_summaries(frame, reader, keys):
 
     temporary = []
     for kind, key, inner, word in reader.steps:
+        if kind == "working_days":  # add_working_days(sent, 10), count_working_days(start, end)
+            frame = _working_days(frame, key, inner, word)
+            temporary.append(key)
+            continue
         if kind == "count_text":  # count_text(notes, ";"): word is the piece of text
             frame = _count_text(frame.with_columns(inner.cast(nw.String).alias(key + "in_")), key + "in_", key, word)
             temporary += [key + "in_", key]
@@ -478,6 +535,33 @@ def _apply_summaries(frame, reader, keys):
         frame = frame.with_columns(nw.col(key).fill_nan(None))
         temporary += names + [key]
     return frame, temporary
+
+
+def _working_days(frame, key, inside, word):
+    """add_working_days(sent, 10): Polars dt.add_business_days(10, roll="forward") (NumPy busday_offset with
+    roll="forward": a date on a weekend first moves to the Monday); count_working_days(start, end): Polars
+    business_day_count (NumPy busday_count). Polars works it out on a pandas table too, so both engines give one
+    answer. An empty date gives an empty cell."""
+    import polars as pl
+
+    native = frame.to_native()
+    polars = frame.implementation.is_polars()
+    columns = [c for c in inside if isinstance(c, str)]
+    data = native.select(columns) if polars else pl.from_pandas(native[columns])
+    for c in columns:
+        if word == "count_working_days" or c == inside[0]:
+            if data.schema[c] not in (pl.Date,) and not isinstance(data.schema[c], pl.Datetime):
+                raise SimplydataError(f'{word}() needs dates in "{c}". If it holds dates written as text, first '
+                                      f'write table.turn_into_dates("{c}").')
+    if word == "add_working_days":
+        days = pl.col(inside[1]) if isinstance(inside[1], str) else inside[1]
+        expr = pl.col(inside[0]).dt.add_business_days(days, roll="forward")
+    else:
+        expr = pl.business_day_count(pl.col(inside[0]).cast(pl.Date), pl.col(inside[1]).cast(pl.Date)).cast(pl.Int64)
+    values = data.select(expr.alias(key))[key]
+    if not polars:
+        values = _zone_clock._back_to_pandas(values, native.index)
+    return frame.with_columns(nw.from_native(values, series_only=True).alias(key))
 
 
 def _count_text(frame, source, key, piece):
@@ -501,7 +585,18 @@ def _polars_part(d, part):
     return {"week": lambda: d.dt.week(), "time": lambda: d.dt.time(),
             "days in month": lambda: d.dt.days_in_month().cast(pl.Int64),
             "is month end": lambda: d.dt.month_end().dt.day() == d.dt.day(),
-            "is leap year": lambda: d.dt.is_leap_year()}[part]()
+            "is leap year": lambda: d.dt.is_leap_year(),
+            # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): pandas dt.is_month_start,
+            # is_quarter_start, is_quarter_end, is_year_start, is_year_end, Polars dt.month_end(),
+            # dt.is_business_day() (NumPy is_busday: Monday to Friday) and dt.epoch("s") (seconds since 1970)
+            "is month start": lambda: d.dt.day() == 1,
+            "is quarter start": lambda: (d.dt.day() == 1) & d.dt.month().is_in([1, 4, 7, 10]),
+            "is quarter end": lambda: (d.dt.month_end().dt.day() == d.dt.day()) & d.dt.month().is_in([3, 6, 9, 12]),
+            "is year start": lambda: (d.dt.month() == 1) & (d.dt.day() == 1),
+            "is year end": lambda: (d.dt.month() == 12) & (d.dt.day() == 31),
+            "month end": lambda: d.dt.month_end(),
+            "is working day": lambda: d.dt.is_business_day(),
+            "unix time": lambda: d.dt.epoch("s")}[part]()
 
 
 def _dtype_kind(dtype) -> str:
@@ -648,7 +743,16 @@ DATE_PARTS = ("year", "quarter", "month", "month name", "week", "day", "weekday"
               "day of year", "hour", "minute",
               # tables phase, batch 2 (approved by Manish 2026-11-25)
               "date", "time", "second", "is weekend", "days in month", "is month end", "is leap year",
-              "year and month")
+              "year and month",
+              # families for 100 %, batches 1-2 (approved by Manish 2026-11-28)
+              "is month start", "is quarter start", "is quarter end", "is year start", "is year end", "month end",
+              "is working day", "unix time")
+# the parts worked out by Polars on both engines (one rule on pandas and Polars tables)
+_POLARS_PARTS = ("is month start", "is quarter start", "is quarter end", "is year start", "is year end", "month end",
+                 "is working day", "unix time")
+_NOT_WHOLE_NUMBER_PARTS = ("month name", "weekday name", "date", "time", "is weekend", "is month end", "is leap year",
+                           "year and month", "is month start", "is quarter start", "is quarter end", "is year start",
+                           "is year end", "month end", "is working day")
 # the parts that need a time of day in the column
 _TIME_PARTS = ("hour", "minute", "time", "second")
 
@@ -1514,7 +1618,10 @@ class ColumnWords:
         More parts: "date" (the day, without the time), "time" (the time of day), "second",
         "is weekend" (True on Saturday and Sunday), "days in month" (28 to 31), "is month end" (True
         on the last day of a month), "is leap year", and "year and month" (text such as "2026-03", to
-        group by month across years). As pandas dt.normalize(), dt.time, dt.second, dt.dayofweek >= 5,
+        group by month across years). And "is month start", "is quarter start", "is quarter end", "is year
+        start", "is year end" (True or False, as pandas dt.is_month_start ...), "month end" (the date of the last
+        day of the month, Polars dt.month_end()), "is working day" (Monday to Friday, as NumPy is_busday and
+        Polars dt.is_business_day()) and "unix time" (seconds since 1 January 1970 UTC, Polars dt.epoch("s")). As pandas dt.normalize(), dt.time, dt.second, dt.dayofweek >= 5,
         dt.days_in_month, dt.is_month_end, dt.is_leap_year and dt.strftime("%Y-%m"), and Polars
         dt.truncate("1d"), dt.time(), dt.second(), dt.weekday() >= 6, dt.days_in_month(),
         dt.month_end(), dt.is_leap_year() and dt.to_string("%Y-%m"):
@@ -1547,7 +1654,7 @@ class ColumnWords:
         zoned = _zone_clock.on_pandas_with_zone(self._frame, [from_column])
         if part == "week" and not zoned:
             return self._finish(name, self._iso_week(name, from_column), f'add date part column "{name}" = week of {from_column}')
-        if part in ("time", "days in month", "is month end", "is leap year") and not zoned:
+        if part in ("time", "days in month", "is month end", "is leap year", *_POLARS_PARTS) and not zoned:
             return self._finish(name, self._native_date_part(name, from_column, part),
                                 f'add date part column "{name}" = {part} of {from_column}')
         expr = {
@@ -1570,9 +1677,7 @@ class ColumnWords:
         }.get(part, lambda: None)()
         if zoned:  # the clock of a time zone: Polars' rules on both engines (simplydata._zone_clock)
             frame = self._frame.with_columns(self._zoned_date_part(name, from_column, part, expr))
-            if frame[name].null_count() == 0 and part not in (
-                    "month name", "weekday name", "date", "time", "is weekend", "is month end", "is leap year",
-                    "year and month"):
+            if frame[name].null_count() == 0 and part not in _NOT_WHOLE_NUMBER_PARTS:
                 frame = frame.with_columns(nw.col(name).cast(nw.Int64))
             return self._finish(name, frame, f'add date part column "{name}" = {part} of {from_column}')
         if part not in ("month name", "weekday name", "date", "is weekend", "year and month") and \
@@ -1605,6 +1710,11 @@ class ColumnWords:
 
             frame = pl.DataFrame({"d": native})
             values = frame.select(_polars_part(pl.col("d"), part).alias(name))[name]
+        elif part in _POLARS_PARTS:  # Polars on a pandas column too: one rule on both engines
+            import polars as pl
+
+            values = pl.DataFrame({"d": pl.from_pandas(native)}).select(_polars_part(pl.col("d"), part).alias(name))
+            values = _zone_clock._back_to_pandas(values[name], native.index)
         else:
             empty = native.isna()
             values = {"time": lambda: native.dt.time, "days in month": lambda: native.dt.days_in_month,
@@ -1804,7 +1914,8 @@ class ColumnWords:
 
     @friendly(renamed={"pattern": "matches_pattern"})
     def add_column_with_part_of_text(self: _Same, name=None, from_column=None, first_characters=None, last_characters=None,
-                                     characters=None, before=None, after=None, matches_pattern=None) -> _Same:
+                                     characters=None, before=None, after=None, matches_pattern=None,
+                                     every_match=False, separator=None, position_of=None) -> _Same:
         """Add a column with one part of each text, such as its first letters or the text before a mark.
 
         Choose one way:
@@ -1817,6 +1928,14 @@ class ColumnWords:
                                brackets ( ) in it, only the part inside the first brackets
         Cells where the mark or pattern is not found give empty cells.
           table.add_column_with_part_of_text("initial", from_column="name", first_characters=1)   (with sdata.get_example("marks"))
+        every_match=True with matches_pattern= keeps every piece that fits, not only the first, joined with ";"
+        (separator= for another mark), as pandas str.findall and Polars str.extract_all; split_into_rows then
+        gives one row for each piece:
+          table.add_column_with_part_of_text("genes", from_column="note", matches_pattern=r"bla[A-Z]+\\d*",
+                                             every_match=True)
+        position_of="an" gives where a piece of text starts, counting from 1, and an empty cell where it is not
+        found (pandas str.find, plus 1; capital letters matter):
+          table.add_column_with_part_of_text("where_an", from_column="name", position_of="an")
         """
         step = "add_column_with_part_of_text"
         example = ('For example: table.add_column_with_part_of_text("initial", from_column="name", first_characters=1)'
@@ -1826,14 +1945,23 @@ class ColumnWords:
             raise SimplydataError(f"add_column_with_part_of_text() needs from_column= with the text column.\n{example}")
         self._need_columns(from_column)
         text = self._text_of(step, from_column, example)
+        if every_match is not False and (every_match is not True or matches_pattern is None):
+            raise SimplydataError("every_match=True goes with matches_pattern=, such as matches_pattern=r\"bla\\w+\".")
+        if separator is not None and every_match is not True:
+            raise SimplydataError("separator= goes with every_match=True: it is what goes between the pieces.")
         options = {"first_characters": first_characters, "last_characters": last_characters,
-                   "characters": characters, "before": before, "after": after, "pattern": matches_pattern}
+                   "characters": characters, "before": before, "after": after, "pattern": matches_pattern,
+                   "position_of": position_of}
         given = [k for k, v in options.items() if v is not None]
         if len(given) != 1:
             start = "needs one way to say which part" if not given else f"was given {len(given)} ways at once"
             raise SimplydataError(f"add_column_with_part_of_text() {start}. Choose one:\n{TEXT_PART_WAYS}")
         option = given[0]
         value = options[option]
+        if option == "position_of":  # families for 100 %, batches 1-2
+            return self._text_position(name, from_column, value)
+        if every_match is True:
+            return self._every_match(name, from_column, matches_pattern, ";" if separator is None else separator)
         if option in ("first_characters", "last_characters"):
             if not _whole_number(value) or value < 1:
                 raise SimplydataError(f"{option}= should be a whole number of characters, like {option}=3.")
@@ -1882,6 +2010,54 @@ class ColumnWords:
             print(f'{_cells_word(n)} of {from_column} had {missing}, so "{name}" is empty there.')
         return self._finish(name, frame, f'add text part column "{name}" = {words}')
 
+    def _text_position(self, name, from_column, piece):
+        """position_of="an": where the piece starts, counting from 1, or empty (pandas str.find + 1, on both engines:
+        it counts characters, where Polars str.find counts bytes)."""
+        if not isinstance(piece, str) or piece == "":
+            raise SimplydataError('position_of= is a piece of text in quotes, such as position_of="an".')
+        native = self._frame[from_column].to_pandas()
+        found = native.str.find(piece)  # pandas str.find: -1 where it is not there
+        values = (found + 1).where((found >= 0) & native.notna())
+        cells = [None if v != v else float(v) for v in values.to_numpy(dtype=float)]  # empty, not NaN, on Polars
+        column = nw.new_series(name, cells, nw.Float64, backend=self._frame.implementation)
+        frame = self._frame.with_columns(column)
+        if frame[name].null_count() == 0:
+            frame = frame.with_columns(nw.col(name).cast(nw.Int64))
+        n = int(((found < 0) & native.notna()).sum())
+        if n:
+            print(f'{_cells_word(n)} of {from_column} had no {_plain(piece)}, so "{name}" is empty there.')
+        return self._finish(name, frame, f'add text part column "{name}" = position of {_plain(piece)} in '
+                                         f"{from_column}")
+
+    def _every_match(self, name, from_column, pattern, separator):
+        """every_match=True: every piece that fits the pattern, joined (pandas str.findall, Polars str.extract_all)."""
+        self._check_pattern(pattern)
+        if re.compile(pattern).groups:
+            raise SimplydataError("every_match=True keeps the whole piece that fits, so leave out the brackets ( ) in "
+                                  "the pattern (or write (?: ) for brackets that only group).")
+        if not isinstance(separator, str):
+            raise SimplydataError('separator= is the mark between the pieces, such as separator=";".')
+        native = self._frame[from_column].to_native()
+        try:
+            if self._frame.implementation.is_polars():
+                found = native.str.extract_all(pattern).list.join(separator)  # Polars str.extract_all
+                found = found.replace("", None)
+            else:
+                lists = native.str.findall(pattern)  # pandas str.findall
+                found = lists.map(lambda v: separator.join(v) if isinstance(v, list) and v else None)
+        except Exception as error:
+            raise self._pattern_engine_error(pattern, error) from None
+        frame = self._frame.with_columns(nw.from_native(found, series_only=True).cast(nw.String).alias(name))
+        had_text = ~_blank_to_empty(nw.col(from_column).cast(nw.String)).is_null()
+        n = int(frame.select((had_text & nw.col(name).is_null()).cast(nw.Int64).sum()).item() or 0) if len(frame) else 0
+        if n:
+            print(f'{_cells_word(n)} of {from_column} had no match for the pattern, so "{name}" is empty there.')
+        print(f'Each "{name}" holds every piece of {from_column} that fits {_plain(pattern)}, with '
+              f'"{separator}" between them: table.split_into_rows("{name}", separator="{separator}") gives a row '
+              "for each.")
+        return self._finish(name, frame, f'add text part column "{name}" = every match of {_plain(pattern)} in '
+                                         f"{from_column}")
+
     # ------------------------------------------------------------------ rolling and previous rows
     def _sequence_checks(self, step, name, from_column, for_each, sorted_by, example, numbers_only=True):
         self._check_new_name(name, step)
@@ -1900,7 +2076,7 @@ class ColumnWords:
 
     @friendly(renamed={"for_each": "for_each_group_in"})
     def add_rolling_column(self: _Same, name=None, from_column=None, window=3, show="average", for_each_group_in=None, sorted_by=None,
-                           centre=False, percent=None, center=None) -> _Same:
+                           centre=False, percent=None, center=None, with_column=None) -> _Same:
         """Add a rolling (moving) summary: for each row, the average of this row and the rows just before it.
 
         window= is how many rows go into each summary (this row and the window - 1 rows
@@ -1909,7 +2085,8 @@ class ColumnWords:
         "median", "smallest", "biggest", "standard deviation", "variance", "skewness", "kurtosis"
         (excess, both adjusted for small windows as pandas skew and kurt), "percentile" (with
         percent=90; as R quantile type 7), "count" (readings in the window), or "correlation" and
-        "covariance" (from_column= two columns). sorted_by= works it out in the order of a column such
+        "covariance" (from_column= and with_column=, or from_column= two columns: pandas rolling().corr() and
+        rolling().cov(), Polars rolling_corr and rolling_cov). sorted_by= works it out in the order of a column such
         as a date (the rows themselves keep their place).
           table.add_rolling_column("rain_3_months", from_column="rain", window=3, show="total",
                                    for_each_group_in="city", sorted_by="month_number")   (with sdata.get_example("weather"))
@@ -1927,6 +2104,13 @@ class ColumnWords:
             raise SimplydataError("centre= should be True or False.")
         self._check_choice(step, "show", show, ROLLING_SHOWS)
         pair = show in ("correlation", "covariance")
+        if with_column is not None:  # families for 100 %, batches 1-2: from_column="temp", with_column="oxygen"
+            if not pair:
+                raise SimplydataError('with_column= goes with show="correlation" or show="covariance".')
+            if not isinstance(from_column, str) or not isinstance(with_column, str):
+                raise SimplydataError('from_column= and with_column= are one column name each, such as '
+                                      'from_column="temperature", with_column="rain".')
+            from_column = [from_column, with_column]
         if pair:
             if not (isinstance(from_column, (list, tuple)) and len(from_column) == 2
                     and all(isinstance(c, str) for c in from_column)):
@@ -2029,25 +2213,40 @@ class ColumnWords:
         return self._row_after_row(name, keys, order, make,
                                    f'add rolling column "{name}" = {what} over {size}{group}')
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def add_previous_value_column(self: _Same, name=None, from_column=None, rows_back=1, for_each_group_in=None, sorted_by=None) -> _Same:
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"lead": "rows_ahead"})
+    def add_previous_value_column(self: _Same, name=None, from_column=None, rows_back=1, for_each_group_in=None,
+                                  sorted_by=None, rows_ahead=None) -> _Same:
         """Add a column with the value from the row before (or rows_back= rows before).
 
         The first row of each group has no row before it, so it gets an empty cell.
           table.add_previous_value_column("last_month", from_column="temperature", for_each_group_in="city",
                                           sorted_by="month_number")   (with sdata.get_example("weather"))
+        rows_ahead=1 takes the value from the row after instead (the next value, a lead: pandas and Polars
+        shift(-1), R dplyr lead()); the last row of each group then gets the empty cell:
+          table.add_previous_value_column("next_month", from_column="temperature", rows_ahead=1,
+                                          for_each_group_in="city", sorted_by="month_number")
         """
         step = "add_previous_value_column"
         example = ('For example: table.add_previous_value_column("last_month", from_column="temperature", '
                    'for_each_group_in="city", sorted_by="month_number")   (with sdata.get_example("weather"))')
         keys, order = self._sequence_checks(step, name, from_column, for_each_group_in, sorted_by, example, numbers_only=False)
-        rows_back = self._check_rows_back(rows_back)
+        if rows_ahead is not None:  # families for 100 %, batches 1-2: the next value (pandas and Polars shift(-1))
+            if rows_back != 1:
+                raise SimplydataError("Give rows_back= for a value before, or rows_ahead= for a value after, not "
+                                      "both.")
+            ahead = self._check_rows_back(rows_ahead, option="rows_ahead")
+            rows_back = -ahead
+        else:
+            rows_back = self._check_rows_back(rows_back)
 
         def make(frame, over):
             return frame.with_columns(over(nw.col(from_column).shift(rows_back)).alias(name))
 
         group, how = self._order_words(keys, order)
-        back = "the row before" if rows_back == 1 else f"{_rows_word(rows_back)} before"
+        if rows_back < 0:
+            back = "the row after" if rows_back == -1 else f"{_rows_word(-rows_back)} after"
+        else:
+            back = "the row before" if rows_back == 1 else f"{_rows_word(rows_back)} before"
         print(f'Each "{name}" is {from_column} from {back}{group}, {how}.')
         return self._row_after_row(
             name, keys, order, make, f'add previous value column "{name}" = {from_column} from {back}{group}')
@@ -2184,7 +2383,7 @@ class ColumnWords:
 
     @friendly(others={"on": "using", "by": "using", "how": "keep"}, pointers=JOIN_POINTERS)
     def join_with(self: _Same, other=None, using=None, keep="matching rows", check_that=None,
-                  with_match_column=False, match=None, within=None) -> _Same:
+                  with_match_column=False, match=None, within=None, where=None) -> _Same:
         """Bring in the columns of another table, matching rows on a column such as a name.
 
         keep= says which rows stay:
@@ -2223,8 +2422,19 @@ class ColumnWords:
           river.join_with(rain, using="date", match="nearest before", within="2 days")
         keep="every combination" pairs every row with every row, without using= (a cross join:
         pandas merge(how="cross"), Polars join(how="cross")).
+        where="time >= start and time < end" pairs each row with the rows of the other table that meet a written
+        condition (the keep_rows_where kind) on the columns of both, without using= (Polars join_where; pandas
+        merge(how="cross") then the condition). A column found in both tables is called name_other for the other
+        table's copy in the condition. The rows keep this table's order, each followed by its partners:
+          readings.join_with(periods, where="time >= start and time < end")
         """
         step = "join_with"
+        if where is not None:  # families for 100 %, batches 1-2 (more_table_words_3.py)
+            if using is not None or match is not None or within is not None or keep != "matching rows" or \
+                    check_that is not None or with_match_column:
+                raise SimplydataError("where= pairs the rows by its condition alone, so it takes no using=, keep=, "
+                                      "match=, within=, check_that= or with_match_column=.")
+            return self._join_where(other, where)
         if isinstance(keep, str) and keep not in KEEP_CHOICES and keep.strip().lower() in HOW_TO_KEEP:
             new = HOW_TO_KEEP[keep.strip().lower()]
             _value_note(f"join how={keep}", f'Note: how="{keep}" is keep="{new}" in simplydata.')

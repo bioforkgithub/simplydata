@@ -93,6 +93,41 @@ def _shown(stamp) -> str:
     return str(stamp.date()) if (stamp.hour, stamp.minute, stamp.second) == (0, 0, 0) else str(stamp)
 
 
+WORKING_DAY_WORDS = ("working day", "working days", "business day", "business days", "weekday", "weekdays")
+
+
+def _working_days_run(first, to, how_many, fast):
+    """make_run_of_dates(every="working day"): Monday to Friday, as pandas bdate_range (a first date on a weekend
+    starts on the Monday after)."""
+    import pandas as pd
+
+    from .table import Table
+
+    if (to is None) == (how_many is None):
+        raise SimplydataError("make_run_of_dates() needs either to= (the last date) or how_many= (how many dates), not "
+                              f"{'both' if to is not None else 'neither'}.\nFor example, {EXAMPLE}")
+    if how_many is not None:
+        if isinstance(how_many, bool) or not isinstance(how_many, int) or not 1 <= how_many <= MAX_DATES:
+            raise SimplydataError("make_run_of_dates() needs how_many= as a whole number of at least 1, such as "
+                                  "how_many=24.")
+        made = pd.bdate_range(start=first, periods=how_many)  # pandas bdate_range
+    else:
+        last = read_date(to, "to")
+        if last < first:
+            raise SimplydataError(f"to= ({_shown(last)}) comes before the first date ({_shown(first)}).")
+        made = pd.bdate_range(start=first, end=last)  # pandas bdate_range: Monday to Friday
+    if not len(made):
+        raise SimplydataError("There is no working day (Monday to Friday) between those dates.")
+    frame = pd.DataFrame({"date": pd.DatetimeIndex(made)})
+    print(f"{len(made)} working day{'s' if len(made) != 1 else ''} (Monday to Friday) from {_shown(made[0])} to "
+          f"{_shown(made[-1])}.")
+    if fast:
+        import polars as pl
+
+        return Table(pl.from_pandas(frame))
+    return Table(frame)
+
+
 @friendly
 def make_run_of_dates(start=None, to=None, every="day", how_many=None, fast=False):
     """A table with one column, "date": regular dates from start, every day (or week, month ...).
@@ -106,6 +141,9 @@ def make_run_of_dates(start=None, to=None, every="day", how_many=None, fast=Fals
     DateOffset and Polars "1mo"; R's seq(by = "month") overflows into the next month instead. For
     other steps the dates are those of R seq(as.Date(start), as.Date(to), by = "day"). fast=True gives a
     Polars table. The table joins with others (join_with) and charts like any table.
+    every="working day" gives the days from Monday to Friday only (pandas bdate_range, NumPy busday_offset;
+    no public holidays are left out):
+    sdata.make_run_of_dates("2026-12-01", to="2026-12-31", every="working day")
     """
     import pandas as pd
 
@@ -114,6 +152,8 @@ def make_run_of_dates(start=None, to=None, every="day", how_many=None, fast=Fals
     if start is None:
         raise SimplydataError(f"make_run_of_dates() needs a first date.\nFor example, {EXAMPLE}")
     first = read_date(start, "start")
+    if isinstance(every, str) and every.strip().lower() in WORKING_DAY_WORDS:  # families for 100 %, batches 1-2
+        return _working_days_run(first, to, how_many, fast)
     count, unit = read_every(every)
     if (to is None) == (how_many is None):
         raise SimplydataError(f"make_run_of_dates() needs either to= (the last date) or how_many= (how many dates), not "

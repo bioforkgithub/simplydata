@@ -52,7 +52,9 @@ dependencies = [
 
 [project.optional-dependencies]
 fast = []  # kept so that pip install "simplydata[fast]" still works; Polars and pyarrow are now required
-files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2"]
+# families for 100 %, batches 1-2: jinja2 for .tex tables (pandas to_latex) and lxml for web-page tables (read_html);
+# lower bounds: the oldest versions pandas 3 accepts for them
+files = ["python-docx>=1.1,<2", "pyreadstat>=1.2.8,<2", "jinja2>=3.1.5,<4", "lxml>=5.3,<7"]
 stats = []  # kept so that pip install "simplydata[stats]" still works; statsmodels is now required
 systems = ["control>=0.10.1,<0.11"]  # python-control: rise time, settling time, overshoot and margins of systems
 # DuckDB for SQL (table.run_sql, sdata.run_sql) and .duckdb files; simplydata opens it with no extensions and no web

@@ -32,7 +32,11 @@ REPR_WHOLE_LIMIT = 10_000  # a Polars table up to this size is shown whole in no
 REPR_ENDS = 30  # a bigger one shows this many rows from the start and the end
 SAVE_TYPES = ("csv", "tsv", "xlsx", "parquet", "json",
               # tables phase, batch 3 (P38): each written by pandas itself (DuckDB for .duckdb)
-              "csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html", "sqlite", "db", "duckdb")
+              "csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html", "sqlite", "db", "duckdb",
+              # families for 100 %, batches 1-2: a finished table for a paper (Polars Markdown, pandas to_latex,
+              # python-docx)
+              "md", "tex", "docx")
+PAPER_TYPES = ("md", "tex", "docx")
 DATABASE_TYPES = ("sqlite", "db", "duckdb")  # these hold tables by name: save(..., in_table="river")
 # Times with a time zone in files that have no place for the zone name (see Table._file_frame)
 OFFSET_TEXT_TYPES = ("csv", "tsv", "csv.gz", "tsv.gz")  # written as text with the UTC offset, read back as UTC times
@@ -378,9 +382,17 @@ class BaseTable:
         mirror of in_sheet=: table.save("results.sqlite", in_table="river") replaces that table
         and keeps the others (pandas to_sql(if_exists="replace"); DuckDB CREATE OR REPLACE TABLE).
         Read it back with sdata.table("results.sqlite", table_name="river").
-        """
-        from .._data import _file_suffix
 
+        A finished table for a paper: .md (a Markdown table, as Polars writes one), .tex (a LaTeX
+        tabular, pandas to_latex) and .docx (a Word table, python-docx: pip install "simplydata[files]").
+        Each writes every row and column as it is; round the numbers first with round_numbers_in.
+        table.save("clipboard") copies the table, to paste into Excel or a document (pandas
+        to_clipboard; nothing leaves this computer).
+        """
+        from .._data import CLIPBOARD, _file_suffix
+
+        if isinstance(file_name, str) and file_name.strip().lower() == CLIPBOARD:
+            return self._save_to_clipboard()
         path = Path(file_name)
         kind = _file_suffix(path.name).lstrip(".")
         if not kind:
@@ -420,6 +432,8 @@ class BaseTable:
             frame.write_parquet(str(path))
         elif kind in ("csv.gz", "tsv.gz", "feather", "jsonl", "dta", "html"):  # tables phase, batch 3 (P38)
             self._save_more(path, kind, frame)
+        elif kind in PAPER_TYPES:  # families for 100 %, batches 1-2
+            self._save_for_paper(path, kind, frame)
         else:
             pandas_table = frame.to_pandas()
             if kind == "tsv":
@@ -512,6 +526,58 @@ class BaseTable:
         except (ValueError, TypeError) as problem:  # Stata's rules on names and kinds, said plainly
             first = (str(problem).strip().splitlines() or [""])[0]
             raise SimplydataError(f'The table could not be saved as "{path.name}": {first}') from None
+
+    def _save_for_paper(self, path, kind, frame):
+        """.md (Polars' Markdown table), .tex (pandas to_latex) and .docx (python-docx): a finished table. Every cell
+        is written as Polars writes it as text (30.5, 2026-03-01), and an empty cell is left blank."""
+        import polars as pl
+
+        native = frame.to_polars()
+        numbers = [name for name, kind_ in native.schema.items() if kind_.is_numeric()]
+        text = native.with_columns(pl.all().cast(pl.String).fill_null(""))  # one text for every cell, in every file
+        if kind == "md":
+            with pl.Config(tbl_formatting="MARKDOWN", tbl_hide_column_data_types=True, tbl_hide_dataframe_shape=True,
+                           tbl_rows=-1, tbl_cols=-1, fmt_str_lengths=10_000, tbl_width_chars=-1):
+                written = str(text)  # Polars writes the table in Markdown
+            path.write_text(written + "\n", encoding="utf-8", newline="\n")
+        elif kind == "tex":
+            try:
+                import jinja2  # noqa: F401 - pandas to_latex needs it
+            except ImportError:
+                raise SimplydataError('Saving a LaTeX table needs jinja2. Install it with:  pip install '
+                                      '"simplydata[files]"') from None
+            places = "".join("r" if name in numbers else "l" for name in native.columns)
+            # pandas to_latex: a LaTeX tabular, numbers on the right, LaTeX's special signs escaped
+            text.to_pandas().to_latex(path, index=False, column_format=places, escape=True)
+        else:
+            try:
+                import docx
+            except ImportError:
+                raise SimplydataError('Saving a Word table needs python-docx. Install it with:  pip install '
+                                      '"simplydata[files]"') from None
+            document = docx.Document()
+            table = document.add_table(rows=len(text) + 1, cols=len(text.columns))
+            table.style = "Table Grid"
+            for j, name in enumerate(text.columns):
+                table.cell(0, j).text = str(name)
+            for i, row in enumerate(text.iter_rows(), 1):
+                for j, value in enumerate(row):
+                    table.cell(i, j).text = value
+            document.save(str(path))  # python-docx: one Word table, the column names in the first row
+        print(f"Saved the table as {path.name}: {len(frame)} rows and {len(frame.columns)} columns (empty cells "
+              "left blank).")
+
+    def _save_to_clipboard(self):
+        """table.save("clipboard"): pandas to_clipboard(excel=True), tabs between the values, to paste into Excel."""
+        try:
+            self._frame.to_pandas().to_clipboard(index=False, excel=True)  # pandas to_clipboard
+        except Exception as problem:  # noqa: BLE001 - no clipboard program (a server, a Linux without xclip)
+            raise SimplydataError("simplydata could not copy to the clipboard on this computer "
+                                  f"({type(problem).__name__}). Save the table as a file instead, such as "
+                                  'table.save("results.xlsx").') from None
+        print(f"Copied the table to the clipboard: {len(self._frame)} rows and {len(self._frame.columns)} columns, "
+              "ready to paste into Excel.")
+        return self
 
     def _save_in_table(self, path, kind, in_table):
         """table.save("x.sqlite", in_table="river"): one table of a database file; the other tables are kept.

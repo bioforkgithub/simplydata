@@ -30,7 +30,9 @@ GROUPS = [
                               # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
                               "as_matplotlib"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
-                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks"]),
+                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks",
+                     # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): seaborn so.Dash
+                     "draw_dashes"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "fit_dose_response", "draw_curve", "draw_smooth_line",
                     # S3a-3 (checking and comparing)
@@ -1662,6 +1664,9 @@ HELP_EXAMPLES.update({
 
 # Families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the table words for the pandas and Polars gaps
 HELP_EXAMPLES.update({
+    "draw_dashes": _ex("marks", 'chart.draw_dashes(x="class", y="marks", transparency=0.4)\n'
+                                   'chart.draw_dots(x="class", y="marks", show="average", move_layer_by=0.45)',
+                       "draw_dashes"),
     "table.get_different_values_in": _tx("marks", 'classes = table.get_different_values_in("class")\n'
                                                   "print(classes)"),
     "table.check_if_all_values_in": _tx("marks", 'answer = table.check_if_all_values_in("marks", is_above=0)\n'

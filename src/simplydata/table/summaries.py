@@ -106,7 +106,10 @@ MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "stand
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
             "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
-            "first", "last")  # first, last: tables phase, batch 3
+            "first", "last",  # first, last: tables phase, batch 3
+            # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): pandas prod(), Polars entropy() and
+            # the text of each group joined into one cell (pandas groupby().agg("; ".join), Polars str.join)
+            "product", "entropy", "joined text")
 # "first" and "last": the first and last filled value in the order of the rows (pandas groupby().first() / last(),
 # which skip empty cells; Polars drop_nulls().first() / last()); not a NumPy measure, not one of _measure_values
 FIRST_LAST = ("first", "last")
@@ -116,10 +119,13 @@ MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation"
                    "mad": "median absolute deviation", "trimmed mean": "trimmed average", "mode": "most common",
                    "quantile": "percentile", "harmonic average": "harmonic mean", "hmean": "harmonic mean",
                    "winsorized average": "winsorised average", "winsorized mean": "winsorised average",
-                   "winsorised mean": "winsorised average"}
+                   "winsorised mean": "winsorised average", "prod": "product", "shannon entropy": "entropy",
+                   "implode": "joined text", "joined": "joined text"}
 # measures worked out with NumPy / SciPy on each group's numbers (the others come from narwhals)
 ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
+                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
+                  "product", "entropy")
+TEXT_SEPARATOR = "; "  # show="joined text": what goes between the texts of a group, unless separator= says
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
 WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
@@ -536,6 +542,10 @@ def _array_measure(name: str, values):
       winsorised average p %    floor(n * p / 100) values at each end set to the nearest value
                                 kept, then the average (SciPy mstats.winsorize, as R
                                 WRS2::winmean(tr = p / 100))
+      product                   every value multiplied together (NumPy prod, as pandas prod(),
+                                Polars product() and R prod())
+      entropy                   Shannon entropy -sum(p * log(p)), with p each value's share of the
+                                total and the natural log (SciPy entropy, as Polars entropy())
     """
     from scipy import stats
 
@@ -550,6 +560,14 @@ def _array_measure(name: str, values):
         if (values <= 0).any():
             return None, "needs numbers above 0", None
         return float(stats.hmean(values)), None, None
+    if name == "product":  # NumPy prod, as pandas prod() and Polars product()
+        return float(np.prod(values)), None, None
+    if name == "entropy":  # SciPy entropy (natural log, the numbers shared out to 1), as Polars entropy()
+        if (values < 0).any():
+            return None, "needs numbers of 0 or more", None
+        if values.sum() == 0:
+            return None, "needs numbers that add up to more than 0", None
+        return float(stats.entropy(values)), None, None
     if name.startswith("winsorised average "):
         share = float(name.split()[-2]) / 100
         return float(np.mean(stats.mstats.winsorize(values, limits=(share, share)))), None, None
@@ -1845,8 +1863,8 @@ class SummaryWords:
                 measures.append(name)
         return measures
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_summary_of(self, column=None, show=None, for_each_group_in=None, every=None):
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"sep": "separator"})
+    def find_summary_of(self, column=None, show=None, for_each_group_in=None, every=None, separator=None):
         """Several measures of one or more columns at once, in one tidy table.
 
         table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
@@ -1875,8 +1893,22 @@ class SummaryWords:
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
         The new table has one row for each column (and each group), so it can be saved
         or charted. every= groups a date column in for_each_group_in= by "week", "month", "year" ...
+        "product" multiplies the values together (pandas prod(), Polars product()) and "entropy" is the Shannon
+        entropy of the values as shares of their total, natural log (SciPy entropy, Polars entropy()).
+        show=["joined text"] joins the text of each group into one cell, "; " between them (separator= for
+        another), the mirror of split_into_rows (pandas groupby().agg("; ".join), Polars str.join):
+          table.find_summary_of("name", show=["joined text"], separator=", ", for_each_group_in="class")
+        Different measures for different columns, one row for each group (pandas named aggregation, Polars
+        group_by().agg()): show= a dict of column: measures, and leave out the column:
+          table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")
+        The columns of that table are called "marks average", "marks count" and "hours total".
         """
         step = "find_summary_of"
+        if isinstance(show, dict):
+            return self._summary_by_column(step, column, show, for_each_group_in, every, separator)
+        if separator is not None and (not isinstance(show, (list, tuple, str)) or "joined text" not in (
+                [show] if isinstance(show, str) else list(show))):
+            raise SimplydataError('separator= goes with show=["joined text"]: it is what goes between the texts.')
         if column is None:
             raise SimplydataError(
                 f"{step}() needs the column to summarise.\n"
@@ -1886,6 +1918,8 @@ class SummaryWords:
         columns = _as_list(step, "the column", column)
         measures = self._measures(step, show)
         groups = self._group_columns(step, for_each_group_in, columns) if for_each_group_in is not None else []
+        if "joined text" in measures:
+            return self._joined_text(step, columns, measures, groups, every, separator)
         if "column" in groups:
             raise SimplydataError(
                 'find_summary_of() makes a column called "column", so a for_each_group_in= column cannot have that name.\n'
@@ -1974,6 +2008,93 @@ class SummaryWords:
                 print(f"Note: {name} sets the lowest and highest {share:g} % of the values{place} to the nearest value "
                       f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
+        return table
+
+    def _joined_text(self, step, columns, measures, groups, every, separator):
+        """show=["joined text"]: the text of each group in one cell (Polars str.join on both engines, as pandas
+        groupby().agg("; ".join)); the rows of each group in table order, empty cells left out."""
+        import polars as pl
+
+        if measures != ["joined text"]:
+            raise SimplydataError('show=["joined text"] goes on its own (its column holds text, not numbers); '
+                                  "find the other measures in a step of their own.")
+        if separator is None:
+            separator = TEXT_SEPARATOR
+        if not isinstance(separator, str):
+            raise SimplydataError('separator= is the text that goes between the texts, such as separator="; ".')
+        if "column" in groups:
+            raise SimplydataError('find_summary_of() makes a column called "column", so a for_each_group_in= column '
+                                  'cannot have that name.')
+        self._need_columns(*columns)
+        frame, periods = self._periods(step, self._frame, groups or None, every)
+        polars = frame.to_polars()
+        parts = []
+        for c in columns:
+            joined = pl.col(c).drop_nulls().cast(pl.String).str.join(separator).alias("joined text")
+            if groups:
+                part = polars.group_by(groups, maintain_order=True).agg(joined).sort(groups, nulls_last=True)
+            else:
+                part = polars.select(joined)
+            parts.append(part.with_columns(pl.lit(c).alias("column")).select("column", *groups, "joined text"))
+        result = pl.concat(parts)
+        if not frame.implementation.is_polars():
+            result = result.to_pandas()
+        table = self._new_table(nw.from_native(result, eager_only=True))
+        rows = table._frame.rows(named=True)
+        print(f"The text of {_names(columns)} joined into one cell" + (f" for each {_each(groups, periods)}"
+                                                                         if groups else "")
+              + f', "{separator}" between the texts (empty cells left out):')
+        for row in rows[:SUMMARY_LINES]:
+            label = [f'"{row["column"]}"'] if len(columns) > 1 else []
+            label += [_say_label(row[g], periods.get(g)) for g in groups]
+            text = row["joined text"] if len(row["joined text"]) <= 60 else row["joined text"][:57] + "..."
+            print(("  " + " / ".join(label) + ": " if label else "  ") + text)
+        if len(rows) > SUMMARY_LINES:
+            print(f"  ... and {len(rows) - SUMMARY_LINES} more rows (the new table has them all)")
+        _period_note(periods)
+        return table
+
+    def _summary_by_column(self, step, column, show, for_each_group_in, every, separator):
+        """show={"marks": ["average", "count"], "hours": ["total"]}: different measures for different columns, one
+        row for each group, the columns called "marks average" ... (pandas named aggregation, Polars agg)."""
+        import contextlib
+        import io
+
+        if column is not None:
+            raise SimplydataError(
+                "With show= a dict of column: measures, the dict names the columns, so leave out the column.\n"
+                'For example:  table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, '
+                'for_each_group_in="class")   (with sdata.get_example("marks"))')
+        if not show or not all(isinstance(k, str) for k in show):
+            raise SimplydataError('show= as a dict gives each column its measures: show={"marks": ["average", '
+                                  '"count"], "hours": ["total"]}.')
+        groups = _as_list(step, "for_each_group_in=", for_each_group_in) if for_each_group_in is not None else []
+        result, periods = None, {}
+        for name, measures in show.items():
+            with contextlib.redirect_stdout(io.StringIO()):
+                part = self.find_summary_of(name, show=measures, for_each_group_in=for_each_group_in, every=every,
+                                            separator=separator)._frame
+            if every is not None:
+                periods = {g: every for g in groups if self._frame.schema[g].is_temporal()}
+            renamed = {c: f"{name} {c}" for c in part.columns if c not in groups and c != "column"}
+            part = part.drop("column").rename(renamed)
+            if result is None:
+                result = part
+            elif groups:
+                result = result.join(part, on=groups, how="left")
+            else:
+                result = nw.concat([result, part], how="horizontal")
+        table = self._new_table(nw.maybe_reset_index(result))
+        out_names = [c for c in result.columns if c not in groups]
+        print("Summary" + (f" for each {_each(groups, periods)}" if groups else "") + ", different measures for "
+              "different columns:")
+        for row in table._frame.rows(named=True)[:SUMMARY_LINES]:
+            label = " / ".join(_say_label(row[g], periods.get(g)) for g in groups)
+            items = ", ".join(f"{n} {_say_number(row[n]) if not isinstance(row[n], str) else row[n]}"
+                              for n in out_names)
+            print(("  " + label + ": " if label else "  ") + items)
+        if len(result) > SUMMARY_LINES:
+            print(f"  ... and {len(result) - SUMMARY_LINES} more rows (the new table has them all)")
         return table
 
     def _ends_in_own_kind(self, result, data, columns, ends):
