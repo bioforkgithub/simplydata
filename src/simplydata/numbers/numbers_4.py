@@ -160,7 +160,7 @@ class GridWords4:
         return self._change("inverse", out)
 
     @friendly
-    def find_eigenvalues(self, exactly=False):
+    def find_eigenvalues(self, exactly=False, structure=None):
         """The eigenvalues of a square grid, biggest first, as a table. grid.find_eigenvalues()
 
         sdata.number_grid([[2, 1], [1, 2]]).find_eigenvalues() gives 3 and 1. Gives back a table: eigenvalue,
@@ -169,7 +169,10 @@ class GridWords4:
         first; any other grid uses linalg.eigvals, ordered by their size (the modulus) biggest first. That is the
         order of R eigen()$values. exactly=True gives the exact eigenvalues from SymPy (eigenvals, the numbers as
         exact fractions), in the same order (R's order, also among eigenvalues of the same size), with how many
-        times each comes, for grids up to 6 x 6. MATLAB eig.
+        times each comes, for grids up to 6 x 6. structure="banded" (a symmetric grid with numbers only in a band
+        round the diagonal; SciPy linalg.eigvals_banded) or "tridiagonal" (only the diagonal and one each side;
+        SciPy linalg.eigvalsh_tridiagonal) works from the band alone, which is much faster for big grids. MATLAB
+        eig.
         """
         import pandas as pd
         from scipy import linalg
@@ -178,8 +181,21 @@ class GridWords4:
 
         if not isinstance(exactly, bool):
             raise SimplydataError("exactly= should be True or False.")
+        if structure is not None and structure not in EIGEN_STRUCTURES:
+            from .._errors import choice_error
+
+            raise choice_error("find_eigenvalues", "structure", structure, list(EIGEN_STRUCTURES))
         values = self._square("find_eigenvalues")
         n = values.shape[0]
+        if structure is not None:
+            if exactly:
+                raise SimplydataError(f'structure="{structure}" works in decimals from the band; leave out '
+                                      "exactly=True.")
+            found, how = _banded_eigenvalues(values, structure)
+            found = found[_order_like_r(found, np.zeros_like(found), True)].astype(complex)
+            print(f"The eigenvalues of the {n} x {n} grid, biggest first: "
+                  + ", ".join(f"{v.real:.6g}" for v in found[:8]) + (" ..." if n > 8 else "") + f"   ({how})")
+            return Table(pd.DataFrame({"eigenvalue": found.real, "imaginary part": found.imag}))
         if exactly:  # the grid's size and cells are checked first
             from .._formula import MAX_EXACT_EIGEN, exact_matrix
 
@@ -204,6 +220,32 @@ class GridWords4:
                           for v in found[:8]) + (" ..." if n > 8 else "")
         print(f"The eigenvalues of the {n} x {n} grid, biggest first: {shown}   ({how})")
         return Table(table)
+
+
+# find_eigenvalues(structure=): families for 100 %, batch 19 (approved by Manish 2026-11-28, plan section 2.8)
+EIGEN_STRUCTURES = ("banded", "tridiagonal")
+
+
+def _banded_eigenvalues(values, structure: str):
+    """The eigenvalues of a symmetric banded grid from its band (SciPy eigvals_banded or eigvalsh_tridiagonal)."""
+    from scipy import linalg
+
+    if not linalg.issymmetric(values):
+        raise SimplydataError(f'structure="{structure}" needs a symmetric grid (the same after '
+                              "swap_rows_and_columns); leave out structure= for any other grid.")
+    below, above = linalg.bandwidth(values)
+    if structure == "tridiagonal":
+        if above > 1:
+            raise SimplydataError(f'structure="tridiagonal" needs numbers only on the diagonal and one diagonal each '
+                                  f'side; this grid has {above} each side (structure="banded" works on it).')
+        return (linalg.eigvalsh_tridiagonal(np.diagonal(values).copy(), np.diagonal(values, 1).copy()),
+                "SciPy linalg.eigvalsh_tridiagonal, from the diagonal and the one beside it")
+    n = values.shape[0]
+    band = np.zeros((above + 1, n))  # LAPACK's upper banded storage: row above + i - j holds the cell i, j
+    for k in range(above + 1):
+        band[above - k, k:] = np.diagonal(values, k)
+    return (linalg.eigvals_banded(band), f"SciPy linalg.eigvals_banded, from the band of {above} diagonal"
+                                         f"{'' if above == 1 else 's'} each side")
 
 
 def _max_exact() -> int:
