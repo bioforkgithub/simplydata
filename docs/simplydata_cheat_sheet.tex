@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 581 commands in 67 cards, version 0.2.0.\par}
+work. 586 commands in 67 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -266,13 +266,13 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 
 \begin{cardtable}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour(\textquotedbl{}blue\textquotedbl{})}\opts{\code{name}}}{One colour for the whole chart.}{seaborn \code{barplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour(\textquotedbl{}blue\textquotedbl{})}\opts{\code{name}, \code{from\_\allowbreak{}colour\_\allowbreak{}list=}}}{One colour for the whole chart.}{seaborn \code{barplot()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}blue\textquotedbl{},\allowbreak{} \textquotedbl{}orange\textquotedbl{},\allowbreak{} \textquotedbl{}green\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{how\_\allowbreak{}many=}}}{Your own colours for the groups, in order.}{seaborn \code{barplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}blue\textquotedbl{},\allowbreak{} \textquotedbl{}orange\textquotedbl{},\allowbreak{} \textquotedbl{}green\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{how\_\allowbreak{}many=}, \code{from\_\allowbreak{}colour\_\allowbreak{}list=}}}{Your own colours for the groups, in order.}{seaborn \code{barplot()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}magma\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{middle=}, \code{log=}, \code{steps=}, \code{between=}}}{The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{min().\allowbreak{}min()}, \code{max().\allowbreak{}max()}, \code{tick\_\allowbreak{}params()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}magma\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}, \code{middle=}, \code{log=}, \code{steps=}, \code{between=}, \code{from\_\allowbreak{}colour\_\allowbreak{}list=}}}{The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.}{seaborn \code{pivot\_\allowbreak{}table()}, \code{heatmap()}, \code{min().\allowbreak{}min()}, \code{max().\allowbreak{}max()}, \code{tick\_\allowbreak{}params()}}
 
-\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}style(\textquotedbl{}school\textquotedbl{})}\opts{\code{name}}}{The overall look.}{matplotlib \code{rc\_\allowbreak{}context()}, \code{lineplot()}}
+\cmd{\code{chart.\allowbreak{}use\_\allowbreak{}style(\textquotedbl{}school\textquotedbl{})}\opts{\code{name}, \code{colour\_\allowbreak{}letters=}}}{The overall look.}{matplotlib \code{rc\_\allowbreak{}context()}, \code{lineplot()}}
 
 \cmd{\code{chart.\allowbreak{}set\_\allowbreak{}size(width=17,\allowbreak{} height=12,\allowbreak{} unit=\textquotedbl{}cm\textquotedbl{})}\opts{\code{width=}, \code{height=}, \code{unit=}}}{The size of the chart.}{matplotlib \code{lineplot()}}
 
@@ -299,6 +299,12 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 \cmd{\code{chart.\allowbreak{}put\_\allowbreak{}legend\_\allowbreak{}inside(\textquotedbl{}top left\textquotedbl{})}\opts{\code{where=}, \code{per\_\allowbreak{}row=}}}{The legend inside the chart, in a corner.}{seaborn \code{lineplot()}, \code{move\_\allowbreak{}legend()}}
 
 \cmd{\code{chart.\allowbreak{}use\_\allowbreak{}shapes(\textquotedbl{}circle\textquotedbl{},\allowbreak{} \textquotedbl{}square\textquotedbl{},\allowbreak{} \textquotedbl{}triangle\textquotedbl{})}\opts{\code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}}}}{Your own shapes for the dots of each group, in order.}{seaborn \code{scatterplot()}}
+
+\cmd{\code{sdata.\allowbreak{}show\_\allowbreak{}colours(\textquotedbl{}deep\textquotedbl{})}\opts{\code{colours=}, \code{how\_\allowbreak{}many=}, \code{save\_\allowbreak{}as=}}}{Draw a row of colour swatches, to see a set of colours before you use it.}{seaborn \code{color\_\allowbreak{}palette().\allowbreak{}as\_\allowbreak{}hex()}, \code{palplot()}}
+
+\cmd{\code{sdata.\allowbreak{}change\_\allowbreak{}colour(\textquotedbl{}navy\textquotedbl{},\allowbreak{} lightness=0.\allowbreak{}6)}\opts{\code{colour=}, \code{lightness=}, \code{colour\_\allowbreak{}strength=}, \code{colour\_\allowbreak{}strength\_\allowbreak{}times=}, \code{hue=}, \code{full\_\allowbreak{}colour\_\allowbreak{}strength=}}}{A lighter, darker, greyer or stronger colour, as a code.}{seaborn \code{to\_\allowbreak{}hex()}, \code{set\_\allowbreak{}hls\_\allowbreak{}values()}}
+
+\cmd{\code{sdata.\allowbreak{}pick\_\allowbreak{}colours\_\allowbreak{}with\_\allowbreak{}sliders(kind=\textquotedbl{}dark\textquotedbl{})}\opts{\code{kind=}, \code{brewer\_\allowbreak{}type=}}}{Choose a set of colours with sliders in Jupyter.}{The sliders run only in Jupyter with ipywidgets: seaborn \code{choose\_\allowbreak{}dark\_\allowbreak{}palette()} (and \code{choose\_\allowbreak{}colorbrewer\_\allowbreak{}palette}, \code{choose\_\allowbreak{}cubehelix\_\allowbreak{}palette}, \code{choose\_\allowbreak{}light\_\allowbreak{}palette}, \code{choose\_\allowbreak{}diverging\_\allowbreak{}palette} for the other kinds). Anywhere else simplydata says what is needed and gives back nothing; it never installs anything.}
 
 \end{cardtable}
 
@@ -1365,6 +1371,10 @@ out\_\allowbreak{}of=[\textquotedbl{}vaccinated\textquotedbl{},\allowbreak{} \te
 \cmd{\code{grid.\allowbreak{}take\_\allowbreak{}inverse()}\opts{\code{exactly=}}}{Turn a square grid into its inverse: the grid that multiplies it to give the identity.}{SciPy \code{inv()}}
 
 \cmd{\code{grid.\allowbreak{}find\_\allowbreak{}eigenvalues()}\opts{\code{exactly=}}}{The eigenvalues of a square grid, biggest first, as a table.}{SciPy \code{eigvalsh()}, \code{DataFrame()}}
+
+\cmd{\code{grid.\allowbreak{}solve\_\allowbreak{}for([5,\allowbreak{} 7])}\opts{\code{b=}, \code{between=}, \code{with\_\allowbreak{}best\_\allowbreak{}fit=}, \code{exactly=}}}{Find x with grid times x = b: solve a grid's straight-line equations.}{SciPy \code{solve()}}
+
+\cmd{\code{grid.\allowbreak{}break\_\allowbreak{}down(test\_\allowbreak{}method=\textquotedbl{}qr\textquotedbl{})}\opts{\code{test\_\allowbreak{}method=}, \code{together\_\allowbreak{}with=}}}{Break a grid down into the parts of a matrix decomposition.}{SciPy \code{svd()}}
 
 \end{cardtable}
 
