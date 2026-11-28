@@ -646,10 +646,12 @@ def _read_html(source, label, options):
     except ImportError:
         raise SimplydataError(f"Reading the tables of a web page needs lxml.\n{_FILES_HINT}") from None
     raw = _rewind(source)
-    if isinstance(raw, io.BytesIO):
-        raw = io.StringIO(raw.getvalue().decode("utf-8", errors="replace"))
+    # the page's text, read here from this computer (or from the bytes sdata.table already has): pandas read_html
+    # only ever gets that text, never a web address, so it reaches nothing outside (tests/test_privacy.py)
+    text = (raw.getvalue().decode("utf-8", errors="replace") if isinstance(raw, io.BytesIO)
+            else Path(raw).read_text(encoding="utf-8", errors="replace"))
     try:
-        tables = pd.read_html(raw, flavor="lxml")  # pandas read_html
+        tables = pd.read_html(io.StringIO(text), flavor="lxml")  # pandas read_html, on the text itself
     except ValueError:
         raise SimplydataError(f'"{label}" has no table in it (simplydata reads the <table> parts of a web page).'
                               ) from None

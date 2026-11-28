@@ -40,7 +40,8 @@ def test_get_different_values_in_matches_pandas_unique_and_polars_unique(fast, c
 
 @pytest.mark.parametrize("fast", ENGINES)
 def test_check_if_all_and_any_match_pandas_and_polars(fast, capsys):
-    df = pd.DataFrame({"depth": [3.0, 5.0, np.nan, 8.0], "dose": [10, 120, 40, 90], "ok": pd.array([True, True, None, True], dtype="boolean"),
+    df = pd.DataFrame({"depth": [3.0, 5.0, np.nan, 8.0], "dose": [10, 120, 40, 90], "ok": pd.array([True, True,
+                      None, True], dtype="boolean"),
                        "site": ["N", "N", "S", "S"]})
     table = sdata.table(df, fast=fast)
     assert table.check_if_all_values_in("depth", is_above=0) is bool((df["depth"].dropna() > 0).all()) is True
@@ -73,7 +74,8 @@ def test_check_if_all_values_in_needs_a_condition_unless_true_false():
 
 @pytest.mark.parametrize("fast", ENGINES)
 def test_check_if_sorted_by_matches_is_monotonic_and_is_sorted(fast, capsys):
-    df = pd.DataFrame({"day": [1, 2, 2, np.nan, 5], "level": [3.0, 2.0, 2.5, 1.0, 0.5], "site": ["a", "b", "b", "c", "c"]})
+    df = pd.DataFrame({"day": [1, 2, 2, np.nan, 5], "level": [3.0, 2.0, 2.5, 1.0, 0.5], "site": ["a", "b", "b",
+                      "c", "c"]})
     table = sdata.table(df, fast=fast)
     assert table.check_if_sorted_by("day") is bool(df["day"].dropna().is_monotonic_increasing) is True
     assert table.check_if_sorted_by("level") is pl.from_pandas(df)["level"].is_sorted() is False
@@ -393,3 +395,13 @@ def test_a_table_style_points_to_the_html_file_and_the_hand_over():
     with pytest.raises(MissingWordError) as info:
         sdata.table(sdata.get_example("marks")).style  # noqa: B018 - the pointer is the point
     assert 'table.save("table_1.html")' in str(info.value) and "df.style" in str(info.value)
+
+
+@pytest.mark.parametrize("typed, text", [
+    ("agg", 'show={"marks": ["average", "count"]'), ("groupby.aggregate", 'show={"marks": ["average", "count"]'),
+    ("shift", "rows_ahead=1"), ("groupby.shift", "rows_ahead=1"), ("str.contains", "name contains 'an'"),
+    ("pipe", "df.pipe(my_function)"),
+])
+def test_pointers_that_keep_their_word_name_the_new_option(typed, text, capsys):
+    sdata.help(typed)
+    assert text in capsys.readouterr().out, typed

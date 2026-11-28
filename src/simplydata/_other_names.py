@@ -1230,10 +1230,10 @@ def _build(groups):
 # by Manish 2026-11-28), so every list job points to split_into_rows and the hand-over to Polars.
 _LIST_POINTER = ('table.split_into_rows("genes", separator=";") gives each value a row of its own, where table words '
                  "work on it; list columns themselves are left to Polars: table.as_polars(), then pl.col(...).list")
-_LISTS = [(_LIST_POINTER, "agg all any arg_max arg_min concat contains count_matches diff drop_nulls eval explode filter first "
-                         "gather gather_every get head item join last len max mean median min n_unique reverse sample "
-                         "set_difference set_intersection set_symmetric_difference set_union shift slice sort std sum tail "
-                         "to_array to_map to_struct unique var")]
+_LISTS = [(_LIST_POINTER, "agg all any arg_max arg_min concat contains count_matches diff drop_nulls eval explode "
+                          "filter first gather gather_every get head item join last len max mean median min "
+                          "n_unique reverse sample set_difference set_intersection set_symmetric_difference "
+                          "set_union shift slice sort std sum tail to_array to_map to_struct unique var")]
 
 
 # Axes3D.<name>: the 3D Axes of mpl_toolkits.mplot3d, where scatter, plot and bar mean the 3D words

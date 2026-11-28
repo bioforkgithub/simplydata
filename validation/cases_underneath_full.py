@@ -98,7 +98,8 @@ def _new_table_words(Case):
               "every car above 15 mpg": float(df.select((pl.col("mpg") > 15).all()).item())}
          """, polars_label="Polars Expr.all()",
          r="""
-             list(`every car above 10 mpg` = as.numeric(all(mpg > 10)), `every car above 15 mpg` = as.numeric(all(mpg > 15)))
+             list(`every car above 10 mpg` = as.numeric(all(mpg > 10)),
+                  `every car above 15 mpg` = as.numeric(all(mpg > 15)))
          """)
     both("table.check_if_any_value_in", "mtcars: is any car above 300 horsepower, or above 400?", "mtcars",
          "real data",
@@ -326,7 +327,8 @@ def _new_options(Case):
              w <- signif(wt, 2)
              list(total = sum(w), first = w[1], heaviest = max(w))
          """, r_tolerance=1e-12)
-    arrivals = 'data = data.assign(time=pd.Timestamp("2026-01-01") + pd.to_timedelta((data["hour"] * 3600).round(), unit="s"))'
+    arrivals = ('data = data.assign(time=pd.Timestamp("2026-01-01") + pd.to_timedelta((data["hour"] * 3600).round(), '
+                'unit="s"))')
     both("table.keep_rows_where", "ICU arrivals: the patients who arrived between 08:00 and 17:00",
          "ICU arrivals (circular)", "real data", option="time_of_day_between=", setup=arrivals,
          ours="""
@@ -379,7 +381,8 @@ def _new_options(Case):
          ours="""
              t = sdata.table(source).add_column_with_part_of_text("at", from_column="model", position_of="a")
              p = t.get_column("at")
-             {"names with an a": p.count() - p.count_empty_numbers(), "total of the places": p.remove_empty_numbers().find_total()}
+             {"names with an a": p.count() - p.count_empty_numbers(),
+              "total of the places": p.remove_empty_numbers().find_total()}
          """,
          pandas="""
              f = data["model"].str.find("a") + 1
@@ -427,7 +430,10 @@ def _new_options(Case):
              t = sdata.table(source).add_column_with_part_of_date("w", from_column="month", part="is working day")
              {"months starting on a working day": sum(bool(v) for v in t.get_column("w"))}
          """,
-         pandas='{"months starting on a working day": np.is_busday(data["month"].values.astype("datetime64[D]")).sum()}',
+         pandas="""
+             days = data["month"].values.astype("datetime64[D]")
+             {"months starting on a working day": np.is_busday(days).sum()}
+         """,
          pandas_label="NumPy is_busday",
          polars='{"months starting on a working day": df["month"].dt.is_business_day().sum()}',
          polars_label="Polars dt.is_business_day()",
@@ -462,7 +468,8 @@ def _new_options(Case):
              t = sdata.table(source).turn_into_dates("seconds", from_unix_seconds=True)
              t.add_column_with_part_of_date("y", from_column="seconds", part="year")
              t.add_column_with_part_of_date("m", from_column="seconds", part="month")
-             {"total of the years": t.get_column("y").find_total(), "total of the months": t.get_column("m").find_total()}
+             {"total of the years": t.get_column("y").find_total(),
+              "total of the months": t.get_column("m").find_total()}
          """,
          pandas="""
              d = pd.to_datetime(data["seconds"], unit="s")
@@ -470,7 +477,8 @@ def _new_options(Case):
          """, pandas_label='pandas to_datetime(unit="s")',
          polars="""
              d = pl.from_epoch(df["seconds"], time_unit="s")
-             {"total of the years": d.dt.year().cast(pl.Int64).sum(), "total of the months": d.dt.month().cast(pl.Int64).sum()}
+             {"total of the years": d.dt.year().cast(pl.Int64).sum(),
+              "total of the months": d.dt.month().cast(pl.Int64).sum()}
          """, polars_label='Polars from_epoch(time_unit="s")',
          r="""
              d <- as.POSIXlt(as.Date(month))
@@ -570,7 +578,8 @@ def _new_options(Case):
              {"rows": len(j), "total of half": j["half"].sum()}
          """, pandas_label='pandas merge(how="cross") then the condition',
          polars="""
-             j = df.join_where(pl.from_pandas(periods), pl.col("month") >= pl.col("start"), pl.col("month") < pl.col("end"))
+             j = df.join_where(pl.from_pandas(periods), pl.col("month") >= pl.col("start"),
+                               pl.col("month") < pl.col("end"))
              {"rows": len(j), "total of half": j["half"].sum()}
          """, polars_label="Polars join_where",
          r="""
@@ -595,7 +604,8 @@ def _chart_options(Case):
                  chart.draw_lines(x="wt", y="mpg", in_row_order=True)
              """) + """
 xy = ax.lines[0].get_xydata()
-{"points": len(xy), "row x weight": float((np.arange(1, len(xy) + 1) * xy[:, 0]).sum()), "first mpg": float(xy[0, 1])}""",
+{"points": len(xy), "row x weight": float((np.arange(1, len(xy) + 1) * xy[:, 0]).sum()),
+ "first mpg": float(xy[0, 1])}""",
              parent="""
                  import matplotlib.pyplot as plt
                  import seaborn as sns
@@ -634,7 +644,8 @@ xy = ax.collections[0].get_offsets()
              """) + """
 segments = np.concatenate([np.asarray(s) for s in ax.collections[0].get_segments()]).reshape(-1, 2, 2)
 {"dashes": len(segments), "sum of y": float(segments[:, 0, 1].sum()),
- "sum of the middles": float(segments[:, :, 0].mean(axis=1).sum()), "width": float(segments[0, 1, 0] - segments[0, 0, 0])}""",
+ "sum of the middles": float(segments[:, :, 0].mean(axis=1).sum()),
+ "width": float(segments[0, 1, 0] - segments[0, 0, 0])}""",
              parent="""
                  import matplotlib.pyplot as plt
                  import seaborn as sns

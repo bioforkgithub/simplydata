@@ -1621,7 +1621,8 @@ class ColumnWords:
         group by month across years). And "is month start", "is quarter start", "is quarter end", "is year
         start", "is year end" (True or False, as pandas dt.is_month_start ...), "month end" (the date of the last
         day of the month, Polars dt.month_end()), "is working day" (Monday to Friday, as NumPy is_busday and
-        Polars dt.is_business_day()) and "unix time" (seconds since 1 January 1970 UTC, Polars dt.epoch("s")). As pandas dt.normalize(), dt.time, dt.second, dt.dayofweek >= 5,
+        Polars dt.is_business_day()) and "unix time" (seconds since 1 January 1970 UTC, Polars dt.epoch("s")).
+        As pandas dt.normalize(), dt.time, dt.second, dt.dayofweek >= 5,
         dt.days_in_month, dt.is_month_end, dt.is_leap_year and dt.strftime("%Y-%m"), and Polars
         dt.truncate("1d"), dt.time(), dt.second(), dt.weekday() >= 6, dt.days_in_month(),
         dt.month_end(), dt.is_leap_year() and dt.to_string("%Y-%m"):

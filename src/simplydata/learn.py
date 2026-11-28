@@ -30,7 +30,8 @@ GROUPS = [
                               # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
                               "as_matplotlib"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
-                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks",
+                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d",
+                     "draw_band", "draw_map_of_empty_cells", "draw_sticks",
                      # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): seaborn so.Dash
                      "draw_dashes"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
@@ -111,7 +112,8 @@ GROUPS = [
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
                    "table.find_total_of", "table.find_smallest_of", "table.find_biggest_of",
                    "table.find_standard_deviation_of", "table.find_summary_of", "table.find_percent_of_rows_where",
-                   "table.count_different_values_in", "table.get_different_values_in", "table.find_percentile_of", "table.find_most_common_of",
+                   "table.count_different_values_in", "table.get_different_values_in", "table.find_percentile_of",
+                   "table.find_most_common_of",
                    "table.find_interval_of", "table.find_correlation_between"]),
     ("Statistical tests", ["table.compare_averages_of", "table.compare_each_pair_of", "table.compare_before_and_after",
                            "table.compare_average_to", "table.compare_counts_of", "table.compare_shape_to",
