@@ -5,6 +5,321 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Fixed: where the families for 100 % batches 1-21 meet
+
+- Every choice simplydata makes in batches 1-21 has its basis in "How simplydata chooses methods" (113 new entries,
+  783 in all), with 36 new references, each DOI checked in Crossref. Three "simplydata chooses" lines now say what
+  the code does: `fit_curve(always=)` puts the biggest y first at a tied x when rising (R `isoreg`'s order),
+  `show="differential entropy"` follows SciPy's automatic rule (van Es up to 10 values, Ebrahimi to 1000, Vasicek
+  above), and a circular measure needs its unit.
+- 15 options of batches 10-13 had no reliability case on real data; each now has one (AirPassengers, iris, mtcars)
+  against NumPy, SciPy or SymPy and, except the Hankel transform, base R.
+- Help pointers: names that a later batch gives a word (`logm`, `sqrtm`, `matrix_power`, `order_filter`, `hilbert2`,
+  `correlate2d` ...) point to the word, not to the hand-over; `special.<name>` points only from names scipy.special
+  has.
+- The tests in CI install the `[files]` extra (Jinja2 for .tex tables, lxml for web-page tables), and the README
+  lists both.
+
+### Added: NumPy words for lists and grids of numbers, and one maker for polynomials (families for 100 %, batches 10-13)
+
+Approved by Manish 2026-11-28 (plan section 2.4, G5, G8 and G17). Each word calls NumPy, SciPy or SymPy once, says
+which in a plain sentence, has its help example, its "same underneath" box, reliability cases on real data
+(AirPassengers, iris, mtcars) checked against NumPy or SciPy and, where it does the same, R, and tests against the
+library itself. Positions count from 1, as everywhere in simplydata.
+
+- Lists: `numbers.find_product()` (NumPy `nanprod`), `numbers.turn_into_changes(rows_back=, how_many_times=)`
+  (`diff`, R `diff(lag =, differences =)`), `numbers.turn_into_slopes(time_step=)` (`gradient`),
+  `numbers.count_in_bins(edges=)` (`histogram`, `histogram_bin_edges`, and `histogram2d` with `together_with=`),
+  `numbers.find_bin_of_each(edges=)` (`digitize`, R `findInterval`), the set words `keep_numbers_also_in`,
+  `remove_numbers_also_in`, `keep_numbers_in_only_one` and `join_numbers_with` (`intersect1d`, `setdiff1d`,
+  `setxor1d`, `union1d`), `numbers.find_dot_product_with` (`dot`), `numbers.find_cross_product_with` (`cross`),
+  `numbers.find_positions_where(is_above=)` (`flatnonzero`) and `numbers.find_size(kind=)` (`linalg.vector_norm`).
+- New options: `turn_into_running_total(show="product")` (`nancumprod`), `sort(show="positions")` (`argsort`) and
+  `sort(then_by=)` (`lexsort`), `remove_duplicate_numbers(show="positions" | "which number")` (`unique_all`,
+  `unique_inverse`), `sdata.number_list(1, to=1000, how_many=4, spacing="log")` (`geomspace`),
+  `change_angles_to(remove_jumps=True)` (`unwrap`), `replace_numbers_where(at_positions=, rules=)` and other numbers
+  as `with_value=` (`put`, `select`, `copyto`), `take_cosine_transform(kind="sine" | "hankel", inverse=True)` (`dst`,
+  `idct`, `idst`, `fht`, `ifht`), `grid.take_inverse(closest_possible=True)` (SciPy `pinv`, `pinvh`) and
+  `grid.find_determinant(as_log=True)` (`slogdet`).
+- Grids: `grid.multiply_as_matrix_by(other)` (`matmul`, `matvec`, `vecmat`, `linalg.multi_dot`),
+  `grid.find_positions_where(is_above=)` (`argwhere`), `grid.add_border(width=, with_value=)` (`pad`), the grid parts
+  `grid.get_part("upper triangle")` and `grid.replace_part("diagonal", with_value=1)` (G8: `diagonal`, `triu`, `tril`,
+  their `_indices`, `fill_diagonal`), `grid.take_fourier_transform(over=)` (SciPy `fft2`, `rfft2`; back with
+  `sdata.find_inverse_fourier_transform`), `grid.take_cosine_transform()` (`dctn`, `dstn`, `idctn`, `idstn`) and the
+  size words `grid.find_rank()`, `grid.find_size(kind=)`, `grid.find_condition_number()` and
+  `grid.find_column_space()` (`matrix_rank`, `matrix_norm`, `cond`, SciPy `orth`).
+- `sdata.number_grid(kind=...)`: `"identity"`, `"diagonal"`, `"ones below diagonal"`, `"vandermonde"`, `"blocks"`
+  (NumPy `eye`, `diag`, `tri`, `vander`, `block`), `"toeplitz"`, `"hankel"`, `"circulant"`, `"companion"`,
+  `"fiedler"`, `"convolution"`, `"hadamard"`, `"hilbert"`, `"pascal"`, `"leslie"`, `"helmert"`, `"block diagonal"`
+  and their inverses (SciPy linalg) and `"rotation"` (SymPy `rot_axis1-3`); `sdata.number_grid(from_formula="row *
+  column", rows=3, columns=4)` (`fromfunction`); new word `sdata.make_coordinate_grids(x=, y=)` (`meshgrid`, and
+  `indices` with `rows=` and `columns=`).
+- New word `sdata.polynomial("legendre", degree=3)` (G5): one maker for the polynomials of NumPy, scipy.special and
+  SymPy (Legendre, Chebyshev, Hermite, Laguerre, Jacobi, Gegenbauer and their shifted and generalized forms,
+  cyclotomic, Swinnerton-Dyer, Bernoulli, Euler, symmetric, from roots, from numbers, through points), made exactly by
+  SymPy as a formula, so every formula word works on it; each name is tested against scipy.special and
+  numpy.polynomial.
+- `sdata.help("np.argsort")`, `"np.linalg.pinv"`, `"np.fft.fft2"`, `"scipy.linalg.toeplitz"`, `"special.chebyt"`,
+  `"np.polynomial.Hermite"`, `"sp.legendre_poly"` and the other names of plan section 2.4 point to the word. Left to
+  NumPy, with a pointer to the hand-over: `einsum` (G17), `linalg.tensorinv`, `trim_zeros`.
+### Added: SciPy optimize, integrate and interpolate (families for 100 %, batches 14-16)
+
+Approved by Manish 2026-11-28 (plan section 2.6, G6). Each new value or word calls SciPy, prints the method in a plain
+sentence, has its help text, its "same underneath" box and reliability cases (mtcars, stackloss, Lake Huron, and
+closed-form answers for the words that take a formula), checked against SciPy and, where it does the same, R.
+
+- Every search of `find_where_smallest`, `find_where_biggest` and `solve` now says plainly whether it settled
+  (converged), after how many steps, and how many times the formula was worked out; the result table of
+  `find_where_smallest` and `find_where_biggest` has a new column, "evaluations".
+- `find_where_smallest(test_method=)`: `"golden section"` (golden-section search, SciPy `minimize_scalar(method=
+  "golden")`; `"golden"` keeps its old meaning, Brent's method), `"newton conjugate gradient"` (Newton-CG, slopes from
+  `scipy.differentiate`) and `"truncated newton"` (TNC, SciPy's central differences), which say that they need a
+  smooth formula, and with `search="whole range"` `"grid search"` (SciPy `brute` over the grid points, then a polish
+  that keeps to `between=`). SciPy's legacy names work as values: `fmin`, `fmin_bfgs`, `fmin_cg`, `fmin_cobyla`,
+  `fmin_l_bfgs_b`, `fmin_ncg`, `fmin_powell`, `fmin_slsqp`, `fmin_tnc`, `brute`. A method that cannot keep to
+  `between=` says when its answer is outside it.
+- `solve(test_method=)`: `"fixed point"` for an equation written as `"x = cos(x)"` (SciPy `fixed_point`), and for
+  several equations `"broyden second"`, `"diagonal broyden"`, `"anderson mixing"`, `"linear mixing"`, `"exciting
+  mixing"` and `"newton-krylov"` (SciPy `root`); Broyden's method now runs to the same tight tolerance as these.
+- `table.fit_curve(x=, y=, always="rising")` (or `"falling"`): the closest curve that never goes down, by isotonic
+  regression (SciPy `isotonic_regression`, as R `isoreg()`, which pools the values at a tied x).
+- New word `sdata.find_best_pairing(costs)`: pair each row with one column for the smallest (or `aim_for="biggest
+  total"`) total, exactly (SciPy `linear_sum_assignment`, as R `lpSolve::lp.assign()`); `with_distances=` places
+  items at places for the smallest total of flow times distance (SciPy `quadratic_assignment`).
+- `find_area_under(test_method=)`: `"tanh-sinh"`, `"cubature"`, `"quasi monte carlo"` and `"romberg on even steps"`
+  (SciPy `tanhsinh`, `cubature`, `qmc_quad`, `romb`); `find_volume_under` has `test_method=` too (`"cubature"`,
+  `"quasi monte carlo"`).
+- New word `sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])`: a path with
+  values given at both ends (a boundary value problem, SciPy `solve_bvp`).
+- `table.find_values_at(joined_by=)`: `"polynomial"` (SciPy `BarycentricInterpolator`; also as `"lagrange"`,
+  `"krogh"`), `"rational curve"` (Floater-Hormann), `"aaa"` (SciPy `AAA`; a place between two known points where
+  the curve has a pole is left empty, with a note) and, for two columns, `"smooth triangles"` (Clough-Tocher).
+- New word `sdata.curve_through_points(x=, y=)` (G6; "spline" is its other name): a spline to read anywhere, with
+  `smoothness=`, `allowed_error=`, `knots=`, `slopes=`, `degree=`, `ends=`, `weights=`, `in_order=True` (a path),
+  `z=` (a surface) and `on_sphere=True`. New words on the curve: `curve.find_value_at`, `curve.find_slope_at`,
+  `curve.find_area_between`, `curve.find_zeros`, `curve.turn_into_slope_curve`, `curve.turn_into_area_curve`,
+  `curve.show_pieces`, `curve.show_knots` and `curve.as_scipy` (SciPy `BSpline`, `PPoly`, `BPoly` and the FITPACK
+  functions `splev`, `splder`, `splantider`, `splint`, `sproot`, `spalde`).
+  A curve or surface is empty outside its points.
+- `sdata.help("optimize.basinhopping")`, `"integrate.solve_bvp"`, `"interpolate.splrep"` and every other name of
+  scipy.optimize, integrate and interpolate in the plan point to the word or value that does the job.
+### Added: SciPy signals and systems: FIR filters, filter order, analog filters, spectra over time (families for 100 %, batches 17-18)
+
+Approved by Manish 2026-11-28 (plan section 2.7). Every number comes from scipy.signal; each new option value is
+tested against SciPy directly, has its "same underneath" box, and reliability cases on Lake Huron, Seatbelts and the
+air passengers compared with SciPy and, where R has the same function, with R signal and gsignal.
+
+- FIR filters on `keep_each_frequency_that`, `remove_each_frequency_that`, `add_filtered_column` and
+  `sdata.frequency_filter`: `test_method="fir"` (SciPy `firwin`, now offered: its weights follow firwin's own formula,
+  not R `signal::fir1`, which designs by frequency sampling), `"fir least squares"` (`firls`, as R `gsignal::firls`),
+  `"fir equiripple"` (`remez`, as R `signal::remez`) and `"fir frequency sampling"` (`firwin2`), with
+  `how_many_weights=` (101), `window_shape=` and `transition_width=`.
+- `find_order_for={"loss_at": 20}`: the smallest steepness that keeps the loss within `ripple=` and removes
+  `removed_by=` dB from 20 on (SciPy `buttord`, `cheb1ord`, `cheb2ord`, `ellipord`; `kaiserord` for `"fir"`).
+- `start_from="first value"` (with `both_ways=False`): the filter starts in its steady state (SciPy `sosfilt_zi`,
+  `lfilter_zi`); `with_least_delay=True` for FIR filters (SciPy `minimum_phase`); `test_method="gammatone"` with
+  `is_equal_to=` (SciPy `gammatone`).
+- `sdata.frequency_filter(..., analog=True)`: the continuous filter (SciPy's designs with `analog=True`: the
+  prototypes `buttap` ... `besselap` moved by `lp2lp`, `lp2hp`, `lp2bp`, `lp2bs`).
+- Systems: `system.table(form="sections")` (SciPy `tf2sos`) and `form="partial fractions"` (`residue`, `residuez`);
+  `sdata.system(sections=..., time_step=...)` (`sos2tf`) and `sdata.system(residues=, poles=, direct_terms=)`
+  (`invres`, `invresz`); new word `system.move_poles_to([-2, -3])` (SciPy `place_poles`);
+  `system.frequency_response(with_delay=True)` (SciPy `group_delay`).
+- Spectra: `numbers.take_fourier_transform(over_time=True)` (SciPy `ShortTimeFFT.stft`; `sdata.find_inverse_fourier_
+  transform` gives the numbers back with `istft`), `take_fourier_transform(between=[low, high], how_many=)` (SciPy
+  `zoom_fft`, the chirp z-transform on the unit circle) and `numbers.find_spectrum(over_time=True)` (SciPy
+  `spectrogram`, as `chart.draw_spectrum_over_time`).
+- Waves and resampling: `sdata.make_wave("maximum length sequence")` (SciPy `max_len_seq`), `sweep="polynomial"`
+  (`sweep_poly`); `numbers.change_time_step(test_method="cubic spline")` and `"quadratic spline"` (`cspline1d`,
+  `qspline1d` and their `_eval`).
+- New word `numbers.find_phase_locking_to(period=0.1)`: how strongly event times keep time with a cycle (SciPy
+  `vectorstrength`).
+- `sdata.help("scipy.signal.buttord")` and the other scipy.signal names point to the word or option; SciPy's helpers
+  and its 2-D filters (`order_filter`, `hilbert2`, `correlate2d`, `sepfir2d` ...) point to the hand-over
+  (`numbers.as_numpy()`).
+### Added: matrices of scipy.linalg, grids as pictures and points (families for 100 %, batches 19-21)
+
+Approved by Manish 2026-11-28 (plan sections 2.8 and 2.9, G7 and G9). Every number comes from SciPy (NumPy's FFT and
+matrix_power, SymPy's jordan_form); each word, option and value is tested against its library and has a box in the
+manual and cases in the reliability study.
+
+- New family word `grid.take_matrix_function("log")` (G7): `"square root"`, `"exp"`, `"cos"`, `"sin"`, `"tan"`,
+  `"cosh"`, `"sinh"`, `"tanh"`, `"sign"`, `"power"` with `power=`, and any formula of x such as `"1 / (1 + x)"`
+  (SciPy `logm`, `sqrtm`, `expm`, `cosm` ... `signm`, `fractional_matrix_power`, NumPy `matrix_power`, `funm`).
+  `take_matrix_exp` stays. An answer with complex numbers is refused with the reason.
+- New words `grid.check_if_grid_is("symmetric")` (`"hermitian"`, `"diagonal"`, `"upper triangle"`, `"lower
+  triangle"`, `"banded"`; `within=`), `grid.find_best_rotation_to(other_grid)` (orthogonal Procrustes),
+  `grid.find_angles_to(other_grid)` (principal angles, in degrees) and `sdata.solve_matrix_equation("lyapunov", a=,
+  q=)` with `"discrete lyapunov"`, `"sylvester"`, `"riccati"` and `"discrete riccati"`.
+- `grid.break_down(test_method=)` gets `"rq"`, `"cs"` (with `split_at=`), `"real eigen blocks"` (eig with
+  cdf2rdf) and `"jordan"` (exact); `grid.solve_for(structure="banded")` and `grid.find_eigenvalues(structure=
+  "banded" / "tridiagonal")` work from the band; `make_pair_table_with(as_blocks=True, column_by_column=True)` is
+  the Khatri-Rao product.
+- A grid as a picture: `grid.smooth(test_method=)` gets `"biggest"`, `"smallest"`, `"percentile"` (`percentile=`),
+  `"rank"` (`rank=`; `ends="zeros"` is signal.order_filter), `"summary"` (`summary=`), `"fourier gaussian"`,
+  `"fourier uniform"`, `"fourier ellipsoid"` and `"spline"` (`smoothness=`, signal.spline_filter). New words
+  `grid.find_edges()` (Sobel, Prewitt, Laplace, Gaussian Laplace and slope size; `along=`),
+  `grid.change_patch_shapes("grow", by=1)` (G9: `"shrink"`, `"open"`, `"close"`, `"fill holes"`, `"top hat"`,
+  `"dark top hat"`, `"outline"`, `"laplace"`, `"match pattern"`, `"keep patches with points"`; patches from a
+  condition, or a grey picture), `grid.find_distance_to_nearest(is_above=0)`, `grid.split_touching_patches()`
+  (watershed), `grid.move_and_stretch_by()` (`matrix=`, `shift=`, `rule=`, `test_method="fourier"`),
+  `grid.convolve_with()` (convolve2d, correlate2d with `flip=False`, sepfir2d with `row_weights=` and
+  `column_weights=`) and `grid.find_envelope()` (hilbert2). `grid.find_each_patch_that(show=)` adds the biggest and
+  smallest and where they are, the median, standard deviation, variance, range, the cells and `"counts in bins"`.
+- Points: new words `table.find_triangles_between_points(x=, y=)` (Delaunay; `containing=` for tsearch) and
+  `table.find_regions_around_points(x=, y=)` (Voronoi with each region's area; `longitude=` and `latitude=` for
+  regions on the earth, SphericalVoronoi); `find_distances_between_rows(measure="minkowski", power=3)`.
+- Help pointers for the names of scipy.linalg, scipy.ndimage, scipy.spatial and scipy.signal's 2-D names
+  (`linalg.logm`, `ndimage.binary_dilation`, `spatial.Delaunay`, `signal.hilbert2` ...); steps inside the solvers
+  (`expm_frechet`, `qr_update`, `matrix_balance` ...) point to the hand-over. Left to the library, as approved:
+  `scipy.spatial.HalfspaceIntersection`.
+- The reliability study gains the dataset `state.center` (R datasets), read from R.
+
+### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
+
+Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that
+had no family of their own a plain name and plain parameters; each is tested against SciPy.
+
+- `sdata.distribution("skew normal", shape=4, location=10, scale=2)`, `"truncated normal"`, `"beta binomial"`,
+  `"noncentral t"`, `"log-logistic"`, `"generalised normal"`, `"studentized range"`, `"zipf"` ... every SciPy
+  distribution by its plain name, with plain parameter names (`location=`, `scale=`, `shift=` for counts, and a name
+  for what each shape does: `degrees_of_freedom=`, `tries=`, `lower_end=` ...). SciPy's names keep working
+  (`sdata.distribution("skewnorm", a=4)`), and fitting works by the plain name too.
+- Joint distributions as names of `sdata.distribution` (no new maker): `"multivariate normal"`, `"multivariate t"`,
+  `"dirichlet"`, `"multinomial"`, `"multivariate hypergeometric"`, `"dirichlet multinomial"`, `"wishart"`,
+  `"inverse wishart"`, `"matrix normal"`, `"matrix t"`, `"von mises-fisher"`, `"uniform direction"`,
+  `"random correlation"`, `"random orthogonal"`, `"random rotation"`, `"random unitary"`, `"random table"` and
+  `"normal inverse gamma"`: `find_density_at([1, 2])`, `make_random_numbers(how_many=)` (one row per draw, a block
+  for the matrix ones), `find_average()`, `find_variance()` and, for the normal and t, `find_chance_that_value(
+  is_below=[1, 2])`.
+- `sdata.distribution("mixture", of=[first, second], shares=[0.3, 0.7])` (as SciPy `Mixture`), `"from values"`
+  (`values=`, `chances=`, SciPy `rv_discrete`) and `"histogram"` (`counts=` and `bin_edges=`, or `of=numbers`,
+  SciPy `rv_histogram`).
+- New word `distribution.take_function("log")`: the distribution of the log, `"exp"`, `"absolute value"` or
+  `"order statistic"` (`rank=`, `out_of=`) of the values (SciPy `stats.log`, `exp`, `abs`, `order_statistic`).
+- New word `sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1)`: the one parameter left out
+  (scipy.special `stdtridf`, `bdtri`, `nrdtrisd` and 18 more inverse functions).
+- `sdata.help("scipy.stats.skewnorm")`, `"scipy.special.bdtr"`, `"rng.dirichlet"` and every other distribution name
+  of the plan point to the plain name or the word.
+
+### Added: the SciPy tests and summaries that had no word yet (families for 100 %, batches 3-4)
+
+Approved by Manish 2026-11-28 (plan section 2.2). Each option value calls scipy.stats, prints the method in a plain
+sentence, has its help text, its "same underneath" box and reliability cases on real data (NIST, mtcars, iris,
+warpbreaks, lung, turtles, hedenfalk), checked against SciPy and, where it does the same, R.
+
+- `find_summary_of(show=)`: `"geometric standard deviation"` (`gstd`), `"power mean 3"` (`pmean`), `"cumulant 2"`
+  and `"cumulant variance 2"` (`kstat`, `kstatvar`), `"l-moment 2"` (`lmoment`), `"central moment 3"` (`moment`),
+  `"expectile 90"`, `"average between 40 and 80"` with the same for the standard deviation, variance and standard
+  error (`tmean`, `tstd`, `tvar`, `tsem`), `"smallest from 40"` and `"biggest up to 80"` (`tmin`, `tmax`),
+  `"circular average"`, `"circular standard deviation"` and `"circular variance"` (also `"... in degrees"`),
+  `"differential entropy"`, `"percentile rank 70"` (`estimated_cdf`), `"percent at or below 70"`
+  (`percentileofscore`) and `"sigma-clipped average"` (`sigmaclip`).
+- `find_summary_of(in_bins_of={"depth": 10})` summarises the values in bins of another column (`binned_statistic`,
+  `binned_statistic_2d`, `binned_statistic_dd`), with `show=["running count"]` (`cumfreq`) and `"share of values"`
+  (`relfreq`).
+- New `test_method=` values: `compare_averages_of` `"wilcoxon rank sum"` (`ranksums`) and
+  `"baumgartner-weiss-schindler"` (`bws_test`); `compare_shapes_of(test_method=)` (new option) `"cramer-von mises"`
+  and `"epps-singleton"`; `compare_shape_to` `"skewness"` and `"kurtosis"` (`skewtest`, `kurtosistest`);
+  `compare_counts_to(test_method=)` (new option) `"g"`, `"freeman-tukey"`, `"neyman"`, `"modified g"` and
+  `"cressie-read"` (`power_divergence`); `compare_spreads_of` `"o'brien"` (`obrientransform`);
+  `find_correlation_between` `"chatterjee xi"`, `"weighted kendall"` and `"multiscale graph"`;
+  `compare_rates(test_method="e-test")` (`poisson_means_test`); `find_interval_of(test_method="bayesian")`
+  (`bayes_mvs`).
+- `combine_studies(p_values="p")` combines the p-values of independent studies (`combine_pvalues`: Fisher, Stouffer,
+  Pearson, Tippett, Mudholkar-George), no R needed.
+- `find_best_power_of(show=)`: `"log-likelihood"` and `"normal plot correlation"` give a table of the powers from -2
+  to 2 (`boxcox_llf`, `yeojohnson_llf`, `boxcox_normplot`, `yeojohnson_normplot`), `"best by normal plot"`
+  (`boxcox_normmax(method="pearsonr")`); `test_method="tukey lambda"` (`ppcc_max`, `ppcc_plot`).
+- `compare_distributions_for(show="wasserstein distance")` and `"energy distance"`: the distance between the values
+  of each pair of groups (`wasserstein_distance`, `wasserstein_distance_nd`, `energy_distance`).
+- `fit_distribution_to(censored_by="still_alive")`: a fit that allows for right-censored values (`CensoredData`, as R
+  `fitdistrplus::fitdistcens` and `survival::survreg`).
+- New word `sdata.find_sensitivity_of("a * x**2 + b", ranges={...})`: which input of a formula matters most
+  (Sobol' indices, SciPy `sobol_indices`).
+- `sdata.help("scipy.stats.ranksums")` and every other scipy.stats test and summary of the plan now names its word
+  and value.
+### Added: maths on every number, one family for NumPy and scipy.special (families for 100 %, batches 7-9)
+
+Approved by Manish 2026-11-28 (plan section 2.3, G1-G3, G10). One name table holds every function, and the same
+names work for numbers and inside formula text: you learn a name once.
+
+- New word `numbers.take_function(name, **options)` (also on grids and blocks): the functions of scipy.special
+  and NumPy by plain name, such as `numbers.take_function("bessel J", order=1)`, `"inverse error function"`,
+  `"hyperbolic sine"`, `"legendre polynomial"` (degree=), `"lambert W"`, `"zeta"`, `"struve H"`, `"mathieu ce"`
+  and the spheroidal wave functions. The library names work too (`"jv"`, `"special.erfinv"`, `"np.sinh"`).
+  Where a function has no value the answer is empty and a note says how many; an infinite answer is inf.
+  Complex answers give their real part, or `part="imaginary"`, `"size"` or `"angle"`. A library name that gives
+  several answers (`airy`, `sici`, `ellipj`) names its parts, and one that gives a whole run (`legendre_p_all`,
+  `lqmn`, `pbdn_seq`) gives the one you ask for. `numbers.take_function()` with no name lists them all.
+- The same functions inside formula text (`table.add_column`, `table.fit_formula`, `sdata.find_where_smallest`,
+  `sdata.solve`, `sdata.formula`): `bessel_j(1, x)`, `erfinv(x)`, SciPy's names and SymPy's own names in SymPy's
+  order (`besseli(1, x)`, `LambertW(x)`, `Ei(x)`, `elliptic_k(m)`). `sdata.formula` keeps SymPy's function where
+  SymPy has one, so slopes, series and limits work for the functions SymPy knows. A function SymPy lacks keeps its
+  name and is worked out by SciPy; its slope comes from the table where the table has one (Kelvin, Struve,
+  parabolic cylinder, the Bessel slopes ...), and otherwise a plain sentence says that no slope formula is known.
+  Without brackets these names are still column names and values to find (`y0`, `k1`).
+- One rule on every path (numbers, add_column, sdata.formula for one value and for many): the double factorial
+  follows SciPy (0 for a whole number below 0, empty for one that is not whole); Ci and Chi are empty below 0,
+  where they are complex numbers; an option that must be a whole number (`order=` of expn and polygamma,
+  `degree=` of hermite) stops with a plain sentence when it is not one.
+- New word `sdata.find_zeros_of(name, how_many=5, order=0)`: the zeros of Bessel, Airy and Kelvin functions
+  (`jn_zeros`, `ai_zeros`, `ber_zeros` ...), and the complex zeros of the error function and the Fresnel
+  integrals as a table of real and imaginary parts.
+- New word `sdata.find_area_points(name, how_many=5)`: the points and weights of Gauss's area rules
+  (`roots_legendre`, `roots_hermite` ... and `p_roots`, `h_roots` ...), Newton-Cotes and Lebedev, as a table.
+- New word `numbers.work_on_bits(how, with_numbers=, by=)`: NumPy's bit words (`bitwise_and`, `bitwise_or`,
+  `bitwise_xor`, `invert`, `bitwise_count`, `left_shift`, `right_shift`, `packbits`, `unpackbits`).
+- `numbers.turn_into_yes_or_no(is_="finite")`, and `"infinite"`, `"minus infinity"`, `"plus infinity"`, `"real"`,
+  `"complex"`, `"not a time"` (NumPy `isfinite`, `isinf`, `isneginf`, `isposinf`, `isreal`, `iscomplex`, `isnat`).
+- Help pointers for every scipy.special and NumPy name of the family (`special.`, `scipy.special.`, `np.`, `sp.`),
+  made from the same table; the NumPy names that pointed to the hand-over (sign, arcsin ... gcd, lcm) now point
+  to `take_function`.
+- Reliability: every name is tested against its library on negative numbers, 0 and numbers above 0; the study
+  checks published values from the NIST DLMF and Abramowitz and Stegun (Bessel functions and their zeros, Airy,
+  error and elliptic integrals, zeta(3), W(1), Gauss-Legendre points) and base R where R has the function.
+
+### Added: the last pandas and Polars jobs, and seaborn's Path, Shift and Dash (families for 100 %, batches 1-2)
+
+Approved by Manish 2026-11-28. Each word and option calls pandas, Polars, NumPy, SciPy or seaborn, gives one
+answer on both table engines, has its help example, its "same underneath" box and reliability cases on real data.
+
+- New words: `table.get_different_values_in("species")` (pandas `unique()`), `table.check_if_all_values_in(...)`
+  and `table.check_if_any_value_in(...)` (`all()`, `any()`, `all_horizontal`, with the `keep_rows_where`
+  conditions), `table.check_if_sorted_by("date")` (`is_monotonic_increasing`, `is_sorted`),
+  `table.add_run_number_column(...)` (Polars `rle_id`), `table.turn_into_title_case("name")` (`str.title`) and
+  `chart.draw_dashes(x=, y=)` (seaborn `so.Dash`).
+- `find_summary_of`: `show="product"`, `"entropy"`, `"joined text"` with `separator=` (the mirror of
+  `split_into_rows`), and `show={"marks": ["average", "count"], "hours": ["total"]}` for different measures of
+  different columns, one row per group (pandas named aggregation).
+- `add_previous_value_column(rows_ahead=1)` (the next value, `shift(-1)`); `round_numbers_in(significant_figures=)`
+  (as R `signif()`: halves to the even digit, where Polars `round_sig_figs` takes 5.25 to 5.3);
+  `keep_rows_where(time_of_day_between=["08:00", "17:00"])`; `turn_into_numbers(show_problems=True)`;
+  `turn_into_dates(from_unix_seconds=True)`; `add_column_with_part_of_text(every_match=True)` and `position_of=`;
+  `add_rolling_column(with_column=)`; `join_with(where="time >= start and time < end")` (Polars `join_where`).
+- Written conditions read `gene contains 'bla'`; formulas know `log10`, `log1p`, `sign`, `cbrt`, `floor`, `ceil`,
+  `add_working_days(date, 10)` and `count_working_days(start, end)`; date parts `"is month start"`, `"is quarter
+  start"`, `"is quarter end"`, `"is year start"`, `"is year end"`, `"month end"`, `"is working day"` and `"unix
+  time"`; `sdata.make_run_of_dates(every="working day")`.
+- Files: `table.save("table_1.md")`, `.tex` and `.docx` (a finished table for a paper, empty cells blank),
+  `table.save("clipboard")`; `sdata.table("page.html", table_number=)`, `fixed_widths=` (text files with columns
+  at fixed places), `sdata.table("clipboard")`, and `.json` files with values inside values (`json_normalize`).
+  `pip install "simplydata[files]"` now brings jinja2 (for `.tex`) and lxml (for `.html`).
+  A web page is read in its own character set (`encoding=` when it names none); `fixed_widths=` takes
+  `decimal_mark=`, `thousands_mark=`, `read_as_text=`, `column_names=` and `skip_lines_starting_with=`.
+- Charts: `draw_lines(in_row_order=True)` joins the points in the order of the rows (`so.Path`), and
+  `move_layer_by=` on `draw_dots`, `draw_lines`, `draw_all_dots` and `draw_dashes` moves a layer along x
+  (`so.Shift`).
+
+### Changed: names from pandas, Polars and seaborn.objects point to these words
+
+- `sdata.help("unique")` now names `get_different_values_in`, `str.title` names `turn_into_title_case`,
+  `groupby.agg` the dict form of `find_summary_of`, `so.Path` `draw_lines(in_row_order=True)`, and every other
+  name of the batches its word. Jobs simplydata leaves to pandas and Polars on purpose (a row index, list columns,
+  lazy plans, `pipe`) and plumbing (`memory_usage`, `convert_dtypes`, `to_numpy` ...) point to the nearest word
+  and to `table.as_pandas()` or `table.as_polars()`. `list.` and `arr.` names (Polars list columns) have their own
+  list, so `list.sum` no longer reads as a table total.
+
 ### Changed: `sdata.numbers` is now `sdata.number_list` (check your code)
 
 - `sdata.number_list([3, 5, 2, 8])` makes a list of numbers, so the three makers read alike:

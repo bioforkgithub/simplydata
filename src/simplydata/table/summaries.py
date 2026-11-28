@@ -64,7 +64,17 @@ _SUMMARIES = {
     "find_standard_deviation_of": ("standard deviation", lambda c: nw.col(c).std(ddof=1)),
 }
 
-CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma")
+CORRELATION_METHODS = ("pearson", "spearman", "kendall", "somers", "gamma",
+                       # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy chatterjeexi,
+                       # weightedtau and multiscale_graphcorr
+                       "chatterjee xi", "weighted kendall", "multiscale graph")
+CORRELATION_ALIASES = {"chatterjeexi": "chatterjee xi", "xi": "chatterjee xi", "chatterjee": "chatterjee xi",
+                       "weightedtau": "weighted kendall", "weighted tau": "weighted kendall",
+                       "multiscale_graphcorr": "multiscale graph", "mgc": "multiscale graph",
+                       "spearmanr": "spearman", "spearmanrho": "spearman", "pearsonr": "pearson",
+                       "pointbiserialr": "pearson", "point-biserial": "pearson", "point biserial": "pearson",
+                       "kendalltau": "kendall", "somersd": "somers"}
+LINK_METHODS = ("chatterjee xi", "weighted kendall", "multiscale graph")  # two columns, SciPy's own test
 SPEARMAN_EXACT_LIMIT = 1290  # R cor.test(method = "spearman"): AS 89 below 1290 rows without ties
 SPEARMAN_NO_R = ("Note: Spearman's p-value is the t approximation (SciPy spearmanr); R cor.test() gives the p-value of "
                  "algorithm AS 89 for fewer than 1290 rows without ties, which needs R here: pip install "
@@ -89,9 +99,11 @@ def _spearman_p_from_r(a, b, alternative, notes):
     if notes is not None:
         notes.append(SPEARMAN_AS89)
     return float(np.asarray(found)[0])
-ORDINAL_METHODS = ("somers", "gamma")  # two columns, the measure with its interval from R DescTools
+ORDINAL_METHODS = ("somers", "gamma") + LINK_METHODS  # two columns: the measure on its own, not a table
 METHOD_NAMES = {"pearson": "Pearson", "spearman": "Spearman", "kendall": "Kendall's tau-b", "somers": "Somers' d",
-                "gamma": "Goodman and Kruskal's gamma"}
+                "gamma": "Goodman and Kruskal's gamma", "chatterjee xi": "Chatterjee's xi",
+                "weighted kendall": "the weighted Kendall's tau",
+                "multiscale graph": "the multiscale graph correlation"}
 CORRELATION_SHOW = ("r", "p-value", "each pair", "covariance", "result table")
 STRONGEST_PAIRS = 3  # a correlation table prints this many of its strongest pairs
 
@@ -106,7 +118,26 @@ MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "stand
             "standard error", "confidence interval", "range", "interquartile range", "empty cells",
             "geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
             "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
-            "first", "last")  # first, last: tables phase, batch 3
+            "first", "last",  # first, last: tables phase, batch 3
+            # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): pandas prod(), Polars entropy() and
+            # the text of each group joined into one cell (pandas groupby().agg("; ".join), Polars str.join)
+            "product", "entropy", "joined text",
+            # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): the scipy.stats summaries (gstd, pmean,
+            # kstat, kstatvar, lmoment, moment, expectile, tmean ..., circmean ..., differential_entropy,
+            # estimated_cdf, percentileofscore, sigmaclip); the ones with a number are written with it ("power mean 3")
+            "geometric standard deviation", "circular average", "circular standard deviation", "circular variance",
+            "differential entropy", "power mean", "cumulant", "cumulant variance", "l-moment", "l-skewness",
+            "l-kurtosis", "central moment",
+            "expectile", "percentile rank", "percent at or below", "sigma-clipped average",
+            # with in_bins_of= only: the counts of the bins added up (cumfreq) and each bin's share (relfreq)
+            "running count", "share of values")
+# families for 100 %, batches 3-4: the measures written with a number, as "percentile 90" ("power mean 3", "cumulant 2",
+# "average between 40 and 80" ...), read by _numbered_measure
+NUMBERED_MEASURES = ("power mean", "cumulant", "cumulant variance", "l-moment", "central moment", "expectile",
+                     "percentile rank", "percent at or below")
+BETWEEN_MEASURES = {"average": "tmean", "standard deviation": "tstd", "variance": "tvar", "standard error": "tsem"}
+SIGMA_CLIP = 4.0  # "sigma-clipped average": values more than 4 standard deviations out are cut, again and again (SciPy)
+BIN_MEASURES = ("running count", "share of values")  # only with in_bins_of=
 # "first" and "last": the first and last filled value in the order of the rows (pandas groupby().first() / last(),
 # which skip empty cells; Polars drop_nulls().first() / last()); not a NumPy measure, not one of _measure_values
 FIRST_LAST = ("first", "last")
@@ -116,10 +147,30 @@ MEASURE_ALIASES = {"mean": "average", "sum": "total", "sd": "standard deviation"
                    "mad": "median absolute deviation", "trimmed mean": "trimmed average", "mode": "most common",
                    "quantile": "percentile", "harmonic average": "harmonic mean", "hmean": "harmonic mean",
                    "winsorized average": "winsorised average", "winsorized mean": "winsorised average",
-                   "winsorised mean": "winsorised average"}
+                   "winsorised mean": "winsorised average", "prod": "product", "shannon entropy": "entropy",
+                   "implode": "joined text", "joined": "joined text",
+                   # families for 100 %, batches 3-4: SciPy's names of the new measures
+                   "gstd": "geometric standard deviation", "geometric sd": "geometric standard deviation",
+                   "circmean": "circular average", "circular mean": "circular average",
+                   "circstd": "circular standard deviation", "circvar": "circular variance",
+                   "differential_entropy": "differential entropy", "sigmaclip": "sigma-clipped average",
+                   "sigma clipped average": "sigma-clipped average", "cumfreq": "running count",
+                   "cumulative count": "running count", "relfreq": "share of values",
+                   "relative frequency": "share of values"}
 # measures worked out with NumPy / SciPy on each group's numbers (the others come from narwhals)
 ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of variation", "median absolute deviation",
-                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average")
+                  "trimmed average", "most common", "percentile", "harmonic mean", "winsorised average",
+                  "product", "entropy",
+                  # families for 100 %, batches 3-4
+                  "geometric standard deviation", "circular average", "circular standard deviation",
+                  "circular variance", "differential entropy", "sigma-clipped average", "l-skewness", "l-kurtosis")
+# the beginnings of the measures written with numbers ("power mean 3", "circular average in degrees" ...)
+ARRAY_PREFIXES = ("percentile ", "trimmed average ", "winsorised average ", "power mean ", "cumulant ",
+                  "l-moment ", "central moment ", "expectile ", "percent at or below ",
+                  "average between ", "standard deviation between ", "variance between ", "standard error between ",
+                  "smallest from ", "biggest up to ", "circular average ", "circular standard deviation ",
+                  "circular variance ", "sigma-clipped average ", "l-skewness", "l-kurtosis")
+TEXT_SEPARATOR = "; "  # show="joined text": what goes between the texts of a group, unless separator= says
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
 WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
 MAD_CONSTANT = 1.4826  # R mad(): makes the median absolute deviation match the sd for bell-shaped values
@@ -425,6 +476,8 @@ def _ordinal(number: float) -> str:
 
 
 BOOTSTRAP_KINDS = {"bootstrap": "bca", "percentile bootstrap": "percentile", "reverse percentile bootstrap": "basic"}
+# find_interval_of(test_method="bayesian"): families for 100 %, batches 3-4; the summary -> its place in bayes_mvs
+BAYES_SUMMARIES = {"average": 0, "variance": 1, "standard deviation": 2}
 # old values of find_interval_of(method=), still accepted with a note ("basic" read as "simple, the usual one")
 OLD_BOOTSTRAP_KINDS = {"basic bootstrap": "reverse percentile bootstrap", "basic": "reverse percentile bootstrap"}
 
@@ -505,7 +558,13 @@ def _measure_name(step: str, item):
                 f"For example:  {example}"
             )
         return f"winsorised average {number:g} %"
+    found = _numbered_measure(name)
+    if found:
+        return found
     name = MEASURE_ALIASES.get(name, name)
+    if name in NUMBERED_MEASURES:
+        raise SimplydataError(f'show="{name}" needs a number after it, for example "{_NUMBER_EXAMPLES[name]}".\n'
+                              f'For example:  table.{step}("marks", show=["{_NUMBER_EXAMPLES[name]}"])')
     if name == "percentile":
         raise SimplydataError(f'show="percentile" needs the percent, for example "percentile 90".\nFor example:  {example}')
     if name not in MEASURES:
@@ -513,8 +572,83 @@ def _measure_name(step: str, item):
     return name
 
 
+_NUMBER = r"(-?\d+(?:\.\d+)?)"
+_NUMBER_EXAMPLES = {"power mean": "power mean 3", "cumulant": "cumulant 2", "cumulant variance": "cumulant variance 2",
+                    "l-moment": "l-moment 2", "central moment": "central moment 3", "expectile": "expectile 90",
+                    "percentile rank": "percentile rank 70", "percent at or below": "percent at or below 70"}
+_SCIPY_NUMBERED = {"pmean": "power mean", "kstat": "cumulant", "kstatvar": "cumulant variance",
+                   "lmoment": "l-moment", "moment": "central moment", "percentileofscore": "percent at or below",
+                   "estimated_cdf": "percentile rank"}
+
+
+def _numbered_measure(name: str):
+    """Families for 100 %, batches 3-4: the scipy.stats measures written with a number: "power mean 3" (pmean),
+    "cumulant 2" (kstat), "cumulant variance 2" (kstatvar), "l-moment 2" (lmoment), "central moment 3" (moment),
+    "expectile 90" (expectile, in percent), "percentile rank 70" (estimated_cdf), "percent at or below 70"
+    (percentileofscore), "average between 40 and 80" (tmean; tstd, tvar, tsem the same), "smallest from 40" (tmin),
+    "biggest up to 80" (tmax), "circular average in degrees" (circmean; circstd, circvar) and "sigma-clipped average 3"
+    (sigmaclip). None when the name is none of them."""
+    import re
+
+    words = name.split()
+    if len(words) == 2 and words[0] in _SCIPY_NUMBERED:  # SciPy's own name with the number: "pmean 3", "kstat 2"
+        name = f"{_SCIPY_NUMBERED[words[0]]} {words[1]}"
+    found = re.fullmatch(r"(power mean|power average|cumulant variance|cumulant|l-moment|l moment|central moment|"
+                         r"expectile|percentile rank|percent at or below)\s+" + _NUMBER, name)
+    if found:
+        kind = {"power average": "power mean", "l moment": "l-moment"}.get(found.group(1), found.group(1))
+        number = float(found.group(2))
+        if kind in ("cumulant", "cumulant variance", "l-moment", "central moment"):
+            top = {"cumulant": 4, "cumulant variance": 2}.get(kind)
+            if not number.is_integer() or number < 1 or (top and number > top):
+                limit = f"from 1 to {top}" if top else "of 1 or more"
+                raise SimplydataError(f'"{kind}" needs a whole number {limit}, not {number:g}.\nFor example:  '
+                                      f'table.find_summary_of("marks", show=["{_NUMBER_EXAMPLES[kind]}"])')
+        if kind == "expectile" and not 0 < number < 100:
+            raise SimplydataError(f"An expectile is written in percent, above 0 and below 100 (not {number:g}).\n"
+                                  'For example:  table.find_summary_of("marks", show=["expectile 90"])')
+        if kind == "power mean" and number == 0:
+            raise SimplydataError('"power mean 0" is the geometric mean: show=["geometric mean"].')
+        return f"{kind} {number:g}"
+    found = re.fullmatch(r"(average|mean|standard deviation|variance|standard error)\s+between\s+" + _NUMBER
+                         + r"\s+and\s+" + _NUMBER, name)
+    if found:
+        kind = "average" if found.group(1) == "mean" else found.group(1)
+        low, high = float(found.group(2)), float(found.group(3))
+        if low >= high:
+            raise SimplydataError(f'"{name}" needs the lower limit first, then a higher one, like '
+                                  f'"{kind} between {min(low, high):g} and {max(low, high) + (low == high):g}".')
+        return f"{kind} between {low:g} and {high:g}"
+    found = re.fullmatch(r"(smallest from|biggest up to)\s+" + _NUMBER, name)
+    if found:
+        return f"{found.group(1)} {float(found.group(2)):g}"
+    found = re.fullmatch(r"(circular average|circular mean|circular standard deviation|circular variance|circmean|"
+                         r"circstd|circvar)\s+in\s+(degrees|radians|hours)", name)
+    if found:
+        kind = {"circular mean": "circular average", "circmean": "circular average",
+                "circstd": "circular standard deviation", "circvar": "circular variance"}.get(found.group(1),
+                                                                                           found.group(1))
+        return f"{kind} in {found.group(2)}"
+    if name in ("circular average", "circular mean", "circular standard deviation", "circular variance",
+                "circmean", "circstd", "circvar"):
+        plain = {"circular mean": "circular average", "circmean": "circular average",
+                 "circstd": "circular standard deviation", "circvar": "circular variance"}.get(name, name)
+        raise SimplydataError(f'show="{plain}" needs the unit of the angles, as find_average_direction_of needs '
+                              f'full_turn=: "{plain} in degrees" (a full turn is 360), "{plain} in radians" (2 pi) or '
+                              f'"{plain} in hours" (24, times of day).\nFor example:  table.find_summary_of('
+                              f'"wind_direction", show=["{plain} in degrees"])   (with sdata.get_example("weather"))')
+    found = re.fullmatch(r"sigma[- ]clipped (?:average|mean)\s+" + _NUMBER, name)
+    if found:
+        if float(found.group(1)) <= 0:
+            raise SimplydataError(f'"{name}" needs a number of standard deviations above 0, like "sigma-clipped '
+                                  'average 3".')
+        return f"sigma-clipped average {float(found.group(1)):g}"
+    return None
+
+
 def _is_array_measure(name) -> bool:
-    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(("percentile ", "trimmed average ", "winsorised average ")))
+    return isinstance(name, str) and (name in ARRAY_MEASURES or name.startswith(ARRAY_PREFIXES)
+                                      or name.startswith("percentile rank "))
 
 
 def _array_measure(name: str, values):
@@ -536,12 +670,18 @@ def _array_measure(name: str, values):
       winsorised average p %    floor(n * p / 100) values at each end set to the nearest value
                                 kept, then the average (SciPy mstats.winsorize, as R
                                 WRS2::winmean(tr = p / 100))
+      product                   every value multiplied together (NumPy prod, as pandas prod(),
+                                Polars product() and R prod())
+      entropy                   Shannon entropy -sum(p * log(p)), with p each value's share of the
+                                total and the natural log (SciPy entropy, as Polars entropy())
     """
     from scipy import stats
 
     n = len(values)
     if n == 0:
         return None, None, None
+    if name in ARRAY_MEASURES[12:] or name.startswith(ARRAY_PREFIXES[3:]) or name.startswith("percentile rank "):
+        return _scipy_measure(name, values)
     if name == "geometric mean":
         if (values <= 0).any():
             return None, "needs numbers above 0", None
@@ -550,6 +690,14 @@ def _array_measure(name: str, values):
         if (values <= 0).any():
             return None, "needs numbers above 0", None
         return float(stats.hmean(values)), None, None
+    if name == "product":  # NumPy prod, as pandas prod() and Polars product()
+        return float(np.prod(values)), None, None
+    if name == "entropy":  # SciPy entropy (natural log, the numbers shared out to 1), as Polars entropy()
+        if (values < 0).any():
+            return None, "needs numbers of 0 or more", None
+        if values.sum() == 0:
+            return None, "needs numbers that add up to more than 0", None
+        return float(stats.entropy(values)), None, None
     if name.startswith("winsorised average "):
         share = float(name.split()[-2]) / 100
         return float(np.mean(stats.mstats.winsorize(values, limits=(share, share)))), None, None
@@ -577,6 +725,226 @@ def _array_measure(name: str, values):
     if name.startswith("percentile"):
         return float(np.percentile(values, number)), None, None
     return float(stats.trim_mean(values, number / 100)), None, None
+
+
+def _scipy_measure(name: str, values):
+    """Families for 100 %, batches 3-4: one group's value of a scipy.stats summary (value, why it is empty, None).
+
+      geometric standard deviation  exp(sd(log(x))), sd with n - 1 (SciPy gstd); numbers above 0
+      power mean p                   (mean(x ** p)) ** (1 / p) (SciPy pmean); numbers above 0
+      cumulant k                     the unbiased estimate of the k-th cumulant, k = 1 to 4 (SciPy kstat)
+      cumulant variance k            the unbiased estimate of its variance, k = 1 or 2 (SciPy kstatvar)
+      l-moment k                     the k-th sample L-moment lambda_k (SciPy lmoment(standardize=False))
+      l-skewness, l-kurtosis         the L-moment ratios tau_3 = lambda_3 / lambda_2 and tau_4 = lambda_4 /
+                                     lambda_2 (SciPy lmoment, as R lmom::samlmu gives them)
+      central moment k               mean((x - mean(x)) ** k), divided by n (SciPy moment)
+      expectile p                    the value t where p % of the squared distances lie below (SciPy expectile,
+                                     alpha = p / 100); expectile 50 is the average
+      average between a and b        the average of the values from a to b, both included (SciPy tmean); the
+                                     standard deviation, variance and standard error the same, with n - 1
+                                     (tstd, tvar, tsem)
+      smallest from a / biggest up to b   SciPy tmin(lowerlimit=a) / tmax(upperlimit=b)
+      circular average ...           angles "in degrees" (a full turn 360), "in radians" (2 pi) or "in hours" (24)
+                                     (SciPy circmean, circstd, circvar); the average and standard deviation are in
+                                     that unit, the circular variance (1 minus the mean resultant length) has none
+      differential entropy           the entropy of the density the values come from, in nats (natural log; SciPy
+                                     differential_entropy: van Es's estimate up to 10 values, Ebrahimi's from 11
+                                     to 1000, Vasicek's above)
+      percentile rank v              the percent p at which the usual percentile rule (R type 7, a straight line
+                                     between the sorted values) gives v: the inverse of "percentile p" (SciPy
+                                     estimated_cdf, times 100); not the plain share below v ("percent at or below v")
+      percent at or below v          the percent of the values at or below v (SciPy percentileofscore(kind="weak"))
+      sigma-clipped average k        the average after values more than k standard deviations out are cut, again
+                                     until none is (SciPy sigmaclip(low=k, high=k), k = 4 unless written)
+    """
+    import math
+
+    from scipy import stats
+
+    n = len(values)
+    words = name.split()
+    number = None
+    try:
+        number = float(words[-1])
+    except ValueError:
+        pass
+    if name == "geometric standard deviation" or name.startswith("power mean "):
+        if (values <= 0).any():
+            return None, "needs numbers above 0", None
+    if name == "geometric standard deviation":
+        if n < 2:
+            return None, "needs at least 2 values", None
+        return float(stats.gstd(values)), None, None
+    if name.startswith("power mean "):
+        return float(stats.pmean(values, number)), None, None
+    if name.startswith("cumulant variance "):
+        if n < 2:
+            return None, "needs at least 2 values", None
+        return float(stats.kstatvar(values, int(number))), None, None
+    if name.startswith("cumulant "):
+        if n < int(number):
+            return None, f"needs at least {int(number)} values", None
+        return float(stats.kstat(values, int(number))), None, None
+    if name.startswith("l-moment "):
+        if n < int(number):
+            return None, f"needs at least {int(number)} values", None
+        return float(stats.lmoment(values, order=int(number), standardize=False)), None, None
+    if name in ("l-skewness", "l-kurtosis"):
+        order = 3 if name == "l-skewness" else 4
+        if n < order or np.ptp(values) == 0:
+            return None, f"needs at least {order} values that differ", None
+        return float(stats.lmoment(values, order=order)), None, None
+    if name.startswith("central moment "):
+        return float(stats.moment(values, order=int(number))), None, None
+    if name.startswith("expectile "):
+        return float(stats.expectile(values, alpha=number / 100)), None, None
+    if " between " in name:
+        kind = name.split(" between ")[0]
+        low, high = float(words[-3]), float(words[-1])
+        inside = values[(values >= low) & (values <= high)]
+        least = 1 if kind == "average" else 2
+        if len(inside) < least:
+            return None, f"needs at least {least} values between {low:g} and {high:g}", None
+        function = getattr(stats, BETWEEN_MEASURES[kind])
+        extra = {} if kind == "average" else {"ddof": 1}
+        return float(function(values, (low, high), **extra)), None, None
+    if name.startswith("smallest from "):
+        if not (values >= number).any():
+            return None, f"has no value of {number:g} or more", None
+        return float(stats.tmin(values, lowerlimit=number)), None, None
+    if name.startswith("biggest up to "):
+        if not (values <= number).any():
+            return None, f"has no value of {number:g} or less", None
+        return float(stats.tmax(values, upperlimit=number)), None, None
+    if name.startswith("circular "):
+        kind, unit = name.split(" in ")
+        high = {"degrees": 360.0, "radians": 2 * math.pi, "hours": 24.0}[unit]
+        function = {"circular average": stats.circmean, "circular standard deviation": stats.circstd,
+                    "circular variance": stats.circvar}[kind]
+        return float(function(values, high=high, low=0.0)), None, None
+    if name == "differential entropy":
+        if n < 2 or np.ptp(values) == 0:
+            return None, "needs at least 2 values that differ", None
+        import warnings
+
+        with warnings.catch_warnings():  # SciPy warns and gives NaN when the window is too small for the values
+            warnings.simplefilter("ignore")
+            found = float(stats.differential_entropy(values))
+        if math.isnan(found):
+            return None, "needs more values (SciPy's estimate needs a window of values)", None
+        return found, None, None
+    if name.startswith("percentile rank "):
+        if not hasattr(stats, "estimated_cdf"):
+            import scipy
+
+            raise SimplydataError(f'show="{name}" needs SciPy 1.18 or newer (this computer has SciPy '
+                                  f"{scipy.__version__}): pip install --upgrade scipy. SciPy 1.18 needs Python 3.12 or "
+                                  'newer. "percent at or below v" works with every SciPy.')
+        return float(stats.estimated_cdf(values, number)) * 100, None, None
+    if name.startswith("percent at or below "):
+        return float(stats.percentileofscore(values, number, kind="weak")), None, None
+    if name.startswith("sigma-clipped average"):
+        k = number if number is not None else SIGMA_CLIP
+        kept = stats.sigmaclip(values, low=k, high=k).clipped
+        return float(np.mean(kept)), None, None
+    raise SimplydataError(f'find_summary_of() does not know the measure "{name}".')
+
+
+def _bin_edges(step, name, how, x, example):
+    """in_bins_of={"depth": 10}: edges 10 apart from the multiple of 10 at or below the smallest value to the first at
+    or above the biggest; {"depth": [0, 10, 50]}: those edges."""
+    if isinstance(how, (list, tuple, np.ndarray)):
+        edges = np.asarray(how, dtype=float)
+        if len(edges) < 2 or not np.all(np.isfinite(edges)) or not np.all(np.diff(edges) > 0):
+            raise SimplydataError(f'in_bins_of= for "{name}" needs at least 2 edges, each bigger than the one before, '
+                                  f"like [0, 10, 50, 100].\nFor example:  {example}")
+        return edges
+    if isinstance(how, bool) or not isinstance(how, (int, float, np.integer, np.floating)) or not how > 0 or (
+            not math.isfinite(how)):
+        raise SimplydataError(f'in_bins_of= for "{name}" needs how wide each bin is (a number above 0) or a list of '
+                              f"edges.\nFor example:  {example}")
+    filled = x[~np.isnan(x)]
+    if len(filled) == 0:
+        raise SimplydataError(f'"{name}" has no numbers to cut into bins.')
+    from decimal import Decimal
+
+    width = float(how)
+    decimals = max(0, -Decimal(repr(width)).normalize().as_tuple().exponent)
+    tiny = 1e-9 * width  # a value a hair below a multiple of the width (3.9 / 0.1 = 38.999...) is on it
+    start = round(math.floor(filled.min() / width + 1e-9) * width, decimals)
+    count = max(1, math.ceil((filled.max() - start) / width - 1e-9))
+    if start + count * width < filled.max() - tiny:
+        count += 1
+    if count > 100_000:
+        raise SimplydataError(f'in_bins_of={{"{name}": {how:g}}} makes {count} bins; give wider bins.')
+    return np.round(start + width * np.arange(count + 1), decimals)  # edges written with the width's decimals
+
+
+def _add_bin_measures(result, columns, groups, key, extra, keep_count):
+    """show=["running count"] and ["share of values"] with in_bins_of=: the counts of the bins added up in the order of
+    the bins (SciPy cumfreq) and each bin's share of the values (relfreq), within each column and group."""
+    frame = result._frame
+    rows = frame.rows(named=True)
+    running, share = [], []
+    totals: dict = {}
+    for row in rows:
+        part = (row["column"], *[row[g] for g in groups])
+        totals[part] = totals.get(part, 0) + int(row["count"] or 0)
+    seen: dict = {}
+    for row in rows:
+        part = (row["column"], *[row[g] for g in groups])
+        seen[part] = seen.get(part, 0) + int(row["count"] or 0)
+        running.append(seen[part])
+        share.append(int(row["count"] or 0) / totals[part] if totals[part] else None)
+    added = []
+    if "running count" in extra:
+        added.append(nw.new_series("running count", running, nw.Int64, backend=frame.implementation))
+    if "share of values" in extra:
+        added.append(nw.new_series("share of values", share, nw.Float64, backend=frame.implementation))
+    frame = frame.with_columns(*added)
+    if not keep_count:
+        frame = frame.drop("count")
+    del columns, key
+    return result._new_table(frame)
+
+
+def _method_line(name: str) -> str:
+    """The method of a scipy.stats measure of the families for 100 % (one line printed after the summary)."""
+    words = name.split()
+    lines = [
+        ("geometric standard deviation", "exp of the standard deviation of the logs, n - 1 (SciPy gstd)"),
+        ("power mean ", "(average of x ** p) ** (1 / p) (SciPy pmean)"),
+        ("cumulant variance ", "the unbiased estimate of the variance of the k-statistic (SciPy kstatvar)"),
+        ("cumulant ", "the k-statistic, the unbiased estimate of the cumulant (SciPy kstat)"),
+        ("l-moment ", "the sample L-moment lambda_k (SciPy lmoment(standardize=False))"),
+        ("l-skewness", "the L-moment ratio tau_3 = lambda_3 / lambda_2 (SciPy lmoment, as R lmom::samlmu)"),
+        ("l-kurtosis", "the L-moment ratio tau_4 = lambda_4 / lambda_2 (SciPy lmoment, as R lmom::samlmu)"),
+        ("central moment ", "the average of (x - average) ** k, divided by n (SciPy moment)"),
+        ("expectile ", "the value where the squared distances above and below balance at that percent (SciPy "
+                       "expectile)"),
+        ("average between ", "only the values between the limits, both included (SciPy tmean; tstd, tvar, tsem with "
+                             "n - 1)"),
+        ("standard deviation between ", "only the values between the limits, both included, n - 1 (SciPy tstd)"),
+        ("variance between ", "only the values between the limits, both included, n - 1 (SciPy tvar)"),
+        ("standard error between ", "only the values between the limits, both included, n - 1 (SciPy tsem)"),
+        ("smallest from ", "the smallest value at or above the limit (SciPy tmin)"),
+        ("biggest up to ", "the biggest value at or below the limit (SciPy tmax)"),
+        ("circular variance ", "1 minus the mean resultant length, from 0 to 1, with no unit (SciPy circvar)"),
+        ("circular ", "angles on a circle (SciPy circmean, circstd), the answer in "
+                      + (words[-1] if len(words) > 1 else "") + ", from 0 to a full turn for the average"),
+        ("differential entropy", "in nats (natural log), SciPy differential_entropy (van Es up to 10 values, "
+                                 "Ebrahimi from 11 to 1000, Vasicek above)"),
+        ("percentile rank ", "the percent at which the usual percentile rule (R type 7) gives the value: the inverse "
+                             "of \"percentile p\" (SciPy estimated_cdf)"),
+        ("percent at or below ", "the share of the values at or below the value, in percent (SciPy "
+                                 "percentileofscore(kind=\"weak\"))"),
+        ("sigma-clipped average", "values more than k standard deviations (4 unless written) from the average cut "
+                                  "again and again, then the average (SciPy sigmaclip)"),
+    ]
+    for start, line in lines:
+        if name.startswith(start):
+            return f'Method of "{name}": {line}.'
+    return ""
 
 
 def _measure_values(names, raw: dict) -> dict:
@@ -1033,6 +1401,9 @@ class SummaryWords:
         and "reverse percentile bootstrap" (R's "basic") are the other two. With fewer than 20
         values a note says the interval is often too narrow. Gives back one row per group: the
         summary, the interval and the count.
+        test_method="bayesian" (families for 100 %) gives the Bayesian credible interval of the "average",
+        "variance" or "standard deviation" with the usual uninformative prior (SciPy bayes_mvs, Oliphant 2006): no
+        resampling, the interval comes from the t (average) or inverse gamma (variance) distribution of the values.
         """
         from .resampling import bootstrap_interval
 
@@ -1052,7 +1423,9 @@ class SummaryWords:
 
             renamed_note(f'test_method="{test_method}"', f'test_method="{OLD_BOOTSTRAP_KINDS[test_method]}"')
             test_method = OLD_BOOTSTRAP_KINDS[test_method]
-        self._check_choice(step, "test_method", test_method, tuple(BOOTSTRAP_KINDS))
+        if test_method == "bayesian":
+            return self._bayesian_interval(step, column, summary, for_each_group_in, level, example)
+        self._check_choice(step, "test_method", test_method, tuple(BOOTSTRAP_KINDS) + ("bayesian",))
         if callable(summary):
             label, function = getattr(summary, "__name__", "your summary"), summary
         else:
@@ -1086,6 +1459,40 @@ class SummaryWords:
         print(f"Interval: {words}; SciPy stats.bootstrap.")
         for note in sorted(notes - {""}):
             print(note)
+        return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
+
+    def _bayesian_interval(self, step, column, summary, for_each_group_in, level, example):
+        """find_interval_of(test_method="bayesian"): SciPy bayes_mvs (Jeffreys' prior), for the average, the variance
+        or the standard deviation; the middle of the interval is SciPy's estimate (the posterior mean)."""
+        from scipy import stats
+
+        label = _measure_name(step, summary) if isinstance(summary, str) else None
+        if label not in BAYES_SUMMARIES:
+            raise SimplydataError('test_method="bayesian" gives the interval of the "average", the "variance" or the '
+                                  f'"standard deviation".\nFor example:  table.{step}("marks", "average", '
+                                  'test_method="bayesian")')
+        groups = self._group_columns(step, for_each_group_in, [column]) if for_each_group_in is not None else []
+        frame = self._number_frame(step, [column])
+        self._note_empty(frame, [column])
+        rows = []
+        for key, x in self._group_arrays(frame, groups, column).items():
+            if len(x) < 2 or np.ptp(x) == 0:
+                raise SimplydataError(f"{step}() needs at least 2 different numbers in each group.")
+            found = stats.bayes_mvs(x, alpha=level / 100)[BAYES_SUMMARIES[label]]
+            rows.append(list(key) + [float(found.statistic), float(found.minmax[0]), float(found.minmax[1]), len(x)])
+        names = [f"{label} of {column}", f"{label} of {column} {level:g} % CI low",
+                 f"{label} of {column} {level:g} % CI high", "count"]
+        data = {name: [r[i] for r in rows] for i, name in enumerate(list(groups) + names)}
+        parts = [(" / ".join(_say_label(v) for v in r[:len(groups)]) + ": " if groups else "")
+                 + f"{_say_number(r[-4])} ({_say_number(r[-3])} to {_say_number(r[-2])})"
+                 for r in rows[:GROUPS_IN_SENTENCE]]
+        where = f" for each {_each(groups)}" if groups else ""
+        print(f'The {label} of "{column}"{where}, with its {level:g} % Bayesian credible interval: '
+              f"{'; '.join(parts)}{' ...' if len(rows) > GROUPS_IN_SENTENCE else ''}.")
+        print("Interval: Bayesian, with the uninformative (Jeffreys) prior, so it needs no resampling; the number is "
+              "the posterior mean (SciPy bayes_mvs, Oliphant 2006; the same as SciPy mvsdist). The average's interval "
+              "is the usual t interval.")
+        del example
         return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
 
     # ------------------------------------------------------------------ number words
@@ -1824,6 +2231,87 @@ class SummaryWords:
         return result
 
     # ------------------------------------------------------------------ several measures at once
+    def _summary_in_bins(self, step, column, show, for_each_group_in, every, separator, in_bins_of):
+        """find_summary_of(in_bins_of=): each row gets the bin of each in_bins_of= column (its lower and upper edge,
+        as SciPy binned_statistic: a bin holds its lower edge, the last one its upper edge too); then the bins are
+        summarised as groups. Bins with no values are left out."""
+        import contextlib
+        import io
+
+        example = ('table.find_summary_of("marks", show=["average", "count"], in_bins_of={"hours": 2})'
+                   '   (with sdata.get_example("marks"))')
+        if every is not None or separator is not None or isinstance(show, dict):
+            raise SimplydataError("in_bins_of= goes with a column and a list of measures in show=, not with every=, "
+                                  f"separator= or a dict in show=.\nFor example:  {example}")
+        if not isinstance(in_bins_of, dict) or not in_bins_of:
+            raise SimplydataError("in_bins_of= needs a dict: the column to cut into bins, and how wide each bin is "
+                                  f"(or a list of the edges).\nFor example:  {example}")
+        if column is None:
+            raise SimplydataError(f"{step}() needs the column to summarise.\nFor example:  {example}")
+        columns = _as_list(step, "the column", column)
+        groups = self._group_columns(step, for_each_group_in, columns) if for_each_group_in is not None else []
+        binned = list(in_bins_of)
+        for name in binned:
+            if not isinstance(name, str):
+                raise SimplydataError(f"in_bins_of= names a column in quotes, not {name!r}.\nFor example:  {example}")
+            if name in groups:
+                raise SimplydataError(f'"{name}" is in in_bins_of= and in for_each_group_in=; give it once.')
+        frame = self._number_frame(step, binned + [c for c in columns if c not in binned])
+        measures = self._measures(step, show)
+        extra = [m for m in measures if m in BIN_MEASURES]
+        if extra and len(binned) > 1:
+            raise SimplydataError(f'show="{extra[0]}" adds up the bins of one column; in_bins_of= has {len(binned)}.')
+        inner = [m for m in measures if m not in BIN_MEASURES]
+        if extra and "count" not in inner:
+            inner.append("count")
+        n = len(frame)
+        keep = np.ones(n, dtype=bool)
+        new_columns, described = [], []
+        for name in binned:
+            x = frame[name].cast(nw.Float64).to_numpy().astype(float)
+            edges = _bin_edges(step, name, in_bins_of[name], x, example)
+            index = np.searchsorted(edges, x, side="right") - 1
+            index[x == edges[-1]] = len(edges) - 2  # the last bin holds its upper edge too (SciPy binned_statistic)
+            inside = (index >= 0) & (index < len(edges) - 1) & ~np.isnan(x)
+            keep &= inside
+            safe = np.clip(index, 0, len(edges) - 2)
+            for label, values in ((f"{name} from", edges[safe]), (f"{name} to", edges[safe + 1])):
+                if label in frame.columns:
+                    raise SimplydataError(f'in_bins_of= makes a column called "{label}"; the table has one. '
+                                          "Rename it first.")
+                new_columns.append(nw.new_series(label, values, nw.Float64, backend=frame.implementation))
+            outside = int((~inside & ~np.isnan(x)).sum())
+            width = in_bins_of[name]
+            how = (f"{_say_number(float(width))} wide" if not isinstance(width, (list, tuple, np.ndarray))
+                   else "with the edges given")
+            described.append(f'"{name}" in {len(edges) - 1} bins {how}, from {_say_number(edges[0])} to '
+                             f"{_say_number(edges[-1])}" + (f" ({outside} values outside them left out)" if outside
+                                                            else ""))
+            empty = int(np.isnan(x).sum())
+            if empty:
+                described[-1] += f" ({empty} empty cells left out)"
+        frame = frame.with_columns(*new_columns).with_columns(
+            nw.new_series("__keep", keep, nw.Boolean, backend=frame.implementation))
+        frame = frame.filter(nw.col("__keep")).drop("__keep")
+        if len(frame) == 0:
+            raise SimplydataError(f"No value of {', '.join(binned)} falls in the bins, so there is nothing to "
+                                  f"summarise.\nFor example:  {example}")
+        keys = groups + [label for name in binned for label in (f"{name} from", f"{name} to")]
+        printed = io.StringIO()
+        with contextlib.redirect_stdout(printed):
+            result = self._new_table(frame).find_summary_of(columns, show=inner, for_each_group_in=keys)
+        lines = printed.getvalue().splitlines()
+        if extra:
+            result = _add_bin_measures(result, columns, groups, f"{binned[0]} from", extra, "count" in measures)
+        print(f"Summary of {_names(columns)} in bins of " + "; ".join(described)
+              + (f", for each {_names(groups)}" if groups else "") + ":")
+        for line in lines[1:]:
+            print(line)
+        print("Method: each value goes into the bin that holds it, its lower edge included (the last bin holds its "
+              "upper edge too), as SciPy binned_statistic" + ("_2d" if len(binned) == 2 else "_dd" if len(binned) > 2
+                                                               else "") + "; bins with no values are left out.")
+        return result
+
     @staticmethod
     def _measures(step, show):
         if show is None:
@@ -1845,8 +2333,9 @@ class SummaryWords:
                 measures.append(name)
         return measures
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
-    def find_summary_of(self, column=None, show=None, for_each_group_in=None, every=None):
+    @friendly(renamed={"for_each": "for_each_group_in"}, others={"sep": "separator", "bins": "in_bins_of"})
+    def find_summary_of(self, column=None, show=None, for_each_group_in=None, every=None, separator=None,
+                        in_bins_of=None):
         """Several measures of one or more columns at once, in one tidy table.
 
         table.find_summary_of("marks", for_each_group_in="class", show=["average", "standard deviation", "count"])
@@ -1875,8 +2364,47 @@ class SummaryWords:
         numbers (a NumPy array) and gives back one number, show=["average", my_measure].
         The new table has one row for each column (and each group), so it can be saved
         or charted. every= groups a date column in for_each_group_in= by "week", "month", "year" ...
+        "product" multiplies the values together (pandas prod(), Polars product()) and "entropy" is the Shannon
+        entropy of the values as shares of their total, natural log (SciPy entropy, Polars entropy()).
+        show=["joined text"] joins the text of each group into one cell, "; " between them (separator= for
+        another), the mirror of split_into_rows (pandas groupby().agg("; ".join), Polars str.join):
+          table.find_summary_of("name", show=["joined text"], separator=", ", for_each_group_in="class")
+        Different measures for different columns, one row for each group (pandas named aggregation, Polars
+        group_by().agg()): show= a dict of column: measures, and leave out the column:
+          table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")
+        The columns of that table are called "marks average", "marks count" and "hours total".
+        More scipy.stats measures (families for 100 %): "geometric standard deviation" (gstd), "power mean 3"
+        (pmean), "cumulant 2" and "cumulant variance 2" (kstat, kstatvar), "l-moment 2" (lmoment), "l-skewness"
+        and "l-kurtosis" (the L-moment ratios, as R lmom::samlmu), "central moment 3"
+        (moment, divided by n), "expectile 90" (expectile), "average between 40 and 80" and the same for "standard
+        deviation", "variance" and "standard error" (tmean, tstd, tvar, tsem: only the values from 40 to 80),
+        "smallest from 40" and "biggest up to 80" (tmin, tmax), "circular average in degrees", "circular standard
+        deviation in degrees" and "circular variance in degrees" (or "in radians", "in hours"; circmean, circstd,
+        circvar), "differential entropy" (in nats), "percentile rank 70" (the percent at which the usual percentile
+        rule gives 70, the inverse of "percentile 90": estimated_cdf), "percent at or below 70" (percentileofscore)
+        and "sigma-clipped average" (sigmaclip). Each of these prints one line with its method.
+        in_bins_of= cuts a column of numbers into bins and summarises each bin (SciPy binned_statistic):
+          table.find_summary_of("marks", show=["average", "count"], in_bins_of={"hours": 2})
+        {"hours": 2} makes bins 2 wide, starting at a multiple of 2; {"hours": [0, 5, 10, 20]} gives the edges.
+        Each bin holds its lower edge, and the last one its upper edge too. Two columns or more make bins of each
+        (binned_statistic_2d, binned_statistic_dd). Bins with no values are left out. With in_bins_of=,
+        show=["running count"] adds the counts up bin after bin (cumfreq) and "share of values" gives each bin's
+        share of the values (relfreq).
         """
         step = "find_summary_of"
+        if in_bins_of is not None:
+            return self._summary_in_bins(step, column, show, for_each_group_in, every, separator, in_bins_of)
+        bin_only = [m for m in ([show] if isinstance(show, str) else list(show) if isinstance(show, (list, tuple))
+                                else []) if isinstance(m, str) and MEASURE_ALIASES.get(m, m) in BIN_MEASURES]
+        if bin_only:
+            raise SimplydataError(f'show="{bin_only[0]}" adds up the bins of in_bins_of=, so it needs in_bins_of=.\n'
+                                  'For example:  table.find_summary_of("marks", show=["count", "running count"], '
+                                  'in_bins_of={"hours": 2})   (with sdata.get_example("marks"))')
+        if isinstance(show, dict):
+            return self._summary_by_column(step, column, show, for_each_group_in, every, separator)
+        if separator is not None and (not isinstance(show, (list, tuple, str)) or "joined text" not in (
+                [show] if isinstance(show, str) else list(show))):
+            raise SimplydataError('separator= goes with show=["joined text"]: it is what goes between the texts.')
         if column is None:
             raise SimplydataError(
                 f"{step}() needs the column to summarise.\n"
@@ -1886,6 +2414,8 @@ class SummaryWords:
         columns = _as_list(step, "the column", column)
         measures = self._measures(step, show)
         groups = self._group_columns(step, for_each_group_in, columns) if for_each_group_in is not None else []
+        if "joined text" in measures:
+            return self._joined_text(step, columns, measures, groups, every, separator)
         if "column" in groups:
             raise SimplydataError(
                 'find_summary_of() makes a column called "column", so a for_each_group_in= column cannot have that name.\n'
@@ -1956,6 +2486,9 @@ class SummaryWords:
         table = self._new_table(result)
         self._note_empty(frame, columns)
         self._say_summary(table, columns, groups, out_names, periods)
+        for line in dict.fromkeys(_method_line(n) for n in out_names if isinstance(n, str)):
+            if line:
+                print(line)
         for (name, why), places in problems.items():
             where = ", ".join(places[:GROUPS_IN_SENTENCE]) + (" ..." if len(places) > GROUPS_IN_SENTENCE else "")
             if why.startswith("tied:"):
@@ -1974,6 +2507,99 @@ class SummaryWords:
                 print(f"Note: {name} sets the lowest and highest {share:g} % of the values{place} to the nearest value "
                       f"kept, then takes the average, as R WRS2::winmean(x, tr = {share / 100:g}).")
         _period_note(periods)
+        return table
+
+    def _joined_text(self, step, columns, measures, groups, every, separator):
+        """show=["joined text"]: the text of each group in one cell (Polars str.join on both engines, as pandas
+        groupby().agg("; ".join)); the rows of each group in table order, empty cells left out."""
+        import polars as pl
+
+        if measures != ["joined text"]:
+            raise SimplydataError('show=["joined text"] goes on its own (its column holds text, not numbers); '
+                                  "find the other measures in a step of their own.")
+        if separator is None:
+            separator = TEXT_SEPARATOR
+        if not isinstance(separator, str):
+            raise SimplydataError('separator= is the text that goes between the texts, such as separator="; ".')
+        if "column" in groups:
+            raise SimplydataError('find_summary_of() makes a column called "column", so a for_each_group_in= column '
+                                  'cannot have that name.')
+        self._need_columns(*columns)
+        frame, periods = self._periods(step, self._frame, groups or None, every)
+        from ._base import polars_text
+
+        polars = frame.to_polars()
+        polars = polars.with_columns(polars_text(polars[c]).alias(c) for c in columns)  # dates as 2026-03-01
+        parts = []
+        for c in columns:
+            joined = pl.col(c).drop_nulls().str.join(separator).alias("joined text")
+            if groups:
+                part = polars.group_by(groups, maintain_order=True).agg(joined).sort(groups, nulls_last=True)
+            else:
+                part = polars.select(joined)
+            parts.append(part.with_columns(pl.lit(c).alias("column")).select("column", *groups, "joined text"))
+        result = pl.concat(parts)
+        if not frame.implementation.is_polars():
+            result = result.to_pandas()
+        table = self._new_table(nw.from_native(result, eager_only=True))
+        rows = table._frame.rows(named=True)
+        print(f"The text of {_names(columns)} joined into one cell" + (f" for each {_each(groups, periods)}"
+                                                                         if groups else "")
+              + f', "{separator}" between the texts (empty cells left out):')
+        for row in rows[:SUMMARY_LINES]:
+            label = [f'"{row["column"]}"'] if len(columns) > 1 else []
+            label += [_say_label(row[g], periods.get(g)) for g in groups]
+            text = row["joined text"] if len(row["joined text"]) <= 60 else row["joined text"][:57] + "..."
+            print(("  " + " / ".join(label) + ": " if label else "  ") + text)
+        if len(rows) > SUMMARY_LINES:
+            print(f"  ... and {len(rows) - SUMMARY_LINES} more rows (the new table has them all)")
+        _period_note(periods)
+        return table
+
+    def _summary_by_column(self, step, column, show, for_each_group_in, every, separator):
+        """show={"marks": ["average", "count"], "hours": ["total"]}: different measures for different columns, one
+        row for each group, the columns called "marks average" ... (pandas named aggregation, Polars agg)."""
+        import contextlib
+        import io
+
+        if column is not None:
+            raise SimplydataError(
+                "With show= a dict of column: measures, the dict names the columns, so leave out the column.\n"
+                'For example:  table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, '
+                'for_each_group_in="class")   (with sdata.get_example("marks"))')
+        if not show or not all(isinstance(k, str) for k in show):
+            raise SimplydataError('show= as a dict gives each column its measures: show={"marks": ["average", '
+                                  '"count"], "hours": ["total"]}.')
+        groups = _as_list(step, "for_each_group_in=", for_each_group_in) if for_each_group_in is not None else []
+        result, periods = None, {}
+        for name, measures in show.items():
+            with contextlib.redirect_stdout(io.StringIO()):
+                part = self.find_summary_of(name, show=measures, for_each_group_in=for_each_group_in, every=every,
+                                            separator=separator)._frame
+            if every is not None:
+                periods = {g: every for g in groups if self._frame.schema[g].is_temporal()}
+            renamed = {c: f"{name} {c}" for c in part.columns if c not in groups and c != "column"}
+            part = part.drop("column").rename(renamed)
+            if result is None:
+                result = part
+            else:
+                # every part has the same groups in the same order (one group_by of the same rows, sorted, empty
+                # keys last), so the measures are put side by side; a join would lose the empty-key group, whose
+                # key never equals itself
+                if groups:
+                    part = part.drop(groups)
+                result = nw.concat([nw.maybe_reset_index(result), nw.maybe_reset_index(part)], how="horizontal")
+        table = self._new_table(nw.maybe_reset_index(result))
+        out_names = [c for c in result.columns if c not in groups]
+        print("Summary" + (f" for each {_each(groups, periods)}" if groups else "") + ", different measures for "
+              "different columns:")
+        for row in table._frame.rows(named=True)[:SUMMARY_LINES]:
+            label = " / ".join(_say_label(row[g], periods.get(g)) for g in groups)
+            items = ", ".join(f"{n} {_say_number(row[n]) if not isinstance(row[n], str) else row[n]}"
+                              for n in out_names)
+            print(("  " + label + ": " if label else "  ") + items)
+        if len(result) > SUMMARY_LINES:
+            print(f"  ... and {len(result) - SUMMARY_LINES} more rows (the new table has them all)")
         return table
 
     def _ends_in_own_kind(self, result, data, columns, ends):
@@ -2139,7 +2765,10 @@ class SummaryWords:
         test_method="pearson" (a straight-line link, the usual one), "spearman" (uses ranks,
         for any link that keeps going one way) or "kendall" (Kendall's tau-b, also ranks: the
         share of pairs of rows that agree in order minus the share that disagree; as R
-        cor.test(method = "kendall"), SciPy kendalltau). Prints the strength in words and the
+        cor.test(method = "kendall"), SciPy kendalltau). With two columns also "chatterjee xi" (does
+        the second column follow from the first, in any shape? SciPy chatterjeexi), "weighted kendall"
+        (Kendall's tau that counts the top of the ranking most, SciPy weightedtau) or "multiscale graph"
+        (any kind of link, p-value from 1000 shuffles, SciPy multiscale_graphcorr). Prints the strength in words and the
         p-value from SciPy; Spearman's p-value for fewer than 1290 rows without tied values comes
         from R cor.test() (algorithm AS 89, R's default; SciPy has only the t approximation, used
         without R, with a note). With two columns it gives back the number r; rows with an
@@ -2214,6 +2843,8 @@ class SummaryWords:
                 raise SimplydataError(f"{step}() with rows_back= gives the cross-correlation, which is "
                                       'Pearson\'s r (as R ccf()); leave out test_method= and show=.')
             return self._cross_correlation(step, names, rows_back, sorted_by)
+        if isinstance(test_method, str) and test_method.strip().lower() in CORRELATION_ALIASES:
+            test_method = CORRELATION_ALIASES[test_method.strip().lower()]
         self._check_choice(step, "test_method", test_method, CORRELATION_METHODS + ("bayesian",))
         from .imputation_more import MULTIPLE, read_empty_cells
 
@@ -2284,8 +2915,8 @@ class SummaryWords:
                                   else "allowing_for= works with two columns (and the one to allow for).")
         if test_method in ORDINAL_METHODS and (alt != "two-sided" or p_value_by != "formula" or interval_by is not None
                                           or allowing_for is not None):
-            raise SimplydataError(f'test_method="{test_method}" gives the measure with its 95 % interval; leave out sides=, '
-                                  "p_value_by=, interval_by= and allowing_for=.")
+            raise SimplydataError(f'test_method="{test_method}" gives the measure of two columns on its own; leave out '
+                                  "sides=, p_value_by=, interval_by= and allowing_for=.")
         if allowing_for is not None:
             if not isinstance(allowing_for, str) or allowing_for in names:
                 raise SimplydataError('allowing_for= needs a third column name, such as allowing_for="height".')
@@ -2296,6 +2927,8 @@ class SummaryWords:
                                              names[1], allowing_for, test_method,
                                              result_table=shown == "result table")
         frame = self._number_frame(step, names)
+        if test_method in LINK_METHODS:
+            return self._link_measure(step, frame, names[0], names[1], test_method, with_seed)
         if test_method in ORDINAL_METHODS:
             return self._ordinal_association(step, frame, names[0], names[1], test_method)
         if len(names) == 2:
@@ -2474,6 +3107,50 @@ class SummaryWords:
         how = "Fisher's z" if method == "spearman" else "asymptotic standard error"
         return (f"; values from {_num(found[1])} to {_num(found[2])} fit the data (95 % CI, {how}, R DescTools)", "",
                 float(found[1]), float(found[2]))
+
+    def _link_measure(self, step, frame, column_a, column_b, method, seed):
+        """find_correlation_between(test_method="chatterjee xi" | "weighted kendall" | "multiscale graph"): SciPy
+        chatterjeexi (does the second column follow from the first, in any shape?), weightedtau (Kendall's tau that
+        weighs the top of the ranking most) and multiscale_graphcorr (any kind of link, with a p-value from
+        shuffling). Gives back the measure."""
+        from scipy import stats
+
+        from .stat_tests import _num
+
+        pairs = frame.select(column_a, column_b).drop_nulls()
+        skipped = len(frame) - len(pairs)
+        if skipped:
+            print(f"Note: {skipped} row{'' if skipped == 1 else 's'} with an empty cell in \"{column_a}\" or "
+                  f"\"{column_b}\" {'was' if skipped == 1 else 'were'} skipped.")
+        x, y = (pairs[c].to_numpy().astype(float) for c in (column_a, column_b))
+        least = {"multiscale graph": 5}.get(method, 3)
+        if len(x) < least:
+            raise SimplydataError(f"{METHOD_NAMES[method][0].upper()}{METHOD_NAMES[method][1:]} needs at least "
+                                  f"{least} rows with both values; there are {len(x)}.")
+        if method == "chatterjee xi":
+            result = stats.chatterjeexi(x, y)
+            value, p = float(result.statistic), float(result.pvalue)
+            meaning = (f'how well "{column_b}" follows from "{column_a}" in any shape, from 0 (not at all) to 1 '
+                       "(fully), read from the ranks; it is not symmetric (swap the columns for the other way)")
+            how = ("SciPy chatterjeexi (Chatterjee 2021); its p-value is one-sided (is xi bigger than 0, as it "
+                   "would be by chance?), from the normal approximation, as R XICOR::xicor(pvalue = TRUE)")
+        elif method == "weighted kendall":
+            result = stats.weightedtau(x, y)
+            value, p = float(result.statistic), math.nan
+            meaning = ("Kendall's tau with the pairs near the top of the ranking (the biggest values) counting most, "
+                       "from -1 to 1")
+            how = "SciPy weightedtau (Vigna 2015, hyperbolic weights, ranked by both columns); it gives no p-value"
+        else:
+            result = stats.multiscale_graphcorr(x, y, reps=1000, random_state=np.random.default_rng(seed))
+            value, p = float(result.statistic), float(result.pvalue)
+            meaning = "any kind of link between the columns (straight or not), from about 0 (none) to 1"
+            how = ("SciPy multiscale_graphcorr (Vogelstein et al. 2019), its p-value from 1000 shuffles "
+                   f"(seed {seed}), as R mgc::mgc.test()")
+        p_text = f", {_p_shown(p)}" if not math.isnan(p) else ""
+        print(f'{METHOD_NAMES[method][0].upper()}{METHOD_NAMES[method][1:]} between "{column_a}" and "{column_b}" = '
+              f"{_num(value)} ({len(x)} rows{p_text}).")
+        print(f"It measures {meaning}. Method: {how}; chosen with test_method=.")
+        return value
 
     def _ordinal_association(self, step, frame, column_a, column_b, method):
         """Somers' d (of the second column given the first) or Goodman and Kruskal's gamma, with the 95 % interval

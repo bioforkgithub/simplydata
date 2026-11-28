@@ -4,7 +4,7 @@ Made by `python validation/make_report.py` on 2026-11-28. Generated: do not edit
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**46210 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
+**47851 checks passed, 12 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
 
 ## Setup
 
@@ -36,19 +36,19 @@ Kinds: *published* = real data with a published or certified answer; *real data*
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | NIST certified | 1.00211681802045 | 1.00211681802045 | at least 9 digits (LRE 14.4) | pass |
-| intercept | NIST certified | -0.262323073773985 | -0.262323073774029 | at least 9 digits (LRE 12.8) | pass |
-| slope standard error | NIST certified | 0.000429796848200648 | 0.000429796848199937 | at least 9 digits (LRE 11.8) | pass |
-| intercept standard error | NIST certified | 0.232818234301538 | 0.232818234301152 | at least 9 digits (LRE 11.8) | pass |
+| intercept | NIST certified | -0.262323073774041 | -0.262323073774029 | at least 9 digits (LRE 13.3) | pass |
+| slope standard error | NIST certified | 0.000429796848185389 | 0.000429796848199937 | at least 9 digits (LRE 10.5) | pass |
+| intercept standard error | NIST certified | 0.232818234293272 | 0.232818234301152 | at least 9 digits (LRE 10.5) | pass |
 | R squared | NIST certified | 0.999993745883712 | 0.999993745883712 | at least 9 digits (LRE 15.0) | pass |
 | slope | SciPy stats.linregress | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | -0.262323073773985 | -0.262323073773985 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.000429796848200648 | 0.000429796848200648 | relative 1e-09 | pass |
-| intercept standard error | SciPy stats.linregress | 0.232818234301538 | 0.232818234301538 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | -0.262323073774041 | -0.262323073774041 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.000429796848185389 | 0.000429796848185389 | relative 1e-09 | pass |
+| intercept standard error | SciPy stats.linregress | 0.232818234293272 | 0.232818234293272 | relative 1e-09 | pass |
 | R squared | SciPy stats.linregress | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 | slope | R | 1.00211681802045 | 1.00211681802045 | relative 1e-09 | pass |
-| intercept | R | -0.262323073773985 | -0.262323073773899 | relative 1e-09 | pass |
-| slope standard error | R | 0.000429796848200648 | 0.000429796848199944 | relative 1e-09 | pass |
-| intercept standard error | R | 0.232818234301538 | 0.232818234301156 | relative 1e-09 | pass |
+| intercept | R | -0.262323073774041 | -0.26232307377373 | relative 1e-09 | pass |
+| slope standard error | R | 0.000429796848185389 | 0.000429796848199947 | relative 1e-09 | pass |
+| intercept standard error | R | 0.232818234293272 | 0.232818234301158 | relative 1e-09 | pass |
 | R squared | R | 0.999993745883712 | 0.999993745883712 | relative 1e-09 | pass |
 
 **Anscombe's set 1: the same line through four different patterns** (published; data: Anscombe's quartet)
@@ -73,11 +73,11 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | slope | Anscombe (1973) | 0.5 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00090909090909 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117963745967641 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666242033727484 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666242033727485 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.5 | 0.5 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00090909090909 | 3.00090909090909 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117963745967641 | 0.117963745967641 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666242033727484 | 0.666242033727484 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666242033727485 | 0.666242033727485 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -86,13 +86,13 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499727272727273 | 0.5 | within 0.001 (printed rounding) | pass |
-| intercept | Anscombe (1973) | 3.00245454545455 | 3 | within 0.01 (printed rounding) | pass |
+| intercept | Anscombe (1973) | 3.00245454545454 | 3 | within 0.01 (printed rounding) | pass |
 | slope standard error | Anscombe (1973) | 0.117877662221002 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666324041066559 | 0.667 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.66632404106656 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499727272727273 | 0.499727272727273 | relative 1e-09 | pass |
-| intercept | SciPy stats.linregress | 3.00245454545455 | 3.00245454545455 | relative 1e-09 | pass |
+| intercept | SciPy stats.linregress | 3.00245454545454 | 3.00245454545454 | relative 1e-09 | pass |
 | slope standard error | SciPy stats.linregress | 0.117877662221002 | 0.117877662221002 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666324041066559 | 0.666324041066559 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.66632404106656 | 0.66632404106656 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -102,12 +102,12 @@ Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to wi
 |---|---|---|---|---|---|
 | slope | Anscombe (1973) | 0.499909090909091 | 0.5 | within 0.001 (printed rounding) | pass |
 | intercept | Anscombe (1973) | 3.00172727272727 | 3 | within 0.01 (printed rounding) | pass |
-| slope standard error | Anscombe (1973) | 0.117818941729685 | 0.118 | within 0.001 (printed rounding) | pass |
-| R squared | Anscombe (1973) | 0.666707256898466 | 0.667 | within 0.001 (printed rounding) | pass |
+| slope standard error | Anscombe (1973) | 0.117818941729686 | 0.118 | within 0.001 (printed rounding) | pass |
+| R squared | Anscombe (1973) | 0.666707256898465 | 0.667 | within 0.001 (printed rounding) | pass |
 | slope | SciPy stats.linregress | 0.499909090909091 | 0.499909090909091 | relative 1e-09 | pass |
 | intercept | SciPy stats.linregress | 3.00172727272727 | 3.00172727272727 | relative 1e-09 | pass |
-| slope standard error | SciPy stats.linregress | 0.117818941729685 | 0.117818941729685 | relative 1e-09 | pass |
-| R squared | SciPy stats.linregress | 0.666707256898466 | 0.666707256898466 | relative 1e-09 | pass |
+| slope standard error | SciPy stats.linregress | 0.117818941729686 | 0.117818941729686 | relative 1e-09 | pass |
+| R squared | SciPy stats.linregress | 0.666707256898465 | 0.666707256898465 | relative 1e-09 | pass |
 
 Note: The paper prints the fit rounded (3 + 0.5 x); its sets agree with it to within about one unit of the last printed digit, so the check allows the printed rounding plus that much.
 
@@ -316,10 +316,10 @@ Note: No data: the published value is the standard normal table (5 decimals).
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| slope | statsmodels WLS | 0.204801163243055 | 0.204801163243055 | relative 1e-09 | pass |
+| slope | statsmodels WLS | 0.204801163243056 | 0.204801163243056 | relative 1e-09 | pass |
 | slope standard error | statsmodels WLS | 0.0381548260706377 | 0.0381548260706378 | relative 1e-09 | pass |
 | intercept | statsmodels WLS | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
-| slope | R | 0.204801163243055 | 0.204801163243057 | relative 1e-09 | pass |
+| slope | R | 0.204801163243056 | 0.204801163243057 | relative 1e-09 | pass |
 | slope standard error | R | 0.0381548260706377 | 0.0381548260706376 | relative 1e-09 | pass |
 | intercept | R | 12.7964165214901 | 12.7964165214901 | relative 1e-09 | pass |
 
@@ -331,13 +331,13 @@ Note: Weisberg (2014, section 7.1) fits this weighted line; the numbers are chec
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603429 | 0.540078166603428 | relative 1e-07 | pass |
+| extract | statsmodels GLM (Binomial, scale X2) | 0.540078166603428 | 0.540078166603428 | relative 1e-07 | pass |
 | extract standard error | statsmodels GLM (Binomial, scale X2) | 0.340867231336386 | 0.340867231336386 | relative 1e-07 | pass |
 | interaction standard error | statsmodels GLM (Binomial, scale X2) | 0.418124932214023 | 0.418124932214023 | relative 1e-07 | pass |
-| extract | R | 0.540078166603429 | 0.540078166603427 | relative 1e-06 | pass |
+| extract | R | 0.540078166603428 | 0.540078166603429 | relative 1e-06 | pass |
 | extract standard error | R | 0.340867231336386 | 0.340867231340939 | relative 1e-06 | pass |
 | interaction standard error | R | 0.418124932214023 | 0.418124932215663 | relative 1e-06 | pass |
-| interaction p-value | R | 0.0801390217137065 | 0.080139021714788 | relative 1e-06 | pass |
+| interaction p-value | R | 0.0801390217137059 | 0.0801390217147883 | relative 1e-06 | pass |
 
 Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the same data (Collett 2003, Modelling Binary Data) is checked here against statsmodels and R.
 
@@ -349,12 +349,12 @@ Note: Crowder (1978) fitted a beta-binomial model; the quasi-binomial fit of the
 |---|---|---|---|---|---|
 | spontaneous | statsmodels ConditionalLogit | 1.98587551668241 | 1.98587551668241 | relative 1e-07 | pass |
 | induced | statsmodels ConditionalLogit | 1.40901163187936 | 1.40901163187936 | relative 1e-07 | pass |
-| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539729635 | 0.352443543187006 | relative 1e-07 | pass |
-| induced standard error | statsmodels ConditionalLogit | 0.360712432546398 | 0.360712438256113 | relative 1e-07 | pass |
+| spontaneous standard error | statsmodels ConditionalLogit | 0.352443539645452 | 0.352443543187006 | relative 1e-07 | pass |
+| induced standard error | statsmodels ConditionalLogit | 0.360712433692957 | 0.360712438256113 | relative 1e-07 | pass |
 | spontaneous | R | 1.98587551668241 | 1.98587551667772 | relative 1e-06 | pass |
 | induced | R | 1.40901163187936 | 1.40901163187514 | relative 1e-06 | pass |
-| spontaneous standard error | R | 0.352443539729635 | 0.35244353980717 | relative 1e-06 | pass |
-| induced standard error | R | 0.360712432546398 | 0.360712436248923 | relative 1e-06 | pass |
+| spontaneous standard error | R | 0.352443539645452 | 0.35244353980717 | relative 1e-06 | pass |
+| induced standard error | R | 0.360712433692957 | 0.360712436248923 | relative 1e-06 | pass |
 
 Note: The model of R's ?clogit example; R and statsmodels both use the exact conditional likelihood.
 
@@ -366,9 +366,9 @@ Note: The model of R's ?clogit example; R and statsmodels both use the exact con
 |---|---|---|---|---|---|
 | risk ratio, smoking alone | statsmodels Table2x2 and GLM (Poisson, HC0) | 1.6076421248835 | 1.6076421248835 | relative 1e-06 | pass |
 | log risk ratio with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.460730395503193 | 0.460730395503193 | relative 1e-06 | pass |
-| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081042 | 0.213624213081042 | relative 1e-06 | pass |
+| standard error with age | statsmodels Table2x2 and GLM (Poisson, HC0) | 0.213624213081043 | 0.213624213081043 | relative 1e-06 | pass |
 | log risk ratio with age | R | 0.460730395503193 | 0.460730390124031 | relative 1e-06 | pass |
-| standard error with age | R | 0.213624213081042 | 0.2136243204413 | relative 1e-06 | pass |
+| standard error with age | R | 0.213624213081043 | 0.2136243204413 | relative 1e-06 | pass |
 
 Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio of the 2 x 2 table (Zou 2004), here from statsmodels' Table2x2.
 
@@ -387,15 +387,15 @@ Note: With one yes/no column, the modified Poisson risk ratio is the risk ratio 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| air flow | statsmodels RLM (HuberT) | 0.829384334599657 | 0.829384334599655 | relative 1e-09 | pass |
-| water temperature | statsmodels RLM (HuberT) | 0.926065966198336 | 0.926065966198341 | relative 1e-09 | pass |
-| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945884 | relative 1e-09 | pass |
-| intercept | statsmodels RLM (HuberT) | -41.0264983523996 | -41.0264983523997 | relative 1e-09 | pass |
-| air flow standard error | statsmodels RLM (HuberT) | 0.11100521335458 | 0.11100521335458 | relative 1e-09 | pass |
-| air flow | R | 0.829384334599657 | 0.829385770253741 | relative 1e-05 | pass |
-| water temperature | R | 0.926065966198336 | 0.926059415549028 | relative 1e-05 | pass |
+| air flow | statsmodels RLM (HuberT) | 0.829384334599656 | 0.829384334599656 | relative 1e-09 | pass |
+| water temperature | statsmodels RLM (HuberT) | 0.926065966198343 | 0.926065966198346 | relative 1e-09 | pass |
+| acid concentration | statsmodels RLM (HuberT) | -0.127846724945884 | -0.127846724945885 | relative 1e-09 | pass |
+| intercept | statsmodels RLM (HuberT) | -41.0264983523997 | -41.0264983523998 | relative 1e-09 | pass |
+| air flow standard error | statsmodels RLM (HuberT) | 0.111005213354579 | 0.11100521335458 | relative 1e-09 | pass |
+| air flow | R | 0.829384334599656 | 0.829385770253742 | relative 1e-05 | pass |
+| water temperature | R | 0.926065966198343 | 0.92605941554903 | relative 1e-05 | pass |
 | acid concentration | R | -0.127846724945884 | -0.12784631796544 | relative 1e-05 | pass |
-| intercept | R | -41.0264983523996 | -41.0264853732949 | relative 1e-05 | pass |
+| intercept | R | -41.0264983523997 | -41.0264853732949 | relative 1e-05 | pass |
 
 Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates agree with R to the stopping rules of the two fits; the standard errors are statsmodels' (Huber's H1), which differ from R's summary(rlm) in the third digit, so R's are not compared.
 
@@ -405,8 +405,8 @@ Note: Venables & Ripley (2002, chapter 6) fit rlm() to these data. The estimates
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989213 | 1309424.66989214 | relative 1e-09 | pass |
-| F of the whole curve | R | 1309424.66989213 | 1309424.66989224 | relative 1e-08 | pass |
+| F of the whole curve | patsy cr() and statsmodels OLS | 1309424.66989212 | 1309424.66989217 | relative 1e-09 | pass |
+| F of the whole curve | R | 1309424.66989212 | 1309424.66989218 | relative 1e-08 | pass |
 
 Note: The spline's own coefficients differ between patsy and R's ns() (another basis of the same curves); the test of the whole curve and the fitted values are the same, so those are compared.
 
@@ -416,7 +416,7 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133064 | relative 1e-09 | pass |
+| weight | statsmodels OLS on z-scores | -0.467328325133065 | -0.467328325133065 | relative 1e-09 | pass |
 | horsepower | statsmodels OLS on z-scores | -0.426359898323383 | -0.426359898323383 | relative 1e-09 | pass |
 | gearbox | statsmodels OLS on z-scores | 0.17251723761303 | 0.17251723761303 | relative 1e-09 | pass |
 | weight 95 % CI low | statsmodels OLS on z-scores | -0.768278926188221 | -0.768278926188221 | relative 1e-09 | pass |
@@ -431,9 +431,9 @@ Note: The spline's own coefficients differ between patsy and R's ns() (another b
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688276 | 0.638744784688276 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.bootstrap (BCa) | 0.638744784688277 | 0.638744784688277 | relative 1e-09 | pass |
 | 95 % CI high | SciPy stats.bootstrap (BCa) | 1.17896864783934 | 1.17896864783934 | relative 1e-09 | pass |
-| 95 % CI low | R | 0.638744784688276 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
+| 95 % CI low | R | 0.638744784688277 | 0.617466087556167 | within 4 Monte Carlo SE (0.0783) | pass |
 | 95 % CI high | R | 1.17896864783934 | 1.17339381682502 | within 4 Monte Carlo SE (0.00853) | pass |
 
 Note: R draws other random rows than SciPy, so R checks the same method within its Monte Carlo error: R boot runs 10 times (seeds 1 to 10, 9999 resamples each); the reference is their average, and the difference may be 4 Monte Carlo standard errors, from the spread of R's 10 runs (simplydata's one run of 9999 resamples is taken to vary as much as one of R's). SciPy with the same seed gives the same interval exactly.
@@ -444,7 +444,7 @@ Note: R draws other random rows than SciPy, so R checks the same method within i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke low | R | 0.0326710772426009 | 0.0326710772426009 | relative 1e-06 | pass |
+| smoke low | R | 0.032671077242603 | 0.032671077242603 | relative 1e-06 | pass |
 | smoke high | R | 1.31383593363347 | 1.31383593363347 | relative 1e-06 | pass |
 | lwt low | R | -0.0249706001060748 | -0.0249706001060748 | relative 1e-06 | pass |
 
@@ -456,12 +456,12 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670746 | 0.0393884378670746 | relative 1e-08 | pass |
-| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237073 | relative 1e-08 | pass |
-| lwt | statsmodels GLM refits and SciPy chi2 | 0.036003504929209 | 0.036003504929209 | relative 1e-08 | pass |
-| smoke | R | 0.0393884378670746 | 0.0393884378670747 | relative 1e-07 | pass |
+| smoke | statsmodels GLM refits and SciPy chi2 | 0.0393884378670759 | 0.0393884378670759 | relative 1e-08 | pass |
+| age | statsmodels GLM refits and SciPy chi2 | 0.226723754237082 | 0.226723754237077 | relative 1e-08 | pass |
+| lwt | statsmodels GLM refits and SciPy chi2 | 0.03600350492921 | 0.0360035049292094 | relative 1e-08 | pass |
+| smoke | R | 0.0393884378670759 | 0.0393884378670747 | relative 1e-07 | pass |
 | age | R | 0.226723754237082 | 0.226723754237081 | relative 1e-07 | pass |
-| lwt | R | 0.036003504929209 | 0.0360035049292096 | relative 1e-07 | pass |
+| lwt | R | 0.03600350492921 | 0.0360035049292096 | relative 1e-07 | pass |
 
 ### `table.explain`
 
@@ -469,8 +469,8 @@ Note: simplydata runs R's confint() itself (statsmodels has no profile intervals
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Nagelkerke | R | 0.0850637355720789 | 0.085063735572079 | relative 1e-09 | pass |
-| Tjur | R | 0.0584872861258487 | 0.058487286125848 | relative 1e-09 | pass |
+| Nagelkerke | R | 0.0850637355720787 | 0.085063735572079 | relative 1e-09 | pass |
+| Tjur | R | 0.058487286125849 | 0.058487286125848 | relative 1e-09 | pass |
 
 Note: The printout gives the two measures with 3 decimals; the check takes them at full precision from the same statsmodels fit and the same function explain() prints them with (and checks that the printout is their rounding), so it is not limited by the printed rounding.
 
@@ -478,20 +478,20 @@ Note: The printout gives the two measures with 3 decimals; the check takes them 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -3482258.63459781 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
-| b0 standard error | NIST certified | 890420.3836076 | 890420.383607373 | at least 9 digits (LRE 12.6) | pass |
-| b1 | NIST certified | 15.0618722715538 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
-| b1 standard error | NIST certified | 84.9149257747983 | 84.9149257747669 | at least 9 digits (LRE 12.4) | pass |
-| b2 | NIST certified | -0.0358191792926458 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
-| b2 standard error | NIST certified | 0.0334910077722505 | 0.0334910077722432 | at least 9 digits (LRE 12.7) | pass |
-| b3 | NIST certified | -2.02022980381739 | -2.02022980381683 | at least 9 digits (LRE 12.6) | pass |
-| b3 standard error | NIST certified | 0.488399681651751 | 0.488399681651699 | at least 9 digits (LRE 13.0) | pass |
+| b0 | NIST certified | -3482258.63459792 | -3482258.63459582 | at least 9 digits (LRE 12.2) | pass |
+| b0 standard error | NIST certified | 890420.383607341 | 890420.383607373 | at least 9 digits (LRE 13.4) | pass |
+| b1 | NIST certified | 15.0618722715518 | 15.0618722713733 | at least 9 digits (LRE 10.9) | pass |
+| b1 standard error | NIST certified | 84.9149257747738 | 84.9149257747669 | at least 9 digits (LRE 13.1) | pass |
+| b2 | NIST certified | -0.035819179292647 | -0.035819179292591 | at least 9 digits (LRE 11.8) | pass |
+| b2 standard error | NIST certified | 0.0334910077722407 | 0.0334910077722432 | at least 9 digits (LRE 13.1) | pass |
+| b3 | NIST certified | -2.02022980381741 | -2.02022980381683 | at least 9 digits (LRE 12.5) | pass |
+| b3 standard error | NIST certified | 0.488399681651607 | 0.488399681651699 | at least 9 digits (LRE 12.7) | pass |
 | b4 | NIST certified | -1.03322686717365 | -1.03322686717359 | at least 9 digits (LRE 13.2) | pass |
-| b4 standard error | NIST certified | 0.214274163161705 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
-| b5 | NIST certified | -0.0511041056536771 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
-| b5 standard error | NIST certified | 0.226073200069399 | 0.22607320006937 | at least 9 digits (LRE 12.9) | pass |
-| b6 | NIST certified | 1829.15146461458 | 1829.15146461355 | at least 9 digits (LRE 12.3) | pass |
-| b6 standard error | NIST certified | 455.478499142331 | 455.478499142212 | at least 9 digits (LRE 12.6) | pass |
+| b4 standard error | NIST certified | 0.214274163161642 | 0.214274163161675 | at least 9 digits (LRE 12.8) | pass |
+| b5 | NIST certified | -0.051104105653695 | -0.0511041056535807 | at least 9 digits (LRE 11.7) | pass |
+| b5 standard error | NIST certified | 0.226073200069334 | 0.22607320006937 | at least 9 digits (LRE 12.8) | pass |
+| b6 | NIST certified | 1829.15146461464 | 1829.15146461355 | at least 9 digits (LRE 12.2) | pass |
+| b6 standard error | NIST certified | 455.478499142198 | 455.478499142212 | at least 9 digits (LRE 13.5) | pass |
 
 Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor; statsmodels' own inv(R'R) after its QR fit gave only 7.97 to 9.42 digits here.
 
@@ -501,9 +501,9 @@ Note: The standard errors use R summary.lm()'s inv(R) inv(R)' from the QR factor
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| anger | R | 0.0574458844202677 | 0.0574458844202677 | relative 1e-06 | pass |
-| anger standard error | R | 0.0168501572217191 | 0.0168501572217191 | relative 1e-06 | pass |
-| gender | R | 0.3206482938272 | 0.3206482938272 | relative 1e-06 | pass |
+| anger | R | 0.0574458838988813 | 0.0574458838988813 | relative 1e-06 | pass |
+| anger standard error | R | 0.0168463055675871 | 0.0168463055675871 | relative 1e-06 | pass |
+| gender | R | 0.320648189300347 | 0.320648189300347 | relative 1e-06 | pass |
 
 Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); this case checks the model R gets from explain() against R's own formula. simplydata hands the groups to R as text, so their order is that of text ("1", "10", "100" ...); R's reference does the same. A user's own R run on the whole-number ids orders them as numbers, and its glmer standard errors (from a numerical Hessian) then differ in the fourth digit.
 
@@ -513,13 +513,13 @@ Note: simplydata runs lme4 itself (statsmodels cannot fit crossed groupings); th
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008) | 0.211898197949241 | 0.211898 | within 5e-07 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008) | 0.315957574199258 | 0.315958 | within 5e-07 (printed rounding) | pass |
+| count: hospital | Zeileis et al. (2008) | 0.211898197949242 | 0.211898 | within 5e-07 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008) | 0.315957574199259 | 0.315958 | within 5e-07 (printed rounding) | pass |
 | count: chronic | Zeileis et al. (2008) | 0.126420588812089 | 0.126421 | within 5e-07 (printed rounding) | pass |
 | count: chronic standard error | Zeileis et al. (2008) | 0.0124523069035939 | 0.012452 | within 5e-07 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008) | 0.535212637877491 | 0.535213 | within 5e-07 (printed rounding) | pass |
-| zero: insurance | Zeileis et al. (2008) | 0.747119812774805 | 0.74712 | within 5e-07 (printed rounding) | pass |
-| zero: insurance standard error | Zeileis et al. (2008) | 0.100879502575643 | 0.10088 | within 5e-07 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008) | 0.535212638440462 | 0.535213 | within 5e-07 (printed rounding) | pass |
+| zero: insurance | Zeileis et al. (2008) | 0.747119812959575 | 0.74712 | within 5e-07 (printed rounding) | pass |
+| zero: insurance standard error | Zeileis et al. (2008) | 0.100879503174149 | 0.10088 | within 5e-07 (printed rounding) | pass |
 
 Note: The paper's model fm_hurdle0: a negative binomial count part and a logistic zero hurdle, the same columns in both.
 
@@ -529,14 +529,14 @@ Note: The paper's model fm_hurdle0: a negative binomial count part and a logisti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498612 | 0.201 | within 0.0005 (printed rounding) | pass |
-| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246968 | 0.285 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130287 | -0.8 | within 0.0005 (printed rounding) | pass |
-| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597441 | -1.248 | within 0.0005 (printed rounding) | pass |
-| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015306 | 0.648 | within 0.0005 (printed rounding) | pass |
-| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498612 | 0.201476841187617 | relative 0.0001 | pass |
-| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130287 | -0.800490700364446 | relative 0.0001 | pass |
-| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597441 | -1.2479358116885 | relative 0.0001 | pass |
+| count: hospital | Zeileis et al. (2008), Table 2 | 0.201476829498611 | 0.201 | within 0.0005 (printed rounding) | pass |
+| count: health poor | Zeileis et al. (2008), Table 2 | 0.285132769246967 | 0.285 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | -0.800464995130165 | -0.8 | within 0.0005 (printed rounding) | pass |
+| zero: chronic | Zeileis et al. (2008), Table 2 | -1.24789708597445 | -1.248 | within 0.0005 (printed rounding) | pass |
+| zero: gender male | Zeileis et al. (2008), Table 2 | 0.647660217015324 | 0.648 | within 0.0005 (printed rounding) | pass |
+| count: hospital | statsmodels ZeroInflatedNegativeBinomialP | 0.201476829498611 | 0.201476841187623 | relative 0.0001 | pass |
+| zero: hospital | statsmodels ZeroInflatedNegativeBinomialP | -0.800464995130165 | -0.800490700364435 | relative 0.0001 | pass |
+| zero: chronic | statsmodels ZeroInflatedNegativeBinomialP | -1.24789708597445 | -1.24793581168842 | relative 0.0001 | pass |
 
 Note: The paper's model fm_zinb (the zero part without health). simplydata runs R pscl itself, for its standard errors; statsmodels gives the same estimates.
 
@@ -546,17 +546,17 @@ Note: The paper's model fm_zinb (the zero part without health). simplydata runs 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285051 | 0.016 | within 0.0005 (printed rounding) | pass |
-| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481663 | 0.318 | within 0.0005 (printed rounding) | pass |
+| zero: intercept | Zeileis et al. (2008), Table 2 | 0.0159401738285058 | 0.016 | within 0.0005 (printed rounding) | pass |
+| zero: hospital | Zeileis et al. (2008), Table 2 | 0.318434481481662 | 0.318 | within 0.0005 (printed rounding) | pass |
 | zero: chronic | Zeileis et al. (2008), Table 2 | 0.54783250793305 | 0.548 | within 0.0005 (printed rounding) | pass |
 | zero: insurance | Zeileis et al. (2008), Table 2 | 0.745720049336323 | 0.746 | within 0.0005 (printed rounding) | pass |
-| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413957 | 0.057 | within 0.0005 (printed rounding) | pass |
+| zero: school | Zeileis et al. (2008), Table 2 | 0.0570728152413954 | 0.057 | within 0.0005 (printed rounding) | pass |
 | zero: gender male | Zeileis et al. (2008), Table 2 | -0.419147791025234 | -0.419 | within 0.0005 (printed rounding) | pass |
-| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285051 | 0.0159401718063212 | relative 1e-06 | pass |
-| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481663 | 0.318434494004322 | relative 1e-06 | pass |
+| zero: intercept | statsmodels Logit (the first step on its own) | 0.0159401738285058 | 0.0159401718063209 | relative 1e-06 | pass |
+| zero: hospital | statsmodels Logit (the first step on its own) | 0.318434481481662 | 0.318434494004322 | relative 1e-06 | pass |
 | zero: chronic | statsmodels Logit (the first step on its own) | 0.54783250793305 | 0.547832508738329 | relative 1e-06 | pass |
 | zero: insurance | statsmodels Logit (the first step on its own) | 0.745720049336323 | 0.745720049922439 | relative 1e-06 | pass |
-| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413957 | 0.0570728147518849 | relative 1e-06 | pass |
+| zero: school | statsmodels Logit (the first step on its own) | 0.0570728152413954 | 0.0570728147518849 | relative 1e-06 | pass |
 | zero: gender male | statsmodels Logit (the first step on its own) | -0.419147791025234 | -0.419147791543225 | relative 1e-06 | pass |
 
 Note: The first step of a hurdle model is a logistic regression of zero or not, so statsmodels' Logit gives the same numbers as pscl's zero hurdle.
@@ -567,12 +567,12 @@ Note: The first step of a hurdle model is a logistic regression of zero or not, 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867450264 | relative 2e-06 | pass |
-| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945390997 | relative 2e-06 | pass |
-| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232712923 | relative 2e-06 | pass |
-| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922446201 | relative 2e-06 | pass |
-| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516764472 | relative 2e-06 | pass |
-| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531645388 | relative 2e-06 | pass |
+| b | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 2.98222857655474 | 2.98222867449863 | relative 2e-06 | pass |
+| c | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 0.481409615432056 | 0.481409945466304 | relative 2e-06 | pass |
+| d | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 7.79296184542426 | 7.79296232719357 | relative 2e-06 | pass |
+| ED10 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 1.46370952427292 | 1.46370922438271 | relative 2e-06 | pass |
+| ED50 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 3.05795586800215 | 3.05795516748209 | relative 2e-06 | pass |
+| ED90 | SciPy curve_fit of the LL.4 curve, to 1e-15 (an independent fit) | 6.38862693422303 | 6.38862531612046 | relative 2e-06 | pass |
 | b | R | 2.98222857655474 | 2.98222857655474 | relative 1e-09 | pass |
 | c | R | 0.481409615432056 | 0.481409615432056 | relative 1e-09 | pass |
 | d | R | 7.79296184542426 | 7.79296184542426 | relative 1e-09 | pass |
@@ -590,7 +590,7 @@ Note: Python has no dose-response package with drc's ED intervals, so R drc itse
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | LD50 | Dobson & Barnett (2008) | 59.1181877103869 | 59.1186543855778 | within 0.01 (printed rounding) | pass |
-| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.1181676064851 | relative 1e-06 | pass |
+| LD50 | statsmodels GLM (binomial, logit) on log10 dose | 59.1181877103869 | 59.118167606485 | relative 1e-06 | pass |
 | LD50 | R | 59.1181877103869 | 59.1181676064854 | relative 1e-06 | pass |
 
 Note: The 2 parameter log-logistic curve with binomial errors is logistic regression on log dose, so its LD50 is the published fit's; the tolerance allows the printed 3 decimals of the fit.
@@ -611,10 +611,10 @@ Note: The 2 parameter log-logistic curve with binomial errors is logistic regres
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | Box & Cox (1964) | -0.750162301480205 | -0.75 | within 0.01 (printed rounding) | pass |
+| power | Box & Cox (1964) | -0.750162301479909 | -0.75 | within 0.01 (printed rounding) | pass |
 | simple power | Box & Cox (1964) | -1 | -1 | within 0 (printed rounding) | pass |
-| power | R | -0.750162301480205 | -0.750162301480205 | relative 1e-06 | pass |
-| 95 % CI low | R | -1.13693054527241 | -1.13693054527241 | relative 1e-06 | pass |
+| power | R | -0.750162301479909 | -0.750162301479909 | relative 1e-06 | pass |
+| 95 % CI low | R | -1.13693054535237 | -1.13693054535237 | relative 1e-06 | pass |
 | simple power | R | -1 | -1 | relative 1e-06 | pass |
 
 Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power -1), the rate of dying.
@@ -625,9 +625,9 @@ Note: Box and Cox print a power of about -0.75 and suggest the reciprocal (power
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| power | SciPy stats.boxcox(alpha=0.05) | -0.360158452952329 | -0.360158452952329 | relative 1e-09 | pass |
-| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.96199386235822 | -0.96199386235822 | relative 1e-09 | pass |
-| power | R | -0.360158452952329 | -0.360158410727371 | relative 0.0001 | pass |
+| power | SciPy stats.boxcox(alpha=0.05) | -0.360158442078502 | -0.360158442078502 | relative 1e-09 | pass |
+| 95 % CI low | SciPy stats.boxcox(alpha=0.05) | -0.961993862358217 | -0.961993862358217 | relative 1e-09 | pass |
+| power | R | -0.360158442078502 | -0.360158410727371 | relative 0.0001 | pass |
 
 Note: car::powerTransform maximises the same likelihood with another optimiser (to about 1e-5).
 
@@ -637,10 +637,10 @@ Note: car::powerTransform maximises the same likelihood with another optimiser (
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 72.4622376211471 | 72.462237576 | at least 6 digits (LRE 9.2) | pass |
-| b2 | NIST certified | 2.61807683865333 | 2.6180768402 | at least 6 digits (LRE 9.2) | pass |
-| b3 | NIST certified | 0.0673591999756809 | 0.067359200066 | at least 6 digits (LRE 8.9) | pass |
-| residual sum of squares | NIST certified | 8.05652293381127 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
+| b1 | NIST certified | 72.4622374345916 | 72.462237576 | at least 6 digits (LRE 8.7) | pass |
+| b2 | NIST certified | 2.61807684336174 | 2.6180768402 | at least 6 digits (LRE 8.9) | pass |
+| b3 | NIST certified | 0.0673592003257281 | 0.067359200066 | at least 6 digits (LRE 8.4) | pass |
+| residual sum of squares | NIST certified | 8.05652293381126 | 8.0565229338 | at least 6 digits (LRE 11.9) | pass |
 
 Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid / scal and b3 is 1 / scal of R's SSlogis.
 
@@ -650,9 +650,9 @@ Note: NIST writes the curve as b1 / (1 + exp(b2 - b3 x)): b1 is Asym, b2 is xmid
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 238.942129037623 | 238.94212918 | at least 6 digits (LRE 9.2) | pass |
-| b2 | NIST certified | 0.000550156432185112 | 0.00055015643181 | at least 6 digits (LRE 9.2) | pass |
-| residual sum of squares | NIST certified | 0.12455138894441 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
+| b1 | NIST certified | 238.942128882798 | 238.94212918 | at least 6 digits (LRE 8.9) | pass |
+| b2 | NIST certified | 0.000550156432601245 | 0.00055015643181 | at least 6 digits (LRE 8.8) | pass |
+| residual sum of squares | NIST certified | 0.1245513889444 | 0.12455138894 | at least 6 digits (LRE 10.5) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
 
@@ -660,8 +660,8 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b1 | NIST certified | 213.809410992926 | 213.80940889 | at least 6 digits (LRE 8.0) | pass |
-| b2 | NIST certified | 0.547237460702395 | 0.54723748542 | at least 6 digits (LRE 7.3) | pass |
+| b1 | NIST certified | 213.809411675878 | 213.80940889 | at least 6 digits (LRE 7.9) | pass |
+| b2 | NIST certified | 0.547237453159843 | 0.54723748542 | at least 6 digits (LRE 7.2) | pass |
 | residual sum of squares | NIST certified | 1168.00887655557 | 1168.0088766 | at least 6 digits (LRE 10.4) | pass |
 
 Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc) of R's SSasympOrig.
@@ -672,28 +672,28 @@ Note: NIST writes the curve as b1 (1 - exp(-b2 x)): b1 is Asym and b2 is exp(lrc
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | -1467.48961422976 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
-| b0 standard error | NIST certified | 298.084530995529 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.6) | pass |
-| b1 standard error | NIST certified | 559.779865474936 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
+| b0 | NIST certified | -1467.48961422975 | -1467.4896142298 | at least 9 digits (LRE 13.5) | pass |
+| b0 standard error | NIST certified | 298.08453099553 | 298.084530995537 | at least 9 digits (LRE 13.6) | pass |
+| b1 | NIST certified | -2772.17959193334 | -2772.17959193342 | at least 9 digits (LRE 13.5) | pass |
+| b1 standard error | NIST certified | 559.779865474937 | 559.77986547495 | at least 9 digits (LRE 13.6) | pass |
 | b2 | NIST certified | -2316.37108160886 | -2316.37108160893 | at least 9 digits (LRE 13.5) | pass |
-| b2 standard error | NIST certified | 466.477572127785 | 466.477572127796 | at least 9 digits (LRE 13.6) | pass |
-| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.4) | pass |
-| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.6) | pass |
-| b4 | NIST certified | -354.478233703336 | -354.478233703349 | at least 9 digits (LRE 13.4) | pass |
-| b4 standard error | NIST certified | 71.647866087591 | 71.6478660875927 | at least 9 digits (LRE 13.6) | pass |
-| b5 | NIST certified | -75.1242017393729 | -75.1242017393757 | at least 9 digits (LRE 13.4) | pass |
-| b5 standard error | NIST certified | 15.2897178747396 | 15.28971787474 | at least 9 digits (LRE 13.6) | pass |
-| b6 | NIST certified | -10.8753180355338 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
-| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.6) | pass |
-| b7 | NIST certified | -1.06221498588942 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
-| b7 standard error | NIST certified | 0.221624321934222 | 0.221624321934227 | at least 9 digits (LRE 13.6) | pass |
-| b8 | NIST certified | -0.0670191154593381 | -0.0670191154593408 | at least 9 digits (LRE 13.4) | pass |
-| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.6) | pass |
-| b9 | NIST certified | -0.00246781078275468 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
-| b9 standard error | NIST certified | 0.000535617408889808 | 0.000535617408889821 | at least 9 digits (LRE 13.6) | pass |
-| b10 | NIST certified | -4.02962525080386e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
-| b10 standard error | NIST certified | 8.96632837373847e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.6) | pass |
+| b2 standard error | NIST certified | 466.477572127786 | 466.477572127796 | at least 9 digits (LRE 13.7) | pass |
+| b3 | NIST certified | -1127.97394098368 | -1127.97394098372 | at least 9 digits (LRE 13.5) | pass |
+| b3 standard error | NIST certified | 227.204274477746 | 227.204274477751 | at least 9 digits (LRE 13.7) | pass |
+| b4 | NIST certified | -354.478233703337 | -354.478233703349 | at least 9 digits (LRE 13.5) | pass |
+| b4 standard error | NIST certified | 71.6478660875912 | 71.6478660875927 | at least 9 digits (LRE 13.7) | pass |
+| b5 | NIST certified | -75.1242017393732 | -75.1242017393757 | at least 9 digits (LRE 13.5) | pass |
+| b5 standard error | NIST certified | 15.2897178747397 | 15.28971787474 | at least 9 digits (LRE 13.7) | pass |
+| b6 | NIST certified | -10.8753180355339 | -10.8753180355343 | at least 9 digits (LRE 13.4) | pass |
+| b6 standard error | NIST certified | 2.23691159816028 | 2.23691159816033 | at least 9 digits (LRE 13.7) | pass |
+| b7 | NIST certified | -1.06221498588943 | -1.06221498588947 | at least 9 digits (LRE 13.4) | pass |
+| b7 standard error | NIST certified | 0.221624321934223 | 0.221624321934227 | at least 9 digits (LRE 13.7) | pass |
+| b8 | NIST certified | -0.0670191154593385 | -0.0670191154593408 | at least 9 digits (LRE 13.5) | pass |
+| b8 standard error | NIST certified | 0.0142363763154721 | 0.0142363763154724 | at least 9 digits (LRE 13.7) | pass |
+| b9 | NIST certified | -0.0024678107827547 | -0.00246781078275479 | at least 9 digits (LRE 13.4) | pass |
+| b9 standard error | NIST certified | 0.00053561740888981 | 0.000535617408889821 | at least 9 digits (LRE 13.7) | pass |
+| b10 | NIST certified | -4.02962525080388e-05 | -4.02962525080404e-05 | at least 9 digits (LRE 13.4) | pass |
+| b10 standard error | NIST certified | 8.96632837373851e-06 | 8.96632837373868e-06 | at least 9 digits (LRE 13.7) | pass |
 
 Note: The hardest NIST linear problem (condition number of the powers 1.8e15). simplydata fits on x mapped onto [-1, 1] and turns the answer back into the raw powers with statsmodels t_test(); a QR fit on the raw powers (simplydata 0.2.0) gave no standard errors for b5 to b10, and R lm() drops two terms.
 
@@ -701,18 +701,18 @@ Note: The hardest NIST linear problem (condition number of the powers 1.8e15). s
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000058208 | 1 | at least 9 digits (LRE 9.2) | pass |
-| b0 standard error | NIST certified | 1.55712885651003e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 | NIST certified | 0.999999999708962 | 1 | at least 9 digits (LRE 9.5) | pass |
-| b1 standard error | NIST certified | 1.70994272613356e-09 | 0 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 | NIST certified | 0.999999999949068 | 1 | at least 9 digits (LRE 10.3) | pass |
-| b2 standard error | NIST certified | 5.63826368184418e-10 | 0 | at least 9 digits (LRE 9.2) | pass |
-| b3 | NIST certified | 1.00000000001637 | 1 | at least 9 digits (LRE 10.8) | pass |
-| b3 standard error | NIST certified | 7.34137964780744e-11 | 0 | at least 9 digits (LRE 10.1) | pass |
-| b4 | NIST certified | 0.999999999998805 | 1 | at least 9 digits (LRE 11.9) | pass |
-| b4 standard error | NIST certified | 4.08443101427947e-12 | 0 | at least 9 digits (LRE 11.4) | pass |
-| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
-| b5 standard error | NIST certified | 8.12628999836708e-14 | 0 | at least 9 digits (LRE 13.1) | pass |
+| b0 | NIST certified | 0.999999998195563 | 1 | at least 9 digits (LRE 8.7) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 1.17536756270587e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 | NIST certified | 1.00000000096043 | 1 | at least 9 digits (LRE 9.0) | pass |
+| b1 standard error | NIST certified | 1.29071605473089e-09 | 0 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 | NIST certified | 0.9999999997126 | 1 | at least 9 digits (LRE 9.5) | pass |
+| b2 standard error | NIST certified | 4.2559305313212e-10 | 0 | at least 9 digits (LRE 9.4) | pass |
+| b3 | NIST certified | 1.00000000003502 | 1 | at least 9 digits (LRE 10.5) | pass |
+| b3 standard error | NIST certified | 5.5414935427256e-11 | 0 | at least 9 digits (LRE 10.3) | pass |
+| b4 | NIST certified | 0.999999999998107 | 1 | at least 9 digits (LRE 11.7) | pass |
+| b4 standard error | NIST certified | 3.0830510308914e-12 | 0 | at least 9 digits (LRE 11.5) | pass |
+| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
+| b5 standard error | NIST certified | 6.13396741656262e-14 | 0 | at least 9 digits (LRE 13.2) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -720,18 +720,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000000001 | 1 | at least 9 digits (LRE 13.9) | pass |
-| b0 standard error | NIST certified | 3.12641750882078e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
-| b1 | NIST certified | 0.0999999999999968 | 0.1 | at least 9 digits (LRE 13.5) | pass |
-| b1 standard error | NIST certified | 3.43323858890304e-14 | 0 | at least 9 digits (LRE 13.5) | pass |
-| b2 | NIST certified | 0.00999999999999818 | 0.01 | at least 9 digits (LRE 12.7) | pass |
-| b2 standard error | NIST certified | 1.13205572040932e-14 | 0 | at least 9 digits (LRE 13.9) | pass |
-| b3 | NIST certified | 0.00100000000000043 | 0.001 | at least 9 digits (LRE 12.4) | pass |
-| b3 standard error | NIST certified | 1.47400889617114e-15 | 0 | at least 9 digits (LRE 14.8) | pass |
-| b4 | NIST certified | 9.99999999999711e-05 | 0.0001 | at least 9 digits (LRE 12.5) | pass |
-| b4 standard error | NIST certified | 8.20075781347625e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000006e-05 | 1e-05 | at least 9 digits (LRE 13.2) | pass |
-| b5 standard error | NIST certified | 1.63160391167578e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b0 | NIST certified | 0.999999999999975 | 1 | at least 9 digits (LRE 13.6) | pass |
+| b0 standard error | NIST certified | 2.09772532092002e-14 | 0 | at least 9 digits (LRE 13.7) | pass |
+| b1 | NIST certified | 0.100000000000016 | 0.1 | at least 9 digits (LRE 12.8) | pass |
+| b1 standard error | NIST certified | 2.30359237062298e-14 | 0 | at least 9 digits (LRE 13.6) | pass |
+| b2 | NIST certified | 0.00999999999999468 | 0.01 | at least 9 digits (LRE 12.3) | pass |
+| b2 standard error | NIST certified | 7.5957287940429e-15 | 0 | at least 9 digits (LRE 14.1) | pass |
+| b3 | NIST certified | 0.00100000000000068 | 0.001 | at least 9 digits (LRE 12.2) | pass |
+| b3 standard error | NIST certified | 9.89012432292142e-16 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b4 | NIST certified | 9.99999999999629e-05 | 0.0001 | at least 9 digits (LRE 12.4) | pass |
+| b4 standard error | NIST certified | 5.50244401700223e-17 | 0 | at least 9 digits (LRE 15.0) | pass |
+| b5 | NIST certified | 1.00000000000007e-05 | 1e-05 | at least 9 digits (LRE 13.1) | pass |
+| b5 standard error | NIST certified | 1.09475360522959e-18 | 0 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -739,18 +739,18 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.0000000015134 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 | NIST certified | 0.999999999825377 | 1 | at least 9 digits (LRE 9.8) | pass |
 | b0 standard error | NIST certified | 2152.32624678175 | 2152.3262467817 | at least 9 digits (LRE 13.6) | pass |
-| b1 | NIST certified | 0.999999999592546 | 1 | at least 9 digits (LRE 9.4) | pass |
-| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.7) | pass |
-| b2 | NIST certified | 0.999999999919964 | 1 | at least 9 digits (LRE 10.1) | pass |
-| b2 standard error | NIST certified | 779.3435243316 | 779.343524331583 | at least 9 digits (LRE 13.7) | pass |
-| b3 | NIST certified | 1.00000000002228 | 1 | at least 9 digits (LRE 10.7) | pass |
-| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.8) | pass |
-| b4 | NIST certified | 0.999999999998442 | 1 | at least 9 digits (LRE 11.8) | pass |
-| b4 standard error | NIST certified | 5.64566512170763 | 5.64566512170752 | at least 9 digits (LRE 13.7) | pass |
-| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.5) | pass |
-| b5 standard error | NIST certified | 0.112324854679314 | 0.112324854679312 | at least 9 digits (LRE 13.7) | pass |
+| b1 | NIST certified | 1.00000000026193 | 1 | at least 9 digits (LRE 9.6) | pass |
+| b1 standard error | NIST certified | 2363.55173469686 | 2363.55173469681 | at least 9 digits (LRE 13.6) | pass |
+| b2 | NIST certified | 0.999999999843567 | 1 | at least 9 digits (LRE 9.8) | pass |
+| b2 standard error | NIST certified | 779.343524331603 | 779.343524331583 | at least 9 digits (LRE 13.6) | pass |
+| b3 | NIST certified | 1.00000000002319 | 1 | at least 9 digits (LRE 10.6) | pass |
+| b3 standard error | NIST certified | 101.475507550352 | 101.47550755035 | at least 9 digits (LRE 13.6) | pass |
+| b4 | NIST certified | 0.999999999998682 | 1 | at least 9 digits (LRE 11.9) | pass |
+| b4 standard error | NIST certified | 5.64566512170767 | 5.64566512170752 | at least 9 digits (LRE 13.6) | pass |
+| b5 | NIST certified | 1.00000000000003 | 1 | at least 9 digits (LRE 13.6) | pass |
+| b5 standard error | NIST certified | 0.112324854679315 | 0.112324854679312 | at least 9 digits (LRE 13.6) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
 
@@ -758,17 +758,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000000023283 | 1 | at least 9 digits (LRE 9.6) | pass |
-| b0 standard error | NIST certified | 215232.624678172 | 215232.62467817 | at least 9 digits (LRE 14.1) | pass |
-| b1 | NIST certified | 1.00000000008731 | 1 | at least 9 digits (LRE 10.1) | pass |
-| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 15.0) | pass |
-| b2 | NIST certified | 0.999999999829015 | 1 | at least 9 digits (LRE 9.8) | pass |
-| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 14.8) | pass |
-| b3 | NIST certified | 1.00000000003229 | 1 | at least 9 digits (LRE 10.5) | pass |
+| b0 | NIST certified | 0.999999997729901 | 1 | at least 9 digits (LRE 8.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 215232.624678169 | 215232.62467817 | at least 9 digits (LRE 14.6) | pass |
+| b1 | NIST certified | 1.00000000162981 | 1 | at least 9 digits (LRE 8.8) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 standard error | NIST certified | 236355.173469681 | 236355.173469681 | at least 9 digits (LRE 14.7) | pass |
+| b2 | NIST certified | 0.999999999457941 | 1 | at least 9 digits (LRE 9.3) | pass |
+| b2 standard error | NIST certified | 77934.3524331584 | 77934.3524331583 | at least 9 digits (LRE 15.0) | pass |
+| b3 | NIST certified | 1.00000000007071 | 1 | at least 9 digits (LRE 10.2) | pass |
 | b3 standard error | NIST certified | 10147.550755035 | 10147.550755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999997922 | 1 | at least 9 digits (LRE 11.7) | pass |
+| b4 | NIST certified | 0.999999999996129 | 1 | at least 9 digits (LRE 11.4) | pass |
 | b4 standard error | NIST certified | 564.566512170752 | 564.566512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.00000000000004 | 1 | at least 9 digits (LRE 13.4) | pass |
+| b5 | NIST certified | 1.00000000000008 | 1 | at least 9 digits (LRE 13.1) | pass |
 | b5 standard error | NIST certified | 11.2324854679312 | 11.2324854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -777,17 +777,17 @@ Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exac
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| b0 | NIST certified | 1.00000001234002 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b0 standard error | NIST certified | 21523262.4678171 | 21523262.467817 | at least 9 digits (LRE 14.2) | pass |
-| b1 | NIST certified | 1.00000001394073 | 1 | at least 9 digits (LRE 7.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 15.0) | pass |
-| b2 | NIST certified | 0.999999991876393 | 1 | at least 9 digits (LRE 8.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
-| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 14.8) | pass |
-| b3 | NIST certified | 1.00000000125374 | 1 | at least 9 digits (LRE 8.9) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 | NIST certified | 0.999999973806553 | 1 | at least 9 digits (LRE 7.6) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b0 standard error | NIST certified | 21523262.467817 | 21523262.467817 | at least 9 digits (LRE 15.0) | pass |
+| b1 | NIST certified | 1.00000008297502 | 1 | at least 9 digits (LRE 7.1) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b1 standard error | NIST certified | 23635517.3469681 | 23635517.3469681 | at least 9 digits (LRE 14.7) | pass |
+| b2 | NIST certified | 0.999999966697942 | 1 | at least 9 digits (LRE 7.5) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
+| b2 standard error | NIST certified | 7793435.24331584 | 7793435.24331583 | at least 9 digits (LRE 15.0) | pass |
+| b3 | NIST certified | 1.00000000457021 | 1 | at least 9 digits (LRE 8.3) | explained difference – precision limit: the fit runs on x mapped onto [-1, 1] and is turned back into the raw powers 1, x, ... x^5, which adds rounding of about 1e-9 relative (a limit of double precision); where the points lie exactly on the curve NIST certifies 0, so the LRE measures that rounding itself. How many digits are reached varies with the computer's linear-algebra library (on GitHub's runners down to 8.4 on Wampler1 and 7.1 on Wampler5) |
 | b3 standard error | NIST certified | 1014755.0755035 | 1014755.0755035 | at least 9 digits (LRE 14.6) | pass |
-| b4 | NIST certified | 0.999999999925702 | 1 | at least 9 digits (LRE 10.1) | pass |
+| b4 | NIST certified | 0.999999999745376 | 1 | at least 9 digits (LRE 9.6) | pass |
 | b4 standard error | NIST certified | 56456.6512170752 | 56456.6512170752 | at least 9 digits (LRE 15.0) | pass |
-| b5 | NIST certified | 1.0000000000015 | 1 | at least 9 digits (LRE 11.8) | pass |
+| b5 | NIST certified | 1.00000000000496 | 1 | at least 9 digits (LRE 11.3) | pass |
 | b5 standard error | NIST certified | 1123.24854679312 | 1123.24854679312 | at least 9 digits (LRE 15.0) | pass |
 
 Note: simplydata fits the powers of x mapped onto [-1, 1] (what makes Filip exact) and turns the answer back into the raw powers with statsmodels t_test(). Where NIST certifies 0 (Wampler1 and Wampler2 lie exactly on the curve), the LRE counts the digits of 0 that agree. A number listed as an explained difference may fall a little short of 9 digits; the reason is given with it.
@@ -825,10 +825,10 @@ Note: arctan is NumPy's arctan in the formula reader.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Vm | Bates & Watts (1988) | 212.683743078492 | 212.7 | within 0.05 (printed rounding) | pass |
-| K | Bates & Watts (1988) | 0.064121281534958 | 0.06412 | within 5e-06 (printed rounding) | pass |
-| Vm | R | 212.683743078492 | 212.683707332376 | relative 1e-05 | pass |
-| K | R | 0.064121281534958 | 0.0641212258897697 | relative 1e-05 | pass |
+| Vm | Bates & Watts (1988) | 212.683742750122 | 212.7 | within 0.05 (printed rounding) | pass |
+| K | Bates & Watts (1988) | 0.0641212810909031 | 0.06412 | within 5e-06 (printed rounding) | pass |
+| Vm | R | 212.683742750122 | 212.683707477025 | relative 1e-05 | pass |
+| K | R | 0.0641212810909031 | 0.0641212261151318 | relative 1e-05 | pass |
 
 Note: R nls() stops at a relative offset of 1e-5, so it agrees to about 1e-5.
 
@@ -884,10 +884,10 @@ Note: The outlier pulls the least-squares slope to 0.500; the Theil-Sen slope st
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| bend 1 | R | 0.0411057845539577 | 0.0411057845539577 | relative 1e-09 | pass |
-| slope 1 | R | -0.422076814402602 | -0.422076814402602 | relative 1e-09 | pass |
-| slope 2 | R | -1.02056754499518 | -1.02056754499518 | relative 1e-09 | pass |
-| Davies p-value | R | 1.29088012334925e-17 | 1.29088012334925e-17 | relative 1e-09 | pass |
+| bend 1 | R | 0.0411057838717026 | 0.0411057838717026 | relative 1e-09 | pass |
+| slope 1 | R | -0.422076814198344 | -0.422076814198344 | relative 1e-09 | pass |
+| slope 2 | R | -1.02056754472769 | -1.02056754472769 | relative 1e-09 | pass |
+| Davies p-value | R | 1.2908801233492e-17 | 1.2908801233492e-17 | relative 1e-09 | pass |
 
 Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so R is the reference.
 
@@ -897,11 +897,11 @@ Note: Bacon and Watts fit a smooth transition; segmented fits the sharp bend, so
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| level change | statsmodels OLS with the two change columns | -457.768100628468 | -457.768100628468 | relative 1e-09 | pass |
-| slope change | statsmodels OLS with the two change columns | 19.2016179865776 | 19.2016179865776 | relative 1e-09 | pass |
+| level change | statsmodels OLS with the two change columns | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
+| slope change | statsmodels OLS with the two change columns | 19.2016179865778 | 19.2016179865778 | relative 1e-09 | pass |
 | level change standard error | statsmodels OLS with the two change columns | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
-| level change | R | -457.768100628468 | -457.768100628469 | relative 1e-09 | pass |
-| slope change | R | 19.2016179865776 | 19.2016179865777 | relative 1e-09 | pass |
+| level change | R | -457.768100628469 | -457.768100628469 | relative 1e-09 | pass |
+| slope change | R | 19.2016179865778 | 19.2016179865777 | relative 1e-09 | pass |
 | level change standard error | R | 107.180651134372 | 107.180651134372 | relative 1e-09 | pass |
 
 Note: A plain interrupted time series without the season, to check the arithmetic; Harvey and Durbin model the season and the trend too.
@@ -912,9 +912,9 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189851 | 0.724689274189852 | relative 1e-07 | pass |
+| jump | statsmodels GLM (Poisson) with the two change columns | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | statsmodels GLM (Poisson) with the two change columns | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
-| jump | R | 0.724689274189851 | 0.724689274189851 | relative 1e-07 | pass |
+| jump | R | 0.724689274189852 | 0.724689274189851 | relative 1e-07 | pass |
 | slope change | R | 1.0154100777643 | 1.0154100777643 | relative 1e-07 | pass |
 
 ### `table.explain for_percentile=`
@@ -923,11 +923,11 @@ Note: A plain interrupted time series without the season, to check the arithmeti
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508507577411 | relative 1e-05 | pass |
-| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.68629949685196 | relative 1e-05 | pass |
+| intercept | statsmodels QuantReg (estimates only: its standard errors are not R's) | 67.3508720801297 | 67.3508508860644 | relative 1e-05 | pass |
+| income | statsmodels QuantReg (estimates only: its standard errors are not R's) | 0.686299480371905 | 0.686299496750445 | relative 1e-05 | pass |
 | intercept | R | 67.3508720801297 | 67.3508720801297 | relative 1e-09 | pass |
 | income | R | 0.686299480371905 | 0.686299480371905 | relative 1e-09 | pass |
-| income standard error | R | 0.0284907223757293 | 0.0284907223757293 | relative 1e-09 | pass |
+| income standard error | R | 0.0284907223757292 | 0.0284907223757292 | relative 1e-09 | pass |
 
 Note: statsmodels solves by iteratively reweighted least squares and R quantreg by the exact simplex; the lines agree to about 1e-7.
 
@@ -977,9 +977,9 @@ Note: R nlme::gls() is the reference: statsmodels has no variance functions. nlm
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| trend | R | -0.0194345899685668 | -0.0194345899685668 | relative 1e-05 | pass |
-| standard error | R | 0.0126641385287768 | 0.0126641385287768 | relative 1e-05 | pass |
-| phi | R | 0.82476741303063 | 0.82476741303063 | relative 1e-05 | pass |
+| trend | R | -0.0194345899644702 | -0.0194345899644702 | relative 1e-05 | pass |
+| standard error | R | 0.0126641385380824 | 0.0126641385380824 | relative 1e-05 | pass |
+| phi | R | 0.824767413181072 | 0.824767413181072 | relative 1e-05 | pass |
 
 ### `table.find_columns_that_predict`
 
@@ -1000,9 +1000,9 @@ Note: R glmnet with the same seed is the reference (the random split is made in 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | AICc of Fertility ~ Education | statsmodels OLS and eval_measures.aicc | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
+| weight of the biggest | statsmodels OLS and eval_measures.aicc | 0.985031863347791 | 0.985031863347791 | relative 1e-09 | pass |
 | AICc of Fertility ~ Education | R | 348.980436348024 | 348.980436348024 | relative 1e-09 | pass |
-| weight of the biggest | R | 0.98503186334779 | 0.98503186334779 | relative 1e-09 | pass |
+| weight of the biggest | R | 0.985031863347791 | 0.98503186334779 | relative 1e-09 | pass |
 
 ### `table.compare_models check_on_left_out_rows=True`
 
@@ -1021,12 +1021,12 @@ Note: R boot::cv.glm with the same seed is the reference: the split is made by R
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603395 | 7.42688836033877 | relative 1e-09 | pass |
-| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.006425635749869 | 0.00642563574987162 | relative 1e-09 | pass |
-| White | statsmodels het_breuschpagan, het_white | 7.95553731022983 | 7.95553731022923 | relative 1e-09 | pass |
-| Breusch-Pagan | R | 7.4268883603395 | 7.42688836033915 | relative 1e-08 | pass |
-| Breusch-Pagan p | R | 0.006425635749869 | 0.00642563574987025 | relative 1e-08 | pass |
-| White | R | 7.95553731022983 | 7.95553731022953 | relative 1e-08 | pass |
+| Breusch-Pagan | statsmodels het_breuschpagan, het_white | 7.4268883603388 | 7.42688836034022 | relative 1e-09 | pass |
+| Breusch-Pagan p | statsmodels het_breuschpagan, het_white | 0.00642563574987153 | 0.00642563574986645 | relative 1e-09 | pass |
+| White | statsmodels het_breuschpagan, het_white | 7.95553731022935 | 7.95553731023029 | relative 1e-09 | pass |
+| Breusch-Pagan | R | 7.4268883603388 | 7.42688836033886 | relative 1e-08 | pass |
+| Breusch-Pagan p | R | 0.00642563574987153 | 0.00642563574987129 | relative 1e-08 | pass |
+| White | R | 7.95553731022935 | 7.95553731022924 | relative 1e-08 | pass |
 
 ### `table.check_model_of outcome="yes or no"`
 
@@ -1113,12 +1113,12 @@ Note: The book's three-level table (rats, preparations, readings) tests treatmen
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| Pillai | statsmodels MANOVA | 0.988500527043352 | 0.988500527043352 | relative 1e-09 | pass |
-| F | statsmodels MANOVA | 71.8287954469357 | 71.8287954469357 | relative 1e-09 | pass |
-| Wilks | statsmodels MANOVA | 0.0398783132489431 | 0.0398783132489431 | relative 1e-09 | pass |
-| Pillai | R | 0.988500527043352 | 0.988500527043337 | relative 1e-10 | pass |
-| F | R | 71.8287954469357 | 71.8287954469336 | relative 1e-10 | pass |
-| Wilks | R | 0.0398783132489431 | 0.0398783132489472 | relative 1e-10 | pass |
+| Pillai | statsmodels MANOVA | 0.988500527043341 | 0.988500527043341 | relative 1e-09 | pass |
+| F | statsmodels MANOVA | 71.8287954469342 | 71.8287954469342 | relative 1e-09 | pass |
+| Wilks | statsmodels MANOVA | 0.0398783132489484 | 0.0398783132489484 | relative 1e-09 | pass |
+| Pillai | R | 0.988500527043341 | 0.988500527043341 | relative 1e-10 | pass |
+| F | R | 71.8287954469342 | 71.8287954469341 | relative 1e-10 | pass |
+| Wilks | R | 0.0398783132489484 | 0.0398783132489471 | relative 1e-10 | pass |
 
 ### `table.add_time_and_event_columns`
 
@@ -1288,8 +1288,8 @@ Note: 36 rows start at a death time (each patient's second row starts at the tra
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370916 | relative 1e-06 | pass |
-| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665881 | relative 1e-06 | pass |
+| age | statsmodels PHReg | 0.0130385698370914 | 0.0130385698370915 | relative 1e-06 | pass |
+| men vs women | statsmodels PHReg | -0.0251377892665885 | -0.0251377892665887 | relative 1e-06 | pass |
 | age | R | 0.0130385698370914 | 0.0130385698249726 | relative 1e-06 | pass |
 | men vs women | R | -0.0251377892665885 | -0.025137789294278 | relative 1e-06 | pass |
 
@@ -1451,9 +1451,9 @@ Note: Paule-Mandel is found by iteration. simplydata runs metafor to 1e-10 (its 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.86144494615464 | relative 1e-08 | pass |
-| p between | R | 0.394268758883901 | 0.394268758885584 | relative 1e-08 | pass |
+| p between | R | 0.3942687588839 | 0.394268758885585 | relative 1e-08 | pass |
 | random | R | 0.378717511421929 | 0.378717511421398 | relative 1e-08 | pass |
-| random tau2 | R | 0.392528006891838 | 0.392528006900774 | relative 1e-08 | pass |
+| random tau2 | R | 0.392528006891837 | 0.392528006900774 | relative 1e-08 | pass |
 
 Note: Each subgroup has its own between-study variance; the test of their difference uses each subgroup's estimate with its normal (z) standard error, as RevMan and R meta do (the next case checks it against meta), not metafor's rma(mods = ~ alloc), which shares one variance.
 
@@ -1462,7 +1462,7 @@ Note: Each subgroup has its own between-study variance; the test of their differ
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | Q between | R | 1.86144494616318 | 1.8614461412312 | relative 0.0001 | pass |
-| p between | R | 0.394268758883901 | 0.394268523294979 | relative 0.0001 | pass |
+| p between | R | 0.3942687588839 | 0.394268523294979 | relative 0.0001 | pass |
 
 Note: R meta (each subgroup its own between-study variance, REML) is a second package; meta's REML stops at its own tolerance, so the numbers agree to about 1e-5.
 
@@ -1473,8 +1473,8 @@ Note: R meta (each subgroup its own between-study variance, REML) is a second pa
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | slope | R | -0.029101725011181 | -0.0291017250116429 | relative 1e-08 | pass |
-| low | R | -0.0471529230265922 | -0.0471529230250808 | relative 1e-08 | pass |
-| p-value | R | 0.00456505154515336 | 0.00456505154159258 | relative 1e-08 | pass |
+| low | R | -0.0471529230265922 | -0.0471529230250807 | relative 1e-08 | pass |
+| p-value | R | 0.00456505154515336 | 0.0045650515415926 | relative 1e-08 | pass |
 
 ### `table.combine_studies estimates=`
 
@@ -1838,7 +1838,7 @@ Note: The shares are read from the printout (one decimal) and compared with R ro
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PCo1 row 1 | R | 2.69778157533697 | 2.69778157533697 | relative 1e-08 | pass |
-| PCo2 row 70 | R | 0.0179984204752766 | 0.0179984204752766 | relative 1e-08 | pass |
+| PCo2 row 70 | R | 0.0179984204752759 | 0.0179984204752759 | relative 1e-08 | pass |
 
 ### `table.explain_profiles_of`
 
@@ -1861,7 +1861,7 @@ Note: The design check found adjusted R squared 0.0753 and marginal p-values 0.1
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| adjusted R squared | R | 0.0824713297170611 | 0.0824713297170611 | relative 1e-09 | pass |
+| adjusted R squared | R | 0.0824713297170609 | 0.0824713297170609 | relative 1e-09 | pass |
 | F all | R | 1.68911219341243 | 1.68911219341243 | relative 1e-09 | pass |
 | p all | R | 0.048 | 0.048 | relative 1e-09 | pass |
 
@@ -1873,7 +1873,7 @@ Note: The design check found adjusted R squared 0.0825.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| R squared | R | 0.309204040714597 | 0.309204040714597 | relative 1e-09 | pass |
+| R squared | R | 0.309204040714596 | 0.309204040714596 | relative 1e-09 | pass |
 | F all | R | 2.98403637676605 | 2.98403637676605 | relative 1e-09 | pass |
 | p Al | R | 0.001 | 0.001 | relative 1e-09 | pass |
 
@@ -2002,7 +2002,7 @@ Note: simplydata takes the shares of the trace from MASS's own print (4 decimals
 | CA2 % | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 17.1 | 17.1 | within 0.05 (printed rounding) | pass |
 | CA1 % | R | 25.2 | 25.2 | relative 1e-09 | pass |
 | CA2 % | R | 17.1 | 17.1 | relative 1e-09 | pass |
-| CA1 row 1 size | R | 0.108121658834309 | 0.108121658834309 | relative 1e-09 | pass |
+| CA1 row 1 size | R | 0.108121658834307 | 0.108121658834307 | relative 1e-09 | pass |
 
 Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the printout gives their shares.
 
@@ -2021,11 +2021,11 @@ Note: The tutorial gives the eigenvalues (0.5249 and 0.3568 of 2.083); the print
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280496 | 0.5249 | within 5e-05 (printed rounding) | pass |
-| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083953 | 0.3568 | within 5e-05 (printed rounding) | pass |
+| CA1 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.524931994280495 | 0.5249 | within 5e-05 (printed rounding) | pass |
+| CA2 eigenvalue | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 0.356798023083954 | 0.3568 | within 5e-05 (printed rounding) | pass |
 | total inertia | Oksanen (2015), vegan tutorial: CA eigenvalues 0.5249 and 0.3568 of total inertia 2.083 | 2.08319828789077 | 2.083 | within 0.0005 (printed rounding) | pass |
-| CA1 eigenvalue | R | 0.524931994280496 | 0.524931994280496 | relative 1e-10 | pass |
-| CA2 eigenvalue | R | 0.356798023083953 | 0.356798023083953 | relative 1e-10 | pass |
+| CA1 eigenvalue | R | 0.524931994280495 | 0.524931994280495 | relative 1e-10 | pass |
+| CA2 eigenvalue | R | 0.356798023083954 | 0.356798023083954 | relative 1e-10 | pass |
 | total inertia | R | 2.08319828789077 | 2.08319828789077 | relative 1e-10 | pass |
 
 Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()) and tot.chi), given back as numbers; the tutorial prints them to 4 and 3 decimals.
@@ -2036,13 +2036,13 @@ Note: The eigenvalues and the total inertia are vegan's own (summary(eigenvals()
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: Parallel analysis finds the three factors of Holzinger and Swineford's design (visual, verbal and speed); x9 goes with two of them, as the modification indices of the confirmatory model also show.
@@ -2053,13 +2053,13 @@ Note: Parallel analysis finds the three factors of Holzinger and Swineford's des
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.591615227616624 | 0.591615227616624 | relative 1e-08 | pass |
-| x4 on factor 1 | R | 0.846102782504023 | 0.846102782504023 | relative 1e-08 | pass |
-| x7 on factor 3 | R | 0.736544152684171 | 0.736544152684171 | relative 1e-08 | pass |
-| x9 on factor 2 | R | 0.382275730401828 | 0.382275730401828 | relative 1e-08 | pass |
-| x9 on factor 3 | R | 0.456359717134707 | 0.456359717134707 | relative 1e-08 | pass |
-| shared part of x1 | R | 0.476754007780168 | 0.476754007780168 | relative 1e-08 | pass |
-| shared part of x9 | R | 0.460461383517208 | 0.460461383517208 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.591615227616584 | 0.591615227616584 | relative 1e-08 | pass |
+| x4 on factor 1 | R | 0.846102782503992 | 0.846102782503992 | relative 1e-08 | pass |
+| x7 on factor 3 | R | 0.736544152684073 | 0.736544152684073 | relative 1e-08 | pass |
+| x9 on factor 2 | R | 0.382275730401817 | 0.382275730401817 | relative 1e-08 | pass |
+| x9 on factor 3 | R | 0.456359717134766 | 0.456359717134766 | relative 1e-08 | pass |
+| shared part of x1 | R | 0.476754007780125 | 0.476754007780125 | relative 1e-08 | pass |
+| shared part of x9 | R | 0.460461383517286 | 0.460461383517286 | relative 1e-08 | pass |
 | factors | R | 3 | 3 | relative 1e-08 | pass |
 
 Note: The oblimin rotation of GPArotation starts from random numbers, so both sides set R's seed first (unseeded, the loadings change in the sixth digit from run to run).
@@ -2070,7 +2070,7 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| x1 on factor 2 | R | 0.0390228442789629 | 0.0390228442789629 | relative 1e-08 | pass |
+| x1 on factor 2 | R | 0.0390228442789628 | 0.0390228442789628 | relative 1e-08 | pass |
 | x4 on factor 1 | R | 0.849737553166453 | 0.849737553166453 | relative 1e-08 | pass |
 | x7 on factor 3 | R | -0.226409506419214 | -0.226409506419214 | relative 1e-08 | pass |
 | x9 on factor 2 | R | 0.47660221600333 | 0.47660221600333 | relative 1e-08 | pass |
@@ -2085,28 +2085,28 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528108984993 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748736026522292 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774129180417 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279192904683476 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.2428772774573 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215614656141 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208535390145 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549829680063 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.5432464624105 | relative 1e-05 | pass |
-| own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
-| own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
-| own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
-| own part of x4 | R | 0.279193093920191 | 0.279193042199911 | relative 1e-05 | pass |
-| own part of x5 | R | 0.242877320676011 | 0.242877299281568 | relative 1e-05 | pass |
-| own part of x6 | R | 0.305215855558411 | 0.305215788144815 | relative 1e-05 | pass |
-| own part of x7 | R | 0.50220722191608 | 0.502208589411399 | relative 1e-05 | pass |
-| own part of x8 | R | 0.468550489794592 | 0.468549571055329 | relative 1e-05 | pass |
-| own part of x9 | R | 0.54324768648344 | 0.543246719034091 | relative 1e-05 | pass |
-| x1 on factor 2 | R | 0.622657847373771 | 0.622659197499952 | relative 1e-05 | pass |
-| x4 on factor 1 | R | 0.826999673867176 | 0.826999686294711 | relative 1e-05 | pass |
-| x7 on factor 3 | R | 0.69587391774676 | 0.695872958548142 | relative 1e-05 | pass |
-| x9 on factor 3 | R | 0.5236179828285 | 0.523618567249556 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173444 | 0.512527916808405 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.7487351603869 | 0.74873604736498 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729758 | 0.542774379902904 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920193 | 0.279192864478971 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676014 | 0.242877329041123 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.30521560556264 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.502207221916073 | 0.502208554824441 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794598 | 0.468549731139335 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.543247686483438 | 0.543246742097076 | relative 1e-05 | pass |
+| own part of x1 | R | 0.512529527173444 | 0.512528062225809 | relative 1e-05 | pass |
+| own part of x2 | R | 0.7487351603869 | 0.748735775106279 | relative 1e-05 | pass |
+| own part of x3 | R | 0.542773290729758 | 0.542774360019973 | relative 1e-05 | pass |
+| own part of x4 | R | 0.279193093920193 | 0.279193042201229 | relative 1e-05 | pass |
+| own part of x5 | R | 0.242877320676014 | 0.242877299279511 | relative 1e-05 | pass |
+| own part of x6 | R | 0.305215855558411 | 0.305215788140177 | relative 1e-05 | pass |
+| own part of x7 | R | 0.502207221916073 | 0.502208589415889 | relative 1e-05 | pass |
+| own part of x8 | R | 0.468550489794598 | 0.468549571050821 | relative 1e-05 | pass |
+| own part of x9 | R | 0.543247686483438 | 0.543246719035281 | relative 1e-05 | pass |
+| x1 on factor 2 | R | 0.622657847373775 | 0.622659197499037 | relative 1e-05 | pass |
+| x4 on factor 1 | R | 0.826999673867174 | 0.826999686293857 | relative 1e-05 | pass |
+| x7 on factor 3 | R | 0.695873917746764 | 0.695872958545316 | relative 1e-05 | pass |
+| x9 on factor 3 | R | 0.523617982828501 | 0.52361856724954 | relative 1e-05 | pass |
 
 Note: The part of each column the factors do not share (the uniqueness) does not depend on the rotation and is checked against base R factanal and statsmodels; the varimax loadings are checked against factanal (the same factor order and signs here). Both references are run to convergence (factanal's optim with factr = 1, statsmodels to 1e-14); they then agree with simplydata (R psych::fa(fm = "ml") with its own stopping rule) to 3e-6, so the check allows 1e-5. With their default stopping rules the three differed by up to 1.6e-5, and the check allowed 1e-3.
 
@@ -2116,20 +2116,20 @@ Note: The part of each column the factors do not share (the uniqueness) does not
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699727 | 85.306 | within 0.0005 (printed rounding) | pass |
+| chi-square | Rosseel (2012), JSS 48(2) | 85.3055217699732 | 85.306 | within 0.0005 (printed rounding) | pass |
 | degrees of freedom | exact | 24 | 24 | within 0 | pass |
 | CFI | Rosseel (2012), JSS 48(2) | 0.930559651799336 | 0.931 | within 0.0005 (printed rounding) | pass |
-| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699004 | 0.896 | within 0.0005 (printed rounding) | pass |
-| RMSEA | Rosseel (2012), JSS 48(2) | 0.0921214845101686 | 0.092 | within 0.0005 (printed rounding) | pass |
-| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399382 | 0.071 | within 0.0005 (printed rounding) | pass |
+| TLI | Rosseel (2012), JSS 48(2) | 0.895839477699003 | 0.896 | within 0.0005 (printed rounding) | pass |
+| RMSEA | Rosseel (2012), JSS 48(2) | 0.092121484510169 | 0.092 | within 0.0005 (printed rounding) | pass |
+| RMSEA 90 % CI low | Rosseel (2012), JSS 48(2) | 0.0714184904399386 | 0.071 | within 0.0005 (printed rounding) | pass |
 | RMSEA 90 % CI high | Rosseel (2012), JSS 48(2) | 0.113678016811963 | 0.114 | within 0.0005 (printed rounding) | pass |
 | SRMR | Rosseel (2012), JSS 48(2) | 0.0652050571843865 | 0.065 | within 0.0005 (printed rounding) | pass |
-| chi-square | R | 85.3055217699727 | 85.3055217699727 | relative 1e-08 | pass |
+| chi-square | R | 85.3055217699732 | 85.3055217699732 | relative 1e-08 | pass |
 | degrees of freedom | R | 24 | 24 | relative 1e-08 | pass |
 | CFI | R | 0.930559651799336 | 0.930559651799336 | relative 1e-08 | pass |
-| TLI | R | 0.895839477699004 | 0.895839477699004 | relative 1e-08 | pass |
-| RMSEA | R | 0.0921214845101686 | 0.0921214845101686 | relative 1e-08 | pass |
-| RMSEA 90 % CI low | R | 0.0714184904399382 | 0.0714184904399382 | relative 1e-08 | pass |
+| TLI | R | 0.895839477699003 | 0.895839477699003 | relative 1e-08 | pass |
+| RMSEA | R | 0.092121484510169 | 0.092121484510169 | relative 1e-08 | pass |
+| RMSEA 90 % CI low | R | 0.0714184904399386 | 0.0714184904399386 | relative 1e-08 | pass |
 | RMSEA 90 % CI high | R | 0.113678016811963 | 0.113678016811963 | relative 1e-08 | pass |
 | SRMR | R | 0.0652050571843865 | 0.0652050571843865 | relative 1e-08 | pass |
 
@@ -2139,7 +2139,7 @@ Note: Rosseel (2012) prints the fit of this model to three decimals; the p-value
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| chi-square | R | 87.4018469694266 | 87.4018469694266 | relative 1e-08 | pass |
+| chi-square | R | 87.4018469694271 | 87.4018469694271 | relative 1e-08 | pass |
 | x1 loading | R | 0.791634162191103 | 0.791634162191103 | relative 1e-08 | pass |
 | CFI | R | 0.92794179373821 | 0.92794179373821 | relative 1e-08 | pass |
 
@@ -2152,9 +2152,9 @@ Note: Real data with 30 cells emptied on purpose (the first 30 rows of x1): ever
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | path | R | 0.460317218924395 | 0.460317218924395 | relative 1e-08 | pass |
-| its standard error | R | 0.0741697800268379 | 0.0741697800268379 | relative 1e-08 | pass |
-| chi-square | R | 47.4133581632698 | 47.4133581632698 | relative 1e-08 | pass |
-| CFI | R | 0.879367051234156 | 0.879367051234156 | relative 1e-08 | pass |
+| its standard error | R | 0.0741697800420569 | 0.0741697800420569 | relative 1e-08 | pass |
+| chi-square | R | 47.4133581632695 | 47.4133581632695 | relative 1e-08 | pass |
+| CFI | R | 0.879367051234157 | 0.879367051234157 | relative 1e-08 | pass |
 
 ### `table.find_average_direction_of`
 
@@ -2294,15 +2294,15 @@ Note: The exact ends: the profile log-likelihood of the 100-year level (the GEV 
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985410054 | 3.87 | within 0.005 (printed rounding) | pass |
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956225498 | 0.198 | within 0.0005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095278177458 | -0.05 | within 0.0005 (printed rounding) | pass |
-| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985410054 | 3.87474985804743 | relative 1e-06 | pass |
-| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956225498 | 0.19804395857383 | relative 1e-06 | pass |
-| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095278177458 | -0.050109546237635 | relative 1e-06 | pass |
-| location | R | 3.87474985410054 | 3.87474985509283 | relative 1e-06 | pass |
-| scale | R | 0.198043956225498 | 0.198043956945225 | relative 1e-06 | pass |
-| shape | R | -0.0501095278177458 | -0.0501095325366495 | relative 1e-06 | pass |
+| location | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 3.87474985466404 | 3.87 | within 0.005 (printed rounding) | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | 0.198043956699285 | 0.198 | within 0.0005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 3.4.1 | -0.0501095297651447 | -0.05 | within 0.0005 (printed rounding) | pass |
+| location | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 3.87474985466404 | 3.87474985805047 | relative 1e-06 | pass |
+| scale | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | 0.198043956699285 | 0.198043958575381 | relative 1e-06 | pass |
+| shape | SciPy genextreme.fit run to 1e-14 (shape c = -xi) | -0.0501095297651447 | -0.0501095462385828 | relative 1e-06 | pass |
+| location | R | 3.87474985466404 | 3.87474985509283 | relative 1e-06 | pass |
+| scale | R | 0.198043956699285 | 0.198043956945225 | relative 1e-06 | pass |
+| shape | R | -0.0501095297651447 | -0.0501095325366495 | relative 1e-06 | pass |
 
 Note: SciPy's own fit stops a little short of the maximum (by up to 8e-5 here), so simplydata polishes it. Both references are run to 1e-14 (SciPy's fit with a tighter Nelder-Mead, R extRemes with optim's reltol 1e-14) and agree with simplydata to 1e-6; the shape, near 0, is the least precise (2e-7 relative). Before, the default fits were the references, at 5e-3 and 1e-4.
 
@@ -2325,10 +2325,10 @@ Note: Coles fits sigma 7.44 and xi 0.184 above 30 mm; simplydata gives them in i
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026894085537 | 7.44 | within 0.005 (printed rounding) | pass |
-| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.18449906745455 | 0.184 | within 0.0005 (printed rounding) | pass |
-| scale | R | 7.44026894085537 | 7.44025220565683 | relative 0.0001 | pass |
-| shape | R | 0.18449906745455 | 0.184497962931526 | relative 0.0001 | pass |
+| scale | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 7.44026904808288 | 7.44 | within 0.005 (printed rounding) | pass |
+| shape | Coles (2001), An Introduction to Statistical Modeling of Extreme Values, 4.4.1 | 0.184499047010465 | 0.184 | within 0.0005 (printed rounding) | pass |
+| scale | R | 7.44026904808288 | 7.44025220565683 | relative 0.0001 | pass |
+| shape | R | 0.184499047010465 | 0.184497962931526 | relative 0.0001 | pass |
 
 ### `draw_threshold_check`
 
@@ -2433,10 +2433,10 @@ Note: The order is Box and Jenkins's airline model; the two estimates are checke
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474838 | 0.67 | within 0.005 (printed rounding) | pass |
-| pi0 | R | 0.669926026474838 | 0.669926026474838 | relative 1e-09 | pass |
+| pi0 | Storey & Tibshirani (2003), PNAS 100:9440-9445 | 0.669926026474841 | 0.67 | within 0.005 (printed rounding) | pass |
+| pi0 | R | 0.669926026474841 | 0.669926026474842 | relative 1e-09 | pass |
 | q-values below 0.05 | R | 162 | 162 | relative 1e-09 | pass |
-| first q-value | R | 0.0881916317044274 | 0.0881916317044274 | relative 1e-09 | pass |
+| first q-value | R | 0.0881916317044278 | 0.0881916317044278 | relative 1e-09 | pass |
 
 Note: pi0 is read back from the table as the q-value of the largest p-value divided by that p-value (qvalue's last q-value is pi0 times it). The paper finds 160 genes at q < 0.05 on its own p-values; qvalue's copy of the p-values gives 162.
 
@@ -2447,8 +2447,8 @@ Note: pi0 is read back from the table as the q-value of the largest p-value divi
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | below 0.05 | R | 85 | 85 | relative 1e-09 | pass |
-| first | R | 0.168270194881526 | 0.168270194881526 | relative 1e-09 | pass |
-| smallest | R | 0.00656991586563374 | 0.00656991586563374 | relative 1e-09 | pass |
+| first | R | 0.168270194881528 | 0.168270194881528 | relative 1e-09 | pass |
+| smallest | R | 0.00656991586563362 | 0.00656991586563362 | relative 1e-09 | pass |
 
 ### `table.compare_each_pair_of matched_by=, test_method="nemenyi"`
 
@@ -2699,9 +2699,9 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| meals | R | -3.1106289944093 | -3.1106289944093 | relative 1e-09 | pass |
+| meals | R | -3.11062899440931 | -3.11062899440931 | relative 1e-09 | pass |
 | meals standard error | R | 0.275765488815881 | 0.275765488815881 | relative 1e-09 | pass |
-| ell p-value | R | 0.193873946007242 | 0.193873946007243 | relative 1e-09 | pass |
+| ell p-value | R | 0.193873946007243 | 0.193873946007243 | relative 1e-09 | pass |
 | intercept | R | 823.857925625161 | 823.857925625161 | relative 1e-09 | pass |
 
 ### `table.compare_averages_of after use_survey_design()`
@@ -2721,7 +2721,7 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | F | R | 14.1694081180078 | 14.1694081180078 | relative 1e-09 | pass |
-| p-value | R | 2.08210867642842e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
+| p-value | R | 2.08210867642843e-06 | 2.08210867642845e-06 | relative 1e-09 | pass |
 | design degrees of freedom | R | 371.371769351819 | 371.371769351819 | relative 1e-09 | pass |
 
 ### `table.compare_balanced_groups_of`
@@ -2731,8 +2731,8 @@ Note: Heiberger & Robbins (2014): diverging bars centred on the middle answer.
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 224.676308271437 | 224.676308271437 | relative 1e-09 | pass |
-| standard error | R | 876.193185589196 | 876.193185589196 | relative 1e-09 | pass |
-| p-value | R | 0.797624033435263 | 0.797624033435263 | relative 1e-09 | pass |
+| standard error | R | 876.193185586486 | 876.193185586486 | relative 1e-09 | pass |
+| p-value | R | 0.797624033434651 | 0.797624033434651 | relative 1e-09 | pass |
 
 Note: The randomised NSW experiment found 1794 dollars (Dehejia & Wahba 1999); the survey comparison group is very unlike the trained men, so balancing on these columns does not recover it fully.
 
@@ -2760,7 +2760,7 @@ Note: The MatchIt vignette's own analysis of lalonde: ATT 894, clustered standar
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | effect | R | 1770.60290641026 | 1770.60290641026 | relative 1e-09 | pass |
-| standard error | R | 924.234347046257 | 924.234347046257 | relative 1e-09 | pass |
+| standard error | R | 924.234347046258 | 924.234347046258 | relative 1e-09 | pass |
 
 ### `table.compare_risks show="attributable fractions"`
 
@@ -2817,11 +2817,11 @@ Note: The ratio and the expected count from R epitools::ageadjust.indirect (a se
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561465 | -0.0163155082561465 | relative 1e-09 | pass |
-| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325961 | -0.0457537091325961 | relative 1e-09 | pass |
-| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177591 | -0.0554964945177591 | relative 1e-09 | pass |
-| indirect effect | R | -0.0163155082561465 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
-| total effect | R | -0.0554964945177591 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
+| indirect effect | statsmodels Mediation (with_seed=1) | -0.0163155082561466 | -0.0163155082561466 | relative 1e-09 | pass |
+| indirect low | statsmodels Mediation (with_seed=1) | -0.0457537091325962 | -0.0457537091325962 | relative 1e-09 | pass |
+| total effect | statsmodels Mediation (with_seed=1) | -0.0554964945177594 | -0.0554964945177594 | relative 1e-09 | pass |
+| indirect effect | R | -0.0163155082561466 | -0.0157446450289033 | within 4 Monte Carlo SE (0.00185) | pass |
+| total effect | R | -0.0554964945177594 | -0.0560093450307454 | within 4 Monte Carlo SE (0.00584) | pass |
 
 Note: For two linear models without an interaction the indirect effect is the product of the two coefficients and the total effect the coefficient of treat without job_seek (base R lm): the exact values the simulation (1000 draws) estimates, so the difference may be 4 Monte Carlo standard errors of simplydata's mean of 1000 draws. statsmodels with the same seed gives the same numbers exactly. R mediation::mediate(sims = 1000) gave -0.0159 (-0.0422 to 0.0105) here; Tingley et al. (2014) analyse the same data.
 
@@ -3388,10 +3388,10 @@ Note: R's check is the Brown-Forsythe test written out: a one-way ANOVA of the d
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | PC1 of row 1 | statsmodels PCA (SVD) | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | statsmodels PCA (SVD) | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | statsmodels PCA (SVD) | 0.957448488427992 | 0.957448488427994 | relative 1e-09 | pass |
 | PC1 of row 1 | R | -2.25714117564812 | -2.25714117564812 | relative 1e-09 | pass |
-| PC2 of row 1 | R | 0.478423832124897 | 0.478423832124899 | relative 1e-09 | pass |
+| PC2 of row 1 | R | 0.478423832124898 | 0.478423832124899 | relative 1e-09 | pass |
 | PC1 of row 150 | R | 0.957448488427992 | 0.957448488427993 | relative 1e-09 | pass |
 
 ### `table.add_predicted_column`
@@ -3723,7 +3723,7 @@ Note: R's qqnorm() puts the dots at slightly different places (Blom's, not Filli
 |---|---|---|---|---|---|
 | log scale | matplotlib set_yscale("log") | 1 | 1 | relative 1e-12 | pass |
 | bottom of the y axis | matplotlib set_yscale("log") | 17.52208300845 | 17.52208300845 | relative 1e-12 | pass |
-| top of the y axis | matplotlib set_yscale("log") | 42.8898398220215 | 42.8898398220215 | relative 1e-12 | pass |
+| top of the y axis | matplotlib set_yscale("log") | 42.8898398220214 | 42.8898398220214 | relative 1e-12 | pass |
 
 ### `draw_line_at_x`
 
@@ -5270,6 +5270,3717 @@ Note: The Figure is a copy: the note written on it in matplotlib is not on the s
 | bar 1 | seaborn barplot after set_color_codes | 5010096 | 5010096 | exact | pass |
 | bar 2 | seaborn barplot after set_color_codes | 5613672 | 5613672 | exact | pass |
 | bar 3 | seaborn barplot after set_color_codes | 12865106 | 12865106 | exact | pass |
+
+### `table.get_different_values_in`
+
+**iris: the three species, each once, in the order they first turn up** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different species | pandas Series.unique() | 3 | 3 | exact | pass |
+| place of setosa | pandas Series.unique() | 1 | 1 | exact | pass |
+| place of versicolor | pandas Series.unique() | 2 | 2 | exact | pass |
+| place of virginica | pandas Series.unique() | 3 | 3 | exact | pass |
+| different species | R | 3 | 3 | exact | pass |
+| place of setosa | R | 1 | 1 | exact | pass |
+| place of versicolor | R | 2 | 2 | exact | pass |
+| place of virginica | R | 3 | 3 | exact | pass |
+
+**iris: the three species, each once, in the order they first turn up (a Polars table)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different species | Polars Series.unique(maintain_order=True) | 3 | 3 | exact | pass |
+| place of setosa | Polars Series.unique(maintain_order=True) | 1 | 1 | exact | pass |
+| place of versicolor | Polars Series.unique(maintain_order=True) | 2 | 2 | exact | pass |
+| place of virginica | Polars Series.unique(maintain_order=True) | 3 | 3 | exact | pass |
+
+**mtcars: the different numbers of cylinders, as numbers, in the order they first turn up** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different values | pandas Series.unique() | 3 | 3 | exact | pass |
+| first | pandas Series.unique() | 6 | 6 | exact | pass |
+| second | pandas Series.unique() | 4 | 4 | exact | pass |
+| third | pandas Series.unique() | 8 | 8 | exact | pass |
+| different values | R | 3 | 3 | exact | pass |
+| first | R | 6 | 6 | exact | pass |
+| second | R | 4 | 4 | exact | pass |
+| third | R | 8 | 8 | exact | pass |
+
+**mtcars: the different numbers of cylinders, as numbers, in the order they first turn up (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| different values | Polars Series.unique(maintain_order=True) | 3 | 3 | exact | pass |
+| first | Polars Series.unique(maintain_order=True) | 6 | 6 | exact | pass |
+| second | Polars Series.unique(maintain_order=True) | 4 | 4 | exact | pass |
+| third | Polars Series.unique(maintain_order=True) | 8 | 8 | exact | pass |
+
+### `table.check_if_all_values_in`
+
+**mtcars: does every car do more than 10 miles per gallon, and more than 15?** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| every car above 10 mpg | pandas Series.all() | 1 | 1 | exact | pass |
+| every car above 15 mpg | pandas Series.all() | 0 | 0 | exact | pass |
+| every car above 10 mpg | R | 1 | 1 | exact | pass |
+| every car above 15 mpg | R | 0 | 0 | exact | pass |
+
+**mtcars: does every car do more than 10 miles per gallon, and more than 15? (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| every car above 10 mpg | Polars Expr.all() | 1 | 1 | exact | pass |
+| every car above 15 mpg | Polars Expr.all() | 0 | 0 | exact | pass |
+
+### `table.check_if_any_value_in`
+
+**mtcars: is any car above 300 horsepower, or above 400?** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| a car above 300 hp | pandas Series.any() | 1 | 1 | exact | pass |
+| a car above 400 hp | pandas Series.any() | 0 | 0 | exact | pass |
+| a car above 300 hp | R | 1 | 1 | exact | pass |
+| a car above 400 hp | R | 0 | 0 | exact | pass |
+
+**mtcars: is any car above 300 horsepower, or above 400? (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| a car above 300 hp | Polars Expr.any() | 1 | 1 | exact | pass |
+| a car above 400 hp | Polars Expr.any() | 0 | 0 | exact | pass |
+
+### `table.check_if_sorted_by`
+
+**AirPassengers: the months are in order; the passenger counts are not** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months in order | pandas is_monotonic_increasing / is_monotonic_decreasing | 1 | 1 | exact | pass |
+| passengers in order | pandas is_monotonic_increasing / is_monotonic_decreasing | 0 | 0 | exact | pass |
+| passengers in order, biggest first | pandas is_monotonic_increasing / is_monotonic_decreasing | 0 | 0 | exact | pass |
+| months in order | R | 1 | 1 | exact | pass |
+| passengers in order | R | 0 | 0 | exact | pass |
+| passengers in order, biggest first | R | 0 | 0 | exact | pass |
+
+**AirPassengers: the months are in order; the passenger counts are not (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months in order | Polars Series.is_sorted() | 1 | 1 | exact | pass |
+| passengers in order | Polars Series.is_sorted() | 0 | 0 | exact | pass |
+| passengers in order, biggest first | Polars Series.is_sorted() | 0 | 0 | exact | pass |
+
+### `table.add_run_number_column`
+
+**mtcars: the runs of automatic and manual cars in the order of the table** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| runs | pandas (s != s.shift()).cumsum() | 5 | 5 | exact | pass |
+| sum of row x run | pandas (s != s.shift()).cumsum() | 1946 | 1946 | exact | pass |
+| runs | R | 5 | 5 | exact | pass |
+| sum of row x run | R | 1946 | 1946 | exact | pass |
+
+**mtcars: the runs of automatic and manual cars in the order of the table (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| runs | Polars rle_id() + 1 | 5 | 5 | exact | pass |
+| sum of row x run | Polars rle_id() + 1 | 1946 | 1946 | exact | pass |
+
+### `table.turn_into_title_case`
+
+**mtcars: the 32 car names in small letters, then in Title Case** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names as before | pandas str.title() | 26 | 26 | exact | pass |
+| capital letters | pandas str.title() | 59 | 59 | exact | pass |
+| Merc 450Slc | pandas str.title() | 1 | 1 | exact | pass |
+| Mazda Rx4 | pandas str.title() | 1 | 1 | exact | pass |
+
+**mtcars: the 32 car names in small letters, then in Title Case (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names as before | Polars str.to_titlecase() | 26 | 26 | exact | pass |
+| capital letters | Polars str.to_titlecase() | 59 | 59 | exact | pass |
+| Merc 450Slc | Polars str.to_titlecase() | 1 | 1 | exact | pass |
+| Mazda Rx4 | Polars str.to_titlecase() | 1 | 1 | exact | pass |
+
+### `table.find_summary_of show="product"`
+
+**AirPassengers: the product of the 143 monthly growth ratios (the last month over the first)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| product | pandas Series.prod() | 3.85714285714285 | 3.85714285714285 | relative 1e-12 | pass |
+| product | R | 3.85714285714285 | 3.85714285714286 | relative 1e-12 | pass |
+
+**AirPassengers: the product of the 143 monthly growth ratios (the last month over the first) (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| product | Polars Series.product() | 3.85714285714285 | 3.85714285714285 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="entropy"`
+
+**warpbreaks: the Shannon entropy of the breaks of each wool** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| wool A | SciPy stats.entropy on each wool | 3.17950719837979 | 3.17950719837979 | relative 1e-12 | pass |
+| wool B | SciPy stats.entropy on each wool | 3.23251946400157 | 3.23251946400157 | relative 1e-12 | pass |
+| wool A | R | 3.17950719837979 | 3.17950719837979 | relative 1e-12 | pass |
+| wool B | R | 3.23251946400157 | 3.23251946400157 | relative 1e-12 | pass |
+
+**warpbreaks: the Shannon entropy of the breaks of each wool (a Polars table)** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| wool A | Polars Expr.entropy() | 3.17950719837979 | 3.17950719837979 | relative 1e-12 | pass |
+| wool B | Polars Expr.entropy() | 3.23251946400157 | 3.23251946400157 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="joined text"`
+
+**mtcars: the names of the cars of each number of cylinders, joined into one text** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: letters | pandas groupby().agg(", ".join) | 137 | 137 | exact | pass |
+| 6 cylinders: letters | pandas groupby().agg(", ".join) | 84 | 84 | exact | pass |
+| 8 cylinders: letters | pandas groupby().agg(", ".join) | 218 | 218 | exact | pass |
+| 4 cylinders: letters | R | 137 | 137 | exact | pass |
+| 6 cylinders: letters | R | 84 | 84 | exact | pass |
+| 8 cylinders: letters | R | 218 | 218 | exact | pass |
+
+**mtcars: the names of the cars of each number of cylinders, joined into one text (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: letters | Polars str.join | 137 | 137 | exact | pass |
+| 6 cylinders: letters | Polars str.join | 84 | 84 | exact | pass |
+| 8 cylinders: letters | Polars str.join | 218 | 218 | exact | pass |
+
+### `table.find_summary_of show={column: measures}`
+
+**mtcars: the average fuel use and the most horsepower for each number of cylinders (a measure for each column)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: average mpg | pandas named aggregation | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 4 cylinders: most hp | pandas named aggregation | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | pandas named aggregation | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 6 cylinders: most hp | pandas named aggregation | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | pandas named aggregation | 15.1 | 15.1 | relative 1e-12 | pass |
+| 8 cylinders: most hp | pandas named aggregation | 335 | 335 | relative 1e-12 | pass |
+| 4 cylinders: average mpg | R | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | R | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | R | 15.1 | 15.1 | relative 1e-12 | pass |
+| 4 cylinders: most hp | R | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: most hp | R | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: most hp | R | 335 | 335 | relative 1e-12 | pass |
+
+**mtcars: the average fuel use and the most horsepower for each number of cylinders (a measure for each column) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 4 cylinders: average mpg | Polars group_by().agg() | 26.6636363636364 | 26.6636363636364 | relative 1e-12 | pass |
+| 4 cylinders: most hp | Polars group_by().agg() | 113 | 113 | relative 1e-12 | pass |
+| 6 cylinders: average mpg | Polars group_by().agg() | 19.7428571428571 | 19.7428571428571 | relative 1e-12 | pass |
+| 6 cylinders: most hp | Polars group_by().agg() | 175 | 175 | relative 1e-12 | pass |
+| 8 cylinders: average mpg | Polars group_by().agg() | 15.1 | 15.1 | relative 1e-12 | pass |
+| 8 cylinders: most hp | Polars group_by().agg() | 335 | 335 | relative 1e-12 | pass |
+
+### `table.add_previous_value_column rows_ahead=`
+
+**AirPassengers: next month's passengers next to each month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of next | pandas shift(-1) | 40251 | 40251 | exact | pass |
+| empty | pandas shift(-1) | 1 | 1 | exact | pass |
+| first | pandas shift(-1) | 118 | 118 | exact | pass |
+| total of next | R | 40251 | 40251 | exact | pass |
+| empty | R | 1 | 1 | exact | pass |
+| first | R | 118 | 118 | exact | pass |
+
+**AirPassengers: next month's passengers next to each month (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of next | Polars shift(-1) | 40251 | 40251 | exact | pass |
+| empty | Polars shift(-1) | 1 | 1 | exact | pass |
+| first | Polars shift(-1) | 118 | 118 | exact | pass |
+
+### `table.round_numbers_in significant_figures=`
+
+**mtcars: the weights to 2 significant figures** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Python decimal, a half to the even digit (pandas has no such word) | 102.7 | 102.7 | relative 1e-12 | pass |
+| first | Python decimal, a half to the even digit (pandas has no such word) | 2.6 | 2.6 | relative 1e-12 | pass |
+| heaviest | Python decimal, a half to the even digit (pandas has no such word) | 5.4 | 5.4 | relative 1e-12 | pass |
+| total | R | 102.7 | 102.7 | relative 1e-12 | pass |
+| first | R | 2.6 | 2.6 | relative 1e-12 | pass |
+| heaviest | R | 5.4 | 5.4 | relative 1e-12 | pass |
+
+Note: Polars round_sig_figs takes a half away from 0 (5.25 becomes 5.3); simplydata and R signif() take it to the even digit (5.2), as round_numbers_in rounds every half.
+
+**mtcars: the weights to 2 significant figures (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars round_sig_figs(2), with its one half (5.25) taken to the even digit | 102.7 | 102.7 | relative 1e-12 | pass |
+| first | Polars round_sig_figs(2), with its one half (5.25) taken to the even digit | 2.6 | 2.6 | relative 1e-12 | pass |
+| heaviest | Polars round_sig_figs(2), with its one half (5.25) taken to the even digit | 5.4 | 5.4 | relative 1e-12 | pass |
+
+### `table.keep_rows_where time_of_day_between=`
+
+**ICU arrivals: the patients who arrived between 08:00 and 17:00** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| arrivals | pandas between_time | 115 | 115 | relative 1e-12 | pass |
+| total hours | pandas between_time | 1555.66666666667 | 1555.66666666667 | relative 1e-12 | pass |
+| arrivals | R | 115 | 115 | relative 1e-12 | pass |
+| total hours | R | 1555.66666666667 | 1555.66666666667 | relative 1e-12 | pass |
+
+**ICU arrivals: the patients who arrived between 08:00 and 17:00 (a Polars table)** (real data; data: ICU arrivals (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| arrivals | Polars dt.time().is_between() | 115 | 115 | relative 1e-12 | pass |
+| total hours | Polars dt.time().is_between() | 1555.66666666667 | 1555.66666666667 | relative 1e-12 | pass |
+
+### `table.add_column_with_part_of_text every_match=`
+
+**mtcars: every number in the car names** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names with a number | pandas str.findall | 17 | 17 | exact | pass |
+| numbers | pandas str.findall | 19 | 19 | exact | pass |
+| total of the numbers | pandas str.findall | 4686 | 4686 | exact | pass |
+| names with a number | R | 17 | 17 | exact | pass |
+| numbers | R | 19 | 19 | exact | pass |
+| total of the numbers | R | 4686 | 4686 | exact | pass |
+
+**mtcars: every number in the car names (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names with a number | Polars str.extract_all | 17 | 17 | exact | pass |
+| numbers | Polars str.extract_all | 19 | 19 | exact | pass |
+| total of the numbers | Polars str.extract_all | 4686 | 4686 | exact | pass |
+
+### `table.add_column_with_part_of_text position_of=`
+
+**mtcars: where "a" first comes in each car name** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names with an a | pandas str.find + 1 | 21 | 21 | exact | pass |
+| total of the places | pandas str.find + 1 | 129 | 129 | exact | pass |
+| names with an a | R | 21 | 21 | exact | pass |
+| total of the places | R | 129 | 129 | exact | pass |
+
+**mtcars: where "a" first comes in each car name (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| names with an a | Polars str.find + 1 (the names are plain letters, so bytes are characters) | 21 | 21 | exact | pass |
+| total of the places | Polars str.find + 1 (the names are plain letters, so bytes are characters) | 129 | 129 | exact | pass |
+
+### `table.add_column_with_part_of_date part="is month start"`
+
+**AirPassengers: the months that start a month, a quarter and a year** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| is month start | pandas dt.is_month_start, is_quarter_start, is_year_start, is_year_end | 144 | 144 | exact | pass |
+| is quarter start | pandas dt.is_month_start, is_quarter_start, is_year_start, is_year_end | 48 | 48 | exact | pass |
+| is year start | pandas dt.is_month_start, is_quarter_start, is_year_start, is_year_end | 12 | 12 | exact | pass |
+| is year end | pandas dt.is_month_start, is_quarter_start, is_year_start, is_year_end | 0 | 0 | exact | pass |
+| is month start | R | 144 | 144 | exact | pass |
+| is quarter start | R | 48 | 48 | exact | pass |
+| is year start | R | 12 | 12 | exact | pass |
+| is year end | R | 0 | 0 | exact | pass |
+
+**AirPassengers: the months that start a month, a quarter and a year (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| is month start | Polars dt.day() and dt.month() | 144 | 144 | exact | pass |
+| is quarter start | Polars dt.day() and dt.month() | 48 | 48 | exact | pass |
+| is year start | Polars dt.day() and dt.month() | 12 | 12 | exact | pass |
+| is year end | Polars dt.day() and dt.month() | 0 | 0 | exact | pass |
+
+### `table.add_column_with_part_of_date part="is working day"`
+
+**AirPassengers: how many months start on a working day (Monday to Friday)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months starting on a working day | NumPy is_busday | 103 | 103 | exact | pass |
+| months starting on a working day | R | 103 | 103 | exact | pass |
+
+**AirPassengers: how many months start on a working day (Monday to Friday) (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| months starting on a working day | Polars dt.is_business_day() | 103 | 103 | exact | pass |
+
+### `table.add_column_with_part_of_date part="unix time"`
+
+**AirPassengers: each month as Unix seconds** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | pandas (date - 1970-01-01) // 1 second | -662688000 | -662688000 | exact | pass |
+| last | pandas (date - 1970-01-01) // 1 second | -286675200 | -286675200 | exact | pass |
+| total | pandas (date - 1970-01-01) // 1 second | -68364000000 | -68364000000 | exact | pass |
+| first | R | -662688000 | -662688000 | exact | pass |
+| last | R | -286675200 | -286675200 | exact | pass |
+| total | R | -68364000000 | -68364000000 | exact | pass |
+
+**AirPassengers: each month as Unix seconds (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | Polars dt.epoch("s") | -662688000 | -662688000 | exact | pass |
+| last | Polars dt.epoch("s") | -286675200 | -286675200 | exact | pass |
+| total | Polars dt.epoch("s") | -68364000000 | -68364000000 | exact | pass |
+
+### `table.turn_into_dates from_unix_seconds=`
+
+**AirPassengers: the months written as Unix seconds, read back as dates** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of the years | pandas to_datetime(unit="s") | 281448 | 281448 | exact | pass |
+| total of the months | pandas to_datetime(unit="s") | 936 | 936 | exact | pass |
+| total of the years | R | 281448 | 281448 | exact | pass |
+| total of the months | R | 936 | 936 | exact | pass |
+
+**AirPassengers: the months written as Unix seconds, read back as dates (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of the years | Polars from_epoch(time_unit="s") | 281448 | 281448 | exact | pass |
+| total of the months | Polars from_epoch(time_unit="s") | 936 | 936 | exact | pass |
+
+### `table.add_column floor() ceil() log10() log1p() sign() cbrt()`
+
+**mtcars: the tens of miles per gallon (floor) and log(1 + horsepower)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of tens | NumPy floor, log1p, cbrt | 50 | 50 | relative 1e-12 | pass |
+| total of log1p | NumPy floor, log1p, cbrt | 156.490716391007 | 156.490716391007 | relative 1e-12 | pass |
+| total of cube roots | NumPy floor, log1p, cbrt | 189.742643280969 | 189.742643280969 | relative 1e-12 | pass |
+| total of tens | R | 50 | 50 | relative 1e-12 | pass |
+| total of log1p | R | 156.490716391007 | 156.490716391007 | relative 1e-12 | pass |
+| total of cube roots | R | 189.742643280969 | 189.742643280969 | relative 1e-12 | pass |
+
+**mtcars: the tens of miles per gallon (floor) and log(1 + horsepower) (a Polars table)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of tens | Polars floor, log1p, cbrt | 50 | 50 | relative 1e-12 | pass |
+| total of log1p | Polars floor, log1p, cbrt | 156.490716391007 | 156.490716391007 | relative 1e-12 | pass |
+| total of cube roots | Polars floor, log1p, cbrt | 189.742643280969 | 189.742643280969 | relative 1e-12 | pass |
+
+### `table.add_column add_working_days() count_working_days()`
+
+**AirPassengers: the date 10 working days after the start of each month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of the days of the month | NumPy busday_offset(roll="forward") and busday_count | 2221 | 2221 | exact | pass |
+| total working days counted | NumPy busday_offset(roll="forward") and busday_count | 1440 | 1440 | exact | pass |
+
+**AirPassengers: the date 10 working days after the start of each month (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of the days of the month | Polars dt.add_business_days and business_day_count | 2221 | 2221 | exact | pass |
+| total working days counted | Polars dt.add_business_days and business_day_count | 1440 | 1440 | exact | pass |
+
+### `sdata.make_run_of_dates every="working day"`
+
+**AirPassengers: the working days from its first to its last month** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| working days | pandas bdate_range | 3109 | 3109 | relative 1e-09 | pass |
+| working days | R | 3109 | 3109 | relative 1e-09 | pass |
+
+### `table.add_rolling_column with_column=`
+
+**Seatbelts: the correlation of drivers and drivers killed over each 12 months** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | pandas rolling(12).corr() | 154.882026542668 | 154.882026542668 | relative 1e-09 | pass |
+| last | pandas rolling(12).corr() | 0.939305956452607 | 0.939305956452607 | relative 1e-09 | pass |
+| empty | pandas rolling(12).corr() | 11 | 11 | relative 1e-09 | pass |
+| total | R | 154.882026542668 | 154.882026542668 | relative 1e-09 | pass |
+| last | R | 0.939305956452607 | 0.939305956452607 | relative 1e-09 | pass |
+| empty | R | 11 | 11 | relative 1e-09 | pass |
+
+**Seatbelts: the correlation of drivers and drivers killed over each 12 months (a Polars table)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | Polars rolling_corr | 154.882026542668 | 154.882026542668 | relative 1e-09 | pass |
+| last | Polars rolling_corr | 0.939305956452607 | 0.939305956452607 | relative 1e-09 | pass |
+| empty | Polars rolling_corr | 11 | 11 | relative 1e-09 | pass |
+
+### `table.join_with where=`
+
+**AirPassengers: each month paired with the half of the years it falls in** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | pandas merge(how="cross") then the condition | 144 | 144 | exact | pass |
+| total of half | pandas merge(how="cross") then the condition | 216 | 216 | exact | pass |
+| rows | R | 144 | 144 | exact | pass |
+| total of half | R | 216 | 216 | exact | pass |
+
+**AirPassengers: each month paired with the half of the years it falls in (a Polars table)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | Polars join_where | 144 | 144 | exact | pass |
+| total of half | Polars join_where | 216 | 216 | exact | pass |
+
+### `draw_lines in_row_order=`
+
+**mtcars: weight and fuel use joined in the order of the rows** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| points | seaborn lineplot(sort=False, estimator=None), as so.Path | 32 | 32 | relative 1e-12 | pass |
+| row x weight | seaborn lineplot(sort=False, estimator=None), as so.Path | 1652.493 | 1652.493 | relative 1e-12 | pass |
+| first mpg | seaborn lineplot(sort=False, estimator=None), as so.Path | 21 | 21 | relative 1e-12 | pass |
+| points | R | 32 | 32 | relative 1e-12 | pass |
+| row x weight | R | 1652.493 | 1652.493 | relative 1e-12 | pass |
+| first mpg | R | 21 | 21 | relative 1e-12 | pass |
+
+### `draw_dots move_layer_by=`
+
+**mtcars: fuel use against weight, the dots moved 0.5 along x** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dots | seaborn scatterplot of x + 0.5, as so.Shift(x=0.5) | 32 | 32 | relative 1e-12 | pass |
+| sum of x | seaborn scatterplot of x + 0.5, as so.Shift(x=0.5) | 118.952 | 118.952 | relative 1e-12 | pass |
+| sum of y | seaborn scatterplot of x + 0.5, as so.Shift(x=0.5) | 642.9 | 642.9 | relative 1e-12 | pass |
+| dots | R | 32 | 32 | relative 1e-12 | pass |
+| sum of x | R | 118.952 | 118.952 | relative 1e-12 | pass |
+| sum of y | R | 642.9 | 642.9 | relative 1e-12 | pass |
+
+### `draw_dashes`
+
+**iris: a dash for the sepal length of each flower, by species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dashes | seaborn stripplot(jitter=False): the places so.Dash puts its dashes | 150 | 150 | relative 1e-12 | pass |
+| sum of y | seaborn stripplot(jitter=False): the places so.Dash puts its dashes | 876.5 | 876.5 | relative 1e-12 | pass |
+| sum of the middles | seaborn stripplot(jitter=False): the places so.Dash puts its dashes | 150 | 150 | relative 1e-12 | pass |
+| width | seaborn stripplot(jitter=False): the places so.Dash puts its dashes | 0.8 | 0.8 | relative 1e-12 | pass |
+| dashes | R | 150 | 150 | relative 1e-12 | pass |
+| sum of y | R | 876.5 | 876.5 | relative 1e-12 | pass |
+| sum of the middles | R | 150 | 150 | relative 1e-12 | pass |
+| width | R | 0.8 | 0.8 | relative 1e-12 | pass |
+
+### `sdata.distribution "studentized range"`
+
+**mtcars: Tukey's critical value for comparing the 3 cylinder groups (studentized range, 3 groups, 29 degrees of freedom)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| q 95 | SciPy stats.studentized_range | 3.49260890948388 | 3.49260890948388 | relative 1e-09 | pass |
+| q 95 | R | 3.49260890948388 | 3.49260890953703 | relative 1e-06 | pass |
+
+Note: SciPy and R integrate the studentized range numerically; they agree to about 7 digits.
+
+### `sdata.distribution "multivariate normal"`
+
+**mtcars: the density of a bell-shaped pair (fuel use, weight) at a light, thrifty car, with the cars' own averages and covariance** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| density | SciPy stats.multivariate_normal | 0.0131339068851598 | 0.0131339068851598 | relative 1e-09 | pass |
+| density | R | 0.0131339068851598 | 0.0131339068851598 | relative 1e-10 | pass |
+
+### `sdata.distribution "multinomial"`
+
+**mtcars: the chance of exactly the counts of 3, 4 and 5 gears if each were equally likely (multinomial)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chance | SciPy stats.multinomial | 0.00188918189473643 | 0.00188918189473643 | relative 1e-09 | pass |
+| chance | R | 0.00188918189473643 | 0.00188918189473643 | relative 1e-12 | pass |
+
+### `sdata.distribution "wishart"`
+
+**mtcars: the Wishart density of the sum of squares of (fuel use, weight) with 31 degrees of freedom and the cars' own covariance** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| log density | SciPy stats.wishart | -11.8632744648591 | -11.8632744648591 | relative 1e-10 | pass |
+| log density | R | -11.8632744648591 | -11.8632744648591 | relative 1e-10 | pass |
+
+### `sdata.distribution "mixture"`
+
+**mtcars: the chance of a car below 20 mpg from a mixture of the automatic and manual cars' bell curves** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chance below 20 | SciPy stats.Mixture | 0.554868391911552 | 0.554868391911552 | relative 1e-09 | pass |
+| chance below 20 | R | 0.554868391911552 | 0.554868391911551 | relative 1e-12 | pass |
+
+### `sdata.distribution "from values"`
+
+**mtcars: the average number of gears, from the share of cars with each** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average | SciPy stats.rv_discrete | 3.6875 | 3.6875 | relative 1e-09 | pass |
+| chance of 4 or fewer | SciPy stats.rv_discrete | 0.84375 | 0.84375 | relative 1e-09 | pass |
+| average | R | 3.6875 | 3.6875 | relative 1e-12 | pass |
+| chance of 4 or fewer | R | 0.84375 | 0.84375 | relative 1e-12 | pass |
+
+### `sdata.distribution "histogram"`
+
+**mtcars: the median fuel use of the histogram of the cars in bins of 5 mpg** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| median | SciPy stats.rv_histogram | 19.2307692307692 | 19.2307692307692 | relative 1e-09 | pass |
+| median | R | 19.2307692307692 | 19.2307692307692 | relative 1e-12 | pass |
+
+Note: The median of a histogram is found by straight lines within the bin that holds the middle.
+
+### `dist.take_function`
+
+**mtcars: the chance of a car below 20 mpg when the log of fuel use is bell-shaped (exp of a normal)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chance below 20 | SciPy stats.exp | 0.55106225861665 | 0.55106225861665 | relative 1e-09 | pass |
+| chance below 20 | R | 0.55106225861665 | 0.55106225861665 | relative 1e-12 | pass |
+
+### `dist.take_function "order statistic"`
+
+**mtcars: the chance that the thirstiest of 32 cars drawn from a bell curve of the cars' fuel use is below the lowest seen (10.4 mpg)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chance | SciPy stats.order_statistic | 0.830356141630804 | 0.830356141630804 | relative 1e-09 | pass |
+| chance | R | 0.830356141630804 | 0.830356141630805 | relative 1e-10 | pass |
+
+### `sdata.find_parameter_that_gives`
+
+**mtcars: the spread that would put 90 % of cars below 30 mpg, at the cars' average fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| standard deviation | SciPy special.nrdtrisd | 7.73232639748598 | 7.73232639748598 | relative 1e-09 | pass |
+| standard deviation | R | 7.73232639748598 | 7.73232639748598 | relative 1e-09 | pass |
+
+### `grid.take_matrix_function`
+
+**the matrix square root of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.sqrtm | 0.808200076325196 | 0.808200076325196 | relative 1e-10 | pass |
+| corner | SciPy linalg.sqrtm | 0.371820575365981 | 0.371820575365981 | relative 1e-10 | pass |
+| total | SciPy linalg.sqrtm | 5.22447137601621 | 5.22447137601621 | relative 1e-10 | pass |
+| first | R | 0.808200076325196 | 0.808200076325197 | relative 1e-09 | pass |
+| corner | R | 0.371820575365981 | 0.371820575365981 | relative 1e-09 | pass |
+| total | R | 5.22447137601621 | 5.22447137601621 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="log"`
+
+**the matrix log of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.logm | -0.980277429432251 | -0.980277429432251 | relative 1e-10 | pass |
+| corner | SciPy linalg.logm | 0.658403493069478 | 0.658403493069478 | relative 1e-10 | pass |
+| total | SciPy linalg.logm | 1.66587783241544 | 1.66587783241544 | relative 1e-10 | pass |
+| first | R | -0.980277429432251 | -0.980277429432247 | relative 1e-09 | pass |
+| corner | R | 0.658403493069478 | 0.65840349306948 | relative 1e-09 | pass |
+| total | R | 1.66587783241544 | 1.66587783241544 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="exp"`
+
+**the matrix exp of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.expm | 6.051210045122 | 6.051210045122 | relative 1e-10 | pass |
+| corner | SciPy linalg.expm | 5.1231655998866 | 5.1231655998866 | relative 1e-10 | pass |
+| total | SciPy linalg.expm | 41.0897591321135 | 41.0897591321135 | relative 1e-10 | pass |
+| first | R | 6.051210045122 | 6.05121004512177 | relative 1e-09 | pass |
+| corner | R | 5.1231655998866 | 5.12316559988636 | relative 1e-09 | pass |
+| total | R | 41.0897591321135 | 41.0897591321119 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="cos"`
+
+**the matrix cos of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.cosm | 0.402655279837184 | 0.402655279837184 | relative 1e-10 | pass |
+| corner | SciPy linalg.cosm | -0.586323316068386 | -0.586323316068386 | relative 1e-10 | pass |
+| total | SciPy linalg.cosm | -0.610531530449733 | -0.610531530449733 | relative 1e-10 | pass |
+| first | R | 0.402655279837184 | 0.402655279837184 | relative 1e-09 | pass |
+| corner | R | -0.586323316068386 | -0.586323316068386 | relative 1e-09 | pass |
+| total | R | -0.610531530449733 | -0.610531530449727 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="sin"`
+
+**the matrix sin of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.sinm | 0.250011550837056 | 0.250011550837056 | relative 1e-10 | pass |
+| corner | SciPy linalg.sinm | 0.0212227321180554 | 0.0212227321180554 | relative 1e-10 | pass |
+| total | SciPy linalg.sinm | 1.98035533371124 | 1.98035533371124 | relative 1e-10 | pass |
+| first | R | 0.250011550837056 | 0.250011550837056 | relative 1e-09 | pass |
+| corner | R | 0.0212227321180554 | 0.0212227321180557 | relative 1e-09 | pass |
+| total | R | 1.98035533371124 | 1.98035533371124 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="tan"`
+
+**the matrix tan of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.tanm | 0.201121840337554 | 0.201121840337554 | relative 1e-10 | pass |
+| corner | SciPy linalg.tanm | -0.0986331750394058 | -0.0986331750394058 | relative 1e-10 | pass |
+| total | SciPy linalg.tanm | 2.08498470608898 | 2.08498470608898 | relative 1e-10 | pass |
+| first | R | 0.201121840337554 | 0.201121840337554 | relative 1e-09 | pass |
+| corner | R | -0.0986331750394058 | -0.0986331750394058 | relative 1e-09 | pass |
+| total | R | 2.08498470608898 | 2.08498470608897 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="cosh"`
+
+**the matrix cosh of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.coshm | 3.31847717348186 | 3.31847717348186 | relative 1e-10 | pass |
+| corner | SciPy linalg.coshm | 2.44454607227375 | 2.44454607227375 | relative 1e-10 | pass |
+| total | SciPy linalg.coshm | 21.0348605739211 | 21.0348605739211 | relative 1e-10 | pass |
+| first | R | 3.31847717348186 | 3.31847717348175 | relative 1e-09 | pass |
+| corner | R | 2.44454607227375 | 2.44454607227362 | relative 1e-09 | pass |
+| total | R | 21.0348605739211 | 21.0348605739203 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="sinh"`
+
+**the matrix sinh of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.sinhm | 2.73273287164014 | 2.73273287164014 | relative 1e-10 | pass |
+| corner | SciPy linalg.sinhm | 2.67861952761286 | 2.67861952761286 | relative 1e-10 | pass |
+| total | SciPy linalg.sinhm | 20.0548985581924 | 20.0548985581924 | relative 1e-10 | pass |
+| first | R | 2.73273287164014 | 2.73273287164002 | relative 1e-09 | pass |
+| corner | R | 2.67861952761286 | 2.67861952761273 | relative 1e-09 | pass |
+| total | R | 20.0548985581924 | 20.0548985581916 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="tanh"`
+
+**the matrix tanh of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.tanhm | 0.449786039377886 | 0.449786039377886 | relative 1e-10 | pass |
+| corner | SciPy linalg.tanhm | 0.247213517622958 | 0.247213517622958 | relative 1e-10 | pass |
+| total | SciPy linalg.tanhm | 3.35519316893713 | 3.35519316893713 | relative 1e-10 | pass |
+| first | R | 0.449786039377886 | 0.449786039377886 | relative 1e-09 | pass |
+| corner | R | 0.247213517622958 | 0.247213517622958 | relative 1e-09 | pass |
+| total | R | 3.35519316893713 | 3.35519316893713 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function function="sign"`
+
+**the matrix sign of the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.signm | 1 | 1 | relative 1e-10 | pass |
+| corner | SciPy linalg.signm | -1.5814060918424e-16 | -1.5814060918424e-16 | relative 1e-10 | pass |
+| total | SciPy linalg.signm | 4 | 4 | relative 1e-10 | pass |
+| first | R | 1 | 1 | relative 1e-09 | pass |
+| corner | R | -1.5814060918424e-16 | 7.2203495623282e-17 | relative 1e-09 | pass |
+| total | R | 4 | 4 | relative 1e-09 | pass |
+
+Note: For a symmetric grid every matrix function is V f(L) V' with the eigenvalues L and eigenvectors V of base R eigen(); the correlations of iris have positive eigenvalues, so all are real.
+
+### `grid.take_matrix_function power=`
+
+**iris correlations to the power 0.3 (as a matrix)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.fractional_matrix_power | 0.825540919726107 | 0.825540919726107 | relative 1e-10 | pass |
+| corner | SciPy linalg.fractional_matrix_power | 0.216569976442423 | 0.216569976442423 | relative 1e-10 | pass |
+| total | SciPy linalg.fractional_matrix_power | 4.63477857127917 | 4.63477857127917 | relative 1e-10 | pass |
+| first | R | 0.825540919726107 | 0.825540919726105 | relative 1e-09 | pass |
+| corner | R | 0.216569976442423 | 0.216569976442422 | relative 1e-09 | pass |
+| total | R | 4.63477857127917 | 4.63477857127916 | relative 1e-09 | pass |
+
+### `grid.take_matrix_function function="a formula of x"`
+
+**the matrix function 1 / (1 + x) of the iris correlations** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.funm | 0.662108319216372 | 0.662108319216372 | relative 1e-10 | pass |
+| corner | SciPy linalg.funm | -0.175648540848723 | -0.175648540848723 | relative 1e-10 | pass |
+| total | SciPy linalg.funm | 1.60894485041147 | 1.60894485041147 | relative 1e-10 | pass |
+| first | R | 0.662108319216372 | 0.662108319216372 | relative 1e-09 | pass |
+| corner | R | -0.175648540848723 | -0.175648540848723 | relative 1e-09 | pass |
+| total | R | 1.60894485041147 | 1.60894485041147 | relative 1e-09 | pass |
+
+Note: 1 / (1 + x) of a grid is the inverse of the identity plus the grid: base R solve().
+
+### `grid.check_if_grid_is`
+
+**the iris correlations are symmetric, and not banded** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| symmetric | SciPy linalg.issymmetric and bandwidth | 1 | 1 | exact | pass |
+| banded | SciPy linalg.issymmetric and bandwidth | 0 | 0 | exact | pass |
+| symmetric | R | 1 | 1 | exact | pass |
+| banded | R | 0 | 0 | exact | pass |
+
+### `grid.find_best_rotation_to`
+
+**the best rotation of iris sepal (length, width) onto petal (length, width), centred** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| r11 | SciPy linalg.orthogonal_procrustes | 0.806194387922586 | 0.806194387922586 | relative 1e-10 | pass |
+| r12 | SciPy linalg.orthogonal_procrustes | 0.591650749075946 | 0.591650749075946 | relative 1e-10 | pass |
+| r11 | R | 0.806194387922586 | 0.806194387922586 | relative 1e-09 | pass |
+| r12 | R | 0.591650749075946 | 0.591650749075946 | relative 1e-09 | pass |
+
+Note: The rotation is U V' from the singular value decomposition of a'b (Schonemann 1966).
+
+### `grid.find_angles_to`
+
+**the principal angles between the sepal and the petal measurements of iris** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | SciPy linalg.subspace_angles | 66.5640060013056 | 66.5640060013056 | relative 1e-09 | pass |
+| smallest | SciPy linalg.subspace_angles | 7.65282624893822 | 7.65282624893822 | relative 1e-09 | pass |
+| biggest | R | 66.5640060013056 | 66.5640060013057 | relative 1e-07 | pass |
+| smallest | R | 7.65282624893822 | 7.65282624893798 | relative 1e-07 | pass |
+
+Note: R works the angles out as acos of the singular values of Qa'Qb (Bjorck & Golub 1973); SciPy uses the sine for small angles, so the two agree to about 1e-8 relative.
+
+### `sdata.solve_matrix_equation`
+
+**the Lyapunov equation a X + X a' = q with a = minus the iris correlations and q the identity** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve_continuous_lyapunov | -3.53636100696981 | -3.53636100696981 | relative 1e-10 | pass |
+| corner | SciPy linalg.solve_continuous_lyapunov | -1.81148030572417 | -1.81148030572417 | relative 1e-10 | pass |
+| total | SciPy linalg.solve_continuous_lyapunov | -2.17724382934301 | -2.17724382934301 | relative 1e-10 | pass |
+| first | R | -3.53636100696981 | -3.53636100696976 | relative 1e-09 | pass |
+| corner | R | -1.81148030572417 | -1.81148030572411 | relative 1e-09 | pass |
+| total | R | -2.17724382934301 | -2.177243829343 | relative 1e-09 | pass |
+
+Note: vec(a X + X a') = (I x a + a x I) vec(X), a linear equation base R solve() answers.
+
+### `sdata.solve_matrix_equation kind="sylvester"`
+
+**the Sylvester equation a X + X b = q with the iris correlations** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve_sylvester | 0.22254413455575 | 0.22254413455575 | relative 1e-10 | pass |
+| corner | SciPy linalg.solve_sylvester | 0.192999951327506 | 0.192999951327506 | relative 1e-10 | pass |
+| total | SciPy linalg.solve_sylvester | 3.60114920325321 | 3.60114920325321 | relative 1e-10 | pass |
+| first | R | 0.22254413455575 | 0.222544134555749 | relative 1e-09 | pass |
+| corner | R | 0.192999951327506 | 0.192999951327506 | relative 1e-09 | pass |
+| total | R | 3.60114920325321 | 3.60114920325322 | relative 1e-09 | pass |
+
+### `grid.break_down test_method="rq"`
+
+**the RQ decomposition of the iris correlations multiplies back to the grid** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| r11 | SciPy linalg.rq | 0.0738529571920455 | 0.0738529571920455 | relative 1e-10 | pass |
+| back total | SciPy linalg.rq | 7.48084902512196 | 7.48084902512196 | relative 1e-10 | pass |
+
+Note: R has no RQ decomposition in base R; SciPy itself and the product R Q = grid are the checks.
+
+### `nums.make_pair_table_with column_by_column=`
+
+**the Khatri-Rao product of the first 3 and the next 2 iris flowers' measurements, column by column** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | SciPy linalg.khatri_rao | 6 | 6 | relative 1e-12 | pass |
+| total | SciPy linalg.khatri_rao | 218.24 | 218.24 | relative 1e-12 | pass |
+| row 6 column 4 | SciPy linalg.khatri_rao | 0.04 | 0.04 | relative 1e-12 | pass |
+| rows | R | 6 | 6 | relative 1e-12 | pass |
+| total | R | 218.24 | 218.24 | relative 1e-12 | pass |
+| row 6 column 4 | R | 0.04 | 0.04 | relative 1e-12 | pass |
+
+### `grid.smooth test_method="biggest"`
+
+**AirPassengers as a 12 x 12 grid: the biggest of each 3 x 3 window** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.maximum_filter) | 48023 | 48023 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.maximum_filter) | 218 | 218 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.maximum_filter) | 432 | 432 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="smallest"`
+
+**AirPassengers as a 12 x 12 grid: the smallest of 3 months in each year** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.minimum_filter1d) | 36928 | 36928 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.minimum_filter1d) | 163 | 163 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.minimum_filter1d) | 390 | 390 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="percentile"`
+
+**AirPassengers as a 12 x 12 grid: the 90th percentile of each 3 x 3 window** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.percentile_filter) | 48023 | 48023 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.percentile_filter) | 218 | 218 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.percentile_filter) | 432 | 432 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth ends="zeros"`
+
+**AirPassengers as a 12 x 12 grid: the second smallest of each window, cells outside 0 (order filter)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (signal.order_filter) | 24756 | 24756 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (signal.order_filter) | 135 | 135 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (signal.order_filter) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="summary"`
+
+**AirPassengers as a 12 x 12 grid: the range of each 3 x 3 window** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.generic_filter) | 14915 | 14915 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.generic_filter) | 93 | 93 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.generic_filter) | 70 | 70 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="fourier gaussian"`
+
+**AirPassengers as a 12 x 12 grid: a bell curve in the frequencies** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.fft.ifft2) | 40363 | 40363 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (np.fft.ifft2) | 172.28356772873 | 172.28356772873 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (np.fft.ifft2) | 313.033422850484 | 313.033422850484 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges`
+
+**AirPassengers as a 12 x 12 grid: the Sobel slope size** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.generic_gradient_magnitude) | 43067.2228451391 | 43067.2228451391 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.generic_gradient_magnitude) | 244.789705665904 | 244.789705665904 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.generic_gradient_magnitude) | 201.101964187325 | 201.101964187325 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges test_method="gaussian laplace"`
+
+**AirPassengers as a 12 x 12 grid: the Laplace filter of a bell curve** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.gaussian_laplace) | -5.81228595985186 | -5.81228595985186 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.gaussian_laplace) | 12.5902579351936 | 12.5902579351936 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.gaussian_laplace) | -26.1748868956338 | -26.1748868956338 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes is_above=`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand grown by one cell** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_dilation) | 44 | 44 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_dilation) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_dilation) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="open" on numbers`
+
+**AirPassengers as a 12 x 12 grid: the grey opening by one cell** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.grey_opening) | 39531 | 39531 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.grey_opening) | 172 | 172 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.grey_opening) | 390 | 390 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_distance_to_nearest`
+
+**AirPassengers as a 12 x 12 grid: the distance of each month to the nearest above 400 thousand** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.distance_transform_edt) | 477.477465674175 | 477.477465674175 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.distance_transform_edt) | 5.3851648071345 | 5.3851648071345 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.distance_transform_edt) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.move_and_stretch_by`
+
+**AirPassengers as a 12 x 12 grid: sheared by half a column per row** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.nan_to_num) | 29181.5 | 29181.5 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (np.nan_to_num) | 178 | 178 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (np.nan_to_num) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.convolve_with`
+
+**AirPassengers as a 12 x 12 grid: smoothed with the kernel [[0, 1, 0], [1, 4, 1], [0, 1, 0]]** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (signal.convolve2d) | 309627 | 309627 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (signal.convolve2d) | 1337 | 1337 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (signal.convolve2d) | 2523 | 2523 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_envelope`
+
+**AirPassengers as a 12 x 12 grid: the size of its 2-D analytic signal** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.abs) | 43925.604842562 | 43925.604842562 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (np.abs) | 181.091864257957 | 181.091864257957 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (np.abs) | 456.696729013435 | 456.696729013435 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.split_touching_patches`
+
+**AirPassengers: the months split round the first and the last month (watershed)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cells of patch 2 | SciPy ndimage.watershed_ift | 17 | 17 | exact | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_each_patch_that show=`
+
+**AirPassengers: the biggest month and its place in each patch above 400 thousand** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | SciPy ndimage.extrema and standard_deviation | 622 | 622 | relative 1e-12 | pass |
+| row | SciPy ndimage.extrema and standard_deviation | 36 | 36 | relative 1e-12 | pass |
+| spread | SciPy ndimage.extrema and standard_deviation | 75.4864501322668 | 75.4864501322668 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `table.find_triangles_between_points`
+
+**meuse: the Delaunay triangles between the 155 soil samples** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| triangles | SciPy spatial.Delaunay | 296 | 296 | exact | pass |
+| triangles | R | 296 | 296 | exact | pass |
+
+Note: Any Delaunay triangulation of n points with h on the fence has 2n - 2 - h triangles, so GEOS (R sf) and Qhull (SciPy) must agree on the count.
+
+### `table.find_regions_around_points`
+
+**meuse: the closed Voronoi regions round the 155 soil samples and their total area** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| closed | SciPy spatial.Voronoi and ConvexHull | 143 | 143 | relative 1e-10 | pass |
+| total area | SciPy spatial.Voronoi and ConvexHull | 40676365.2786522 | 40676365.2786522 | relative 1e-10 | pass |
+
+Note: R deldir is not among the R packages the study installs, so SciPy itself is the reference.
+
+### `table.find_distances_between_rows measure="minkowski"`
+
+**meuse: the Minkowski distances (power 3) between the first 5 samples** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| row 1 to 2 | SciPy spatial.distance.cdist (minkowski) | 63.2220267184647 | 63.2220267184647 | relative 1e-12 | pass |
+| row 4 to 5 | SciPy spatial.distance.cdist (minkowski) | 154.01024556561 | 154.01024556561 | relative 1e-12 | pass |
+| total | SciPy spatial.distance.cdist (minkowski) | 3985.66125587882 | 3985.66125587882 | relative 1e-12 | pass |
+| row 1 to 2 | R | 63.2220267184647 | 63.2220267184647 | relative 1e-12 | pass |
+| row 4 to 5 | R | 154.01024556561 | 154.01024556561 | relative 1e-12 | pass |
+| total | R | 3985.66125587882 | 3985.66125587882 | relative 1e-12 | pass |
+
+### `grid.break_down test_method="cs"`
+
+**the CS decomposition of Q from the QR decomposition of the iris correlations** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| cs total | SciPy linalg.cossin | 3.26559876271949 | 3.26559876271949 | relative 1e-10 | pass |
+| cs11 | SciPy linalg.cossin | 0.999663889521874 | 0.999663889521874 | relative 1e-10 | pass |
+
+Note: Base R has no CS decomposition; SciPy itself is the reference.
+
+### `grid.break_down test_method="real eigen blocks"`
+
+**the eigen decomposition of the first 4 iris flowers' measurements in real 2 x 2 blocks** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| block total | SciPy linalg.eig and cdf2rdf | 9.6 | 9.6 | relative 1e-10 | pass |
+| block total | R | 9.6 | 9.6 | relative 1e-09 | pass |
+
+Note: The blocks [[a, b], [-b, a]] add up to the sum of the real parts of the eigenvalues, which base R eigen() gives.
+
+### `grid.break_down test_method="jordan"`
+
+**the Jordan form of AirPassengers' first 2 x 2 months, exactly** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| trace | NumPy linalg.eigvals (two different eigenvalues: J is diagonal) | 238 | 238 | relative 1e-10 | pass |
+| corner | NumPy linalg.eigvals (two different eigenvalues: J is diagonal) | 0 | 0 | relative 1e-10 | pass |
+| trace | R | 238 | 238 | relative 1e-10 | pass |
+| corner | R | 0 | 0 | relative 1e-10 | pass |
+
+### `grid.check_if_grid_is kind="hermitian"`
+
+**the iris correlations are hermitian (real and symmetric)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| hermitian | SciPy linalg.ishermitian | 1 | 1 | exact | pass |
+| hermitian | R | 1 | 1 | exact | pass |
+
+### `grid.check_if_grid_is within=`
+
+**the iris correlations are symmetric to within 1e-12** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| symmetric | SciPy linalg.issymmetric | 1 | 1 | exact | pass |
+| symmetric | R | 1 | 1 | exact | pass |
+
+### `grid.check_if_grid_is kind="upper triangle"`
+
+**R of the QR decomposition of the iris correlations: upper triangle?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| answer | SciPy linalg.bandwidth | 1 | 1 | exact | pass |
+| answer | R | 1 | 1 | exact | pass |
+
+### `grid.check_if_grid_is kind="lower triangle"`
+
+**R of the QR decomposition of the iris correlations: lower triangle?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| answer | SciPy linalg.bandwidth | 0 | 0 | exact | pass |
+| answer | R | 0 | 0 | exact | pass |
+
+### `grid.check_if_grid_is kind="diagonal"`
+
+**R of the QR decomposition of the iris correlations: diagonal?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| answer | SciPy linalg.bandwidth | 0 | 0 | exact | pass |
+| answer | R | 0 | 0 | exact | pass |
+
+### `grid.check_if_grid_is kind="banded"`
+
+**R of the QR decomposition of the iris correlations: banded?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| answer | SciPy linalg.bandwidth | 1 | 1 | exact | pass |
+| answer | R | 1 | 1 | exact | pass |
+
+### `grid.solve_for structure=`
+
+**Lake Huron levels smoothed by the Whittaker system (I + 10 D'D) x = y, from its band** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve on the whole grid | 580.951560476033 | 580.951560476036 | relative 1e-10 | pass |
+| last | SciPy linalg.solve on the whole grid | 580.166968586959 | 580.166968586958 | relative 1e-10 | pass |
+| total | SciPy linalg.solve on the whole grid | 56742.4000000001 | 56742.4 | relative 1e-10 | pass |
+| first | R | 580.951560476033 | 580.951560476035 | relative 1e-10 | pass |
+| last | R | 580.166968586959 | 580.16696858696 | relative 1e-10 | pass |
+| total | R | 56742.4000000001 | 56742.4000000001 | relative 1e-10 | pass |
+
+### `grid.find_eigenvalues structure=`
+
+**the eigenvalues of the tridiagonal grid with the first 12 Lake Huron levels on its diagonal** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | SciPy linalg.eigvalsh on the whole grid | 583.137605309601 | 583.137605309601 | relative 1e-10 | pass |
+| smallest | SciPy linalg.eigvalsh on the whole grid | 578.456494844848 | 578.456494844848 | relative 1e-10 | pass |
+| total | SciPy linalg.eigvalsh on the whole grid | 6971.27 | 6971.27 | relative 1e-10 | pass |
+| biggest | R | 583.137605309601 | 583.137605309601 | relative 1e-10 | pass |
+| smallest | R | 578.456494844848 | 578.456494844848 | relative 1e-10 | pass |
+| total | R | 6971.27 | 6971.27 | relative 1e-10 | pass |
+
+### `sdata.solve_matrix_equation kind="discrete lyapunov"`
+
+**the discrete Lyapunov equation with a = 0.2 times the iris correlations** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve_discrete_lyapunov | 1.14568103993511 | 1.14568103993511 | relative 1e-10 | pass |
+| corner | SciPy linalg.solve_discrete_lyapunov | 0.152582558061728 | 0.152582558061728 | relative 1e-10 | pass |
+| total | SciPy linalg.solve_discrete_lyapunov | 5.07560436677937 | 5.07560436677937 | relative 1e-10 | pass |
+| first | R | 1.14568103993511 | 1.14568103993511 | relative 1e-09 | pass |
+| corner | R | 0.152582558061728 | 0.152582558061728 | relative 1e-09 | pass |
+| total | R | 5.07560436677937 | 5.07560436677937 | relative 1e-09 | pass |
+
+Note: vec(a X a' - X + q) = 0 is (I - a x a) vec(X) = vec(q), which base R solve() answers.
+
+### `sdata.solve_matrix_equation kind="riccati"`
+
+**the riccati equation with a = minus the iris correlations, b = q = r = the identity** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve_continuous_are | 0.622213763059171 | 0.622213763059171 | relative 1e-09 | pass |
+| corner | SciPy linalg.solve_continuous_are | -0.2001446171051 | -0.2001446171051 | relative 1e-09 | pass |
+| total | SciPy linalg.solve_continuous_are | 1.27689629571357 | 1.27689629571357 | relative 1e-09 | pass |
+
+Note: Base R has no Riccati solver; SciPy itself is the reference.
+
+### `sdata.solve_matrix_equation kind="discrete riccati"`
+
+**the discrete riccati equation with a = minus the iris correlations, b = q = r = the identity** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.solve_discrete_are | 3.14960926510491 | 3.14960926510491 | relative 1e-09 | pass |
+| corner | SciPy linalg.solve_discrete_are | 2.2544941081518 | 2.2544941081518 | relative 1e-09 | pass |
+| total | SciPy linalg.solve_discrete_are | 19.8701376559445 | 19.8701376559445 | relative 1e-09 | pass |
+
+Note: Base R has no Riccati solver; SciPy itself is the reference.
+
+### `grid.change_patch_shapes`
+
+**AirPassengers as a 12 x 12 grid: the months above 300 thousand grown by one cell** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_dilation) | 74 | 74 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_dilation) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_dilation) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="shrink"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "shrink"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_erosion) | 13 | 13 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_erosion) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_erosion) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="open"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "open"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_opening) | 23 | 23 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_opening) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_opening) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="close"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "close"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_closing) | 30 | 30 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_closing) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_closing) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="fill holes"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "fill holes"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_fill_holes) | 28 | 28 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_fill_holes) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_fill_holes) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="top hat"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "top hat"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.white_tophat) | 5 | 5 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.white_tophat) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.white_tophat) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="dark top hat"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "dark top hat"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.black_tophat) | 2 | 2 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.black_tophat) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.black_tophat) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="outline"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "outline"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.morphological_gradient) | 31 | 31 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.morphological_gradient) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.morphological_gradient) | 1 | 1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="laplace"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "laplace"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.morphological_laplace) | 1 | 1 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.morphological_laplace) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.morphological_laplace) | -1 | -1 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="match pattern"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "match pattern"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_hit_or_miss) | 0 | 0 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_hit_or_miss) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_hit_or_miss) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="keep patches with points"`
+
+**AirPassengers as a 12 x 12 grid: the months above 400 thousand, "keep patches with points"** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.binary_propagation) | 25 | 25 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.binary_propagation) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.binary_propagation) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="grow" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "grow" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.grey_dilation) | 45696 | 45696 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.grey_dilation) | 183 | 183 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.grey_dilation) | 432 | 432 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="shrink" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "shrink" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.grey_erosion) | 35301 | 35301 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.grey_erosion) | 125 | 125 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.grey_erosion) | 390 | 390 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="close" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "close" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.grey_closing) | 40767 | 40767 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.grey_closing) | 172 | 172 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.grey_closing) | 432 | 432 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="top hat" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "top hat" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.white_tophat) | 832 | 832 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.white_tophat) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.white_tophat) | 42 | 42 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="dark top hat" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "dark top hat" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.black_tophat) | 404 | 404 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.black_tophat) | 0 | 0 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.black_tophat) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="outline" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "outline" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.morphological_gradient) | 10395 | 10395 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.morphological_gradient) | 58 | 58 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.morphological_gradient) | 42 | 42 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.change_patch_shapes how="laplace" on numbers`
+
+**AirPassengers as a 12 x 12 grid: "laplace" as a grey picture (one cell)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.morphological_laplace) | 271 | 271 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.morphological_laplace) | -36 | -36 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.morphological_laplace) | -42 | -42 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges test_method="prewitt"`
+
+**AirPassengers as a 12 x 12 grid: the Prewitt slope size** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.generic_gradient_magnitude) | 32265.5089107569 | 32265.5089107569 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.generic_gradient_magnitude) | 185.16209115259 | 185.16209115259 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.generic_gradient_magnitude) | 151.172087370652 | 151.172087370652 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges test_method="laplace"`
+
+**AirPassengers as a 12 x 12 grid: the Laplace filter** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.laplace) | 0 | 0 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.laplace) | -39 | -39 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.laplace) | -69 | -69 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges test_method="gaussian gradient"`
+
+**AirPassengers as a 12 x 12 grid: the slope size of a bell curve** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.gaussian_gradient_magnitude) | 4774.89205907368 | 4774.89205907368 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.gaussian_gradient_magnitude) | 28.4060822126806 | 28.4060822126806 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.gaussian_gradient_magnitude) | 14.0088532803061 | 14.0088532803061 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_edges along=`
+
+**AirPassengers as a 12 x 12 grid: the Sobel change along the months** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.sobel) | 1928 | 1928 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.sobel) | 81 | 81 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.sobel) | 169 | 169 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="rank"`
+
+**AirPassengers as a 12 x 12 grid: the second smallest of each 3 x 3 window** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.rank_filter) | 35623 | 35623 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.rank_filter) | 135 | 135 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.rank_filter) | 390 | 390 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="fourier uniform"`
+
+**AirPassengers as a 12 x 12 grid: a square average in the frequencies** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.fft.ifft2) | 40363 | 40363 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (np.fft.ifft2) | 166.948040231552 | 166.948040231552 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (np.fft.ifft2) | 301.366039754263 | 301.366039754263 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="fourier ellipsoid"`
+
+**AirPassengers as a 12 x 12 grid: a round average in the frequencies** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.fft.ifft2) | 40363 | 40363 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (np.fft.ifft2) | 166.895498681527 | 166.895498681527 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (np.fft.ifft2) | 323.022165527018 | 323.022165527018 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.smooth test_method="spline"`
+
+**AirPassengers as a 12 x 12 grid: a cubic spline surface through every month (smoothness 0)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (signal.spline_filter) | 40363.0011081079 | 40363.0011081079 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (signal.spline_filter) | 172.000010251999 | 172.000010251999 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (signal.spline_filter) | 432.000025749207 | 432.000025749207 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.convolve_with flip=`
+
+**AirPassengers as a 12 x 12 grid: correlated with [[1, 2], [0, -1]] (not turned round)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (signal.correlate2d) | 79233 | 79233 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (signal.correlate2d) | 310 | 310 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (signal.correlate2d) | 432 | 432 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.convolve_with row_weights=`
+
+**AirPassengers as a 12 x 12 grid: a separable filter [1, 2, 1] by [1, 0, -1]** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (signal.sepfir2d) | 33552 | 33552 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (signal.sepfir2d) | 231 | 231 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (signal.sepfir2d) | 109 | 109 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_distance_to_nearest test_method="city block"`
+
+**AirPassengers as a 12 x 12 grid: the city block distance to the nearest month above 400 thousand** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.distance_transform_cdt) | 578 | 578 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.distance_transform_cdt) | 7 | 7 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.distance_transform_cdt) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_distance_to_nearest test_method="chessboard"`
+
+**AirPassengers as a 12 x 12 grid: the chessboard distance to the nearest month above 400 thousand** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.distance_transform_cdt) | 416 | 416 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.distance_transform_cdt) | 5 | 5 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.distance_transform_cdt) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.find_distance_to_nearest test_method="brute force"`
+
+**AirPassengers as a 12 x 12 grid: the brute force distance to the nearest month above 400 thousand** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (ndimage.distance_transform_bf) | 477.477465674175 | 477.477465674175 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (ndimage.distance_transform_bf) | 5.3851648071345 | 5.3851648071345 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (ndimage.distance_transform_bf) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.move_and_stretch_by formulas=`
+
+**AirPassengers as a 12 x 12 grid: each month taken from half a month on per year (formulas)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.nan_to_num) | 27581 | 27581 | relative 1e-12 | pass |
+| row 3 column 5 | SciPy (np.nan_to_num) | 188.5 | 188.5 | relative 1e-12 | pass |
+| row 12 column 12 | SciPy (np.nan_to_num) | 0 | 0 | relative 1e-12 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `grid.move_and_stretch_by test_method="fourier"`
+
+**AirPassengers as a 12 x 12 grid: moved by half a year and one month, wrapping round (Fourier)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy (np.fft.ifft2) | 40363 | 40363 | relative 1e-10 | pass |
+| row 3 column 5 | SciPy (np.fft.ifft2) | 180.575364958806 | 180.575364958806 | relative 1e-10 | pass |
+| row 12 column 12 | SciPy (np.fft.ifft2) | 272.554280765808 | 272.554280765808 | relative 1e-10 | pass |
+
+Note: R's image packages (EBImage, imager) are not installed for the study, so SciPy itself is the reference.
+
+### `table.find_triangles_between_points containing=`
+
+**meuse: the triangle that holds two points of the flood plain** (real data; data: meuse (sp))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy Delaunay.find_simplex | 155 | 155 | exact | pass |
+| second | SciPy Delaunay.find_simplex | 219 | 219 | exact | pass |
+
+Note: R deldir is not among the R packages the study installs, so SciPy itself is the reference.
+
+### `table.find_regions_around_points longitude=`
+
+**state.center: the regions round the centres of the 50 US states on the earth, in square kilometres** (real data; data: state.center (R datasets))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total area | worked out: the regions cover the whole sphere, 4 pi r**2 | 510065880.972872 | 510065880.972872 | within 0.001 (printed rounding) | pass |
+| total area | SciPy spatial.SphericalVoronoi | 510065880.972872 | 510065880.972872 | relative 1e-10 | pass |
+| biggest | SciPy spatial.SphericalVoronoi | 128656796.448107 | 128656796.448107 | relative 1e-10 | pass |
+
+Note: The regions on a sphere cover all of it, so their areas add up to 4 pi r squared.
+
+### `nums.find_product`
+
+**AirPassengers: the growth over 1949, the product of the 11 month-to-month ratios** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| growth | NumPy prod | 1.05357142857143 | 1.05357142857143 | relative 1e-12 | pass |
+| growth | R | 1.05357142857143 | 1.05357142857143 | relative 1e-12 | pass |
+
+### `nums.turn_into_running_total show="product"`
+
+**AirPassengers: the growth over 1949 so far, month by month (running product of the ratios); the last value** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| after 6 months | NumPy cumprod | 1.32142857142857 | 1.32142857142857 | relative 1e-12 | pass |
+| after 11 months | NumPy cumprod | 1.05357142857143 | 1.05357142857143 | relative 1e-12 | pass |
+| after 6 months | R | 1.32142857142857 | 1.32142857142857 | relative 1e-12 | pass |
+| after 11 months | R | 1.05357142857143 | 1.05357142857143 | relative 1e-12 | pass |
+
+### `nums.turn_into_changes`
+
+**AirPassengers: the change from the same month a year before (lag 12)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | NumPy (x[12:] - x[:-12]) | 132 | 132 | relative 1e-12 | pass |
+| first | NumPy (x[12:] - x[:-12]) | 3 | 3 | relative 1e-12 | pass |
+| last | NumPy (x[12:] - x[:-12]) | 27 | 27 | relative 1e-12 | pass |
+| average | NumPy (x[12:] - x[:-12]) | 31.7727272727273 | 31.7727272727273 | relative 1e-12 | pass |
+| count | R | 132 | 132 | relative 1e-12 | pass |
+| first | R | 3 | 3 | relative 1e-12 | pass |
+| last | R | 27 | 27 | relative 1e-12 | pass |
+| average | R | 31.7727272727273 | 31.7727272727273 | relative 1e-12 | pass |
+
+### `nums.turn_into_changes how_many_times=`
+
+**AirPassengers: the changes of the month-to-month changes** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| count | NumPy diff(n=2) | 142 | 142 | relative 1e-12 | pass |
+| total | NumPy diff(n=2) | 36 | 36 | relative 1e-12 | pass |
+| biggest | NumPy diff(n=2) | 113 | 113 | relative 1e-12 | pass |
+| count | R | 142 | 142 | relative 1e-12 | pass |
+| total | R | 36 | 36 | relative 1e-12 | pass |
+| biggest | R | 113 | 113 | relative 1e-12 | pass |
+
+### `nums.turn_into_slopes`
+
+**AirPassengers: the slope (passengers per year) at the first, a middle and the last month (central differences)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | NumPy gradient | 72 | 72 | relative 1e-12 | pass |
+| month 70 | NumPy gradient | -336 | -336 | relative 1e-12 | pass |
+| last | NumPy gradient | 504 | 504 | relative 1e-12 | pass |
+| first | R | 72 | 72 | relative 1e-12 | pass |
+| month 70 | R | -336 | -336 | relative 1e-12 | pass |
+| last | R | 504 | 504 | relative 1e-12 | pass |
+
+### `nums.count_in_bins`
+
+**mtcars: how many cars in each fuel-use bin (10-15, 15-20, 20-25, 25-35 mpg)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bin 1 | NumPy histogram | 5 | 5 | relative 1e-12 | pass |
+| bin 2 | NumPy histogram | 13 | 13 | relative 1e-12 | pass |
+| bin 3 | NumPy histogram | 8 | 8 | relative 1e-12 | pass |
+| bin 4 | NumPy histogram | 6 | 6 | relative 1e-12 | pass |
+| bin 1 | R | 5 | 5 | relative 1e-12 | pass |
+| bin 2 | R | 13 | 13 | relative 1e-12 | pass |
+| bin 3 | R | 8 | 8 | relative 1e-12 | pass |
+| bin 4 | R | 6 | 6 | relative 1e-12 | pass |
+
+### `nums.find_bin_of_each`
+
+**mtcars: the horsepower class of each car (below 100, 100-150, 150-250, 250 and up to 400)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total of the bins | NumPy digitize | 72 | 72 | relative 1e-12 | pass |
+| car 31 (Maserati Bora) | NumPy digitize | 4 | 4 | relative 1e-12 | pass |
+| in bin 1 | NumPy digitize | 9 | 9 | relative 1e-12 | pass |
+| total of the bins | R | 72 | 72 | relative 1e-12 | pass |
+| car 31 (Maserati Bora) | R | 4 | 4 | relative 1e-12 | pass |
+| in bin 1 | R | 9 | 9 | relative 1e-12 | pass |
+
+### `nums.find_positions_where`
+
+**AirPassengers: the months with more than 500 passengers (their positions from 1)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy flatnonzero | 7 | 7 | relative 1e-12 | pass |
+| first | NumPy flatnonzero | 116 | 116 | relative 1e-12 | pass |
+| total of the positions | NumPy flatnonzero | 929 | 929 | relative 1e-12 | pass |
+| how many | R | 7 | 7 | relative 1e-12 | pass |
+| first | R | 116 | 116 | relative 1e-12 | pass |
+| total of the positions | R | 929 | 929 | relative 1e-12 | pass |
+
+### `nums.keep_numbers_also_in`
+
+**mtcars: the horsepower values found among both the automatic and the manual cars** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy intersect1d | 2 | 2 | relative 1e-12 | pass |
+| total | NumPy intersect1d | 285 | 285 | relative 1e-12 | pass |
+| how many | R | 2 | 2 | relative 1e-12 | pass |
+| total | R | 285 | 285 | relative 1e-12 | pass |
+
+### `nums.remove_numbers_also_in`
+
+**mtcars: the horsepower values of automatic cars that no manual car has** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy setdiff1d | 11 | 11 | relative 1e-12 | pass |
+| total | NumPy setdiff1d | 1707 | 1707 | relative 1e-12 | pass |
+| how many | R | 11 | 11 | relative 1e-12 | pass |
+| total | R | 1707 | 1707 | relative 1e-12 | pass |
+
+### `nums.keep_numbers_in_only_one`
+
+**mtcars: the horsepower values found in only one of the two gearbox groups** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy setxor1d | 20 | 20 | relative 1e-12 | pass |
+| total | NumPy setxor1d | 2895 | 2895 | relative 1e-12 | pass |
+| how many | R | 20 | 20 | relative 1e-12 | pass |
+| total | R | 2895 | 2895 | relative 1e-12 | pass |
+
+### `nums.join_numbers_with`
+
+**mtcars: the different horsepower values of the two gearbox groups together** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy union1d | 22 | 22 | relative 1e-12 | pass |
+| total | NumPy union1d | 3180 | 3180 | relative 1e-12 | pass |
+| how many | R | 22 | 22 | relative 1e-12 | pass |
+| total | R | 3180 | 3180 | relative 1e-12 | pass |
+
+### `nums.find_dot_product_with`
+
+**iris: the dot product of sepal length and petal length over the 150 flowers** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| dot product | NumPy dot | 3483.76 | 3483.76 | relative 1e-12 | pass |
+| dot product | R | 3483.76 | 3483.76 | relative 1e-12 | pass |
+
+### `nums.find_cross_product_with`
+
+**iris: the cross product of the average first three measurements of setosa and of virginica** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | NumPy cross | 14.684268 | 14.684268 | relative 1e-12 | pass |
+| y | NumPy cross | -18.161656 | -18.161656 | relative 1e-12 | pass |
+| z | NumPy cross | -7.69581999999999 | -7.69581999999999 | relative 1e-12 | pass |
+| x | R | 14.684268 | 14.684268 | relative 1e-12 | pass |
+| y | R | -18.161656 | -18.161656 | relative 1e-12 | pass |
+| z | R | -7.69581999999999 | -7.69582 | relative 1e-12 | pass |
+
+### `nums.find_size`
+
+**iris: the length (2-norm) and the total size (1-norm) of the 150 petal lengths** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| length | NumPy linalg.vector_norm | 50.8203699317508 | 50.8203699317508 | relative 1e-12 | pass |
+| total size | NumPy linalg.vector_norm | 563.7 | 563.7 | relative 1e-12 | pass |
+| length | R | 50.8203699317508 | 50.8203699317508 | relative 1e-12 | pass |
+| total size | R | 563.7 | 563.7 | relative 1e-12 | pass |
+
+### `nums.sort show="positions"`
+
+**mtcars: the positions of the three most powerful cars (the order of horsepower, biggest first)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | NumPy argsort | 31 | 31 | relative 1e-12 | pass |
+| second | NumPy argsort | 29 | 29 | relative 1e-12 | pass |
+| third | NumPy argsort | 7 | 7 | relative 1e-12 | pass |
+| first | R | 31 | 31 | relative 1e-12 | pass |
+| second | R | 29 | 29 | relative 1e-12 | pass |
+| third | R | 7 | 7 | relative 1e-12 | pass |
+
+### `nums.sort then_by=`
+
+**mtcars: cylinders sorted, with ties in the order of fuel use; the fuel use of the cars after sorting at three places** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | NumPy lexsort | 4 | 4 | relative 1e-12 | pass |
+| middle | NumPy lexsort | 6 | 6 | relative 1e-12 | pass |
+| last | NumPy lexsort | 8 | 8 | relative 1e-12 | pass |
+| first | R | 4 | 4 | relative 1e-12 | pass |
+| middle | R | 6 | 6 | relative 1e-12 | pass |
+| last | R | 8 | 8 | relative 1e-12 | pass |
+
+### `nums.remove_duplicate_numbers show="positions"`
+
+**mtcars: the different gear counts, where each first comes and how many cars have each** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first of 3 | NumPy unique_all | 4 | 4 | relative 1e-12 | pass |
+| first of 5 | NumPy unique_all | 27 | 27 | relative 1e-12 | pass |
+| count of 4 | NumPy unique_all | 12 | 12 | relative 1e-12 | pass |
+| first of 3 | R | 4 | 4 | relative 1e-12 | pass |
+| first of 5 | R | 27 | 27 | relative 1e-12 | pass |
+| count of 4 | R | 12 | 12 | relative 1e-12 | pass |
+
+### `nums.change_angles_to remove_jumps=`
+
+**AirPassengers: the month of each reading as an angle in degrees, wrapping round each year, run on smoothly; the last angle** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| last | NumPy unwrap | 4290 | 4290 | relative 1e-12 | pass |
+| total | NumPy unwrap | 308880 | 308880 | relative 1e-12 | pass |
+| last | R | 4290 | 4290 | relative 1e-12 | pass |
+| total | R | 308880 | 308880 | relative 1e-12 | pass |
+
+Note: R has no unwrap in base; the angles run on smoothly by construction, (i - 1) x 30 degrees.
+
+### `grid.find_positions_where`
+
+**AirPassengers as 12 years x 12 months: the year and month of each month above 500 passengers** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| how many | NumPy argwhere | 7 | 7 | relative 1e-12 | pass |
+| first year | NumPy argwhere | 10 | 10 | relative 1e-12 | pass |
+| total of the months | NumPy argwhere | 53 | 53 | relative 1e-12 | pass |
+| how many | R | 7 | 7 | relative 1e-12 | pass |
+| first year | R | 10 | 10 | relative 1e-12 | pass |
+| total of the months | R | 53 | 53 | relative 1e-12 | pass |
+
+### `grid.multiply_as_matrix_by`
+
+**iris: the cross-product grid of the four measurements (X'X); its trace and one cell** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sepal length x petal width | NumPy matmul | 1128.14 | 1128.14 | relative 1e-12 | pass |
+| trace | NumPy matmul | 9539.29 | 9539.29 | relative 1e-12 | pass |
+| sepal length x petal width | R | 1128.14 | 1128.14 | relative 1e-12 | pass |
+| trace | R | 9539.29 | 9539.29 | relative 1e-12 | pass |
+
+### `grid.get_part`
+
+**iris: the correlations above the diagonal of the four measurements, as a list; their total and the biggest** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy triu_indices | 1.74042451256098 | 1.74042451256098 | relative 1e-12 | pass |
+| biggest | NumPy triu_indices | 0.962865431402796 | 0.962865431402796 | relative 1e-12 | pass |
+| how many | NumPy triu_indices | 6 | 6 | relative 1e-12 | pass |
+| total | R | 1.74042451256098 | 1.74042451256097 | relative 1e-12 | pass |
+| biggest | R | 0.962865431402796 | 0.962865431402796 | relative 1e-12 | pass |
+| how many | R | 6 | 6 | relative 1e-12 | pass |
+
+### `grid.replace_part`
+
+**iris: the correlation grid with 0 on the diagonal; the biggest correlation left** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| biggest | NumPy fill_diagonal | 0.962865431402796 | 0.962865431402796 | relative 1e-12 | pass |
+| total | NumPy fill_diagonal | 3.48084902512196 | 3.48084902512196 | relative 1e-12 | pass |
+| biggest | R | 0.962865431402796 | 0.962865431402796 | relative 1e-12 | pass |
+| total | R | 3.48084902512196 | 3.48084902512195 | relative 1e-12 | pass |
+
+### `grid.add_border`
+
+**AirPassengers as 12 years x 12 months with a border of the nearest month copied; the total of the bigger grid** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | NumPy pad (edge) | 14 | 14 | relative 1e-12 | pass |
+| total | NumPy pad (edge) | 54719 | 54719 | relative 1e-12 | pass |
+| rows | R | 14 | 14 | relative 1e-12 | pass |
+| total | R | 54719 | 54719 | relative 1e-12 | pass |
+
+### `grid.find_rank`
+
+**iris: the rank of the 150 x 4 measurements and of the 4 x 4 grid with a column made from two others** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| measurements | NumPy linalg.matrix_rank | 4 | 4 | relative 1e-12 | pass |
+| with a made column | NumPy linalg.matrix_rank | 3 | 3 | relative 1e-12 | pass |
+| measurements | R | 4 | 4 | relative 1e-12 | pass |
+| with a made column | R | 3 | 3 | relative 1e-12 | pass |
+
+### `grid.find_size`
+
+**iris: the Frobenius size and the biggest stretch (2-norm) of the centred 150 x 4 measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| frobenius | NumPy linalg.matrix_norm | 26.1030764470397 | 26.1030764470397 | relative 1e-12 | pass |
+| biggest stretch | NumPy linalg.matrix_norm | 25.0999604421839 | 25.0999604421839 | relative 1e-12 | pass |
+| frobenius | R | 26.1030764470397 | 26.1030764470397 | relative 1e-10 | pass |
+| biggest stretch | R | 25.0999604421839 | 25.0999604421839 | relative 1e-10 | pass |
+
+### `grid.find_condition_number`
+
+**iris: the condition number of the correlation grid of the four measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| condition number | NumPy linalg.cond | 140.889252328339 | 140.889252328339 | relative 1e-12 | pass |
+| condition number | R | 140.889252328339 | 140.889252328337 | relative 1e-10 | pass |
+
+### `grid.find_column_space`
+
+**iris: the column space of the four measurements; the directions it has and the size of the first column of the projection** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| directions | SciPy linalg.orth | 4 | 4 | relative 1e-10 | pass |
+| first value | SciPy linalg.orth | 0.0206030192343982 | 0.0206030192343982 | relative 1e-10 | pass |
+| directions | R | 4 | 4 | relative 1e-10 | pass |
+| first value | R | 0.0206030192343982 | 0.0206030192343984 | relative 1e-10 | pass |
+
+Note: The basis itself is fixed only up to a rotation, so the projection q q' is compared.
+
+### `grid.take_fourier_transform`
+
+**AirPassengers as 12 years x 12 months: the size of the yearly wave (frequency 1/12 per month) in the 2D Fourier transform** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| size at 0, 0 | SciPy fft.fft2 | 40363 | 40363 | relative 1e-12 | pass |
+| size at 0, 1 | SciPy fft.fft2 | 3481.61862477837 | 3481.61862477837 | relative 1e-12 | pass |
+| size at 0, 0 | R | 40363 | 40363 | relative 1e-10 | pass |
+| size at 0, 1 | R | 3481.61862477837 | 3481.61862477837 | relative 1e-10 | pass |
+
+### `grid.take_cosine_transform`
+
+**AirPassengers as 12 years x 12 months: the first numbers of the 2D cosine transform (orthonormal)** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy fft.dctn | 3363.58333333333 | 3363.58333333333 | relative 1e-12 | pass |
+| second | SciPy fft.dctn | -101.938918645056 | -101.938918645056 | relative 1e-12 | pass |
+| first | R | 3363.58333333333 | 3363.58333333333 | relative 1e-10 | pass |
+| second | R | -101.938918645056 | -101.938918645056 | relative 1e-10 | pass |
+
+### `grid.take_inverse closest_possible=`
+
+**iris: the closest possible inverse of the 150 x 4 measurements, as MASS::ginv** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.pinv | 0.00314519431052704 | 0.00314519431052704 | relative 1e-10 | pass |
+| total | SciPy linalg.pinv | 0.164225386660997 | 0.164225386660997 | relative 1e-10 | pass |
+| first | R | 0.00314519431052704 | 0.00314519431052728 | relative 1e-08 | pass |
+| total | R | 0.164225386660997 | 0.164225386660997 | relative 1e-08 | pass |
+
+### `grid.find_determinant as_log=`
+
+**iris: the log of the determinant of the covariance grid of the four measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| log determinant | NumPy linalg.slogdet | -6.25922391140394 | -6.25922391140394 | relative 1e-12 | pass |
+| log determinant | R | -6.25922391140394 | -6.25922391140393 | relative 1e-10 | pass |
+
+### `sdata.number_grid kind="toeplitz"`
+
+**AirPassengers: the Toeplitz grid of the first 12 autocovariances; its determinant** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| log determinant | SciPy linalg.toeplitz | 88.5856313969279 | 88.5856313969279 | relative 1e-10 | pass |
+| corner | SciPy linalg.toeplitz | 10622.368960115 | 10622.368960115 | relative 1e-10 | pass |
+| log determinant | R | 88.5856313969279 | 88.5856313969278 | relative 1e-08 | pass |
+| corner | R | 10622.368960115 | 10622.368960115 | relative 1e-08 | pass |
+
+### `sdata.make_coordinate_grids`
+
+**mtcars: the grid of every weight and horsepower pair of the first 4 cars; the totals of the two grids** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x total | NumPy meshgrid | 44.12 | 44.12 | relative 1e-12 | pass |
+| y total | NumPy meshgrid | 1692 | 1692 | relative 1e-12 | pass |
+| corner | NumPy meshgrid | 110 | 110 | relative 1e-12 | pass |
+| x total | R | 44.12 | 44.12 | relative 1e-12 | pass |
+| y total | R | 1692 | 1692 | relative 1e-12 | pass |
+| corner | R | 110 | 110 | relative 1e-12 | pass |
+
+### `sdata.polynomial`
+
+**iris: the Legendre polynomial of degree 3 at the 150 sepal lengths scaled to -1 to 1; the total of its values** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy special.eval_legendre | 8.54123799725652 | 8.54123799725652 | relative 1e-12 | pass |
+| biggest | SciPy special.eval_legendre | 1 | 1 | relative 1e-12 | pass |
+| total | R | 8.54123799725652 | 8.54123799725652 | relative 1e-12 | pass |
+| biggest | R | 1 | 1 | relative 1e-12 | pass |
+
+### `sdata.polynomial "through points"`
+
+**mtcars: the polynomial of lowest degree through the fuel use of 4 cars by weight; its value at 3 tonnes** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 3 | SciPy interpolate.BarycentricInterpolator | 21.1947161470658 | 21.1947161470658 | relative 1e-09 | pass |
+| at 3 | R | 21.1947161470658 | 21.1947161470659 | relative 1e-09 | pass |
+
+### `nums.remove_duplicate_numbers show="which number"`
+
+**mtcars: which of the different gear counts (3, 4 or 5) each car has** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first car | NumPy unique_inverse | 2 | 2 | relative 1e-12 | pass |
+| fourth car | NumPy unique_inverse | 1 | 1 | relative 1e-12 | pass |
+| total | NumPy unique_inverse | 54 | 54 | relative 1e-12 | pass |
+| first car | R | 2 | 2 | relative 1e-12 | pass |
+| fourth car | R | 1 | 1 | relative 1e-12 | pass |
+| total | R | 54 | 54 | relative 1e-12 | pass |
+
+### `nums.replace_numbers_where at_positions=`
+
+**AirPassengers: the January of each of the first three years set to 0** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy put | 39991 | 39991 | relative 1e-12 | pass |
+| 13th | NumPy put | 0 | 0 | relative 1e-12 | pass |
+| 2nd | NumPy put | 118 | 118 | relative 1e-12 | pass |
+| total | R | 39991 | 39991 | relative 1e-12 | pass |
+| 13th | R | 0 | 0 | relative 1e-12 | pass |
+| 2nd | R | 118 | 118 | relative 1e-12 | pass |
+
+### `nums.replace_numbers_where rules=`
+
+**AirPassengers: each month marked -1 below 150 passengers, 1 above 400 and 0 otherwise** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy select | 5 | 5 | relative 1e-12 | pass |
+| first | NumPy select | -1 | -1 | relative 1e-12 | pass |
+| last | NumPy select | 1 | 1 | relative 1e-12 | pass |
+| total | R | 5 | 5 | relative 1e-12 | pass |
+| first | R | -1 | -1 | relative 1e-12 | pass |
+| last | R | 1 | 1 | relative 1e-12 | pass |
+
+### `nums.replace_numbers_where with_value=`
+
+**AirPassengers: each month below 150 passengers replaced by the same month one year later** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy copyto | 40853 | 40853 | relative 1e-12 | pass |
+| first | NumPy copyto | 115 | 115 | relative 1e-12 | pass |
+| smallest | NumPy copyto | 114 | 114 | relative 1e-12 | pass |
+| total | R | 40853 | 40853 | relative 1e-12 | pass |
+| first | R | 115 | 115 | relative 1e-12 | pass |
+| smallest | R | 114 | 114 | relative 1e-12 | pass |
+
+### `nums.take_cosine_transform inverse=`
+
+**AirPassengers: the inverse cosine transform (orthonormal) of the 144 monthly counts** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy fft.idct | 2467.52686156805 | 2467.52686156805 | relative 1e-12 | pass |
+| fifth | SciPy fft.idct | 530.399789650011 | 530.399789650011 | relative 1e-12 | pass |
+| total | SciPy fft.idct | 1344 | 1344 | relative 1e-12 | pass |
+| first | R | 2467.52686156805 | 2467.52686156805 | relative 1e-10 | pass |
+| fifth | R | 530.399789650011 | 530.399789650011 | relative 1e-10 | pass |
+| total | R | 1344 | 1344.00000000002 | relative 1e-10 | pass |
+
+### `nums.take_cosine_transform kind="sine"`
+
+**AirPassengers: the sine transform (orthonormal) of the 144 monthly counts** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy fft.dst | 2972.02711652184 | 2972.02711652184 | relative 1e-12 | pass |
+| second | SciPy fft.dst | -1047.20011432894 | -1047.20011432894 | relative 1e-12 | pass |
+| last | SciPy fft.dst | -22.9166666666667 | -22.9166666666667 | relative 1e-12 | pass |
+| first | R | 2972.02711652184 | 2972.02711652184 | relative 1e-10 | pass |
+| second | R | -1047.20011432894 | -1047.20011432894 | relative 1e-10 | pass |
+| last | R | -22.9166666666667 | -22.9166666666667 | relative 1e-10 | pass |
+
+### `nums.take_cosine_transform kind="hankel"`
+
+**AirPassengers: the fast Hankel transform of the first year's counts, taken as spaced 0.1 apart on the natural log scale** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy fft.fht | 142.451504938953 | 142.451504938953 | relative 1e-12 | pass |
+| sixth | SciPy fft.fht | 126.007207581636 | 126.007207581636 | relative 1e-12 | pass |
+| total | SciPy fft.fht | 1520 | 1520 | relative 1e-12 | pass |
+
+Note: Base R has no fast Hankel transform (FFTLog), so the check is against SciPy only.
+
+### `sdata.number_list spacing="log"`
+
+**AirPassengers: 5 numbers evenly spaced on a log scale from the smallest to the biggest monthly count** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| second | NumPy geomspace | 162.638215559609 | 162.638215559609 | relative 1e-12 | pass |
+| middle | NumPy geomspace | 254.338357311672 | 254.338357311672 | relative 1e-12 | pass |
+| total | NumPy geomspace | 1540.71827077063 | 1540.71827077063 | relative 1e-12 | pass |
+| second | R | 162.638215559609 | 162.638215559609 | relative 1e-12 | pass |
+| middle | R | 254.338357311672 | 254.338357311672 | relative 1e-12 | pass |
+| total | R | 1540.71827077063 | 1540.71827077063 | relative 1e-12 | pass |
+
+### `sdata.number_grid from_formula=`
+
+**AirPassengers as 12 years x 12 months, times the grid row x column: the weighted totals** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| corner | NumPy fromfunction | 452736 | 452736 | relative 1e-12 | pass |
+| first | NumPy fromfunction | 9869 | 9869 | relative 1e-12 | pass |
+| total | NumPy fromfunction | 20759076 | 20759076 | relative 1e-12 | pass |
+| corner | R | 452736 | 452736 | relative 1e-12 | pass |
+| first | R | 9869 | 9869 | relative 1e-12 | pass |
+| total | R | 20759076 | 20759076 | relative 1e-12 | pass |
+
+### `sdata.number_grid kind="identity"`
+
+**AirPassengers as 12 years x 12 months: the identity grid shifted by one, times the counts, moves each year up one row** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | NumPy eye | 115 | 115 | relative 1e-12 | pass |
+| last row | NumPy eye | 0 | 0 | relative 1e-12 | pass |
+| total | NumPy eye | 38843 | 38843 | relative 1e-12 | pass |
+| first | R | 115 | 115 | relative 1e-12 | pass |
+| last row | R | 0 | 0 | relative 1e-12 | pass |
+| total | R | 38843 | 38843 | relative 1e-12 | pass |
+
+### `sdata.number_grid kind="rotation"`
+
+**iris: the sepal length, sepal width and petal length of the 150 flowers turned 30 degrees about the third axis** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SymPy rot_ccw_axis3 | 2.66672955930064 | 2.66672955930064 | relative 1e-12 | pass |
+| second | SymPy rot_ccw_axis3 | 5.58108891324553 | 5.58108891324553 | relative 1e-12 | pass |
+| total | SymPy rot_ccw_axis3 | 1928.8805165926 | 1928.8805165926 | relative 1e-12 | pass |
+| first | R | 2.66672955930064 | 2.66672955930064 | relative 1e-12 | pass |
+| second | R | 5.58108891324553 | 5.58108891324553 | relative 1e-12 | pass |
+| total | R | 1928.8805165926 | 1928.8805165926 | relative 1e-12 | pass |
+
+### `sdata.polynomial "chebyshev"`
+
+**iris: the Chebyshev polynomial of degree 5 at the 150 petal lengths scaled to -1 to 1** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy special.eval_chebyt | 73.6394467185399 | 73.6394467185399 | relative 1e-12 | pass |
+| biggest | SciPy special.eval_chebyt | 1 | 1 | relative 1e-12 | pass |
+| first | SciPy special.eval_chebyt | 0.873982811710252 | 0.873982811710251 | relative 1e-12 | pass |
+| total | R | 73.6394467185399 | 73.6394467185399 | relative 1e-10 | pass |
+| biggest | R | 1 | 1 | relative 1e-10 | pass |
+| first | R | 0.873982811710252 | 0.873982811710252 | relative 1e-10 | pass |
+
+### `sdata.polynomial "probabilists hermite"`
+
+**mtcars: the probabilists' Hermite polynomial of degree 4 at the 32 fuel uses, standardised** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy special.eval_hermitenorm | -5.92851295426855 | -5.92851295426854 | relative 1e-12 | pass |
+| biggest | SciPy special.eval_hermitenorm | 2.97481324268099 | 2.97481324268099 | relative 1e-12 | pass |
+| first | SciPy special.eval_hermitenorm | 2.86392091938876 | 2.86392091938876 | relative 1e-12 | pass |
+| total | R | -5.92851295426855 | -5.9285129542685 | relative 1e-10 | pass |
+| biggest | R | 2.97481324268099 | 2.97481324268099 | relative 1e-10 | pass |
+| first | R | 2.86392091938876 | 2.86392091938876 | relative 1e-10 | pass |
+
+### `sdata.polynomial "jacobi"`
+
+**AirPassengers: the Jacobi polynomial of degree 3 (alpha 1, beta 2) at the 144 monthly counts scaled to -1 to 1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy special.eval_jacobi | -197.842244168708 | -197.842244168708 | relative 1e-12 | pass |
+| biggest | SciPy special.eval_jacobi | 4 | 4 | relative 1e-12 | pass |
+| first | SciPy special.eval_jacobi | -8.95200195648907 | -8.95200195648907 | relative 1e-12 | pass |
+| total | R | -197.842244168708 | -197.842244168708 | relative 1e-10 | pass |
+| biggest | R | 4 | 4 | relative 1e-10 | pass |
+| first | R | -8.95200195648907 | -8.95200195648907 | relative 1e-10 | pass |
+
+Note: R: the explicit sum of the Jacobi polynomial (Abramowitz and Stegun 22.3.2).
+
+### `sdata.polynomial "from roots"`
+
+**mtcars: the polynomial whose roots are the weights of the first 3 cars, at the weights of all 32** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy poly | 73.0657265959998 | 73.0657265960004 | relative 1e-10 | pass |
+| last | NumPy poly | -0.00699200000000388 | -0.00699199999999323 | relative 1e-10 | pass |
+| fifth | NumPy poly | 0.518896000000005 | 0.518896000000012 | relative 1e-10 | pass |
+| total | R | 73.0657265959998 | 73.065726596 | relative 1e-10 | pass |
+| last | R | -0.00699200000000388 | -0.006992 | relative 1e-10 | pass |
+| fifth | R | 0.518896000000005 | 0.518896 | relative 1e-10 | pass |
+
+### `sdata.find_where_smallest test_method="golden section"`
+
+**mtcars: the standard deviation of mpg that fits best (normal likelihood, golden-section search)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| s | NumPy standard deviation with n in the bottom (the closed-form answer) | 5.93202948269804 | 5.93202955230122 | relative 1e-07 | pass |
+| s | R | 5.93202948269804 | 5.93202957498486 | relative 1e-07 | pass |
+
+Note: R optimize() is Brent's method (golden sections with parabolic steps); both reach the closed form. A smallest value can be placed only to about the square root of the machine precision (about 1e-8 here), where the curve is flat to the last digit.
+
+### `sdata.find_where_smallest test_method="grid search"`
+
+**mtcars: the average and standard deviation of mpg that fit best, by a grid search over the whole range** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mu | the closed-form maximum likelihood estimates (NumPy) | 20.0906252019589 | 20.090625 | relative 1e-07 | pass |
+| s | the closed-form maximum likelihood estimates (NumPy) | 5.93202951703968 | 5.93202955230122 | relative 1e-07 | pass |
+| mu | R | 20.0906252019589 | 20.0906250041733 | relative 1e-06 | pass |
+| s | R | 5.93202951703968 | 5.9320296927423 | relative 1e-06 | pass |
+
+### `sdata.find_where_smallest test_method="newton conjugate gradient"`
+
+**mtcars: the average and standard deviation of mpg that fit best, by newton conjugate gradient** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mu | the closed-form maximum likelihood estimates (NumPy) | 20.0906250008294 | 20.090625 | relative 1e-06 | pass |
+| s | the closed-form maximum likelihood estimates (NumPy) | 5.93202955091941 | 5.93202955230122 | relative 1e-06 | pass |
+| mu | R | 20.0906250008294 | 20.0906247875623 | relative 1e-06 | pass |
+| s | R | 5.93202955091941 | 5.93202955459793 | relative 1e-06 | pass |
+
+### `sdata.find_where_smallest test_method="truncated newton"`
+
+**mtcars: the average and standard deviation of mpg that fit best, by truncated newton** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| mu | the closed-form maximum likelihood estimates (NumPy) | 20.0906249956411 | 20.090625 | relative 1e-06 | pass |
+| s | the closed-form maximum likelihood estimates (NumPy) | 5.9320295613291 | 5.93202955230122 | relative 1e-06 | pass |
+| mu | R | 20.0906249956411 | 20.0906247875623 | relative 1e-06 | pass |
+| s | R | 5.9320295613291 | 5.93202955459793 | relative 1e-06 | pass |
+
+### `sdata.solve test_method="fixed point"`
+
+**x = cos(x): the Dottie number (OEIS A003957)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | OEIS A003957 (the Dottie number) | 0.739085133215161 | 0.739085133215161 | within 1e-12 (exact formula) | pass |
+| x | SciPy optimize.fixed_point | 0.739085133215161 | 0.739085133215161 | relative 1e-12 | pass |
+| x | R | 0.739085133215161 | 0.739085133215161 | relative 1e-10 | pass |
+
+### `sdata.solve test_method="broyden second"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's broyden2 (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999999947 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999999947 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="broyden2") | 0.499999999999947 | 0.499999999999947 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="broyden2") | 0.499999999999947 | 0.499999999999947 | relative 1e-09 | pass |
+| x | R | 0.499999999999947 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.499999999999947 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `sdata.solve test_method="diagonal broyden"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's diagbroyden (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.50000000000008 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.50000000000008 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="diagbroyden") | 0.50000000000008 | 0.50000000000008 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="diagbroyden") | 0.50000000000008 | 0.50000000000008 | relative 1e-09 | pass |
+| x | R | 0.50000000000008 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.50000000000008 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `sdata.solve test_method="anderson mixing"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's anderson (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.49999999999996 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.49999999999996 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="anderson") | 0.49999999999996 | 0.499999999999959 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="anderson") | 0.49999999999996 | 0.499999999999959 | relative 1e-09 | pass |
+| x | R | 0.49999999999996 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.49999999999996 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `sdata.solve test_method="newton-krylov"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's krylov (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999999999 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999999999 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="krylov") | 0.499999999999999 | 0.499999999999999 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="krylov") | 0.499999999999999 | 0.499999999999999 | relative 1e-09 | pass |
+| x | R | 0.499999999999999 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.499999999999999 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `sdata.solve test_method="linear mixing"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's linearmixing (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999998211 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999998211 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="linearmixing") | 0.499999999998211 | 0.499999999998211 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="linearmixing") | 0.499999999998211 | 0.499999999998211 | relative 1e-09 | pass |
+| x | R | 0.499999999998211 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.499999999998211 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `sdata.solve test_method="exciting mixing"`
+
+**x = 0.5 y**2 + 0.375 and y = 0.5 x**2 + 0.375 by SciPy's excitingmixing (x = y = 0.5, worked out by hand)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999998391 | 0.5 | within 1e-09 (exact formula) | pass |
+| y | worked out: x = y = 1 - sqrt(1 - 2 * 0.375) | 0.499999999998391 | 0.5 | within 1e-09 (exact formula) | pass |
+| x | SciPy optimize.root(method="excitingmixing") | 0.499999999998391 | 0.499999999998391 | relative 1e-09 | pass |
+| y | SciPy optimize.root(method="excitingmixing") | 0.499999999998391 | 0.499999999998391 | relative 1e-09 | pass |
+| x | R | 0.499999999998391 | 0.5 | relative 1e-09 | pass |
+| y | R | 0.499999999998391 | 0.5 | relative 1e-09 | pass |
+
+Note: Every SciPy root solver goes to the same root; R nleqslv (Broyden's method) checks it.
+
+### `table.fit_curve always=`
+
+**mtcars: miles per gallon as a curve that only falls with horsepower (isotonic regression)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy optimize.isotonic_regression | 30.4 | 30.4 | relative 1e-12 | pass |
+| last | SciPy optimize.isotonic_regression | 13.4142857142857 | 13.4142857142857 | relative 1e-12 | pass |
+| total | SciPy optimize.isotonic_regression | 642.9 | 642.9 | relative 1e-12 | pass |
+| first | R | 30.4 | 30.4 | relative 1e-12 | pass |
+| last | R | 13.4142857142857 | 13.4142857142857 | relative 1e-12 | pass |
+| total | R | 642.9 | 642.9 | relative 1e-12 | pass |
+
+Note: R isoreg() fits a curve that rises; minus the fit to minus mpg is the curve that falls.
+
+### `sdata.find_best_pairing`
+
+**mtcars: each of 6 cars paired with one of 6 others of the closest weight and power (the smallest total gap)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SciPy optimize.linear_sum_assignment | 5.1 | 5.1 | relative 1e-12 | pass |
+| pairs | SciPy optimize.linear_sum_assignment | 6 | 6 | relative 1e-12 | pass |
+| total | R | 5.1 | 5.1 | relative 1e-09 | pass |
+| pairs | R | 6 | 6 | relative 1e-09 | pass |
+
+### `sdata.find_best_pairing with_distances=`
+
+**mtcars: 6 cars placed at 6 places, the flow between cars their horsepower gap and the distance between places their weight gap (quadratic assignment)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first place | SciPy optimize.quadratic_assignment (FAQ) | 2 | 2 | exact | pass |
+| items | SciPy optimize.quadratic_assignment (FAQ) | 6 | 6 | exact | pass |
+
+Note: The quadratic assignment problem is hard, so there is no exact answer to compare with; R has no common equivalent. The check is that simplydata makes SciPy's call.
+
+### `sdata.find_area_under test_method="tanh-sinh"`
+
+**the area under exp(-x**2) from 0 to infinity (half the square root of pi), by tanh-sinh quadrature** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | worked out: sqrt(pi) / 2 | 0.886226925452655 | 0.886226925452758 | within 1e-12 (exact formula) | pass |
+| area | SciPy integrate.tanhsinh | 0.886226925452655 | 0.886226925452655 | relative 1e-14 | pass |
+| area | R | 0.886226925452655 | 0.886226925452758 | relative 1e-10 | pass |
+
+### `sdata.find_area_under test_method="cubature"`
+
+**the area under exp(-x**2) from 0 to infinity, by cubature** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | worked out: sqrt(pi) / 2 | 0.886226925452758 | 0.886226925452758 | within 1e-09 (exact formula) | pass |
+| area | SciPy integrate.cubature | 0.886226925452758 | 0.886226925452758 | relative 1e-14 | pass |
+| area | R | 0.886226925452758 | 0.886226925452758 | relative 1e-09 | pass |
+
+Note: R hcubature takes finite ends: exp(-x**2) is below 1e-1000 beyond 50, so 0 to 50 is the same area.
+
+### `sdata.find_area_under test_method="quasi monte carlo"`
+
+**the area under exp(-x**2) from 0 to 2 (sqrt(pi) erf(2) / 2), by quasi-Monte Carlo** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | worked out: sqrt(pi) erf(2) / 2 | 0.88226954299936 | 0.882081390762422 | within 0.001 (exact formula) | pass |
+| area | SciPy integrate.qmc_quad (Halton, seed 1) | 0.88226954299936 | 0.88226954299936 | relative 1e-14 | pass |
+
+Note: A quasi-Monte Carlo estimate: its standard error here is about 2e-4, so the worked answer is met to 1e-3.
+
+### `sdata.find_area_under test_method="romberg on even steps"`
+
+**the area under exp(-x**2) from 0 to 2, by Romberg's method on 1025 points** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | worked out: sqrt(pi) erf(2) / 2 | 0.882081390762422 | 0.882081390762422 | within 1e-12 (exact formula) | pass |
+| area | SciPy integrate.romb | 0.882081390762422 | 0.882081390762422 | relative 1e-14 | pass |
+| area | R | 0.882081390762422 | 0.882081390762422 | relative 1e-12 | pass |
+
+### `sdata.find_volume_under test_method="cubature"`
+
+**the volume under x * y**2 over [0, 1] by [0, 2] (4/3), by cubature** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| volume | worked out: (1/2) (8/3) | 1.33333333333333 | 1.33333333333333 | within 1e-12 (exact formula) | pass |
+| volume | SciPy integrate.cubature | 1.33333333333333 | 1.33333333333333 | relative 1e-14 | pass |
+| volume | R | 1.33333333333333 | 1.33333333333333 | relative 1e-10 | pass |
+
+### `sdata.find_volume_under test_method="quasi monte carlo"`
+
+**the volume under x * y**2 over [0, 1] by [0, 2] (4/3), by quasi-Monte Carlo** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| volume | worked out: (1/2) (8/3) | 1.33391923805071 | 1.33333333333333 | within 0.005 (exact formula) | pass |
+| volume | SciPy integrate.qmc_quad (Halton, seed 1) | 1.33391923805071 | 1.33391923805071 | relative 1e-14 | pass |
+
+Note: A quasi-Monte Carlo estimate, met to its few digits.
+
+### `sdata.find_path_between_ends`
+
+**y'' = -y with y(0) = 0 and y(1.5) = 1: y = sin(x) / sin(1.5)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| y at 0.75 | worked out: sin(0.75) / sin(1.5) | 0.683350562334015 | 0.683350562336113 | within 1e-08 (exact formula) | pass |
+| slope at 0 | worked out: cos(0) / sin(1.5) | 1.00251130424719 | 1.00251130424672 | within 1e-07 (exact formula) | pass |
+| y at 0.75 | SciPy integrate.solve_bvp | 0.683350562334015 | 0.683350562334015 | relative 1e-10 | pass |
+| slope at 0 | SciPy integrate.solve_bvp | 1.00251130424719 | 1.00251130424719 | relative 1e-10 | pass |
+| y at 0.75 | R | 0.683350562334015 | 0.683350567341174 | relative 1e-06 | pass |
+
+Note: R pracma::bvp solves y'' = f y' + g y + h by finite differences on 3001 points, accurate to about 1e-7 here.
+
+### `table.find_values_at joined_by="polynomial"`
+
+**Lake Huron every 10 years: the level in 1900 and 1950 from the one polynomial through the 10 points** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy interpolate.BarycentricInterpolator | 579.549076690674 | 579.549076690674 | relative 1e-09 | pass |
+| 1950 | SciPy interpolate.BarycentricInterpolator | 580.535695037842 | 580.535695037842 | relative 1e-09 | pass |
+| 1900 | R | 579.549076690674 | 579.549076690674 | relative 1e-08 | pass |
+| 1950 | R | 580.535695037842 | 580.535695037842 | relative 1e-08 | pass |
+
+### `table.find_values_at joined_by="rational curve"`
+
+**Lake Huron every 10 years: the level in 1900 and 1950 from the Floater-Hormann rational curve** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy interpolate.FloaterHormannInterpolator | 579.069893277974 | 579.069893277974 | relative 1e-10 | pass |
+| 1950 | SciPy interpolate.FloaterHormannInterpolator | 580.111226040716 | 580.111226040716 | relative 1e-10 | pass |
+
+Note: R has no Floater-Hormann interpolation in a common package.
+
+### `table.find_values_at joined_by="aaa"`
+
+**Lake Huron every 10 years: the level in 1900 and 1950 from the AAA rational curve** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy interpolate.AAA | 580.426033264412 | 580.426033264411 | relative 1e-09 | pass |
+| 1950 | SciPy interpolate.AAA | 580.178646456233 | 580.178646456233 | relative 1e-09 | pass |
+
+Note: R has no AAA rational approximation in a common package.
+
+### `table.find_values_at joined_by="smooth triangles"`
+
+**stackloss: the stack loss at two settings of air flow and water temperature, on a smooth surface over the triangles between the 21 runs** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy interpolate.CloughTocher2DInterpolator | 14.6280219102676 | 14.6280219102676 | relative 1e-09 | pass |
+| second | SciPy interpolate.CloughTocher2DInterpolator | 22.927976216684 | 22.927976216684 | relative 1e-09 | pass |
+
+Note: Runs at the same settings are averaged first, as find_values_at does. R interp::interp(linear = FALSE) uses Akima's method on the triangles, so it gives other values.
+
+### `sdata.curve_through_points`
+
+**Lake Huron every 10 years: the natural cubic spline at 1900 and 1950** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy make_interp_spline(bc_type="natural") | 578.961698760636 | 578.961698760636 | relative 1e-12 | pass |
+| 1950 | SciPy make_interp_spline(bc_type="natural") | 579.879296059933 | 579.879296059933 | relative 1e-12 | pass |
+| 1900 | R | 578.961698760636 | 578.961698760636 | relative 1e-10 | pass |
+| 1950 | R | 579.879296059933 | 579.879296059933 | relative 1e-10 | pass |
+
+### `sdata.curve_through_points smoothness=`
+
+**Lake Huron, all 98 years: the smoothing spline at lambda 0.001** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy make_smoothing_spline on x rescaled to 0 to 1 | 579.293691159388 | 579.293691159388 | relative 1e-12 | pass |
+| 1950 | SciPy make_smoothing_spline on x rescaled to 0 to 1 | 578.836246010469 | 578.836246010469 | relative 1e-12 | pass |
+| 1900 | R | 579.293691159388 | 579.293689897163 | relative 0.0001 | pass |
+| 1950 | R | 578.836246010469 | 578.836248878811 | relative 0.0001 | pass |
+
+Note: R solves the same penalised sum in a B-spline basis with its own rounding (about 1e-5 apart, as for find_values_at(smoothness=)).
+
+### `sdata.curve_through_points allowed_error=`
+
+**Lake Huron, all 98 years: the fewest knots that keep the sum of squared distances at most 30** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy make_splrep (FITPACK s) | 578.989746934115 | 578.989746934115 | relative 1e-12 | pass |
+| knots | SciPy make_splrep (FITPACK s) | 25 | 25 | relative 1e-12 | pass |
+
+Note: FITPACK's choice of knots has no R equivalent in base R.
+
+### `sdata.curve_through_points knots=`
+
+**Lake Huron, all 98 years: a least-squares cubic spline with knots at 1900, 1925 and 1950** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1910 | SciPy make_lsq_spline | 578.937882814246 | 578.937882814246 | relative 1e-10 | pass |
+| 1960 | SciPy make_lsq_spline | 578.096213774275 | 578.096213774275 | relative 1e-10 | pass |
+| 1910 | R | 578.937882814246 | 578.937882814245 | relative 1e-08 | pass |
+| 1960 | R | 578.096213774275 | 578.096213774275 | relative 1e-08 | pass |
+
+### `sdata.curve_through_points slopes=`
+
+**Lake Huron every 10 years: a cubic curve with the slopes of the yearly changes** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy CubicHermiteSpline | 579.05625 | 579.05625 | relative 1e-12 | pass |
+| 1950 | SciPy CubicHermiteSpline | 579.761875 | 579.761875 | relative 1e-12 | pass |
+| 1900 | R | 579.05625 | 579.05625 | relative 1e-10 | pass |
+| 1950 | R | 579.761875 | 579.761875 | relative 1e-10 | pass |
+
+### `sdata.curve_through_points degree=`
+
+**Lake Huron every 10 years: a spline of degree 5 through the points** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy make_interp_spline(k=5) | 579.248557968521 | 579.248557968521 | relative 1e-12 | pass |
+
+### `sdata.curve_through_points ends=`
+
+**Lake Huron every 10 years: the cubic spline with not-a-knot ends** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | SciPy make_interp_spline(bc_type="not-a-knot") | 579.019689539677 | 579.019689539677 | relative 1e-12 | pass |
+
+Note: MATLAB spline() uses not-a-knot ends; R's spline(method = "fmm") uses other ends.
+
+### `sdata.curve_through_points weights=`
+
+**Lake Huron, all 98 years: the 1930s counted twice in the fit** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1935 | SciPy make_splrep(w=) | 576.79489760472 | 576.79489760472 | relative 1e-12 | pass |
+
+### `sdata.curve_through_points in_order=`
+
+**mtcars: a path through the weight and miles per gallon of the first 6 cars, in their order** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| x | SciPy make_splprep | 3.05506690601688 | 3.05506690601688 | relative 1e-12 | pass |
+| y | SciPy make_splprep | 21.7138210690942 | 21.7138210690942 | relative 1e-12 | pass |
+
+### `sdata.curve_through_points z=`
+
+**stackloss: a surface of stack loss over air flow and water temperature through the 21 runs, smoothed** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy SmoothBivariateSpline | 16.9082783124301 | 16.9082783124301 | relative 1e-12 | pass |
+
+### `sdata.curve_through_points on_sphere=`
+
+**mtcars: miles per gallon placed on a sphere by weight (as latitude) and power (as longitude), smoothed** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy SmoothSphereBivariateSpline | 18.5444440838297 | 18.5444440838297 | relative 1e-12 | pass |
+
+### `curve.find_value_at`
+
+**Lake Huron every 10 years: the natural spline at 1888, 1922 and 1958** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1888 | R | 580.572081857196 | 580.572081857196 | relative 1e-10 | pass |
+| 1922 | R | 577.010295812061 | 577.010295812061 | relative 1e-10 | pass |
+| 1958 | R | 579.002050050315 | 579.002050050314 | relative 1e-10 | pass |
+
+### `curve.find_slope_at`
+
+**Lake Huron every 10 years: the slope of the natural spline in 1900 and its bend** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | R | 0.217316826982361 | 0.217316826982364 | relative 1e-09 | pass |
+| bend | R | 0.0138640991490934 | 0.0138640991490937 | relative 1e-09 | pass |
+
+### `curve.find_area_between`
+
+**Lake Huron every 10 years: the area under the natural spline from 1885 to 1955** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | R | 40497.0370754717 | 40497.0370754709 | relative 1e-09 | pass |
+
+### `curve.find_zeros`
+
+**Lake Huron every 10 years: the years the natural spline crosses 579 ft** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy PPoly.solve | 1892.31196693777 | 1892.31196693777 | relative 1e-10 | pass |
+| count | SciPy PPoly.solve | 5 | 5 | relative 1e-10 | pass |
+| first | R | 1892.31196693777 | 1892.31196693778 | relative 1e-08 | pass |
+
+### `curve.turn_into_slope_curve`
+
+**Lake Huron every 10 years: the slope curve of the natural spline in 1930** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| slope | R | -0.00633378345049067 | -0.00633378345048242 | relative 1e-09 | pass |
+
+### `curve.turn_into_area_curve`
+
+**Lake Huron every 10 years: the area curve of the natural spline in 1945** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| area | R | 40512.4859797756 | 40512.4859797749 | relative 1e-09 | pass |
+
+### `curve.show_pieces`
+
+**Lake Huron every 10 years: the cubic pieces of the natural spline** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| pieces | SciPy PPoly.from_spline | 9 | 9 | relative 1e-09 | pass |
+| first constant | SciPy PPoly.from_spline | 580.38 | 580.38 | relative 1e-09 | pass |
+| last cube | SciPy PPoly.from_spline | 0.000658403502281601 | 0.000658403502281601 | relative 1e-09 | pass |
+
+Note: R splinefun(method = "natural") keeps the same pieces inside (environment(f)$z), in another form.
+
+### `curve.show_knots`
+
+**Lake Huron every 10 years: the knots and coefficients of the natural spline** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| knots | SciPy BSpline t and c | 16 | 16 | relative 1e-10 | pass |
+| first coefficient | SciPy BSpline t and c | 580.38 | 580.38 | relative 1e-10 | pass |
+| third coefficient | SciPy BSpline t and c | 582.9043512147 | 582.9043512147 | relative 1e-10 | pass |
+
+### `curve.as_scipy`
+
+**Lake Huron every 10 years: the SciPy BSpline handed over, at 1900** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1900 | R | 578.961698760636 | 578.961698760636 | relative 1e-10 | pass |
+
+### `nums.keep_each_frequency_that test_method="fir least squares"`
+
+**the Lake Huron level: cycles slower than 10 years kept by a least-squares FIR filter of 21 weights** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| year 50 | SciPy signal.firls and filtfilt | 567.749622123906 | 567.749622123905 | relative 1e-12 | pass |
+| year 40 | SciPy signal.firls and filtfilt | 568.763858045417 | 568.763858045417 | relative 1e-12 | pass |
+| year 50 | R | 567.749622123906 | 567.749622123905 | relative 1e-09 | pass |
+| year 40 | R | 568.763858045417 | 568.763858045417 | relative 1e-09 | pass |
+
+Note: R pads the ends differently (zeros, from rest), so the years compared are 40 and more years from either end, where the 21 weights run twice never reach the padding.
+
+### `nums.keep_each_frequency_that test_method="fir equiripple"`
+
+**the Lake Huron level: cycles slower than 10 years kept by an equiripple (Parks-McClellan) FIR filter of 21 weights** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| year 50 | SciPy signal.remez and filtfilt | 565.031652925388 | 565.031652925388 | relative 1e-12 | pass |
+| year 45 | SciPy signal.remez and filtfilt | 566.418007028641 | 566.418007028641 | relative 1e-12 | pass |
+| year 50 | R | 565.031652925388 | 565.031652925388 | relative 1e-09 | pass |
+| year 45 | R | 566.418007028641 | 566.418007028641 | relative 1e-09 | pass |
+
+Note: As the least-squares case: the years compared are far enough from both ends.
+
+### `nums.keep_each_frequency_that test_method="fir"`
+
+**the Lake Huron level: cycles slower than 10 years kept by a windowed FIR filter of 21 weights (SciPy firwin)** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | SciPy signal.firwin and filtfilt | 580.38 | 580.38 | relative 1e-12 | pass |
+| year 50 | SciPy signal.firwin and filtfilt | 578.001862777581 | 578.001862777581 | relative 1e-12 | pass |
+| year 50 | R | 578.001862777581 | 578.001862777581 | relative 1e-09 | pass |
+
+Note: R signal::fir1 designs by frequency sampling (its weights for fir1(100, 0.1) add up to 1.0015), so R is given firwin's formula itself: the windowed sinc, scaled to add up to 1, run twice in the middle of the series.
+
+### `nums.keep_each_frequency_that test_method="fir frequency sampling"`
+
+**the drivers killed or seriously injured: the cycles slower than a year kept by frequency sampling (51 weights)** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| month 96 | SciPy signal.firwin2 and filtfilt | 1658.5135004633 | 1658.5135004633 | relative 1e-12 | pass |
+| month 100 | SciPy signal.firwin2 and filtfilt | 1552.90050018108 | 1552.90050018108 | relative 1e-12 | pass |
+| month 96 | R | 1658.5135004633 | 1658.5135004633 | relative 1e-09 | pass |
+| month 100 | R | 1552.90050018108 | 1552.90050018108 | relative 1e-09 | pass |
+
+Note: R gsignal::fir2 is given SciPy's frequency grid (64 steps, 65 points for 51 weights).
+
+### `nums.keep_each_frequency_that find_order_for=`
+
+**the drivers killed or seriously injured: the smallest Butterworth filter that keeps the cycles slower than a year and removes 40 dB from two a year on** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| steepness | SciPy signal.buttord, butter and sosfiltfilt | 8 | 8 | relative 1e-10 | pass |
+| month 96 | SciPy signal.buttord, butter and sosfiltfilt | 1817.06849207363 | 1817.06849207363 | relative 1e-10 | pass |
+| steepness | R | 8 | 8 | exact | pass |
+
+Note: The steepness is the number of poles of the filter; R gsignal::buttord finds the same order.
+
+### `nums.keep_each_frequency_that start_from="first value"`
+
+**the Lake Huron level filtered forwards only, starting in the steady state for 1875** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first year | SciPy signal.sosfilt with sosfilt_zi | 580.38 | 580.38 | relative 1e-12 | pass |
+| year 20 | SciPy signal.sosfilt with sosfilt_zi | 579.936527435158 | 579.936527435158 | relative 1e-12 | pass |
+| first year | R | 580.38 | 580.379999999998 | relative 1e-08 | pass |
+| year 20 | R | 579.936527435158 | 579.936527435157 | relative 1e-08 | pass |
+
+Note: R runs the same filter as one numerator and denominator, SciPy as second-order sections: they agree to rounding.
+
+### `nums.keep_each_frequency_that with_least_delay=`
+
+**the Lake Huron level by an FIR filter with the least delay (minimum phase), forwards only** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| year 30 | SciPy signal.minimum_phase and lfilter | 578.957831388667 | 578.957831388667 | relative 1e-12 | pass |
+| last year | SciPy signal.minimum_phase and lfilter | 577.789371357935 | 577.789371357935 | relative 1e-12 | pass |
+
+### `nums.keep_each_frequency_that test_method="gammatone"`
+
+**the drivers killed or seriously injured: the yearly cycle kept by a gammatone filter** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| month 96 | SciPy signal.gammatone and filtfilt | 2273.99794314607 | 2273.99794314607 | relative 1e-10 | pass |
+
+### `sdata.frequency_filter analog=`
+
+**the analog Butterworth filter that keeps the frequencies below 3: half the power at its cutoff** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| gain at 3 | exact: a Butterworth filter passes 1 / sqrt(2) at its cutoff | 0.707106781186547 | 0.707106781186548 | within 1e-12 (exact formula) | pass |
+| a1 | SciPy signal.buttap moved by lp2lp_zpk | 49.2562633428975 | 49.2562633428975 | relative 1e-10 | pass |
+| b4 | SciPy signal.buttap moved by lp2lp_zpk | 126242.181980067 | 126242.181980067 | relative 1e-10 | pass |
+| a1 | R | 49.2562633428975 | 49.2562633428975 | relative 1e-09 | pass |
+| b4 | R | 126242.181980067 | 126242.181980067 | relative 1e-09 | pass |
+
+### `sdata.frequency_filter find_order_for=`
+
+**the drivers killed or seriously injured: the smallest elliptic filter that keeps the cycles slower than a year and removes 40 dB from two a year on, run on the series** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| steepness | SciPy signal.ellipord, ellip and sosfilt | 4 | 4 | relative 1e-10 | pass |
+| month 96 | SciPy signal.ellipord, ellip and sosfilt | 1268.56979882598 | 1268.56979882598 | relative 1e-10 | pass |
+| steepness | R | 4 | 4 | exact | pass |
+
+### `nums.keep_each_frequency_that how_many_weights=`
+
+**the Lake Huron level by a windowed FIR filter of 31 weights with a Blackman window** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| year 50 | SciPy signal.firwin and filtfilt | 577.977282503796 | 577.977282503796 | relative 1e-12 | pass |
+| year 50 | R | 577.977282503796 | 577.977282503796 | relative 1e-09 | pass |
+
+Note: firwin's formula written out in R with R signal's Blackman window, run twice in the middle.
+
+### `table.add_filtered_column test_method="fir equiripple"`
+
+**the Lake Huron level: a column of the cycles slower than 10 years by an equiripple FIR filter** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| 1924 | SciPy signal.remez and filtfilt | 565.031652925388 | 565.031652925388 | relative 1e-12 | pass |
+| 1924 | R | 565.031652925388 | 565.031652925388 | relative 1e-09 | pass |
+
+### `system.table form="sections"`
+
+**the drivers killed or seriously injured run through the sections of the filter that keeps the cycles slower than a year** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sections | SciPy signal.butter (sections) and sosfilt | 2 | 2 | relative 1e-12 | pass |
+| month 96 | SciPy signal.butter (sections) and sosfilt | 1413.90464422354 | 1413.90464422354 | relative 1e-12 | pass |
+| month 96 | R | 1413.90464422354 | 1413.90464422354 | relative 1e-08 | pass |
+
+Note: R runs the same filter as one numerator and denominator: it agrees to rounding.
+
+### `system.table form="partial fractions"`
+
+**(s + 3) / (s^2 + 3 s + 2) = 2 / (s + 1) - 1 / (s + 2)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| residue at -2 | exact: (s + 3) / (s + 1) at s = -2 | -1 | -1 | within 1e-12 (exact formula) | pass |
+| residue at -1 | exact: (s + 3) / (s + 2) at s = -1 | 2 | 2 | within 1e-12 (exact formula) | pass |
+| residue at -2 | R | -1 | -1 | relative 1e-10 | pass |
+| residue at -1 | R | 2 | 2 | relative 1e-10 | pass |
+
+### `sdata.system residues=`
+
+**the fractions -1 / (s + 1) + 2 / (s + 2) added up: s / (s^2 + 3 s + 2)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| s | exact | 1 | 1 | within 1e-12 (exact formula) | pass |
+| 1 | exact | 0 | 0 | within 1e-12 (exact formula) | pass |
+| bottom s | exact | 3 | 3 | within 1e-12 (exact formula) | pass |
+| s | R | 1 | 1 | relative 1e-10 | pass |
+| 1 | R | 0 | 0 | relative 1e-10 | pass |
+| bottom s | R | 3 | 3 | relative 1e-10 | pass |
+
+### `sdata.system sections=`
+
+**two second-order sections multiplied out** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| b1 | exact: (1 + 2 z + z^2)(1 - z^2), the z^3 term | 2 | 2 | within 1e-12 (exact formula) | pass |
+| a2 | exact: 0.3 + 0.1 - 0.5 x 0.2 | 0.3 | 0.3 | within 1e-12 (exact formula) | pass |
+| a4 | exact: 0.1 x 0.3 | 0.03 | 0.03 | within 1e-12 (exact formula) | pass |
+| b1 | R | 2 | 2 | relative 1e-12 | pass |
+| a2 | R | 0.3 | 0.3 | relative 1e-12 | pass |
+| a4 | R | 0.03 | 0.03 | relative 1e-12 | pass |
+
+### `system.move_poles_to`
+
+**1 / (s^2 + 2 s + 5) with its poles moved to -2 and -3: 1 / (s^2 + 5 s + 6)** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| s | exact: (s + 2)(s + 3) | 5 | 5 | within 1e-10 (exact formula) | pass |
+| 1 | exact: (s + 2)(s + 3) | 5.99999999999999 | 6 | within 1e-10 (exact formula) | pass |
+| s | SciPy signal.place_poles | 5 | 5 | relative 1e-10 | pass |
+| 1 | SciPy signal.place_poles | 5.99999999999999 | 5.99999999999999 | relative 1e-10 | pass |
+
+Note: R control::place gives other gains for this system (it warns that its poles are more than 10 % off), so the closed form is the reference.
+
+### `system.frequency_response with_delay=`
+
+**the delay of z / (z - 0.5), worked out by hand, and of the Butterworth filter that keeps 10 at 200 readings a second** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first order at 1/8 | exact: (a cos w - a^2) / (1 - 2 a cos w + a^2), a = 0.5, w = pi / 4 | 0.190743569830546 | 0.190743569830546 | within 1e-12 (exact formula) | pass |
+| first order at 1/4 | exact: (0 - 0.25) / (1 + 0.25) at w = pi / 2 | -0.2 | -0.2 | within 1e-12 (exact formula) | pass |
+| delay at 1.5625 | SciPy signal.group_delay | 0.0416925296902897 | 0.0416925296902924 | relative 1e-09 | pass |
+| delay at 25 | SciPy signal.group_delay | 0.00757442363405798 | 0.00757442363405802 | relative 1e-09 | pass |
+| delay at 1.5625 | R | 0.0416925296902897 | 0.0416925296902924 | relative 1e-08 | pass |
+| delay at 25 | R | 0.00757442363405798 | 0.00757442363405805 | relative 1e-08 | pass |
+| first order at 1/8 | R | 0.190743569830546 | 0.190743569830546 | relative 1e-08 | pass |
+| first order at 1/4 | R | -0.2 | -0.2 | relative 1e-08 | pass |
+
+Note: R's grid has 512 frequencies from 0 to half the readings per unit of time: 1.5625 and 25 per second are its 9th and 129th, 1/8 and 1/4 per step its 129th and 257th.
+
+### `nums.take_fourier_transform over_time=`
+
+**the drivers killed or seriously injured: the short-time Fourier transform in pieces of 48 months, and back** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | SciPy signal.ShortTimeFFT.stft | 225 | 225 | relative 1e-10 | pass |
+| size of row 30 | SciPy signal.ShortTimeFFT.stft | 2926.4785234417 | 2926.4785234417 | relative 1e-10 | pass |
+| month 100 back | SciPy signal.ShortTimeFFT.stft | 1403 | 1403 | relative 1e-10 | pass |
+
+### `nums.take_fourier_transform between=`
+
+**the Lake Huron level: the zoom FFT at the first 50 frequencies is R's fft there** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| size at 0 | SciPy signal.zoom_fft | 56742.4 | 56742.4 | relative 1e-10 | pass |
+| size at 1/98 | SciPy signal.zoom_fft | 49.791724911496 | 49.791724911496 | relative 1e-10 | pass |
+| size at 10/98 | SciPy signal.zoom_fft | 0.21677477442587 | 0.21677477442587 | relative 1e-10 | pass |
+| size at 0 | R | 56742.4 | 56742.4 | relative 1e-09 | pass |
+| size at 1/98 | R | 49.791724911496 | 49.7917249115039 | relative 1e-09 | pass |
+| size at 10/98 | R | 0.21677477442587 | 0.21677477442402 | relative 1e-09 | pass |
+
+Note: 98 yearly readings: the plain transform has a frequency every 1/98, so the zoom at those 50 frequencies must give R's fft values there.
+
+### `nums.find_spectrum over_time=`
+
+**the drivers killed or seriously injured: the spectrum of each 48 months** (real data; data: Seatbelts)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| rows | SciPy signal.spectrogram | 175 | 175 | relative 1e-10 | pass |
+| power of row 26 | SciPy signal.spectrogram | 5427.27487453243 | 5427.27487453243 | relative 1e-10 | pass |
+
+### `sdata.make_wave shape="maximum length sequence"`
+
+**a maximum length sequence of 7 bits: 64 ones and 63 zeros in its 127 readings** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| ones | exact: a maximum length sequence of n bits has 2^(n-1) ones | 64 | 64 | within 0 (exact formula) | pass |
+| readings | exact: 2^7 - 1 | 127 | 127 | within 0 (exact formula) | pass |
+| ones | SciPy signal.max_len_seq | 64 | 64 | exact | pass |
+| readings | SciPy signal.max_len_seq | 127 | 127 | exact | pass |
+
+### `sdata.make_wave sweep="polynomial"`
+
+**a sweep whose frequency is 2 t + 1: cos(2 pi (t^2 + t))** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| t = 1.37 | exact: cos(2 pi (1.37^2 + 1.37)) | 0.0194766428649668 | 0.0194766428649668 | within 1e-11 (exact formula) | pass |
+| t = 2.99 | exact: cos(2 pi (2.99^2 + 2.99)) | 0.905094398861608 | 0.905094398861608 | within 1e-11 (exact formula) | pass |
+| t = 1.37 | R | 0.0194766428649668 | 0.0194766428649668 | relative 1e-12 | pass |
+| t = 2.99 | R | 0.905094398861608 | 0.905094398861608 | relative 1e-12 | pass |
+
+### `nums.change_time_step test_method="cubic spline"`
+
+**the Lake Huron level every half year by a cubic spline through the yearly readings** (real data; data: Lake Huron)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| readings | exact: 97 years in steps of half a year, both ends included | 195 | 195 | within 0 | pass |
+| 1876 | SciPy signal.cspline1d and cspline1d_eval | 581.86 | 581.86 | relative 1e-12 | pass |
+| mid 1900 | SciPy signal.cspline1d and cspline1d_eval | 579.033316278361 | 579.033316278361 | relative 1e-12 | pass |
+
+Note: SciPy's spline goes through every reading: at 1876 it gives the reading of 1876.
+
+### `nums.find_phase_locking_to`
+
+**the air passengers: the month of each year's busiest month keeps time with the 12-month cycle** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| strength | SciPy signal.vectorstrength | 0.966888545889851 | 0.966888545889851 | relative 1e-12 | pass |
+| strength | R | 0.966888545889851 | 0.966888545889851 | relative 1e-12 | pass |
+
+Note: The vector strength is the length of the average point on the circle of phases (Goldberg & Brown 1969), written out in base R.
+
+### `table.find_summary_of show="geometric standard deviation"`
+
+**Michelson's speed of light (NIST): the geometric standard deviation** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.gstd | 1.00026353350821 | 1.00026353350821 | relative 1e-12 | pass |
+| value | R | 1.00026353350821 | 1.00026353350821 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="power mean p"`
+
+**Michelson's speed of light (NIST): the power mean of order 3** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.pmean | 299.852420610906 | 299.852420610906 | relative 1e-12 | pass |
+| value | R | 299.852420610906 | 299.852420610906 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="l-skewness"`
+
+**Michelson's speed of light (NIST): the L-skewness (the third L-moment ratio)** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.lmoment | 0.0187702241283515 | 0.0187702241283515 | relative 1e-12 | pass |
+| value | R | 0.0187702241283515 | 0.0187702241315593 | relative 1e-07 | pass |
+
+### `table.find_summary_of show="l-moment k"`
+
+**Michelson's speed of light (NIST): the second L-moment** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.lmoment | 0.0443010101009804 | 0.0443010101009804 | relative 1e-12 | pass |
+| value | R | 0.0443010101009804 | 0.0443010101009804 | relative 1e-09 | pass |
+
+### `table.find_summary_of show="central moment k"`
+
+**Michelson's speed of light (NIST): the third central moment** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.moment | -8.8715519997782e-06 | -8.8715519997782e-06 | relative 1e-12 | pass |
+| value | R | -8.8715519997782e-06 | -8.87155199977819e-06 | relative 1e-08 | pass |
+
+### `table.find_summary_of show="expectile p"`
+
+**Michelson's speed of light (NIST): the 90 % expectile** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.expectile | 299.923230769231 | 299.923230769231 | relative 1e-12 | pass |
+| value | R | 299.923230769231 | 299.923230769231 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="average between a and b"`
+
+**Michelson's speed of light (NIST): the average of the values from 299.8 to 299.9** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.tmean | 299.84649122807 | 299.84649122807 | relative 1e-12 | pass |
+| value | R | 299.84649122807 | 299.84649122807 | relative 1e-10 | pass |
+
+**Michelson's speed of light (NIST): the standard deviation of the values from 299.8 to 299.9** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.tstd | 0.0304426409163975 | 0.0304426409163975 | relative 1e-12 | pass |
+| value | R | 0.0304426409163975 | 0.0304426409163975 | relative 1e-09 | pass |
+
+### `table.find_summary_of show="smallest from a"`
+
+**Michelson's speed of light (NIST): the smallest value of at least 299.9** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.tmin | 299.9 | 299.9 | relative 1e-12 | pass |
+| value | R | 299.9 | 299.9 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="differential entropy"`
+
+**Michelson's speed of light (NIST): the differential entropy** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.differential_entropy | -1.10341519897855 | -1.10341519897855 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="percentile rank v"`
+
+**Michelson's speed of light (NIST): the percentile rank of 299.875 (the inverse of R type 7)** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.estimated_cdf | 62.1212121212121 | 62.1212121212121 | relative 1e-12 | pass |
+| value | R | 62.1212121212121 | 62.1212121212107 | relative 1e-08 | pass |
+
+### `table.find_summary_of show="percent at or below v"`
+
+**Michelson's speed of light (NIST): the percent of values at or below 299.9** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.percentileofscore | 77 | 77 | relative 1e-12 | pass |
+| value | R | 77 | 77 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="sigma-clipped average"`
+
+**Michelson's speed of light (NIST): the average after clipping at 2 standard deviations** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.sigmaclip | 299.85 | 299.85 | relative 1e-12 | pass |
+| value | R | 299.85 | 299.85 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="cumulant k"`
+
+**mtcars: the second k-statistic (the variance) of fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.kstat | 36.3241028225805 | 36.3241028225805 | relative 1e-12 | pass |
+| value | R | 36.3241028225805 | 36.3241028225806 | relative 1e-10 | pass |
+
+**mtcars: the third k-statistic of fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.kstat | 147.199143346778 | 147.199143346778 | relative 1e-12 | pass |
+| value | R | 147.199143346778 | 147.199143346774 | relative 1e-10 | pass |
+
+### `table.find_summary_of show="cumulant variance k"`
+
+**mtcars: the variance of the second k-statistic of fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| value | SciPy stats.kstatvar | 79.1137053175761 | 79.1137053175761 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="circular average"`
+
+**turtles: the circular average and spread of 10 homing directions (degrees)** (real data; data: turtles (circular))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| average | SciPy stats.circmean, stats.circvar | 317.235319509156 | 317.235319509156 | relative 1e-09 | pass |
+| variance | SciPy stats.circmean, stats.circvar | 0.181350370326122 | 0.181350370326122 | relative 1e-09 | pass |
+| average | R | 317.235319509156 | 317.235319509155 | relative 1e-10 | pass |
+| variance | R | 0.181350370326122 | 0.181350370326121 | relative 1e-10 | pass |
+
+Note: The circular variance is 1 minus the mean resultant length, as R circular::var.circular.
+
+### `table.find_summary_of in_bins_of=`
+
+**mtcars: the average fuel use in bins of 1000 lb of weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy stats.binned_statistic | 30.5 | 30.5 | relative 1e-09 | pass |
+| last | SciPy stats.binned_statistic | 11.8333333333333 | 11.8333333333333 | relative 1e-09 | pass |
+| bins | SciPy stats.binned_statistic | 5 | 5 | relative 1e-09 | pass |
+| first | R | 30.5 | 30.5 | relative 1e-12 | pass |
+| last | R | 11.8333333333333 | 11.8333333333333 | relative 1e-12 | pass |
+| bins | R | 5 | 5 | relative 1e-12 | pass |
+
+### `table.find_summary_of in_bins_of= two columns`
+
+**mtcars: the average fuel use in bins of weight and horsepower** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy stats.binned_statistic_2d | 30.5333333333333 | 30.5333333333333 | relative 1e-09 | pass |
+| cells | SciPy stats.binned_statistic_2d | 10 | 10 | relative 1e-09 | pass |
+| first | R | 30.5333333333333 | 30.5333333333333 | relative 1e-12 | pass |
+| cells | R | 10 | 10 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="running count"`
+
+**mtcars: the running count of the cars in bins of weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| after 3 bins | SciPy stats.cumfreq | 28 | 28 | relative 1e-09 | pass |
+| after 5 bins | SciPy stats.cumfreq | 32 | 32 | relative 1e-09 | pass |
+| after 3 bins | R | 28 | 28 | relative 1e-12 | pass |
+| after 5 bins | R | 32 | 32 | relative 1e-12 | pass |
+
+### `table.find_summary_of show="share of values"`
+
+**mtcars: the share of the cars in each bin of weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bin 2 | SciPy stats.relfreq | 0.25 | 0.25 | relative 1e-09 | pass |
+| bin 3 | SciPy stats.relfreq | 0.5 | 0.5 | relative 1e-09 | pass |
+| bin 2 | R | 0.25 | 0.25 | relative 1e-12 | pass |
+| bin 3 | R | 0.5 | 0.5 | relative 1e-12 | pass |
+
+### `table.compare_averages_of test_method="wilcoxon rank sum"`
+
+**Fisher's iris: the sepal widths of versicolor and virginica, the Wilcoxon rank-sum test** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| z | SciPy stats.ranksums | -2.81957232906196 | -2.81957232906196 | relative 1e-09 | pass |
+| p-value | SciPy stats.ranksums | 0.00480876922351228 | 0.00480876922351228 | relative 1e-09 | pass |
+| z | R | -2.81957232906196 | -2.81957232906196 | relative 1e-12 | pass |
+| p-value | R | 0.00480876922351228 | 0.00480876922351228 | relative 1e-12 | pass |
+
+Note: SciPy ranksums leaves out the tie correction that R wilcox.test(exact = FALSE) makes, so R is written out as the plain rank-sum z.
+
+### `table.compare_averages_of test_method="baumgartner-weiss-schindler"`
+
+**Fisher's iris: the Baumgartner-Weiss-Schindler test of the sepal widths** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| B | SciPy stats.bws_test | 5.24640418731588 | 5.24640418731588 | relative 1e-09 | pass |
+| p-value | SciPy stats.bws_test | 0.0057 | 0.0057 | relative 1e-09 | pass |
+
+### `table.compare_shapes_of test_method="cramer-von mises"`
+
+**Fisher's iris: do the sepal widths of versicolor and virginica differ in shape (Cramer-von Mises)?** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| T | SciPy stats.cramervonmises_2samp | 0.763000000000002 | 0.763000000000002 | relative 1e-09 | pass |
+| p-value | SciPy stats.cramervonmises_2samp | 0.00890488906602138 | 0.00890488906602138 | relative 1e-09 | pass |
+
+### `table.compare_shapes_of test_method="epps-singleton"`
+
+**Fisher's iris: the Epps-Singleton test of the sepal widths** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| W2 | SciPy stats.epps_singleton_2samp | 11.0117780601761 | 11.0117780601761 | relative 1e-09 | pass |
+| p-value | SciPy stats.epps_singleton_2samp | 0.0264319636008243 | 0.0264319636008243 | relative 1e-09 | pass |
+
+### `table.compare_shape_to test_method="skewness"`
+
+**Michelson's speed of light (NIST): D'Agostino's skewness test** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| z | SciPy stats.skewtest | -0.079339413357245 | -0.079339413357245 | relative 1e-09 | pass |
+| p-value | SciPy stats.skewtest | 0.93676265776566 | 0.93676265776566 | relative 1e-09 | pass |
+
+### `table.compare_shape_to test_method="kurtosis"`
+
+**Michelson's speed of light (NIST): the Anscombe-Glynn kurtosis test** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| z | SciPy stats.kurtosistest | 0.846664069514471 | 0.846664069514471 | relative 1e-09 | pass |
+| p-value | SciPy stats.kurtosistest | 0.397182391303133 | 0.397182391303133 | relative 1e-09 | pass |
+
+### `table.compare_counts_to test_method="g"`
+
+**mtcars: are the cars spread evenly over 3, 4 and 5 gears (G-test)?** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| G | SciPy stats.power_divergence | 5.47773344789583 | 5.47773344789583 | relative 1e-09 | pass |
+| p-value | SciPy stats.power_divergence | 0.0646435644009651 | 0.0646435644009651 | relative 1e-09 | pass |
+| G | R | 5.47773344789583 | 5.47773344789583 | relative 1e-12 | pass |
+| p-value | R | 0.0646435644009651 | 0.0646435644009651 | relative 1e-12 | pass |
+
+### `table.compare_spreads_of test_method="o'brien"`
+
+**warpbreaks: do the breaks spread differently at the three tensions (O'Brien's test)?** (real data; data: warpbreaks)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| F | SciPy stats.obrientransform, then stats.f_oneway | 4.96563690539014 | 4.96563690539014 | relative 1e-09 | pass |
+| p-value | SciPy stats.obrientransform, then stats.f_oneway | 0.0107056471572693 | 0.0107056471572693 | relative 1e-09 | pass |
+| F | R | 4.96563690539014 | 4.96563690539014 | relative 1e-10 | pass |
+| p-value | R | 0.0107056471572693 | 0.0107056471572692 | relative 1e-10 | pass |
+
+### `table.find_correlation_between test_method="chatterjee xi"`
+
+**mtcars: Chatterjee's xi of fuel use given weight** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| xi | SciPy stats.chatterjeexi | 0.53104964279172 | 0.53104964279172 | relative 1e-09 | pass |
+
+### `table.find_correlation_between test_method="weighted kendall"`
+
+**mtcars: the weighted Kendall's tau of weight and fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| tau | SciPy stats.weightedtau | -0.78177069605959 | -0.78177069605959 | relative 1e-09 | pass |
+
+### `table.find_correlation_between test_method="multiscale graph"`
+
+**mtcars: the multiscale graph correlation of weight and fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| MGC | SciPy stats.multiscale_graphcorr | 0.738506304694291 | 0.738506304694291 | relative 1e-10 | pass |
+
+### `table.compare_rates test_method="e-test"`
+
+**lung (R survival): deaths per day of follow-up in men and women, the E-test** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| z | SciPy stats.poisson_means_test | 3.12585765604125 | 3.12585765604125 | relative 1e-09 | pass |
+| p-value | SciPy stats.poisson_means_test | 0.00178555152836629 | 0.00178555152836629 | relative 1e-09 | pass |
+
+### `table.find_interval_of test_method="bayesian"`
+
+**Michelson's speed of light (NIST): the Bayesian interval of the average** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| low | SciPy stats.bayes_mvs | 299.836722593166 | 299.836722593166 | relative 1e-09 | pass |
+| high | SciPy stats.bayes_mvs | 299.868077406834 | 299.868077406834 | relative 1e-09 | pass |
+| low | R | 299.836722593166 | 299.836722593166 | relative 1e-12 | pass |
+| high | R | 299.868077406834 | 299.868077406834 | relative 1e-12 | pass |
+
+Note: With Jeffreys' prior the credible interval of the average is the t interval (R t.test).
+
+### `table.combine_studies p_values=`
+
+**the first 20 gene p-values of Hedenfalk et al. (2001), combined by Fisher's method** (real data; data: hedenfalk (qvalue))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| chi-square | SciPy stats.combine_pvalues | 97.181010748283 | 97.181010748283 | relative 1e-09 | pass |
+| p-value | SciPy stats.combine_pvalues | 1.15805007306695e-06 | 1.15805007306695e-06 | relative 1e-09 | pass |
+| chi-square | R | 97.181010748283 | 97.181010748283 | relative 1e-12 | pass |
+| p-value | R | 1.15805007306695e-06 | 1.15805007306694e-06 | relative 1e-12 | pass |
+
+### `table.find_best_power_of show="log-likelihood"`
+
+**mtcars: the Box-Cox log-likelihood of the log of fuel use** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at 0 | SciPy stats.boxcox_llf | -55.3669461401437 | -55.3669461401437 | relative 1e-09 | pass |
+| at 1 | SciPy stats.boxcox_llf | -56.9717249954469 | -56.9717249954469 | relative 1e-09 | pass |
+| at 0 | R | -55.3669461401437 | -55.3669461401437 | relative 1e-12 | pass |
+| at 1 | R | -56.9717249954469 | -56.9717249954469 | relative 1e-12 | pass |
+
+### `table.find_best_power_of show="normal plot correlation"`
+
+**mtcars: how straight the normal plot of fuel use is for each power** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at -1 | SciPy stats.boxcox_normplot | 0.969760367970803 | 0.969760367970803 | relative 1e-09 | pass |
+| at 0.5 | SciPy stats.boxcox_normplot | 0.987389099308071 | 0.987389099308071 | relative 1e-09 | pass |
+
+### `table.find_best_power_of show="best by normal plot"`
+
+**mtcars: the Box-Cox power of fuel use with the straightest normal plot** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| power | SciPy stats.boxcox_normmax | 0.0564768984389117 | 0.0564768984389117 | relative 1e-09 | pass |
+
+### `table.find_best_power_of test_method="tukey lambda"`
+
+**Michelson's speed of light (NIST): the Tukey lambda shape with the straightest probability plot** (real data; data: NIST Michelso)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| lambda | SciPy stats.ppcc_max | 0.0389633906421092 | 0.0389633906421092 | relative 1e-09 | pass |
+
+### `table.compare_distributions_for show="wasserstein distance"`
+
+**Fisher's iris: the Wasserstein distance between the sepal lengths of the species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa-versicolor | SciPy stats.wasserstein_distance | 0.93 | 0.93 | relative 1e-09 | pass |
+| versicolor-virginica | SciPy stats.wasserstein_distance | 0.652 | 0.652 | relative 1e-09 | pass |
+| setosa-versicolor | R | 0.93 | 0.93 | relative 1e-12 | pass |
+| versicolor-virginica | R | 0.652 | 0.652 | relative 1e-12 | pass |
+
+Note: With 50 flowers of each species the distance is the average gap between the sorted values.
+
+### `table.compare_distributions_for show="energy distance"`
+
+**Fisher's iris: the energy distance between the sepal lengths of the species** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| setosa-versicolor | SciPy stats.energy_distance | 0.974597352756512 | 0.974597352756512 | relative 1e-09 | pass |
+| setosa-versicolor | R | 0.974597352756512 | 0.974597352756511 | relative 1e-10 | pass |
+
+### `sdata.find_sensitivity_of`
+
+**the Ishigami function: Sobol' indices against their exact values** (published; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| S1 x1 | Saltelli et al. (2010), Ishigami a = 7, b = 0.1 | 0.313854135652682 | 0.3139 | within 0.01 (printed rounding) | pass |
+| S1 x2 | Saltelli et al. (2010) | 0.442299605110267 | 0.4424 | within 0.01 (printed rounding) | pass |
+| ST x3 | Saltelli et al. (2010) | 0.244111228520679 | 0.2437 | within 0.01 (printed rounding) | pass |
+| S1 x1 | SciPy stats.sobol_indices | 0.313854135652682 | 0.313854135652682 | relative 1e-10 | pass |
+| S1 x2 | SciPy stats.sobol_indices | 0.442299605110267 | 0.442299605110267 | relative 1e-10 | pass |
+| ST x3 | SciPy stats.sobol_indices | 0.244111228520679 | 0.244111228520679 | relative 1e-10 | pass |
+
+Note: The indices come from a quasi-random sample, so they match the exact values to about 2 decimals.
+
+**mtcars: does weight or horsepower matter more for fuel use, over the cars' own ranges (the straight line of R lm(mpg ~ wt + hp))?** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| S1 wt | a straight line: b^2 var(x) / the sum over both, var = range^2 / 12 | 0.739914528343661 | 0.7399 | within 0.01 (printed rounding) | pass |
+| S1 hp | the same formula | 0.260085471650952 | 0.2601 | within 0.01 (printed rounding) | pass |
+| S1 wt | SciPy stats.sobol_indices | 0.739914528343661 | 0.739914528343661 | relative 1e-10 | pass |
+| S1 hp | SciPy stats.sobol_indices | 0.260085471650952 | 0.260085471650952 | relative 1e-10 | pass |
+
+Note: The line's numbers are R lm(mpg ~ wt + hp) on mtcars; the exact indices of a straight line with inputs spread evenly come from its formula.
+
+### `table.fit_distribution_to censored_by=`
+
+**lung (R survival): a Weibull fit to the survival times, the living censored** (real data; data: lung (survival))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| shape | SciPy weibull_min.fit(CensoredData) | 1.31684015419833 | 1.31684031526464 | relative 0.0001 | pass |
+| scale | SciPy weibull_min.fit(CensoredData) | 417.758654141712 | 417.758680822197 | relative 0.0001 | pass |
+| shape | R | 1.31684015419833 | 1.31684017160718 | relative 1e-05 | pass |
+| scale | R | 417.758654141712 | 417.758665363196 | relative 1e-05 | pass |
+
+Note: SciPy's search stops near the maximum; simplydata polishes it, so the fits agree to 4 or 5 digits.
+
+### `nums.take_function part=`
+
+**part=: Hankel H1 of order 0 at 1 is J0(1) + i Y0(1) (A&S Table 9.1)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| real part | Abramowitz & Stegun (1964), Table 9.1 (J0) | 0.765197686557966 | 0.765197686557967 | within 1e-15 (printed rounding) | pass |
+| imaginary part | Abramowitz & Stegun (1964), Table 9.1 (Y0) | 0.088256964215677 | 0.088256964215677 | within 1e-15 (printed rounding) | pass |
+| real part | SciPy special.hankel1 | 0.765197686557966 | 0.765197686557966 | relative 1e-14 | pass |
+| imaginary part | SciPy special.hankel1 | 0.088256964215677 | 0.088256964215677 | relative 1e-14 | pass |
+| real part | R | 0.765197686557966 | 0.765197686557967 | relative 1e-12 | pass |
+| imaginary part | R | 0.088256964215677 | 0.0882569642156769 | relative 1e-12 | pass |
+
+### `nums.work_on_bits`
+
+**the low 4 bits of the horsepower of 32 cars (bitwise and with 15)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy bitwise_and | 278 | 278 | exact | pass |
+| first | NumPy bitwise_and | 14 | 14 | exact | pass |
+| total | R | 278 | 278 | exact | pass |
+| first | R | 14 | 14 | exact | pass |
+
+### `nums.work_on_bits by=`
+
+**by=: the horsepower of 32 cars shifted 2 bits left (times 4)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | NumPy left_shift | 18776 | 18776 | exact | pass |
+| biggest | NumPy left_shift | 1340 | 1340 | exact | pass |
+| total | R | 18776 | 18776 | exact | pass |
+| biggest | R | 1340 | 1340 | exact | pass |
+
+### `nums.turn_into_yes_or_no is_=`
+
+**is_="finite": quarter-mile time per manual gear flag (0 for automatic cars, so no finite answer)** (real data; data: mtcars)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| finite | NumPy isfinite | 13 | 13 | exact | pass |
+| finite | R | 13 | 13 | exact | pass |
+
+### `nums.take_function`
+
+**Bessel J0 and J1 at 1 and 2 (A&S Table 9.1, DLMF 10.2)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| J0(1) | Abramowitz & Stegun (1964), Table 9.1 | 0.765197686557967 | 0.765197686557967 | within 1e-15 (printed rounding) | pass |
+| J0(2) | Abramowitz & Stegun (1964), Table 9.1 | 0.223890779141236 | 0.223890779141236 | within 1e-15 (printed rounding) | pass |
+| J1(1) | Abramowitz & Stegun (1964), Table 9.1 | 0.440050585744934 | 0.440050585744934 | within 1e-15 (printed rounding) | pass |
+| J1(2) | Abramowitz & Stegun (1964), Table 9.1 | 0.576724807756873 | 0.576724807756873 | within 1e-15 (printed rounding) | pass |
+| J0(1) | SciPy special.jv and special.j1 | 0.765197686557967 | 0.765197686557967 | relative 1e-14 | pass |
+| J0(2) | SciPy special.jv and special.j1 | 0.223890779141236 | 0.223890779141236 | relative 1e-14 | pass |
+| J1(1) | SciPy special.jv and special.j1 | 0.440050585744934 | 0.440050585744934 | relative 1e-14 | pass |
+| J1(2) | SciPy special.jv and special.j1 | 0.576724807756873 | 0.576724807756873 | relative 1e-14 | pass |
+| J0(1) | R | 0.765197686557967 | 0.765197686557967 | relative 1e-12 | pass |
+| J0(2) | R | 0.223890779141236 | 0.223890779141236 | relative 1e-12 | pass |
+| J1(1) | R | 0.440050585744934 | 0.440050585744934 | relative 1e-12 | pass |
+| J1(2) | R | 0.576724807756873 | 0.576724807756873 | relative 1e-12 | pass |
+
+**Bessel Y0, I0 and K0 at 1 (A&S Tables 9.1 and 9.8)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Y0(1) | Abramowitz & Stegun (1964), Table 9.1 | 0.088256964215677 | 0.088256964215677 | within 1e-15 (printed rounding) | pass |
+| I0(1) | Abramowitz & Stegun (1964), Table 9.8 | 1.26606587775201 | 1.26606587775201 | within 1e-15 (printed rounding) | pass |
+| K0(1) | Abramowitz & Stegun (1964), Table 9.8 | 0.421024438240708 | 0.421024438240708 | within 1e-15 (printed rounding) | pass |
+| Y0(1) | SciPy special.y0, iv and k0 | 0.088256964215677 | 0.088256964215677 | relative 1e-14 | pass |
+| I0(1) | SciPy special.y0, iv and k0 | 1.26606587775201 | 1.26606587775201 | relative 1e-14 | pass |
+| K0(1) | SciPy special.y0, iv and k0 | 0.421024438240708 | 0.421024438240708 | relative 1e-14 | pass |
+| Y0(1) | R | 0.088256964215677 | 0.0882569642156769 | relative 1e-12 | pass |
+| I0(1) | R | 1.26606587775201 | 1.26606587775201 | relative 1e-12 | pass |
+| K0(1) | R | 0.421024438240708 | 0.421024438240708 | relative 1e-12 | pass |
+
+**Airy Ai(0), Ai'(0) and Bi(0) (DLMF 9.2.3 to 9.2.5)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Ai(0) | NIST DLMF 9.2.3 | 0.355028053887817 | 0.355028053887817 | within 1e-15 (printed rounding) | pass |
+| Ai'(0) | NIST DLMF 9.2.4 | -0.258819403792807 | -0.258819403792807 | within 1e-15 (printed rounding) | pass |
+| Bi(0) | NIST DLMF 9.2.5 | 0.614926627446001 | 0.614926627446001 | within 1e-15 (printed rounding) | pass |
+| Ai(0) | SciPy special.airy | 0.355028053887817 | 0.355028053887817 | relative 1e-14 | pass |
+| Ai'(0) | SciPy special.airy | -0.258819403792807 | -0.258819403792807 | relative 1e-14 | pass |
+| Bi(0) | SciPy special.airy | 0.614926627446001 | 0.614926627446001 | relative 1e-14 | pass |
+
+**the error function, its inverse and Dawson's integral (A&S Tables 7.1 and 7.5)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| erf(0.5) | Abramowitz & Stegun (1964), Table 7.1 | 0.520499877813047 | 0.520499877813047 | within 1e-15 (printed rounding) | pass |
+| F(1) | Abramowitz & Stegun (1964), Table 7.5 | 0.538079506912768 | 0.538079506912768 | within 1e-15 (printed rounding) | pass |
+| erf(0.5) | SciPy special.erf, erfinv and dawsn | 0.520499877813047 | 0.520499877813047 | relative 1e-14 | pass |
+| erfinv(0.5) | SciPy special.erf, erfinv and dawsn | 0.47693627620447 | 0.47693627620447 | relative 1e-14 | pass |
+| F(1) | SciPy special.erf, erfinv and dawsn | 0.538079506912768 | 0.538079506912768 | relative 1e-14 | pass |
+| erf(0.5) | R | 0.520499877813047 | 0.520499877813047 | relative 1e-12 | pass |
+| erfinv(0.5) | R | 0.47693627620447 | 0.47693627620447 | relative 1e-12 | pass |
+
+**the complete elliptic integrals K and E at m = 1/2 (A&S Table 17.1)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| K(1/2) | Abramowitz & Stegun (1964), Table 17.1 (modular angle 45 degrees) | 1.85407467730137 | 1.85407467730137 | within 1e-15 (printed rounding) | pass |
+| E(1/2) | Abramowitz & Stegun (1964), Table 17.1 (modular angle 45 degrees) | 1.35064388104768 | 1.35064388104768 | within 1e-15 (printed rounding) | pass |
+| K(1/2) | SciPy special.ellipk and ellipe | 1.85407467730137 | 1.85407467730137 | relative 1e-14 | pass |
+| E(1/2) | SciPy special.ellipk and ellipe | 1.35064388104768 | 1.35064388104768 | relative 1e-14 | pass |
+
+**the sine, cosine and exponential integrals at 1 (A&S Table 5.1)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| Si(1) | Abramowitz & Stegun (1964), Table 5.1 | 0.946083070367183 | 0.946083070367183 | within 1e-15 (printed rounding) | pass |
+| Ci(1) | Abramowitz & Stegun (1964), Table 5.1 | 0.337403922900968 | 0.337403922900968 | within 1e-15 (printed rounding) | pass |
+| E1(1) | Abramowitz & Stegun (1964), Table 5.1 | 0.219383934395521 | 0.21938393439552 | within 1e-15 (printed rounding) | pass |
+| Si(1) | SciPy special.sici and exp1 | 0.946083070367183 | 0.946083070367183 | relative 1e-14 | pass |
+| Ci(1) | SciPy special.sici and exp1 | 0.337403922900968 | 0.337403922900968 | relative 1e-14 | pass |
+| E1(1) | SciPy special.sici and exp1 | 0.219383934395521 | 0.219383934395521 | relative 1e-14 | pass |
+
+**Apery's constant zeta(3) and the omega constant W(1) (DLMF 25.6, 4.13)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| zeta(3) | NIST DLMF 25.6 (Apery's constant) | 1.20205690315959 | 1.20205690315959 | within 1e-15 (printed rounding) | pass |
+| W(1) | NIST DLMF 4.13 (the omega constant) | 0.567143290409784 | 0.567143290409784 | within 1e-15 (printed rounding) | pass |
+| zeta(3) | SciPy special.zeta and lambertw | 1.20205690315959 | 1.20205690315959 | relative 1e-14 | pass |
+| W(1) | SciPy special.zeta and lambertw | 0.567143290409784 | 0.567143290409784 | relative 1e-14 | pass |
+
+**digamma(1) is minus Euler's constant, and Gamma(1/2) is the root of pi (DLMF 5.4)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| digamma(1) | NIST DLMF 5.4.12 | -0.577215664901533 | -0.577215664901533 | within 1e-15 (printed rounding) | pass |
+| gamma(1/2) | NIST DLMF 5.4.6 | 1.77245385090552 | 1.77245385090552 | within 1e-15 (printed rounding) | pass |
+| digamma(1) | SciPy special.digamma and gamma | -0.577215664901533 | -0.577215664901533 | relative 1e-14 | pass |
+| gamma(1/2) | SciPy special.digamma and gamma | 1.77245385090552 | 1.77245385090552 | relative 1e-14 | pass |
+| digamma(1) | R | -0.577215664901533 | -0.577215664901532 | relative 1e-12 | pass |
+| gamma(1/2) | R | 1.77245385090552 | 1.77245385090552 | relative 1e-12 | pass |
+
+**a formula name in add_column: bessel_j(0, x) at the first zero is 0** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| at the first zero | NIST DLMF Table 10.21.1 | 0 | 0 | within 1e-15 (printed rounding) | pass |
+| at 1 | Abramowitz & Stegun (1964), Table 9.1 | 0.765197686557967 | 0.765197686557967 | within 1e-15 (printed rounding) | pass |
+| at the first zero | SciPy special.jv | 0 | 0 | relative 1e-14 | pass |
+| at 1 | SciPy special.jv | 0.765197686557967 | 0.765197686557967 | relative 1e-14 | pass |
+
+### `sdata.find_zeros_of`
+
+**the first zeros of J0 and J1 (DLMF Table 10.21.1, A&S Table 9.5)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| j0,1 | Abramowitz & Stegun (1964), Table 9.5 | 2.40482555769577 | 2.40482555769577 | within 1e-15 (printed rounding) | pass |
+| j0,2 | Abramowitz & Stegun (1964), Table 9.5 | 5.52007811028631 | 5.52007811028631 | within 1e-15 (printed rounding) | pass |
+| j0,3 | Abramowitz & Stegun (1964), Table 9.5 | 8.65372791291101 | 8.65372791291101 | within 1e-15 (printed rounding) | pass |
+| j1,1 | Abramowitz & Stegun (1964), Table 9.5 | 3.83170597020751 | 3.83170597020751 | within 1e-15 (printed rounding) | pass |
+| j0,1 | SciPy special.jn_zeros | 2.40482555769577 | 2.40482555769577 | relative 1e-13 | pass |
+| j0,2 | SciPy special.jn_zeros | 5.52007811028631 | 5.52007811028631 | relative 1e-13 | pass |
+| j0,3 | SciPy special.jn_zeros | 8.65372791291101 | 8.65372791291101 | relative 1e-13 | pass |
+| j1,1 | SciPy special.jn_zeros | 3.83170597020751 | 3.83170597020751 | relative 1e-13 | pass |
+
+**the first zeros of Airy Ai (DLMF Table 9.9.1)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| a1 | NIST DLMF Table 9.9.1 | -2.33810741045977 | -2.33810741045977 | within 1e-15 (printed rounding) | pass |
+| a2 | NIST DLMF Table 9.9.1 | -4.08794944413097 | -4.08794944413097 | within 1e-15 (printed rounding) | pass |
+| a1 | SciPy special.ai_zeros | -2.33810741045977 | -2.33810741045977 | relative 1e-13 | pass |
+| a2 | SciPy special.ai_zeros | -4.08794944413097 | -4.08794944413097 | relative 1e-13 | pass |
+
+### `sdata.find_area_points`
+
+**Gauss-Legendre with 3 points: 0 and the root of 3/5, weights 8/9 and 5/9 (A&S Table 25.4)** (published; data: published special-function tables (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| outer point | Abramowitz & Stegun (1964), Table 25.4 | 0.774596669241483 | 0.774596669241483 | within 1e-15 (printed rounding) | pass |
+| middle weight | Abramowitz & Stegun (1964), Table 25.4 | 0.888888888888888 | 0.888888888888889 | within 1e-15 (printed rounding) | pass |
+| outer weight | Abramowitz & Stegun (1964), Table 25.4 | 0.555555555555556 | 0.555555555555556 | within 1e-15 (printed rounding) | pass |
+| area of x**4 | exact: the area under x**4 from -1 to 1 | 0.4 | 0.4 | within 1e-15 | pass |
+| outer point | SciPy special.roots_legendre | 0.774596669241483 | 0.774596669241483 | relative 1e-14 | pass |
+| middle weight | SciPy special.roots_legendre | 0.888888888888888 | 0.888888888888888 | relative 1e-14 | pass |
+| outer weight | SciPy special.roots_legendre | 0.555555555555556 | 0.555555555555556 | relative 1e-14 | pass |
+| area of x**4 | SciPy special.roots_legendre | 0.4 | 0.4 | relative 1e-14 | pass |
 
 ### `nums.show`
 
@@ -46185,9 +49896,9 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| total | NumPy cbrt | 0.0841420822996149 | 0.0841420822996149 | relative 1e-12 | pass |
+| total | NumPy cbrt | 0.0841420822996139 | 0.0841420822996139 | relative 1e-12 | pass |
 | smallest | NumPy cbrt | -0.612692567522858 | -0.612692567522858 | relative 1e-12 | pass |
-| total | R | 0.0841420822996149 | 0.0841420822996139 | relative 1e-12 | pass |
+| total | R | 0.0841420822996139 | 0.0841420822996139 | relative 1e-12 | pass |
 | smallest | R | -0.612692567522858 | -0.612692567522858 | relative 1e-12 | pass |
 
 ### `nums.show_as_fraction`
@@ -46531,10 +50242,10 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | x at 5 | exact: worked out by hand from the formula: exp(-c t / 2) (cos w t + c / (2 w) sin w t), within the solver's tolerance | -0.269073529836581 | -0.269074964990903 | within 0.0001 (exact formula) | pass |
-| x at 10 | exact: worked out by hand from the formula | 0.053458682984837 | 0.0534595292542578 | within 0.0001 (exact formula) | pass |
+| x at 10 | exact: worked out by hand from the formula | 0.0534586829848371 | 0.0534595292542578 | within 0.0001 (exact formula) | pass |
 | dx/dt at 5 | exact: worked out by hand from the formula | 0.275256501798637 | 0.275258478747504 | within 0.0001 (exact formula) | pass |
 | x at 5 | SciPy integrate.solve_ivp (RK45), as two first-order equations | -0.269073529836581 | -0.269073529836581 | relative 1e-12 | pass |
-| x at 10 | SciPy integrate.solve_ivp (RK45), as two first-order equations | 0.053458682984837 | 0.053458682984837 | relative 1e-12 | pass |
+| x at 10 | SciPy integrate.solve_ivp (RK45), as two first-order equations | 0.0534586829848371 | 0.0534586829848371 | relative 1e-12 | pass |
 | dx/dt at 5 | SciPy integrate.solve_ivp (RK45), as two first-order equations | 0.275256501798637 | 0.275256501798637 | relative 1e-12 | pass |
 
 ### `sdata.find_path_over_time equations="d2x/dt2 = ...", exactly=`
@@ -46567,7 +50278,7 @@ Note: Named directions line up by name: the averages (species x measurement) are
 |---|---|---|---|---|---|
 | determinant | SymPy Matrix.det | 3.70794963018776e+15 | 3.70794963018776e+15 | relative 1e-15 | pass |
 | whole number | SymPy Matrix.det | 1 | 1 | relative 1e-15 | pass |
-| determinant | R | 3.70794963018776e+15 | 3.70794963018776e+15 | relative 1e-09 | pass |
+| determinant | R | 3.70794963018776e+15 | 3.70794963018789e+15 | relative 1e-09 | pass |
 
 ### `grid.take_inverse`
 
@@ -46601,10 +50312,10 @@ Note: Named directions line up by name: the averages (species x measurement) are
 |---|---|---|---|---|---|
 | total | the eigenvalues of a correlation grid add up to its size | 4 | 4 | within 1e-12 (printed rounding) | pass |
 | biggest | SciPy linalg.eigvalsh | 2.91849781653199 | 2.91849781653199 | relative 1e-12 | pass |
-| smallest | SciPy linalg.eigvalsh | 0.0207148364286191 | 0.0207148364286191 | relative 1e-12 | pass |
+| smallest | SciPy linalg.eigvalsh | 0.0207148364286192 | 0.0207148364286192 | relative 1e-12 | pass |
 | total | SciPy linalg.eigvalsh | 4 | 4 | relative 1e-12 | pass |
 | biggest | R | 2.91849781653199 | 2.91849781653199 | relative 1e-09 | pass |
-| smallest | R | 0.0207148364286191 | 0.0207148364286192 | relative 1e-09 | pass |
+| smallest | R | 0.0207148364286192 | 0.0207148364286192 | relative 1e-09 | pass |
 | total | R | 4 | 4 | relative 1e-09 | pass |
 
 **AirPassengers, first 4 years x 4 months (not symmetric): in R eigen()'s order** (real data; data: AirPassengers)
@@ -46613,14 +50324,14 @@ Note: Named directions line up by name: the averages (species x measurement) are
 |---|---|---|---|---|---|
 | first | SciPy linalg.eigvals, by size | 596.752205660174 | 596.752205660174 | relative 1e-12 | pass |
 | second | SciPy linalg.eigvals, by size | -8.45635082694768 | -8.45635082694768 | relative 1e-12 | pass |
-| third | SciPy linalg.eigvals, by size | 4.35207258338688 | 4.35207258338688 | relative 1e-12 | pass |
-| third, imaginary | SciPy linalg.eigvals, by size | 0.890477718148775 | 0.890477718148775 | relative 1e-12 | pass |
-| fourth, imaginary | SciPy linalg.eigvals, by size | -0.890477718148775 | -0.890477718148775 | relative 1e-12 | pass |
+| third | SciPy linalg.eigvals, by size | 4.35207258338689 | 4.35207258338689 | relative 1e-12 | pass |
+| third, imaginary | SciPy linalg.eigvals, by size | 0.890477718148822 | 0.890477718148822 | relative 1e-12 | pass |
+| fourth, imaginary | SciPy linalg.eigvals, by size | -0.890477718148822 | -0.890477718148822 | relative 1e-12 | pass |
 | first | R | 596.752205660174 | 596.752205660174 | relative 1e-09 | pass |
 | second | R | -8.45635082694768 | -8.4563508269477 | relative 1e-09 | pass |
-| third | R | 4.35207258338688 | 4.3520725833869 | relative 1e-09 | pass |
-| third, imaginary | R | 0.890477718148775 | 0.89047771814889 | relative 1e-09 | pass |
-| fourth, imaginary | R | -0.890477718148775 | -0.89047771814889 | relative 1e-09 | pass |
+| third | R | 4.35207258338689 | 4.35207258338688 | relative 1e-09 | pass |
+| third, imaginary | R | 0.890477718148822 | 0.890477718148813 | relative 1e-09 | pass |
+| fourth, imaginary | R | -0.890477718148822 | -0.890477718148813 | relative 1e-09 | pass |
 
 ### `grid.find_eigenvalues exactly=`
 
@@ -46655,7 +50366,7 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | slope | NIST certified | 1.00211681802045 | 1.00211681802045 | at least 9 digits (LRE 14.4) | pass |
 | intercept | SciPy linalg.lstsq | -0.262323073773899 | -0.262323073773899 | relative 1e-10 | pass |
 | slope | SciPy linalg.lstsq | 1.00211681802045 | 1.00211681802045 | relative 1e-10 | pass |
-| intercept | R | -0.262323073773899 | -0.262323073773899 | relative 1e-10 | pass |
+| intercept | R | -0.262323073773899 | -0.26232307377373 | relative 1e-10 | pass |
 | slope | R | 1.00211681802045 | 1.00211681802045 | relative 1e-10 | pass |
 
 **standardised effects of three iris measurements on petal width (a square grid)** (real data; data: iris)
@@ -46675,12 +50386,12 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| first | SciPy linalg.lstsq | -18.7855044073578 | -18.7855044073578 | relative 1e-06 | pass |
-| last | SciPy linalg.lstsq | 117.33594515201 | 117.33594515201 | relative 1e-06 | pass |
-| length | SciPy linalg.lstsq | 125.063744765122 | 125.063744765122 | relative 1e-06 | pass |
-| first | R | -18.7855044073578 | -18.7855044073594 | relative 1e-06 | pass |
-| last | R | 117.33594515201 | 117.335945152092 | relative 1e-06 | pass |
-| length | R | 125.063744765122 | 125.063744765198 | relative 1e-06 | pass |
+| first | SciPy linalg.lstsq | -18.7855044073436 | -18.7855044073436 | relative 1e-06 | pass |
+| last | SciPy linalg.lstsq | 117.335945152044 | 117.335945152044 | relative 1e-06 | pass |
+| length | SciPy linalg.lstsq | 125.063744765139 | 125.063744765139 | relative 1e-06 | pass |
+| first | R | -18.7855044073436 | -18.7855044073597 | relative 1e-06 | pass |
+| last | R | 117.335945152044 | 117.335945152092 | relative 1e-06 | pass |
+| length | R | 125.063744765139 | 125.063744765198 | relative 1e-06 | pass |
 
 ### `grid.solve_for between=`
 
@@ -46691,8 +50402,8 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | air flow | SciPy optimize.nnls | 0.285805705894181 | 0.285805705894181 | relative 1e-09 | pass |
 | water temperature | SciPy optimize.nnls | 0.0571515210521419 | 0.0571515210521419 | relative 1e-09 | pass |
 | acid concentration | SciPy optimize.nnls | 0 | 0 | relative 1e-09 | pass |
-| air flow | R | 0.285805705894181 | 0.285805705894182 | relative 1e-07 | pass |
-| water temperature | R | 0.0571515210521419 | 0.0571515210521394 | relative 1e-07 | pass |
+| air flow | R | 0.285805705894181 | 0.285805705894181 | relative 1e-07 | pass |
+| water temperature | R | 0.0571515210521419 | 0.0571515210521425 | relative 1e-07 | pass |
 | acid concentration | R | 0 | 0 | relative 1e-07 | pass |
 
 **between=[0, 1]: stack loss with every effect between 0 and 1 (bounded least squares)** (real data; data: stackloss)
@@ -46700,7 +50411,7 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | air flow | SciPy optimize.lsq_linear (bvls) | 0.285805705894181 | 0.285805705894181 | relative 1e-09 | pass |
-| water temperature | SciPy optimize.lsq_linear (bvls) | 0.0571515210521443 | 0.0571515210521443 | relative 1e-09 | pass |
+| water temperature | SciPy optimize.lsq_linear (bvls) | 0.0571515210521447 | 0.0571515210521447 | relative 1e-09 | pass |
 | acid concentration | SciPy optimize.lsq_linear (bvls) | 0 | 0 | relative 1e-09 | pass |
 
 ### `grid.solve_for exactly=`
@@ -46713,8 +50424,8 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | smallest | SymPy Matrix.LUsolve | 1 | 1 | relative 1e-15 | pass |
 | biggest | SymPy Matrix.LUsolve | 1 | 1 | relative 1e-15 | pass |
 | total | R | 12 | 12 | relative 1e-09 | pass |
-| smallest | R | 1 | 0.999999999999879 | relative 1e-09 | pass |
-| biggest | R | 1 | 1.00000000000019 | relative 1e-09 | pass |
+| smallest | R | 1 | 0.999999999999976 | relative 1e-09 | pass |
+| biggest | R | 1 | 1.00000000000003 | relative 1e-09 | pass |
 
 ### `grid.break_down`
 
@@ -46776,10 +50487,10 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| product of U's diagonal | SciPy linalg.lu | 3.70794963018797e+15 | 3.70794963018797e+15 | relative 1e-12 | pass |
+| product of U's diagonal | SciPy linalg.lu | 3.70794963018788e+15 | 3.70794963018788e+15 | relative 1e-12 | pass |
 | first of U | SciPy linalg.lu | 417 | 417 | relative 1e-12 | pass |
 | multiplied back | SciPy linalg.lu | 1 | 1 | relative 1e-12 | pass |
-| product of U's diagonal | R | 3.70794963018797e+15 | 3.70794963018776e+15 | relative 1e-08 | pass |
+| product of U's diagonal | R | 3.70794963018788e+15 | 3.70794963018789e+15 | relative 1e-08 | pass |
 | first of U | R | 417 | 417 | relative 1e-08 | pass |
 | multiplied back | R | 1 | 1 | relative 1e-08 | pass |
 
@@ -46816,11 +50527,11 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| smallest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 0.0291048003594299 | 0.0291048003594299 | relative 1e-09 | pass |
-| biggest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 22.325480583695 | 22.325480583695 | relative 1e-09 | pass |
+| smallest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 0.0291048003594296 | 0.0291048003594296 | relative 1e-09 | pass |
+| biggest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 22.3254805836951 | 22.3254805836951 | relative 1e-09 | pass |
 | total of ratios | SciPy linalg.eigvals (the generalised eigenvalues) | 28.3299745316017 | 28.3299745316017 | relative 1e-09 | pass |
-| smallest ratio | R | 0.0291048003594299 | 0.0291048003594294 | relative 1e-08 | pass |
-| biggest ratio | R | 22.325480583695 | 22.3254805836951 | relative 1e-08 | pass |
+| smallest ratio | R | 0.0291048003594296 | 0.0291048003594294 | relative 1e-08 | pass |
+| biggest ratio | R | 22.3254805836951 | 22.3254805836951 | relative 1e-08 | pass |
 | total of ratios | R | 28.3299745316017 | 28.3299745316018 | relative 1e-08 | pass |
 
 ### `nums.smooth`
@@ -46871,8 +50582,8 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | first year | SciPy signal.detrend | 0.202164502164351 | 0.202164502164351 | relative 1e-09 | pass |
 | last year | SciPy signal.detrend | 2.12967223252963 | 2.12967223252963 | relative 1e-09 | pass |
 | total | SciPy signal.detrend | 2.27373675443232e-13 | 2.27373675443232e-13 | relative 1e-09 | pass |
-| first year | R | 0.202164502164351 | 0.202164502165233 | relative 1e-09 | pass |
-| last year | R | 2.12967223252963 | 2.12967223252943 | relative 1e-09 | pass |
+| first year | R | 0.202164502164351 | 0.20216450216436 | relative 1e-09 | pass |
+| last year | R | 2.12967223252963 | 2.12967223252941 | relative 1e-09 | pass |
 
 ### `table.add_trend_and_season`
 
@@ -46910,7 +50621,7 @@ Note: Named directions line up by name: the averages (species x measurement) are
 |---|---|---|---|---|---|
 | ADF statistic | R | -2.50692013839604 | -2.50692013839604 | relative 1e-09 | pass |
 | ADF p-value | R | 0.117094492257189 | 0.117094492257189 | relative 1e-09 | pass |
-| KPSS statistic | R | 0.995290114411624 | 0.995290114411624 | relative 1e-09 | pass |
+| KPSS statistic | R | 0.995290114411602 | 0.995290114411602 | relative 1e-09 | pass |
 
 ### `table.find_change_points_in`
 
@@ -46928,9 +50639,9 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
-| January 1961, 95 % low | R | 428.41526696502 | 428.41526696502 | relative 1e-09 | pass |
-| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+| January 1961 | R | 453.497721751319 | 453.497721751319 | relative 1e-09 | pass |
+| January 1961, 95 % low | R | 428.415266965018 | 428.415266965018 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789794 | 469.531518789794 | relative 1e-09 | pass |
 
 ### `table.compare_forecasts_for`
 
@@ -46938,9 +50649,9 @@ Note: Named directions line up by name: the averages (species x measurement) are
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| best MASE | R | 0.379783839708638 | 0.379783839708638 | relative 1e-09 | pass |
+| best MASE | R | 0.379783839708431 | 0.379783839708431 | relative 1e-09 | pass |
 | worst MASE | R | 2.49589490968801 | 2.49589490968801 | relative 1e-09 | pass |
-| best MAE | R | 11.564417919128 | 11.564417919128 | relative 1e-09 | pass |
+| best MAE | R | 11.5644179191217 | 11.5644179191217 | relative 1e-09 | pass |
 
 ### `nums.find_each_peak_that`
 
@@ -47149,7 +50860,7 @@ Note: The years are one apart, so keep_below=0.1 keeps the cycles longer than 10
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | gain at 10 | exact: a Butterworth filter passes 1 / sqrt(2) at its cutoff | 0.707106781186548 | 0.707106781186548 | within 1e-12 (exact formula) | pass |
-| numerator total / denominator total | exact: a low-pass filter passes frequency 0 whole (gain 1 at z = 1) | 1.00000000000002 | 1 | within 1e-12 (exact formula) | pass |
+| numerator total / denominator total | exact: a low-pass filter passes frequency 0 whole (gain 1 at z = 1) | 1.00000000000009 | 1 | within 1e-12 (exact formula) | pass |
 | b0 | SciPy signal.butter (as numerator and denominator) | 0.000416599204406599 | 0.000416599204406599 | relative 1e-09 | pass |
 | a1 | SciPy signal.butter (as numerator and denominator) | -3.18063854887472 | -3.18063854887472 | relative 1e-09 | pass |
 | a4 | SciPy signal.butter (as numerator and denominator) | 0.43826514226198 | 0.43826514226198 | relative 1e-09 | pass |
@@ -47166,7 +50877,7 @@ Note: A filter has no data: the Butterworth design of order 4 at a tenth of the 
 | poles | SciPy signal.butter | 4 | 4 | relative 1e-09 | pass |
 | smallest distance | SciPy signal.butter | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
 | biggest distance | SciPy signal.butter | 0.887975078375119 | 0.887975078375118 | relative 1e-09 | pass |
-| steady gain | SciPy signal.butter | 1.00000000000002 | 1 | relative 1e-09 | pass |
+| steady gain | SciPy signal.butter | 1.00000000000009 | 1 | relative 1e-09 | pass |
 | poles | R | 4 | 4 | relative 1e-09 | pass |
 | smallest distance | R | 0.745534401139538 | 0.745534401139538 | relative 1e-09 | pass |
 | biggest distance | R | 0.887975078375119 | 0.887975078375119 | relative 1e-09 | pass |
@@ -47438,9 +51149,9 @@ Note: R: the step response written out from the poles and residues of the formul
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| at time 10 / 199 x 31 | exact: exp(-t) sin(2t) / 2 | 0.00273906139735488 | 0.00273906139735484 | within 1e-07 (exact formula) | pass |
+| at time 10 / 199 x 31 | exact: exp(-t) sin(2t) / 2 | 0.00273906139735492 | 0.00273906139735484 | within 1e-07 (exact formula) | pass |
 | at time 10 | exact: exp(-t) sin(2t) / 2 | 2.07238251300142e-05 | 2.07238251300142e-05 | within 1e-07 (exact formula) | pass |
-| at time 10 / 199 x 31 | SciPy signal.impulse | 0.00273906139735488 | 0.00273906139735488 | relative 1e-12 | pass |
+| at time 10 / 199 x 31 | SciPy signal.impulse | 0.00273906139735492 | 0.00273906139735492 | relative 1e-12 | pass |
 | at time 10 | SciPy signal.impulse | 2.07238251300142e-05 | 2.07238251300142e-05 | relative 1e-12 | pass |
 
 **1 / (s^2 + 2 s + 5): the answer to a kick, 0 to 5 seconds** (real data; data: checks against R (no published example))
@@ -47448,11 +51159,11 @@ Note: R: the step response written out from the poles and residues of the formul
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | at 0.5 | python-control impulse_response | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
-| at 2 | python-control impulse_response | -0.0512110400283369 | -0.0512110400283368 | relative 1e-08 | pass |
-| total | python-control impulse_response | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+| at 2 | python-control impulse_response | -0.0512110400283368 | -0.0512110400283368 | relative 1e-08 | pass |
+| total | python-control impulse_response | 0.360101948231805 | 0.360101948231806 | relative 1e-08 | pass |
 | at 0.5 | R | 0.255188975772286 | 0.255188975772286 | relative 1e-08 | pass |
-| at 2 | R | -0.0512110400283369 | -0.0512110400283369 | relative 1e-08 | pass |
-| total | R | 0.360101948231806 | 0.360101948231806 | relative 1e-08 | pass |
+| at 2 | R | -0.0512110400283368 | -0.0512110400283369 | relative 1e-08 | pass |
+| total | R | 0.360101948231805 | 0.360101948231806 | relative 1e-08 | pass |
 
 ### `system.response_to`
 
@@ -47785,8 +51496,8 @@ Note: A stick at shift s pairs the first column at month t with the second at mo
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
 | months drawn | R | 12 | 12 | relative 1e-09 | pass |
-| January 1961 | R | 453.497721751322 | 453.497721751322 | relative 1e-09 | pass |
-| December 1961 | R | 469.531518789793 | 469.531518789793 | relative 1e-09 | pass |
+| January 1961 | R | 453.497721751319 | 453.497721751319 | relative 1e-09 | pass |
+| December 1961 | R | 469.531518789794 | 469.531518789794 | relative 1e-09 | pass |
 
 **El Nino sea temperatures: the next 12 months by Holt-Winters, drawn after the line** (real data; data: El Nino sea surface temperatures)
 
@@ -47794,7 +51505,7 @@ Note: A stick at shift s pairs the first column at month t with the second at mo
 |---|---|---|---|---|---|
 | forecast points | R | 12 | 12 | relative 1e-09 | pass |
 | first month | R | 23.8701353286347 | 23.8701353286347 | relative 1e-09 | pass |
-| twelfth month | R | 21.9750442568474 | 21.9750442568474 | relative 1e-09 | pass |
+| twelfth month | R | 21.9750442568466 | 21.9750442568466 | relative 1e-09 | pass |
 
 Note: simplydata runs R HoltWinters through forecast::forecast; the reference is HoltWinters' own predict() in base R.
 
@@ -48296,10 +52007,10 @@ Note: Random numbers have no published answer; the check is that the same seed g
 |---|---|---|---|---|---|
 | PC1 standard deviation | NumPy linalg.svd | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
 | PC1 share (%) | NumPy linalg.svd | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
-| PC1 weight of petal length | NumPy linalg.svd | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+| PC1 weight of petal length | NumPy linalg.svd | 0.580413095796295 | 0.580413095796295 | relative 1e-12 | pass |
 | PC1 standard deviation | R | 1.70836114932762 | 1.70836114932762 | relative 1e-12 | pass |
 | PC1 share (%) | R | 72.9624454132999 | 72.9624454132999 | relative 1e-12 | pass |
-| PC1 weight of petal length | R | 0.580413095796294 | 0.580413095796295 | relative 1e-12 | pass |
+| PC1 weight of petal length | R | 0.580413095796295 | 0.580413095796295 | relative 1e-12 | pass |
 
 Note: The sign of a component is arbitrary, so the weight is compared without its sign.
 
@@ -51403,7 +55114,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | first row | Daniel & Wood (1980): observation 21 is the most influential | 21 | 21 | within 0 (printed rounding) | pass |
 | first row | R | 21 | 21 | relative 1e-09 | pass |
-| its Cook's distance | R | 0.69199991633951 | 0.69199991633951 | relative 1e-09 | pass |
+| its Cook's distance | R | 0.691999916339513 | 0.69199991633951 | relative 1e-09 | pass |
 | rows found | R | 1 | 1 | relative 1e-09 | pass |
 
 ### `sdata.get_example from_r_package=`
@@ -51422,8 +55133,8 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| BP | R | 0.880722470178817 | 0.880722470178813 | relative 1e-09 | pass |
-| p | R | 0.64380381454434 | 0.643803814544342 | relative 1e-09 | pass |
+| BP | R | 0.880722470178803 | 0.880722470178814 | relative 1e-09 | pass |
+| p | R | 0.643803814544345 | 0.643803814544341 | relative 1e-09 | pass |
 
 ### `table.find_correlation_between show="result table"`
 
@@ -51444,7 +55155,7 @@ Note: The numbers come back from what matplotlib drew; Anscombe prints the slope
 |---|---|---|---|---|---|
 | partial r | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | residuals of statsmodels OLS, SciPy pearsonr (the definition) | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
-| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620001e-06 | relative 1e-09 | pass |
+| p | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 1.11964713620002e-06 | 1.11964713620003e-06 | relative 1e-09 | pass |
 | rows | residuals of statsmodels OLS, SciPy pearsonr (the definition) | 32 | 32 | relative 1e-09 | pass |
 | partial r | R | -0.751204904961865 | -0.751204904961865 | relative 1e-09 | pass |
 | t | R | -6.12869521981042 | -6.12869521981042 | relative 1e-09 | pass |
@@ -52782,6 +56493,414 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `use_colours from_colour_list=` | seaborn | pandas | chart | relative 1e-09 | pass |
 | `use_colour from_colour_list=` | seaborn | pandas | chart | relative 1e-09 | pass |
 | `use_style colour_letters=` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `table.get_different_values_in` | pandas | pandas | value | relative 0 | pass |
+| `table.get_different_values_in` | Polars | pandas | value | relative 0 | pass |
+| `table.get_different_values_in` | pandas | polars | value | relative 0 | pass |
+| `table.get_different_values_in` | Polars | polars | value | relative 0 | pass |
+| `table.check_if_all_values_in` | pandas | pandas | value | relative 0 | pass |
+| `table.check_if_all_values_in` | Polars | pandas | value | relative 0 | pass |
+| `table.check_if_all_values_in` | pandas | polars | value | relative 0 | pass |
+| `table.check_if_all_values_in` | Polars | polars | value | relative 0 | pass |
+| `table.check_if_any_value_in` | pandas | pandas | value | relative 0 | pass |
+| `table.check_if_any_value_in` | Polars | pandas | value | relative 0 | pass |
+| `table.check_if_any_value_in` | pandas | polars | value | relative 0 | pass |
+| `table.check_if_any_value_in` | Polars | polars | value | relative 0 | pass |
+| `table.check_if_sorted_by` | pandas | pandas | value | relative 0 | pass |
+| `table.check_if_sorted_by` | Polars | pandas | value | relative 0 | pass |
+| `table.check_if_sorted_by` | pandas | polars | value | relative 0 | pass |
+| `table.check_if_sorted_by` | Polars | polars | value | relative 0 | pass |
+| `table.add_run_number_column` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_run_number_column` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_run_number_column` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_run_number_column` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_title_case` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_title_case` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_title_case` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_title_case` | Polars | polars | table | relative 1e-09 | pass |
+| `table.find_summary_of show="product"` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.find_summary_of show="product"` | Polars | pandas | table | relative 1e-12 | pass |
+| `table.find_summary_of show="product"` | pandas | polars | table | relative 1e-12 | pass |
+| `table.find_summary_of show="product"` | Polars | polars | table | relative 1e-12 | pass |
+| `table.find_summary_of show="entropy"` | Polars | pandas | table | relative 1e-12 | pass |
+| `table.find_summary_of show="entropy"` | Polars | polars | table | relative 1e-12 | pass |
+| `table.find_summary_of show="joined text"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show="joined text"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.find_summary_of show="joined text"` | pandas | polars | table | relative 1e-09 | pass |
+| `table.find_summary_of show="joined text"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.find_summary_of show={column: measures}` | pandas | pandas | table | relative 1e-12 | pass |
+| `table.find_summary_of show={column: measures}` | Polars | pandas | table | relative 1e-12 | pass |
+| `table.find_summary_of show={column: measures}` | pandas | polars | table | relative 1e-12 | pass |
+| `table.find_summary_of show={column: measures}` | Polars | polars | table | relative 1e-12 | pass |
+| `table.add_previous_value_column rows_ahead=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_previous_value_column rows_ahead=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_previous_value_column rows_ahead=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_previous_value_column rows_ahead=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.round_numbers_in significant_figures=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.round_numbers_in significant_figures=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where time_of_day_between=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where time_of_day_between=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.keep_rows_where time_of_day_between=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.keep_rows_where time_of_day_between=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text every_match=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text every_match=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text every_match=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text every_match=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text position_of=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_text position_of=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is month start"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is month start"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is month start"` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is month start"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is working day"` | NumPy | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is working day"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is working day"` | NumPy | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="is working day"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="unix time"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="unix time"` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="unix time"` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_column_with_part_of_date part="unix time"` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_dates from_unix_seconds=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_dates from_unix_seconds=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.turn_into_dates from_unix_seconds=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.turn_into_dates from_unix_seconds=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.add_column floor() ceil() log10() log1p() sign() cbrt()` | NumPy | pandas | table | relative 1e-12 | pass |
+| `table.add_column floor() ceil() log10() log1p() sign() cbrt()` | Polars | pandas | table | relative 1e-12 | pass |
+| `table.add_column floor() ceil() log10() log1p() sign() cbrt()` | NumPy | polars | table | relative 1e-12 | pass |
+| `table.add_column floor() ceil() log10() log1p() sign() cbrt()` | Polars | polars | table | relative 1e-12 | pass |
+| `table.add_column add_working_days() count_working_days()` | NumPy | pandas | table | relative 1e-09 | pass |
+| `table.add_column add_working_days() count_working_days()` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_column add_working_days() count_working_days()` | NumPy | polars | table | relative 1e-09 | pass |
+| `table.add_column add_working_days() count_working_days()` | Polars | polars | table | relative 1e-09 | pass |
+| `sdata.make_run_of_dates every="working day"` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rolling_column with_column=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.add_rolling_column with_column=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.add_rolling_column with_column=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.add_rolling_column with_column=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.join_with where=` | pandas | pandas | table | relative 1e-09 | pass |
+| `table.join_with where=` | Polars | pandas | table | relative 1e-09 | pass |
+| `table.join_with where=` | pandas | polars | table | relative 1e-09 | pass |
+| `table.join_with where=` | Polars | polars | table | relative 1e-09 | pass |
+| `table.turn_into_numbers show_problems=` | - | - | none | relative 0 | pass |
+| `draw_lines in_row_order=` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `draw_dots move_layer_by=` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `draw_dashes` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `table.find_summary_of show="geometric standard deviation"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="geometric standard deviation"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="power mean p"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="power mean p"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="cumulant k"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="cumulant k"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="cumulant variance k"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="cumulant variance k"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="l-moment k"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="l-moment k"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="central moment k"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="central moment k"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="expectile p"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="expectile p"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="average between a and b"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="average between a and b"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="smallest from a"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="smallest from a"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="circular average"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="circular average"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="differential entropy"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="differential entropy"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="percentile rank v"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="percentile rank v"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="percent at or below v"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="percent at or below v"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="sigma-clipped average"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="sigma-clipped average"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of in_bins_of=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of in_bins_of=` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of in_bins_of= two columns` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of in_bins_of= two columns` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_summary_of show="running count"` | SciPy | pandas | value | relative 0 | pass |
+| `table.find_summary_of show="running count"` | SciPy | polars | value | relative 0 | pass |
+| `table.find_summary_of show="share of values"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_summary_of show="share of values"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_averages_of test_method="wilcoxon rank sum"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_averages_of test_method="wilcoxon rank sum"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_averages_of test_method="baumgartner-weiss-schindler"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_averages_of test_method="baumgartner-weiss-schindler"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_shapes_of test_method="cramer-von mises"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_shapes_of test_method="cramer-von mises"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_shapes_of test_method="epps-singleton"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_shapes_of test_method="epps-singleton"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_shape_to test_method="skewness"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_shape_to test_method="skewness"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_shape_to test_method="kurtosis"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_shape_to test_method="kurtosis"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_counts_to test_method="g"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_counts_to test_method="g"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_spreads_of test_method="o'brien"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_spreads_of test_method="o'brien"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_correlation_between test_method="chatterjee xi"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_correlation_between test_method="chatterjee xi"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_correlation_between test_method="weighted kendall"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_correlation_between test_method="weighted kendall"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_correlation_between test_method="multiscale graph"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `table.find_correlation_between test_method="multiscale graph"` | SciPy | polars | value | relative 1e-10 | pass |
+| `table.compare_rates test_method="e-test"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_rates test_method="e-test"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_interval_of test_method="bayesian"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_interval_of test_method="bayesian"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.combine_studies p_values=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.combine_studies p_values=` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_best_power_of show="log-likelihood"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_best_power_of show="log-likelihood"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_best_power_of show="normal plot correlation"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_best_power_of show="normal plot correlation"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.find_best_power_of show="best by normal plot"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.find_best_power_of show="best by normal plot"` | SciPy | polars | value | relative 1e-09 | pass |
+| `table.find_best_power_of test_method="tukey lambda"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.find_best_power_of test_method="tukey lambda"` | SciPy | polars | value | relative 1e-09 | pass |
+| `table.compare_distributions_for show="wasserstein distance"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_distributions_for show="wasserstein distance"` | SciPy | polars | value | relative 1e-12 | pass |
+| `table.compare_distributions_for show="energy distance"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.compare_distributions_for show="energy distance"` | SciPy | polars | value | relative 1e-12 | pass |
+| `sdata.find_sensitivity_of` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.fit_distribution_to censored_by=` | SciPy | pandas | value | relative 0.0001 | pass |
+| `table.fit_distribution_to censored_by=` | SciPy | polars | value | relative 0.0001 | pass |
+| `sdata.distribution "studentized range"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `sdata.distribution "multivariate normal"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.distribution "multinomial"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.distribution "wishart"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.distribution "mixture"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.distribution "from values"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.distribution "histogram"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.take_function` | SciPy | pandas | value | relative 1e-12 | pass |
+| `dist.take_function "order statistic"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_parameter_that_gives` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_function` | SciPy | pandas | value | relative 1e-15 | pass |
+| `nums.take_function part=` | SciPy | pandas | value | relative 1e-15 | pass |
+| `nums.work_on_bits` | NumPy | pandas | value | relative 0 | pass |
+| `nums.work_on_bits by=` | NumPy | pandas | value | relative 0 | pass |
+| `nums.turn_into_yes_or_no is_=` | NumPy | pandas | value | relative 0 | pass |
+| `sdata.find_zeros_of` | SciPy | pandas | value | relative 0 | pass |
+| `sdata.find_area_points` | SciPy | pandas | value | relative 0 | pass |
+| `nums.find_product` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.turn_into_running_total show="product"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.turn_into_changes` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.turn_into_slopes` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.count_in_bins` | NumPy | pandas | table | relative 1e-12 | pass |
+| `nums.find_bin_of_each` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_positions_where` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.keep_numbers_also_in` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.remove_numbers_also_in` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.keep_numbers_in_only_one` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.join_numbers_with` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_dot_product_with` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_cross_product_with` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_size` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.sort show="positions"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.sort then_by=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.remove_duplicate_numbers show="positions"` | NumPy | pandas | table | relative 1e-12 | pass |
+| `nums.remove_duplicate_numbers show="which number"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.number_list spacing="log"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.change_angles_to remove_jumps=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.replace_numbers_where at_positions=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.replace_numbers_where rules=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.replace_numbers_where with_value=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_cosine_transform kind="sine"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_cosine_transform inverse=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.take_cosine_transform kind="hankel"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_positions_where` | NumPy | pandas | table | relative 1e-12 | pass |
+| `grid.add_border` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.get_part` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.replace_part` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.multiply_as_matrix_by` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_rank` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_size` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_condition_number` | NumPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_column_space` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.take_fourier_transform` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.take_cosine_transform` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.take_inverse closest_possible=` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.find_determinant as_log=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.number_grid kind="toeplitz"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.number_grid kind="identity"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.number_grid kind="rotation"` | SymPy | pandas | value | relative 1e-12 | pass |
+| `sdata.number_grid from_formula=` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.make_coordinate_grids` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "chebyshev"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "chebyshev"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "probabilists hermite"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "probabilists hermite"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "jacobi"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "from roots"` | NumPy | pandas | value | relative 1e-12 | pass |
+| `sdata.polynomial "through points"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.find_where_smallest test_method="golden section"` | SciPy | pandas | result | relative 1e-08 | pass |
+| `sdata.find_where_smallest test_method="grid search"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.find_where_smallest test_method="newton conjugate gradient"` | SciPy | pandas | result | relative 1e-06 | pass |
+| `sdata.find_where_smallest test_method="truncated newton"` | SciPy | pandas | result | relative 1e-06 | pass |
+| `sdata.solve test_method="fixed point"` | SciPy | pandas | result | relative 1e-10 | pass |
+| `sdata.solve test_method="broyden second"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.solve test_method="diagonal broyden"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.solve test_method="anderson mixing"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.solve test_method="newton-krylov"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.solve test_method="linear mixing"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `sdata.solve test_method="exciting mixing"` | SciPy | pandas | result | relative 1e-09 | pass |
+| `table.fit_curve always=` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.fit_curve always=` | SciPy | polars | table | relative 1e-12 | pass |
+| `sdata.find_best_pairing` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.find_best_pairing with_distances=` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.find_area_under test_method="tanh-sinh"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_area_under test_method="cubature"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_area_under test_method="quasi monte carlo"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_area_under test_method="romberg on even steps"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_volume_under test_method="cubature"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_volume_under test_method="quasi monte carlo"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.find_path_between_ends` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="polynomial"` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="polynomial"` | SciPy | polars | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="rational curve"` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="rational curve"` | SciPy | polars | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="aaa"` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="aaa"` | SciPy | polars | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="smooth triangles"` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_values_at joined_by="smooth triangles"` | SciPy | polars | table | relative 1e-09 | pass |
+| `sdata.curve_through_points` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points smoothness=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points allowed_error=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points knots=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points slopes=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points degree=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points ends=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points weights=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points in_order=` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.curve_through_points z=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.curve_through_points on_sphere=` | SciPy | pandas | value | relative 1e-10 | pass |
+| `curve.find_value_at` | SciPy | pandas | value | relative 1e-12 | pass |
+| `curve.find_slope_at` | SciPy | pandas | value | relative 1e-12 | pass |
+| `curve.find_area_between` | SciPy | pandas | value | relative 1e-12 | pass |
+| `curve.find_zeros` | SciPy | pandas | value | relative 1e-10 | pass |
+| `curve.turn_into_slope_curve` | SciPy | pandas | value | relative 1e-12 | pass |
+| `curve.turn_into_area_curve` | SciPy | pandas | value | relative 1e-12 | pass |
+| `curve.show_pieces` | SciPy | pandas | table | relative 1e-10 | pass |
+| `curve.show_knots` | SciPy | pandas | table | relative 1e-12 | pass |
+| `curve.as_scipy` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.keep_each_frequency_that test_method="fir"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that test_method="fir least squares"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that test_method="fir equiripple"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that test_method="fir frequency sampling"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that how_many_weights=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that test_method="gammatone"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that find_order_for=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that start_from="first value"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.keep_each_frequency_that with_least_delay=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.add_filtered_column test_method="fir equiripple"` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.add_filtered_column test_method="fir equiripple"` | SciPy | polars | table | relative 1e-09 | pass |
+| `sdata.frequency_filter analog=` | SciPy | pandas | table | relative 1e-08 | pass |
+| `sdata.frequency_filter find_order_for=` | SciPy | pandas | table | relative 1e-09 | pass |
+| `system.table form="sections"` | SciPy | pandas | table | relative 1e-12 | pass |
+| `system.table form="partial fractions"` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.system sections=` | SciPy | pandas | table | relative 1e-12 | pass |
+| `sdata.system residues=` | SciPy | pandas | table | relative 1e-12 | pass |
+| `system.move_poles_to` | SciPy | pandas | table | relative 1e-10 | pass |
+| `system.frequency_response with_delay=` | SciPy | pandas | value | relative 1e-08 | pass |
+| `nums.take_fourier_transform over_time=` | SciPy | pandas | value | relative 1e-10 | pass |
+| `nums.take_fourier_transform between=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `nums.find_spectrum over_time=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.make_wave shape="maximum length sequence"` | SciPy | pandas | value | relative 0 | pass |
+| `sdata.make_wave sweep="polynomial"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.change_time_step test_method="cubic spline"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.find_phase_locking_to` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.take_matrix_function` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="log"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="exp"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="cos"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="sin"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="tan"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="cosh"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="sinh"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="tanh"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="sign"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function power=` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.take_matrix_function function="a formula of x"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.check_if_grid_is` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is kind="hermitian"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is kind="banded"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is kind="diagonal"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is kind="upper triangle"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is kind="lower triangle"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.check_if_grid_is within=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.find_best_rotation_to` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.find_angles_to` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.solve_matrix_equation` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.solve_matrix_equation kind="discrete lyapunov"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.solve_matrix_equation kind="sylvester"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.solve_matrix_equation kind="riccati"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `sdata.solve_matrix_equation kind="discrete riccati"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.break_down test_method="rq"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.break_down test_method="cs"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.break_down test_method="real eigen blocks"` | SciPy | pandas | value | relative 1e-10 | pass |
+| `grid.break_down test_method="jordan"` | SymPy | pandas | value | relative 1e-12 | pass |
+| `grid.solve_for structure=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_eigenvalues structure=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `nums.make_pair_table_with column_by_column=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="biggest"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="smallest"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="percentile"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="rank"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="summary"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="fourier gaussian"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="fourier uniform"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth test_method="fourier ellipsoid"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges test_method="prewitt"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges test_method="laplace"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges test_method="gaussian laplace"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges test_method="gaussian gradient"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_edges along=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="shrink"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="open"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="close"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="fill holes"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="top hat"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="dark top hat"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="outline"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="laplace"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="match pattern"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="keep patches with points"` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes is_above=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.change_patch_shapes how="grow" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="shrink" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="open" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="close" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="top hat" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="dark top hat" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="outline" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.change_patch_shapes how="laplace" on numbers` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_each_patch_that show=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_distance_to_nearest` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_distance_to_nearest test_method="city block"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_distance_to_nearest test_method="chessboard"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_distance_to_nearest test_method="brute force"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.split_touching_patches` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.move_and_stretch_by` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.move_and_stretch_by formulas=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.move_and_stretch_by test_method="fourier"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `table.find_triangles_between_points` | SciPy | pandas | table | relative 1e-09 | pass |
+| `table.find_triangles_between_points` | SciPy | polars | table | relative 1e-09 | pass |
+| `table.find_triangles_between_points containing=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `table.find_triangles_between_points containing=` | SciPy | polars | value | relative 1e-09 | pass |
+| `table.find_regions_around_points` | SciPy | pandas | value | relative 1e-10 | pass |
+| `table.find_regions_around_points` | SciPy | polars | value | relative 1e-10 | pass |
+| `table.find_regions_around_points longitude=` | SciPy | pandas | value | relative 1e-10 | pass |
+| `table.find_regions_around_points longitude=` | SciPy | polars | value | relative 1e-10 | pass |
+| `table.find_distances_between_rows measure="minkowski"` | SciPy | pandas | table | relative 1e-12 | pass |
+| `table.find_distances_between_rows measure="minkowski"` | SciPy | polars | table | relative 1e-12 | pass |
+| `grid.smooth test_method="spline"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.smooth ends="zeros"` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.convolve_with` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.convolve_with flip=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.convolve_with row_weights=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.find_envelope` | SciPy | pandas | value | relative 1e-12 | pass |
 
 How each kind is compared:
 
@@ -52790,7 +56909,7 @@ How each kind is compared:
 - **result**: the numbers in simplydata's result table (statistic, degrees of freedom, p-value ...) against the library's result
 - **chart**: the chart's data (bars, dots, lines, labels, limits ...), not its pixels
 - **printed**: for words that show something and give nothing back: every line the library code prints appears, in the same order, in what the word prints (spaces at the ends of lines left out)
-- **none** (27 words: `say_what_it_shows`, `table.undo`, `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps`, `nums.start_again`, `dist.show_parameters`, `sdata.help`, `sdata.show_all_words`, `sdata.show_day`, `sdata.show_lesson`, `sdata.show_packages_used`, `sdata.start_30_days`, `sdata.show_today`, `sdata.show_answers`, `sdata.go_to_next_day`, `undo`, `show_in_web_page`, `show_when_pointing`, `add_range_bar_x`, `block.find_direction_names`, `sdata.hide_stretching_notes`, `sdata.show_stretching_notes`, `sdata.show_whats_inside`, `f.undo`, `sdata.pick_colours_with_sliders`): help, learning, undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put a table back as it was; they compute no number, so there is nothing to compare them with. Their box is run to show that it runs.
+- **none** (28 words: `say_what_it_shows`, `table.undo`, `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps`, `nums.start_again`, `dist.show_parameters`, `sdata.help`, `sdata.show_all_words`, `sdata.show_day`, `sdata.show_lesson`, `sdata.show_packages_used`, `sdata.start_30_days`, `sdata.show_today`, `sdata.show_answers`, `sdata.go_to_next_day`, `undo`, `show_in_web_page`, `show_when_pointing`, `add_range_bar_x`, `block.find_direction_names`, `sdata.hide_stretching_notes`, `sdata.show_stretching_notes`, `sdata.show_whats_inside`, `f.undo`, `sdata.pick_colours_with_sliders`, `table.turn_into_numbers show_problems=`): help, learning, undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put a table back as it was; they compute no number, so there is nothing to compare them with. Their box is run to show that it runs.
 
 ## Choices simplydata makes
 
@@ -53640,6 +57759,201 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `grid.solve_for exactly=` (1): the numbers become the fractions they stand for (0.2 is 1/5), then SymPy LUsolve works exactly; a grid that is not square uses SymPy solve_least_squares. The answer keeps the decimals of the exact fractions, which are printed.
 - `grid.break_down` (1): the singular value decomposition by default, the one every grid has (square or not); its short (economic) form, as R svd(): U has as many columns as the grid.
 - `grid.break_down test_method=` (1): each test_method= is SciPy linalg's own call with its own defaults (lu gives grid = P L U, cholesky the upper triangle, schur the real form); qr is the short (economic) form, as R qr(); ldl's row order counts from 1.
+- `table.get_different_values_in` (1): the values in the order they first turn up, empty cells left out (pandas unique() keeps an empty value; Polars unique() needs maintain_order=True for this order).
+- `table.check_if_all_values_in` (1): empty cells are left out, as pandas all() and Polars all() leave them out.
+- `table.check_if_any_value_in` (1): empty cells are left out, as pandas any() and Polars any() leave them out.
+- `table.check_if_sorted_by` (1): values that tie may follow each other, and empty cells are left out (pandas is_monotonic_increasing says False for a column with an empty cell).
+- `table.add_run_number_column` (1): the runs follow sorted_by=, but the rows keep their place in the table.
+- `table.add_run_number_column` (2): within each station, counted from 1 (Polars rle_id() counts from 0); empty cells next to each other are one run, as Polars counts them.
+- `table.turn_into_title_case` (1): a new word starts after anything that is not a letter ("o'neil" becomes "O'Neil"): pandas str.title() and Polars str.to_titlecase() agree on this.
+- `table.find_summary_of show="product"` (1): in decimals, so a product of whole numbers never wraps round (pandas prod() of int64 would); empty cells are left out (pandas prod() and Polars product() skip them).
+- `table.find_summary_of show="entropy"` (1): the values are shared out to 1 (each value over the total) and the log is the natural log: Polars entropy(base=e, normalize=True) and SciPy entropy, which simplydata calls.
+- `table.find_summary_of show="joined text"` (1): the texts of each group in the order of the rows, empty cells left out, "; " between them unless separator= says otherwise.
+- `table.find_summary_of show={column: measures}` (1): one row for each group, the columns named column then measure (pandas named aggregation).
+- `table.add_previous_value_column rows_ahead=` (1): the next value (a lead, R dplyr lead()): the last month of each city has no row after it and stays empty.
+- `table.round_numbers_in significant_figures=` (1): each number as it is written, a half to the even digit, R signif() in nearly every case (R works on the stored number, so 0.639075 at 5 figures is 0.63907 there); Polars round_sig_figs takes a half away from 0: 5.25 would be 5.3.
+- `table.keep_rows_where time_of_day_between=` (1): both clock times included, on any day; a start after the end goes past midnight, as pandas between_time.
+- `table.add_column_with_part_of_text every_match=` (1): every piece that fits, joined with ";" (separator= for another mark); a text with none gives an empty cell.
+- `table.add_column_with_part_of_text position_of=` (1): counted from 1, and an empty cell where it is not found (pandas find() gives -1); characters are counted on both engines (Polars str.find counts bytes).
+- `table.add_column_with_part_of_date part="is month start"` (1): worked out by Polars on both engines; an empty date gives an empty cell (pandas gives False).
+- `table.add_column_with_part_of_date part="is working day"` (1): Monday to Friday; no public holidays are left out.
+- `table.add_column_with_part_of_date part="unix time"` (1): whole seconds since 1 January 1970 on the UTC clock (Polars dt.epoch("s")).
+- `table.turn_into_dates from_unix_seconds=` (1): dates and times on the UTC clock, to the microsecond (Polars from_epoch).
+- `table.add_column floor() ceil() log10() log1p() sign() cbrt()` (1): worked out with NumPy on both engines; an answer that is not a number gives an empty cell.
+- `table.add_column add_working_days() count_working_days()` (1): a date on a weekend first moves to the Monday (roll="forward"); Monday to Friday, no holidays.
+- `sdata.make_run_of_dates every="working day"` (1): Monday to Friday; no public holidays are left out.
+- `table.add_rolling_column with_column=` (1): the same as from_column=["temperature", "rain"]; the first rows of each group are empty until the window is full.
+- `table.join_with where=` (1): the rows keep this table's order, each followed by its partners (Polars join_where gives no order of its own, so the Polars box sorts); a row without a partner is left out.
+- `draw_lines in_row_order=` (1): every row, joined in the order of the rows (no average, no sorting by x).
+- `draw_dots move_layer_by=` (1): the dots move 0.5 along x; on a group axis each group is 1 wide.
+- `draw_dashes` (1): each dash is 0.8 wide (width=), centred on its group, as so.Dash(width=0.8).
+- `table.find_summary_of show="geometric standard deviation"` (1): the standard deviation of the logs with n - 1 (SciPy's default ddof=1), as R exp(sd(log(x))); only for numbers above 0.
+- `table.find_summary_of show="cumulant k"` (1): the unbiased estimate of the cumulant (k-statistic); "cumulant variance 2" gives its variance (SciPy kstatvar).
+- `table.find_summary_of show="l-moment k"` (1): the L-moment lambda_k itself (standardize=False); "l-skewness" and "l-kurtosis" are the ratios tau_3 and tau_4, SciPy's default and R lmom::samlmu's.
+- `table.find_summary_of show="central moment k"` (1): divided by n, around the average (SciPy moment's center=None).
+- `table.find_summary_of show="expectile p"` (1): written in percent, as percentile 90: expectile 90 is alpha = 0.9.
+- `table.find_summary_of show="average between a and b"` (1): both limits included (SciPy's inclusive=(True, True)); the standard deviation, variance and standard error the same with n - 1 (tstd, tvar, tsem).
+- `table.find_summary_of show="smallest from a"` (1): the limit included; "biggest up to 80" is SciPy tmax(upperlimit=80).
+- `table.find_summary_of show="circular average"` (1): angles from 0 to 360 with "in degrees" (2 pi "in radians", 24 "in hours"; a circular measure without its unit is refused); circstd and circvar the same.
+- `table.find_summary_of show="differential entropy"` (1): SciPy's automatic estimator (van Es up to 10 values, Ebrahimi from 11 to 1000, Vasicek above 1000).
+- `table.find_summary_of show="percentile rank v"` (1): the inverse of "percentile p" (R type 7, SciPy method="linear"), in percent.
+- `table.find_summary_of show="percent at or below v"` (1): the values at or below 70 count (kind="weak"), so it is a plain share in percent.
+- `table.find_summary_of show="sigma-clipped average"` (1): values more than 4 standard deviations from the average are cut, again until none is (SciPy's default low=4, high=4); "sigma-clipped average 3" cuts at 3.
+- `table.find_summary_of in_bins_of=` (1): bins 2 wide from the multiple of 2 at or below the smallest value to the first at or above the biggest; a bin holds its lower edge, the last one its upper edge too (as binned_statistic).
+- `table.find_summary_of in_bins_of=` (2): bins with no values are left out, where SciPy gives an empty number (NaN).
+- `table.find_summary_of in_bins_of= two columns` (1): each column cut as with one column: bins 5 and 20 wide from a multiple of the width.
+- `table.find_summary_of in_bins_of= two columns` (2): the rows go bin after bin of the first column, then of the second, the empty bins left out.
+- `table.find_summary_of show="running count"` (1): the counts of the bins of in_bins_of= added up in their order; "share of values" gives each bin's share instead (SciPy relfreq).
+- `table.find_summary_of show="share of values"` (1): each bin's count divided by all the values in the bins.
+- `table.compare_averages_of test_method="wilcoxon rank sum"` (1): the rank sum against the normal curve, with no continuity correction and no allowance for ties (SciPy ranksums); test_method="mann-whitney" is exact for small groups.
+- `table.compare_averages_of test_method="baumgartner-weiss-schindler"` (1): the p-value from shuffling the group labels: every way when there are fewer than 9999, otherwise 9999 random ways with seed 1.
+- `table.compare_shapes_of test_method="cramer-von mises"` (1): SciPy's method="auto": exact when both groups have 20 values or fewer.
+- `table.compare_shapes_of test_method="epps-singleton"` (1): SciPy's two points t = (0.4, 0.8) and its small-sample correction.
+- `table.compare_shape_to test_method="skewness"` (1): D'Agostino's test of the skewness alone, from 8 values (as SciPy skewtest).
+- `table.compare_shape_to test_method="kurtosis"` (1): the Anscombe-Glynn test of the kurtosis alone (SciPy kurtosistest; its warning below 20 values is left out).
+- `table.compare_counts_to test_method="g"` (1): the G-test (lambda_="log-likelihood"); "freeman-tukey", "neyman", "modified g" and "cressie-read" are the other lambda_ values of power_divergence.
+- `table.compare_spreads_of test_method="o'brien"` (1): the one-way ANOVA of O'Brien's scores, whose group averages are the group variances.
+- `table.find_correlation_between test_method="chatterjee xi"` (1): xi of the second column given the first (it is not symmetric); ties broken as SciPy does, y_continuous=False.
+- `table.find_correlation_between test_method="weighted kendall"` (1): SciPy's hyperbolic weights, ranked by both columns (rank=True).
+- `table.find_correlation_between test_method="multiscale graph"` (1): 1000 shuffles for the p-value, seed 1 (printed).
+- `table.compare_rates test_method="e-test"` (1): the other group against against=, with diff=0 (equal rates).
+- `table.find_interval_of test_method="bayesian"` (1): Jeffreys' uninformative prior, as SciPy bayes_mvs; "variance" and "standard deviation" take its other two parts.
+- `table.combine_studies p_values=` (1): Fisher's method when test_method= is left out ("stouffer", "pearson", "tippett" and "mudholkar-george" are SciPy's others); no R needed.
+- `table.find_best_power_of show="log-likelihood"` (1): the powers -2 to 2 in steps of 0.1 (row 21 is power 0, the log); yeojohnson_llf with test_method="yeo-johnson".
+- `table.find_best_power_of show="normal plot correlation"` (1): 41 powers from -2 to 2 (SciPy N=41); yeojohnson_normplot with test_method="yeo-johnson" and ppcc_plot of the Tukey lambda shape with test_method="tukey lambda".
+- `table.find_best_power_of show="best by normal plot"` (1): the Box-Cox power with the straightest normal probability plot; show="power" (the default) is the one by maximum likelihood.
+- `table.find_best_power_of test_method="tukey lambda"` (1): the Tukey lambda shape (SciPy's default dist="tukeylambda") whose probability plot correlation is biggest.
+- `table.compare_distributions_for show="wasserstein distance"` (1): one row per pair of groups, in sorted order (A and B first); a list of columns uses wasserstein_distance_nd.
+- `table.compare_distributions_for show="energy distance"` (1): the pairs in sorted order: A and B, A and C, then B and C (row 3).
+- `sdata.find_sensitivity_of` (1): the names in the order they first turn up in the formula, each spread evenly over its range.
+- `sdata.find_sensitivity_of` (2): 1024 points in each base sample and seed 1 unless how_many= and with_seed= say otherwise.
+- `table.fit_distribution_to censored_by=` (1): the rows where censored_by= says yes are right-censored: their value is only a lower limit.
+- `table.fit_distribution_to censored_by=` (2): no location for the Weibull, as R; simplydata polishes SciPy's search, so the two agree to about 5 digits.
+- `sdata.distribution "studentized range"` (1): every SciPy distribution by a plain name, with a plain name for each parameter (here k is groups= and df degrees_of_freedom=); SciPy's names work too.
+- `sdata.distribution "multivariate normal"` (1): joint distributions are names of sdata.distribution too (averages= is SciPy's mean, covariance= its cov); make_random_numbers gives one row per draw.
+- `sdata.distribution "multinomial"` (1): for counts find_density_at gives the chance of exactly those counts (SciPy pmf).
+- `sdata.distribution "wishart"` (1): a value of a matrix distribution is a grid; random draws come as a block, one page per draw.
+- `sdata.distribution "mixture"` (1): the shares times each distribution's chances, added up; percentiles by root finding, random numbers by picking a distribution with its share first.
+- `sdata.distribution "from values"` (1): the values sorted, each with its chance; the chances must add up to 1.
+- `sdata.distribution "histogram"` (1): the values spread evenly within each bin; of=numbers with bins= counts the numbers first (NumPy histogram).
+- `dist.take_function` (1): the change of variables (here exp of a normal is a lognormal); "log", "absolute value" and "order statistic" are the others.
+- `dist.take_function "order statistic"` (1): rank=1 is the smallest of out_of= values drawn (SciPy r= and n=).
+- `sdata.find_parameter_that_gives` (1): the one parameter left out is found with scipy.special's inverse function for it (stdtridf, bdtri, nrdtrisd ...); for counts chance_below= means fewer than at_value.
+- `nums.take_function` (1): the plain name comes from one name table: "bessel J" is special.jv, and "jv" works too; the numbers go where SciPy's x goes, the other inputs are options with plain names (order=).
+- `nums.take_function part=` (1): simplydata numbers are real numbers: a complex answer gives its real part unless part= asks for "imaginary", "size" (np.abs) or "angle" (np.angle), and the sentence says so.
+- `sdata.find_where_smallest test_method="golden section"` (1): the lowest of 200 evenly spaced points and its two neighbours make the bracket, so the golden sections stay inside between=.
+- `sdata.find_where_smallest test_method="golden section"` (2): a tolerance of 1e-10, as Brent's method in find_where_smallest (R optimize(tol = 1e-10)).
+- `sdata.find_where_smallest test_method="grid search"` (1): about 20,000 grid points in all, shared evenly among the names (here one name, so 20,000).
+- `sdata.find_where_smallest test_method="grid search"` (2): then a local polish that keeps to between= (L-BFGS-B), as after DIRECT; SciPy brute's own finish (fmin) may leave the range.
+- `sdata.find_where_smallest test_method="newton conjugate gradient"` (1): the slopes from scipy.differentiate.jacobian; Newton-CG needs slopes as a function and SciPy has no default for them.
+- `sdata.find_where_smallest test_method="newton conjugate gradient"` (2): the bends by SciPy's central differences of those slopes (hess="3-point"); SciPy's own default is too rough to settle on a flat minimum.
+- `sdata.find_where_smallest test_method="newton conjugate gradient"` (3): a tight tolerance (xtol 1e-10) and up to 10,000 steps.
+- `sdata.find_where_smallest test_method="truncated newton"` (1): the slopes by SciPy's central differences (jac="3-point"); its default uses forward differences.
+- `sdata.find_where_smallest test_method="truncated newton"` (2): tight tolerances and up to 20,000 evaluations; TNC keeps to between= when it is given.
+- `sdata.solve test_method="fixed point"` (1): Steffensen's acceleration (del2, SciPy's default) to a tolerance of 1e-12, as R uniroot(tol = 1e-12) in solve.
+- `sdata.solve test_method="broyden second"` (1): each equation as left minus right.
+- `sdata.solve test_method="broyden second"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `sdata.solve test_method="diagonal broyden"` (1): each equation as left minus right.
+- `sdata.solve test_method="diagonal broyden"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `sdata.solve test_method="anderson mixing"` (1): each equation as left minus right.
+- `sdata.solve test_method="anderson mixing"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `sdata.solve test_method="newton-krylov"` (1): each equation as left minus right.
+- `sdata.solve test_method="newton-krylov"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `sdata.solve test_method="linear mixing"` (1): each equation as right minus left (these methods take the Jacobian to be about minus 1, as for x = g(x)).
+- `sdata.solve test_method="linear mixing"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `sdata.solve test_method="exciting mixing"` (1): each equation as right minus left (these methods take the Jacobian to be about minus 1, as for x = g(x)).
+- `sdata.solve test_method="exciting mixing"` (2): a tight tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.
+- `table.fit_curve always=` (1): the rows in the order of x, and at a tied x the biggest y first when rising (the smallest first when falling), as R isoreg() orders them (order(x, -y)).
+- `sdata.find_best_pairing` (1): the exact answer of the linear assignment problem (shortest augmenting path), as R lpSolve::lp.assign().
+- `sdata.find_best_pairing` (2): rows and columns named 1, 2, 3 ... (or by the table's names), not counted from 0.
+- `sdata.find_best_pairing with_distances=` (1): the Fast Approximate QAP method (Vogelstein et al. 2015), SciPy's default; test_method="2-opt" swaps places instead.
+- `sdata.find_area_under test_method="quasi monte carlo"` (1): scrambled Halton points with_seed=1, so the same call gives the same estimate.
+- `sdata.find_area_under test_method="romberg on even steps"` (1): 1025 evenly spaced points (2**10 + 1, as romb needs).
+- `sdata.find_volume_under test_method="quasi monte carlo"` (1): scrambled Halton points with_seed=1.
+- `sdata.find_path_between_ends` (1): 101 evenly spaced places in the table (step= chooses others).
+- `sdata.find_path_between_ends` (2): the first guess: a straight line between the known ends.
+- `sdata.find_path_between_ends` (3): a tolerance of 1e-8 (SciPy's own default is 1e-3), as R bvpSolve's 1e-6 or tighter.
+- `table.find_values_at joined_by="rational curve"` (1): degree 3 (d=3, SciPy's default), or one less than the number of points when there are fewer.
+- `table.find_values_at joined_by="aaa"` (1): the real part of the AAA curve (SciPy gives complex numbers).
+- `table.find_values_at joined_by="smooth triangles"` (1): the slopes at the points, which Clough-Tocher finds step by step, to a tolerance of 1e-12 (SciPy's default is 1e-6, at which the order of the points changes the last digits).
+- `sdata.curve_through_points` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `sdata.curve_through_points smoothness=` (1): x rescaled to run from 0 to 1, so smoothness= is R smooth.spline's lambda, as in find_values_at.
+- `sdata.curve_through_points knots=` (1): the inner knots with the first and last x repeated degree + 1 times at the ends, as splines::bs() in R.
+- `sdata.curve_through_points degree=` (1): SciPy's own ends for degrees other than 3 (not-a-knot for odd degrees); natural, clamped and periodic ends are chosen with ends= for cubic splines.
+- `sdata.curve_through_points z=` (1): points that form a full grid go to RectBivariateSpline (scattered points to SmoothBivariateSpline).
+- `sdata.curve_through_points on_sphere=` (1): latitude in degrees turned into SciPy's colatitude in radians (90 degrees minus the latitude).
+- `sdata.curve_through_points on_sphere=` (2): longitude in degrees turned into radians from -pi to pi, as RectSphereBivariateSpline needs.
+- `curve.find_value_at` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.find_slope_at` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.find_area_between` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.find_zeros` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.turn_into_slope_curve` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.turn_into_area_curve` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.turn_into_area_curve` (2): the area curve starts at 0 at the first point.
+- `curve.show_pieces` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.show_pieces` (2): pieces of no width (the repeated knots at the ends) are left out.
+- `curve.show_knots` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `curve.show_knots` (2): one table: the coefficients run out before the knots (there are degree + 1 fewer), so the last cells are empty.
+- `curve.as_scipy` (1): the curve of curve_through_points: a cubic spline through every point with natural ends (no bend at the first and last point), as R splinefun(method = "natural").
+- `nums.keep_each_frequency_that test_method="fir"` (1): 101 weights (how_many_weights=), a Hamming window (window_shape=): SciPy firwin, the window method; the weights add up to 1, so the average passes whole.
+- `nums.keep_each_frequency_that test_method="fir"` (2): run forwards and backwards (both_ways=True): an FIR filter run both ways has no delay at all.
+- `nums.keep_each_frequency_that test_method="fir least squares"` (1): the cutoff sits in the middle of the change from kept to removed: the bands end at 10 - 4 / 2 and start at 10 + 4 / 2 (as SciPy kaiserord's documentation puts the cutoff); as R gsignal::firls(100, c(0, 8, 12, 100) / 100, c(1, 1, 0, 0)).
+- `nums.keep_each_frequency_that test_method="fir equiripple"` (1): the Parks-McClellan (Remez) design with the same band edges as "fir least squares", equal weight in both bands (SciPy's default), as R signal::remez(100, c(0, 8, 12, 100) / 100, c(1, 1, 0, 0)).
+- `nums.keep_each_frequency_that test_method="fir frequency sampling"` (1): without transition_width= the gain jumps from 1 to 0 at the cutoff (the cutoff given twice, as decimals: SciPy firwin2 nudges a repeated frequency only then); SciPy's own frequency grid (R gsignal::fir2 uses 512 points unless told otherwise) and a Hamming window.
+- `nums.keep_each_frequency_that test_method="gammatone"` (1): SciPy's IIR gammatone filter (Slaney's design), whose width is fixed by the frequency, as in models of hearing; width= is not used.
+- `nums.keep_each_frequency_that find_order_for=` (1): at most ripple=0.5 dB lost up to 10 and at least removed_by=40 dB removed from 20 on: SciPy buttord gives the smallest steepness (8) and the cutoff that meets both, as R gsignal::buttord(10 / 100, 20 / 100, 0.5, 40).
+- `nums.keep_each_frequency_that start_from="first value"` (1): the filter starts as if the first reading had always been there (its steady state), so the output does not swing up from 0 at the start, as R gsignal::filter_zi.
+- `nums.keep_each_frequency_that with_least_delay=` (1): half=False keeps the gain of the filter at every frequency (SciPy's default half=True takes its square root and halves the length).
+- `sdata.frequency_filter analog=` (1): the analog Butterworth prototype of steepness 4 (poles on the unit circle), as SciPy butter(..., analog=True) starts from.
+- `sdata.frequency_filter analog=` (2): moved to the band from 1 to 5 cycles per unit of time: centre 2 pi sqrt(1 x 5) and width 2 pi x 4 radians per unit of time (SciPy lp2bp_zpk), as R gsignal::butter(4, 2 * pi * c(1, 5), "pass", "s").
+- `sdata.frequency_filter find_order_for=` (1): SciPy ellipord gives the smallest steepness (4) that keeps the loss up to 10 within ripple=0.5 dB and removes removed_by=40 dB from 20 on, as R gsignal::ellipord.
+- `system.table form="sections"` (1): a filter of sdata.frequency_filter shows its own sections; any other system gets them from SciPy tf2sos (as R gsignal::tf2sos).
+- `system.table form="partial fractions"` (1): SciPy residue for a continuous system, and residuez for a system in steps, as R gsignal::residue; direct terms, when the top is as long as the bottom, come as extra rows.
+- `system.move_poles_to` (1): the state space of SciPy tf2ss (controller form); the gains are in the order of its state, as system.table(form="state space") shows it.
+- `system.move_poles_to` (2): SciPy place_poles (Tits and Yang's method) finds the gains K of the feedback u = r - K x; R control::place gives other gains here (it warns that its poles are more than 10 % off), so it is not compared.
+- `system.frequency_response with_delay=` (1): SciPy gives the delay in steps; times the time step 0.005 it is in seconds (as R gsignal::grpdelay, also in steps).
+- `nums.take_fourier_transform over_time=` (1): pieces of window=64 readings, each moved on by half of it, with periodic Hann weights; not scaled (scale_to=None): the legacy signal.stft would divide the sizes by the sum of the weights.
+- `nums.take_fourier_transform over_time=` (2): SciPy's padding: the pieces at the ends hang over the readings and are filled with zeros, so sdata.find_inverse_fourier_transform can give every reading back (ShortTimeFFT.istft).
+- `nums.take_fourier_transform between=` (1): endpoint=True: both ends of between= are among the frequencies (SciPy's default leaves the top one out); the zoom FFT is the chirp z-transform on the unit circle (as R gsignal::czt).
+- `nums.find_spectrum over_time=` (1): half overlap and each piece's mean removed, as chart.draw_spectrum_over_time draws it.
+- `sdata.make_wave shape="maximum length sequence"` (1): the fewest bits whose run is at least how_many= long (7 bits repeat after 127 readings), SciPy's usual taps and start (all ones).
+- `sdata.make_wave sweep="polynomial"` (1): frequency= is the polynomial of the frequency in time, highest power first: 2 t + 1 cycles per unit of time.
+- `nums.change_time_step test_method="cubic spline"` (1): the new readings start at the first one and go up by to= while they stay within the last (999 x 0.005 / 0.002, 2,498 readings).
+- `nums.change_time_step test_method="cubic spline"` (2): a cubic spline through every reading, its ends mirrored (SciPy cspline1d), read at the new times; no filter first.
+- `grid.take_matrix_function power=` (1): a whole power uses NumPy linalg.matrix_power (repeated matrix products); any other power SciPy linalg.fractional_matrix_power.
+- `grid.take_matrix_function function="a formula of x"` (1): any formula of x, read safely by simplydata's formula reader, goes to SciPy linalg.funm (the Schur-Parlett method).
+- `grid.check_if_grid_is within=` (1): within= is an absolute tolerance; without it the grid must be exactly symmetric, as SciPy.
+- `grid.find_angles_to` (1): the angles in degrees, biggest first; in_radians=True keeps SciPy's radians.
+- `grid.break_down test_method="rq"` (1): the short (economic) form, as for qr.
+- `grid.break_down test_method="cs"` (1): the four blocks are cut after half the rows and half the columns unless split_at= says where.
+- `grid.break_down test_method="real eigen blocks"` (1): the eigenvalues and eigenvectors of linalg.eig, turned into real 2 x 2 blocks by linalg.cdf2rdf.
+- `grid.break_down test_method="jordan"` (1): the numbers as exact fractions (SymPy nsimplify), so the Jordan form is exact.
+- `grid.solve_for structure=` (1): the band is read from the grid with SciPy linalg.bandwidth and put in LAPACK's banded storage.
+- `grid.solve_for structure=` (2): a symmetric grid with positive eigenvalues uses Cholesky on the band; any other banded grid linalg.solve_banded.
+- `grid.find_eigenvalues structure=` (1): biggest first, as R eigen() for a symmetric grid; structure="banded" uses linalg.eigvals_banded.
+- `grid.smooth test_method="biggest"` (1): a square window of 3 x 3 cells; at the edges the edge number is repeated (SciPy mode "reflect").
+- `grid.smooth test_method="smallest"` (1): along one direction the 1d filter (minimum_filter1d), with the edge number repeated.
+- `grid.smooth test_method="rank"` (1): rank= counts from 1 (SciPy's rank from 0), in a window of 3 x 3 cells.
+- `grid.smooth test_method="fourier gaussian"` (1): the smoothing is done in the frequencies (NumPy fft2), so the picture wraps round at its edges.
+- `grid.find_edges along=` (1): along= gives the signed change in one direction; without it, the slope size in both.
+- `grid.change_patch_shapes` (1): the neighbours touch by their sides (touching="corners" lets a shared corner count too), and the grid is repeated 2 x by cells out at its edges (as SciPy mode "reflect").
+- `grid.change_patch_shapes is_above=` (1): the patches are the cells that meet the condition; by=2 is two steps (iterations=2), and the edge cells are repeated 2 x by cells out (as the grey picture's mode "reflect").
+- `grid.change_patch_shapes how="grow" on numbers` (1): without a condition, a grid of numbers changes as a grey picture: the neighbours touch by their sides, grown to by= cells by iterate_structure.
+- `grid.find_each_patch_that show=` (1): positions count from 1; the standard deviation has n in the bottom (ndimage.standard_deviation, as NumPy).
+- `grid.find_distance_to_nearest` (1): the distance is measured from every cell that does not meet the condition to the nearest one that does (0 at those).
+- `grid.split_touching_patches` (1): each starting point (from 1) gets its own patch number, in the order given.
+- `grid.move_and_stretch_by` (1): straight lines between neighbouring cells (order 1), and cells from outside the old grid are empty.
+- `grid.move_and_stretch_by formulas=` (1): the formulas' row and column count from 1, so 1 is added before and taken away after.
+- `grid.move_and_stretch_by test_method="fourier"` (1): shift= says where each new cell takes its number from, as for affine_transform, so SciPy's fourier_shift is given minus shift=.
+- `table.find_triangles_between_points` (1): the corners are the table's rows, counted from 1.
+- `table.find_triangles_between_points containing=` (1): the triangle numbers count from 1; a point outside every triangle is empty.
+- `table.find_regions_around_points` (1): a region that reaches out without end (an index -1 in SciPy) is open and has no area; a closed region is convex, so ConvexHull gives its area.
+- `table.find_regions_around_points longitude=` (1): the areas in square kilometres on a sphere of the earth's mean radius, 6371.0088 km.
+- `table.find_distances_between_rows measure="minkowski"` (1): power= is the p of the Minkowski distance: 1 is Manhattan, 2 straight-line.
+- `grid.smooth test_method="spline"` (1): a cubic smoothing spline surface; smoothness=5 is SciPy's own default (lmbda=5.0).
+- `grid.smooth ends="zeros"` (1): rank= counts from 1 (SciPy's rank from 0); the cells outside the grid count as 0.
+- `grid.convolve_with` (1): cells outside the grid count as 0 (SciPy's boundary "fill"), as numbers.convolve_with.
+- `grid.convolve_with row_weights=` (1): at the edges the edge numbers are repeated (as SciPy mode "reflect") and the grid keeps its size, as SciPy sepfir2d.
 
 ## Datasets
 
@@ -53741,6 +58055,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [airquality (R datasets)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) | daily air quality in New York, May to September 1973: ozone (37 empty cells), solar radiation (7 empty), wind and temperature | Chambers, J. M. et al. (1983). Graphical Methods for Data Analysis. Wadsworth; data from the New York State Department of Conservation and the National Weather Service. R's datasets package. | Public data; R's datasets package is GPL-2 \| GPL-3; read from R, so it needs R. |
 | [lung with weight loss (survival)](https://doi.org/10.1200/JCO.1994.12.3.601) | 228 patients with advanced lung cancer: survival time, status, age, sex, Karnofsky score (empty cells) and weight loss (14 empty cells) | Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607. As shipped by the R package survival (lung). | LGPL (>= 2) (survival); read from the installed package, so it needs R. |
 | closed form (no data) | no data: systems, waves and window shapes made from a formula, and formulas, areas, volumes and paths over time (numbers phase, batch 3), checked against the answer worked out by hand from the same formula | The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py and cases_underneath_numbers_3.py. | No data, so no licence; the worked answers are the same as simplydata's (see LICENSE). |
+| [state.center (R datasets)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/state.html) | the longitude and latitude of the centres of the 50 US states (Alaska and Hawaii placed off the coast, as R documents) | U.S. Department of Commerce, Bureau of the Census (1977). Statistical Abstract of the United States; and (1977) County and City Data Book. Copy from R's datasets package (state.center). | Published 1977 (facts); R's datasets copy is GPL-2 \| GPL-3. Not stored here: read from the installed R package, so it needs R. |
+| [published special-function tables (no data)](https://dlmf.nist.gov) | no data: values of the special functions printed in published tables (Bessel, Airy, error, elliptic and exponential integrals, zeta, Lambert W, the zeros of J and Ai, Gauss-Legendre points), for the maths family (families for 100 %, plan section 2.3) | Olver, F. W. J. et al. (eds.), NIST Digital Library of Mathematical Functions, release 1.2 (2024); Abramowitz, M. & Stegun, I. A. (1964). Handbook of Mathematical Functions. National Bureau of Standards Applied Mathematics Series 55. | Works of the US Government (public domain in the United States); a few numbers are quoted, nothing stored. |
 | [El Nino sea surface temperatures](https://www.statsmodels.org/stable/datasets/generated/elnino.html) | 732 monthly averages of the sea surface temperature (degrees Celsius) of the Pacific between 0 and 10 degrees south and 90 and 80 degrees west (Nino 1+2), January 1950 to December 2010 | NOAA Climate Prediction Center, ERSST v3b, Nino 1+2 index. Copy from statsmodels (statsmodels.datasets.elnino). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | [yearly sunspot numbers](https://www.statsmodels.org/stable/datasets/generated/sunspots.html) | 309 yearly mean sunspot numbers (Wolf's relative numbers), 1700 to 2008 | NOAA National Geophysical Data Center, yearly sunspot numbers (compiled from the Royal Observatory of Belgium, SIDC). Copy from statsmodels (statsmodels.datasets.sunspots). The solar cycle of about 11 years: Schwabe, H. (1844). Astronomische Nachrichten 21, 233-236; its average length 11.0 years: Hathaway, D. H. (2015). The solar cycle. Living Reviews in Solar Physics 12, 4. | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | [US inflation and unemployment](https://www.statsmodels.org/stable/datasets/generated/macrodata.html) | 203 quarters of the US economy, 1959 to 2009: inflation and the unemployment rate (2 of 14 columns) | Federal Reserve Bank of St. Louis (FRED) and the US Bureau of Labor Statistics, compiled by S. Seabold. Copy from statsmodels (statsmodels.datasets.macrodata). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |

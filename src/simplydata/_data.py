@@ -58,7 +58,12 @@ _READERS = {
     ".sqlite3": "sqlite",
     ".db": "sqlite",
     ".duckdb": "duckdb",  # DuckDB (simplydata[sql]), opened read-only, with no extensions and no files
+    # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the tables of a web page saved on this
+    # computer, read by pandas read_html (lxml, in simplydata[files])
+    ".html": "html",
+    ".htm": "html",
 }
+CLIPBOARD = "clipboard"  # sdata.table("clipboard") and table.save("clipboard"): pandas read_clipboard / to_clipboard
 # file endings of two parts: the compressed text files
 _TWO_PART_ENDINGS = (".csv.gz", ".tsv.gz", ".txt.gz")
 
@@ -66,24 +71,25 @@ _KIND_NAMES = {
     "csv": "CSV and text", "tsv": "TSV", "excel": "Excel", "parquet": "Parquet", "json": "JSON",
     "word": "Word", "spss": "SPSS", "stata": "Stata",
     "feather": "Feather (Arrow)", "jsonl": "JSON lines", "xml": "XML", "sas": "SAS", "sqlite": "SQLite",
-    "duckdb": "DuckDB",
+    "duckdb": "DuckDB", "html": "web page (HTML)",
 }
 
 # Which reading options make sense for which kind of file.
 _OPTIONS_FOR = {
     "separator": ("csv", "tsv"),
-    "encoding": ("csv", "tsv"),
+    "encoding": ("csv", "tsv", "html"),
     "decimal_mark": ("csv", "tsv", "excel", "word"),
     "thousands_mark": ("csv", "tsv", "excel", "word"),
     "empty_values": ("csv", "tsv", "excel", "word"),
     "skip_rows": ("csv", "tsv", "excel", "word"),
-    "table_number": ("word",),
+    "table_number": ("word", "html"),
     "read_as_text": ("csv", "tsv", "excel", "word"),
     # tables phase, batch 2 (approved by Manish 2026-11-25)
     "columns": ("csv", "tsv", "excel", "parquet"),
     "column_names": ("csv", "tsv", "excel"),
     "skip_lines_starting_with": ("csv", "tsv"),
     "table_name": ("sqlite", "duckdb"),  # tables phase, batch 3 (P38)
+    "fixed_widths": ("csv",),  # families for 100 %, batches 1-2: pandas read_fwf
 }
 
 READING_OPTIONS = tuple(_OPTIONS_FOR)
@@ -169,7 +175,8 @@ def _names_option(option, value, example) -> list:
 
 def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empty_values=None,
                     skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
-                    column_names=None, skip_lines_starting_with=None, table_name=None) -> dict:
+                    column_names=None, skip_lines_starting_with=None, table_name=None,
+                    fixed_widths=None) -> dict:
     """Check the reading options at once and give back only the ones that were given.
 
     sdata.table(...) and sdata.chart(...) pass their options through here, so every
@@ -239,6 +246,16 @@ def reading_options(separator=None, decimal_mark=None, thousands_mark=None, empt
                 'or "all" to stack them.\nFor example:  sdata.table("report.docx", table_number=2)'
             )
         options["table_number"] = table_number if table_number == "all" else int(table_number)
+    if fixed_widths is not None:  # pandas read_fwf(widths=), or colspecs="infer" for fixed_widths=True
+        good = fixed_widths is True or (isinstance(fixed_widths, (list, tuple)) and fixed_widths and all(
+            isinstance(w, (int, np.integer)) and not isinstance(w, bool) and w >= 1 for w in fixed_widths))
+        if not good:
+            raise SimplydataError(
+                "fixed_widths= reads a text file whose columns stand at fixed places: a list of how many characters "
+                f"each column takes, or True to let pandas find the columns.\n"
+                'For example:  sdata.table("station.txt", '
+                "fixed_widths=[10, 6, 6])")
+        options["fixed_widths"] = True if fixed_widths is True else [int(w) for w in fixed_widths]
     if read_as_text is not None:
         options["read_as_text"] = _read_as_text_names(read_as_text)
     if columns is not None:  # pandas read_csv(usecols=), Polars read_csv(columns=)
@@ -407,6 +424,8 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
     """
     options = options or {}
     text = str(path)
+    if text.strip().lower() == CLIPBOARD and not Path(text).exists():  # what you copied, as pandas read_clipboard
+        return _read_clipboard(options)
     if _is_web_address(text):
         return _read_web(text, sheet=sheet, fast=fast, keep_fast=keep_fast, options=options)
     path = Path(path)
@@ -426,7 +445,7 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
 def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False, options=None):
     """Read one file (a path, or the bytes of a downloaded file)."""
     options = options or {}
-    if "column_names" in options and kind in ("csv", "tsv", "excel"):
+    if "column_names" in options and kind in ("csv", "tsv", "excel") and "fixed_widths" not in options:
         _check_column_names(source, kind, label, options)
     if "skip_lines_starting_with" in options and kind in ("csv", "tsv"):
         _check_note_mark(source, label, options)
@@ -524,6 +543,22 @@ def _check_read_as_text(found, names, label) -> None:
 
 def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     _check_options_fit(kind, options, label)
+    if "fixed_widths" in options:  # columns at fixed places: pandas read_fwf (families for 100 %, batches 1-2)
+        widths = options["fixed_widths"]
+        if "separator" in options:
+            raise SimplydataError("separator= reads values with a mark between them, and fixed_widths= reads columns "
+                                  "that stand at fixed places: give one of them.")
+        extra = {}
+        if "column_names" in options:  # pandas read_fwf(header=None, names=)
+            extra.update(header=None, names=options["column_names"])
+        if "read_as_text" in options:  # pandas read_fwf(dtype={"sample_id": str})
+            extra["dtype"] = {name: str for name in options["read_as_text"]}
+        found = pd.read_fwf(_rewind(source), **({"colspecs": "infer"} if widths is True else {"widths": widths}),
+                            skiprows=options.get("skip_rows"), encoding=options.get("encoding"),
+                            na_values=options.get("empty_values"), decimal=options.get("decimal_mark", "."),
+                            thousands=options.get("thousands_mark"), comment=options.get("skip_lines_starting_with"),
+                            **extra)
+        return pl_from(found) if keep_fast and fast else found
 
     asked = fast
     fast = asked or size > BIG_FILE_BYTES
@@ -577,7 +612,9 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     if kind == "parquet":  # pandas read_parquet(columns=[...])
         return pd.read_parquet(_rewind(source), columns=options.get("columns"))
     if kind == "json":
-        return pd.read_json(_rewind(source))
+        return _read_json(source, label)
+    if kind == "html":
+        return _read_html(source, label, options)
     if kind == "word":
         return _read_word(source, label, options)
     if kind == "spss":
@@ -585,6 +622,90 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     if kind in _MORE_KINDS:  # tables phase, batch 3 (P38)
         return _read_more(source, kind, label, options)
     return pd.read_stata(_rewind(source))
+
+
+def pl_from(found):
+    import polars as pl
+
+    return pl.from_pandas(found)
+
+
+def _read_json(source, label, lines=False):
+    """A .json file: pandas read_json, and pandas json_normalize when its rows hold objects inside objects
+    ({"site": {"name": "N1", "depth": 30}} becomes the columns site.name and site.depth), so each cell holds one
+    value (families for 100 %, batches 1-2)."""
+    import json
+
+    found = pd.read_json(_rewind(source), lines=lines)
+    nested = [str(c) for c in found.columns if found[c].map(lambda v: isinstance(v, dict)).any()]
+    if not nested:
+        return found
+    raw = _rewind(source)
+    text = raw.getvalue().decode("utf-8") if isinstance(raw, io.BytesIO) else Path(raw).read_text(encoding="utf-8")
+    rows = [json.loads(line) for line in text.splitlines() if line.strip()] if lines else json.loads(text)
+    flat = pd.json_normalize(rows, sep=".")  # pandas json_normalize
+    for name in flat.columns:  # dates, as pandas read_json finds them by the name (its keep_default_dates rule)
+        last = str(name).split(".")[-1].lower()
+        if (last.endswith(("_at", "_time")) or last.startswith("timestamp") or last in ("modified", "date",
+                                                                                         "datetime")):
+            try:
+                flat[name] = pd.to_datetime(flat[name])
+            except (ValueError, TypeError):
+                pass
+    names = ", ".join(f'"{c}"' for c in nested)
+    print(f"Read {label}: {names} held values inside values, so each part became a column of its own "
+          f"({', '.join(c for c in flat.columns if '.' in str(c))[:200]}), as pandas json_normalize does.")
+    return flat
+
+
+def _read_html(source, label, options):
+    """The tables of a web page saved on this computer: pandas read_html (lxml); table_number= picks one."""
+    try:
+        import lxml  # noqa: F401 - pandas read_html needs it
+    except ImportError:
+        raise SimplydataError(f"Reading the tables of a web page needs lxml.\n{_FILES_HINT}") from None
+    raw = _rewind(source)
+    # the page's bytes, read here from this computer (or the bytes sdata.table already has): pandas read_html only
+    # ever gets those bytes, never a web address, so it reaches nothing outside (tests/test_privacy.py); lxml reads
+    # the page's own <meta charset>, and encoding= says it when the page does not
+    data = raw.getvalue() if isinstance(raw, io.BytesIO) else Path(raw).read_bytes()
+    try:
+        tables = pd.read_html(io.BytesIO(data), flavor="lxml",  # pandas read_html, on the bytes themselves
+                              encoding=options.get("encoding"))
+    except ValueError:
+        raise SimplydataError(f'"{label}" has no table in it (simplydata reads the <table> parts of a web page).'
+                              ) from None
+    number = options.get("table_number", 1)
+    if number == "all":
+        raise SimplydataError(f"The tables of a web page differ, so read them one at a time: "
+                              f'sdata.table("{label}", table_number=2).')
+    if number > len(tables):
+        raise SimplydataError(f'"{label}" has {len(tables)} table{"" if len(tables) == 1 else "s"}, so '
+                              f"table_number={number} is not there.\nFor example:  "
+                              f'sdata.table("{label}", table_number={len(tables)})')
+    if len(tables) > 1 and "table_number" not in options:
+        print(f"{label} has {len(tables)} tables; this is the first. Use table_number=2 for the next one.")
+    return tables[number - 1]
+
+
+def _read_clipboard(options):
+    """sdata.table("clipboard"): what you copied (from Excel, a web page or a text file), read by pandas
+    read_clipboard. Nothing leaves this computer."""
+    if options:
+        names = ", ".join(f"{k}=" for k in options)
+        raise SimplydataError(f'{names} are for files; sdata.table("clipboard") reads what you copied as it is.')
+    try:
+        found = pd.read_clipboard()  # pandas read_clipboard (tab or spaces between the values)
+    except Exception as problem:  # noqa: BLE001 - no clipboard program (a server, a Linux without xclip)
+        raise SimplydataError("simplydata could not read the clipboard on this computer "
+                              f"({type(problem).__name__}). Paste what you copied into a file and read the "
+                              "file.") from None
+    print(f"Read the clipboard: {len(found)} rows and {len(found.columns)} columns.")
+    texts = [c for c in found.columns if found[c].dtype == object or str(found[c].dtype) == "str"]
+    if any(found[c].astype("string").str.startswith('"').fillna(False).any() for c in texts):
+        print("Note: a cell starts with a quote mark, so a cell with a line break in it may have been split into two "
+              "rows. Copy it without line breaks, or save it as a file and read the file.")
+    return found
 
 
 # ---------------------------------------------------------------- more file types (tables phase, batch 3, P38)
@@ -640,8 +761,8 @@ def _read_more(source, kind, label, options):
     """Feather, JSON lines, XML, SAS and database files, each read by pandas (or DuckDB) itself."""
     if kind == "feather":
         return pd.read_feather(_rewind(source))  # pandas read_feather
-    if kind == "jsonl":
-        return pd.read_json(_rewind(source), lines=True)  # pandas read_json(lines=True): one row per line
+    if kind == "jsonl":  # pandas read_json(lines=True): one row per line (json_normalize for values inside values)
+        return _read_json(source, label, lines=True)
     if kind == "xml":
         return pd.read_xml(_rewind(source), parser="etree")  # pandas read_xml, with Python's own XML reader
     if kind == "sas":

@@ -862,10 +862,10 @@ class RiskWords:
         print("Method: exact Poisson intervals (statsmodels confint_poisson, as R poisson.test()).")
         return self._many_rows_table(rows)
 
-    @friendly(renamed={"for_each": "for_each_group_in"})
+    @friendly(renamed={"for_each": "for_each_group_in", "method": "test_method", "test": "test_method"})
     def compare_rates(self, events=None, time=None, for_each_group_in=None, against=None, per=1000, interval=95,
                       same_within=None, not_lower=None, not_higher=None, sides=2, higher=None, lower=None,
-                      alternative=None, allowing_for=None, standard_rates=None):
+                      alternative=None, allowing_for=None, standard_rates=None, test_method=None):
         """Do events happen more often per unit of time in one group than in another?
 
         table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")
@@ -882,8 +882,20 @@ class RiskWords:
         rates per 1000 units of time, as per=): observed / expected, the standardised ratio (SMR) of each
         group (for_each_group_in= is optional here) with its exact Poisson interval (R
         epiR::epi.indirectadj(); p-value from R poisson.test()).
+        test_method="e-test" (families for 100 %, 2 groups): Krishnamoorthy and Thomson's E-test of two Poisson
+        rates (SciPy poisson_means_test), often more powerful than the exact conditional test; gives back one row.
         """
         step = "compare_rates"
+        if test_method is not None:
+            chosen = str(test_method).strip().lower()
+            chosen = {"poisson_means_test": "e-test", "e test": "e-test", "etest": "e-test"}.get(chosen, chosen)
+            self._check_choice(step, "test_method", chosen, ("e-test",))
+            given = [o for o, v in (("same_within=", same_within), ("not_lower=", not_lower),
+                                    ("not_higher=", not_higher), ("allowing_for=", allowing_for),
+                                    ("standard_rates=", standard_rates)) if v is not None]
+            if given:
+                raise SimplydataError(f'test_method="e-test" compares the rates of 2 groups; leave out '
+                                      f"{_list_words(given)}.")
         example = 'table.compare_rates("infections", time="patient_days", for_each_group_in="ward", against="ward A")'
         level = _level(step, interval, example)
         if isinstance(per, bool) or not isinstance(per, (int, float)) or per <= 0:
@@ -920,6 +932,38 @@ class RiskWords:
                                      not_lower, not_higher)
         order = [_label(g) for g in groups if g != ref] + [_label(ref)]
         counts = {g: counts[g] for g in order}
+        if test_method is not None:
+            return self._e_test(counts, _label(ref), alt, per, events, time, for_each_group_in)
         rows = rate_engine(counts, _label(ref), level, per, time, f'"{events}"', same_within,
                            None if up is None else _label(up), alt, claim=claim, unit_words=f'"{time}"')
         return self._many_rows_table(rows)
+
+    def _e_test(self, counts, ref, alt, per, events, time, for_each):
+        """compare_rates(test_method="e-test"): SciPy poisson_means_test (Krishnamoorthy and Thomson 2004), the group
+        against against= (the first group by default)."""
+        from scipy import stats
+
+        from .stat_tests import _num
+        from .summaries import _p_sentence
+
+        if len(counts) != 2:
+            raise SimplydataError(f'test_method="e-test" compares 2 groups; "{for_each}" has {len(counts)}.')
+        (other, (k1, n1)), (_, (k2, n2)) = list(counts.items())
+        if n1 <= 0 or n2 <= 0:
+            raise SimplydataError(f'Each group needs some time in "{time}" to give a rate.')
+        result = stats.poisson_means_test(int(k1), n1, int(k2), n2, alternative=alt)
+        stat, p = float(result.statistic), float(result.pvalue)
+        rate1, rate2 = k1 / n1 * per, k2 / n2 * per
+        ratio = (k1 / n1) / (k2 / n2) if k2 > 0 else math.inf
+        row = {"test": "E-test of two Poisson rates", "what it compares":
+               f'the rate of "{events}" per {per:g} "{time}" in {other} against {ref}', "statistic name": "z",
+               "statistic": stat, "p-value": p, f"rate in {other}": rate1, f"rate in {ref}": rate2,
+               "rate ratio": ratio, f"events in {other}": k1, f"events in {ref}": k2, f"time in {other}": n1,
+               f"time in {ref}": n2, "per": per}
+        print(f'The rate of "{events}" is {_num(rate1)} per {per:g} "{time}" in {other} and {_num(rate2)} in {ref}: '
+              f"a rate ratio of {_num(ratio)}.")
+        print(_p_sentence(p, "the two rates were truly the same", "a difference this big or bigger"))
+        print(f"Test: E-test of two Poisson rates (z = {_num(stat)}; Krishnamoorthy and Thomson 2004, SciPy "
+              "poisson_means_test), chosen with test_method=; the usual test here is the exact conditional one (as R "
+              "poisson.test()).")
+        return self._many_rows_table([row])

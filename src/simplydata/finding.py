@@ -50,6 +50,7 @@ BRENT_TOL = 1e-10  # as R optimize(tol = 1e-10)
 ROOT_TOL = 1e-12  # as R uniroot(tol = 1e-12)
 SEED = 1
 SHOWN_NAMES = 8  # names written out in a sentence; all of them are in the table
+GRID_POINTS = 20_000  # test_method="grid search": about this many grid points in all, evenly over the names
 
 # method= for one search from the start: plain name -> (SciPy name, words in the sentence, R equivalent)
 LOCAL_METHODS = {
@@ -64,14 +65,22 @@ LOCAL_METHODS = {
     "slsqp": ("SLSQP", "SLSQP (sequential quadratic programming)", 'R nloptr(algorithm = "NLOPT_LD_SLSQP")'),
     "cobyla": ("COBYLA", "COBYLA (linear approximations, no slopes needed)",
                'R nloptr(algorithm = "NLOPT_LN_COBYLA")'),
+    # families for 100 %, batch 14 (approved by Manish 2026-11-28): SciPy minimize's other two slope methods
+    "newton conjugate gradient": ("Newton-CG", "Newton conjugate gradients (Newton-CG, slopes from "
+                                  "scipy.differentiate)", "SciPy minimize(method = \"Newton-CG\"); base R has no exact "
+                                  "equivalent"),
+    "truncated newton": ("TNC", "a truncated Newton method (TNC)", 'R nloptr(algorithm = "NLOPT_LD_TNEWTON")'),
 }
-ONE_NAME_METHODS = {"brent": "Brent's method"}
+ONE_NAME_METHODS = {"brent": "Brent's method",
+                    "golden section": "golden-section search"}  # families for 100 %, batch 14
 GLOBAL_METHODS = {
     "differential evolution": ("differential evolution", "R DEoptim::DEoptim()"),
     "dual annealing": ("dual annealing (generalised simulated annealing)", "R GenSA::GenSA()"),
     "shgo": ("simplicial homology global optimisation (SHGO)", "SciPy shgo(); R has no common equivalent"),
     "basin hopping": ("basin hopping", "SciPy basinhopping(); R has no common equivalent"),
     "direct": ("DIRECT (dividing rectangles)", 'R nloptr(algorithm = "NLOPT_GN_DIRECT")'),
+    "grid search": ("a grid search (every point of an even grid, SciPy brute)", "SciPy brute(); base R has no "
+                    "common equivalent"),  # families for 100 %, batch 14
 }
 LINEAR_METHODS = {"linear programming": "highs", "highs": "highs", "simplex": "highs-ds",
                   "interior point": "highs-ipm"}
@@ -84,16 +93,49 @@ METHOD_SPELLINGS = {
     "dual-annealing": "dual annealing", "simulated annealing": "dual annealing",
     "basin-hopping": "basin hopping", "basinhopping": "basin hopping", "highs-ds": "simplex",
     "highs-ipm": "interior point", "lp": "linear programming", "milp": "linear programming",
+    # families for 100 %, batch 14: the new values and SciPy's legacy fmin_* names (each is the minimize method)
+    "golden section search": "golden section", "golden-section": "golden section", "brute": "grid search",
+    "brute force": "grid search", "grid": "grid search", "newton-cg": "newton conjugate gradient",
+    "newton cg": "newton conjugate gradient", "ncg": "newton conjugate gradient", "tnc": "truncated newton",
+    "truncated-newton": "truncated newton", "fmin": "nelder-mead", "fmin bfgs": "bfgs",
+    "fmin cg": "conjugate gradient", "fmin cobyla": "cobyla", "fmin l bfgs b": "l-bfgs-b",
+    "fmin ncg": "newton conjugate gradient", "fmin powell": "powell", "fmin slsqp": "slsqp",
+    "fmin tnc": "truncated newton", "fminbound": "brent", "brent": "brent",
 }
 SOLVE_ONE_METHODS = {"brent": "Brent's method", "bisection": "bisection", "ridder": "Ridders' method",
-                     "toms748": "TOMS Algorithm 748", "secant": "the secant method"}
+                     "toms748": "TOMS Algorithm 748", "secant": "the secant method",
+                     "fixed point": "fixed-point iteration with Steffensen's acceleration (SciPy fixed_point, "
+                                    "del2)"}  # families for 100 %, batch 14
 SOLVE_SYSTEM_METHODS = {"powell hybrid": ("hybr", "Powell's hybrid method (MINPACK hybrd)",
                                           "R nleqslv::nleqslv()"),
                         "levenberg-marquardt": ("lm", "Levenberg-Marquardt least squares", "R nleqslv / minpack.lm"),
-                        "broyden": ("broyden1", "Broyden's method", 'R nleqslv(method = "Broyden")')}
+                        "broyden": ("broyden1", "Broyden's method", 'R nleqslv(method = "Broyden")'),
+                        # families for 100 %, batch 14: the other solvers of SciPy root
+                        "broyden second": ("broyden2", "Broyden's second method", "SciPy root(method = "
+                                           "\"broyden2\"); R nleqslv has Broyden's first only"),
+                        "diagonal broyden": ("diagbroyden", "a diagonal Broyden method", "SciPy root(method = "
+                                             "\"diagbroyden\"); R has no common equivalent"),
+                        "anderson mixing": ("anderson", "Anderson mixing", "SciPy root(method = \"anderson\"); R "
+                                            "daarem / SQUAREM accelerate fixed points the same way"),
+                        "linear mixing": ("linearmixing", "linear mixing (a scalar Jacobian)", "SciPy root(method = "
+                                          "\"linearmixing\"); R has no common equivalent"),
+                        "exciting mixing": ("excitingmixing", "exciting mixing (a tuned diagonal Jacobian)",
+                                            "SciPy root(method = \"excitingmixing\"); R has no common equivalent"),
+                        "newton-krylov": ("krylov", "Newton-Krylov (the Jacobian by Krylov approximation)",
+                                          "SciPy root(method = \"krylov\") (newton_krylov); R has no common "
+                                          "equivalent")}
+# linear and exciting mixing take the Jacobian to be about minus 1: they solve right minus left, so an equation
+# written as x = g(x) (a fixed-point form) settles
+MIXING = ("linear mixing", "exciting mixing")
 SOLVE_SPELLINGS = {"hybr": "powell hybrid", "hybrid": "powell hybrid", "lm": "levenberg-marquardt",
                    "levenberg marquardt": "levenberg-marquardt", "broyden1": "broyden", "brentq": "brent",
-                   "bisect": "bisection", "ridders": "ridder", "secant method": "secant"}
+                   "bisect": "bisection", "ridders": "ridder", "secant method": "secant",
+                   # families for 100 %, batch 14
+                   "fixed point": "fixed point", "fixed-point": "fixed point", "fixed point iteration": "fixed point",
+                   "steffensen": "fixed point", "broyden2": "broyden second", "broyden 2": "broyden second",
+                   "diagbroyden": "diagonal broyden", "anderson": "anderson mixing", "linearmixing": "linear mixing",
+                   "excitingmixing": "exciting mixing", "krylov": "newton-krylov", "newton krylov": "newton-krylov",
+                   "newton_krylov": "newton-krylov"}
 
 
 # ---------------------------------------------------------------------------- small helpers
@@ -357,8 +399,10 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             check_range_fits(made, name, low, high, step)
     whole = _whole_names(step, names, whole_numbers)
     sign = -1.0 if biggest else 1.0
+    calls = [0]  # how many times the formula is worked out, said in the sentence (families for 100 %, batch 14)
 
     def objective(theta):
+        calls[0] += 1
         value = float(goal_formula(dict(zip(names, np.atleast_1d(theta)))))
         return sign * value if math.isfinite(value) else math.inf
 
@@ -396,19 +440,23 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             answer = _with_rules(names, limits, objective, rule_list, first, chosen or "slsqp", all_linear)
             from_start = first
         elif len(names) == 1 and (method is None or _plain_method(step, method, {**LOCAL_METHODS, **ONE_NAME_METHODS},
-                                                                  METHOD_SPELLINGS) == "brent"):
+                                                                  METHOD_SPELLINGS) in ONE_NAME_METHODS):
+            golden = method is not None and _plain_method(step, method, ONE_NAME_METHODS,
+                                                          METHOD_SPELLINGS) == "golden section"
             low, high = limits[names[0]]
+            searcher = "the golden-section search" if golden else "Brent's method"
             if math.isfinite(low) and math.isfinite(high):
                 if start is not None:
-                    print("Note: start= is not used when one name has a range with two ends: Brent's method "
+                    print(f"Note: start= is not used when one name has a range with two ends: {searcher} "
                           "searches the whole of between=.")
-                answer = _brent_range(names[0], low, high, objective, biggest)
+                answer = (_golden_range(names[0], low, high, objective, biggest) if golden else
+                          _brent_range(names[0], low, high, objective, biggest))
             else:
                 if start is None:
                     raise SimplydataError(f"{step}() needs between=[low, high] or start=... for {names[0]}, for "
                                           f"example {example}.")
                 first = _starts(step, names, start, limits, True, f"start=1")[0]
-                answer = _brent_start(step, names[0], first, low, high, objective, word)
+                answer = _brent_start(step, names[0], first, low, high, objective, word, golden=golden)
         else:
             chosen = _plain_method(step, method, LOCAL_METHODS, METHOD_SPELLINGS)
             if start is None and not all(math.isfinite(v) for pair in limits.values() for v in pair):
@@ -423,10 +471,11 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             first = _starts(step, names, start, limits, True, 'start={"x": 1, "y": 1}')
             if chosen is None:
                 chosen = "l-bfgs-b" if has_limits else "nelder-mead"
-            answer = _local(names, limits, has_limits, objective, first, chosen)
+            answer = _local(names, limits, has_limits, objective, first, chosen, text=formula)
             from_start = first
 
     value = sign * answer.value
+    evaluations = calls[0]
     where = ""
     if rule_list:
         count = len(rule_list)
@@ -464,6 +513,14 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     else:
         print(f"The {word} value of {formula}{where} is {_show(value)}, at {_places(names, answer.place)}.")
     print(answer.method_words)
+    settled_words = "it settled (converged)" if answer.settled else "it did not settle (did not converge)"
+    steps_words = f" after {answer.iterations:,} steps" if answer.iterations else ""
+    if evaluations:
+        print(f"Search: {answer.method_name}; {settled_words}{steps_words}, and the formula was worked out "
+              f"{evaluations:,} times.")
+    else:  # linear programming works on the numbers in front of the names, not on the formula point by point
+        print(f"Search: {answer.method_name}; {settled_words}{steps_words}, working on the numbers in front of the "
+              "names, so the formula was not worked out point by point.")
     tight = []
     for rule in rule_list:
         if rule.sign == "=":
@@ -487,6 +544,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
     row["method"] = answer.method_name
     row["settled"] = "yes" if answer.settled else "no"
     row["iterations"] = answer.iterations if answer.iterations is not None else math.nan
+    row["evaluations"] = evaluations
     for rule_text, one_more in answer.extra.items():
         row[f"value of one more: {rule_text}"] = sign * one_more + 0.0
     return _result([row], fast)
@@ -634,7 +692,63 @@ def _brent_range(name, low, high, objective, biggest=False):
     return answer
 
 
-def _brent_start(step, name, first, low, high, objective, word):
+def _golden_range(name, low, high, objective, biggest=False):
+    """The golden-section search (families for 100 %, batch 14): the lowest of SCAN_POINTS evenly spaced points and
+    its two neighbours make the bracket, which the golden sections close in on (SciPy minimize_scalar(method=
+    "golden"), no parabolic steps). A lowest point at an end of the range is the answer itself."""
+    from scipy import optimize
+
+    lowest, dip = ("highest", "peak") if biggest else ("lowest", "dip")
+    xs, ys = _scan(low, high, objective, SCAN_POINTS)
+    finite = np.isfinite(ys)
+    if not finite.any():
+        raise SimplydataError(f"Between {_show(low)} and {_show(high)}, the formula has no value at any of the "
+                              f"{SCAN_POINTS} evenly spaced points checked (it is not a number there, or is "
+                              "infinite). Check between=.")
+    values = np.where(finite, ys, np.inf)
+    best = int(np.argmin(values))
+    notes = []
+    # the bracket needs a strictly higher point on each side: past a flat bottom (several scan points as low as the
+    # lowest), the nearest scan points that are higher
+    left = best - 1
+    while left >= 0 and not values[left] > values[best]:
+        left -= 1
+    right = best + 1
+    while right < len(xs) and not values[right] > values[best]:
+        right += 1
+    ties = int(np.count_nonzero(values == values[best]))
+    found = None
+    if left >= 0 and right < len(xs):
+        try:
+            with warnings.catch_warnings(), np.errstate(all="ignore"):
+                warnings.simplefilter("ignore")
+                found = optimize.minimize_scalar(objective, bracket=(float(xs[left]), float(xs[best]),
+                                                                     float(xs[right])),
+                                                 method="golden", options={"xtol": BRENT_TOL, "maxiter": 10000})
+        except (ValueError, RuntimeError):  # SciPy refuses a bracket it finds flat: keep the lowest scan point
+            found = None
+    if found is not None and float(found.fun) <= values[best]:
+        place, value = float(found.x), float(found.fun)
+        settled, iterations = bool(found.success), int(found.nit)
+        where = f"the {dip} around {name} = {_show(xs[best])}"
+    else:
+        place, value, settled, iterations = float(xs[best]), float(values[best]), True, 0
+        at_end = left < 0 or right >= len(xs)
+        where = "the end of the range" if at_end else f"the lowest of the scan points, {name} = {_show(place)}"
+        if at_end:
+            notes.append(f"Note: the {lowest} part is at the end of the range, near {name} = {_show(place)}; a wider "
+                         "between= may give a better value.")
+    if ties > 1:
+        notes.append(f"Note: the formula is flat at its {lowest} value ({ties} of the {SCAN_POINTS} scan points are as "
+                     f"{'high' if biggest else 'low'}), so many places give it; this is one of them.")
+    words = (f"Method: golden-section search on {where}, the {lowest} of {SCAN_POINTS} evenly spaced points, "
+             "with SciPy minimize_scalar(method=\"golden\"); base R has no golden-only search (R optimize() adds "
+             "parabolic steps, which is Brent's method, the default).")
+    return _Answer([place], value, words, settled=settled, iterations=iterations, notes=notes,
+                   method_name="golden-section search")
+
+
+def _brent_start(step, name, first, low, high, objective, word, golden=False):
     from scipy import optimize
 
     width = 0.1 * max(1.0, abs(first))
@@ -665,19 +779,25 @@ def _brent_start(step, name, first, low, high, objective, word):
         raise endless
     with warnings.catch_warnings(), np.errstate(all="ignore"):
         warnings.simplefilter("ignore")
-        found = optimize.minimize_scalar(objective, bracket=(a, b, c), method="brent", options={"xtol": BRENT_TOL})
+        found = optimize.minimize_scalar(objective, bracket=(a, b, c), method="golden" if golden else "brent",
+                                         options={"xtol": BRENT_TOL})
     if not math.isfinite(float(found.fun)):
         raise endless
     words = (f"Method: Brent's method from a bracket around the start ({name} from {_show(a)} to {_show(c)}), as R "
              "optimize() on that bracket. It finds the nearest dip to the start; between= or "
              'search="whole range" looks further.')
+    if golden:
+        words = (f"Method: golden-section search from a bracket around the start ({name} from {_show(a)} to "
+                 f"{_show(c)}), SciPy minimize_scalar(method=\"golden\"); base R has no golden-only search. It finds "
+                 'the nearest dip to the start; between= or search="whole range" looks further.')
     notes = []
     place, value = _polish(objective, float(found.x), float(found.fun), a, c, (a, b, c))
     place, value, sure = _settle(objective, place, value, a, c)
     if not low <= place <= high:
         notes.append(f"Note: the answer is outside between= ({_range_words(low, high)}).")
     answer = _Answer([place], value, words, settled=bool(found.success), iterations=int(found.nit),
-                     notes=notes, method_name="Brent's method from the start")
+                     notes=notes, method_name="golden-section search from the start" if golden else
+                     "Brent's method from the start")
     answer.only_bound = not sure
     return answer
 
@@ -687,7 +807,12 @@ def _bounds(names, limits):
              None if not math.isfinite(limits[n][1]) else limits[n][1]) for n in names]
 
 
-def _local(names, limits, has_limits, objective, first, chosen):
+SLOPE_METHODS = ("bfgs", "l-bfgs-b", "conjugate gradient", "newton conjugate gradient", "truncated newton", "slsqp",
+                 "trust region")
+_ROUGH = __import__("re").compile(r"\b(abs|floor|ceil|ceiling|sign|min|max|round)\s*\(")
+
+
+def _local(names, limits, has_limits, objective, first, chosen, text=None):
     from scipy import optimize
 
     scipy_name, words, r_name = LOCAL_METHODS[chosen]
@@ -699,10 +824,17 @@ def _local(names, limits, has_limits, objective, first, chosen):
                "powell": {"xtol": 1e-10, "ftol": 1e-12, "maxiter": 20000},
                "trust region": {"xtol": 1e-12, "gtol": 1e-10, "maxiter": 10000},
                "slsqp": {"ftol": 1e-14, "maxiter": 1000},
-               "cobyla": {"tol": 1e-8, "maxiter": 5000}}[chosen]
+               "cobyla": {"tol": 1e-8, "maxiter": 5000},
+               "newton conjugate gradient": {"xtol": 1e-10, "maxiter": 10000},
+               "truncated newton": {"xtol": 1e-12, "ftol": 1e-15, "gtol": 1e-10, "maxfun": 20000}}[chosen]
     kwargs = {}
+    if chosen == "truncated newton":  # the slopes by SciPy's own central differences
+        kwargs["jac"] = "3-point"
+    if chosen == "newton conjugate gradient":  # Newton-CG needs slopes as a function: scipy.differentiate's, and
+        kwargs["jac"] = _library_slopes(objective)  # the bends by SciPy's central differences of them
+        kwargs["hess"] = "3-point"
     if has_limits:
-        if chosen in ("nelder-mead", "l-bfgs-b", "powell", "trust region", "slsqp", "cobyla"):
+        if chosen in ("nelder-mead", "l-bfgs-b", "powell", "trust region", "slsqp", "cobyla", "truncated newton"):
             kwargs["bounds"] = _bounds(names, limits)
         else:
             print(f"Note: {words} cannot keep to the limits in between=, so they were used only for the start.")
@@ -714,11 +846,37 @@ def _local(names, limits, has_limits, objective, first, chosen):
     start_words = _places(names, first)
     limit_words = " with the limits in between=" if "bounds" in kwargs else ""
     sentence = f"Method: {words} from {start_words}{limit_words}, as {r_name}."
+    if chosen in SLOPE_METHODS:
+        sentence += " It follows the slopes of the formula, so it needs a smooth formula (no corners or jumps)."
     if chosen == "nelder-mead":
         sentence += " It finds the nearest dip to the start; search=\"whole range\" looks everywhere."
     iterations = int(getattr(found, "nit", getattr(found, "nfev", 0)) or 0)
+    notes = []
+    if chosen in SLOPE_METHODS and _ROUGH.search(text or ""):
+        notes.append("Note: the formula has a corner or a jump (abs, floor, ceiling, sign, min, max or round), where "
+                     "it has no slope; a slope method can stop or settle away from the answer there. Try "
+                     'test_method="nelder-mead", or search="whole range".')
+    outside = [n for n, v in zip(names, place) if not limits[n][0] - 1e-9 <= v <= limits[n][1] + 1e-9]
+    if has_limits and outside:  # a method that cannot keep to between= used it only for the start
+        notes.append(f"Note: the answer is outside between= for {_list_words(outside)}.")
     return _Answer(place, float(found.fun), sentence, settled=bool(found.success), iterations=iterations,
-                   method_name=words)
+                   method_name=words, notes=notes)
+
+
+def _library_slopes(objective):
+    """The slopes of the objective from scipy.differentiate.jacobian (adaptive central differences with Richardson
+    extrapolation), for Newton-CG, which needs them as a function."""
+    from scipy import differentiate
+
+    def many(points):  # scipy.differentiate works the formula out at many points at once: one column each
+        points = np.asarray(points, dtype=float)
+        flat = points.reshape(points.shape[0], -1)
+        return np.array([objective(flat[:, i]) for i in range(flat.shape[1])]).reshape(points.shape[1:])
+
+    def slopes(theta):
+        return np.asarray(differentiate.jacobian(many, np.asarray(theta, dtype=float)).df, dtype=float)
+
+    return slopes
 
 
 def _constraints(names, rule_list):
@@ -898,6 +1056,23 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
                                           minimizer_kwargs={"method": "L-BFGS-B", "bounds": bounds})
             found.success = bool(found.lowest_optimization_result.success)
             polish_words = " with local searches (L-BFGS-B)"
+        elif chosen == "grid search":  # families for 100 %, batch 14: SciPy brute, then the same polish as DIRECT
+            per = int(math.floor(GRID_POINTS ** (1 / len(names)) + 1e-9))
+            if per < 3:
+                raise SimplydataError(f'test_method="grid search" tries every point of a grid, so it works for up to '
+                                      f"9 names ({len(names)} here would need too many points). Use "
+                                      'test_method="differential evolution".')
+            corner, fun, _grid, _values = optimize.brute(objective, bounds, Ns=per, finish=None, full_output=True)
+            polished = optimize.minimize(objective, np.atleast_1d(corner), method="L-BFGS-B", bounds=bounds,
+                                         options={"ftol": 1e-15, "gtol": 1e-10})
+            # the steps and whether it settled are the polish's; the grid points are said in the sentence
+            found = optimize.OptimizeResult(x=np.atleast_1d(corner), fun=float(fun), nit=int(polished.nit),
+                                            success=bool(polished.success))
+            if polished.fun <= found.fun:
+                found.x, found.fun = polished.x, polished.fun
+            polish_words = ((f" (searched {per:,} grid points" if len(names) == 1 else
+                             f" (searched {per ** len(names):,} grid points, {per:,} along each name") +
+                            ") then a local polish (L-BFGS-B, whose steps are counted)")
         else:
             found = optimize.direct(objective, bounds, maxfun=20000 * len(names), len_tol=1e-8)
             polished = optimize.minimize(objective, found.x, method="L-BFGS-B", bounds=bounds,
@@ -937,10 +1112,13 @@ def find_where_smallest(formula=None, between=None, start=None, rules=None, whol
     table.fit_formula) fixes some names. The method is decided by what you give and printed
     (R optimize(), optim(), lpSolve::lp(); see the module notes); test_method= lets experts choose
     ("nelder-mead", "bfgs", "l-bfgs-b", "conjugate gradient", "powell", "trust region",
-    "slsqp", "cobyla"; with search="whole range": "differential evolution", "dual annealing",
-    "shgo", "basin hopping", "direct"). Gives back a one-row table: the value of each name,
-    the smallest value, the method, whether the search settled, and for linear programs the
-    value of one more on the right of each rule (shadow price, R lp(compute.sens = TRUE)$duals).
+    "slsqp", "cobyla", "newton conjugate gradient", "truncated newton"; one name: "brent",
+    "golden section"; with search="whole range": "differential evolution", "dual annealing",
+    "shgo", "basin hopping", "direct", "grid search"). SciPy's names work too (fmin_bfgs,
+    fmin_tnc, brute ...; "golden" is an old name of "brent"). Gives back a one-row table: the value of each name,
+    the smallest value, the method, whether the search settled (converged), its steps and how many
+    times the formula was worked out (evaluations), all also said in a sentence, and for linear programs
+    the value of one more on the right of each rule (shadow price, R lp(compute.sens = TRUE)$duals).
     fast=True gives the table on the fast engine (Polars).
     """
     return _find("find_where_smallest", "smallest", formula, between, start, rules, whole_numbers, search, test_method,
@@ -1027,6 +1205,12 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     solutions, complex ones too (R polyroot()). Several equations in a list:
     sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1}) (Powell's hybrid method, as
     R nleqslv::nleqslv()); straight-line equations are solved exactly (R solve()).
+    test_method= for one equation and between=: "brent", "bisection", "ridder", "toms748"; with start=:
+    "secant", or "fixed point" for an equation written as "x = cos(x)" (SciPy fixed_point); for several
+    equations: "powell hybrid", "levenberg-marquardt", "broyden", "broyden second", "diagonal broyden",
+    "anderson mixing", "linear mixing", "exciting mixing" (the last two for equations written as
+    x = ...) or "newton-krylov" (SciPy root). The sentence says whether the search settled and how many times
+    the equations were worked out.
     known= fixes some names (a dict, or a one-row result table from table.fit_formula).
     Gives back a table with one row per solution: each name, "left minus right" at the
     solution (the check: close to 0) and the method. fast=True gives a Polars table.
@@ -1110,6 +1294,8 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
 
     low, high = limits[name]
     rows = []
+    if chosen == "fixed point":  # families for 100 %, batch 14
+        return _solve_fixed_point(text, name, formula, limits, start, fast, has_limits)
     if has_limits and math.isfinite(low) and math.isfinite(high):
         if chosen == "secant":
             raise SimplydataError('test_method="secant" searches from start=; with between= use test_method="brent".')
@@ -1173,6 +1359,46 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
     return _solve_polynomial(text, name, coefficients, gap, fast)
 
 
+def _solve_fixed_point(text, name, formula, limits, start, fast, has_limits=False):
+    """x = g(x) by fixed-point iteration (families for 100 %, batch 14): SciPy optimize.fixed_point with Steffensen's
+    acceleration (method="del2"), from start= (or the middle of between=)."""
+    from scipy import optimize
+
+    if formula.left_text.strip() != name:
+        raise SimplydataError(f'test_method="fixed point" needs the equation written as "{name} = ...", with {name} '
+                              f'alone on the left (such as "{name} = cos({name})"); "{text}" is not.')
+    first = _starts("solve", [name], start, limits, True, 'start=1 (fixed-point iteration starts there)')[0]
+    right = read_formula(formula.right_text, known=formula.known)
+    calls = [0]
+
+    def g(x):
+        calls[0] += 1
+        return float(right({name: float(x)})) if right.names else float(right({}))
+
+    try:
+        with warnings.catch_warnings(), np.errstate(all="ignore"):
+            warnings.simplefilter("ignore")
+            root = float(optimize.fixed_point(g, first, xtol=ROOT_TOL, maxiter=1000, method="del2"))
+    except (RuntimeError, ZeroDivisionError, OverflowError, ValueError):
+        raise SimplydataError(
+            f"Fixed-point iteration from {name} = {_show(first)} did not settle on a solution of {text} (the steps "
+            f"grow instead of shrinking, or keep jumping). Try another start, or between=[low, high] with the default "
+            f"method.") from None
+    check = root - g(root)
+    if not math.isfinite(check) or abs(check) > 1e-8 * (1 + abs(root)):
+        raise SimplydataError(f"Fixed-point iteration from {name} = {_show(first)} found no solution of {text}. Try "
+                              "another start, or between=[low, high] with the default method.")
+    print(f"{text} when {name} = {_show(root)}: the fixed point found from {name} = {_show(first)}.")
+    print(f"Method: {SOLVE_ONE_METHODS['fixed point']}; plain fixed-point iteration is R SQUAREM::fpiter().")
+    print(f"Search: fixed-point iteration; it settled (converged), and the right side was worked out {calls[0]:,} "
+          "times.")
+    low, high = limits[name]
+    if has_limits and not low <= root <= high:
+        print(f"Note: the solution is outside between= ({_range_words(low, high)}); fixed-point iteration uses "
+              "between= only for its start.")
+    return _result([{name: root, "left minus right": check, "method": "fixed-point iteration"}], fast)
+
+
 def _solve_polynomial(text, name, coefficients, gap, fast):
     coefficients = list(coefficients)
     while len(coefficients) > 1 and coefficients[-1] == 0:
@@ -1219,6 +1445,15 @@ def _solve_polynomial(text, name, coefficients, gap, fast):
     return _result(rows, fast)
 
 
+def _mixing_hint(chosen, names):
+    """For linear and exciting mixing: how the equations must be written for them to settle."""
+    if chosen not in MIXING:
+        return ""
+    shown = ", ".join(f'"{n} = ..."' for n in names[:4])
+    return (f"\n{SOLVE_SYSTEM_METHODS[chosen][1].capitalize()} settles only for equations written with each name alone "
+            f"on the left, one for each name in this order: {shown} (the right sides close to the names).")
+
+
 def _solve_system(texts, names, formulas, limits, start, method, fast):
     from scipy import optimize
 
@@ -1241,24 +1476,40 @@ def _solve_system(texts, names, formulas, limits, start, method, fast):
         first = _starts("solve", names, start, limits, True,
                         "start={" + ", ".join(f'"{n}": 1' for n in names[:3]) + "}")
 
+        calls = [0]
+
         def gaps(theta):
+            calls[0] += 1
             values = dict(zip(names, theta))
             return np.array([float(f(values)) for f in formulas])
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            found = optimize.root(gaps, np.asarray(first, dtype=float), method=scipy_name,
-                                  options={"xtol": 1e-13} if scipy_name in ("hybr", "lm") else {})
+        # families for 100 %, batch 14: the other SciPy root solvers run to a tight tolerance; the mixing ones solve
+        # right minus left (they take the Jacobian to be about minus 1, as for x = g(x))
+        sign = -1.0 if chosen in MIXING else 1.0
+        options = {"xtol": 1e-13} if scipy_name in ("hybr", "lm") else {"fatol": 1e-12, "maxiter": 5000}
+        try:
+            with warnings.catch_warnings(), np.errstate(all="ignore"):
+                warnings.simplefilter("ignore")
+                found = optimize.root(lambda theta: sign * gaps(theta), np.asarray(first, dtype=float),
+                                      method=scipy_name, options=options)
+        except (OverflowError, ValueError, ZeroDivisionError, np.linalg.LinAlgError):
+            raise SimplydataError(
+                f"Searching from {_places(names, first)}, {words} broke down (the steps grew without end). Try other "
+                "start values, or the default method." + _mixing_hint(chosen, names)) from None
         place = np.asarray(found.x, dtype=float)
         check = gaps(place)
         if not np.all(np.isfinite(check)) or np.max(np.abs(check)) > 1e-8 * (1 + np.max(np.abs(gaps(first)))):
             raise SimplydataError(
                 f"Searching from {_places(names, first)}, simplydata found no values that make every equation true. "
                 "Try other start values, or check that the equations can all be true at once."
+                + _mixing_hint(chosen, names)
             )
         print(f"{_list_words(texts)} when {_places(names, place)}: the solution found by searching from "
               f"{_places(names, first)} (other solutions may exist; another start= may find them).")
         print(f"Method: {words} from the start, as {r_name}.")
+        steps = int(getattr(found, "nit", 0) or 0)
+        print(f"Search: {words}; it settled (converged){f' after {steps:,} steps' if steps else ''}, and the "
+              f"equations were worked out {calls[0]:,} times.")
         for name in names:
             low, high = limits[name]
             if not low <= place[names.index(name)] <= high:

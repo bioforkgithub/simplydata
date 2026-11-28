@@ -32,9 +32,25 @@ from ._maths_formula import read_formula, split_equation
 from ._time_limit import one_deadline
 
 AREA_METHODS = {"quad": "SciPy integrate.quad (adaptive Gauss-Kronrod, QUADPACK), as R integrate()",
-                "gauss": "SciPy integrate.fixed_quad (Gauss-Legendre with 5 points)"}
+                "gauss": "SciPy integrate.fixed_quad (Gauss-Legendre with 5 points)",
+                # families for 100 %, batch 15 (approved by Manish 2026-11-28): the other integrators of SciPy
+                "tanh-sinh": "SciPy integrate.tanhsinh (tanh-sinh quadrature, double exponential), as R "
+                             "pracma::quadinf()",
+                "cubature": "SciPy integrate.cubature (adaptive Genz-Malik / Gauss-Kronrod cubature), as R "
+                            "cubature::hcubature()",
+                "quasi monte carlo": "SciPy integrate.qmc_quad (quasi-Monte Carlo: 8 scrambled Halton samples of "
+                                     "1024 points, with_seed=1), as R cubature::vegas() for the idea",
+                "romberg on even steps": "SciPy integrate.romb (Romberg's method on 1025 evenly spaced points), as R "
+                                         "pracma::romberg()"}
 AREA_SPELLINGS = {"adaptive": "quad", "quadpack": "quad", "fixed_quad": "gauss", "gauss-legendre": "gauss",
-                  "gaussian": "gauss"}
+                  "gaussian": "gauss",
+                  # families for 100 %, batch 15
+                  "tanhsinh": "tanh-sinh", "tanh sinh": "tanh-sinh", "double exponential": "tanh-sinh",
+                  "qmc": "quasi monte carlo", "qmc_quad": "quasi monte carlo", "quasi-monte carlo": "quasi monte carlo",
+                  "quasi monte-carlo": "quasi monte carlo", "romb": "romberg on even steps"}
+VOLUME_METHODS = ("quad", "cubature", "quasi monte carlo")  # families for 100 %, batch 15: find_volume_under
+ROMBERG_POINTS = 2 ** 10 + 1  # integrate.romb needs 2**k + 1 evenly spaced points
+QMC_SEED = 1
 PATH_METHODS = {"RK45": "RK45 (Dormand-Prince, explicit Runge-Kutta 5(4))",
                 "LSODA": "LSODA (switches between Adams and BDF when the problem turns stiff, as R deSolve's default)",
                 "stiff": "Radau (implicit Runge-Kutta of order 5, for stiff problems)",
@@ -108,8 +124,11 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
 
     sdata.find_area_under("exp(-x**2)", between=[0, "infinity"]) gives 0.886227 (half the square root of pi).
     The formula has one letter (known= fixes others, as in sdata.solve). The area below 0 counts as minus.
-    test_method="quad" (the default: SciPy integrate.quad, adaptive, as R integrate()) or "gauss" (fixed_quad,
-    5 points; ends must be numbers). exactly=True gives the exact answer from SymPy integrate (simplydata[exact]),
+    test_method="quad" (the default: SciPy integrate.quad, adaptive, as R integrate()), "gauss" (fixed_quad,
+    5 points; ends must be numbers), "tanh-sinh" (integrate.tanhsinh, good for ends where the curve shoots up),
+    "cubature" (integrate.cubature), "quasi monte carlo" (integrate.qmc_quad, with an error estimate; ends must be
+    numbers) or "romberg on even steps" (integrate.romb on 1025 points; ends must be numbers).
+    exactly=True gives the exact answer from SymPy integrate (simplydata[exact]),
     as a formula. For a list of readings use numbers.turn_into_running_area().
     """
     from scipy import integrate
@@ -138,14 +157,17 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     key = AREA_SPELLINGS.get(str(test_method).strip().lower(), str(test_method).strip().lower())
     if key == "romberg":
         raise SimplydataError('test_method="romberg" is gone: SciPy removed integrate.romberg in version 1.15. Use '
-                              'test_method="quad" (the default) or "gauss".')
+                              'test_method="quad" (the default), "gauss", or "romberg on even steps" (Romberg\'s '
+                              'method on 1025 evenly spaced points, SciPy integrate.romb).')
     if key not in AREA_METHODS:
         raise choice_error(step, "test_method", test_method, list(AREA_METHODS))
 
     def curve(x):
         return float(read({name: x}))
 
-    if key == "quad":
+    if key in ("tanh-sinh", "cubature", "quasi monte carlo", "romberg on even steps"):  # families for 100 %, batch 15
+        value, said, notes = _other_integral(key, read, [name], [(low, high)], step)
+    elif key == "quad":
         try:
             (value, error), notes = _quiet(integrate.quad, curve, low, high)
         except (ZeroDivisionError, OverflowError):
@@ -169,6 +191,52 @@ def find_area_under(formula=None, between=None, test_method="quad", exactly=Fals
     for note in notes:
         print(f"Note from SciPy: {note}")
     return float(value)
+
+
+def _other_integral(key, read, names, spans, step):
+    """The area (one letter) or volume (several) by the integrators of families for 100 %, batch 15: (value, what
+    the sentence says about the error, notes from SciPy). The formula is worked out on many points at once."""
+    from scipy import integrate, stats
+
+    finite = all(math.isfinite(lo) and math.isfinite(hi) for lo, hi in spans)
+    if key in ("quasi monte carlo", "romberg on even steps") and not finite:
+        raise SimplydataError(f'test_method="{key}" needs numbers for both ends of between=; for "infinity" use '
+                              'test_method="quad", "tanh-sinh" or "cubature".')
+    if key in ("tanh-sinh", "romberg on even steps") and len(names) > 1:
+        raise SimplydataError(f'test_method="{key}" works for one letter (sdata.find_area_under); for a volume use '
+                              f'test_method="quad", "cubature" or "quasi monte carlo".')
+
+    def many(columns):  # columns: one array of places for each letter
+        found = read(dict(zip(names, columns)))
+        return np.asarray(found, dtype=float) * np.ones_like(np.asarray(columns[0], dtype=float))
+
+    with np.errstate(all="ignore"):
+        if key == "tanh-sinh":
+            (low, high), = spans
+            found, notes = _quiet(integrate.tanhsinh, lambda x: many([x]), low, high)
+            if not found.success:
+                notes = notes + ["tanh-sinh did not reach its tolerance; the answer may be rough"]
+            return float(found.integral), f"error about {float(found.error):.2g}", notes
+        if key == "cubature":
+            found, notes = _quiet(integrate.cubature, lambda x: many([x[:, i] for i in range(len(names))]),
+                                  [lo for lo, _ in spans], [hi for _, hi in spans])
+            if found.status != "converged":
+                notes = notes + ["cubature did not reach its tolerance; the answer may be rough"]
+            return float(found.estimate), f"error about {float(found.error):.2g}", notes
+        if key == "quasi monte carlo":
+            engine = stats.qmc.Halton(len(names), rng=QMC_SEED)
+            found, notes = _quiet(integrate.qmc_quad, lambda x: many(list(x)), [lo for lo, _ in spans],
+                                  [hi for _, hi in spans], qrng=engine)
+            return float(found.integral), f"standard error {float(found.standard_error):.2g}", notes
+        (low, high), = spans
+        xs = np.linspace(low, high, ROMBERG_POINTS)
+        ys = many([xs])
+        if not np.all(np.isfinite(ys)):
+            raise SimplydataError(f"{step}() with test_method=\"romberg on even steps\" works the formula out at "
+                                  f"{ROMBERG_POINTS} evenly spaced points, and it has no value at some of them (such "
+                                  "as a division by 0 at an end). Use test_method=\"tanh-sinh\".")
+        value = float(integrate.romb(ys, dx=(high - low) / (ROMBERG_POINTS - 1)))
+        return value, f"{ROMBERG_POINTS} points; no error estimate", []
 
 
 def _exact_end(sp, v):
@@ -245,15 +313,17 @@ def _area_exactly(formula, text, name, low, high, known):
     return Formula(found)
 
 
-@friendly
-def find_volume_under(formula=None, between=None, known=None, exactly=False):
+@friendly(renamed={"method": "test_method"})
+def find_volume_under(formula=None, between=None, known=None, exactly=False, test_method="quad"):
     """The volume under a formula of two or more letters, over a range of each (a double or triple integral).
 
     sdata.find_volume_under("x * y", between={"x": [0, 1], "y": [0, 2]})   (1)
     between= gives a range for each letter; the first letter is the outer one. Two letters: SciPy
     integrate.dblquad; three: tplquad; more: nquad (the total under the surface). Ends can be "infinity".
     exactly=True gives the exact answer from SymPy integrate (one letter after the other, the last letter of
-    between= first), as a formula (simplydata[exact]).
+    between= first), as a formula (simplydata[exact]). test_method="cubature" (SciPy integrate.cubature, all letters
+    at once, as R cubature::hcubature()) or "quasi monte carlo" (integrate.qmc_quad, with_seed=1; ends must be
+    numbers) instead of the letter-in-letter "quad" (the default).
     """
     from scipy import integrate
 
@@ -284,8 +354,20 @@ def find_volume_under(formula=None, between=None, known=None, exactly=False):
     for n, (lo, hi) in zip(order, spans):
         check_range_fits(formula, n, lo, hi, step)
     ranges = ", ".join(f"{n} from {_show(lo)} to {_show(hi)}" for n, (lo, hi) in zip(order, spans))
+    key = AREA_SPELLINGS.get(str(test_method).strip().lower(), str(test_method).strip().lower())
+    if key not in VOLUME_METHODS:
+        raise choice_error(step, "test_method", test_method, list(VOLUME_METHODS))
     if exactly:
+        if key != "quad":
+            raise SimplydataError("exactly=True finds the exact volume with SymPy, so it takes no test_method=.")
         return _volume_exactly(formula, text, order, spans, ranges, known)
+    if key != "quad":  # families for 100 %, batch 15
+        value, said, notes = _other_integral(key, read, order, spans, step)
+        print(f"The volume under {text} for {ranges}: {_show(value)} ({said}).")
+        print(f"Method: {AREA_METHODS[key]}, over every letter at once.")
+        for note in notes:
+            print(f"Note from SciPy: {note}")
+        return float(value)
 
     def value_at(*inner_first):
         values = dict(zip(reversed(order), inner_first))  # SciPy gives the innermost letter first

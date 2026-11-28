@@ -139,6 +139,19 @@ UNDERNEATH = {
     "get_size": "matplotlib (Figure.get_size_inches)",
     "undo": "simplydata itself: a chart is a list of steps, drawn only when it is shown or saved",
     "as_matplotlib": "matplotlib (the Figure simplydata draws, with its Axes in Figure.axes)",
+    # families for 100 %, batches 1-2 (approved by Manish 2026-11-28)
+    "draw_dashes": "seaborn (stripplot(jitter=False) places, drawn as matplotlib LineCollection dashes: so.Dash)",
+    "table.get_different_values_in": "pandas (Series.unique) or Polars (unique(maintain_order=True))",
+    "table.check_if_all_values_in": "pandas (Series.all) or Polars (all, all_horizontal)",
+    "table.check_if_any_value_in": "pandas (Series.any) or Polars (any, any_horizontal)",
+    "table.check_if_sorted_by": "pandas (is_monotonic_increasing) or Polars (is_sorted)",
+    "table.add_run_number_column": "Polars (rle_id), on pandas and Polars tables",
+    "table.turn_into_title_case": "pandas (str.title) or Polars (str.to_titlecase)",
+    # families for 100 %, batches 7-9 (approved by Manish 2026-11-28): the maths family
+    "nums.take_function": "SciPy (scipy.special, e.g. jv, erfinv) or NumPy (e.g. sinh, gcd), from one name table",
+    "nums.work_on_bits": "NumPy (bitwise_and, bitwise_or, bitwise_xor, invert, left_shift, packbits ...)",
+    "sdata.find_zeros_of": "SciPy (scipy.special jn_zeros, ai_zeros, erf_zeros ...)",
+    "sdata.find_area_points": "SciPy (scipy.special roots_legendre ...; scipy.integrate newton_cotes, lebedev_rule)",
     "write_letter": "matplotlib (Axes.set_title(loc=\"left\"), bold)",
     "put_legend_inside": "matplotlib (Axes.legend(loc=)); seaborn (move_legend) on a chart of several panels",
     "use_shapes": "seaborn (scatterplot style= and markers=)",
@@ -358,6 +371,24 @@ UNDERNEATH = {
                            "differential_evolution and other global searches)",
     "sdata.find_where_biggest": "SciPy (the same as find_smallest, on minus the formula)",
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
+    # families for 100 %, batches 3-4 (approved by Manish 2026-11-28)
+    "sdata.find_sensitivity_of": "SciPy (stats.sobol_indices on a Sobol' sample, Saltelli et al. 2010)",
+    "sdata.find_parameter_that_gives": "SciPy (scipy.special inverse functions: stdtridf, bdtri, nrdtrisd ...)",
+    "dist.take_function": "SciPy (the change of variables, as stats.log, stats.exp, stats.abs, stats.order_statistic)",
+    # families for 100 %, batches 14-16 (approved by Manish 2026-11-28)
+    "sdata.find_best_pairing": "SciPy (optimize.linear_sum_assignment; quadratic_assignment for with_distances=)",
+    "sdata.find_path_between_ends": "SciPy (integrate.solve_bvp, collocation)",
+    "sdata.curve_through_points": "SciPy (interpolate: make_interp_spline, make_smoothing_spline, make_splrep, "
+                                  "make_lsq_spline, CubicHermiteSpline, make_splprep, RectBivariateSpline ...)",
+    "curve.find_value_at": "SciPy (interpolate.BSpline, as splev)",
+    "curve.find_slope_at": "SciPy (BSpline.derivative, as splev(der=) and spalde)",
+    "curve.find_area_between": "SciPy (BSpline.integrate, as splint)",
+    "curve.find_zeros": "SciPy (PPoly.solve, as sproot)",
+    "curve.turn_into_slope_curve": "SciPy (BSpline.derivative, as splder)",
+    "curve.turn_into_area_curve": "SciPy (BSpline.antiderivative, as splantider)",
+    "curve.show_pieces": "SciPy (PPoly.from_spline, BPoly.from_power_basis)",
+    "curve.show_knots": "SciPy (BSpline t, c, k)",
+    "curve.as_scipy": "SciPy (the BSpline itself)",
     # values between points
     "table.find_values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "
@@ -370,7 +401,8 @@ UNDERNEATH = {
                               "gaussian_kde with statsmodels bw_silverman",
     "table.compare_distributions_for": "SciPy (scipy.stats, maximum likelihood; Anderson-Darling, Kolmogorov-Smirnov and "
                                    "Cramer-von Mises statistics)",
-    "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
+    "nums.find_spectrum": "SciPy (signal.periodogram, signal.welch, signal.spectrogram); R lomb::lsp for uneven times "
+                          "(simplydata[r])",
     "table.find_spectrum_of": "SciPy (signal.periodogram, signal.welch); R lomb::lsp for uneven times (simplydata[r])",
     "table.check_steady_over_time": "R (urca::ur.df or tseries::adf.test, and tseries::kpss.test, through rpy2: simplydata[r])",
     "table.find_autocorrelation_of": "statsmodels (tsa.stattools acf, pacf method ywm, acovf, acorr_ljungbox), as R acf, "
@@ -385,23 +417,31 @@ UNDERNEATH = {
                                  "(simplydata[r])",
     "nums.smooth": "as table.add_smoothed_column",
     "nums.remove_trend": "SciPy (signal.detrend)",
-    "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; iirpeak; sosfiltfilt, sosfilt)",
+    "nums.keep_each_frequency_that": "SciPy (signal.butter, cheby1, cheby2, ellip, bessel as sos; firwin, firls, "
+                                     "remez, firwin2; buttord ... kaiserord; iirpeak, gammatone; sosfiltfilt, "
+                                     "sosfilt)",
     "nums.remove_each_frequency_that": "SciPy (as keep_each_frequency_that; iirnotch, iircomb)",
     "table.add_filtered_column": "SciPy (as numbers.keep_each_frequency_that)",
     "nums.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
     "nums.find_each_dip_that": "SciPy (signal.find_peaks on minus the numbers)",
     "table.find_each_peak_that": "SciPy (signal.find_peaks, peak_prominences, peak_widths)",
     "table.find_each_dip_that": "SciPy (signal.find_peaks on minus the column)",
-    "nums.take_fourier_transform": "SciPy (fft.rfft, fft.fft)",
+    "nums.take_fourier_transform": "SciPy (fft.rfft, fft.fft; signal.ShortTimeFFT for over_time=, zoom_fft for "
+                                   "between=)",
     "sdata.find_inverse_fourier_transform": "SciPy (fft.irfft, fft.ifft)",
     "nums.find_envelope": "SciPy (signal.hilbert)",
     "nums.convolve_with": "SciPy (signal.convolve)",
     "nums.deconvolve_by": "SciPy (signal.deconvolve)",
-    "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate)",
-    "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, gausspulse, unit_impulse) and NumPy sin",
+    "nums.change_time_step": "SciPy (signal.resample, resample_poly, decimate, cspline1d_eval, qspline1d_eval)",
+    "sdata.make_wave": "SciPy (signal.square, sawtooth, chirp, sweep_poly, gausspulse, unit_impulse, max_len_seq) and "
+                       "NumPy sin",
     "sdata.make_window_shape": "SciPy (signal.get_window)",
     "table.add_envelope_column": "SciPy (signal.hilbert)",
-    "sdata.frequency_filter": "SciPy (the designs of numbers.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt)",
+    "sdata.frequency_filter": "SciPy (the designs of numbers.keep_each_frequency_that; sosfreqz, sos2zpk, sosfilt; "
+                              "butter(..., analog=True) and the others for analog=True)",
+    # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+    "system.move_poles_to": "SciPy (signal.place_poles on the tf2ss form, then ss2tf)",
+    "nums.find_phase_locking_to": "SciPy (signal.vectorstrength)",
     "system.step_response": "SciPy (signal.step, dstep); python-control (step_info) for the rise time, settling time "
                             "and overshoot (simplydata[systems])",
     "system.frequency_response": "SciPy (signal.freqresp, freqz); python-control (stability_margins) for the gain and "
@@ -456,8 +496,9 @@ UNDERNEATH = {
     "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
                           "test_method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
-    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist); R vegan::vegdist for the Aitchison, "
-                                         "robust Aitchison and Hellinger distances",
+    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist; spatial.distance.cdist for "
+                                         "measure=\"minkowski\"); R vegan::vegdist for the Aitchison, robust "
+                                         "Aitchison and Hellinger distances",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
     "table.compare_profiles_of": "R vegan::adonis2 or anosim, betadisper and permutest; simper for "
                                  "show=\"contributions\" (needs R)",
@@ -506,7 +547,9 @@ UNDERNEATH = {
     "block.turn_into_change_from_average": "xarray (groupby(\"time.month\") minus its mean) or NumPy (nanmean with "
                                            "keepdims=True)",
     "block.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
-    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=; maximum_filter, "
+                   "minimum_filter and their 1d forms, percentile_filter, rank_filter, vectorized_filter, "
+                   "fourier_gaussian, fourier_uniform, fourier_ellipsoid; signal.order_filter, spline_filter)",
     "block.change_size_to": "SciPy (ndimage.zoom)",
     "nums.make_random_picks": "NumPy (random.default_rng(seed).choice)",
     "nums.take_log_odds": "SciPy (special.logit)",
@@ -588,10 +631,12 @@ UNDERNEATH = {
     "nums.take_cube_root": "NumPy (cbrt)",
     "nums.show_as_fraction": "SymPy (nsimplify with rational=True)",
     "nums.find_coherence_with": "SciPy (signal.coherence, Welch's method)",
-    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal)",
+    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal; dst, idct, idst, and fht for kind=\"hankel\")",
     "grid.get_numbers_at_pairs": "NumPy (indexing with two lists of positions)",
     "grid.get_numbers_from_each_row_at": "NumPy (take_along_axis)",
-    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass)",
+    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass; extrema, median, "
+                                 "standard_deviation, variance, labeled_comprehension, value_indices, histogram "
+                                 "for show=)",
     "grid.change_size_to": "SciPy (ndimage.zoom)",
     "grid.rotate": "SciPy (ndimage.rotate)",
     "grid.take_matrix_exp": "SciPy (linalg.expm)",
@@ -599,6 +644,29 @@ UNDERNEATH = {
     "table.find_nearest_rows_to": "SciPy (spatial.KDTree: query, query_ball_point; spatial.distance.cdist)",
     "table.find_distances_to_rows_of": "SciPy (spatial.distance.cdist)",
     "table.find_fence_around": "SciPy (spatial.ConvexHull, Qhull)",
+    # families for 100 %, batches 19-21 (approved by Manish 2026-11-28, plan sections 2.8 and 2.9)
+    "grid.take_matrix_function": "SciPy (linalg.logm, sqrtm, expm, cosm, sinm, tanm, coshm, sinhm, tanhm, signm, "
+                                 "fractional_matrix_power, funm); NumPy linalg.matrix_power for a whole power",
+    "grid.check_if_grid_is": "SciPy (linalg.issymmetric, ishermitian, bandwidth)",
+    "grid.find_best_rotation_to": "SciPy (linalg.orthogonal_procrustes)",
+    "grid.find_angles_to": "SciPy (linalg.subspace_angles)",
+    "sdata.solve_matrix_equation": "SciPy (linalg.solve_continuous_lyapunov, solve_discrete_lyapunov, solve_sylvester, "
+                                   "solve_continuous_are, solve_discrete_are)",
+    "grid.find_edges": "SciPy (ndimage.sobel, prewitt with generic_gradient_magnitude; laplace, gaussian_laplace, "
+                       "gaussian_gradient_magnitude)",
+    "grid.change_patch_shapes": "SciPy (ndimage.binary_dilation, binary_erosion, binary_opening, binary_closing, "
+                                "binary_fill_holes, binary_hit_or_miss, binary_propagation, grey_dilation, "
+                                "grey_erosion, grey_opening, grey_closing, white_tophat, black_tophat, "
+                                "morphological_gradient, morphological_laplace, generate_binary_structure, "
+                                "iterate_structure)",
+    "grid.find_distance_to_nearest": "SciPy (ndimage.distance_transform_edt, distance_transform_cdt, "
+                                     "distance_transform_bf)",
+    "grid.split_touching_patches": "SciPy (ndimage.watershed_ift)",
+    "grid.move_and_stretch_by": "SciPy (ndimage.affine_transform, geometric_transform; fourier_shift on NumPy's FFT)",
+    "grid.convolve_with": "SciPy (signal.convolve2d, correlate2d, sepfir2d)",
+    "grid.find_envelope": "SciPy (signal.hilbert2)",
+    "table.find_triangles_between_points": "SciPy (spatial.Delaunay, find_simplex; Qhull)",
+    "table.find_regions_around_points": "SciPy (spatial.Voronoi, SphericalVoronoi; ConvexHull for the areas)",
     # numbers phase, batch 4 (each also has a tested entry in simplydata._underneath)
     "f.show_as_decimal": "SymPy (N, evalf with the digits asked for)",
     "f.group_by_powers_of": "SymPy (expand, then collect)",
@@ -607,12 +675,29 @@ UNDERNEATH = {
     "sdata.find_sum_of_series": "SymPy (summation; Sum.is_convergent and evalf when there is no closed form)",
     "grid.find_determinant": "SciPy (linalg.det); SymPy Matrix.det for exactly=True",
     "grid.take_inverse": "SciPy (linalg.inv); SymPy Matrix.inv for exactly=True",
-    "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals); SymPy eigenvals for "
-                             "exactly=True",
+    "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals; eigvals_banded, "
+                             "eigvalsh_tridiagonal for structure=); SymPy eigenvals for exactly=True",
     # numbers finishing (P41; each also has a tested entry in simplydata._underneath)
     "grid.solve_for": "SciPy (linalg.solve; linalg.lstsq for least squares; optimize.nnls and optimize.lsq_linear for "
-                      "between=); SymPy LUsolve and solve_least_squares for exactly=True",
-    "grid.break_down": "SciPy (linalg.svd, qr, lu, cholesky, schur, polar, ldl, hessenberg, qz)",
+                      "between=; cholesky_banded, cho_solve_banded, solve_banded for structure=); SymPy LUsolve and "
+                      "solve_least_squares for exactly=True",
+    "grid.break_down": "SciPy (linalg.svd, qr, rq, lu, cholesky, schur, polar, ldl, hessenberg, qz, cossin, eig "
+                       "with cdf2rdf); SymPy jordan_form",
+    # families for 100 %, batches 10-13 (approved by Manish 2026-11-28, plan section 2.4)
+    "sdata.number_grid": "NumPy (array, full, reshape; eye, diag, tri, vander, block and fromfunction for kind= and "
+                         "from_formula=); SciPy linalg (toeplitz, hankel, circulant, companion, hadamard, hilbert, "
+                         "pascal, leslie, helmert, block_diag ...) and SymPy rot_axis1-3 for kind=",
+    "nums.count_in_bins": "NumPy (histogram, histogram_bin_edges, histogram2d)",
+    "nums.find_size": "NumPy (linalg.vector_norm)",
+    "grid.find_size": "NumPy (linalg.matrix_norm)",
+    "grid.multiply_as_matrix_by": "NumPy (matmul, matvec, vecmat, linalg.multi_dot)",
+    "grid.find_rank": "NumPy (linalg.matrix_rank, from the SVD)",
+    "grid.find_condition_number": "NumPy (linalg.cond)",
+    "grid.find_column_space": "SciPy (linalg.orth)",
+    "grid.take_fourier_transform": "SciPy (fft.rfft2, fft2, or rfft and fft with axis=)",
+    "grid.take_cosine_transform": "SciPy (fft.dctn, dstn, idctn, idstn)",
+    "sdata.polynomial": "SymPy (legendre_poly, chebyshevt_poly, hermite_poly, jacobi_poly, cyclotomic_poly, "
+                        "interpolating_poly ...); the same in decimals in scipy.special and numpy.polynomial",
     # seaborn's colour tools (owner's decision 2026-11-28)
     "sdata.show_colours": "seaborn (palplot, color_palette)",
     "sdata.change_colour": "seaborn (set_hls_values, desaturate, saturate)",
@@ -831,12 +916,14 @@ FAMILY_TITLES = {
 _UNICODE = {
     "°": r"\textdegree{}", "²": r"\textsuperscript{2}", "³": r"\textsuperscript{3}", "⁴": r"\textsuperscript{4}", "·": r"\textperiodcentered{}",
     "×": r"\texttimes{}", "−": r"\textminus{}", "±": r"\textpm{}", "–": "--", "—": "---", "…": r"\dots{}",
-    "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "’": "'", "‘": "`", "“": "``", "”": "''",
+    "≈": r"$\approx$", "µ": r"\textmu{}", "é": r"\'e", "è": r"\`e", "’": "'", "‘": "`", "“": "``", "”": "''",
     "á": r"\'a", "í": r"\'{\i}", "ä": r"\"a", "ö": r"\"o", "ü": r"\"u", "Ü": r"\"U", "ñ": r"\~n", "ß": r"\ss{}", "Ø": r"\O{}", "χ": r"$\chi$",
     "š": r"\v{s}", "å": r"\aa{}", "Å": r"\AA{}", "ø": r"\o{}", "æ": r"\ae{}",
     # the Greek and Turkish letters of the capitals_matter= notes (ΟΔΟΣ and οδος, İ)
     "Ο": "O", "Δ": r"$\Delta$", "Σ": r"$\Sigma$", "ο": "o", "δ": r"$\delta$", "ς": r"$\varsigma$",
     "σ": r"$\sigma$", "İ": r"\.I",
+    # the ligature and letter pair of the capitals_matter= note on table words (families for 100 %, batches 1-2)
+    "ﬁ": "fi", "ǆ": r"d\v{z}",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",
@@ -1273,8 +1360,9 @@ def _same_underneath(key: str, entry=None) -> str:
     entry = entry or underneath_entry(key)
     if entry is None:
         return ""
-    if entry.compare == "none":
-        return r"\undertext{\textit{Nothing underneath:} " + rich(entry.note) + "}"
+    if entry.compare == "none":  # an option with nothing underneath still says which option it is
+        lead = r"\textbf{With " + code(entry.option) + "}: " if entry.option else ""
+        return r"\undertext{" + lead + r"\textit{Nothing underneath:} " + rich(entry.note) + "}"
     out = []
     if entry.compare == "chart":
         out.append(r"\begin{center}\begin{minipage}{\linewidth}\centering" + "\n"

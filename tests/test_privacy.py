@@ -93,7 +93,10 @@ ALLOWED_USES = {  # (file, function) where urllib.<part>.<name> may be used
     "urllib.parse": {("_data.py", "_read_web"), ("_data.py", "_redirect_allowed")},
 }
 ALLOWED_EXACT = {("_data.py", "<module>", "urllib.request.HTTPRedirectHandler")}  # class _SafeRedirect(...)
-ALLOWED_CALLS = {("_data.py", "_download")}
+ALLOWED_CALLS = {("_data.py", "_download"),
+                 # families for 100 %, batches 1-2: pandas read_html gets only the bytes of a page saved on this
+                 # computer (io.BytesIO), never a web address; test_read_html_gets_text_never_an_address checks it
+                 ("_data.py", "_read_html")}
 
 
 def _network_code(files=None, base=PACKAGE) -> list[str]:
@@ -599,3 +602,26 @@ def test_importing_simplydata_adds_no_log_file_and_writes_nothing(tmp_path):
     assert "FILE HANDLERS 0" in result.stdout
     assert "NEW HANDLERS []" in result.stdout
     assert list(work.iterdir()) == [] and list(home.iterdir()) == []
+
+
+
+def test_read_html_gets_text_never_an_address(tmp_path, monkeypatch):
+    """sdata.table("page.html") hands pandas read_html the page's bytes (io.BytesIO), so it cannot fetch anything."""
+    import io
+
+    import pandas as pd
+
+    import simplydata as sdata
+
+    given = []
+    real = pd.read_html
+
+    def watched(source, *args, **kwargs):
+        given.append(source)
+        return real(source, *args, **kwargs)
+
+    monkeypatch.setattr(pd, "read_html", watched)
+    page = tmp_path / "page.html"
+    page.write_text("<table><tr><th>a</th></tr><tr><td>1</td></tr></table>", encoding="utf-8")
+    assert sdata.table(str(page)).get_column("a").as_numpy().tolist() == [1]
+    assert given and all(isinstance(g, (io.BytesIO, io.StringIO)) for g in given)  # bytes or text, never an address

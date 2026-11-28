@@ -17,6 +17,7 @@ from .distribution_words import DistributionTableWords
 from .factor_words import HiddenFactorWords
 from .fitting import FittingWords
 from .forecasts import ForecastWords
+from .full_words import FullWords
 from .lines_more import LinesMoreWords
 from .meta_words import MetaWords
 from .model_tools import ModelToolWords
@@ -26,6 +27,7 @@ from .more_table_words_2 import MoreTableWords2
 from .more_table_words_3 import MoreTableWordsThree
 from .more_tests import MoreTestWords
 from .nearest_words import NearestWords
+from .point_words import PointWords  # families for 100 %, batch 21: Delaunay and Voronoi (SciPy spatial)
 from .patterns import PatternWords
 from .places import PlaceWords
 from .positions import PositionWords
@@ -46,7 +48,9 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, BaseTable):
+            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, PointWords,
+            FullWords,
+            BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 
 
@@ -67,7 +71,7 @@ _READING_POINTERS = {"header": 'column_names=["time", "temperature"] for a file 
           pointers=_READING_POINTERS)
 def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mark=None, thousands_mark=None,
           empty_values=None, skip_rows=None, encoding=None, table_number=None, read_as_text=None, columns=None,
-          column_names=None, skip_lines_starting_with=None, table_name=None) -> Table:
+          column_names=None, skip_lines_starting_with=None, table_name=None, fixed_widths=None) -> Table:
     """Start a table.
 
     sdata.table(sdata.get_example("marks"))         a practice table
@@ -132,6 +136,16 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
     sdata.table("lab.sqlite", table_name="samples")
     A database with one table needs no table_name=. .duckdb files need DuckDB
     (pip install "simplydata[sql]"); they are opened read-only, with no extensions.
+    A web page saved on this computer (.html or .htm) gives its first table, or the one table_number=
+    picks (pandas read_html; pip install "simplydata[files]" for lxml):
+    sdata.table("stations.html", table_number=2)
+    fixed_widths=[10, 6, 6] reads a text file whose columns stand at fixed places, each column that many
+    characters wide (pandas read_fwf(widths=)); fixed_widths=True lets pandas find the columns:
+    sdata.table("station.txt", fixed_widths=[10, 6, 6])
+    sdata.table("clipboard") reads what you copied, from Excel, a web page or a text file (pandas
+    read_clipboard); table.save("clipboard") copies the table, to paste into Excel. Nothing leaves this
+    computer. A .json file whose rows hold values inside values ({"site": {"name": "N1"}}) gets a column
+    for each part (site.name), as pandas json_normalize.
     """
     if not isinstance(fast, bool):
         raise SimplydataError("fast= should be True or False.")
@@ -141,5 +155,5 @@ def table(data=None, sheet=None, fast: bool = False, separator=None, decimal_mar
                               empty_values=empty_values, skip_rows=skip_rows, encoding=encoding,
                               table_number=table_number, read_as_text=read_as_text, columns=columns,
                               column_names=column_names, skip_lines_starting_with=skip_lines_starting_with,
-                              table_name=table_name)
+                              table_name=table_name, fixed_widths=fixed_widths)
     return Table(data, sheet=sheet, fast=fast, _reading=reading)

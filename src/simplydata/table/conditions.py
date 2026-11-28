@@ -146,12 +146,15 @@ CONDITION_HELP = (
     "  and  or  not  ( )       join conditions; brackets decide what goes together\n"
     "  in [...]                subject in ['Maths', 'Science']\n"
     "  is empty                marks is empty, marks is not empty\n"
+    "  contains                gene contains 'bla'   (a piece of the text; capital letters matter)\n"
     "  sums                    marks / hours > 10   (+ - * / ** and round, abs, sqrt, log)\n"
     "An empty cell never meets a condition, and not does not change that: use is empty to find them.\n"
     "Example: table.keep_rows_where(\"marks > 50 and class == 'A'\")   (with sdata.get_example(\"marks\"))\n"
     "Example: table.add_group_column(\"result\", rules={\"marks >= 60\": \"pass\"}, otherwise=\"fail\")"
 )
 
+# gene contains 'bla' (a column name, or one in backticks, then contains, then text in quotes)
+_CONTAINS = re.compile(r"""('[^']*'|"[^"]*")|(?<![\w.`])([A-Za-z_]\w*|`[^`]*`)\s+contains\s+('[^']*'|"[^"]*")""")
 _SIGNS = {ast.Eq: "==", ast.NotEq: "!=", ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">", ast.GtE: ">="}
 _COMPARE_WITH = {ast.Eq: operator.eq, ast.NotEq: operator.ne, ast.Lt: operator.lt,
                  ast.LtE: operator.le, ast.Gt: operator.gt, ast.GtE: operator.ge}
@@ -206,6 +209,10 @@ class _ConditionReader(_FormulaReader):
     def read(self):
         if not isinstance(self.text, str) or not self.text.strip():
             raise _condition_error("The condition should be some text, for example \"marks > 50\".")
+        written = self.text
+        # families for 100 %, batches 1-2: gene contains 'bla' is read as 'bla' in gene (pandas and Polars
+        # str.contains(literal=True)); text in quotes elsewhere is left alone
+        self.text = _CONTAINS.sub(lambda m: m.group(1) or f"{m.group(3)} in {m.group(2)}", written)
         try:
             result = super().read()
         except SimplydataError as error:
@@ -390,6 +397,16 @@ class _ConditionReader(_FormulaReader):
                 raise _condition_error("is empty goes after a column name, like: marks is empty.")
             empty = _empty_in(self.frame, left.column)
             return (empty, ~empty) if isinstance(op, ast.Is) else (~empty, empty)
+
+        if isinstance(op, (ast.In, ast.NotIn)) and left.is_value and not isinstance(
+                right_node, (ast.List, ast.Tuple, ast.Set)):  # gene contains 'bla', read as 'bla' in gene
+            right = self._side(right_node)
+            if right.column is None or right.kind != "text" or not isinstance(left.literal, str):
+                raise _condition_error("contains finds a piece of text in a text column, like: gene contains 'bla'.")
+            cond = right.expr.str.contains(left.literal, literal=True)  # pandas and Polars str.contains
+            if isinstance(op, ast.NotIn):
+                cond = ~cond
+            return cond.fill_null(False) & right.known, (~cond).fill_null(False) & right.known
 
         if isinstance(op, (ast.In, ast.NotIn)):
             if left.is_value or not isinstance(right_node, (ast.List, ast.Tuple, ast.Set)):

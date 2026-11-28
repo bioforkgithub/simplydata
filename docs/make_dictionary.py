@@ -44,6 +44,10 @@ import simplydata  # noqa: E402
 from simplydata import learn  # noqa: E402
 from simplydata._other_names import NAMESPACE_SHOWN, NUMBER_SPACES, OTHER_NAMES  # noqa: E402
 
+# the dictionary writes every namespaced name with its namespace; list. names are looked up only with list. in front
+# (so they are not in NAMESPACE_SHOWN), but the dictionary still shows them as list.sum, list.unique ...
+SHOWN_WITH_SPACE = {**NAMESPACE_SHOWN, "lists": "list"}
+
 MANUAL = make_manual.MANUAL
 TEX = MANUAL / "simplydataDictionary.tex"
 PDF = MANUAL / "simplydataDictionary.pdf"
@@ -51,11 +55,12 @@ MANUAL_PDF_NAME = make_manual.PDF.name  # links open the manual next to the dict
 
 # How each kind of word is written in front of the word, and the order of the senses of a headword.
 WRITTEN = {"sdata": "sdata", "table": "table", "chart": "chart", "option": "chart", "numbers": "numbers",
-           "grid": "grid", "block": "block", "dist": "distribution", "system": "system", "formula": "formula"}
-KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "block", "dist", "system", "formula"]
+           "grid": "grid", "block": "block", "dist": "distribution", "system": "system", "formula": "formula",
+           "curve": "curve"}  # families for 100 %, batch 16
+KIND_ORDER = ["sdata", "table", "chart", "option", "numbers", "grid", "block", "dist", "system", "formula", "curve"]
 KIND_NAME = {"sdata": "simplydata", "table": "table", "chart": "chart", "option": "option in a chart step",
              "numbers": "numbers", "grid": "grid of numbers", "block": "block of numbers", "dist": "distribution",
-             "system": "system", "formula": "formula"}
+             "system": "system", "formula": "formula", "curve": "curve (a spline)"}
 MAX_OPTIONS = 8  # the main options: the first ones in the brackets, then "and N more"
 MAX_SEE_ALSO = 5
 
@@ -260,6 +265,13 @@ def sort_key(word: str) -> tuple:
     return (plain.replace("_", " "), word)
 
 
+# a word whose result a pointer goes on with ('grid.get_part("diagonal").find_total()'): the kind of that result
+# (None: the result is the library's own object, as_numpy() gives a NumPy array, so only the word itself counts)
+CHAINED = {"sdata.distribution": "dist", "sdata.number_grid": "grid", "sdata.number_list": "nums",
+           "grid.get_part": "grid", "grid.keep_rows_by_position": "grid", "formula.find_slope_formula": "formula",
+           "numbers.as_numpy": None, "nums.as_numpy": None, "grid.as_numpy": None}
+
+
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
@@ -270,9 +282,12 @@ def _calls(written: str) -> list[str]:
         name = base
         chained = re.match(r"\.(\w+)\(", written[end:]) if end else None
         if chained:
-            if base != "sdata.distribution":
+            if base not in CHAINED:
                 raise ValueError(f"Say what {base}(...).{chained.group(1)} is in docs/make_dictionary.py")
-            name = f"dist.{chained.group(1)}"
+            if base != "sdata.distribution":  # the word that makes the object is named too
+                found.append(learn._lookup(base) or learn._lookup("nums." + base.partition(".")[2]))
+            if CHAINED[base] is not None:
+                name = f"{CHAINED[base]}.{chained.group(1)}"
         key = learn._lookup(name)
         if key is None and name.startswith("grid."):  # grid.as_numpy: a grid has the words of numbers too
             key = learn._lookup("nums." + name[len("grid."):])
@@ -295,8 +310,8 @@ def other_names() -> dict[str, list[str]]:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"
-            if kind in NAMESPACE_SHOWN or kind in NUMBER_SPACES:  # np.mean, linalg.solve, sympy.diff
-                shown = f"{NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES[kind]}.{name}"
+            if kind in SHOWN_WITH_SPACE or kind in NUMBER_SPACES:  # np.mean, linalg.solve, sympy.diff, list.sum
+                shown = f"{SHOWN_WITH_SPACE.get(kind) or NUMBER_SPACES[kind]}.{name}"
             else:
                 shown = f"{WRITTEN[kind]}.{name}" if name in words else name
             found.setdefault(shown, [])
@@ -309,7 +324,7 @@ def other_names_of() -> dict[str, list[str]]:
     turned: dict[str, list[str]] = {}
     for shown, keys in other_names().items():
         space, _, name = shown.rpartition(".")
-        if space in NAMESPACE_SHOWN.values() or space in NUMBER_SPACES.values():  # str.replace stays str.replace
+        if space in SHOWN_WITH_SPACE.values() or space in NUMBER_SPACES.values():  # str.replace stays str.replace
             name = shown
         for key in keys:
             if name not in turned.setdefault(key, []):

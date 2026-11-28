@@ -59,6 +59,15 @@ def _datasets(Dataset):
                 f"{BOX_JENKINS}. Copy from R's datasets package (AirPassengers).",
                 "Published 1976 (facts); R's datasets copy is GPL-2 | GPL-3.",
                 "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/AirPassengers.html"),
+        # families for 100 %, batch 21 (approved by Manish 2026-11-28): places spread over a large part of the
+        # earth, for find_regions_around_points(longitude=, latitude=)
+        Dataset("state.center (R datasets)", "state_center.csv",
+                "the longitude and latitude of the centres of the 50 US states (Alaska and Hawaii placed off the "
+                "coast, as R documents)",
+                "U.S. Department of Commerce, Bureau of the Census (1977). Statistical Abstract of the United States; "
+                "and (1977) County and City Data Book. Copy from R's datasets package (state.center).",
+                "Published 1977 (facts); R's datasets copy is GPL-2 | GPL-3.",
+                "https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/state.html"),
         Dataset("hedenfalk (qvalue)", "", "3170 p-values of genes compared between BRCA1 and BRCA2 breast tumours",
                 "Hedenfalk, I. et al. (2001). Gene-expression profiles in hereditary breast cancer. New England Journal "
                 "of Medicine 344, 539-548; the p-values of Storey & Tibshirani (2003), PNAS 100, 9440-9445, as R "

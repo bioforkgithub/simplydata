@@ -25,7 +25,7 @@ import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly, option_error
 from .._positions import read_positions
-from ._base import NOT_GIVEN, amount, check_seed, check_whole, is_number, plain, say
+from ._base import NOT_GIVEN, amount, check_seed, check_whole, is_number, plain, say, to_array
 
 CONDITIONS = ("above", "below", "at_least", "at_most", "equal_to", "not_equal_to", "between", "one_of",
               "is_empty")
@@ -370,13 +370,37 @@ class PickingWords(ReplacingWords):
         return self._keep("remove empty values", ~self._empty_mask(), kept_word=False)
 
     @friendly
-    def remove_duplicate_numbers(self: _Same) -> _Same:
+    def remove_duplicate_numbers(self: _Same, show=None) -> _Same:
         """Remove numbers that repeat an earlier number, so each number is left once, in its first place.
 
         numbers.remove_duplicate_numbers()
+        show="positions" changes nothing and gives a table instead: each different number (smallest first), the
+        position where it first comes and how many times it comes (NumPy unique_all). show="which number" gives, for
+        each number, which of those different numbers it is, counting from 1 (NumPy unique_inverse).
         """
         import pandas as pd
 
+        if show is not None:
+            from .numpy_list_words import DUPLICATE_SHOWS
+
+            if show not in DUPLICATE_SHOWS:
+                raise choice_error("remove_duplicate_numbers", "show", show, list(DUPLICATE_SHOWS))
+            from ..table import Table
+
+            values = self._values.ravel()
+            # equal_nan=True: empty values count as one value, as in the plain word (NumPy unique_all would keep
+            # each empty value apart)
+            found, first, inverse, counts = np.unique(values, return_index=True, return_inverse=True,
+                                                      return_counts=True, equal_nan=True)
+            if show == "positions":
+                print(f"{amount(found.size, 'different number')}, smallest first (empty last), with where each first "
+                      "comes (from 1) and how many times (NumPy unique_all, empty values counted once); the numbers do "
+                      "not change.")
+                return Table(pd.DataFrame({"number": found, "first position": first + 1,
+                                           "count": counts.astype(np.int64)}))
+            print(f"Which of the {amount(found.size, 'different number')} (smallest first, counting from 1) each "
+                  "number is (NumPy unique_inverse, empty values counted once); the numbers do not change.")
+            return self._wrap((inverse.ravel() + 1).astype(np.int64))
         mask = ~pd.Series(self._values).duplicated().to_numpy()
         return self._keep("remove duplicate numbers", mask, kept_word=False)
 
@@ -434,10 +458,35 @@ class PickingWords(ReplacingWords):
 
     # ================================================================== order
     @friendly
-    def sort(self: _Same, biggest_first=False) -> _Same:
-        """Put the numbers in order, smallest first; empty values go last. numbers.sort(biggest_first=True)"""
+    def sort(self: _Same, biggest_first=False, show="numbers", then_by=None) -> _Same:
+        """Put the numbers in order, smallest first; empty values go last. numbers.sort(biggest_first=True)
+
+        then_by= other numbers (one for each) puts numbers that are the same in the order of those (NumPy lexsort).
+        show="positions" changes nothing and gives new numbers instead: which number comes first, second ... in the
+        sorted order, by its position (from 1) in the list: the first is where the smallest number is (NumPy argsort,
+        stable; R order(x)).
+        """
+        from .numpy_list_words import SORT_SHOWS, sort_positions
+
         if not isinstance(biggest_first, bool):
             raise SimplydataError("biggest_first= needs True or False (no quotes)." + self._example("sort(biggest_first=True)"))
+        if show not in SORT_SHOWS:
+            raise choice_error("sort", "show", show, list(SORT_SHOWS))
+        second = None
+        if then_by is not None:
+            second = to_array(then_by, "then_by=", "numbers.sort(then_by=other_numbers)").ravel()
+            if second.size != self._values.size:
+                raise SimplydataError(f"then_by= needs one number for each of yours ({self._values.size}); it has "
+                                      f"{second.size}.")
+        if show == "positions" or second is not None:
+            order = sort_positions(self._values, biggest_first, second)
+            how = "NumPy lexsort, then_by= for the ties" if second is not None else "NumPy argsort, stable"
+            if show == "positions":
+                print(f"Which number comes first, second ... in {'biggest' if biggest_first else 'smallest'}-first "
+                      f"order, by its position counting from 1 ({how}); the numbers do not change.")
+                return self._wrap((order + 1).astype(np.int64))
+            print(f"Sorted, {'biggest' if biggest_first else 'smallest'} first, ties in the order of then_by= ({how}).")
+            return self._change("sort, then by other numbers", self._values[order])
         empty = self._empty_mask()
         filled = np.sort(self._values[~empty], kind="stable")
         if biggest_first:
@@ -451,12 +500,22 @@ class PickingWords(ReplacingWords):
         return self._change("reverse", self._values[::-1].copy())
 
     @friendly
-    def turn_into_running_total(self: _Same) -> _Same:
+    def turn_into_running_total(self: _Same, show="total") -> _Same:
         """Each number becomes the total so far (the cumulative sum): 1, 2, 3 becomes 1, 3, 6.
 
         numbers.turn_into_running_total()
-        Empty values stay empty and are skipped in the total, like pandas cumsum().
+        Empty values stay empty and are skipped in the total, like pandas cumsum(). show="product" gives the
+        product so far instead: 1, 2, 3 becomes 1, 2, 6 (NumPy nancumprod, R cumprod).
         """
+        from .numpy_list_words import RUNNING_SHOWS, running_product
+
+        if show not in RUNNING_SHOWS:
+            raise choice_error("turn_into_running_total", "show", show, list(RUNNING_SHOWS))
+        if show == "product":
+            out, how = running_product(self._values)
+            print(f"Each of the {self._values.size} numbers is now the product so far ({how}; empty values stay "
+                  "empty).")
+            return self._change("running product", out)
         empty = self._empty_mask()
         totals = np.cumsum(np.where(empty, 0, self._values))
         if empty.any():

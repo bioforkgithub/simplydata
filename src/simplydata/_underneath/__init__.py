@@ -1,6 +1,6 @@
-"""The same work in the packages underneath: tested entries for 584 of simplydata's 584 words.
+"""The same work in the packages underneath: tested entries for 652 of simplydata's 652 words.
 
-Every word has an entry. There are 770 entries: one for each of 584 words, plus one for each option of those
+Every word has an entry. There are 1062 entries: one for each of 652 words, plus one for each option of those
 words that changes what the word calls underneath (the two options listed as words, show= and error=, among them).
 Each word is also checked by its own tests
 (tests/) and, for many statistics words, by the cases of the reliability study (validation/). The counts are kept
@@ -46,6 +46,21 @@ of a grid in decimals and exactly).
 numbers_5.py (numbers finishing: grid.solve_for and grid.break_down, P41 and the designed matrix words).
 charts_seaborn.py (seaborn's colour tools: show_colours, change_colour, the sliders, from_colour_list= and
 colour_letters=).
+full_tables.py (families for 100 %, batches 1-2: the table words and options for the pandas and Polars gaps, and the
+seaborn.objects marks and moves), and full_options.py (their new options and values of existing words).
+full_stats.py (families for 100 %, batches 3-4: the scipy.stats tests, summaries, bins, best powers, distances,
+sensitivity and censored fits), full_distributions.py (batches 5-6: the SciPy distributions by plain names, the
+joint ones, mixtures, functions of a distribution and find_parameter_that_gives), full_numpy.py (batches 10-12: the
+NumPy and SciPy words for lists and grids and their new options) and full_polynomial.py (batch 13: sdata.polynomial).
+maths_functions.py (families for 100 %, batches 7-9: the maths family of NumPy and scipy.special, take_function,
+work_on_bits, find_zeros_of and find_area_points).
+full_optimize.py (batches 14-16: SciPy optimize, integrate and interpolate: the new test_method= values,
+find_best_pairing, find_path_between_ends, the new joined_by= values and curve_through_points with the words on a
+curve).
+full_signals.py (batches 17-18: the scipy.signal filter designs, FIR filters, analog filters, system forms, pole
+placement, spectra over time, waves and phase locking).
+full_matrices.py (families for 100 %, batch 19: the matrices of scipy.linalg) and full_pictures.py (batches 20-21:
+grids as pictures with SciPy ndimage, and points with SciPy spatial).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -55,6 +70,7 @@ random numbers, a run of dates) and the help and 30-day words, which run no libr
 from __future__ import annotations
 
 import ast
+import re
 from dataclasses import dataclass, field
 
 # How the test compares the two results
@@ -132,6 +148,7 @@ class Entry:
     r_inputs: str = ""
     r_packages: tuple = ()
     ours_r: tuple = ()
+    needs: tuple = ()  # ("scipy 1.18",): skipped, with the reason, where an older version is installed
     python_note: str = ""
     note: str = ""
 
@@ -159,16 +176,19 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, charts_seaborn, checking,
-                   combining, communities,
-                   hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3, numbers_4, numbers_5,
-                   numbers_batch1, places, planning, planning_surveys, signals, small_additions, starting, statistics,
-                   survival, tables)
+                   combining, communities, full_distributions, full_matrices, full_numpy, full_optimize,
+                   full_options, full_pictures, full_polynomial, full_signals, full_stats, full_tables,
+                   maths_functions, hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3,
+                   numbers_4, numbers_5, numbers_batch1, places, planning, planning_surveys, signals,
+                   small_additions, starting, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
     for module in (charts, charts_more, tables, numbers, statistics, models, lines, checking, survival, combining, planning,
                    communities, hidden_factors, places, small_additions, planning_surveys, causal, bayesian,
                    more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3,
-                   numbers_4, numbers_5, charts_seaborn):
+                   numbers_4, numbers_5, charts_seaborn, full_tables, full_options, full_stats,
+                   full_distributions, maths_functions, full_numpy, full_polynomial, full_optimize,
+                   full_signals, full_matrices, full_pictures):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")
@@ -273,3 +293,21 @@ def underneath_line(entry: Entry) -> str:
         if calls:
             parts.append(f"{library} " + ", ".join(calls))
     return " · ".join(parts)
+
+
+def version_missing(needs: tuple) -> str:
+    """"" when every "package least-version" of needs ("scipy 1.18") is installed, else what is missing, in words."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    def numbers(text: str) -> tuple:
+        return tuple(int(part) for part in re.findall(r"\d+", text)[:3])
+
+    for need in needs:
+        package, least = need.split()
+        try:
+            have = version(package)
+        except PackageNotFoundError:
+            return f"{package} {least} or newer (it is not installed)"
+        if numbers(have) < numbers(least):
+            return f"{package} {least} or newer (this computer has {have})"
+    return ""

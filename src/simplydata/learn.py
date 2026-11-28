@@ -30,7 +30,10 @@ GROUPS = [
                               # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
                               "as_matplotlib"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
-                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks"]),
+                     "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d",
+                     "draw_band", "draw_map_of_empty_cells", "draw_sticks",
+                     # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): seaborn so.Dash
+                     "draw_dashes"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
                     "fit_dose_response", "draw_curve", "draw_smooth_line",
                     # S3a-3 (checking and comparing)
@@ -77,7 +80,10 @@ GROUPS = [
                                 "table.show", "table.get_column_names", "table.describe_columns", "table.get_column",
                                 "table.get_row", "table.get_cell_at",
                                 "table.count_columns", "table.show_differences_from",
-                                "table.check_if_same_as"]),
+                                "table.check_if_same_as",
+                                # families for 100 %, batches 1-2 (approved by Manish 2026-11-28)
+                                "table.check_if_all_values_in", "table.check_if_any_value_in",
+                                "table.check_if_sorted_by"]),
     ("Choose columns", ["table.keep_columns", "table.remove_columns", "table.keep_columns_by_position",
                         "table.remove_columns_by_position", "table.rename_column", "table.clean_column_names",
                         "table.rename_columns", "table.move_columns"]),
@@ -94,7 +100,7 @@ GROUPS = [
     ("Fix columns", ["table.turn_into_numbers", "table.turn_into_text", "table.turn_into_dates",
                      "table.turn_into_lowercase", "table.turn_into_uppercase", "table.remove_extra_spaces_in",
                      "table.replace_values_in", "table.round_numbers_in", "table.change_column",
-                     "table.turn_into_categories"]),
+                     "table.turn_into_categories", "table.turn_into_title_case"]),
     ("Sort and new columns", ["table.sort_by", "table.add_column", "table.add_group_column",
                               "table.add_rank_column", "table.add_z_score_column", "table.add_row_summary_column",
                               "table.add_row_number_column"]),
@@ -102,11 +108,12 @@ GROUPS = [
                         "table.replace_text_in", "table.split_into_rows",
                         "table.round_dates_in", "table.change_time_zone_in", "table.add_zeros_in_front_of"]),
     ("Row after row", ["table.add_rolling_column", "table.add_previous_value_column", "table.add_change_column",
-                       "table.add_running_column"]),
+                       "table.add_running_column", "table.add_run_number_column"]),
     ("Summaries", ["table.count_rows", "table.count_each", "table.find_average_of", "table.find_median_of",
                    "table.find_total_of", "table.find_smallest_of", "table.find_biggest_of",
                    "table.find_standard_deviation_of", "table.find_summary_of", "table.find_percent_of_rows_where",
-                   "table.count_different_values_in", "table.find_percentile_of", "table.find_most_common_of",
+                   "table.count_different_values_in", "table.get_different_values_in", "table.find_percentile_of",
+                   "table.find_most_common_of",
                    "table.find_interval_of", "table.find_correlation_between"]),
     ("Statistical tests", ["table.compare_averages_of", "table.compare_each_pair_of", "table.compare_before_and_after",
                            "table.compare_average_to", "table.compare_counts_of", "table.compare_shape_to",
@@ -125,7 +132,11 @@ GROUPS = [
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula",
                 # S3a-2 (lines and curves): core, then "more"
                 "table.fit_dose_response", "table.find_best_power_of"]),
-    ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
+    ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+                             # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy sobol_indices
+                             "sdata.find_sensitivity_of",
+                             # families for 100 %, batch 14: SciPy linear_sum_assignment and quadratic_assignment
+                             "sdata.find_best_pairing"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
     # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
     ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
@@ -133,18 +144,30 @@ GROUPS = [
                                     "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo",
                                     # numbers phase, batch 4 (approved by Manish 2026-11-26)
                                     "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
-                                    "f.as_sympy"]),
+                                    "f.as_sympy",
+                                    # families for 100 %, batch 13 (G5, approved by Manish 2026-11-28)
+                                    "sdata.polynomial"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
-                                   "sdata.find_sum_of_series"]),
-    ("Values between points", ["table.find_values_at", "table.make_map_of"]),
+                                   "sdata.find_sum_of_series",
+                                   # families for 100 %, batch 15: SciPy solve_bvp
+                                   "sdata.find_path_between_ends"]),
+    ("Values between points", ["table.find_values_at", "table.make_map_of",
+                               # families for 100 %, batch 16 (G6): "curve.name" is a step on a curve,
+                               # curve = sdata.curve_through_points(x=..., y=...), then curve.find_value_at(12)
+                               "sdata.curve_through_points", "curve.find_value_at", "curve.find_slope_at",
+                               "curve.find_area_between", "curve.find_zeros", "curve.turn_into_slope_curve",
+                               "curve.turn_into_area_curve", "curve.show_pieces", "curve.show_knots",
+                               "curve.as_scipy"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
     ("Distributions", ["sdata.distribution", "table.fit_distribution_to", "table.compare_distributions_for",
                        "nums.fit_distribution", "dist.find_chance_that_value", "dist.find_density_at", "dist.find_percentile", "dist.find_cut_off",
                        "dist.find_middle_range", "dist.find_average", "dist.find_median", "dist.find_standard_deviation",
                        "dist.find_variance", "dist.show_summary", "dist.make_random_numbers", "dist.draw_chart", "dist.turn_into_table",
-                       "dist.show_parameters"]),
+                       "dist.show_parameters",
+                       # families for 100 %, batches 5-6 (approved by Manish 2026-11-28)
+                       "dist.take_function", "sdata.find_parameter_that_gives"]),
     ("Models", ["table.explain", "table.add_predicted_column", "table.find_model_averages_of", "table.check_model_of",
                 "table.show_rows_that_pull_model", "table.compare_models",
                 # S3a-3 (checking and comparing): "more"
@@ -164,7 +187,9 @@ GROUPS = [
     ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
                                          "table.find_variogram_of",
                                          # numbers phase, batch 3: nearest rows and the fence around points
-                                         "table.find_nearest_rows_to", "table.find_fence_around"]),
+                                         "table.find_nearest_rows_to", "table.find_fence_around",
+                                         # families for 100 %, batch 21 (plan section 2.9): SciPy spatial
+                                         "table.find_triangles_between_points", "table.find_regions_around_points"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -185,7 +210,11 @@ GROUPS = [
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform",
                             # numbers phase, batch 3
-                            "nums.find_coherence_with", "nums.take_cosine_transform"]),
+                            "nums.find_coherence_with", "nums.take_cosine_transform",
+                            # families for 100 %, batch 11 (approved by Manish 2026-11-28): FFT of a grid
+                            "grid.take_fourier_transform", "grid.take_cosine_transform",
+                            # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+                            "nums.find_phase_locking_to"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
@@ -205,20 +234,36 @@ GROUPS = [
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
                                  "nums.take_exp", "nums.turn_into_running_total",
                                  # numbers phase, batch 3
-                                 "nums.take_cube_root", "nums.show_as_fraction"]),
+                                 "nums.take_cube_root", "nums.show_as_fraction",
+                                 # families for 100 %, batches 7-9 (plan section 2.3, approved by Manish
+                                 # 2026-11-28): the maths family of NumPy and scipy.special, one name table shared
+                                 # with formula text (G1-G3, G10)
+                                 "nums.take_function", "nums.work_on_bits", "sdata.find_zeros_of",
+                                 "sdata.find_area_points",
+                                 # families for 100 %, batch 10 (approved by Manish 2026-11-28, plan section 2.4)
+                                 "nums.find_product", "nums.turn_into_changes", "nums.turn_into_slopes",
+                                 "nums.find_dot_product_with", "nums.find_cross_product_with", "nums.find_size"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
                                         "nums.keep_numbers_by_position", "nums.remove_numbers_by_position",
                                         "nums.replace_each_number_that", "nums.fill_empty_numbers", "nums.sort",
-                                        "nums.reverse"]),
+                                        "nums.reverse",
+                                        # families for 100 %, batch 10 (approved by Manish 2026-11-28)
+                                        "nums.count_in_bins", "nums.find_bin_of_each", "nums.find_positions_where",
+                                        "nums.keep_numbers_also_in", "nums.remove_numbers_also_in",
+                                        "nums.keep_numbers_in_only_one", "nums.join_numbers_with"]),
     ("Numbers: summaries", ["nums.find_average", "nums.find_median", "nums.find_total", "nums.find_smallest", "nums.find_biggest",
                             "nums.find_standard_deviation", "nums.find_percentile", "nums.count_each"]),
     ("Grids of numbers", ["sdata.number_grid", "nums.make_number_grid", "grid.count_rows", "grid.count_columns",
                           "grid.find_shape", "grid.show_first_rows", "grid.show_last_rows", "grid.get_number_at",
                           "grid.get_row", "grid.get_column", "grid.get_all_numbers", "grid.keep_rows_by_position",
                           "grid.keep_columns_by_position", "grid.remove_rows_by_position",
-                          "grid.remove_columns_by_position", "grid.replace_each_number_that", "grid.swap_rows_and_columns"]),
+                          "grid.remove_columns_by_position", "grid.replace_each_number_that",
+                          "grid.swap_rows_and_columns",
+                          # families for 100 %, batch 11 (approved by Manish 2026-11-28, plan section 2.4)
+                          "sdata.make_coordinate_grids", "grid.find_positions_where", "grid.add_border",
+                          "grid.get_part", "grid.replace_part"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25)
     ("Grids: pairs, patches and matrices", ["grid.get_numbers_at_pairs", "grid.get_numbers_from_each_row_at",
                                             "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
@@ -226,7 +271,20 @@ GROUPS = [
                                             # numbers phase, batch 4 (approved by Manish 2026-11-26)
                                             "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues",
                                             # numbers finishing (P41, approved by Manish 2026-11-25)
-                                            "grid.solve_for", "grid.break_down"]),
+                                            "grid.solve_for", "grid.break_down",
+                                            # families for 100 %, batches 11-12 (approved by Manish 2026-11-28)
+                                            "grid.multiply_as_matrix_by", "grid.find_rank", "grid.find_size",
+                                            "grid.find_condition_number", "grid.find_column_space",
+                                            # families for 100 %, batch 19 (approved by Manish 2026-11-28, plan
+                                            # section 2.8, G7): scipy.linalg on a grid
+                                            "grid.take_matrix_function", "grid.check_if_grid_is",
+                                            "grid.find_best_rotation_to", "grid.find_angles_to",
+                                            "sdata.solve_matrix_equation",
+                                            # batches 20-21 (plan section 2.9, G9): a grid as a picture (SciPy
+                                            # ndimage, and scipy.signal's 2-D names)
+                                            "grid.find_edges", "grid.change_patch_shapes",
+                                            "grid.find_distance_to_nearest", "grid.split_touching_patches",
+                                            "grid.move_and_stretch_by", "grid.convolve_with", "grid.find_envelope"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -265,7 +323,9 @@ GROUPS = [
                            "system.response_to",
                            "system.frequency_response", "system.poles", "system.zeros", "system.is_stable",
                            "system.steady_gain", "system.in_steps", "system.then", "system.add",
-                           "system.with_feedback", "system.table", "system.chart"]),
+                           "system.with_feedback", "system.table", "system.chart",
+                           # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+                           "system.move_poles_to"]),
     ("Help", ["sdata.show_all_words", "sdata.help", "sdata.show_lesson", "sdata.show_packages_used"]),
     ("30 days of simplydata", ["sdata.start_30_days", "sdata.show_today", "sdata.show_day", "sdata.show_answers",
                                "sdata.go_to_next_day"]),
@@ -380,6 +440,14 @@ def _dx(body: str) -> str:
 def _system_x(body: str, formula: str = "1 / (s**2 + 2*s + 5)") -> str:
     """A runnable system example: make a system, then the steps."""
     lines = ["import simplydata as sdata", f'system = sdata.system("{formula}")']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _curve_x(body: str) -> str:
+    """A runnable curve example (families for 100 %, batch 16): make a curve through points, then the steps."""
+    lines = ["import simplydata as sdata",
+             "curve = sdata.curve_through_points(x=[0, 5, 10, 20, 30, 40], y=[8.1, 7.9, 6.2, 5.0, 4.4, 4.6])"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -832,6 +900,43 @@ HELP_EXAMPLES = {
         sdata.solve("x**3 - 2*x = 5", between=[0, 3])
         sdata.solve("x**2 - 2*x + 5 = 0")
         sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1})"""),
+    "sdata.find_sensitivity_of": textwrap.dedent("""\
+        import simplydata as sdata
+        answer = sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})
+        answer.show()"""),
+    # families for 100 %, batches 14-16 (approved by Manish 2026-11-28)
+    "sdata.find_best_pairing": textwrap.dedent("""\
+        import simplydata as sdata
+        costs = sdata.number_grid([[4, 1, 3], [2, 0, 5], [3, 2, 2]])
+        pairs = sdata.find_best_pairing(costs)
+        pairs.show()
+        sdata.find_best_pairing(costs, aim_for="biggest total")
+        flows = sdata.number_grid([[0, 5, 2], [5, 0, 3], [2, 3, 0]])
+        distances = sdata.number_grid([[0, 8, 15], [8, 0, 13], [15, 13, 0]])
+        sdata.find_best_pairing(flows, with_distances=distances)"""),
+    "sdata.find_path_between_ends": textwrap.dedent("""\
+        import simplydata as sdata
+        path = sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])
+        path.show_first_rows(5)
+        sdata.find_path_between_ends(["dy/dx = v", "dv/dx = -y"], at_ends={"y": [0, None], "v": [None, 2]},
+                                     between=[0, 1], step=0.25)"""),
+    "sdata.curve_through_points": textwrap.dedent("""\
+        import simplydata as sdata
+        depths = sdata.number_list([0, 5, 10, 20, 30, 40])
+        oxygen = sdata.number_list([8.1, 7.9, 6.2, 5.0, 4.4, 4.6])
+        curve = sdata.curve_through_points(x=depths, y=oxygen)
+        curve.find_value_at(12)
+        smooth = sdata.curve_through_points(x=depths, y=oxygen, smoothness=0.01)
+        smooth.find_value_at([12, 25])"""),
+    "curve.find_value_at": _curve_x("curve.find_value_at(12)\ncurve.find_value_at([1, 12, 35])"),
+    "curve.find_slope_at": _curve_x('curve.find_slope_at(12)\ncurve.find_slope_at(12, order="all")'),
+    "curve.find_area_between": _curve_x("curve.find_area_between(0, 20)"),
+    "curve.find_zeros": _curve_x("depths = curve.find_zeros(where_value_is=5)\nprint(depths)"),
+    "curve.turn_into_slope_curve": _curve_x("slopes = curve.turn_into_slope_curve()\nslopes.find_zeros()"),
+    "curve.turn_into_area_curve": _curve_x("areas = curve.turn_into_area_curve()\nareas.find_value_at(20)"),
+    "curve.show_pieces": _curve_x('pieces = curve.show_pieces()\npieces.show()\ncurve.show_pieces(basis="bernstein")'),
+    "curve.show_knots": _curve_x("knots = curve.show_knots()\nknots.show()"),
+    "curve.as_scipy": _curve_x("spline = curve.as_scipy()\nprint(spline.k)"),
     # values between points
     "table.find_values_at": _tx("growth", 'estimates = table.find_values_at("population", at={"year": [2001, 2003, 2011]}, '
                                      'for_each_group_in="country")\nestimates.show()\n'
@@ -847,7 +952,14 @@ HELP_EXAMPLES = {
         print(distribution)
         distribution.find_chance_that_value(is_above=80)
         coins = sdata.distribution("binomial", tries=10, chance=0.5)
-        coins.find_chance_that_value(is_at_most=3)"""),
+        coins.find_chance_that_value(is_at_most=3)
+        skewed = sdata.distribution("skew normal", shape=4, location=10, scale=2)
+        skewed.find_percentile(95)
+        pair = sdata.distribution("multivariate normal", averages=[0, 0], covariance=[[1, 0.5], [0.5, 2]])
+        pair.find_density_at([1, 2])
+        later = sdata.distribution("normal", average=80, standard_deviation=5)
+        mixed = sdata.distribution("mixture", of=[distribution, later], shares=[0.7, 0.3])
+        mixed.find_percentile(90)"""),
     "table.fit_distribution_to": _tx("shop", 'fit = table.fit_distribution_to("sales", "lognormal")\n'
                                           "fit.find_chance_that_value(is_above=600)\nfit.turn_into_table()"),
     "table.compare_distributions_for": _tx("shop", 'table.compare_distributions_for("sales")'),
@@ -871,6 +983,15 @@ HELP_EXAMPLES = {
                            'chart.save("distribution.png")'),
     "dist.turn_into_table": _dx("result = distribution.turn_into_table()\nresult.show()"),
     "dist.show_parameters": _dx("print(distribution.show_parameters())"),
+    # families for 100 %, batches 5-6 (approved by Manish 2026-11-28)
+    "dist.take_function": _dx('sizes = distribution.take_function("absolute value")\n'
+                              'times = sdata.distribution("lognormal", log_average=2, log_standard_deviation=0.5)\n'
+                              'log_times = times.take_function("log")\nlog_times.find_percentile(50)'),
+    "sdata.find_parameter_that_gives": textwrap.dedent("""\
+        import simplydata as sdata
+        degrees = sdata.find_parameter_that_gives("t", chance_below=0.975, at_value=2.1)
+        sdata.find_parameter_that_gives("binomial", chance_at_most=0.3, at_value=3, tries=10)
+        sdata.find_parameter_that_gives("normal", chance_below=0.9, at_value=60, average=50)"""),
     "table.compare_spreads_of": _tx("marks", 'table.keep_rows_where("subject", is_equal_to="Maths")\n'
                                              'table.compare_spreads_of("marks", for_each_group_in="class")'),
     "table.compare_counts_to": _tx("school", 'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})'),
@@ -1075,7 +1196,9 @@ HELP_EXAMPLES = {
     "draw_threshold_check": _ex("rain", 'chart.draw_threshold_check(x="rain", between=[10, 30])', "rain_threshold"),
     # signals and time series
     "table.find_spectrum_of": _tx("sensor", 'table.find_spectrum_of("signal", sorted_by="time")'),
-    "nums.find_spectrum": _nx("numbers.find_spectrum(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.find_spectrum": _nx("numbers.find_spectrum(time_step=0.005)\n"
+                              "numbers.find_spectrum(time_step=0.005, over_time=True, window=100)",
+                              values='sdata.get_example("sensor").get_column("signal")'),
     "table.check_steady_over_time": _tx("sensor", 'table.check_steady_over_time("signal", sorted_by="time")'),
     "table.find_autocorrelation_of": _tx("sensor", 'table.find_autocorrelation_of("signal", sorted_by="time", rows_back=10)'),
     "table.add_trend_and_season": _tx("visitors", """\
@@ -1090,7 +1213,13 @@ HELP_EXAMPLES = {
                                                'test_method="savitzky-golay", window=11, sorted_by="time")'),
     "nums.smooth": _nx('numbers.smooth(test_method="median", window=5)', values='sdata.get_example("sensor").get_column("signal")'),
     "nums.remove_trend": _nx("numbers.remove_trend()", values='sdata.get_example("sensor").get_column("signal")'),
-    "nums.keep_each_frequency_that": _nx("numbers.keep_each_frequency_that(is_below=10, time_step=0.005)",
+    "nums.keep_each_frequency_that": _nx("numbers.keep_each_frequency_that(is_below=10, time_step=0.005)\n"
+                                         "numbers.undo()\n"
+                                         'numbers.keep_each_frequency_that(is_below=10, time_step=0.005, '
+                                         'test_method="fir")\n'
+                                         "numbers.undo()\n"
+                                         'numbers.keep_each_frequency_that(is_below=10, time_step=0.005, '
+                                         'find_order_for={"loss_at": 20})',
                                  values='sdata.get_example("sensor").get_column("signal")'),
     "nums.remove_each_frequency_that": _nx("numbers.remove_each_frequency_that(is_equal_to=50, time_step=0.005)",
                                    values='sdata.get_example("sensor").get_column("signal")'),
@@ -1100,19 +1229,34 @@ HELP_EXAMPLES = {
     "nums.find_each_dip_that": _nx("numbers.find_each_dip_that(is_at_most=-1, apart=10)", values='sdata.get_example("sensor").get_column("signal")'),
     "table.find_each_peak_that": _tx("sensor", 'table.find_each_peak_that("signal", sorted_by="time", is_at_least=1, apart=0.05)'),
     "table.find_each_dip_that": _tx("sensor", 'table.find_each_dip_that("signal", sorted_by="time", is_at_most=-1, apart=0.05)'),
-    "nums.take_fourier_transform": _nx("numbers.take_fourier_transform(time_step=0.005)", values='sdata.get_example("sensor").get_column("signal")'),
+    "nums.take_fourier_transform": _nx("numbers.take_fourier_transform(time_step=0.005)\n"
+                                       "numbers.take_fourier_transform(time_step=0.005, over_time=True, window=100)\n"
+                                       "numbers.take_fourier_transform(time_step=0.005, between=[45, 55], "
+                                       "how_many=21)",
+                                       values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.find_inverse_fourier_transform": _nx("""        table = numbers.take_fourier_transform()
         back = sdata.find_inverse_fourier_transform(table)""", values="[1, 2, 3, 4]"),
     "nums.find_envelope": _nx("numbers.find_envelope()", values='sdata.get_example("sensor").get_column("signal")'),
     "nums.convolve_with": _nx("numbers.convolve_with([1, 2, 1])", values="[1, 2, 3]"),
     "nums.deconvolve_by": _nx("numbers.deconvolve_by([1, 2, 3])", values="[0, 1, 2.5, 4, 1.5]"),
-    "nums.change_time_step": _nx("numbers.change_time_step(to=0.01, time_step=0.005)",
+    "nums.change_time_step": _nx("numbers.change_time_step(to=0.01, time_step=0.005)\n"
+                                 "numbers.undo()\n"
+                                 'numbers.change_time_step(to=0.0025, time_step=0.005, test_method="cubic spline")',
                                  values='sdata.get_example("sensor").get_column("signal")'),
     "sdata.make_wave": "\n".join(["import simplydata as sdata",
-                              'numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)']),
+                              'numbers = sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)',
+                              'sweep = sdata.make_wave("chirp", sweep="polynomial", frequency=[2, 1], time_step=0.01, '
+                              'how_many=500)',
+                              'test_input = sdata.make_wave("maximum length sequence", time_step=0.01, how_many=127)']),
     "sdata.make_window_shape": "\n".join(["import simplydata as sdata", 'numbers = sdata.make_window_shape("hann", how_many=64)']),
     "table.add_envelope_column": _tx("sensor", 'table.add_envelope_column("signal_envelope", from_column="signal", sorted_by="time")'),
-    "sdata.frequency_filter": "\n".join(['import simplydata as sdata', 'system = sdata.frequency_filter(keep_below=10, time_step=0.005)', 'system.frequency_response(between=[1, 90])']),
+    "sdata.frequency_filter": "\n".join(['import simplydata as sdata',
+                                     'system = sdata.frequency_filter(keep_below=10, time_step=0.005)',
+                                     'system.frequency_response(between=[1, 90])',
+                                     'smallest = sdata.frequency_filter(keep_below=10, time_step=0.005, '
+                                     'find_order_for={"loss_at": 20})',
+                                     'analog = sdata.frequency_filter(keep_between=[1, 5], analog=True)',
+                                     'analog.table(form="poles and zeros")']),
     "draw_sticks": _ex("weather", 'chart.draw_sticks(x="month_number", y="rain", colour="city")', "draw_sticks"),
     "draw_autocorrelation_bars": "\n".join(['import simplydata as sdata', 'table = sdata.table(sdata.get_example("visitors"))', 'table.keep_rows_where("museum", is_equal_to="Harbour Museum")', 'chart = table.start_chart()', 'chart.draw_autocorrelation_bars("visitors", sorted_by="month")', 'chart.save("autocorrelation_bars.png")']),
     "draw_cross_correlation_bars": _ex("sensor", 'chart.draw_cross_correlation_bars("signal", "vibration", sorted_by="time", rows_back=20)', "draw_cross_correlation_bars"),
@@ -1135,8 +1279,15 @@ HELP_EXAMPLES = {
     "system.then": _system_x('system.then(sdata.system("1 / s"))'),
     "system.add": _system_x('system.add(sdata.system("1 / (s + 3)"))'),
     "system.with_feedback": _system_x("system.with_feedback()"),
-    "system.table": _system_x('system.table()\nsystem.table(form="state space")'),
+    "system.table": _system_x('system.table()\nsystem.table(form="state space")\n'
+                              'system.table(form="partial fractions")\n'
+                              'system.in_steps(time_step=0.1).table(form="sections")'),
     "system.chart": _system_x('chart = system.chart()\nchart.save("bode.png")'),
+    # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
+    "system.move_poles_to": _system_x("faster = system.move_poles_to([-2, -3])\nfaster.step_response(until=5)"),
+    "nums.find_phase_locking_to": _nx("numbers.find_phase_locking_to(period=0.1)\n"
+                                      "numbers.find_phase_locking_to(period=[0.1, 0.2])",
+                                      values="[0.01, 0.11, 0.205, 0.31, 0.4, 0.52]"),
     "table.forecast": _tx("visitors", 'table.forecast("visitors", sorted_by="month", steps_ahead=12, '
                                       'repeats_every="year", for_each_group_in="museum")'),
     "nums.forecast": _nx("numbers.forecast(steps_ahead=12, repeats_every=12)",
@@ -1324,6 +1475,18 @@ HELP_EXAMPLES = {
     "nums.make_pair_table_with": _nx("depths = sdata.number_list([0, 10, 50])\n"
                                      "table = numbers.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
                                      "[0, 10, 50]"),
+    # families for 100 %, batches 7-9: the maths family (one name table for take_function and formula text)
+    "nums.take_function": _nx('numbers.take_function("bessel J", order=1)\nnumbers.show()\nnumbers.undo()\n'
+                              'numbers.take_function("erfinv")\nnumbers.show()', "[0.1, 0.5, 0.9, 2.0]"),
+    "nums.work_on_bits": _nx('numbers.work_on_bits("and", with_numbers=6)\nnumbers.show()\n'
+                             'numbers.work_on_bits("shift left", by=1)\nnumbers.show()', "[12, 10, 7, 3]"),
+    "sdata.find_zeros_of": ('import simplydata as sdata\n'
+                            'zeros = sdata.find_zeros_of("bessel J", order=0, how_many=5)\n'
+                            'zeros.show()\nsdata.find_zeros_of("airy Ai", how_many=3)'),
+    "sdata.find_area_points": ('import simplydata as sdata\n'
+                               'points = sdata.find_area_points("legendre", how_many=5)\n'
+                               'points.add_column("value", "weight * exp(point)")\n'
+                               'area = points.find_total_of("value")'),
     # blocks of numbers
     "sdata.number_block": textwrap.dedent("""\
         import simplydata as sdata
@@ -1399,7 +1562,13 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         grid = sdata.make_random_numbers(rows=6, columns=8, average=20, standard_deviation=3, with_seed=1)
         grid.smooth(window=3)
-        print(grid)"""),
+        print(grid)
+        grid.undo()
+        grid.smooth(test_method="biggest", window=3)
+        grid.undo()
+        grid.smooth(test_method="percentile", percentile=90, window=3)
+        big = sdata.number_grid([[row + column ** 1.5 for column in range(30)] for row in range(30)])
+        big.smooth(test_method="spline", smoothness=5)"""),
     # chances and random picks
     "nums.make_random_picks": _nx("again = numbers.make_random_picks(how_many=40, with_seed=1)\n"
                                   "print(again.find_average())\n"
@@ -1615,7 +1784,8 @@ HELP_EXAMPLES.update({
     "nums.take_cosine_transform": _nx("numbers.take_cosine_transform()\nnumbers.show()", "[1, 2, 3, 4]"),
     "grid.get_numbers_at_pairs": _gx("grid.get_numbers_at_pairs(rows=[1, 2], columns=[3, 3])"),
     "grid.get_numbers_from_each_row_at": _gx("grid.get_numbers_from_each_row_at(columns=[2, 1])"),
-    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)"),
+    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)\n"
+                                     'grid.find_each_patch_that(is_above=5, show=["biggest", "where biggest"])'),
     "grid.change_size_to": _gx("grid.change_size_to(rows=4, columns=6)\nprint(grid)"),
     "grid.rotate": _gx("grid.rotate(by_degrees=15)\nprint(grid)"),
     "grid.take_matrix_exp": _lines("grid = sdata.number_grid([[0, 1], [-1, 0]])", "grid.take_matrix_exp()",
@@ -1654,7 +1824,87 @@ HELP_EXAMPLES.update({
                              "amounts = mix.solve_for([4, 3, 5], between=[0, None])"),
     "grid.break_down": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
                               'parts = grid.break_down(test_method="cholesky")', 'print(parts["U"])',
-                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])'),
+                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])',
+                              # families for 100 %, batch 19: rq, cs, real eigen blocks, jordan
+                              'parts = grid.break_down(test_method="rq")', 'print(parts["Q"])'),
+})
+
+# Families for 100 %, batches 19-21 (approved by Manish 2026-11-28, plan sections 2.8 and 2.9): matrices of
+# scipy.linalg, grids as pictures (ndimage) and points (spatial)
+_PICTURE = "grid = sdata.number_grid([[0, 0, 0, 0, 0], [0, 7, 8, 1, 0], [0, 9, 6, 0, 0], [0, 0, 0, 0, 5]])"
+HELP_EXAMPLES.update({
+    "grid.take_matrix_function": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
+                                        'grid.take_matrix_function("square root")', "print(grid)", "grid.undo()",
+                                        'grid.take_matrix_function("log")', "grid.undo()",
+                                        'grid.take_matrix_function("power", power=0.5)', "grid.undo()",
+                                        'grid.take_matrix_function("1 / (1 + x)")', "print(grid)"),
+    "grid.check_if_grid_is": _lines("grid = sdata.number_grid([[4, 1, 0], [1, 4, 1], [0, 1, 4]])",
+                                    'answer = grid.check_if_grid_is("symmetric")',
+                                    'grid.check_if_grid_is("banded")', 'grid.check_if_grid_is("upper triangle")'),
+    "grid.find_best_rotation_to": _lines("grid = sdata.number_grid([[1, 0], [0, 1], [1, 1]])",
+                                         "other_grid = sdata.number_grid([[0, 1], [-1, 0], [-1, 1]])",
+                                         "rotation = grid.find_best_rotation_to(other_grid)", "print(rotation)"),
+    "grid.find_angles_to": _lines("grid = sdata.number_grid([[1, 0], [0, 1], [0, 0]])",
+                                  "other_grid = sdata.number_grid([[1, 0], [0, 1], [0, 1]])",
+                                  "angles = grid.find_angles_to(other_grid)", "print(angles)"),
+    "sdata.solve_matrix_equation": _lines("grid = sdata.number_grid([[-1, 0.5], [0, -2]])",
+                                          "other_grid = sdata.number_grid([[1, 0], [0, 1]])",
+                                          'answer = sdata.solve_matrix_equation("lyapunov", a=grid, q=other_grid)',
+                                          "print(answer)",
+                                          'sdata.solve_matrix_equation("riccati", a=[[0, 1], [0, 0]], b=[[0], [1]], '
+                                          "q=[[1, 0], [0, 1]], r=[[1]])"),
+    "grid.find_edges": _lines(_PICTURE, 'grid.find_edges(test_method="sobel")', "print(grid)", "grid.undo()",
+                              'grid.find_edges(test_method="laplace")'),
+    "grid.change_patch_shapes": _lines(_PICTURE, 'grid.change_patch_shapes("grow", by=1, is_above=5)',
+                                       "print(grid)", "grid.undo()",
+                                       'grid.change_patch_shapes("fill holes", is_above=0)', "grid.undo()",
+                                       'grid.change_patch_shapes("top hat", by=1)', "print(grid)"),
+    "grid.find_distance_to_nearest": _lines(_PICTURE, "distances = grid.find_distance_to_nearest(is_above=0)",
+                                            "print(distances)",
+                                            'grid.find_distance_to_nearest(is_above=0, test_method="city block")'),
+    "grid.split_touching_patches": _lines("grid = sdata.number_grid([[1, 2, 9, 2, 1], [1, 3, 9, 3, 1], "
+                                          "[1, 2, 9, 2, 1]])",
+                                          "patches = grid.split_touching_patches(starting_points=[[2, 1], [2, 5]])",
+                                          "print(patches)"),
+    "grid.move_and_stretch_by": _lines(_PICTURE, "grid.move_and_stretch_by(shift=[0, 1])", "print(grid)",
+                                       "grid.undo()", "grid.move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])",
+                                       "grid.undo()",
+                                       'grid.move_and_stretch_by(shift=[0.5, 0], test_method="fourier")'),
+    "table.find_triangles_between_points": _tx("stations", 'triangles = table.find_triangles_between_points('
+                                                           'x="east", y="north")\ntriangles.show_first_rows(5)\n'
+                                                           'table.find_triangles_between_points(x="east", y="north", '
+                                                           'containing={"east": [4000], "north": [1000]})'),
+    "grid.convolve_with": _lines(_PICTURE, "grid.convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]], keep='same')",
+                                 "print(grid)", "grid.undo()",
+                                 "grid.convolve_with(row_weights=[1, 2, 1], column_weights=[1, 2, 1])"),
+    "grid.find_envelope": _lines("grid = sdata.number_grid([[0, 1, 0, -1], [1, 0, -1, 0], [0, -1, 0, 1]])",
+                                 "grid.find_envelope()", "print(grid)"),
+    "table.find_regions_around_points": _tx("stations", 'regions = table.find_regions_around_points(x="east", '
+                                                        'y="north")\nregions.show_first_rows(5)'),
+})
+
+# Families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the table words for the pandas and Polars gaps
+HELP_EXAMPLES.update({
+    "draw_dashes": _ex("marks", 'chart.draw_dashes(x="class", y="marks", transparency=0.4)\n'
+                                   'chart.draw_dots(x="class", y="marks", show="average", move_layer_by=0.45)',
+                       "draw_dashes"),
+    "table.get_different_values_in": _tx("marks", 'classes = table.get_different_values_in("class")\n'
+                                                  "print(classes)"),
+    "table.check_if_all_values_in": _tx("marks", 'answer = table.check_if_all_values_in("marks", is_above=0)\n'
+                                                 'table.check_if_all_values_in("marks", is_above=40, '
+                                                 'for_each_group_in="class")'),
+    "table.check_if_any_value_in": _tx("marks", 'answer = table.check_if_any_value_in("marks", is_above=90)\n'
+                                                'table.check_if_any_value_in("name", contains="an")'),
+    "table.check_if_sorted_by": _tx("weather", 'answer = table.check_if_sorted_by("month_number")\n'
+                                               'table.sort_by("city", "month_number")\n'
+                                               'table.check_if_sorted_by("city")'),
+    "table.add_run_number_column": _tx("river", 'table.add_group_column("level_band", from_column="level", '
+                                                'cut_at=[2.5], names=["low", "high"])\n'
+                                                'table.add_run_number_column("spell", from_column="level_band", '
+                                                'for_each_group_in="station", sorted_by="date")\n'
+                                                'table.count_rows(for_each_group_in=["station", "spell"])'),
+    "table.turn_into_title_case": _tx("marks", 'table.turn_into_lowercase("name")\n'
+                                               'table.turn_into_title_case("name")\ntable.show_first_rows()'),
 })
 
 
@@ -1683,6 +1933,78 @@ def _numbers_class():
     return Numbers
 
 
+# Families for 100 %, batches 10-13 (approved by Manish 2026-11-28, plan section 2.4): NumPy words for lists and grids
+HELP_EXAMPLES.update({
+    "nums.find_product": _nx("product = numbers.find_product()\nnumbers.turn_into_running_total(show=\"product\")\n"
+                             "numbers.show()", "[2, 3, 4]"),
+    "nums.turn_into_changes": _nx("numbers.turn_into_changes()\nnumbers.show()\nnumbers.undo()\n"
+                                  "numbers.turn_into_changes(how_many_times=2)\nnumbers.show()", "[3, 5, 9, 15, 23]"),
+    "nums.turn_into_slopes": _nx("numbers.turn_into_slopes(time_step=0.5)\nnumbers.show()\nnumbers.undo()\n"
+                                 "numbers.turn_into_slopes(at_times=[0, 1, 3, 4, 6])\nnumbers.show()",
+                                 "[1, 4, 9, 16, 25]"),
+    "nums.count_in_bins": _nx("counts = numbers.count_in_bins(edges=[0, 10, 20, 50])\nprint(counts)\n"
+                              "counts = numbers.count_in_bins(how_many_bins=4)\nprint(counts)",
+                              "[3, 12, 15, 22, 9, 31, 48, 17]"),
+    "nums.find_bin_of_each": _nx("bins = numbers.find_bin_of_each(edges=[0, 10, 20, 50])\nprint(bins)",
+                                 "[3, 12, 15, 22, 9, 31, 48, 17]"),
+    "nums.find_positions_where": _nx("positions = numbers.find_positions_where(is_above=30)\nprint(positions)",
+                                     "[12, 35, 9, 41, 30, 33]"),
+    "nums.keep_numbers_also_in": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                     "numbers.keep_numbers_also_in(other_numbers)\nnumbers.show()",
+                                     "[3, 5, 8, 5, 2]"),
+    "nums.remove_numbers_also_in": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                       "numbers.remove_numbers_also_in(other_numbers)\nnumbers.show()",
+                                       "[3, 5, 8, 5, 2]"),
+    "nums.keep_numbers_in_only_one": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                         "numbers.keep_numbers_in_only_one(other_numbers)\nnumbers.show()",
+                                         "[3, 5, 8, 5, 2]"),
+    "nums.join_numbers_with": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                  "numbers.join_numbers_with(other_numbers)\nnumbers.show()", "[3, 5, 8, 5, 2]"),
+    "nums.find_dot_product_with": _nx("other_numbers = sdata.number_list([4, 5, 6])\n"
+                                      "answer = numbers.find_dot_product_with(other_numbers)", "[1, 2, 3]"),
+    "nums.find_cross_product_with": _nx("other_numbers = sdata.number_list([0, 1, 0])\n"
+                                        "answer = numbers.find_cross_product_with(other_numbers)\nprint(answer)",
+                                        "[1, 0, 0]"),
+    "nums.find_size": _nx("size = numbers.find_size()\nnumbers.find_size(kind=\"total size\")", "[3, 4]"),
+    "sdata.make_coordinate_grids": _lines("x_grid, y_grid = sdata.make_coordinate_grids(x=[0, 1, 2], y=[10, 20])",
+                                          "print(x_grid)", "print(y_grid)",
+                                          "distance = (x_grid ** 2 + y_grid ** 2) ** 0.5", "print(distance)"),
+    "grid.find_positions_where": _gx("positions = grid.find_positions_where(is_above=4)\nprint(positions)\n"
+                                     "grid.replace_numbers_where(at_positions=positions, with_value=0)\nprint(grid)"),
+    "grid.add_border": _gx("grid.add_border(width=2, with_value=0)\nprint(grid)\ngrid.undo()\n"
+                           'grid.add_border(width=1, with_value="repeat edge")\nprint(grid)'),
+    "grid.get_part": _lines("grid = sdata.number_grid([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+                            'upper = grid.get_part("upper triangle")', "print(upper)",
+                            'diagonal = grid.get_part("diagonal")', "diagonal.find_total()"),
+    "grid.replace_part": _lines("grid = sdata.number_grid([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+                                'grid.replace_part("diagonal", with_value=1)', "print(grid)",
+                                'grid.replace_part("lower triangle", with_value=0, shifted_by=-1)', "print(grid)"),
+    "grid.multiply_as_matrix_by": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])",
+                                         "other_grid = sdata.number_grid([[0, 1], [1, 0]])",
+                                         "answer = grid.multiply_as_matrix_by(other_grid)", "print(answer)",
+                                         "grid.multiply_as_matrix_by([1, 1])"),
+    "grid.find_rank": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])", "rank = grid.find_rank()"),
+    "grid.find_size": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])", "size = grid.find_size()",
+                             'grid.find_size(kind="biggest stretch")'),
+    "grid.find_condition_number": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])",
+                                         "condition = grid.find_condition_number()"),
+    "grid.find_column_space": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])",
+                                     "directions = grid.find_column_space()", "print(directions)"),
+    "grid.take_fourier_transform": _lines("grid = sdata.number_grid([[1, 2, 1], [0, 1, 0], [1, 2, 1]])",
+                                          'table = grid.take_fourier_transform(over="rows and columns")',
+                                          "table.show_first_rows(4)",
+                                          "back = sdata.find_inverse_fourier_transform(table)", "print(back)"),
+    "grid.take_cosine_transform": _lines("grid = sdata.number_grid([[1, 2, 1], [0, 1, 0], [1, 2, 1]])",
+                                         "grid.take_cosine_transform()", "print(grid)",
+                                         "grid.take_cosine_transform(inverse=True)", "print(grid)"),
+    "sdata.polynomial": _lines('formula = sdata.polynomial("legendre", degree=3)', "formula.find_value_at(x=0.5)",
+                               'sdata.polynomial("chebyshev", degree=4)',
+                               'sdata.polynomial("jacobi", degree=2, alpha=1, beta=2)',
+                               'through = sdata.polynomial("through points", x=[0, 1, 2], y=[1, 3, 7])',
+                               "through.find_slope_formula()"),
+})
+
+
 def _grid_class():
     from .numbers.numbers import NumberGrid
 
@@ -1691,14 +2013,15 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system",
+           "formula": "f", "curve": "curve"}  # curve: families for 100 %, batch 16
 # Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
 # distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
 _WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}
 # How a word is shown to people (headings, help, word lists): the object written in full in front. The keys of
 # GROUPS keep the short names (nums.find_average), and sdata.help() takes either spelling.
 _SHOWN = {"table": "table", "numbers": "numbers", "grid": "grid", "block": "block", "dist": "distribution",
-          "system": "system", "formula": "formula"}
+          "system": "system", "formula": "formula", "curve": "curve"}
 # A short name typed in front of a word, and how it is shown: sdata.help("nums.average") says "numbers.average".
 _SHOWN_TYPED = {"nums": "numbers", "dist": "distribution", "f": "formula"}
 
@@ -1729,6 +2052,12 @@ def _system_class():
     return System
 
 
+def _curve_class():
+    from ._curves import Curve
+
+    return Curve
+
+
 def _formula_class():
     from ._formula import Formula
 
@@ -1740,7 +2069,7 @@ def _classes():
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
             (_grid_class(), "grid"), (_block_class(), "block"), (_distribution_class(), "dist"),
             (_system_class(), "system"),
-            (_formula_class(), "formula")]
+            (_formula_class(), "formula"), (_curve_class(), "curve")]
 
 
 def _kind(key: str) -> str:
@@ -1909,6 +2238,8 @@ def show_all_words() -> None:
           "system.step_response().")
     print('Formula words are steps on a formula: formula = sdata.formula("(x + 2)**2 - 4"), then '
           "formula.turn_into_sum().")
+    print("Curve words are steps on a curve: curve = sdata.curve_through_points(x=[0, 5, 10], y=[8, 7, 6]), then "
+          "curve.find_value_at(2).")
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -1927,7 +2258,7 @@ def show_all_words() -> None:
 def _normalise(word: str) -> str:
     w = str(word).strip()
     for start in ("simplydata.", "sdata.", "sd.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.",
-                  "block.", "distribution.", "dist.", "system.", "formula.", "f.", "."):
+                  "block.", "distribution.", "dist.", "system.", "formula.", "f.", "curve.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -1996,7 +2327,7 @@ def _lookup_all(word) -> list[str]:
 # so it narrows nothing.
 _TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
                 "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
-                "system": {"system"}, "f": {"formula"},
+                "system": {"system"}, "f": {"formula"}, "curve": {"curve"},
                 "numbers": {"numbers"}, "distribution": {"dist"}, "formula": {"formula"}}
 
 

@@ -47,6 +47,15 @@ from ._formula import formula  # numbers phase, batch 3: exact maths with SymPy 
 from ._calculus import find_area_under, find_path_over_time, find_volume_under  # numbers phase, batch 3
 from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of series with SymPy
 from .colours import change_colour, pick_colours_with_sliders, show_colours  # seaborn's colour tools
+from ._sensitivity import find_sensitivity_of  # families for 100 %, batches 3-4: SciPy sobol_indices
+from ._parameter_finder import find_parameter_that_gives  # families for 100 %, batches 5-6: scipy.special inverses
+from ._special_points import find_area_points, find_zeros_of  # families for 100 %, 2.3 (maths family)
+from .numbers.special_grids import make_coordinate_grids  # families for 100 %, batch 11: NumPy meshgrid, indices
+from ._polynomial import polynomial  # families for 100 %, batch 13 (G5): NumPy, scipy.special and SymPy polynomials
+from ._pairing import find_best_pairing  # families for 100 %, batch 14: SciPy linear_sum_assignment
+from ._boundary import find_path_between_ends  # families for 100 %, batch 15: SciPy solve_bvp
+from ._curves import curve_through_points  # families for 100 %, batch 16: SciPy splines (G6)
+from ._matrix_equations import solve_matrix_equation  # families for 100 %, batch 19: Lyapunov, Sylvester, Riccati
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -108,10 +117,15 @@ __all__ = [
     "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "change_colour", "chart",
     "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "count_ways_to_choose",
-    "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_under", "find_chance_of_finding",
-    "find_how_many_needed", "find_inverse_fourier_transform", "find_path_over_time", "find_sum_of_series",
-    "find_volume_under",
-    "find_where_biggest", "find_where_smallest", "formula", "frequency_filter", "get_example", "go_to_next_day",
+    "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_points", "find_area_under",
+    "find_chance_of_finding",
+    "find_how_many_needed", "find_inverse_fourier_transform", "find_parameter_that_gives", "find_path_over_time",
+    "find_sensitivity_of", "find_sum_of_series", "make_coordinate_grids", "polynomial", "find_volume_under",
+    "find_best_pairing",  # families for 100 %, batch 14
+    "find_path_between_ends",  # families for 100 %, batch 15
+    "curve_through_points",  # families for 100 %, batch 16
+    "find_where_biggest", "find_where_smallest", "find_zeros_of", "formula", "frequency_filter", "get_example",
+    "go_to_next_day",
     "help", "hide_stretching_notes", "make_design_table",
     "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "number_list",
@@ -119,6 +133,7 @@ __all__ = [
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve",
+    "solve_matrix_equation",  # families for 100 %, batch 19
     "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]

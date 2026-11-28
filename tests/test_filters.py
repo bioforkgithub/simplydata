@@ -72,10 +72,17 @@ def test_band_stop_and_notch():
     assert a == pytest.approx([1, 0, 0.969067417193793], abs=1e-12)
 
 
-def test_fir_is_not_offered_yet():
-    # SciPy firwin and R signal::fir1(100, 0.1) give different weights (R's add up to 1.0015): owner to decide
-    with pytest.raises(SimplydataError, match="not ready"):
-        sensor().keep_each_frequency_that(is_below=10, time_step=0.005, test_method="fir")
+def test_fir_is_scipy_firwin_run_both_ways():
+    # Offered since plan 2.7 (approved by Manish 2026-11-28): SciPy firwin, not R signal::fir1 (R makes fir1 by
+    # frequency sampling, so its weights add up to 1.0015); the weights are firwin's (tests/test_full_signals.py
+    # checks them against firwin's own formula)
+    from scipy import signal
+
+    nums = sensor()
+    raw = values(nums).copy()
+    nums.keep_each_frequency_that(is_below=10, time_step=0.005, test_method="fir")
+    taps = signal.firwin(101, 10, window="hamming", fs=200)
+    assert values(nums) == pytest.approx(signal.filtfilt(taps, [1.0], raw), rel=1e-12, abs=1e-12)
 
 
 def test_filter_errors():

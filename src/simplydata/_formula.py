@@ -44,7 +44,15 @@ FUNCTIONS = {"exp": (1, 1), "log": (1, 2), "sqrt": (1, 1), "abs": (1, 1), "sin":
              "erfc": (1, 1), "gamma": (1, 1), "lgamma": (1, 1), "digamma": (1, 1), "beta": (2, 2),
              "besselJ": (2, 2), "sinc": (1, 1)}
 SPELLINGS = {"atan": "arctan", "asin": "arcsin", "acos": "arccos", "atan2": "arctan2"}
-FREE_NAMES = ("gamma", "beta")  # without brackets they are letters, as in fit_formula
+# families for 100 %, batches 7-9 (plan section 2.3, approved by Manish 2026-11-28): every maths function of
+# numbers.take_function by its formula name, library name or SymPy name (bessel_j(1, x), erfinv(x), besseli(1, x)),
+# from the one name table (_maths_functions.py). SymPy's own function where it has one; else a SymPy
+# implemented_function worked out by SciPy. Without brackets these names stay letters (y0, k1, agm ...).
+from ._maths_functions import FORMULA_NAMES as _TABLE_NAMES, FORMULA_SIZES as _TABLE_SIZES  # noqa: E402
+
+TABLE_FUNCTIONS = tuple(name for name in _TABLE_SIZES if name not in FUNCTIONS and name not in SPELLINGS)
+FUNCTIONS.update({name: _TABLE_SIZES[name] for name in TABLE_FUNCTIONS})
+FREE_NAMES = ("gamma", "beta", *TABLE_FUNCTIONS)  # without brackets they are letters, as in fit_formula
 INFINITY = ("infinity", "inf", "oo", "+infinity")
 MINUS_INFINITY = ("-infinity", "-inf", "-oo", "minus infinity")
 
@@ -112,7 +120,9 @@ def _formula_error(problem: str) -> SimplydataError:
     return SimplydataError(
         f"{problem}\nA formula uses numbers, letters (x, y, rate), + - * / and ** (or ^) for a power, brackets, pi, "
         "and the functions exp log sqrt abs sin cos tan arcsin arccos arctan arctan2 erf erfc gamma lgamma digamma "
-        f"beta besselJ sinc.\nFor example:  {FORMULA_EXAMPLE}")
+        "beta besselJ sinc, and the maths functions of numbers.take_function by formula name "
+        "(bessel_j(1, x), erfinv(x); sdata.help(\"take_function\") lists them)."
+        f"\nFor example:  {FORMULA_EXAMPLE}")
 
 
 MAX_DIGITS = 1000  # a whole number made by powers of numbers may have at most this many digits
@@ -122,7 +132,10 @@ LONG_PRODUCT = 100  # and a longer product (a * b / c ...) this many factors at 
 # out exactly while it reads the text. A number inside these functions may be at most this big (gamma(1000) has
 # 2565 digits).
 MAX_SPECIAL_ARGUMENT = 1000
-SPECIAL_FUNCTIONS = ("gamma", "lgamma", "digamma", "beta", "besselJ")
+SPECIAL_FUNCTIONS = ("gamma", "lgamma", "digamma", "beta", "besselJ",
+                     # the maths family's functions that SymPy works out exactly (families for 100 %, 2.3)
+                     *(name for name in TABLE_FUNCTIONS if _TABLE_NAMES[name].entry.sympy
+                       or _TABLE_NAMES[name].entry.sympy_expr))
 # names SymPy's reader writes into the text it runs (Integer(2), Symbol('x'), and Add, Mul and Pow when it reads
 # unevaluated): never letters of a formula
 RESERVED = ("Integer", "Float", "Rational", "Symbol", "Function", "Lambda", "Add", "Mul", "Pow")
@@ -400,7 +413,16 @@ def _sympy_functions(sp) -> dict:
             "sqrt": sp.sqrt, "abs": sp.Abs, "sin": sp.sin, "cos": sp.cos, "tan": sp.tan, "arcsin": sp.asin,
             "arccos": sp.acos, "arctan": sp.atan, "arctan2": sp.atan2, "erf": sp.erf, "erfc": sp.erfc,
             "gamma": sp.gamma, "lgamma": sp.loggamma, "digamma": sp.digamma, "beta": sp.beta,
-            "besselJ": lambda x, nu: sp.besselj(nu, x), "sinc": lambda x: sp.sinc(sp.pi * x)}
+            "besselJ": lambda x, nu: sp.besselj(nu, x), "sinc": lambda x: sp.sinc(sp.pi * x),
+            **_table_functions(True)}
+
+
+def _table_functions(evaluate: bool) -> dict:
+    """The maths family's formula names as SymPy functions (families for 100 %, batches 7-9)."""
+    from ._maths_functions import sympy_functions
+
+    made = sympy_functions(evaluate)
+    return {name: made[name] for name in TABLE_FUNCTIONS}
 
 
 def _unevaluated_functions(sp) -> dict:
@@ -418,6 +440,7 @@ def _unevaluated_functions(sp) -> dict:
                                                else sp.log(x, base, evaluate=False))
     named["besselJ"] = lambda x, nu, **_: sp.besselj(nu, x, evaluate=False)
     named["sinc"] = lambda x, **_: sp.sinc(sp.Mul(sp.pi, x, evaluate=False), evaluate=False)
+    named.update(_table_functions(False))
     return named
 
 
@@ -428,12 +451,20 @@ def _too_big_special(text: str, name: str) -> SimplydataError:
 
 def _specials(sp) -> tuple:
     """The special functions whose number may be at most MAX_SPECIAL_ARGUMENT (gamma(1000) is worked out exactly)."""
-    return sp.gamma, sp.loggamma, sp.digamma, sp.beta, sp.besselj
+    from ._maths_functions import sympy_classes
+
+    return (sp.gamma, sp.loggamma, sp.digamma, sp.beta, sp.besselj, *sympy_classes())
 
 
 def _special_name(node) -> str:
     """The name of a special function as it is written in a formula."""
-    return {"loggamma": "lgamma", "besselj": "besselJ"}.get(type(node).__name__, type(node).__name__)
+    name = type(node).__name__
+    return {"loggamma": "lgamma", "besselj": "besselJ", **_PRINTED_AS}.get(name, name)
+
+
+# SymPy functions whose own name means something else in formula text: SymPy's jn and yn are the spherical Bessel
+# functions (SciPy's jn is Bessel J of a whole order)
+_PRINTED_AS = {"jn": "spherical_bessel_j", "yn": "spherical_bessel_y"}
 
 
 def _size_of_number(sp, value):
@@ -441,6 +472,10 @@ def _size_of_number(sp, value):
     plain number); None for a value that still has letters, or has no size."""
     if value.is_Symbol:
         return None
+    if not isinstance(value, sp.Expr):  # hyper's lists of values (SymPy Tuples): the biggest of them
+        sizes = [_size_of_number(sp, part) for part in getattr(value, "args", ())]
+        sizes = [size for size in sizes if size is not None]
+        return max(sizes) if sizes else None
     found = value if value.is_Number else _guarded(sp.N, value, 15, what="SymPy N")
     if not found.is_number:
         return None
@@ -952,6 +987,15 @@ def _python_printer():
                 return f"besselJ({args[1]}, {args[0]})"
             if name == "sinc":
                 return f"sinc(({args[0]})/pi)"
+            if name == "hyper":  # hyper((a,), (b,), x) is hyp1f1(a, b, x) in formula text
+                from ._maths_functions import hyper_name
+
+                top, bottom = expr.args[0], expr.args[1]
+                found = hyper_name(len(top), len(bottom))
+                if found:
+                    return f"{found}({', '.join([self._print(a) for a in (*top, *bottom)] + [args[2]])})"
+            if name in _PRINTED_AS:
+                return f"{_PRINTED_AS[name]}({', '.join(args)})"
             return f"{names.get(name, name)}({', '.join(args)})"
 
         def _print_Exp1(self, expr):
@@ -1537,8 +1581,11 @@ class Formula:
         from scipy import special
 
         # lgamma is the log of the size of gamma (SciPy gammaln, as R lgamma and fit_formula), real for every x
-        function = sp.lambdify([self._symbol(n) for n in letters], self._expr,
-                               modules=[{"loggamma": special.gammaln}, "scipy", "numpy"])
+        from ._maths_functions import lambdify
+
+        # the maths family's SymPy functions are worked out as numbers.take_function works them out (families for
+        # 100 %, batches 7-9): SciPy names SymPy's printer does not know (elliptic_k) are found that way too
+        function = lambdify([self._symbol(n) for n in letters], self._expr, {"loggamma": special.gammaln})
         with np.errstate(all="ignore"):
             out = np.asarray(function(*arrays), dtype=complex)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
@@ -1715,7 +1762,10 @@ class Formula:
             return math.inf
         if found == -sp.oo:
             return -math.inf
-        return float_of(found) if found.is_real else complex(decimal_of(found))
+        if found.is_real:
+            return float_of(found)
+        value = complex(decimal_of(found))  # SymPy may not know it is real (besselj(0, 1)): its decimal says
+        return value.real if value.imag == 0 else value
 
     @friendly
     def find_taylor_series(self, around=0, up_to_power=4, for_letter=None) -> Formula:

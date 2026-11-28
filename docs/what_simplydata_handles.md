@@ -11,9 +11,9 @@ Approximate: the names counted on 2026-11-21, the code per task on 2026-11-23.
 
 | | With the packages underneath | With simplydata |
 |---|---|---|
-| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 1054 names: 584 commands and 470 options, about 92 % fewer |
+| Names to learn | about 10,650 functions: about 5,460 in the Python packages (SciPy about 1,750, pandas 850, Polars 815, matplotlib 745, NumPy 660, statsmodels 545, seaborn 100; each package's public API) and about 5,190 in the R packages, with R's `stats` (R `getNamespaceExports`; before the community packages were added) | 1218 names: 652 commands and 566 options, about 92 % fewer |
 | Packages and languages | 101 packages run by simplydata (14 Python, 87 R), plus 15 R ones that only check its answers, in Python and R | 1 package, in basic Python |
-| Code per task | 4526 lines and 4021 function calls in the 743 tasks of the manual's "same underneath" boxes (median 6 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 1950 lines and 2062 calls (median 2 lines a task), about 57 % fewer lines; recount with `python validation/count_reduction.py` |
+| Code per task | 5808 lines and 4987 function calls in the 1034 tasks of the manual's "same underneath" boxes (median 5 lines a task); this library code is the bare minimum, without the plain-sentence result or the checks | 2606 lines and 2760 calls (median 2 lines a task), about 55 % fewer lines; recount with `python validation/count_reduction.py` |
 | Choosing the method | you choose, from the package's documentation | the recommended default, with its published basis: see [How simplydata chooses methods](how_simplydata_chooses.md) (you can also choose the method you want) |
 
 ## Packages underneath
@@ -33,6 +33,7 @@ Python packages:
 | seaborn | bars, lines, dots, histograms, boxes, violins, heatmaps, density curves, count bars and cumulative shares (`draw_bars`, `draw_lines`, `draw_boxes`, `draw_violins`, `draw_heatmap`, `draw_density`), with averages and error bars (`show="average", error="standard error"`) | built in |
 | openpyxl | reading and saving Excel files (`sdata.table("file.xlsx", sheet="all")`, `table.save("clean.xlsx")`) | built in |
 | python-docx, pyreadstat | reading tables from Word files (`table_number=`) and from SPSS and Stata files | [files] |
+| Jinja2, lxml | saving a table as a LaTeX table (`table.save("table_1.tex")`, through pandas `to_latex`, which needs Jinja2) and reading the tables of a web page (`sdata.table("page.html")`, through pandas `read_html`, which needs lxml); both BSD-3-Clause | [files] |
 | DuckDB | SQL on a table or on files (`table.run_sql`, `sdata.run_sql`) and .duckdb database files, kept on this computer: no extensions, no web addresses | [sql] |
 | xarray, h5netcdf, h5py | xarray lines up blocks of numbers by the names of their directions (`plate - blank`) and chooses by labels (`block.keep_where`); without it NumPy does the same job. h5netcdf and h5py read and write netCDF-4 files (`sdata.number_block("sst.nc")`, `block.save("out.nc")`, `sdata.show_whats_inside`) | [xarray] |
 | SymPy | exact maths: `sdata.formula(...)` and its words, `sdata.solve(exactly=True)`, `find_area_under(exactly=True)`, `find_path_over_time(exactly=True)`, `numbers.show_as_fraction()` | [exact] |
@@ -90,8 +91,9 @@ so you never need them:
 | meta, metadat | a second meta-analysis package, and the published study data (BCG vaccine, passive smoking), that `combine_studies` is checked against |
 | ismev, sp | the published data of Coles (2001: Port Pirie sea levels, daily rain) and the meuse soil samples that `find_return_levels_of`, `find_autocorrelation_of(x=, y=)` and `find_variogram_of` are checked against |
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
-| gsignal, pracma, control | the filter, envelope, peak and system answers that `frequency_filter`, `find_envelope`, `find_each_peak_that` and the `system` words are checked against (Octave-style `butter` and `hilbert`, `findpeaks`, and transfer functions) |
+| gsignal, signal, pracma, control | the filter, envelope, peak and system answers that `frequency_filter`, `find_envelope`, `find_each_peak_that` and the `system` words are checked against (Octave-style `butter` and `hilbert`, `findpeaks`, and transfer functions; signal's `remez`, `blackman` and `filtfilt` for the FIR filters of `keep_each_frequency_that` and `add_filtered_column`) |
 | Matrix | the matrix exponential (`Matrix::expm`) that `grid.take_matrix_exp()` is checked against |
+| nleqslv, lpSolve, cubature | Broyden's method for a set of equations (`nleqslv`), the linear assignment problem (`lp.assign`) and adaptive cubature (`hcubature`) that the new `sdata.solve(test_method=)` values, `sdata.find_best_pairing` and `find_area_under(test_method="cubature")` are checked against |
 | AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](../DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for

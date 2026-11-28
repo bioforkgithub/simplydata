@@ -22,6 +22,21 @@ from ._base import NOT_GIVEN, BaseNumbers, amount, is_number, note_empty, plain,
 _CONDITION_OPTIONS = ("is_above", "is_below", "is_at_least", "is_at_most", "is_equal_to", "is_not_equal_to",
                       "is_between", "is_one_of", "is_empty")
 ANGLE_UNITS = ("degrees", "radians")
+# turn_into_yes_or_no(is_=): what kind of number each is (families for 100 %, plan section 2.3, approved by Manish
+# 2026-11-28) -> (the NumPy word, what it means)
+NUMBER_KINDS = {
+    "finite": ("isfinite", "not empty and not infinite"),
+    "infinite": ("isinf", "inf or -inf"),
+    "minus infinity": ("isneginf", "-inf"),
+    "plus infinity": ("isposinf", "inf"),
+    "real": ("isreal", "simplydata numbers are real numbers, so every one is"),
+    "complex": ("iscomplex", "simplydata numbers are real numbers, so none is"),
+    "not a time": ("isnat", "NumPy's empty date or time; numbers hold no dates, so none is"),
+}
+NUMBER_KIND_SPELLINGS = {"isfinite": "finite", "isinf": "infinite", "inf": "infinite", "infinity": "infinite",
+                         "isneginf": "minus infinity", "-inf": "minus infinity", "negative infinity": "minus infinity",
+                         "isposinf": "plus infinity", "+inf": "plus infinity", "positive infinity": "plus infinity",
+                         "isreal": "real", "iscomplex": "complex", "isnat": "not a time", "nat": "not a time"}
 
 
 def _short(option: str) -> str:
@@ -196,10 +211,22 @@ class MoreNumberWords:
         return self._trig(np.tan, degrees)
 
     @friendly
-    def change_angles_to(self: _Same, unit=None) -> _Same:
-        """Change angles between radians and degrees (NumPy rad2deg, deg2rad). numbers.change_angles_to("degrees")"""
+    def change_angles_to(self: _Same, unit=None, remove_jumps=False) -> _Same:
+        """Change angles between radians and degrees (NumPy rad2deg, deg2rad). numbers.change_angles_to("degrees")
+
+        remove_jumps=True: the angles are already in unit=, and each jump of a whole turn (from 359 to 1 degree, say)
+        is taken out, so they run on smoothly (NumPy unwrap, period 2 pi or 360).
+        """
         if unit not in ANGLE_UNITS:
             raise choice_error("change_angles_to", "unit", unit, list(ANGLE_UNITS))
+        if not isinstance(remove_jumps, bool):
+            raise SimplydataError("remove_jumps= needs True or False (no quotes).")
+        if remove_jumps:
+            period = 360.0 if unit == "degrees" else 2 * np.pi
+            new = np.unwrap(self._values.astype(float), period=period)
+            print(f"Jumps of a whole turn taken out of the angles in {unit} (NumPy unwrap, period "
+                  f"{'360' if unit == 'degrees' else '2 pi'}).")
+            return self._change(f"remove jumps in angles ({unit})", new)
         func = np.rad2deg if unit == "degrees" else np.deg2rad
         other = "radians" if unit == "degrees" else "degrees"
         new = func(self._values.astype(float))
@@ -230,12 +257,16 @@ class MoreNumberWords:
     @friendly
     def turn_into_yes_or_no(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                             is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
-                            is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
+                            is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN, is_=NOT_GIVEN):
         """New yes or no values, one for each number: yes where the number passes the test. warm = numbers.turn_into_yes_or_no(is_above=20)
 
         The same conditions as keep_each_number_that; empty numbers are no (except is_empty=True). Join tests with
         & (both), | (either) and ~ (not): warm & ~salty. The numbers themselves do not change.
-        NumPy: numbers > 20 (a bool array).
+        NumPy: numbers > 20 (a bool array). is_= asks what kind of number each is (NumPy's is* words): "finite"
+        (np.isfinite: not empty and not inf), "infinite" (np.isinf), "minus infinity" (np.isneginf), "plus
+        infinity" (np.isposinf), "real" (np.isreal) and "complex" (np.iscomplex): simplydata numbers are real
+        numbers, so "real" is always yes and "complex" always no; "not a time" (np.isnat) is always no, as numbers
+        hold no dates (an empty date in a table column is is_empty=True there).
         """
         if extra:
             raise SimplydataError("turn_into_yes_or_no() needs one condition, like is_above=20."
@@ -243,10 +274,33 @@ class MoreNumberWords:
         given = dict(is_above=is_above, is_below=is_below, is_at_least=is_at_least, is_at_most=is_at_most,
                      is_equal_to=is_equal_to, is_not_equal_to=is_not_equal_to, is_between=is_between,
                      is_one_of=is_one_of, is_empty=is_empty)
+        if is_ is not NOT_GIVEN:
+            if any(value is not NOT_GIVEN for value in given.values()):
+                raise SimplydataError("turn_into_yes_or_no() takes is_= alone, without the other conditions."
+                                      + self._example('turn_into_yes_or_no(is_="infinite")'))
+            return self._number_kind(is_)
         cond, words = self._condition_from("turn_into_yes_or_no", given, allow_none_for_yes_no=False)
         cond = np.asarray(cond, dtype=bool)
         print(f"{amount(cond.size, 'yes or no value')} (NumPy bool): {int(np.count_nonzero(cond))} yes "
               f"(the numbers that {words}).")
+        return self._like(cond)
+
+    def _number_kind(self, kind):
+        """turn_into_yes_or_no(is_=...): NumPy's isfinite, isinf, isneginf, isposinf, isreal, iscomplex and isnat
+        (families for 100 %, plan section 2.3)."""
+        key = str(kind).strip().lower() if isinstance(kind, str) else None
+        key = NUMBER_KIND_SPELLINGS.get(key, key)
+        if key not in NUMBER_KINDS:
+            raise choice_error("turn_into_yes_or_no", "is_", kind, list(NUMBER_KINDS))
+        function_name, about = NUMBER_KINDS[key]
+        values = self._values
+        if function_name == "isnat":
+            cond = np.zeros(values.shape, dtype=bool)
+        else:
+            cond = getattr(np, function_name)(values.astype(float) if values.dtype.kind == "b" else values)
+        cond = np.asarray(cond, dtype=bool)
+        print(f"{amount(cond.size, 'yes or no value')} (NumPy bool): {int(np.count_nonzero(cond))} yes (the numbers "
+              f"that are {key}: {about}). NumPy: np.{function_name}({self._name})")
         return self._like(cond)
 
     def __invert__(self):
@@ -323,19 +377,46 @@ class MoreNumberWords:
         return self._change(f"{'keep' if keep else 'remove'} numbers where yes", new)
 
     @friendly
-    def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN) -> _Same:
+    def replace_numbers_where(self: _Same, yes_no=None, with_value=NOT_GIVEN, at_positions=None,
+                              rules=None) -> _Same:
         """Replace the numbers where yes or no values say yes. numbers.replace_numbers_where(land, with_value="empty")
 
-        with_value= a number, or "empty" (None works too). NumPy np.where(land, value, numbers).
+        with_value= a number, "empty" (None works too), or other numbers of the same size (each taken from its own
+        place: NumPy copyto). NumPy np.where(land, value, numbers). at_positions= replaces the numbers at these
+        positions instead (from 1; on a grid, the table find_positions_where gives, or (row, column) pairs; NumPy
+        put). rules=[(cold, -1), (warm, 1)] gives each number the value of the first rule whose yes or no values say
+        yes, and leaves the others as they are, or gives them with_value= (NumPy select).
         """
+        from .numpy_grid_words import replace_at_positions, replace_by_rules
+
+        if at_positions is not None or rules is not None:
+            if sum(v is not None for v in (yes_no, at_positions, rules)) > 1:
+                raise SimplydataError("replace_numbers_where() takes yes or no values, at_positions= or rules=: one "
+                                      "of them.")
+            if at_positions is not None:
+                return replace_at_positions(self, at_positions, with_value)
+            return replace_by_rules(self, rules, with_value)
         mask = self._mask_from(yes_no, "replace_numbers_where")
         if with_value is NOT_GIVEN:
             raise SimplydataError('replace_numbers_where() needs with_value=, a number or "empty".'
                                   + self._example('replace_numbers_where(land, with_value="empty")'))
-        if with_value is None or with_value == "empty":
+        if with_value is None or (isinstance(with_value, str) and with_value == "empty"):
             new, said = np.where(mask, np.nan, self._values.astype(float)), "empty"
         elif is_number(with_value):
             new, said = np.where(mask, with_value, self._values), say(with_value)
+        elif isinstance(with_value, (list, tuple, np.ndarray)) or hasattr(with_value, "_values"):
+            from ._base import to_array
+
+            other = to_array(with_value, "with_value=", "numbers.replace_numbers_where(land, with_value=other)")
+            if other.shape != self._values.shape:
+                raise SimplydataError(f"with_value= needs a number, or numbers of the same size as yours "
+                                      f"({self._values.size}); it has {other.size}.")
+            new = self._values.astype(np.result_type(self._values, other), copy=True)
+            np.copyto(new, other, where=mask)
+            n = int(np.count_nonzero(mask))
+            print(f"Replaced {n} of {amount(self._values.size)} with the other numbers at the same places. NumPy: "
+                  f"np.copyto({self._name}, other, where=yes_no)")
+            return self._change("replace numbers where yes with other numbers", new)
         else:
             raise SimplydataError(f'with_value= needs a number or "empty" (you gave {with_value!r}).'
                                   + self._example('replace_numbers_where(land, with_value="empty")'))
@@ -521,11 +602,13 @@ class MoreNumberWords:
     # ------------------------------------------------------------------ every pair (P06)
     @friendly
     def make_pair_table_with(self, other=None, by_adding=False, by_subtracting=False, by_multiplying=False,
-                             by_dividing=False, as_blocks=False):
+                             by_dividing=False, as_blocks=False, column_by_column=False):
         """A new table of every pair: each number with each of the other numbers (NumPy outer). numbers.make_pair_table_with(depths, by_subtracting=True)
 
         Multiplying is the default (the times table); by_adding=, by_subtracting= or by_dividing=True for the others.
         as_blocks=True puts a copy of the other numbers, times each number, in its place (NumPy kron).
+        column_by_column=True with as_blocks=True does that for each column of two grids with the same number of
+        columns, column 1 with column 1 and so on (the Khatri-Rao product; SciPy linalg.khatri_rao).
         """
         from .blocks import NumberBlock
         from .numbers import NumberGrid
@@ -535,15 +618,29 @@ class MoreNumberWords:
             raise SimplydataError(f"make_pair_table_with() needs the other numbers.\nFor example:  {example}")
         switches = {"adding": by_adding, "subtracting": by_subtracting, "multiplying": by_multiplying,
                     "dividing": by_dividing}
-        for key, value in [*switches.items(), ("as_blocks", as_blocks)]:
+        for key, value in [*switches.items(), ("as_blocks", as_blocks), ("column_by_column", column_by_column)]:
             if not isinstance(value, bool):
-                raise SimplydataError(f"{'by_' + key if key != 'as_blocks' else key}= needs True or False (no quotes).")
+                raise SimplydataError(f"{'by_' + key if key not in ('as_blocks', 'column_by_column') else key}= "
+                                      "needs True or False (no quotes).")
         chosen = [k for k, v in switches.items() if v]
         if len(chosen) > 1:
             raise SimplydataError(f"Give one of by_adding=, by_subtracting=, by_multiplying=, by_dividing=.\nFor example:  {example}")
         how = chosen[0] if chosen else "multiplying"
         b = other._values if isinstance(other, BaseNumbers) else to_array(other, ".make_pair_table_with()", example)
         a = self._values
+        if column_by_column:  # families for 100 %, batch 19 (plan section 2.8): the Khatri-Rao product
+            from scipy import linalg
+
+            if not as_blocks or how != "multiplying":
+                raise SimplydataError("column_by_column=True goes with as_blocks=True (multiplying): "
+                                      "grid.make_pair_table_with(other_grid, as_blocks=True, column_by_column=True).")
+            if np.ndim(a) != 2 or np.ndim(b) != 2 or np.shape(a)[1] != np.shape(b)[1]:
+                raise SimplydataError("column_by_column=True needs two grids with the same number of columns; they "
+                                      f"have shapes {tuple(np.shape(a))} and {tuple(np.shape(b))}.")
+            result = linalg.khatri_rao(np.asarray(a, dtype=float), np.asarray(b, dtype=float))
+            print(f"Each column of the grid with the same column of the other, as blocks (the Khatri-Rao product): "
+                  f"{np.shape(a)[0]} x {np.shape(b)[0]} rows by {np.shape(a)[1]} columns. SciPy linalg.khatri_rao(a, b)")
+            return NumberGrid(result)
         if as_blocks:
             if how != "multiplying":
                 raise SimplydataError("as_blocks=True goes with multiplying (the Kronecker product).")

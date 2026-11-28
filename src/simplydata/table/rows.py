@@ -390,6 +390,21 @@ def _rule_of(step: str, rule, example: str):
     return float(found.group(1)), how
 
 
+def _significant(value: float, figures: int) -> float:
+    """value with this many significant figures, rounded as written (its shortest text), a half to the even digit:
+    Python's decimal module (R signif() in nearly every case)."""
+    from decimal import ROUND_HALF_EVEN, Decimal
+
+    written = Decimal(repr(float(value)))
+    if written == 0 or not written.is_finite():
+        return float(value)
+    step = Decimal(1).scaleb(written.adjusted() - figures + 1)
+    return float(written.quantize(step, rounding=ROUND_HALF_EVEN))
+
+
+SHOWN_PROBLEMS = 10  # turn_into_numbers(show_problems=True) names at most this many cells
+
+
 class RowWords:
     # ================================================================== helpers
     def _kind_of(self, column) -> str:
@@ -683,6 +698,36 @@ class RowWords:
         if unknown:
             print(note[:-1] + ", so those rows keep their value.")
         return self._change(f"{what}, only in rows where {condition}", frame)
+
+    def _time_of_day(self, column, between):
+        """time_of_day_between=["08:00", "17:00"]: (condition, words) on the clock time of each row, both ends
+        included; a start after the end goes past midnight (pandas between_time)."""
+        example = 'table.keep_rows_where("time", time_of_day_between=["08:00", "17:00"])'
+        self._need_one_column("keep_rows_where", column, example)
+        dtype = self._frame.schema[column]
+        if not (dtype == nw.Datetime or dtype == nw.Time):
+            raise SimplydataError(f'time_of_day_between= needs times of day, but "{column}" holds '
+                                  f"{self._kind_of(column)} values without a time." + _example(example))
+        if not isinstance(between, (list, tuple)) or len(between) != 2:
+            raise SimplydataError("time_of_day_between= takes two clock times, such as [\"08:00\", \"17:00\"]."
+                                  + _example(example))
+        seconds = []
+        for clock in between:
+            found = re.fullmatch(r"\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*", clock) if isinstance(clock, str) else None
+            if not found or int(found.group(1)) > 23 or int(found.group(2)) > 59 or int(found.group(3) or 0) > 59:
+                raise SimplydataError(f"{clock!r} is not a clock time: write hours and minutes such as \"08:00\", "
+                                      "or \"08:00:30\" with seconds." + _example(example))
+            seconds.append(int(found.group(1)) * 3600 + int(found.group(2)) * 60 + int(found.group(3) or 0))
+        col = nw.col(column)
+        # Polars gives the parts as small whole numbers (Int8), pandas decimals where a time is empty: decimals here
+        of_day = (col.dt.hour().cast(nw.Float64) * 3600 + col.dt.minute().cast(nw.Float64) * 60
+                  + col.dt.second().cast(nw.Float64) + col.dt.nanosecond().cast(nw.Float64) / 1e9)
+        # a part of a second counts: 17:00:00.5 is after 17:00, as pandas between_time says
+        start, end = seconds
+        cond = ((of_day >= start) & (of_day <= end)) if start <= end else ((of_day >= start) | (of_day <= end))
+        cond = cond.fill_null(False)
+        past = " (past midnight)" if start > end else ""
+        return cond, f"the time of day of {column} is from {between[0]} to {between[1]}{past}"
 
     def _filter(self, what: str, keep_expr, kept_word: bool = True, note: str = ""):
         before = len(self._frame)
@@ -1059,7 +1104,7 @@ class RowWords:
                         is_at_most=_NOT_GIVEN, is_equal_to=_NOT_GIVEN, is_not_equal_to=_NOT_GIVEN, is_between=_NOT_GIVEN,
                         is_one_of=_NOT_GIVEN, contains=_NOT_GIVEN, starts_with=_NOT_GIVEN, ends_with=_NOT_GIVEN,
                         is_empty=_NOT_GIVEN, is_after=_NOT_GIVEN, is_before=_NOT_GIVEN, matches_pattern=_NOT_GIVEN,
-                        capitals_matter=True) -> _Same:
+                        capitals_matter=True, time_of_day_between=_NOT_GIVEN) -> _Same:
         """Keep only the rows that match a condition.
 
         table.keep_rows_where("marks", is_above=50)   (with sdata.get_example("marks"))
@@ -1076,7 +1121,20 @@ class RowWords:
         str.contains on every table (no look-ahead or look-behind; "$" is the very end of the text):
           table.keep_rows_where("subject", is_equal_to="maths", capitals_matter=False)
           table.keep_rows_where("name", matches_pattern=r"^A")   names that start with A
+        time_of_day_between=["08:00", "17:00"] keeps the rows whose time of day is between the two clock times,
+        both included, on any day (pandas between_time, Polars dt.time().is_between()); ["22:00", "06:00"]
+        goes past midnight. Seconds work too ("08:00:30"), and ["08:00", "08:00"] keeps one clock time (pandas
+        at_time):
+          table.keep_rows_where("time", time_of_day_between=["08:00", "17:00"])
         """
+        if time_of_day_between is not _NOT_GIVEN:  # families for 100 %, batches 1-2
+            given = [v for v in (is_above, is_below, is_at_least, is_at_most, is_equal_to, is_not_equal_to,
+                                 is_between, is_one_of, contains, starts_with, ends_with, is_empty, is_after,
+                                 is_before, matches_pattern) if v is not _NOT_GIVEN]
+            if given or extra:
+                raise SimplydataError("time_of_day_between= goes on its own, without another condition.")
+            cond, words = self._time_of_day(column, time_of_day_between)
+            return self._filter(f"keep rows where {words}", cond)
         options = dict(above=is_above, below=is_below, at_least=is_at_least, at_most=is_at_most, equal_to=is_equal_to,
                        not_equal_to=is_not_equal_to, between=is_between, one_of=is_one_of, contains=contains,
                        starts_with=starts_with, ends_with=ends_with, is_empty=is_empty, after=is_after, before=is_before,
@@ -1583,11 +1641,15 @@ class RowWords:
 
     # ================================================================== fixing columns
     @friendly
-    def turn_into_numbers(self: _Same, column=None) -> _Same:
+    def turn_into_numbers(self: _Same, column=None, show_problems=False) -> _Same:
         """Turn a column into numbers; cells that are not numbers become empty.
 
         table.turn_into_numbers("marks")   (with sdata.get_example("marks"))
         Understands 12.5, -3, 1e3, 1 200 and 1,200 (thousands) and 12,5 (decimal comma).
+        show_problems=True first shows the cells that would become empty, with their row and text (such as
+        "<0.5" or "n.d."), and leaves the table as it is, so you can fix them first (as pandas
+        str.isnumeric() or to_numeric(errors="coerce").isna() find them):
+          table.turn_into_numbers("dose", show_problems=True)
         """
         example = 'table.turn_into_numbers("marks")'
         self._need_one_column("turn_into_numbers", column, example)
@@ -1612,12 +1674,54 @@ class RowWords:
         )
         number = nw.when(text.str.contains(_NUMBER).fill_null(False)).then(text).cast(nw.Float64)
         values = self._frame.select(number.alias(column))[column]
+        if show_problems is not False:  # families for 100 %, batches 1-2: look before turning
+            if show_problems is not True:
+                raise SimplydataError("show_problems= should be True or False.")
+            return self._show_number_problems(column, values)
         self._report_failed(column, "numbers", values)
         print(f"{column} is now numbers.")
         return self._change(f"turn {column} into numbers", self._frame.with_columns(values))
 
+    def _dates_from_unix(self, column):
+        """turn_into_dates(from_unix_seconds=True): Polars from_epoch(unit="s") on both engines (pandas
+        to_datetime(unit="s") gives the same times), to the microsecond."""
+        import polars as pl
+
+        if self._kind_of(column) != "number":
+            raise SimplydataError(f'from_unix_seconds=True reads numbers (seconds since 1970), but "{column}" holds '
+                                  f"{self._kind_of(column)} values.")
+        native = self._frame[column].to_native()
+        polars = self._frame.implementation.is_polars()
+        seconds = (native if polars else pl.from_pandas(native)).cast(pl.Float64)
+        times = pl.from_epoch((seconds * 1_000_000).round(0).cast(pl.Int64), time_unit="us").alias(column)
+        if not polars:
+            times = _zone_clock._back_to_pandas(times, native.index)
+        new = self._frame.with_columns(nw.from_native(times, series_only=True).alias(column))
+        print(f"{column} is now dates and times on the UTC clock, read as seconds since 1 January 1970 (Unix time).")
+        return self._change(f"turn {column} into dates from Unix seconds", new)
+
+    def _show_number_problems(self, column, values):
+        """turn_into_numbers(show_problems=True): the filled cells that are not numbers, with their rows."""
+        frame = self._frame.with_row_index("__row").with_columns(values.alias("__number"))
+        problems = frame.filter(~self._empty(column) & nw.col("__number").is_null())
+        if not len(problems):
+            print(f'Every filled cell of "{column}" is a number: turn_into_numbers("{column}") changes no value '
+                  "into an empty cell. The table is unchanged.")
+            return self
+        rows = [int(r) + 1 for r in problems["__row"].to_list()]
+        texts = [str(v) for v in problems[column].to_list()]
+        different = list(dict.fromkeys(texts))
+        print(f'{len(rows)} filled cell{"" if len(rows) == 1 else "s"} of "{column}" '
+              f'{"is" if len(rows) == 1 else "are"} not a number, and would become empty: '
+              + ", ".join(f'row {r} "{t}"' for r, t in list(zip(rows, texts))[:SHOWN_PROBLEMS])
+              + (f" ... ({len(rows) - SHOWN_PROBLEMS} more)" if len(rows) > SHOWN_PROBLEMS else "") + ".")
+        print(f"The different texts: {', '.join(repr(t) for t in different[:SHOWN_PROBLEMS])}"
+              + (" ..." if len(different) > SHOWN_PROBLEMS else "") + ". The table is unchanged: fix them with "
+              f'replace_values_in("{column}", ...), then turn_into_numbers("{column}").')
+        return self
+
     @friendly(others={"format": "written_like", "date_format": "written_like"})
-    def turn_into_dates(self: _Same, column=None, order=None, written_like=None) -> _Same:
+    def turn_into_dates(self: _Same, column=None, order=None, written_like=None, from_unix_seconds=False) -> _Same:
         """Turn a column into dates; cells that are not dates become empty.
 
         table.turn_into_dates("year")   (with sdata.get_example("growth"))
@@ -1633,9 +1737,18 @@ class RowWords:
         (written_like="%d.%m.%y") work too. As pandas pd.to_datetime(format="%m/%d/%Y %H:%M") and
         Polars str.strptime(pl.Datetime, "%m/%d/%Y %H:%M"):
           table.turn_into_dates("when", written_like="03/15/2026")
+        from_unix_seconds=True reads a column of numbers as seconds since 1 January 1970 (Unix time, as computers
+        and loggers often write it) and gives dates and times on the UTC clock (pandas to_datetime(unit="s"),
+        Polars from_epoch(unit="s")):
+          table.turn_into_dates("logged", from_unix_seconds=True)
         """
         example = 'table.turn_into_dates("year")'
         self._need_one_column("turn_into_dates", column, example)
+        if from_unix_seconds is not False:  # families for 100 %, batches 1-2
+            if from_unix_seconds is not True or order is not None or written_like is not None:
+                raise SimplydataError("from_unix_seconds= is True or False, and goes on its own (without order= "
+                                      "or written_like=).")
+            return self._dates_from_unix(column)
         layout = None
         if written_like is not None:
             if order is not None:
@@ -1903,8 +2016,34 @@ class RowWords:
         what = ", ".join(f"{_say(o)} with {_say(n)}" for o, n in checked)
         return self._change(f"replace {what} in {column}", new)
 
+    def _round_significant(self, column, figures):
+        """round_numbers_in(significant_figures=3): the digits that count, a half of the written number to even."""
+        if not isinstance(figures, numbers.Integral) or isinstance(figures, bool) or figures < 1:
+            raise SimplydataError("significant_figures= is a whole number of digits that count, 1 or more, like 3.")
+        number_columns = [c for c in self._columns if self._kind_of(c) == "number"]
+        names = number_columns if column is None else ([column] if isinstance(column, str) else _as_list([column]))
+        if not names or not all(isinstance(n, str) for n in names):
+            raise SimplydataError(".round_numbers_in() needs column names in quotes." + _example(
+                'table.round_numbers_in("hours", significant_figures=2)'))
+        self._need_columns(*names)
+        wrong = [n for n in names if n not in number_columns]
+        if wrong:
+            raise SimplydataError(f'.round_numbers_in() rounds numbers, but "{wrong[0]}" is a '
+                                  f"{self._kind_of(wrong[0])} column.")
+        # each number as it is written (Python's shortest text of it, repr), a half to the even digit, as R
+        # signif() and round_numbers_in round: 3.15 becomes 3.2 and 5.25 becomes 5.2 at 2 figures (Polars
+        # round_sig_figs takes a half away from 0, so 5.25 would be 5.3)
+        columns = []
+        for n in names:
+            values = self._frame[n].cast(nw.Float64).to_list()
+            done = [None if v is None or v != v else _significant(v, int(figures)) for v in values]
+            columns.append(nw.new_series(n, done, nw.Float64, backend=self._frame.implementation))
+        print(f"Rounded {', '.join(names)} to {figures} significant figure{'' if figures == 1 else 's'}.")
+        return self._change(f"round {', '.join(names)} to {figures} significant figures",
+                            self._frame.with_columns(*columns))
+
     @friendly(renamed={"decimals": "with_decimals"})
-    def round_numbers_in(self: _Same, column=None, with_decimals=_NOT_GIVEN) -> _Same:
+    def round_numbers_in(self: _Same, column=None, with_decimals=_NOT_GIVEN, significant_figures=None) -> _Same:
         """Round numbers to this many decimal places: in one column, a list of columns, or every number column.
 
         table.round_numbers_in("hours", 0)   table.round_numbers_in(["hours", "marks"], 1)   table.round_numbers_in(1)
@@ -1913,10 +2052,21 @@ class RowWords:
         like R and NumPy; this stops a run of halves from always pushing totals up.
         round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2)
         (pandas round(-1); Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
+        significant_figures=3 keeps 3 digits that count, whatever the size (123.456 becomes 123, 0.0012345
+        becomes 0.00123), on both engines: each number as it is written, a half to the even digit as everywhere in
+        simplydata (5.25 becomes 5.2; Polars round_sig_figs would give 5.3). That is R signif(x, 3) in nearly every
+        case; R works on the number as stored, so a few numbers whose last digit is a 5 go the other way there
+        (0.639075 at 5 figures: R 0.63907, simplydata 0.63908, the even digit of the number as written):
+          table.round_numbers_in("hours", significant_figures=2)
         """
         example = 'table.round_numbers_in("hours", 0)'
         if with_decimals is _NOT_GIVEN and isinstance(column, numbers.Integral) and not isinstance(column, bool):
             column, with_decimals = None, column  # table.round_numbers_in(2): every number column
+        if significant_figures is not None:  # families for 100 %, batches 1-2: Polars round_sig_figs
+            if with_decimals is not _NOT_GIVEN:
+                raise SimplydataError("Give decimal places or significant_figures=, not both." + _example(
+                    'table.round_numbers_in("hours", significant_figures=2)'))
+            return self._round_significant(column, significant_figures)
         if with_decimals is _NOT_GIVEN:
             with_decimals = 0
         if not isinstance(with_decimals, numbers.Integral) or isinstance(with_decimals, bool):

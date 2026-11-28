@@ -59,6 +59,12 @@ ALLOWED = {
                                                         "itself (LAPACK), as R solve() and qr.solve()",
     "numbers/solving_words.py::SolvingWords.break_down": "grid.break_down() is SciPy linalg.svd, qr, lu, cholesky, "
                                                          "schur, polar, ldl, hessenberg or qz itself (LAPACK)",
+    # families for 100 %, batches 11-12 (approved by Manish 2026-11-28): the grid size words and the closest inverse
+    # are NumPy's and SciPy's own linalg calls, handed the grid as it is
+    "numbers/numpy_grid_words.py::NumPyGridWords.find_rank": "grid.find_rank() is NumPy linalg.matrix_rank itself "
+                                                             "(from the SVD), as R qr(x)$rank",
+    "numbers/numpy_grid_words.py::closest_inverse": "take_inverse(closest_possible=True) is SciPy linalg.pinv (or "
+                                                    "pinvh) itself, as R MASS::ginv",
     "table/fitting.py::_not_pinned_down": "rank of the Jacobian from least_squares (thin check, T10)",
     "table/models.py::ModelWords._fit_one": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov)",
     "table/models.py::_nested_mixed": "inverts the fixed-effects block of statsmodels' MixedLM Hessian (lme4 vcov), groups inside groups",

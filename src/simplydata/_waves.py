@@ -6,8 +6,11 @@ import numpy as np
 
 from ._errors import SimplydataError, choice_error, friendly
 
-SHAPES = ("sine", "square", "sawtooth", "chirp", "pulse", "impulse")
-SWEEPS = ("linear", "quadratic", "logarithmic", "hyperbolic")
+SHAPES = ("sine", "square", "sawtooth", "chirp", "pulse", "impulse", "maximum length sequence")
+SHAPE_SPELLINGS = {"mls": "maximum length sequence", "max_len_seq": "maximum length sequence",
+                   "pseudo-random binary": "maximum length sequence", "prbs": "maximum length sequence",
+                   "sweep": "chirp", "gausspulse": "pulse", "unit_impulse": "impulse"}
+SWEEPS = ("linear", "quadratic", "logarithmic", "hyperbolic", "polynomial")
 
 
 @friendly
@@ -16,7 +19,11 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
     """Numbers that make a wave: a sine, square, sawtooth, chirp, pulse or impulse. sdata.make_wave("sine", frequency=5, time_step=0.01, how_many=100)
 
     frequency= is cycles per unit of time (for "chirp", [start, end] with sweep= "linear",
-    "quadratic", "logarithmic" or "hyperbolic"); time_step= the time between readings (sampling_rate= or
+    "quadratic", "logarithmic" or "hyperbolic"; with sweep="polynomial", frequency= is the polynomial of the
+    frequency in time, highest power first: [2, 1] is 2 t + 1, SciPy sweep_poly); "maximum length sequence"
+    ("mls") is a pseudo-random run of 0s and 1s that repeats only after 2 ** bits - 1 readings, used to measure
+    systems (SciPy max_len_seq with the fewest bits whose run is at least how_many= long, from its usual start);
+    time_step= the time between readings (sampling_rate= or
     fs= instead); how_many= the number of readings. "square" is high for high_share= of each cycle;
     "sawtooth" rises for rising_share= of each cycle (1: rises then drops); "pulse" is a Gaussian pulse
     with bandwidth= (centred in the middle); "impulse" is 1 at position at= (from 1) and 0 elsewhere.
@@ -28,6 +35,8 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
     from ._time_axis import read_time_step
     from .numbers import number_list
 
+    if isinstance(shape, str):
+        shape = SHAPE_SPELLINGS.get(shape.strip().lower(), shape.strip().lower())
     if shape not in SHAPES:
         raise choice_error("wave", "shape", shape, list(SHAPES))
     if isinstance(how_many, bool) or not isinstance(how_many, int) or how_many < 1:
@@ -39,6 +48,17 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
         if isinstance(at, bool) or not isinstance(at, int) or not 1 <= at <= how_many:
             raise SimplydataError(f"at= needs a position from 1 to {how_many}.")
         values = signal.unit_impulse(how_many, at - 1)
+    elif shape == "maximum length sequence":
+        bits = max(2, int(np.ceil(np.log2(how_many + 1))))
+        if bits > 32:
+            raise SimplydataError("A maximum length sequence of more than 2 ** 32 - 1 readings is not known to SciPy.")
+        values = signal.max_len_seq(bits, length=how_many)[0].astype(float)
+    elif shape == "chirp" and sweep == "polynomial":
+        poly = np.atleast_1d(np.asarray(frequency, dtype=float)) if isinstance(frequency, (list, tuple)) else None
+        if poly is None or not len(poly):
+            raise SimplydataError('sweep="polynomial" needs frequency= as the polynomial of the frequency in time, '
+                                  "highest power first, such as frequency=[2, 1] for 2 t + 1.")
+        values = signal.sweep_poly(t, poly)
     elif shape == "chirp":
         if not (isinstance(frequency, (list, tuple)) and len(frequency) == 2):
             raise SimplydataError('shape="chirp" needs frequency=[start, end], such as frequency=[1, 20].')
@@ -60,7 +80,9 @@ def make_wave(shape="sine", frequency=1, time_step=None, how_many=None, high_sha
             values = signal.gausspulse(t - t[len(t) // 2], fc=float(frequency), bw=float(bandwidth))
     nums = number_list(values)
     nums._time_step = step
-    print(f"A {shape} wave of {how_many} readings ({words}).")
+    print(f"A {shape} " + ("" if shape == "maximum length sequence" else "wave ") + f"of {how_many} readings "
+          f"({words})." + (f" SciPy max_len_seq with {bits} bits (the run repeats after {2 ** bits - 1} readings)."
+                           if shape == "maximum length sequence" else ""))
     return nums
 
 
@@ -110,8 +132,11 @@ def _same_rows_as_made(info, frame):
 def find_inverse_fourier_transform(table=None):
     """Numbers back from a Fourier transform table (its real and imaginary parts). sdata.find_inverse_fourier_transform(table)
 
-    table is what numbers.take_fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
-    Re(fft(z, inverse = TRUE)) / n. A round trip gives the numbers back (to about 1e-12). Its rows must stay
+    table is what numbers.take_fourier_transform() gave back (show="half" or "all"), or grid.take_fourier_transform()
+    (a grid comes back: SciPy irfft2 / ifft2, or irfft / ifft over one direction). SciPy irfft / ifft, as R
+    Re(fft(z, inverse = TRUE)) / n; for a table of over_time=True, SciPy ShortTimeFFT.istft (the inverse
+    short-time transform; SciPy checks the pieces overlap enough to come back, check_NOLA). A round trip gives
+    the numbers back (to about 1e-12). Its rows must stay
     as they were made: to take frequencies out, set their real and imaginary parts to 0 (removing or
     reordering rows is refused, since the number of readings then no longer fits).
     """
@@ -122,7 +147,19 @@ def find_inverse_fourier_transform(table=None):
     info = getattr(table, "_fourier", None)
     if info is None:
         raise SimplydataError("find_inverse_fourier_transform() needs the table that numbers.take_fourier_transform() gave back.")
+    if info.get("show") == "zoom":
+        raise SimplydataError("A transform at some frequencies only (between=) cannot give the numbers back: it leaves "
+                              "the other frequencies out. Take numbers.take_fourier_transform() without between= for a "
+                              "round trip.")
+    if info.get("show") == "over time":
+        from ._signal_spectra import inverse_short_time
+
+        return inverse_short_time(table, info)
     frame = table._frame
+    if "grid" in info:  # families for 100 %, batch 11: the table grid.take_fourier_transform() gave back
+        from .numbers.numpy_grid_words import inverse_grid_fourier
+
+        return inverse_grid_fourier(info, frame)
     _same_rows_as_made(info, frame)
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
                                                                                     dtype=float)

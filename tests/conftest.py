@@ -209,7 +209,10 @@ R_PACKAGES = ("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "ef
               "AER", "alr4", "HH", "mediation",
               # reliability study only (validation/cases_underneath_signals.py): gsignal (envelopes, windows, filters),
               # control (steady gain, step response) and pracma
-              "gsignal", "control", "pracma")
+              "gsignal", "control", "pracma",
+              # families for 100 %: reliability study only: signal (FIR filters), nleqslv (system solvers), cubature
+              # (areas and volumes) and lpSolve (pairing)
+              "signal", "nleqslv", "cubature", "lpSolve")
 # S3d-3: the large optional packages of the Bayesian models (rstanarm with Stan). CI installs them in a step of their
 # own; the needs_r fixture does not ask for them, so without rstanarm only its own tests skip (test_s3d3_bayesian.py)
 R_PACKAGES_HEAVY = ("rstanarm", "rstan", "posterior")

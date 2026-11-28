@@ -14,9 +14,10 @@ import numpy as np
 
 from .._errors import SimplydataError, friendly
 from ._base import is_number, note_empty, say
+from .function_words import FunctionWords
 
 
-class MathsWords:
+class MathsWords(FunctionWords):  # take_function and work_on_bits: families for 100 % (function_words.py)
     # ------------------------------------------------------------------ the four sums and power
     @friendly
     def add(self: _Same, number=None) -> _Same:

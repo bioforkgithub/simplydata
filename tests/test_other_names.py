@@ -222,7 +222,8 @@ AUDIT_POINTERS = [
     ("str.rstrip", "remove_extra_spaces_in"), ("str.slice", "add_column_with_part_of_text"),
     ("str.split", "split_column"), ("str.strip_chars", "remove_extra_spaces_in"),
     ("str.strip_chars_end", "remove_extra_spaces_in"), ("str.strip_chars_start", "remove_extra_spaces_in"),
-    ("str.tail", "add_column_with_part_of_text"), ("str.title", "as_pandas"), ("str.to_date", "turn_into_dates"),
+    ("str.tail", "add_column_with_part_of_text"), ("str.title", "turn_into_title_case"),
+    ("str.to_date", "turn_into_dates"),
     ("str.to_decimal", "turn_into_numbers"), ("str.to_integer", "turn_into_numbers"),
     ("str.to_lowercase", "turn_into_lowercase"), ("str.to_time", "turn_into_dates"),
     ("str.to_uppercase", "turn_into_uppercase"), ("time", "add_column_with_part_of_date"), ("to_excel", "save"),
@@ -253,7 +254,7 @@ def test_every_name_the_audit_found_points_to_its_word(typed, word, capsys):
     ("str.slice", "str.slice", "add_column_with_part_of_text", "keep_rows_by_position"),
     ("str.head", "str.head", "first_characters=", "show_first_rows"),
     ("str.join", "str.join", "by_joining_text=", "join_with"),
-    ("str.title", "str.title", "as_pandas", "write_title_on_top"),
+    ("str.title", "str.title", "turn_into_title_case", "write_title_on_top"),
     ("dt.round", "dt.round", "round_dates_in", "round_numbers_in"),
     ("Series.dt.year", "dt.year", 'part="year"', None),
     ('pl.col("date").dt.truncate("1mo")', "dt.truncate", "round_dates_in", None),
@@ -308,8 +309,7 @@ def test_a_text_or_date_name_never_falls_back_to_the_table_meaning(capsys):
     ("isin", ['is_one_of=["A", "B"]', "table.keep_rows_found_in("]),
     ("to_excel", ['table.save("results.xlsx")']),
     ("where", ["table.replace_values_in(", "in_rows_where=", "table.keep_rows_where("]),
-    ("unique", ['table.keep_columns("class"), then table.remove_duplicate_rows()',
-                '"From pandas (and Polars) to simplydata"']),
+    ("unique", ['table.get_different_values_in("class")', "table.remove_duplicate_rows() for whole rows"]),
     ("count", ["table.count_rows()", "table.describe_columns()", 'table.count_each("class")']),
     ("astype", ["turn_into_numbers", "turn_into_text", "turn_into_dates", "turn_into_categories"]),
     ("str", ["table.describe_columns()", "str.replace is replace_text_in"]),
@@ -458,6 +458,8 @@ def _pointer_table():
         "country": ["Applia", "Applia", "Bananda", "Bananda"], "temperature": [8.3, 10.3, 11.0, 9.2],
         "signal": [0.1, 0.4, 0.2, 0.3], "fruit": ["apple", "pear", "apple|pear", "plum"],
         "school": ["X", "X", "Y", "Y"], "week": [1, 1, 2, 2], "people": [3, 1, 2, 5],
+        # families for 100 %, batches 1-2: Unix seconds (from_epoch) and clock times (dt.combine)
+        "seconds": [1764288000, 1764291600, 1764374400, 1764460800], "clock": ["08:30", "09:05", "23:10", "00:30"],
     })
 
 
@@ -489,6 +491,11 @@ def _runnable_pointers():
 @pytest.mark.parametrize("calls", _runnable_pointers())
 def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)  # table.save("results.csv") and friends write here
+    import pandas as pd  # table.save("clipboard") must never touch this computer's real clipboard in a test
+
+    copied = {}
+    monkeypatch.setattr(pd.DataFrame, "to_clipboard", lambda self, **kw: copied.setdefault("table", self))
+    monkeypatch.setattr(pd, "read_clipboard", lambda **kw: copied["table"])
     errors = []
     for source in [None, *EXAMPLES]:
         table = _pointer_table() if source is None else sdata.get_example(source)
@@ -502,6 +509,8 @@ def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monk
             text = f"{type(problem).__name__}: {problem}"
             if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
                 pytest.skip(f"{calls} needs R")
+            if "needs SciPy" in text and "or newer" in text:  # checked where that SciPy is installed
+                pytest.skip(f"{calls}: {text.splitlines()[0]}")
             assert not any(bad in text for bad in BAD), f"{calls} on {source or 'POINTER_TABLE'}: {text}"
             errors.append(f"{source or 'POINTER_TABLE'}: {text.splitlines()[0]}")
     pytest.fail(f"{calls} ran on no practice table:\n" + "\n".join(errors[:5]))
@@ -739,13 +748,13 @@ NUMBER_AUDIT_POINTERS = [
     ("np.square", "numbers.raise_to_power(2)"), ("np.flip", "numbers.reverse()"),
     ("np.unique", "numbers.remove_duplicate_numbers()"), ("np.clip", "numbers.replace_each_number_that("),
     ("np.transpose", "grid.swap_rows_and_columns()"), ("np.isin", "numbers.turn_into_yes_or_no(is_one_of="),
-    ("np.zeros", "sdata.number_grid(rows=2, columns=3, filled_with=0)"), ("np.diff", "np.diff(numbers.as_numpy())"),
+    ("np.zeros", "sdata.number_grid(rows=2, columns=3, filled_with=0)"), ("np.diff", "numbers.turn_into_changes()"),
     ("np.save", 'numbers.save("numbers.csv")'), ("np.cbrt", "numbers.take_cube_root()"),
     ("np.linalg.solve", "grid.solve_for("), ("scipy.linalg.solve_triangular", "grid.solve_for("),
     ("np.linalg.lstsq", "grid.solve_for("), ("np.linalg.svd", 'grid.break_down(test_method="svd")'),
     ("scipy.linalg.lu", 'grid.break_down(test_method="lu")'), ("scipy.linalg.ldl", 'test_method="ldl"'),
     ("scipy.linalg.qz", 'test_method="qz", together_with='), ("np.linalg.det", "grid.find_determinant()"),
-    ("np.linalg.eigh", "grid.find_eigenvalues()"), ("np.linalg.norm", "np.linalg.norm(numbers.as_numpy())"),
+    ("np.linalg.eigh", "grid.find_eigenvalues()"), ("np.linalg.norm", "numbers.find_size()"),
     ("scipy.linalg.expm", "grid.take_matrix_exp()"), ("optimize.nnls", "between=[0, None]"),
     ("scipy.optimize.lsq_linear", "between=[0, 1]"), ("scipy.optimize.minimize", "sdata.find_where_smallest("),
     ("rng.normal", "sdata.make_random_numbers(how_many=100, average=50"),
@@ -783,8 +792,8 @@ def test_every_number_name_the_audit_found_points_to_its_word(typed, word, capsy
     ("np.mean", "numbers.find_average()", "table.find_average_of"),  # a bare mean is the table word
     ("np.zeros", "sdata.number_grid(", "system.zeros"),  # a bare zeros is the system word
     ("np.save", "numbers.save(", "chart.save"),
-    ("np.diff", "np.diff(", "find_slope_formula"),  # a bare diff is SymPy's slope
-    ("np.linalg.norm", "as_numpy()", 'distribution("normal"'),  # a bare norm is scipy.stats.norm
+    ("np.diff", "numbers.turn_into_changes()", "find_slope_formula"),  # a bare diff is SymPy's slope
+    ("np.linalg.norm", "find_size()", 'distribution("normal"'),  # a bare norm is scipy.stats.norm
     ("scipy.special.gamma", 'formula("gamma(x)")', 'distribution("gamma"'),
     ("scipy.stats.gamma", 'distribution("gamma"', 'formula("gamma(x)")'),
     ("np.linalg.solve", "grid.solve_for(", 'sdata.solve("'),
@@ -895,6 +904,8 @@ def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
             text = f"{type(problem).__name__}: {problem}"
             if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
                 pytest.skip(f"{calls} needs R")
+            if "needs SciPy" in text and "or newer" in text:  # checked where that SciPy is installed
+                pytest.skip(f"{calls}: {text.splitlines()[0]}")
             assert not any(bad in text for bad in BAD), f"{[c for _, _, c in calls]} on the {shape} grid: {text}"
             errors.append(f"{shape}: {text.splitlines()[0]}")
     pytest.fail(f"{[c for _, _, c in calls]} ran on no grid:\n" + "\n".join(errors))
