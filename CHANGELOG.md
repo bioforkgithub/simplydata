@@ -5,6 +5,45 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: the last pandas and Polars jobs, and seaborn's Path, Shift and Dash (families for 100 %, batches 1-2)
+
+Approved by Manish 2026-11-28. Each word and option calls pandas, Polars, NumPy, SciPy or seaborn, gives one
+answer on both table engines, has its help example, its "same underneath" box and reliability cases on real data.
+
+- New words: `table.get_different_values_in("species")` (pandas `unique()`), `table.check_if_all_values_in(...)`
+  and `table.check_if_any_value_in(...)` (`all()`, `any()`, `all_horizontal`, with the `keep_rows_where`
+  conditions), `table.check_if_sorted_by("date")` (`is_monotonic_increasing`, `is_sorted`),
+  `table.add_run_number_column(...)` (Polars `rle_id`), `table.turn_into_title_case("name")` (`str.title`) and
+  `chart.draw_dashes(x=, y=)` (seaborn `so.Dash`).
+- `find_summary_of`: `show="product"`, `"entropy"`, `"joined text"` with `separator=` (the mirror of
+  `split_into_rows`), and `show={"marks": ["average", "count"], "hours": ["total"]}` for different measures of
+  different columns, one row per group (pandas named aggregation).
+- `add_previous_value_column(rows_ahead=1)` (the next value, `shift(-1)`); `round_numbers_in(significant_figures=)`
+  (as R `signif()`: halves to the even digit, where Polars `round_sig_figs` takes 5.25 to 5.3);
+  `keep_rows_where(time_of_day_between=["08:00", "17:00"])`; `turn_into_numbers(show_problems=True)`;
+  `turn_into_dates(from_unix_seconds=True)`; `add_column_with_part_of_text(every_match=True)` and `position_of=`;
+  `add_rolling_column(with_column=)`; `join_with(where="time >= start and time < end")` (Polars `join_where`).
+- Written conditions read `gene contains 'bla'`; formulas know `log10`, `log1p`, `sign`, `cbrt`, `floor`, `ceil`,
+  `add_working_days(date, 10)` and `count_working_days(start, end)`; date parts `"is month start"`, `"is quarter
+  start"`, `"is quarter end"`, `"is year start"`, `"is year end"`, `"month end"`, `"is working day"` and `"unix
+  time"`; `sdata.make_run_of_dates(every="working day")`.
+- Files: `table.save("table_1.md")`, `.tex` and `.docx` (a finished table for a paper, empty cells blank),
+  `table.save("clipboard")`; `sdata.table("page.html", table_number=)`, `fixed_widths=` (text files with columns
+  at fixed places), `sdata.table("clipboard")`, and `.json` files with values inside values (`json_normalize`).
+  `pip install "simplydata[files]"` now brings jinja2 (for `.tex`) and lxml (for `.html`).
+- Charts: `draw_lines(in_row_order=True)` joins the points in the order of the rows (`so.Path`), and
+  `move_layer_by=` on `draw_dots`, `draw_lines`, `draw_all_dots` and `draw_dashes` moves a layer along x
+  (`so.Shift`).
+
+### Changed: names from pandas, Polars and seaborn.objects point to these words
+
+- `sdata.help("unique")` now names `get_different_values_in`, `str.title` names `turn_into_title_case`,
+  `groupby.agg` the dict form of `find_summary_of`, `so.Path` `draw_lines(in_row_order=True)`, and every other
+  name of the batches its word. Jobs simplydata leaves to pandas and Polars on purpose (a row index, list columns,
+  lazy plans, `pipe`) and plumbing (`memory_usage`, `convert_dtypes`, `to_numpy` ...) point to the nearest word
+  and to `table.as_pandas()` or `table.as_polars()`. `list.` and `arr.` names (Polars list columns) have their own
+  list, so `list.sum` no longer reads as a table total.
+
 ### Changed: `sdata.numbers` is now `sdata.number_list` (check your code)
 
 - `sdata.number_list([3, 5, 2, 8])` makes a list of numbers, so the three makers read alike:

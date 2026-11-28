@@ -37,7 +37,7 @@ with Python 3.11 to 3.13 for every change.
    that agree. A word must match at least 9 digits; for the nonlinear (curve) problems, at least 6, the
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
-   rows left, an exact line): 3 of the 911 cases, each labelled *made-up* in the report.
+   rows left, an exact line): 3 of the 963 cases, each labelled *made-up* in the report.
    Words that take no data at all (a system, a wave, a window shape) are checked against the answer
    worked out by hand from their formula; the report labels them *closed form*.
 
@@ -49,23 +49,23 @@ with Python 3.11 to 3.13 for every change.
    a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
    difference*, with its reason, and counted apart from the passes and the failures.
 
-2. **The same underneath** (`src/simplydata/_underneath/`). For 584 of simplydata's 584 words (770
+2. **The same underneath** (`src/simplydata/_underneath/`). For 591 of simplydata's 591 words (798
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 466 of the 770 run on made-up
-   practice tables (all practice tables are made up; 304 need no table). The report counts them together with the cases of
+   it says it makes; they are not checks against an independent answer, and 491 of the 798 run on made-up
+   practice tables (all practice tables are made up; 307 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 911 cases on 101 datasets (93 with a published or certified answer, 758 compared with the
+The study now has 963 cases on 101 datasets (93 with a published or certified answer, 810 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
-manuals, design tables, worked examples): 23 of the 758 are simulation and formula checks against R that use no data at
-all; the other 735 run on real data. A word passes when it agrees with the reference to the stated, justified
-tolerance. They cover 562 words, or 768 words and options. Words are added with each release; a word counts as done only
+manuals, design tables, worked examples): 23 of the 810 are simulation and formula checks against R that use no data at
+all; the other 787 run on real data. A word passes when it agrees with the reference to the stated, justified
+tolerance. They cover 569 words, or 795 words and options. Words are added with each release; a word counts as done only
 when its checks pass.
 
 ### Which words are compared, and where
