@@ -276,6 +276,33 @@ def test_discriminant_axes_print_the_chance_level(needs_r, capsys):
     assert "by always guessing the largest group: 25.0 %" in out and "leave-one-out" in out
 
 
+def test_discriminant_axes_after_rosners_test_in_the_same_session(needs_r, tmp_path):
+    """Rosner's outlier test attached R's EnvStats, whose own predict() hides R's; MASS's predict() of the lda fit
+    then stopped with "object 'x' not found". Found by pytest-xdist (PR #79), where a worker ran the tests in another
+    order. A fresh Python, so R has attached only what these two words attach."""
+    import os
+    import subprocess
+    import sys
+    import textwrap
+
+    script = tmp_path / "script.py"
+    script.write_text(textwrap.dedent("""
+        import pandas as pd
+        import simplydata as sdata
+        x = [12.1, 14.3, 11.8, 15.2, 13.9, 12.7, 14.8, 13.1, 12.4, 25.6, 3.0, 13.3]
+        sdata.table(pd.DataFrame({"v": x})).show_rows_with_outliers("v", test_method="rosner")
+        table = sdata.table(sdata.get_example("resistome")).add_axes_that_separate_groups(
+            columns=["temperature", "salinity"], for_each_group_in="site")
+        print("AXES", [c for c in table.as_pandas().columns if c.startswith("LD")])
+    """), encoding="utf-8")
+    src = os.path.dirname(os.path.dirname(os.path.abspath(sdata.__file__)))
+    env = {**os.environ, "PYTHONPATH": src + os.pathsep + os.environ.get("PYTHONPATH", "")}
+    run = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, cwd=tmp_path, env=env,
+                         timeout=600)
+    assert run.returncode == 0, run.stdout[-2000:] + run.stderr[-3000:]
+    assert "AXES ['LD1', 'LD2']" in run.stdout, run.stdout[-2000:]
+
+
 def test_correspondence_axes_on_counts_and_on_text(needs_r, capsys):
     _table().add_correspondence_axes(columns=GENES)
     assert "Correspondence analysis (CA)" in capsys.readouterr().out

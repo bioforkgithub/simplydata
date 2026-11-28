@@ -2144,7 +2144,7 @@ class RowWords:
     def _test_outliers(self, step, column, for_each, rule, example):
         """test_method="grubbs" / "dixon" / "rosner": outlier tests from R (outliers::grubbs.test, outliers::dixon.test,
         EnvStats::rosnerTest), group by group; the value tested is the one R outliers::outlier() names."""
-        from .._r import r_call
+        from .._r import need_r, r_call
         from .stat_tests import _num
 
         groups = self._for_each(step, for_each, column, example)
@@ -2166,9 +2166,13 @@ class RowWords:
                              + ("3 to 30" if rule == "dixon" else "at least 3") + " values that differ)")
                 continue
             if rule == "rosner":
+                # EnvStats is checked, not attached: attached, its own predict() hides R's, and MASS's predict() of
+                # an lda fit (add_axes_that_separate_groups) then stops with "object 'x' not found"
+                what = "Rosner's outlier test (R EnvStats::rosnerTest())"
+                need_r(("EnvStats",), what, "Python's stack has no Rosner test")
                 found = r_call("r <- EnvStats::rosnerTest(x, k = min(3, length(x) - 2))$all.stats; "
-                               "list(at = r$Obs.Num[r$Outlier])", packages=("EnvStats",),
-                               what="Rosner's outlier test (R EnvStats::rosnerTest())", source="EnvStats::rosnerTest",
+                               "list(at = r$Obs.Num[r$Outlier])",
+                               what=what, source="EnvStats::rosnerTest",
                                python_note="Python's stack has no Rosner test", x=x)
                 at = [int(i) - 1 for i in np.atleast_1d(np.asarray(found["at"], dtype=float))] if found["at"] is not None \
                     else []
