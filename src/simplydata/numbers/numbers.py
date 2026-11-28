@@ -34,11 +34,13 @@ from ._base import NOT_GIVEN
 from .numbers_3 import GridWords3, NumberWords3, SharedWords3
 from .numbers_4 import GridWords4
 from .solving_words import SolvingWords  # numbers finishing: solve_for and break_down (P41)
+from .numpy_list_words import NumPyListWords, NumPySharedWords  # families for 100 %, batch 10 (plan section 2.4)
+from .numpy_grid_words import NumPyGridWords  # families for 100 %, batches 11-12 (plan section 2.4)
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
               TimeSeriesNumberWords, SmoothingNumberWords, FilterNumberWords, PeakNumberWords,
-              FourierNumberWords, NumberWords3, SharedWords3, BaseNumbers):
+              FourierNumberWords, NumberWords3, SharedWords3, NumPyListWords, NumPySharedWords, BaseNumbers):
     """A list of numbers. Make one with sdata.number_list([3, 5, 2, 8]), then add steps: numbers.add(5)."""
 
     _is_simplydata_numbers = True
@@ -90,7 +92,8 @@ _GRID_KEEP_NUMBERS = (
 
 
 class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 GridWords3, GridWords4, SolvingWords, SharedWords3, BaseNumbers):
+                 GridWords3, GridWords4, SolvingWords, SharedWords3, NumPyGridWords, NumPySharedWords,
+                 BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True
@@ -125,7 +128,14 @@ class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, 
               "svd": "break_down", "cholesky": "break_down", "chol": "break_down", "schur": "break_down",
               "polar": "break_down", "ldl": "break_down", "hessenberg": "break_down", "hess": "break_down",
               "qz": "break_down", "decompose": "break_down", "decomposition": "break_down",
-              "factorize": "break_down", "take_apart": "break_down"}
+              "factorize": "break_down", "take_apart": "break_down",
+              # families for 100 %, batches 11-12 (plan section 2.4): NumPy names of the new grid words
+              "trace": "get_part", "diagonal": "get_part", "diag": "get_part", "triu": "get_part", "tril": "get_part",
+              "fill_diagonal": "replace_part", "pad": "add_border", "matmul": "multiply_as_matrix_by",
+              "dot": "multiply_as_matrix_by", "norm": "find_size", "rank": "find_rank", "matrix_rank": "find_rank",
+              "cond": "find_condition_number", "orth": "find_column_space", "pinv": "take_inverse",
+              "argwhere": "find_positions_where", "nonzero": "find_positions_where", "fft2": "take_fourier_transform",
+              "dctn": "take_cosine_transform"}
     # Words that cannot work on a grid, with the reason and what to write instead.
     _POINTERS = {"keep_each_number_that": _GRID_KEEP_NUMBERS, "remove_each_number_that": _GRID_KEEP_NUMBERS,
                  "keep_numbers": _GRID_KEEP_NUMBERS, "remove_numbers": _GRID_KEEP_NUMBERS}
@@ -406,7 +416,8 @@ _NUMBERS_EXAMPLE = "sdata.number_list([3, 5, 2, 8])   or   sdata.number_list(1, 
 
 
 @friendly
-def number_list(*values, to=None, step=None, how_many=None, channel=None, empty_values=None) -> Numbers:
+def number_list(*values, to=None, step=None, how_many=None, channel=None, empty_values=None,
+                spacing="even") -> Numbers:
     """Make a list of numbers.
 
     sdata.number_list([3, 5, 2, 8])              these numbers (or sdata.number_list(3, 5, 2, 8))
@@ -414,6 +425,8 @@ def number_list(*values, to=None, step=None, how_many=None, channel=None, empty_
     sdata.number_list(0, to=100, step=25)        0, 25, 50, 75, 100
     sdata.number_list(0, to=1, how_many=5)       5 numbers evenly spaced: 0, 0.25, 0.5, 0.75, 1
     sdata.number_list(10, to=1)                  counting down: 10, 9 ... 1
+    sdata.number_list(1, to=1000, how_many=4, spacing="log")   1, 10, 100, 1000: each the one before times the same
+                                                 factor (NumPy geomspace; NumPy logspace gives the same from powers)
     sdata.number_list("call.wav", channel=1)      the readings of a sound file, scaled to -1 to 1 (they remember their time step)
     sdata.number_list("readings.txt", empty_values=[-999])   one column of numbers from a text file (.txt, .csv, .tsv,
                                                  .dat); empty_values= are the markers that mean "no reading" (only
@@ -446,6 +459,24 @@ def number_list(*values, to=None, step=None, how_many=None, channel=None, empty_
         return Numbers(arr)
     if not values:
         raise SimplydataError(f"sdata.number_list() needs some numbers.\nFor example:  {_NUMBERS_EXAMPLE}")
+    if spacing not in ("even", "log"):
+        from .._errors import choice_error
+
+        raise choice_error("number_list", "spacing", spacing, ["even", "log"])
+    if spacing == "log":
+        if len(values) != 1 or to is None or step is not None:
+            raise SimplydataError('spacing="log" goes with a start, to= and how_many=, such as '
+                                  'sdata.number_list(1, to=1000, how_many=4, spacing="log").')
+        from .numpy_list_words import log_spaced
+
+        for name, value in (("the starting number", values[0]), ("to=", to)):
+            if not is_number(value) or not math.isfinite(value):
+                raise SimplydataError(f"{name} needs to be a number.")
+        made = log_spaced(values[0], to, None if how_many is None else check_whole(
+            "numbers", "how_many=", how_many, 'sdata.number_list(1, to=1000, how_many=4, spacing="log")'))
+        print(f"{amount(made.size)} from {say_number(values[0])} to {say_number(to)}, each the one before times the "
+              "same factor (NumPy geomspace).")
+        return Numbers(made)
     if len(values) == 1 and to is not None:
         return Numbers(_counting(values[0], to, step, how_many))
     if to is not None or step is not None or how_many is not None:
@@ -614,16 +645,52 @@ def _counting(start, to, step, how_many) -> np.ndarray:
 
 
 _GRID_EXAMPLE = "sdata.number_grid([[1, 2], [3, 4]])   or   sdata.number_grid(rows=3, columns=4, filled_with=0)"
+EXAMPLE_KIND = 'sdata.number_grid(kind="toeplitz", first_column=[1, 2, 3])'
 
 
 @friendly
-def number_grid(values=None, rows=None, columns=None, filled_with=0) -> NumberGrid:
+def number_grid(values=None, rows=None, columns=None, filled_with=0, kind=None, size=None, first_column=None,
+                first_row=None, last_row=None, of=None, shifted_by=0, survival=None, axis=None, by_degrees=None,
+                from_formula=None) -> NumberGrid:
     """Make a grid of numbers in rows and columns.
 
     sdata.number_grid([[1, 2, 3], [4, 5, 6]])            from rows of numbers (2 rows, 3 columns)
     sdata.number_grid(rows=3, columns=4, filled_with=0)  a grid of 0s (filled_with=1 for 1s, or any number)
     sdata.number_grid([1, 2, 3, 4, 5, 6], columns=3)     a list cut into rows of 3
+    sdata.number_grid(kind="toeplitz", first_column=[1, 2, 3])   a special grid: kind= "identity" (size=, NumPy eye),
+        "diagonal" (from the numbers, NumPy diag), "ones below diagonal" (NumPy tri), "vandermonde", "blocks" and
+        "block diagonal" (of= grids), "toeplitz", "hankel", "circulant" (first_column=, first_row=, last_row=),
+        "companion", "fiedler companion", "fiedler", "convolution", "hadamard", "hilbert", "inverse hilbert",
+        "pascal", "lower pascal", "upper pascal", "inverse pascal", "leslie" (first_row= births, survival=),
+        "helmert" (size=; SciPy linalg) and "rotation" (axis="x", by_degrees=30: a counterclockwise turn round the
+        axis, SymPy rot_ccw_axis1-3).
+        shifted_by=1 moves a diagonal one place up, -1 down.
+    sdata.number_grid(from_formula="row * column", rows=3, columns=4)   each cell from a formula of its row and
+        column, counting from 1 (NumPy fromfunction)
     """
+    if kind is not None or from_formula is not None:
+        from .special_grids import grid_from_formula, say_kind, special_grid
+
+        if kind is not None and from_formula is not None:
+            raise SimplydataError("Give kind= or from_formula=, not both.")
+        if from_formula is not None:
+            found = grid_from_formula(from_formula, rows, columns)
+            print(f"A grid of {amount(found.shape[0], 'row')} and {amount(found.shape[1], 'column')} from "
+                  f"{from_formula!r}, with row and column counting from 1 (NumPy fromfunction).")
+            return NumberGrid(found)
+        found, how = special_grid(kind, values, rows=rows, columns=columns, size=size, first_column=first_column,
+                                  first_row=first_row, last_row=last_row, of=of, shifted_by=shifted_by,
+                                  survival=survival, axis=axis, by_degrees=by_degrees)
+        print(say_kind(kind, found, how))
+        found = np.asarray(found)
+        if found.dtype.kind in "iu":
+            found = found.astype(np.int64)
+        return NumberGrid(found)
+    given = {"size": size, "first_column": first_column, "first_row": first_row, "last_row": last_row, "of": of,
+             "survival": survival, "axis": axis, "by_degrees": by_degrees}
+    extra = [name for name, value in given.items() if value is not None] + (["shifted_by"] if shifted_by else [])
+    if extra:
+        raise SimplydataError(f"{', '.join(n + '=' for n in extra)} go with kind=, such as {EXAMPLE_KIND}.")
     for option, value in (("rows=", rows), ("columns=", columns)):
         if value is not None:
             check_whole("make_number_grid", option, value, _GRID_EXAMPLE, smallest=1)

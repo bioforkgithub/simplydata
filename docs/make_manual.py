@@ -605,7 +605,7 @@ UNDERNEATH = {
     "nums.take_cube_root": "NumPy (cbrt)",
     "nums.show_as_fraction": "SymPy (nsimplify with rational=True)",
     "nums.find_coherence_with": "SciPy (signal.coherence, Welch's method)",
-    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal)",
+    "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal; dst, idct, idst, and fht for kind=\"hankel\")",
     "grid.get_numbers_at_pairs": "NumPy (indexing with two lists of positions)",
     "grid.get_numbers_from_each_row_at": "NumPy (take_along_axis)",
     "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass)",
@@ -630,6 +630,21 @@ UNDERNEATH = {
     "grid.solve_for": "SciPy (linalg.solve; linalg.lstsq for least squares; optimize.nnls and optimize.lsq_linear for "
                       "between=); SymPy LUsolve and solve_least_squares for exactly=True",
     "grid.break_down": "SciPy (linalg.svd, qr, lu, cholesky, schur, polar, ldl, hessenberg, qz)",
+    # families for 100 %, batches 10-13 (approved by Manish 2026-11-28, plan section 2.4)
+    "sdata.number_grid": "NumPy (array, full, reshape; eye, diag, tri, vander, block and fromfunction for kind= and "
+                         "from_formula=); SciPy linalg (toeplitz, hankel, circulant, companion, hadamard, hilbert, "
+                         "pascal, leslie, helmert, block_diag ...) and SymPy rot_axis1-3 for kind=",
+    "nums.count_in_bins": "NumPy (histogram, histogram_bin_edges, histogram2d)",
+    "nums.find_size": "NumPy (linalg.vector_norm)",
+    "grid.find_size": "NumPy (linalg.matrix_norm)",
+    "grid.multiply_as_matrix_by": "NumPy (matmul, matvec, vecmat, linalg.multi_dot)",
+    "grid.find_rank": "NumPy (linalg.matrix_rank, from the SVD)",
+    "grid.find_condition_number": "NumPy (linalg.cond)",
+    "grid.find_column_space": "SciPy (linalg.orth)",
+    "grid.take_fourier_transform": "SciPy (fft.rfft2, fft2, or rfft and fft with axis=)",
+    "grid.take_cosine_transform": "SciPy (fft.dctn, dstn, idctn, idstn)",
+    "sdata.polynomial": "SymPy (legendre_poly, chebyshevt_poly, hermite_poly, jacobi_poly, cyclotomic_poly, "
+                        "interpolating_poly ...); the same in decimals in scipy.special and numpy.polynomial",
     # seaborn's colour tools (owner's decision 2026-11-28)
     "sdata.show_colours": "seaborn (palplot, color_palette)",
     "sdata.change_colour": "seaborn (set_hls_values, desaturate, saturate)",
@@ -854,6 +869,8 @@ _UNICODE = {
     # the Greek and Turkish letters of the capitals_matter= notes (ΟΔΟΣ and οδος, İ)
     "Ο": "O", "Δ": r"$\Delta$", "Σ": r"$\Sigma$", "ο": "o", "δ": r"$\delta$", "ς": r"$\varsigma$",
     "σ": r"$\sigma$", "İ": r"\.I",
+    # the ligature and letter pair of the capitals_matter= note on table words (families for 100 %, batches 1-2)
+    "ﬁ": "fi", "ǆ": r"d\v{z}",
 }
 _SPECIAL = {
     "\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "$": r"\$", "&": r"\&", "#": r"\#",

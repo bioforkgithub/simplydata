@@ -142,7 +142,9 @@ GROUPS = [
                                     "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo",
                                     # numbers phase, batch 4 (approved by Manish 2026-11-26)
                                     "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
-                                    "f.as_sympy"]),
+                                    "f.as_sympy",
+                                    # families for 100 %, batch 13 (G5, approved by Manish 2026-11-28)
+                                    "sdata.polynomial"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
@@ -196,7 +198,9 @@ GROUPS = [
                             "sdata.frequency_filter", "nums.find_envelope", "table.add_envelope_column",
                             "nums.take_fourier_transform", "sdata.find_inverse_fourier_transform",
                             # numbers phase, batch 3
-                            "nums.find_coherence_with", "nums.take_cosine_transform"]),
+                            "nums.find_coherence_with", "nums.take_cosine_transform",
+                            # families for 100 %, batch 11 (approved by Manish 2026-11-28): FFT of a grid
+                            "grid.take_fourier_transform", "grid.take_cosine_transform"]),
     ("Planning a study", ["sdata.find_how_many_needed", "sdata.find_chance_of_finding"]),
     # S3d-1: planning an experiment and survey answers
     ("Planning and surveys", ["sdata.make_design_table", "sdata.make_random_assignments", "table.use_survey_design"]),
@@ -221,20 +225,31 @@ GROUPS = [
                                  # 2026-11-28): the maths family of NumPy and scipy.special, one name table shared
                                  # with formula text (G1-G3, G10)
                                  "nums.take_function", "nums.work_on_bits", "sdata.find_zeros_of",
-                                 "sdata.find_area_points"]),
+                                 "sdata.find_area_points",
+                                 # families for 100 %, batch 10 (approved by Manish 2026-11-28, plan section 2.4)
+                                 "nums.find_product", "nums.turn_into_changes", "nums.turn_into_slopes",
+                                 "nums.find_dot_product_with", "nums.find_cross_product_with", "nums.find_size"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
                                         "nums.keep_numbers_by_position", "nums.remove_numbers_by_position",
                                         "nums.replace_each_number_that", "nums.fill_empty_numbers", "nums.sort",
-                                        "nums.reverse"]),
+                                        "nums.reverse",
+                                        # families for 100 %, batch 10 (approved by Manish 2026-11-28)
+                                        "nums.count_in_bins", "nums.find_bin_of_each", "nums.find_positions_where",
+                                        "nums.keep_numbers_also_in", "nums.remove_numbers_also_in",
+                                        "nums.keep_numbers_in_only_one", "nums.join_numbers_with"]),
     ("Numbers: summaries", ["nums.find_average", "nums.find_median", "nums.find_total", "nums.find_smallest", "nums.find_biggest",
                             "nums.find_standard_deviation", "nums.find_percentile", "nums.count_each"]),
     ("Grids of numbers", ["sdata.number_grid", "nums.make_number_grid", "grid.count_rows", "grid.count_columns",
                           "grid.find_shape", "grid.show_first_rows", "grid.show_last_rows", "grid.get_number_at",
                           "grid.get_row", "grid.get_column", "grid.get_all_numbers", "grid.keep_rows_by_position",
                           "grid.keep_columns_by_position", "grid.remove_rows_by_position",
-                          "grid.remove_columns_by_position", "grid.replace_each_number_that", "grid.swap_rows_and_columns"]),
+                          "grid.remove_columns_by_position", "grid.replace_each_number_that",
+                          "grid.swap_rows_and_columns",
+                          # families for 100 %, batch 11 (approved by Manish 2026-11-28, plan section 2.4)
+                          "sdata.make_coordinate_grids", "grid.find_positions_where", "grid.add_border",
+                          "grid.get_part", "grid.replace_part"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25)
     ("Grids: pairs, patches and matrices", ["grid.get_numbers_at_pairs", "grid.get_numbers_from_each_row_at",
                                             "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
@@ -242,7 +257,10 @@ GROUPS = [
                                             # numbers phase, batch 4 (approved by Manish 2026-11-26)
                                             "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues",
                                             # numbers finishing (P41, approved by Manish 2026-11-25)
-                                            "grid.solve_for", "grid.break_down"]),
+                                            "grid.solve_for", "grid.break_down",
+                                            # families for 100 %, batches 11-12 (approved by Manish 2026-11-28)
+                                            "grid.multiply_as_matrix_by", "grid.find_rank", "grid.find_size",
+                                            "grid.find_condition_number", "grid.find_column_space"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -1753,6 +1771,78 @@ def _numbers_class():
     from .numbers.numbers import Numbers
 
     return Numbers
+
+
+# Families for 100 %, batches 10-13 (approved by Manish 2026-11-28, plan section 2.4): NumPy words for lists and grids
+HELP_EXAMPLES.update({
+    "nums.find_product": _nx("product = numbers.find_product()\nnumbers.turn_into_running_total(show=\"product\")\n"
+                             "numbers.show()", "[2, 3, 4]"),
+    "nums.turn_into_changes": _nx("numbers.turn_into_changes()\nnumbers.show()\nnumbers.undo()\n"
+                                  "numbers.turn_into_changes(how_many_times=2)\nnumbers.show()", "[3, 5, 9, 15, 23]"),
+    "nums.turn_into_slopes": _nx("numbers.turn_into_slopes(time_step=0.5)\nnumbers.show()\nnumbers.undo()\n"
+                                 "numbers.turn_into_slopes(at_times=[0, 1, 3, 4, 6])\nnumbers.show()",
+                                 "[1, 4, 9, 16, 25]"),
+    "nums.count_in_bins": _nx("counts = numbers.count_in_bins(edges=[0, 10, 20, 50])\nprint(counts)\n"
+                              "counts = numbers.count_in_bins(how_many_bins=4)\nprint(counts)",
+                              "[3, 12, 15, 22, 9, 31, 48, 17]"),
+    "nums.find_bin_of_each": _nx("bins = numbers.find_bin_of_each(edges=[0, 10, 20, 50])\nprint(bins)",
+                                 "[3, 12, 15, 22, 9, 31, 48, 17]"),
+    "nums.find_positions_where": _nx("positions = numbers.find_positions_where(is_above=30)\nprint(positions)",
+                                     "[12, 35, 9, 41, 30, 33]"),
+    "nums.keep_numbers_also_in": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                     "numbers.keep_numbers_also_in(other_numbers)\nnumbers.show()",
+                                     "[3, 5, 8, 5, 2]"),
+    "nums.remove_numbers_also_in": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                       "numbers.remove_numbers_also_in(other_numbers)\nnumbers.show()",
+                                       "[3, 5, 8, 5, 2]"),
+    "nums.keep_numbers_in_only_one": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                         "numbers.keep_numbers_in_only_one(other_numbers)\nnumbers.show()",
+                                         "[3, 5, 8, 5, 2]"),
+    "nums.join_numbers_with": _nx("other_numbers = sdata.number_list([5, 8, 13, 21])\n"
+                                  "numbers.join_numbers_with(other_numbers)\nnumbers.show()", "[3, 5, 8, 5, 2]"),
+    "nums.find_dot_product_with": _nx("other_numbers = sdata.number_list([4, 5, 6])\n"
+                                      "answer = numbers.find_dot_product_with(other_numbers)", "[1, 2, 3]"),
+    "nums.find_cross_product_with": _nx("other_numbers = sdata.number_list([0, 1, 0])\n"
+                                        "answer = numbers.find_cross_product_with(other_numbers)\nprint(answer)",
+                                        "[1, 0, 0]"),
+    "nums.find_size": _nx("size = numbers.find_size()\nnumbers.find_size(kind=\"total size\")", "[3, 4]"),
+    "sdata.make_coordinate_grids": _lines("x_grid, y_grid = sdata.make_coordinate_grids(x=[0, 1, 2], y=[10, 20])",
+                                          "print(x_grid)", "print(y_grid)",
+                                          "distance = (x_grid ** 2 + y_grid ** 2) ** 0.5", "print(distance)"),
+    "grid.find_positions_where": _gx("positions = grid.find_positions_where(is_above=4)\nprint(positions)\n"
+                                     "grid.replace_numbers_where(at_positions=positions, with_value=0)\nprint(grid)"),
+    "grid.add_border": _gx("grid.add_border(width=2, with_value=0)\nprint(grid)\ngrid.undo()\n"
+                           'grid.add_border(width=1, with_value="repeat edge")\nprint(grid)'),
+    "grid.get_part": _lines("grid = sdata.number_grid([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+                            'upper = grid.get_part("upper triangle")', "print(upper)",
+                            'diagonal = grid.get_part("diagonal")', "diagonal.find_total()"),
+    "grid.replace_part": _lines("grid = sdata.number_grid([[1, 2, 3], [4, 5, 6], [7, 8, 9]])",
+                                'grid.replace_part("diagonal", with_value=1)', "print(grid)",
+                                'grid.replace_part("lower triangle", with_value=0, shifted_by=-1)', "print(grid)"),
+    "grid.multiply_as_matrix_by": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])",
+                                         "other_grid = sdata.number_grid([[0, 1], [1, 0]])",
+                                         "answer = grid.multiply_as_matrix_by(other_grid)", "print(answer)",
+                                         "grid.multiply_as_matrix_by([1, 1])"),
+    "grid.find_rank": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])", "rank = grid.find_rank()"),
+    "grid.find_size": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])", "size = grid.find_size()",
+                             'grid.find_size(kind="biggest stretch")'),
+    "grid.find_condition_number": _lines("grid = sdata.number_grid([[1, 2], [3, 4]])",
+                                         "condition = grid.find_condition_number()"),
+    "grid.find_column_space": _lines("grid = sdata.number_grid([[1, 2], [2, 4]])",
+                                     "directions = grid.find_column_space()", "print(directions)"),
+    "grid.take_fourier_transform": _lines("grid = sdata.number_grid([[1, 2, 1], [0, 1, 0], [1, 2, 1]])",
+                                          'table = grid.take_fourier_transform(over="rows and columns")',
+                                          "table.show_first_rows(4)",
+                                          "back = sdata.find_inverse_fourier_transform(table)", "print(back)"),
+    "grid.take_cosine_transform": _lines("grid = sdata.number_grid([[1, 2, 1], [0, 1, 0], [1, 2, 1]])",
+                                         "grid.take_cosine_transform()", "print(grid)",
+                                         "grid.take_cosine_transform(inverse=True)", "print(grid)"),
+    "sdata.polynomial": _lines('formula = sdata.polynomial("legendre", degree=3)', "formula.find_value_at(x=0.5)",
+                               'sdata.polynomial("chebyshev", degree=4)',
+                               'sdata.polynomial("jacobi", degree=2, alpha=1, beta=2)',
+                               'through = sdata.polynomial("through points", x=[0, 1, 2], y=[1, 3, 7])',
+                               "through.find_slope_formula()"),
+})
 
 
 def _grid_class():

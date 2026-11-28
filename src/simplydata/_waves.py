@@ -110,7 +110,8 @@ def _same_rows_as_made(info, frame):
 def find_inverse_fourier_transform(table=None):
     """Numbers back from a Fourier transform table (its real and imaginary parts). sdata.find_inverse_fourier_transform(table)
 
-    table is what numbers.take_fourier_transform() gave back (show="half" or "all"). SciPy irfft / ifft, as R
+    table is what numbers.take_fourier_transform() gave back (show="half" or "all"), or grid.take_fourier_transform()
+    (a grid comes back: SciPy irfft2 / ifft2, or irfft / ifft over one direction). SciPy irfft / ifft, as R
     Re(fft(z, inverse = TRUE)) / n. A round trip gives the numbers back (to about 1e-12). Its rows must stay
     as they were made: to take frequencies out, set their real and imaginary parts to 0 (removing or
     reordering rows is refused, since the number of readings then no longer fits).
@@ -123,6 +124,10 @@ def find_inverse_fourier_transform(table=None):
     if info is None:
         raise SimplydataError("find_inverse_fourier_transform() needs the table that numbers.take_fourier_transform() gave back.")
     frame = table._frame
+    if "grid" in info:  # families for 100 %, batch 11: the table grid.take_fourier_transform() gave back
+        from .numbers.numpy_grid_words import inverse_grid_fourier
+
+        return inverse_grid_fourier(info, frame)
     _same_rows_as_made(info, frame)
     z = np.asarray(frame["real part"].to_numpy(), dtype=float) + 1j * np.asarray(frame["imaginary part"].to_numpy(),
                                                                                     dtype=float)
