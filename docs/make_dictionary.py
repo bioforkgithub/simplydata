@@ -265,6 +265,13 @@ def sort_key(word: str) -> tuple:
     return (plain.replace("_", " "), word)
 
 
+# a word whose result a pointer goes on with ('grid.get_part("diagonal").find_total()'): the kind of that result
+# (None: the result is the library's own object, as_numpy() gives a NumPy array, so only the word itself counts)
+CHAINED = {"sdata.distribution": "dist", "sdata.number_grid": "grid", "sdata.number_list": "nums",
+           "grid.get_part": "grid", "grid.keep_rows_by_position": "grid", "formula.find_slope_formula": "formula",
+           "numbers.as_numpy": None, "nums.as_numpy": None, "grid.as_numpy": None}
+
+
 def _calls(written: str) -> list[str]:
     """The words a pointer names: 'sdata.distribution("normal").find_chance_that_value(is_below=60)' -> ["dist.find_chance_that_value"]."""
     found = []
@@ -275,9 +282,12 @@ def _calls(written: str) -> list[str]:
         name = base
         chained = re.match(r"\.(\w+)\(", written[end:]) if end else None
         if chained:
-            if base != "sdata.distribution":
+            if base not in CHAINED:
                 raise ValueError(f"Say what {base}(...).{chained.group(1)} is in docs/make_dictionary.py")
-            name = f"dist.{chained.group(1)}"
+            if base != "sdata.distribution":  # the word that makes the object is named too
+                found.append(learn._lookup(base) or learn._lookup("nums." + base.partition(".")[2]))
+            if CHAINED[base] is not None:
+                name = f"{CHAINED[base]}.{chained.group(1)}"
         key = learn._lookup(name)
         if key is None and name.startswith("grid."):  # grid.as_numpy: a grid has the words of numbers too
             key = learn._lookup("nums." + name[len("grid."):])
