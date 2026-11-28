@@ -276,22 +276,22 @@ ENTRIES = [
         also="simplydata also counts the cells that came from outside; undo() gives the grid back.",
     ),
     Entry(
-        word="grid.move_and_stretch_by", option="rule=",
+        word="grid.move_and_stretch_by", option="formulas=",
         ours=f"""
             grid = sdata.number_grid({RAMP})
-            grid.move_and_stretch_by(rule={{"row": "row", "column": "column + 0.5*row"}})
+            grid.move_and_stretch_by(formulas={{"row": "row", "column": "column + 0.5*row"}})
         """,
         code={"SciPy": f"""
             import numpy as np
             from scipy import ndimage
             g = np.array({RAMP}, dtype=float)
-            # move_and_stretch_by(rule={{"row": "row", "column": "column + 0.5*row"}})
+            # move_and_stretch_by(formulas={{"row": "row", "column": "column + 0.5*row"}})
             where = lambda p: (p[0], (p[1] + 1) + 0.5 * (p[0] + 1) - 1)   # (1)
             ndimage.geometric_transform(g, where, order=1, mode="constant", cval=np.nan)
         """},
         compare="value",
         tolerance=1e-12,
-        choices=("the rule's row and column count from 1, so 1 is added before and taken away after.",),
+        choices=("the formulas' row and column count from 1, so 1 is added before and taken away after.",),
         also="simplydata also reads the formulas safely and counts the cells that came from outside.",
     ),
     Entry(
