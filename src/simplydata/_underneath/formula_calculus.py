@@ -26,10 +26,10 @@ ENTRIES = [
             import sympy as sp
             t, s = sp.symbols("t s")
             # formula.take_transform("laplace")
-            str(sp.laplace_transform(sp.exp(-2*t), t, s, noconds=True))   # (1)
+            str(sp.laplace_transform(sp.exp(-2*t), t, s)[0])   # (1)
         """},
         compare="value",
-        choices=("the transform itself, without SymPy's conditions of convergence (noconds=True), from the letter t "
+        choices=("the transform, printed with where it holds (Re(s) > -2, SymPy's second answer), from the letter t "
                  "to the letter s (x to k for Fourier, sine, cosine; r to k for Hankel).",),
         also="simplydata also takes SymPy's names (\"laplace_transform\"), refuses a to_letter= already in the "
              "formula, and says so when SymPy gives the transform back unworked.",
@@ -44,7 +44,7 @@ ENTRIES = [
             import sympy as sp
             a, u, p = sp.symbols("a u p")
             # formula.take_transform("laplace", from_letter="u", to_letter="p")
-            str(sp.laplace_transform(sp.exp(-a*u), u, p, noconds=True))
+            str(sp.laplace_transform(sp.exp(-a*u), u, p)[0])
         """},
         compare="value",
     ),
@@ -187,7 +187,8 @@ ENTRIES = [
             str(sp.fourier_series(x, (x, -sp.pi, sp.pi)).truncate(3))   # (1)
         """},
         compare="value",
-        choices=("the first 3 terms that are not 0 (SymPy truncate's own default), over -pi to pi.",),
+        choices=("the first 3 parts that are not 0, each frequency with its cosine and sine one part (SymPy "
+                 "truncate's own default), over -pi to pi.",),
     ),
     Entry(
         word="f.find_fourier_series", option="how_many_terms=",
@@ -439,7 +440,7 @@ ENTRIES = [
         """},
         compare="value",
         tolerance=0.0,
-        choices=("every solution, with each change of sign and order (permute=True); SymPy's default gives one of "
+        choices=("each change of sign and order of SymPy's solutions (permute=True); SymPy's default gives one of "
                  "each kind only.",),
     ),
     Entry(

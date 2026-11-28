@@ -5080,28 +5080,34 @@ BASIS["f.turn_into_sum by="] = _b(
 # ---------------------------------------------------------------- families for 100 %, batches 24-26 (approved by Manish
 # 2026-11-28, G13 and G15): calculus checks, series, transforms, number theory and exact grids (SymPy)
 BASIS["f.take_transform"] = _b(
-    "The transform itself, without SymPy's conditions of convergence (noconds=True), from the letter t to s for "
-    "Laplace, x to k for Fourier, sine and cosine, x to s for Mellin, r to k for Hankel (each the other way for the "
-    "inverse); the Fourier transform with SymPy's convention, 2*pi in the power (exp(-2*pi*I*x*k)).",
+    "The transform, from the letter t to s for Laplace, x to k for Fourier, sine and cosine, x to s for Mellin, r "
+    "to k for Hankel (each the other way for the inverse); the Laplace transform is printed with where it holds "
+    "(Re(s) > a, from SymPy) and the Mellin transform with its strip; the others are given without SymPy's "
+    "conditions (noconds=True). The Fourier transform has SymPy's convention, 2*pi in the power "
+    "(exp(-2*pi*I*x*k)).",
     "from_letter= and to_letter= other letters; order= the order of the Hankel transform's Bessel function; "
     "between= the strip of s of the inverse Mellin transform.",
-    "The conditions (Re(s) > -2 ...) are what tables of transforms leave out too; the letters are the ones tables "
-    "use, and the Fourier convention with 2*pi in the power has the same form forwards and back.",
+    "Where a Laplace or Mellin transform holds is part of its answer, as in the tables of Abramowitz and Stegun "
+    "(1964, chapter 29); the letters are the ones tables use, and the Fourier convention with 2*pi in the power "
+    "has the same form forwards and back.",
     ("meurer2017",), "P3",
     "The name or SymPy's name of the transform; to_letter= must be a new letter; an unworked answer is refused.",
     "convention")
 BASIS["f.check_if_always between="] = _b(
-    "Without between=, every real number (SymPy's own default, S.Reals); with it, the closed range between the "
-    "two ends (an endless end is open).",
+    "Without between=, every real number; with it, the range between the two ends. The check is made inside the "
+    "part of that range where the formula has a value (SymPy continuous_domain), so sqrt(x) is rising and log(x) "
+    "on [0, infinity] is rising; a formula with a gap inside the range (1/x) gives None.",
     "between=[low, high] for a range.",
-    "A formula rises or falls over a range, and textbooks say over which; every real number is SymPy's default.",
+    "A formula rises or falls where it has a value; SymPy's own check on a closed range with an end where the "
+    "slope has no value (log(x) at 0, sqrt(x) at 0) answers False, which is wrong for these formulas.",
     ("meurer2017",), "P3", "between= needs the low end first; SymPy's None (it cannot tell) is said plainly.",
     "convention")
 BASIS["f.find_fourier_series"] = _b(
-    "Over -pi to pi, the first 3 terms that are not 0 (SymPy fourier_series, then truncate with its own default "
-    "of 3).",
+    "Over -pi to pi, the first 3 parts of the series that are not 0, the constant being one part and each "
+    "frequency (its cosine and sine together) one part (SymPy fourier_series, then truncate with its default of "
+    "3).",
     "between= another range of finite length; how_many_terms= from 1 to 100.",
-    "-pi to pi is the range of the Fourier series in textbooks, and SymPy truncate keeps 3 terms by default.",
+    "-pi to pi is the range of the Fourier series in textbooks, and SymPy truncate keeps 3 parts by default.",
     ("meurer2017",), "P3", "between= must have finite ends.", "convention")
 BASIS["f.find_slope_formula step="] = _b(
     "The forward difference (f(x + step) - f(x))/step: SymPy differentiate_finite at the points x and x + step; "
@@ -5125,11 +5131,13 @@ BASIS["sdata.find_product_of_series"] = _b(
     "counting number formula text allows.", ("meurer2017",), "P3",
     "The ends are whole numbers, \"infinity\" or a letter; an unworked product is refused.", "convention")
 BASIS["sdata.solve whole_numbers_only="] = _b(
-    "Every solution in whole numbers, with each change of sign and order (SymPy diophantine with permute=True); a "
-    "family of solutions keeps SymPy's letter t_0, any whole number.",
+    "The whole-number solutions SymPy diophantine gives, with each change of sign and order (permute=True), and "
+    "the kind of equation SymPy finds (classify_diop); a family of solutions keeps SymPy's letters (t_0, p, q), any "
+    "whole numbers, and is said to be SymPy's family, which may leave out multiples and swaps of its members.",
     "Without whole_numbers_only=: the solutions among all numbers (SymPy solve).",
     "SymPy's default (permute=False) gives one solution of each kind only, so x**2 + y**2 = 25 would miss most "
-    "of its 12 solutions; asked for whole-number solutions, a reader expects them all.",
+    "of its 12 solutions; for some equations (x**2 + y**2 = z**2) SymPy gives only its primitive family, so "
+    "simplydata never calls a family every solution.",
     ("meurer2017",), "P4", "One polynomial equation (=), with exactly=True.", "convention")
 BASIS["sdata.number_grid exactly="] = _b(
     "A grid of exact cells (SymPy Matrix): a typed decimal is the exact fraction it stands for (0.2 is 1/5), text "
@@ -5148,7 +5156,8 @@ BASIS["grid.find_permanent"] = _b(
 BASIS["nums.find_prime_factors"] = _b(
     "Each prime factor with how many times it divides the number (SymPy factorint); a number with a decimal part "
     "is the fraction it stands for, its bottom's primes with minus times (factorrat); 1 has no prime factor, and a "
-    "number below 0 has the factor -1, as SymPy writes them.",
+    "number below 0 has the primes of its size, its minus sign said and not listed as a prime; 0 is refused, as "
+    "every prime divides it.",
     "show=\"different primes\" (primefactors) lists each prime once.",
     "factorint is exact for every whole number a list of numbers holds (up to 2**53).", ("meurer2017",), "P3",
     "No empty numbers, none above 2**53.", "convention")
