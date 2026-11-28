@@ -24,13 +24,16 @@ takes SymPy's lists of lists, meijerg(((1,), ()), ((), (0,)), x).
 The names SymPy calls by the same name as a scipy.special or NumPy function (besseli, erfinv, LambertW, Si,
 legendre ...) are those of the maths family (_maths_functions.py, plan section 2.3); they are not repeated here.
 
-Every name is tested against SymPy directly (tests/test_formula_algebra.py).
+An exact answer can still be very big or slow within that limit (bell(1000) has about 1,900 digits); every such step
+stops at the time limit. Every name is tested against SymPy directly (tests/test_formula_algebra.py).
 """
 
 from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
+
+from ._time_limit import one_deadline
 
 TRIG = "other angle and hyperbolic functions"
 PARTS = "parts of numbers"
@@ -210,7 +213,22 @@ def sympy_classes() -> tuple:
     """The SymPy functions of this table: a formula with any of them is worked out under the time limit."""
     import sympy as sp
 
-    return tuple({getattr(sp, entry.sympy) for entry in NAMES if entry.name not in ("Ynm_c", "Eijk")})
+    return tuple({getattr(sp, entry.sympy) for entry in NAMES if entry.name not in ("Ynm_c", "Eijk", "ln")})
+
+
+# names that SymPy lambdify gives to NumPy and SciPy with the same values SymPy gives; a formula with any other name
+# of this table is worked out value by value by SymPy (factorial is SciPy's 0 below 0 but SymPy's gamma(x + 1), and
+# NumPy has no totient or fibonacci)
+LAMBDIFY_SAFE = ("cot", "sec", "csc", "acot", "asec", "acsc", "coth", "sech", "csch", "acoth", "asech", "acsch",
+                 "floor", "ceiling", "ceil", "sign", "Max", "Min", "re", "im", "arg", "conjugate", "Mod", "ln",
+                 "hankel1", "hankel2", "trigamma")
+
+
+def by_value_classes() -> tuple:
+    """The SymPy functions find_value_at works out value by value for many values (not LAMBDIFY_SAFE)."""
+    import sympy as sp
+
+    return tuple({getattr(sp, entry.sympy) for entry in NAMES if entry.name not in LAMBDIFY_SAFE + ("Ynm_c", "Eijk")})
 
 
 def capped_classes() -> tuple:
@@ -286,48 +304,63 @@ def pointer_groups() -> list:
 
 # SymPy functions that NumPy and SciPy cannot work out (lambdify writes their name, which NumPy does not know):
 # find_value_at works them out value by value with SymPy evalf instead, each under the time limit
-BY_VALUE_ERRORS = (NameError, TypeError, ValueError, RecursionError)
 NO_VALUE = (TypeError, ValueError, KeyError, ZeroDivisionError, ArithmeticError)  # SymPy's ways of saying "no value"
 MAX_BY_VALUE = 10_000  # values worked out one at a time at most
+# SymPy functions that SymPy's evalf leaves as they are (no decimal): said plainly instead of an empty answer
+NO_DECIMAL = ("mathieuc", "mathieus", "mathieucprime", "mathieusprime", "marcumq", "stieltjes")
 
 
+@one_deadline
 def value_by_value(expr, symbols: list, arrays: list):
-    """The values of expr at each combination of the arrays (broadcast), each from SymPy evalf with subs under the
-    time limit: complex numbers, NaN where SymPy gives no number."""
+    """The values of expr at each combination of the arrays (broadcast), each from SymPy evalf with subs, all under
+    one time limit: complex numbers, NaN where SymPy gives no number (a pole). A whole number goes in as a whole
+    number (totient(36.0) has no value, totient(36) has). A function SymPy has no decimal for is said plainly."""
     import numpy as np
+    import sympy as sp
 
     from ._errors import SimplydataError
-    from ._formula import _guarded
+    from ._formula import _guarded, _show
 
     columns = np.broadcast_arrays(*[np.asarray(a, dtype=float) for a in arrays])
     shape = columns[0].shape
     if columns[0].size > MAX_BY_VALUE:
         raise SimplydataError(f"This formula has a SymPy function that NumPy and SciPy do not have, so each value is "
                               f"worked out by SymPy on its own; give at most {MAX_BY_VALUE:,} values.")
-    print("NumPy and SciPy do not have every SymPy function of this formula, so SymPy works out each value on its "
-          "own (SymPy evalf).")
     out = np.empty(shape, dtype=complex)
     for at in np.ndindex(shape):
         swaps = {s: c[at] for s, c in zip(symbols, columns)}
         if any(np.isnan(v) for v in swaps.values()):
             out[at] = np.nan
             continue
+        put = {s: sp.Integer(int(v)) if float(v).is_integer() else float(v) for s, v in swaps.items()}
         try:
-            found = _guarded(expr.evalf, 15, subs={s: float(v) for s, v in swaps.items()}, what="SymPy evalf")
+            found = _guarded(expr.evalf, 15, subs=put, what="SymPy evalf")
+        except NO_VALUE:  # a pole (zeta(1)): no number there
+            out[at] = np.nan
+            continue
+        left = [f for f in found.atoms(sp.Function) if type(f).__name__ in NO_DECIMAL] if not found.is_Number else []
+        if left:
+            raise SimplydataError(f"SymPy has no decimal for {_show(left[0])} (at "
+                                  + ", ".join(f"{k} = {v}" for k, v in put.items()) + "), so these values cannot be "
+                                  "worked out. Try other values, or one value at a time.")
+        try:
             out[at] = complex(found)
-        except NO_VALUE:  # a pole (zeta(1)), zoo, nan or a value with letters: no number there
+        except (TypeError, ValueError):  # zoo or nan: no number there
             out[at] = np.nan
     return out
 
 
-def check_letters(node, text: str, error) -> None:
-    """A counting function with a letter inside: SymPy must take the letter (motzkin(n) and chebyshevt_root(n, 0) take
-    whole numbers only, and SymPy stops while it makes them). SymPy makes it under the time limit; error(problem) is
-    the formula reader's error."""
+def check_values(node, text: str, error) -> None:
+    """The values of a counting function, checked by SymPy as it makes it (under the time limit): motzkin(n) and
+    chebyshevt_root(n, 0) take whole numbers only, legendre_symbol(2, 9) needs a prime. error(problem) is the formula
+    reader's error."""
     from ._formula import _guarded
 
+    name = type(node).__name__
     try:
-        _guarded(type(node), *node.args, what="SymPy " + type(node).__name__)
+        _guarded(type(node), *node.args, what="SymPy " + name)
     except (ValueError, TypeError, NotImplementedError, AttributeError) as problem:
-        raise error(f'"{text}": the SymPy function {type(node).__name__}() takes whole numbers here, not letters '
-                    f"({problem}). Put a number in its place.") from None
+        if node.free_symbols:
+            raise error(f'"{text}": the SymPy function {name}() takes whole numbers here, not letters '
+                        f"({problem}). Put a number in its place.") from None
+        raise error(f'"{text}": SymPy has no value of {name}() for these numbers ({problem}).') from None
