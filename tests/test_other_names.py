@@ -16,7 +16,9 @@ import pytest
 import simplydata as sdata
 from simplydata._errors import MissingWordError, other_name_target
 from simplydata._other_names import OTHER_NAMES
+from simplydata._formula import Formula
 from simplydata.chart import Chart
+from simplydata.distributions import Distribution
 from simplydata.numbers.blocks import NumberBlock
 from simplydata.numbers.numbers import NumberGrid, Numbers
 from simplydata.table import Table
@@ -28,7 +30,7 @@ PREFIX = {"table": "table", "chart": "chart", "numbers": "nums", "block": "block
 def _target_exists(written: str) -> bool:
     word = other_name_target(written)
     for prefix, owner in (("sdata.", sdata), ("table.", Table), ("chart.", Chart), ("numbers.", Numbers),
-                          ("block.", NumberBlock)):
+                          ("block.", NumberBlock), ("grid.", NumberGrid), ("formula.", Formula)):
         if written.startswith(prefix):
             return word in owner.__dict__ or word in dir(owner) and not word.startswith("_")
     return False
@@ -369,7 +371,7 @@ def test_a_name_of_your_own_in_front_of_a_word_finds_the_word(typed, heading, ca
 #    where R is missing; the calls in NEEDS_PREP need a step first that the pointer does not write.
 
 OWNERS = {"sdata": sdata, "table": Table, "chart": Chart, "numbers": Numbers, "nums": Numbers, "grid": NumberGrid,
-          "block": NumberBlock}
+          "block": NumberBlock, "formula": Formula, "distribution": Distribution}
 # A call is not run when it writes "..." (a shortened list), or uses a name of yours the pointer does not make
 # (your own function make_label, another table called rain or national): KNOWN_NAMES are the ones the test gives.
 KNOWN_NAMES = {"table", "sdata", "other_table", "other", "True", "False", "None"}
@@ -398,7 +400,8 @@ NEEDS_PREP = {
 def _pointer_calls(written: str):
     """The calls a pointer writes: [(object, word, call text)], in order."""
     found = []
-    for m in re.finditer(r"(?<![\w.\"])(sdata|table|chart|numbers|grid|block)\.(\w+)\(", written):
+    for m in re.finditer(r"(?<![\w.\"])(sdata|table|chart|numbers|grid|block|formula|distribution)\.(\w+)\(",
+                         written):
         depth, i = 1, m.end()
         while i < len(written) and depth:
             depth += {"(": 1, ")": -1}.get(written[i], 0)
@@ -723,3 +726,193 @@ def test_triplot_is_left_to_matplotlib_not_a_contour_map():
     from simplydata._other_names import OTHER_NAMES
 
     assert "as_matplotlib" in OTHER_NAMES["chart"]["triplot"] and "draw_contour" not in OTHER_NAMES["chart"]["triplot"]
+
+
+# ---------------------------------------------------------------- numbers finishing PR: NumPy, SciPy and SymPy names
+# The API audit of NumPy, SciPy and SymPy (2026-11-27; np., np.linalg., np.random., rng., np.fft., scipy.stats.,
+# optimize., integrate., interpolate., signal., ndimage., spatial., special., sp. and sympy. names): what sdata.help
+# says now. A name typed with its namespace looks in that namespace's list first.
+NUMBER_AUDIT_POINTERS = [
+    ("np.mean", "numbers.find_average()"), ("numpy.median", "numbers.find_median()"),
+    ("np.sum", "numbers.find_total()"), ("np.std", "numbers.find_standard_deviation()"),
+    ("np.percentile", "numbers.find_percentile(90)"), ("np.cumsum", "numbers.turn_into_running_total()"),
+    ("np.square", "numbers.raise_to_power(2)"), ("np.flip", "numbers.reverse()"),
+    ("np.unique", "numbers.remove_duplicate_numbers()"), ("np.clip", "numbers.replace_each_number_that("),
+    ("np.transpose", "grid.swap_rows_and_columns()"), ("np.isin", "numbers.turn_into_yes_or_no(is_one_of="),
+    ("np.zeros", "sdata.number_grid(rows=2, columns=3, filled_with=0)"), ("np.diff", "np.diff(numbers.as_numpy())"),
+    ("np.save", 'numbers.save("numbers.csv")'), ("np.cbrt", "numbers.take_cube_root()"),
+    ("np.linalg.solve", "grid.solve_for("), ("scipy.linalg.solve_triangular", "grid.solve_for("),
+    ("np.linalg.lstsq", "grid.solve_for("), ("np.linalg.svd", 'grid.break_down(test_method="svd")'),
+    ("scipy.linalg.lu", 'grid.break_down(test_method="lu")'), ("scipy.linalg.ldl", 'test_method="ldl"'),
+    ("scipy.linalg.qz", 'test_method="qz", together_with='), ("np.linalg.det", "grid.find_determinant()"),
+    ("np.linalg.eigh", "grid.find_eigenvalues()"), ("np.linalg.norm", "np.linalg.norm(numbers.as_numpy())"),
+    ("scipy.linalg.expm", "grid.take_matrix_exp()"), ("optimize.nnls", "between=[0, None]"),
+    ("scipy.optimize.lsq_linear", "between=[0, 1]"), ("scipy.optimize.minimize", "sdata.find_where_smallest("),
+    ("rng.normal", "sdata.make_random_numbers(how_many=100, average=50"),
+    ("np.random.poisson", 'sdata.distribution("poisson", average=3)'), ("rng.integers", "whole_numbers=True"),
+    ("np.random.pareto", "Lomax"), ("np.random.default_rng", "with_seed="),
+    ("rng.choice", "numbers.make_random_picks("), ("np.fft.rfftfreq", "numbers.take_fourier_transform("),
+    ("scipy.fft.dct", "numbers.take_cosine_transform()"), ("scipy.stats.gamma", 'sdata.distribution("gamma"'),
+    ("scipy.stats.nbinom", 'sdata.distribution("negative binomial"'), ("stats.norm.pdf", "find_density_at"),
+    ("scipy.stats.ttest_ind", "compare_averages_of"), ("scipy.special.gamma", 'sdata.formula("gamma(x)")'),
+    ("scipy.special.comb", "sdata.count_ways_to_choose("), ("scipy.special.expit", "numbers.turn_into_chances()"),
+    ("scipy.signal.find_peaks", "numbers.find_each_peak_that("), ("scipy.signal.welch", "numbers.find_spectrum("),
+    ("scipy.integrate.simpson", 'test_method="simpson"'), ("scipy.integrate.quad", "sdata.find_area_under("),
+    ("scipy.ndimage.label", "grid.find_each_patch_that("), ("scipy.ndimage.rotate", "grid.rotate(by_degrees=15)"),
+    ("sp.solve", 'sdata.solve("x**2 = 2", exactly=True)'), ("sympy.sqrt", "inside the formula text"),
+    ("sympy.integrate", "formula.find_area_formula()"), ("sp.diff", "formula.find_slope_formula()"),
+    ("sympy.Matrix", "sdata.number_grid("), ("sympy.Matrix.det", "grid.find_determinant(exactly=True)"),
+    ("sp.Matrix.LUsolve", "grid.solve_for([5, 10], exactly=True)"), ("sympy.dsolve", "exactly=True"),
+    ("sp.srepr", "formula.as_sympy()"),
+    # a name in capitals keeps them when a list has it (scipy.interpolate.CubicSpline was not found, as cubicspline)
+    ("scipy.interpolate.CubicSpline", "table.find_values_at("), ("scipy.spatial.KDTree", "find_nearest_rows_to"),
+    ("scipy.signal.TransferFunction", "sdata.system("), ("scipy.stats.logrank", "compare_survival"),
+    ("scipy.stats.kstest", "compare_shape_to"), ("scipy.signal.step", "step_response()"),
+    ("scipy.signal.envelope", "numbers.find_envelope()"),
+]
+
+
+@pytest.mark.parametrize("typed, word", NUMBER_AUDIT_POINTERS)
+def test_every_number_name_the_audit_found_points_to_its_word(typed, word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out, out
+
+
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("np.mean", "numbers.find_average()", "table.find_average_of"),  # a bare mean is the table word
+    ("np.zeros", "sdata.number_grid(", "system.zeros"),  # a bare zeros is the system word
+    ("np.save", "numbers.save(", "chart.save"),
+    ("np.diff", "np.diff(", "find_slope_formula"),  # a bare diff is SymPy's slope
+    ("np.linalg.norm", "as_numpy()", 'distribution("normal"'),  # a bare norm is scipy.stats.norm
+    ("scipy.special.gamma", 'formula("gamma(x)")', 'distribution("gamma"'),
+    ("scipy.stats.gamma", 'distribution("gamma"', 'formula("gamma(x)")'),
+    ("np.linalg.solve", "grid.solve_for(", 'sdata.solve("'),
+    ("sp.solve", 'sdata.solve("x**2 = 2", exactly=True)', "grid.solve_for("),
+    ("scipy.special.binom", "count_ways_to_choose", 'distribution("binomial"'),
+    ("np.random.binomial", 'distribution("binomial"', "count_ways_to_choose"),
+])
+def test_names_inside_numpy_scipy_and_sympy_point_to_their_own_word(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out
+
+
+@pytest.mark.parametrize("typed, heading", [
+    ("np.sort", "numbers.sort()"), ("np.add", "numbers.add()"), ("numpy.subtract", "numbers.subtract()"),
+])
+def test_a_numpy_name_that_is_a_word_of_numbers_explains_the_word(typed, heading, capsys):
+    sdata.help(typed)
+    assert capsys.readouterr().out.startswith(heading)
+
+
+def test_names_only_numpy_scipy_or_sympy_use_are_found_without_their_namespace(capsys):
+    for typed, word in [("lstsq", "grid.solve_for("), ("svd", "break_down"), ("rfftfreq", "take_fourier_transform"),
+                        ("nnls", "between=[0, None]")]:
+        sdata.help(typed)
+        out = capsys.readouterr().out
+        assert word in out, out
+
+
+def test_stats_in_front_still_finds_the_table_and_sdata_words(capsys):
+    sdata.help("stats.lm")  # R's stats package, typed with a dot: the sdata pointer, as before
+    assert "table.fit_line(" in capsys.readouterr().out
+
+
+def test_other_name_parts_reads_numpy_scipy_and_sympy_names():
+    from simplydata._other_names import other_name_parts
+
+    assert other_name_parts("np.mean") == ("numpy", "mean")
+    assert other_name_parts("np.linalg.solve") == ("linalg", "solve")
+    assert other_name_parts("scipy.linalg.lu") == ("linalg", "lu")
+    assert other_name_parts("np.random.normal") == ("random", "normal")
+    assert other_name_parts("rng.integers(1, 7)") == ("random", "integers")
+    assert other_name_parts("scipy.stats.norm.pdf") == ("stats", "pdf")
+    assert other_name_parts("scipy.optimize.nnls") == ("scipy", "nnls")
+    assert other_name_parts("sp.Matrix([[1, 2]]).det") == ("sympy", "det")
+
+
+# Every call of numbers, a grid, a formula or a distribution written in a pointer runs (with the sdata words that make
+# them and work with them), on the first of the grids below it works on. A constructor in the pointer
+# (sdata.number_grid(...), sdata.formula(...)) makes the object the other calls of that pointer use. An option value a
+# word does not know, or an option it lacks, fails the test at once.
+NUMBER_OWNERS = ("numbers", "grid", "formula", "distribution")
+NUMBER_SDATA = ("number_list", "number_grid", "formula", "distribution", "solve", "find_area_under",
+                "find_volume_under", "find_path_over_time", "find_sum_of_series", "find_where_smallest",
+                "find_where_biggest", "make_random_numbers", "count_ways_to_choose", "count_ways_to_order",
+                "make_wave", "make_window_shape", "system", "frequency_filter")
+MAKES = {"number_list": "numbers", "number_grid": "grid", "formula": "formula", "distribution": "distribution"}
+NUMBER_KNOWN = {"sdata", "numbers", "grid", "formula", "distribution", "other", "yes_no", "True", "False", "None"}
+# Calls that read a file of yours (they are checked by name and options above)
+READS_A_FILE = ('sdata.number_list("', 'sdata.number_block("')
+GRIDS = {"square": [[4, 2, 1], [2, 3, 0.5], [1, 0.5, 2]], "4 rows": [[2, 0, 1], [1, 1, 0], [0, 3, 1], [1, 0, 2]],
+         "2 x 2": [[2, 1], [1, 3]], "4 x 2": [[1, 1], [1, 2], [1, 3], [1, 4]]}
+SERIES = [3.0, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4]
+
+
+def _number_runs_here(call: str) -> bool:
+    if call.endswith("=)") or "..." in call or call.startswith(READS_A_FILE):
+        return False
+    names = {node.id for node in ast.walk(ast.parse(call, mode="eval")) if isinstance(node, ast.Name)}
+    return names <= NUMBER_KNOWN
+
+
+def _runnable_number_pointers():
+    out = []
+    for kind, name, written in _all_pointer_calls():
+        calls = [(o, w, c) for o, w, c in _pointer_calls(written)
+                 if o in NUMBER_OWNERS or o == "sdata" and w in NUMBER_SDATA]
+        if calls and all(_number_runs_here(c) for _, _, c in calls):
+            out.append(pytest.param(calls, id=f"{kind}.{name}"))
+    return out
+
+
+def test_the_number_pointer_calls_are_run():
+    assert len(_runnable_number_pointers()) > 150
+
+
+@pytest.mark.parametrize("calls", _runnable_number_pointers())
+def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # numbers.save("numbers.csv") writes here
+    owners = {o for o, _, _ in calls}
+    makers = [(MAKES[w], c) for o, w, c in calls if o == "sdata" and w in MAKES and MAKES[w] in owners]
+    errors = []
+    for shape, values in GRIDS.items():
+        numbers = sdata.number_list(SERIES)
+        scope = {"sdata": sdata, "numbers": numbers, "other": sdata.number_list(SERIES[::-1]),
+                 "grid": sdata.number_grid(values), "formula": sdata.formula("x**3 - 2*x"),
+                 "distribution": sdata.distribution("normal", average=50, standard_deviation=10)}
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                scope["yes_no"] = numbers.turn_into_yes_or_no(is_above=4)
+                for made, call in makers:  # the object the pointer makes, first
+                    scope[made] = eval(call, scope)
+                for _, _, call in calls:
+                    if call not in [c for _, c in makers]:
+                        exec(f"_made = {call}", scope)  # the pointer's own text, run as written
+            return
+        except Exception as problem:  # noqa: BLE001 - a grid of another shape is tried next
+            text = f"{type(problem).__name__}: {problem}"
+            if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
+                pytest.skip(f"{calls} needs R")
+            assert not any(bad in text for bad in BAD), f"{[c for _, _, c in calls]} on the {shape} grid: {text}"
+            errors.append(f"{shape}: {text.splitlines()[0]}")
+    pytest.fail(f"{[c for _, _, c in calls]} ran on no grid:\n" + "\n".join(errors))
+
+
+# review fixes (2026-11-28): R-style stats.<summary> keeps the table words; each comparison names its own option
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("stats.median", "table.find_median_of(", "distribution("),
+    ("stats.mean", "table.find_average_of(", "distribution("),
+    ("stats.var", "table.find_summary_of(", "find_variance"),
+    ("np.greater_equal", "is_at_least=20", "is_above"), ("np.less_equal", "is_at_most=20", "is_above"),
+    ("np.equal", "is_equal_to=20", "is_above"), ("np.not_equal", "is_not_equal_to=20", "is_above"),
+    ("np.logical_xor", "np.logical_xor(", "is_above"),
+    ("sympy.factorint", "formula.as_sympy()", "turn_into_product"),
+    ("sp.nsolve", "between=[0, 3]", "exactly=True"),
+    ("np.random.sample", "keep_random_numbers(5", "numbers.count()"),
+])
+def test_review_fixes_of_the_number_pointers(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out

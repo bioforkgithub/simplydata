@@ -1,10 +1,10 @@
 # simplydata reliability report
 
-Made by `python validation/make_report.py` on 2026-11-27. Generated: do not edit by hand.
+Made by `python validation/make_report.py` on 2026-11-28. Generated: do not edit by hand.
 
 Each simplydata word is run on real, published data and compared with the published answer, with the package simplydata uses underneath called directly, and with R. Each "same underneath" box of the manual is run next to its word and compared too. How it works, and the datasets with their licences: [validation/README.md](README.md); which words are compared here, which in the separate test study (simplydata_tests) and which have nothing to compare: its section "Which words are compared, and where".
 
-**46071 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
+**46210 checks passed, 10 explained differences, 0 failed, 3 skipped** (skipped: R or an R package is not installed on this computer, or, for 3, the data may not be passed on and no file was given; an explained difference falls short of its tolerance for a stated reason, a limit of precision or R reading a different copy of the time-zone data (R, on simplydata's rules, then gives simplydata's numbers), and is listed with that reason).
 
 ## Setup
 
@@ -2085,15 +2085,15 @@ Note: The oblimin rotation of GPArotation starts from random numbers, so both si
 
 | number | compared with | simplydata | reference | tolerance | result |
 |---|---|---|---|---|---|
-| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528453679724 | relative 1e-05 | pass |
-| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.74873527154706 | relative 1e-05 | pass |
-| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774308844361 | relative 1e-05 | pass |
-| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279193159510053 | relative 1e-05 | pass |
-| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.242877436862617 | relative 1e-05 | pass |
-| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215836852424 | relative 1e-05 | pass |
-| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208459916201 | relative 1e-05 | pass |
-| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549394140152 | relative 1e-05 | pass |
-| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.543246662329453 | relative 1e-05 | pass |
+| own part of x1 | statsmodels Factor (method="ml"), run to 1e-14 | 0.512529527173449 | 0.512528108984993 | relative 1e-05 | pass |
+| own part of x2 | statsmodels Factor (method="ml"), run to 1e-14 | 0.748735160386899 | 0.748736026522292 | relative 1e-05 | pass |
+| own part of x3 | statsmodels Factor (method="ml"), run to 1e-14 | 0.542773290729753 | 0.542774129180417 | relative 1e-05 | pass |
+| own part of x4 | statsmodels Factor (method="ml"), run to 1e-14 | 0.279193093920191 | 0.279192904683476 | relative 1e-05 | pass |
+| own part of x5 | statsmodels Factor (method="ml"), run to 1e-14 | 0.242877320676011 | 0.2428772774573 | relative 1e-05 | pass |
+| own part of x6 | statsmodels Factor (method="ml"), run to 1e-14 | 0.305215855558411 | 0.305215614656141 | relative 1e-05 | pass |
+| own part of x7 | statsmodels Factor (method="ml"), run to 1e-14 | 0.50220722191608 | 0.502208535390145 | relative 1e-05 | pass |
+| own part of x8 | statsmodels Factor (method="ml"), run to 1e-14 | 0.468550489794592 | 0.468549829680063 | relative 1e-05 | pass |
+| own part of x9 | statsmodels Factor (method="ml"), run to 1e-14 | 0.54324768648344 | 0.5432464624105 | relative 1e-05 | pass |
 | own part of x1 | R | 0.512529527173449 | 0.512528062224596 | relative 1e-05 | pass |
 | own part of x2 | R | 0.748735160386899 | 0.748735775111145 | relative 1e-05 | pass |
 | own part of x3 | R | 0.542773290729753 | 0.542774360020361 | relative 1e-05 | pass |
@@ -5186,6 +5186,90 @@ Note: Only the named column is in the hover text; each car is named at its own d
 | sum of y | R | 642.9 | 642.9 | relative 1e-12 | pass |
 
 Note: The Figure is a copy: the note written on it in matplotlib is not on the simplydata chart.
+
+### `sdata.show_colours`
+
+**matplotlib's tab10 set: the ten Tableau colours** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| colour 1 | matplotlib documentation, 'tab10' (Tableau 10) | 2062260 | 2062260 | within 0 (exact formula) | pass |
+| colour 2 | matplotlib documentation, 'tab10' (Tableau 10) | 16744206 | 16744206 | within 0 (exact formula) | pass |
+| colour 3 | matplotlib documentation, 'tab10' (Tableau 10) | 2924588 | 2924588 | within 0 (exact formula) | pass |
+| colour 4 | matplotlib documentation, 'tab10' (Tableau 10) | 14034728 | 14034728 | within 0 (exact formula) | pass |
+| colour 5 | matplotlib documentation, 'tab10' (Tableau 10) | 9725885 | 9725885 | within 0 (exact formula) | pass |
+| colour 6 | matplotlib documentation, 'tab10' (Tableau 10) | 9197131 | 9197131 | within 0 (exact formula) | pass |
+| colour 7 | matplotlib documentation, 'tab10' (Tableau 10) | 14907330 | 14907330 | within 0 (exact formula) | pass |
+| colour 8 | matplotlib documentation, 'tab10' (Tableau 10) | 8355711 | 8355711 | within 0 (exact formula) | pass |
+| colour 9 | matplotlib documentation, 'tab10' (Tableau 10) | 12369186 | 12369186 | within 0 (exact formula) | pass |
+| colour 10 | matplotlib documentation, 'tab10' (Tableau 10) | 1556175 | 1556175 | within 0 (exact formula) | pass |
+| colour 1 | seaborn color_palette | 2062260 | 2062260 | exact | pass |
+| colour 2 | seaborn color_palette | 16744206 | 16744206 | exact | pass |
+| colour 3 | seaborn color_palette | 2924588 | 2924588 | exact | pass |
+| colour 4 | seaborn color_palette | 14034728 | 14034728 | exact | pass |
+| colour 5 | seaborn color_palette | 9725885 | 9725885 | exact | pass |
+| colour 6 | seaborn color_palette | 9197131 | 9197131 | exact | pass |
+| colour 7 | seaborn color_palette | 14907330 | 14907330 | exact | pass |
+| colour 8 | seaborn color_palette | 8355711 | 8355711 | exact | pass |
+| colour 9 | seaborn color_palette | 12369186 | 12369186 | exact | pass |
+| colour 10 | seaborn color_palette | 1556175 | 1556175 | exact | pass |
+
+### `sdata.change_colour`
+
+**navy made lighter: lightness 0.6** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| colour | exact: worked by hand in hue, lightness and saturation (Python colorsys) | 3355647 | 3355647 | within 0 (exact formula) | pass |
+| colour | seaborn set_hls_values | 3355647 | 3355647 | exact | pass |
+
+### `sdata.change_colour colour_strength_times=`
+
+**red at half its colour strength** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| colour | exact: worked by hand in hue, lightness and saturation (Python colorsys) | 12533824 | 12533824 | within 0 (exact formula) | pass |
+| colour | seaborn desaturate | 12533824 | 12533824 | exact | pass |
+
+### `sdata.change_colour full_colour_strength=`
+
+**a grey blue at full colour strength** (closed form; data: closed form (no data))
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| colour | exact: worked by hand in hue, lightness and saturation (Python colorsys) | 1356799 | 1356799 | within 0 (exact formula) | pass |
+| colour | seaborn saturate | 1356799 | 1356799 | exact | pass |
+
+### `use_colours from_colour_list=`
+
+**average petal length of Fisher's three iris species, in xkcd colours** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bar 1 | seaborn barplot with xkcd_palette | 3635391 | 3635391 | exact | pass |
+| bar 2 | seaborn barplot with xkcd_palette | 16691976 | 16691976 | exact | pass |
+| bar 3 | seaborn barplot with xkcd_palette | 8106612 | 8106612 | exact | pass |
+
+### `use_colour from_colour_list=`
+
+**average petal length of Fisher's iris species in Crayola's Mahogany** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bar 1 | seaborn barplot with crayon_palette | 13453900 | 13453900 | exact | pass |
+| bar 2 | seaborn barplot with crayon_palette | 13453900 | 13453900 | exact | pass |
+| bar 3 | seaborn barplot with crayon_palette | 13453900 | 13453900 | exact | pass |
+
+### `use_style colour_letters=`
+
+**Fisher's iris species in the letters b, g and r as seaborn's colours** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| bar 1 | seaborn barplot after set_color_codes | 5010096 | 5010096 | exact | pass |
+| bar 2 | seaborn barplot after set_color_codes | 5613672 | 5613672 | exact | pass |
+| bar 3 | seaborn barplot after set_color_codes | 12865106 | 12865106 | exact | pass |
 
 ### `nums.show`
 
@@ -46561,6 +46645,184 @@ Note: Named directions line up by name: the averages (species x measurement) are
 | directions | R | 2 | 2 | relative 1e-12 | pass |
 | biggest left over | R | 1 | 1 | relative 1e-12 | pass |
 
+### `grid.solve_for`
+
+**NIST's certified line through 36 ozone calibration points (least squares)** (published; data: NIST Norris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| intercept | NIST certified | -0.262323073773899 | -0.262323073774029 | at least 9 digits (LRE 12.3) | pass |
+| slope | NIST certified | 1.00211681802045 | 1.00211681802045 | at least 9 digits (LRE 14.4) | pass |
+| intercept | SciPy linalg.lstsq | -0.262323073773899 | -0.262323073773899 | relative 1e-10 | pass |
+| slope | SciPy linalg.lstsq | 1.00211681802045 | 1.00211681802045 | relative 1e-10 | pass |
+| intercept | R | -0.262323073773899 | -0.262323073773899 | relative 1e-10 | pass |
+| slope | R | 1.00211681802045 | 1.00211681802045 | relative 1e-10 | pass |
+
+**standardised effects of three iris measurements on petal width (a square grid)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| sepal length | SciPy linalg.solve | -0.225166010742535 | -0.225166010742535 | relative 1e-12 | pass |
+| sepal width | SciPy linalg.solve | 0.127418853128829 | 0.127418853128829 | relative 1e-12 | pass |
+| petal length | SciPy linalg.solve | 1.21374609819711 | 1.21374609819711 | relative 1e-12 | pass |
+| sepal length | R | -0.225166010742535 | -0.225166010742528 | relative 1e-10 | pass |
+| sepal width | R | 0.127418853128829 | 0.127418853128826 | relative 1e-10 | pass |
+| petal length | R | 1.21374609819711 | 1.21374609819711 | relative 1e-10 | pass |
+
+### `grid.solve_for with_best_fit=`
+
+**with_best_fit=True: the shortest answer from the first 3 iris flowers (4 x 4, rank 3)** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.lstsq | -18.7855044073578 | -18.7855044073578 | relative 1e-06 | pass |
+| last | SciPy linalg.lstsq | 117.33594515201 | 117.33594515201 | relative 1e-06 | pass |
+| length | SciPy linalg.lstsq | 125.063744765122 | 125.063744765122 | relative 1e-06 | pass |
+| first | R | -18.7855044073578 | -18.7855044073594 | relative 1e-06 | pass |
+| last | R | 117.33594515201 | 117.335945152092 | relative 1e-06 | pass |
+| length | R | 125.063744765122 | 125.063744765198 | relative 1e-06 | pass |
+
+### `grid.solve_for between=`
+
+**between=[0, None]: stack loss from air flow, water and acid, no effect below 0** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| air flow | SciPy optimize.nnls | 0.285805705894181 | 0.285805705894181 | relative 1e-09 | pass |
+| water temperature | SciPy optimize.nnls | 0.0571515210521419 | 0.0571515210521419 | relative 1e-09 | pass |
+| acid concentration | SciPy optimize.nnls | 0 | 0 | relative 1e-09 | pass |
+| air flow | R | 0.285805705894181 | 0.285805705894182 | relative 1e-07 | pass |
+| water temperature | R | 0.0571515210521419 | 0.0571515210521394 | relative 1e-07 | pass |
+| acid concentration | R | 0 | 0 | relative 1e-07 | pass |
+
+**between=[0, 1]: stack loss with every effect between 0 and 1 (bounded least squares)** (real data; data: stackloss)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| air flow | SciPy optimize.lsq_linear (bvls) | 0.285805705894181 | 0.285805705894181 | relative 1e-09 | pass |
+| water temperature | SciPy optimize.lsq_linear (bvls) | 0.0571515210521443 | 0.0571515210521443 | relative 1e-09 | pass |
+| acid concentration | SciPy optimize.lsq_linear (bvls) | 0 | 0 | relative 1e-09 | pass |
+
+### `grid.solve_for exactly=`
+
+**exactly=True: AirPassengers as 12 years x 12 months, b the yearly totals, x all 1** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| total | SymPy Matrix.LUsolve | 12 | 12 | relative 1e-15 | pass |
+| smallest | SymPy Matrix.LUsolve | 1 | 1 | relative 1e-15 | pass |
+| biggest | SymPy Matrix.LUsolve | 1 | 1 | relative 1e-15 | pass |
+| total | R | 12 | 12 | relative 1e-09 | pass |
+| smallest | R | 1 | 0.999999999999879 | relative 1e-09 | pass |
+| biggest | R | 1 | 1.00000000000019 | relative 1e-09 | pass |
+
+### `grid.break_down`
+
+**the singular values of Fisher's 150 iris flowers x 4 measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.svd | 95.9599138719645 | 95.9599138719645 | relative 1e-12 | pass |
+| second | SciPy linalg.svd | 17.7610336573286 | 17.7610336573286 | relative 1e-12 | pass |
+| third | SciPy linalg.svd | 3.46093093038697 | 3.46093093038697 | relative 1e-12 | pass |
+| fourth | SciPy linalg.svd | 1.88482630591805 | 1.88482630591805 | relative 1e-12 | pass |
+| U columns at right angles | SciPy linalg.svd | 1 | 1 | relative 1e-12 | pass |
+| first | R | 95.9599138719645 | 95.9599138719646 | relative 1e-10 | pass |
+| second | R | 17.7610336573286 | 17.7610336573286 | relative 1e-10 | pass |
+| third | R | 3.46093093038697 | 3.46093093038697 | relative 1e-10 | pass |
+| fourth | R | 1.88482630591805 | 1.88482630591804 | relative 1e-10 | pass |
+| U columns at right angles | R | 1 | 1 | relative 1e-10 | pass |
+
+### `grid.break_down test_method=`
+
+**test_method="cholesky": the correlations of Fisher's iris measurements** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| corner | SciPy linalg.cholesky | 0.817941126271576 | 0.817941126271576 | relative 1e-12 | pass |
+| last | SciPy linalg.cholesky | 0.24929846849774 | 0.24929846849774 | relative 1e-12 | pass |
+| total | SciPy linalg.cholesky | 4.0196674472769 | 4.0196674472769 | relative 1e-12 | pass |
+| corner | R | 0.817941126271576 | 0.817941126271576 | relative 1e-10 | pass |
+| last | R | 0.24929846849774 | 0.249298468497742 | relative 1e-10 | pass |
+| total | R | 4.0196674472769 | 4.0196674472769 | relative 1e-10 | pass |
+
+**test_method="qr": the iris measurements (150 x 4), sizes of the diagonal of R** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| first | SciPy linalg.qr | 72.2762063199225 | 72.2762063199225 | relative 1e-12 | pass |
+| second | SciPy linalg.qr | 7.88722684540589 | 7.88722684540589 | relative 1e-12 | pass |
+| third | SciPy linalg.qr | 8.35634960152239 | 8.35634960152239 | relative 1e-12 | pass |
+| fourth | SciPy linalg.qr | 2.33392056931436 | 2.33392056931436 | relative 1e-12 | pass |
+| Q rows | SciPy linalg.qr | 150 | 150 | relative 1e-12 | pass |
+| first | R | 72.2762063199225 | 72.2762063199225 | relative 1e-10 | pass |
+| second | R | 7.88722684540589 | 7.88722684540589 | relative 1e-10 | pass |
+| third | R | 8.35634960152239 | 8.35634960152239 | relative 1e-10 | pass |
+| fourth | R | 2.33392056931436 | 2.33392056931436 | relative 1e-10 | pass |
+| Q rows | R | 150 | 150 | relative 1e-10 | pass |
+
+**test_method="schur": AirPassengers as 12 x 12, the eigenvalues on the diagonal of T** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| trace | SciPy linalg.schur | 3416 | 3416 | relative 1e-10 | pass |
+| biggest | SciPy linalg.schur | 3389.66837976908 | 3389.66837976908 | relative 1e-10 | pass |
+| multiplied back | SciPy linalg.schur | 1 | 1 | relative 1e-10 | pass |
+| trace | R | 3416 | 3416 | relative 1e-08 | pass |
+| biggest | R | 3389.66837976908 | 3389.66837976908 | relative 1e-08 | pass |
+| multiplied back | R | 1 | 1 | relative 1e-08 | pass |
+
+**test_method="lu": AirPassengers as 12 x 12, P times L times U gives the grid back** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| product of U's diagonal | SciPy linalg.lu | 3.70794963018797e+15 | 3.70794963018797e+15 | relative 1e-12 | pass |
+| first of U | SciPy linalg.lu | 417 | 417 | relative 1e-12 | pass |
+| multiplied back | SciPy linalg.lu | 1 | 1 | relative 1e-12 | pass |
+| product of U's diagonal | R | 3.70794963018797e+15 | 3.70794963018776e+15 | relative 1e-08 | pass |
+| first of U | R | 417 | 417 | relative 1e-08 | pass |
+| multiplied back | R | 1 | 1 | relative 1e-08 | pass |
+
+**test_method="polar": the iris correlations, the turn and the stretch** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| stretch total | SciPy linalg.polar | 7.48084902512197 | 7.48084902512197 | relative 1e-10 | pass |
+| turn total | SciPy linalg.polar | 4 | 4 | relative 1e-10 | pass |
+| multiplied back | SciPy linalg.polar | 1 | 1 | relative 1e-10 | pass |
+
+**test_method="ldl": the iris correlations, L times D times L turned gives them back** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| D total | SciPy linalg.ldl | 2.18064106331972 | 2.18064106331972 | relative 1e-12 | pass |
+| first in row order | SciPy linalg.ldl | 1 | 1 | relative 1e-12 | pass |
+| multiplied back | SciPy linalg.ldl | 1 | 1 | relative 1e-12 | pass |
+
+**test_method="hessenberg": AirPassengers as 12 x 12, Q times H times Q turned** (real data; data: AirPassengers)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| trace | SciPy linalg.hessenberg | 3416 | 3416 | relative 1e-10 | pass |
+| zeros below | SciPy linalg.hessenberg | 1 | 1 | relative 1e-10 | pass |
+| multiplied back | SciPy linalg.hessenberg | 1 | 1 | relative 1e-10 | pass |
+| trace | R | 3416 | 3416 | relative 1e-10 | pass |
+| zeros below | R | 1 | 1 | relative 1e-10 | pass |
+| multiplied back | R | 1 | 1 | relative 1e-10 | pass |
+
+### `grid.break_down together_with=`
+
+**together_with=: QZ of the iris correlations with their covariances** (real data; data: iris)
+
+| number | compared with | simplydata | reference | tolerance | result |
+|---|---|---|---|---|---|
+| smallest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 0.0291048003594299 | 0.0291048003594299 | relative 1e-09 | pass |
+| biggest ratio | SciPy linalg.eigvals (the generalised eigenvalues) | 22.325480583695 | 22.325480583695 | relative 1e-09 | pass |
+| total of ratios | SciPy linalg.eigvals (the generalised eigenvalues) | 28.3299745316017 | 28.3299745316017 | relative 1e-09 | pass |
+| smallest ratio | R | 0.0291048003594299 | 0.0291048003594294 | relative 1e-08 | pass |
+| biggest ratio | R | 22.325480583695 | 22.3254805836951 | relative 1e-08 | pass |
+| total of ratios | R | 28.3299745316017 | 28.3299745316018 | relative 1e-08 | pass |
+
 ### `nums.smooth`
 
 **the level of Lake Huron, 1875-1972: a centred moving average of 5 years** (real data; data: Lake Huron)
@@ -52505,6 +52767,21 @@ Each box's library code is run next to the simplydata word and compared. Table w
 | `grid.find_eigenvalues` | SciPy | pandas | table | relative 1e-12 | pass |
 | `grid.find_eigenvalues exactly=` | SymPy | pandas | table | relative 1e-15 | pass |
 | `grid.find_null_space exactly=` | SymPy | pandas | value | relative 0 | pass |
+| `grid.solve_for` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.solve_for with_best_fit=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.solve_for between=` | SciPy | pandas | value | relative 1e-09 | pass |
+| `grid.solve_for exactly=` | SymPy | pandas | value | relative 1e-15 | pass |
+| `grid.break_down` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.break_down test_method=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `grid.break_down together_with=` | SciPy | pandas | value | relative 1e-12 | pass |
+| `sdata.show_colours` | seaborn | pandas | printed | relative 1e-09 | pass |
+| `sdata.change_colour` | seaborn | pandas | value | relative 1e-09 | pass |
+| `sdata.change_colour colour_strength_times=` | seaborn | pandas | value | relative 1e-09 | pass |
+| `sdata.change_colour full_colour_strength=` | seaborn | pandas | value | relative 1e-09 | pass |
+| `sdata.pick_colours_with_sliders` | - | - | none | relative 0 | pass |
+| `use_colours from_colour_list=` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `use_colour from_colour_list=` | seaborn | pandas | chart | relative 1e-09 | pass |
+| `use_style colour_letters=` | seaborn | pandas | chart | relative 1e-09 | pass |
 
 How each kind is compared:
 
@@ -52513,7 +52790,7 @@ How each kind is compared:
 - **result**: the numbers in simplydata's result table (statistic, degrees of freedom, p-value ...) against the library's result
 - **chart**: the chart's data (bars, dots, lines, labels, limits ...), not its pixels
 - **printed**: for words that show something and give nothing back: every line the library code prints appears, in the same order, in what the word prints (spaces at the ends of lines left out)
-- **none** (26 words: `say_what_it_shows`, `table.undo`, `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps`, `nums.start_again`, `dist.show_parameters`, `sdata.help`, `sdata.show_all_words`, `sdata.show_day`, `sdata.show_lesson`, `sdata.show_packages_used`, `sdata.start_30_days`, `sdata.show_today`, `sdata.show_answers`, `sdata.go_to_next_day`, `undo`, `show_in_web_page`, `show_when_pointing`, `add_range_bar_x`, `block.find_direction_names`, `sdata.hide_stretching_notes`, `sdata.show_stretching_notes`, `sdata.show_whats_inside`, `f.undo`): help, learning, undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put a table back as it was; they compute no number, so there is nothing to compare them with. Their box is run to show that it runs.
+- **none** (27 words: `say_what_it_shows`, `table.undo`, `table.show_steps`, `table.start_again`, `nums.undo`, `nums.show_steps`, `nums.start_again`, `dist.show_parameters`, `sdata.help`, `sdata.show_all_words`, `sdata.show_day`, `sdata.show_lesson`, `sdata.show_packages_used`, `sdata.start_30_days`, `sdata.show_today`, `sdata.show_answers`, `sdata.go_to_next_day`, `undo`, `show_in_web_page`, `show_when_pointing`, `add_range_bar_x`, `block.find_direction_names`, `sdata.hide_stretching_notes`, `sdata.show_stretching_notes`, `sdata.show_whats_inside`, `f.undo`, `sdata.pick_colours_with_sliders`): help, learning, undo and show-steps words. They print help, a lesson, the packages used or the steps taken, or put a table back as it was; they compute no number, so there is nothing to compare them with. Their box is run to show that it runs.
 
 ## Choices simplydata makes
 
@@ -53358,6 +53635,11 @@ Where simplydata's default differs from the package underneath, it is listed her
 - `grid.find_eigenvalues` (2): biggest first, as R eigen() gives them; SciPy gives eigvalsh's smallest first.
 - `grid.find_eigenvalues exactly=` (1): biggest first, as without exactly=True; SymPy's dict has no order to rely on.
 - `grid.find_null_space exactly=` (1): each of SymPy's directions is one column, as without exactly=True (SciPy's columns are of length 1; SymPy's are its simplest whole numbers).
+- `grid.solve_for` (1): a square grid uses linalg.solve (the LU decomposition, LAPACK gesv); a grid that is not square has no exact answer, so it uses least squares (linalg.lstsq), and the sentence says so.
+- `grid.solve_for between=` (1): between=[0, None] is non-negative least squares, SciPy optimize.nnls (Lawson and Hanson's active set method); any other limits use optimize.lsq_linear with method="bvls" (bounded-variable least squares), whose active-set answer is exact, not iterative.
+- `grid.solve_for exactly=` (1): the numbers become the fractions they stand for (0.2 is 1/5), then SymPy LUsolve works exactly; a grid that is not square uses SymPy solve_least_squares. The answer keeps the decimals of the exact fractions, which are printed.
+- `grid.break_down` (1): the singular value decomposition by default, the one every grid has (square or not); its short (economic) form, as R svd(): U has as many columns as the grid.
+- `grid.break_down test_method=` (1): each test_method= is SciPy linalg's own call with its own defaults (lu gives grid = P L U, cholesky the upper triangle, schur the real form); qr is the short (economic) form, as R qr(); ldl's row order counts from 1.
 
 ## Datasets
 
@@ -53458,8 +53740,8 @@ Where simplydata's default differs from the package underneath, it is listed her
 | [bioequivalence reference datasets](https://doi.org/10.1208/s12248-014-9661-0) | three 2 x 2 crossover bioequivalence studies (AUC of a test and a reference formulation): A, 18 subjects (Sauter et al. 1992); B, 18 subjects (Clayton & Leslie 1981); C, 13 subjects (B with subjects removed, unbalanced) | Schütz, H., Labes, D. & Fuglsang, A. (2014). Reference Datasets for 2-Treatment, 2-Sequence, 2-Period Bioequivalence Studies. The AAPS Journal 16, 1292-1297, supplementary data sets A, B and C (PMC4389751). | (c) AAPS 2014, with no open licence for the article or its supplementary files, so not shipped (DATA_LICENSES.md). simplydata was tested on them on 2026-11-21 (all three ratios and 90 % intervals equal to Table II at its 2 printed decimals of percent, and to R lm() to 1e-9). To rerun the cases, save the data as a CSV file (columns dataset, subject, period, formulation, auc) and name it in the environment variable SIMPLYDATA_SCHUTZ2014_FILE; without it they are skipped. |
 | [airquality (R datasets)](https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html) | daily air quality in New York, May to September 1973: ozone (37 empty cells), solar radiation (7 empty), wind and temperature | Chambers, J. M. et al. (1983). Graphical Methods for Data Analysis. Wadsworth; data from the New York State Department of Conservation and the National Weather Service. R's datasets package. | Public data; R's datasets package is GPL-2 \| GPL-3; read from R, so it needs R. |
 | [lung with weight loss (survival)](https://doi.org/10.1200/JCO.1994.12.3.601) | 228 patients with advanced lung cancer: survival time, status, age, sex, Karnofsky score (empty cells) and weight loss (14 empty cells) | Loprinzi, C. L. et al. (1994). Journal of Clinical Oncology 12, 601-607. As shipped by the R package survival (lung). | LGPL (>= 2) (survival); read from the installed package, so it needs R. |
-| [El Nino sea surface temperatures](https://www.statsmodels.org/stable/datasets/generated/elnino.html) | 732 monthly averages of the sea surface temperature (degrees Celsius) of the Pacific between 0 and 10 degrees south and 90 and 80 degrees west (Nino 1+2), January 1950 to December 2010 | NOAA Climate Prediction Center, ERSST v3b, Nino 1+2 index. Copy from statsmodels (statsmodels.datasets.elnino). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | closed form (no data) | no data: systems, waves and window shapes made from a formula, and formulas, areas, volumes and paths over time (numbers phase, batch 3), checked against the answer worked out by hand from the same formula | The formulas are worked out for the check in simplydata's validation/cases_underneath_signals.py and cases_underneath_numbers_3.py. | No data, so no licence; the worked answers are the same as simplydata's (see LICENSE). |
+| [El Nino sea surface temperatures](https://www.statsmodels.org/stable/datasets/generated/elnino.html) | 732 monthly averages of the sea surface temperature (degrees Celsius) of the Pacific between 0 and 10 degrees south and 90 and 80 degrees west (Nino 1+2), January 1950 to December 2010 | NOAA Climate Prediction Center, ERSST v3b, Nino 1+2 index. Copy from statsmodels (statsmodels.datasets.elnino). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | [yearly sunspot numbers](https://www.statsmodels.org/stable/datasets/generated/sunspots.html) | 309 yearly mean sunspot numbers (Wolf's relative numbers), 1700 to 2008 | NOAA National Geophysical Data Center, yearly sunspot numbers (compiled from the Royal Observatory of Belgium, SIDC). Copy from statsmodels (statsmodels.datasets.sunspots). The solar cycle of about 11 years: Schwabe, H. (1844). Astronomische Nachrichten 21, 233-236; its average length 11.0 years: Hathaway, D. H. (2015). The solar cycle. Living Reviews in Solar Physics 12, 4. | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | [US inflation and unemployment](https://www.statsmodels.org/stable/datasets/generated/macrodata.html) | 203 quarters of the US economy, 1959 to 2009: inflation and the unemployment rate (2 of 14 columns) | Federal Reserve Bank of St. Louis (FRED) and the US Bureau of Labor Statistics, compiled by S. Seabold. Copy from statsmodels (statsmodels.datasets.macrodata). | Public domain (a US Government work), as statsmodels states for this dataset. Not stored here: read from the installed statsmodels. |
 | [Newton's cubic](https://doi.org/10.1137/1037125) | the cubic x^3 - 2x - 5 = 0, Newton's own example for his method; its root 2.09455148 | Newton, I. (1669). De analysi per aequationes numero terminorum infinitas, published by Wallis, J. (1685). A Treatise of Algebra, chapter 94; the root to 8 decimals as in Ypma, T. J. (1995). Historical development of the Newton-Raphson method. SIAM Review 37(4), 531-551. | No data: a published worked example (facts); only the numbers printed there are quoted, nothing is stored. |

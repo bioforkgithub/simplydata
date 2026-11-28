@@ -20,6 +20,54 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: the rest of seaborn's colour tools, and seaborn.objects names (owner's decision 2026-11-28)
+
+- `sdata.show_colours("deep")` draws a row of swatches (seaborn `palplot`) and gives back the colour codes.
+- `sdata.change_colour("navy", lightness=0.6)` gives a lighter, darker, greyer or stronger colour: `lightness=`,
+  `colour_strength=` and `hue=` are seaborn `set_hls_values`, `colour_strength_times=` is `desaturate` and
+  `full_colour_strength=True` is `saturate`.
+- `sdata.pick_colours_with_sliders(kind="dark")` is seaborn's `choose_*_palette` sliders (`"brewer"`,
+  `"cubehelix"`, `"dark"`, `"light"`, `"diverging"`), in Jupyter with ipywidgets; anywhere else it says what is
+  needed. simplydata never installs anything.
+- `from_colour_list="xkcd"` or `"crayon"` on `use_colour`, `use_colours` and `use_colour_scale` reads the names of
+  xkcd's colour survey or Crayola's crayons (seaborn `xkcd_palette`, `crayon_palette`).
+- `chart.use_style("paper", colour_letters="seaborn")` makes "b", "g", "r" ... seaborn's colours on that chart
+  (seaborn `set_color_codes`); other charts keep matplotlib's letters.
+- `sdata.help("so.Dots")`, `sdata.help("so.Plot.facet")`: seaborn.objects names point to the chart words, and
+  `dogplot`, `reset_defaults`, `reset_orig` and `get_data_home` say why simplydata needs no such word. 584 words now.
+
+### Added: NumPy, SciPy and SymPy names point to the simplydata word (numbers finishing)
+
+- `sdata.help("np.mean")`, `sdata.help("np.linalg.solve")`, `sdata.help("rng.normal")`,
+  `sdata.help("scipy.stats.gamma")`, `sdata.help("optimize.nnls")` and `sdata.help("sp.solve")` name the word for
+  that package's meaning: `np.mean` is `numbers.find_average()` (a bare `mean` is still the table word),
+  `np.zeros` makes a grid, `np.linalg.norm` hands the numbers to NumPy, `scipy.special.gamma` is the gamma
+  function in a formula and `scipy.stats.gamma` the gamma distribution. The names may have `np.`, `numpy.`,
+  `np.linalg.`, `np.random.`, `rng.`, `np.fft.`, `scipy.`, `stats.`, `optimize.`, `integrate.`, `interpolate.`,
+  `signal.`, `ndimage.`, `spatial.`, `special.`, `sp.` or `sympy.` in front. A test runs every call these
+  pointers write.
+
+### Added: manual chapters for readers who know NumPy, SciPy or SymPy (numbers finishing)
+
+- Two new parts after the matplotlib one: "From NumPy and SciPy to simplydata" follows the NumPy absolute
+  beginners guide, the NumPy fundamentals and the SciPy user guide; "From SymPy to simplydata" follows the SymPy
+  introductory tutorial. For each topic: the job, the simplydata words with a short example, and for the jobs left
+  to the library, the hand-over (`numbers.as_numpy()`, `formula.as_sympy()`) and the way back. A test runs every
+  example and checks every link.
+
+### Added: `grid.solve_for(b)` and `grid.break_down(test_method=)` (numbers finishing)
+
+- `x = grid.solve_for([5, 10])` solves grid times x = b: SciPy `linalg.solve` for a square grid, least squares
+  (`linalg.lstsq`) for a grid that is not square, and the sentence says which. `with_best_fit=True` asks for least
+  squares on a square grid too (one whose determinant is 0). `between=[0, None]` keeps every x at 0 or above
+  (non-negative least squares, SciPy `optimize.nnls`, as R nnls and MATLAB lsqnonneg), as for unmixing spectra
+  or a diet mix; other limits use `optimize.lsq_linear`. `exactly=True` gives SymPy's exact answer. b may be a
+  grid, one right side in each column. `sdata.solve` stays the word for equations written as text.
+- `parts = grid.break_down(test_method="qr")` gives the parts of a matrix decomposition as a dict of grids and
+  prints what each part is and how they multiply back: `"svd"` (the default), `"qr"`, `"lu"`, `"cholesky"`,
+  `"schur"`, `"polar"`, `"ldl"`, `"hessenberg"` and `"qz"` (with `together_with=` for the second grid), all from
+  SciPy `linalg`. 581 words now.
+
 ### Added: `chart.as_matplotlib()`, the door to matplotlib (charts finishing)
 
 - `fig = chart.as_matplotlib()` gives the chart as a plain matplotlib Figure, for a job no simplydata word does,

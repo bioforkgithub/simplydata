@@ -118,8 +118,44 @@ def rc_for(settings: dict) -> dict:
 
 @contextmanager
 def context(settings: dict):
-    with matplotlib.rc_context(rc_for(settings)):
+    with matplotlib.rc_context(rc_for(settings)), colour_letters(settings.get("colour_letters")):
         yield
+
+
+@contextmanager
+def colour_letters(palette):
+    """use_style(colour_letters=): seaborn set_color_codes while this chart is drawn; matplotlib's own letters come
+    back afterwards, so other charts keep them (set_color_codes itself changes them for the whole session)."""
+    if palette is None:
+        yield
+        return
+    import matplotlib.colors as mcolors
+    import seaborn as sns
+
+    kept = {code: mcolors.colorConverter.colors[code] for code in "bgrmyck"}
+    try:
+        sns.set_color_codes(palette)
+        yield
+    finally:
+        mcolors.colorConverter.colors.update(kept)
+        mcolors.colorConverter.cache.clear()
+
+
+def letters_as_codes(settings: dict) -> dict:
+    """The chart's settings with the one-letter colours of use_colour and use_colours written as the colour codes
+    seaborn set_color_codes gives them (so a picture saved later keeps them)."""
+    import matplotlib.colors as mcolors
+
+    out = dict(settings)
+    with colour_letters(settings["colour_letters"]):
+        def code(c):
+            return mcolors.to_hex(c) if isinstance(c, str) and len(c) == 1 and c in "bgrmyck" else c
+
+        if out.get("colour") is not None:
+            out["colour"] = code(out["colour"])
+        if out.get("colours"):
+            out["colours"] = [code(c) for c in out["colours"]]
+    return out
 
 
 def palette(settings: dict | None = None) -> list:

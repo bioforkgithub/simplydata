@@ -311,9 +311,9 @@ class Page(ReadBackWords, WebWords, BaseChart):
     set_size = LookWords.set_size
 
     @friendly
-    def use_style(self: _Same, name) -> _Same:
+    def use_style(self: _Same, name, colour_letters=None) -> _Same:
         """One look for every chart on the page: "paper", "school", "presentation" or "dark"."""
-        LookWords.use_style(self, name)
+        LookWords.use_style(self, name, colour_letters)
         return self._set(style_set=True)
 
     @friendly

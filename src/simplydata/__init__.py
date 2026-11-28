@@ -46,6 +46,7 @@ from ._sql import run_sql  # tables phase, batch 3: SQL on files, with DuckDB
 from ._formula import formula  # numbers phase, batch 3: exact maths with SymPy (simplydata[exact])
 from ._calculus import find_area_under, find_path_over_time, find_volume_under  # numbers phase, batch 3
 from ._calculus import find_sum_of_series  # numbers phase, batch 4: sums of series with SymPy
+from .colours import change_colour, pick_colours_with_sliders, show_colours  # seaborn's colour tools
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -104,7 +105,8 @@ def __getattr__(name):
 
 
 __all__ = [
-    "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "chart", "compare_averages",
+    "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "change_colour", "chart",
+    "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "count_ways_to_choose",
     "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_under", "find_chance_of_finding",
     "find_how_many_needed", "find_inverse_fourier_transform", "find_path_over_time", "find_sum_of_series",
@@ -113,9 +115,11 @@ __all__ = [
     "help", "hide_stretching_notes", "make_design_table",
     "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "number_list",
+    "pick_colours_with_sliders",
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
-    "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve", "stack_up", "start_30_days",
+    "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve",
+    "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]
 

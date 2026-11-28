@@ -31,7 +31,9 @@ NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata
                      "sdata.formula", "f.", "sdata.solve", "sdata.find_area_under", "sdata.find_volume_under",
                      "sdata.find_path_over_time",
                      # numbers phase, batch 4: the sum of a formula's series has no data either
-                     "sdata.find_sum_of_series")
+                     "sdata.find_sum_of_series",
+                     # seaborn's colour tools: a set of colours and a changed colour are made from no data
+                     "sdata.show_colours", "sdata.change_colour")
 
 
 def test_every_dataset_has_a_source_a_licence_and_its_file():

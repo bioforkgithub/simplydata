@@ -53,7 +53,9 @@ GROUPS = [
     ("Colours and look", ["use_colour", "use_colours", "use_colour_scale", "use_style", "set_size", "show_grid", "hide_grid",
                           "put_legend_at_top", "put_legend_at_bottom", "put_legend_on_left", "put_legend_on_right",
                           "hide_legend", "show_legend", "label_legend", "label_colour_bar",
-                          "put_legend_inside", "use_shapes"]),
+                          "put_legend_inside", "use_shapes",
+                          # seaborn's colour tools (owner's decision 2026-11-28: cover all of seaborn)
+                          "sdata.show_colours", "sdata.change_colour", "sdata.pick_colours_with_sliders"]),
     ("Order of groups", ["order_x", "order_y", "order_legend"]),
     ("Several charts", ["draw_one_chart_for_each_group_in", "sdata.put_side_by_side", "sdata.put_one_above_other", "sdata.put_in_rows_and_columns",
                         "add_zoom_box", "animate"]),
@@ -222,7 +224,9 @@ GROUPS = [
                                             "grid.find_each_patch_that", "grid.change_size_to", "grid.rotate",
                                             "grid.take_matrix_exp", "grid.find_null_space",
                                             # numbers phase, batch 4 (approved by Manish 2026-11-26)
-                                            "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues"]),
+                                            "grid.find_determinant", "grid.take_inverse", "grid.find_eigenvalues",
+                                            # numbers finishing (P41, approved by Manish 2026-11-25)
+                                            "grid.solve_for", "grid.break_down"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -565,6 +569,15 @@ HELP_EXAMPLES = {
     "use_colour": _ex("marks", 'chart.draw_bars(x="class", y="marks")\nchart.use_colour("purple")', "use_colour"),
     "use_colour_scale": _ex("weather", 'chart.draw_heatmap(x="month", y="city", value="rain")\nchart.use_colour_scale("magma")', "use_colour_scale"),
     "use_colours": _ex("marks", 'chart.draw_bars(x="subject", y="marks", colour="class")\nchart.use_colours("orange", "teal", "purple")', "use_colours"),
+    # seaborn's colour tools (owner's decision 2026-11-28)
+    "sdata.show_colours": "\n".join(["import simplydata as sdata", 'codes = sdata.show_colours("deep")',
+                                     'sdata.show_colours("viridis", how_many=5, save_as="colours.png")']),
+    "sdata.change_colour": "\n".join(["import simplydata as sdata",
+                                      'lighter = sdata.change_colour("navy", lightness=0.6)',
+                                      'greyer = sdata.change_colour("red", colour_strength_times=0.5)']),
+    "sdata.pick_colours_with_sliders": "\n".join(["import simplydata as sdata",
+                                                  "# in Jupyter, with ipywidgets: sliders; anywhere else: a sentence",
+                                                  'colours = sdata.pick_colours_with_sliders(kind="dark")']),
     "use_style": _ex("marks", 'chart.draw_bars(x="subject", y="marks", colour="class")\nchart.use_style("school")', "use_style"),
     "set_size": _ex("weather", 'chart.draw_lines(x="month", y="rain", colour="city")\nchart.set_size(width=17, height=8, unit="cm")', "set_size"),
     "show_grid": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.show_grid()', "show_grid"),
@@ -1634,6 +1647,14 @@ HELP_EXAMPLES.update({
                                 "grid.undo()", "grid.take_inverse(exactly=True)"),
     "grid.find_eigenvalues": _lines("grid = sdata.number_grid([[2, 1], [1, 2]])", "values = grid.find_eigenvalues()",
                                     "print(values)", "grid.find_eigenvalues(exactly=True)"),
+    # numbers finishing (P41, approved by Manish 2026-11-25): solving and breaking down
+    "grid.solve_for": _lines("grid = sdata.number_grid([[2, 1], [1, 3]])", "x = grid.solve_for([5, 10])",
+                             "print(x)", "grid.solve_for([5, 10], exactly=True)",
+                             "mix = sdata.number_grid([[2, 0], [1, 1], [0, 3]])",
+                             "amounts = mix.solve_for([4, 3, 5], between=[0, None])"),
+    "grid.break_down": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
+                              'parts = grid.break_down(test_method="cholesky")', 'print(parts["U"])',
+                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])'),
 })
 
 
@@ -2188,15 +2209,16 @@ def _print_other_names(word) -> bool:
     matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
     pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts, other_name_space
+    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, other_name_parts, other_name_space
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
     if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter, ax.hist
         kind, w = parts
         space = NAMESPACE_SHOWN.get(kind) or other_name_space(_normalise(str(word)))
-        if other_name_pointer(kind, w) is None:  # Str.Replace is str.replace: pandas and Polars names are lowercase
-            w = w.lower()
+        kinds = (kind, *NAMESPACE_FALLBACK.get(kind, ()))
+        if all(other_name_pointer(k, w) is None for k in kinds):
+            w = w.lower()  # Str.Replace is str.replace (pandas and Polars names are lowercase); CubicSpline stays
         pointer = other_name_pointer(kind, w)
         for other in NAMESPACE_FALLBACK.get(kind, ()):  # groupby().mean() means what mean means on a table
             if pointer is None:
@@ -2208,6 +2230,9 @@ def _print_other_names(word) -> bool:
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
                                                                  *NAMESPACE_SHOWN)]
         found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+        if not found:  # lstsq, svd, rfftfreq: names only NumPy, SciPy or SymPy use (numbers finishing PR)
+            found = [(kind, other_name_pointer(kind, w)) for kind in NUMBER_SPACES]
+            found = [(kind, pointer) for kind, pointer in found if pointer is not None]
         shown = w
     if not found:
         return False
@@ -2216,7 +2241,8 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {NAMESPACE_SHOWN.get(kind) or _SHOWN.get(kind, kind)}.{w}: {pointer}")
+            print(f"  {NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or _SHOWN.get(kind, kind)}.{w}: "
+                  f"{pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
     return True
@@ -2233,7 +2259,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
     if isinstance(word, str):
         keys = _lookup_all(word)
         if not keys:  # weather.draw_bars, students.save: a name of your own in front of a simplydata word
-            from ._other_names import QUALIFIERS, other_name_parts
+            from ._other_names import NUMBER_SPACES, QUALIFIERS, other_name_parts
 
             parts = other_name_parts(_normalise(word))
             own = str(word).strip().split(".", 1)[0]
@@ -2251,6 +2277,16 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
                         word = name
                     else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
                         keys = _lookup_all(name)
+            elif parts is not None and parts[0] in NUMBER_SPACES:  # np.sort, np.add: a word of numbers
+                from ._other_names import NAMESPACE_FALLBACK, OTHER_NAMES
+
+                name = parts[1]
+                pointed = any(n in OTHER_NAMES[kind] for kind in (parts[0], *NAMESPACE_FALLBACK[parts[0]])
+                              for n in (name, name.lower()))
+                if not pointed:  # the words of numbers, grids and formulas first: np.save is numbers.save
+                    found = _lookup_all(name)
+                    own = ("chart",) if parts[0] == "so" else ("numbers", "grid", "block", "formula", "dist")
+                    keys = [k for k in found if _kind(k) in own] or found  # so.Plot.save is chart.save
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)
