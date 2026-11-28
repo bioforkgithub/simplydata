@@ -574,14 +574,14 @@ ENTRIES = [
             seen, alive = df.loc[df["died"] == "yes", "days"], df.loc[df["died"] == "no", "days"]
             data = stats.CensoredData(uncensored=seen, right=alive)          # (1)
             shape, _, scale = stats.weibull_min.fit(data, floc=0)            # (2)
-            stats.weibull_min(shape, scale=scale).median()
+            stats.weibull_min(shape, scale=scale).ppf(0.5)                  # the middle value
         """},
         compare="value",
         tolerance=1e-4,
         choices=("the rows where censored_by= says yes are right-censored: their value is only a lower limit.",
                  "no location for the Weibull, as R; simplydata polishes SciPy's search, so the two agree to about "
                  "5 digits.",),
-        also="simplydata also gives the standard errors, the log-likelihood and AIC, and says how many values were "
-             "censored.",
+        also="simplydata also gives the log-likelihood and AIC and says how many values were censored; it gives no "
+             "standard errors for a censored fit (no package it uses gives them).",
     ),
 ]

@@ -121,9 +121,11 @@ def _check_joint_input(plain, name, value, example):
         if not np.allclose(grid, grid.T, rtol=1e-10, atol=1e-12):
             raise SimplydataError(f"{name}= needs a symmetric grid (row i, column j the same as row j, column i).\n"
                                   f"For example:  {example}")
-        if np.linalg.eigvalsh(grid).min() < -1e-10 * max(1.0, float(np.abs(grid).max())):
+        try:  # SciPy's own check of a covariance (positive semidefinite)
+            _st().multivariate_normal(mean=np.zeros(grid.shape[0]), cov=grid, allow_singular=True)
+        except ValueError:
             raise SimplydataError(f"{name}= is not a possible covariance: it has a negative eigenvalue (no set of "
-                                  f"values can spread like that).\nFor example:  {example}")
+                                  f"values can spread like that).\nFor example:  {example}") from None
     if name == "chances" and isinstance(value, np.ndarray):
         if np.any(value < 0) or not math.isclose(float(value.sum()), 1.0, abs_tol=1e-9):
             raise SimplydataError(f"chances= needs chances of 0 or more that add up to 1 (they add up to "
