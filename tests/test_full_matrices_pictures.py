@@ -8,7 +8,8 @@ import numpy as np
 import pytest
 import sympy as sp
 from scipy import linalg, ndimage, signal
-from scipy.spatial import ConvexHull, Delaunay, SphericalVoronoi, Voronoi, minkowski_distance, tsearch
+from scipy.spatial import ConvexHull, Delaunay, SphericalVoronoi, Voronoi
+from scipy.spatial.distance import cdist
 
 import simplydata as sdata
 from simplydata._errors import SimplydataError
@@ -272,17 +273,18 @@ M = np.array(RING) == 1
 
 
 @pytest.mark.parametrize("how, extra, theirs", [
-    ("grow", {}, lambda: ndimage.binary_dilation(M, SIDES, iterations=1)),
+    ("grow", {}, lambda: ndimage.binary_dilation(np.pad(M, 2, mode='symmetric'), SIDES)[2:-2, 2:-2]),
     ("grow", {"by": 2, "touching": "corners"},
-     lambda: ndimage.binary_dilation(M, ndimage.generate_binary_structure(2, 2), iterations=2)),
-    ("shrink", {}, lambda: ndimage.binary_erosion(M, SIDES)),
-    ("open", {}, lambda: ndimage.binary_opening(M, SIDES)),
-    ("close", {}, lambda: ndimage.binary_closing(M, SIDES)),
+     lambda: ndimage.binary_dilation(np.pad(M, 4, mode="symmetric"), ndimage.generate_binary_structure(2, 2),
+                                     iterations=2)[4:-4, 4:-4]),
+    ("shrink", {}, lambda: ndimage.binary_erosion(np.pad(M, 2, mode='symmetric'), SIDES)[2:-2, 2:-2]),
+    ("open", {}, lambda: ndimage.binary_opening(np.pad(M, 2, mode='symmetric'), SIDES)[2:-2, 2:-2]),
+    ("close", {}, lambda: ndimage.binary_closing(np.pad(M, 2, mode='symmetric'), SIDES)[2:-2, 2:-2]),
     ("fill holes", {}, lambda: ndimage.binary_fill_holes(M, SIDES)),
-    ("top hat", {}, lambda: ndimage.white_tophat(M.astype(np.uint8), footprint=SIDES) > 0),
-    ("dark top hat", {}, lambda: ndimage.black_tophat(M.astype(np.uint8), footprint=SIDES) > 0),
-    ("outline", {}, lambda: ndimage.morphological_gradient(M.astype(np.uint8), footprint=SIDES) > 0),
-    ("laplace", {}, lambda: ndimage.morphological_laplace(M.astype(np.uint8), footprint=SIDES)),
+    ("top hat", {}, lambda: ndimage.white_tophat(M.astype(np.int16), footprint=SIDES) > 0),
+    ("dark top hat", {}, lambda: ndimage.black_tophat(M.astype(np.int16), footprint=SIDES) > 0),
+    ("outline", {}, lambda: ndimage.morphological_gradient(M.astype(np.int16), footprint=SIDES) > 0),
+    ("laplace", {}, lambda: ndimage.morphological_laplace(M.astype(np.int16), footprint=SIDES)),
     ("match pattern", {"pattern": [[1, 1], [1, 0]]},
      lambda: ndimage.binary_hit_or_miss(M, np.array([[1, 1], [1, 0]]) == 1, np.array([[1, 1], [1, 0]]) == 0)),
     ("keep patches with points", {"starting_points": [[2, 2]]},
@@ -308,7 +310,8 @@ def test_patch_shapes_on_numbers_are_scipy_grey_morphology(how, scipy_name):
 def test_patch_shapes_with_a_condition_and_refusals(capsys):
     g = grid(PICTURE)
     g.change_patch_shapes("grow", is_above=5)
-    assert np.array_equal(g.as_numpy(), ndimage.binary_dilation(np.array(PICTURE) > 5, SIDES))
+    assert np.array_equal(g.as_numpy(), ndimage.binary_dilation(np.pad(np.array(PICTURE) > 5, 2, mode="symmetric"),
+                                                                SIDES)[2:-2, 2:-2])
     assert "4 yes cells before" in capsys.readouterr().out
     with pytest.raises(SimplydataError, match="works on patches"):
         grid(PICTURE).change_patch_shapes("fill holes")
@@ -334,7 +337,8 @@ def test_patch_show_values_are_scipy_ndimage():
     assert np.allclose(column(table, "standard deviation"), ndimage.standard_deviation(values, labels, index))
     assert np.allclose(column(table, "variance"), ndimage.variance(values, labels, index))
     assert np.allclose(column(table, "range"), ndimage.labeled_comprehension(values, labels, index, np.ptp, float, 0))
-    counts = ndimage.histogram(values, values.min(), values.max(), 3, labels, index)
+    inside = values[labels > 0]  # the bins run over the cells of the patches
+    counts = ndimage.histogram(values, inside.min(), inside.max(), 3, labels, index)
     assert np.allclose(column(table, "bin 3"), [c[2] for c in counts])
     assert table.as_pandas()["positions"].iloc[0] == "(2, 2) (2, 3) (3, 2) (3, 3)"
     with pytest.raises(SimplydataError, match="needs bins="):
@@ -416,7 +420,7 @@ def test_triangles_and_regions_are_scipy_spatial():
     assert np.allclose(column(triangles, "north 3"), xy[mesh.simplices[:, 2], 1])
     found = table.find_triangles_between_points(x="east", y="north",
                                                 containing={"east": [4000, 99999], "north": [1000, 0]})
-    theirs = tsearch(mesh, np.array([[4000, 1000], [99999, 0]]))
+    theirs = mesh.find_simplex(np.array([[4000, 1000], [99999, 0]]))
     assert column(found, "triangle")[0] == theirs[0] + 1 and np.isnan(column(found, "triangle")[1])
     regions = table.find_regions_around_points(x="east", y="north")
     v = Voronoi(xy)
@@ -439,7 +443,7 @@ def test_minkowski_distances_between_rows():
     table.keep_first_rows(4)
     found = table.find_distances_between_rows(columns=["east", "north"], measure="minkowski", power=3)
     xy = table.as_pandas()[["east", "north"]].to_numpy(dtype=float)
-    theirs = minkowski_distance(xy[:, None, :], xy[None, :, :], 3)
+    theirs = cdist(xy, xy, "minkowski", p=3)
     assert np.allclose(found.as_pandas().drop(columns="row").to_numpy(dtype=float), theirs)
     with pytest.raises(SimplydataError, match='power= goes with measure="minkowski"'):
         table.find_distances_between_rows(columns=["east", "north"], power=3)
@@ -480,3 +484,108 @@ def test_every_2_8_and_2_9_name_points_to_its_word(typed, word, capsys):
     sdata.help(typed)
     out = capsys.readouterr().out
     assert word in out, out
+
+
+# ---------------------------------------------------------------- review fixes (independent review of full-7)
+def test_funm_refuses_a_jordan_block_instead_of_a_wrong_answer():
+    with pytest.raises(SimplydataError, match="error estimate"):
+        grid([[1, 1], [0, 1]]).take_matrix_function("exp(x)")
+    with pytest.raises(SimplydataError, match="Jordan block"):
+        grid([[1, 1], [0, 1]]).take_matrix_function("x**2")
+    g = grid([[1, 1], [0, 1]])
+    g.take_matrix_function("exp")  # SciPy expm itself works on a Jordan block
+    assert np.allclose(g.as_numpy(), linalg.expm(np.array([[1.0, 1], [0, 1]])))
+
+
+def test_matrix_functions_of_singular_grids_are_refused_plainly():
+    with pytest.raises(SimplydataError, match="singular"):
+        grid([[1, 2], [2, 4]]).take_matrix_function("log")
+    with pytest.raises(SimplydataError, match="does not exist"):
+        grid([[0, 1], [0, 0]]).take_matrix_function("square root")
+    with pytest.raises(SimplydataError, match="singular"):
+        grid([[1, 2], [2, 4]]).take_matrix_function("power", power=-1)
+    with pytest.raises(SimplydataError, match="does not exist|singular"):
+        grid([[0, 1], [0, 0]]).take_matrix_function("power", power=0.5)
+
+
+def test_binary_laplace_keeps_negative_numbers():
+    g = grid(RING)
+    g.change_patch_shapes("laplace")
+    theirs = ndimage.morphological_laplace(M.astype(np.int16), footprint=SIDES)
+    assert np.array_equal(g.as_numpy(), theirs.astype(float)) and g.as_numpy().min() < 0
+
+
+def test_closing_never_removes_cells_and_shrink_matches_the_grey_picture(capsys):
+    full = grid([[1] * 5] * 5)
+    full.change_patch_shapes("close")
+    assert full.as_numpy().all()
+    assert "edge cells are repeated" in capsys.readouterr().out
+    edge = np.array(PICTURE) > 5
+    for how, grey in (("shrink", "grey_erosion"), ("grow", "grey_dilation"), ("open", "grey_opening"),
+                      ("close", "grey_closing")):
+        g = grid(PICTURE)
+        g.change_patch_shapes(how, is_above=5, by=2)
+        theirs = getattr(ndimage, grey)(edge.astype(np.uint8), footprint=ndimage.iterate_structure(SIDES, 2)) > 0
+        assert np.array_equal(g.as_numpy(), theirs), how
+
+
+def test_counts_in_bins_run_over_the_patch_cells_and_ignore_empty_cells(capsys):
+    values = [[float("nan"), 1, 2], [0, 8, 9], [0, 0, 0]]
+    table = grid(values).find_each_patch_that(is_above=0.5, show="counts in bins", bins=2)
+    assert column(table, "bin 1").tolist() == [2] and column(table, "bin 2").tolist() == [2]
+    assert "from 1 to 9" in capsys.readouterr().out
+    flat = grid([[5, 5], [0, 0]]).find_each_patch_that(is_above=1, show="counts in bins", bins=1)
+    assert column(flat, "bin 1").tolist() == [2]
+    with pytest.raises(SimplydataError, match="only one bin"):
+        grid([[5, 5], [0, 0]]).find_each_patch_that(is_above=1, show="counts in bins", bins=3)
+
+
+def test_real_eigen_blocks_refuse_a_defective_grid_and_jordan_names_its_own_limit():
+    with pytest.raises(SimplydataError, match='test_method="jordan"'):
+        grid([[1, 1], [0, 1]]).break_down(test_method="real eigen blocks")
+    with pytest.raises(SimplydataError, match="up to") as caught:
+        grid(np.eye(9).tolist()).break_down(test_method="jordan")
+    assert "exactly=" not in str(caught.value)
+
+
+def test_best_rotation_says_when_it_is_a_reflection(capsys):
+    a = np.array([[1.0, 0], [0, 1], [1, 2]])
+    b = a * np.array([1, -1])  # a mirror image
+    rotation = grid(a).find_best_rotation_to(grid(b)).as_numpy()
+    assert np.linalg.det(rotation) < 0
+    out = capsys.readouterr().out
+    assert "reflection" in out and "scale" not in out
+
+
+def test_window_wording_percentile_rounding_and_sepfir_edges(capsys):
+    grid(RAMP).smooth(test_method="biggest", window=3)
+    assert "a 3 x 3 window (9 cells)" in capsys.readouterr().out
+    grid(RAMP).smooth(test_method="percentile", percentile=90, window=3)
+    assert "without averaging between cells" in capsys.readouterr().out
+    grid(RAMP).smooth(test_method="summary", summary="standard deviation", window=3)
+    assert "n in the bottom" in capsys.readouterr().out
+    grid(RAMP).convolve_with(row_weights=[1, 2, 1], column_weights=[1, 2, 1])
+    out = capsys.readouterr().out
+    assert "reflect" in out and "mirrored" not in out
+
+
+def test_convolve_overlap_with_a_kernel_too_big_and_a_repeated_starting_point():
+    with pytest.raises(SimplydataError, match="never fits"):
+        grid(RAMP).convolve_with(np.ones((2, 6)).tolist(), keep="overlap")
+    with pytest.raises(SimplydataError, match="more than once"):
+        grid([[1, 2, 9], [1, 2, 9]]).split_touching_patches(starting_points=[[1, 1], [1, 1]])
+
+
+def test_triangles_and_minkowski_use_the_current_scipy_calls():
+    import inspect
+
+    from simplydata.table import patterns, point_words
+
+    assert "tsearch(" not in inspect.getsource(point_words) and "find_simplex" in inspect.getsource(point_words)
+    assert "minkowski_distance(" not in inspect.getsource(patterns)
+
+
+def test_correlate1d_points_to_a_correlation(capsys):
+    sdata.help("scipy.ndimage.correlate1d")
+    out = capsys.readouterr().out
+    assert "reverse()" in out and "flip=False" in out

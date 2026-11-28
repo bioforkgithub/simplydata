@@ -45,6 +45,11 @@ GRID_KIND_SPELLINGS = {"issymmetric": "symmetric", "ishermitian": "hermitian", "
                        "triangular upper": "upper triangle", "triangular lower": "lower triangle", "band": "banded"}
 # an answer whose imaginary parts are only rounding (about the size of the machine epsilon) is real
 IMAGINARY_ROUNDING = 1e-12
+# review fixes: funm's own error estimate above this is refused (a grid with a repeated eigenvalue and too few
+# eigenvectors, a Jordan block, gives funm a wrong answer and a big estimate), and a grid this close to singular (its
+# condition number, NumPy linalg.cond) has no matrix log or negative power
+FUNM_ERROR_MOST = 1e-8
+SINGULAR_CONDITION = 1e12
 
 
 def _real_answer(out, step: str, what: str):
@@ -58,6 +63,15 @@ def _real_answer(out, step: str, what: str):
                                   "complex answer: grid.as_numpy(), then scipy.linalg.")
         out = out.real
     return np.asarray(out, dtype=float)
+
+
+def _finite_answer(out, step: str, what: str):
+    """Refuse an answer with infinite or empty numbers (SciPy's answer for a grid that has no such function)."""
+    if not np.isfinite(out).all():
+        raise SimplydataError(f"{step}(): {what} of this grid does not exist (SciPy's answer has infinite or empty "
+                              "numbers), as for the square root of [[0, 1], [0, 0]] or a fractional power of a "
+                              "singular grid.")
+    return out
 
 
 def _other_grid(other, step: str, example: str):
@@ -107,7 +121,9 @@ class MatrixWords:
         linalg.matrix_power for a whole power, SciPy fractional_matrix_power for any other). Any other formula of
         x, such as "1 / (1 + x)", is worked out by SciPy linalg.funm (Schur-Parlett). SciPy's names (logm,
         sqrtm ...) work too. R expm::logm, sqrtm and MATLAB logm, sqrtm, funm. A grid holds real numbers, so an
-        answer with complex numbers (a negative eigenvalue, for the log) is refused with the reason. Undo with
+        answer with complex numbers (a negative eigenvalue, for the log) is refused with the reason, and so are
+        the log, a negative and a fractional power of a singular grid, an answer with infinite numbers, and a
+        formula funm cannot work out reliably (its own error estimate above 1e-8, as for a Jordan block). Undo with
         grid.undo().
         """
         from scipy import linalg
@@ -125,12 +141,26 @@ class MatrixWords:
             raise SimplydataError(f'power= goes with "power": take_matrix_function("power", power=0.5).')
         if key in MATRIX_FUNCTIONS:
             scipy_name, what = MATRIX_FUNCTIONS[key]
+            if key == "power" and (not is_number(power) or not np.isfinite(power)):
+                raise SimplydataError('"power" needs power= as a number, such as take_matrix_function("power", '
+                                      "power=0.5).")
+            fractional = key == "power" and float(power) != int(power)
+            if key == "log" or (key == "power" and (power < 0 or fractional)):
+                condition = float(np.linalg.cond(values))
+                if not condition < SINGULAR_CONDITION:
+                    raise SimplydataError(f"{step}(): the grid is singular (or nearly: its condition number is "
+                                          f"{condition:.3g}), so it has no matrix "
+                                          f"{'log' if key == 'log' else 'negative power' if power < 0 else ''}"
+                                          f"{'fractional power' if key == 'power' and power >= 0 else ''}"
+                                          "; an eigenvalue of 0 has no log and no inverse, and SciPy's fractional "
+                                          'power needs an invertible grid (try "square root" for power 0.5).')
             if key == "power":
-                if not is_number(power) or not np.isfinite(power):
-                    raise SimplydataError('"power" needs power= as a number, such as take_matrix_function("power", '
-                                          "power=0.5).")
                 if float(power) == int(power):
-                    out = np.linalg.matrix_power(values, int(power))
+                    try:
+                        out = np.linalg.matrix_power(values, int(power))
+                    except np.linalg.LinAlgError:
+                        raise SimplydataError(f"{step}(): the grid is singular, so it has no negative power (no "
+                                              "inverse).") from None
                     how = f"NumPy linalg.matrix_power(grid, {int(power)})"
                 else:
                     out = linalg.fractional_matrix_power(values, float(power))
@@ -139,14 +169,22 @@ class MatrixWords:
             else:
                 out = getattr(linalg, scipy_name)(values)
                 how = f"SciPy linalg.{scipy_name}"
-            out = _real_answer(out, step, f"the matrix {key}")
+            out = _finite_answer(_real_answer(out, step, f"the matrix {key}"), step, f"the matrix {key}")
             print(f"The matrix {key} of the {n} x {n} grid ({how}): {what}; not the {key} of each number.")
             return self._change(f"matrix {key}" + (f" {say(power)}" if key == "power" else ""), out)
         try:
             worked_out, name = _formula_function(function, step)
         except SimplydataError:
             raise choice_error(step, "function", function, list(MATRIX_FUNCTIONS) + ["a formula of x"]) from None
-        out = _real_answer(linalg.funm(values, worked_out, disp=False)[0], step, f"the matrix function {function}")
+        out, error = linalg.funm(values, worked_out, disp=False)
+        if not error <= FUNM_ERROR_MOST:
+            raise SimplydataError(f"{step}(): SciPy linalg.funm cannot work out {function.strip()} of this grid "
+                                  f"reliably (its own error estimate is {error:.3g}). This happens when an eigenvalue "
+                                  "comes more than once without enough eigenvectors (a Jordan block, such as [[1, 1], "
+                                  "[0, 1]]); break_down(test_method=\"jordan\") shows that form. The named functions "
+                                  "(\"exp\", \"log\", \"cos\" ...) use SciPy's own methods, which work there.")
+        out = _finite_answer(_real_answer(out, step, f"the matrix function {function}"), step,
+                             f"the matrix function {function}")
         print(f"The matrix function {function.strip()} of the {n} x {n} grid, with the grid as {name} (SciPy "
               "linalg.funm, the Schur-Parlett method).")
         return self._change(f"matrix function {function.strip()}", out)
@@ -202,11 +240,12 @@ class MatrixWords:
 
     @friendly(renamed={"other": "other_grid"})
     def find_best_rotation_to(self, other_grid=None):
-        """The rotation that turns this grid's rows closest to another grid's (orthogonal Procrustes). grid.find_best_rotation_to(other_grid)
+        """The rotation (or reflection) that turns a grid closest to another (orthogonal Procrustes). grid.find_best_rotation_to(other_grid)
 
         Gives back a square grid R (columns of length 1 at right angles) that makes grid multiplied as a matrix
         by R as close as possible to the other grid (the smallest total of squared differences), as when lining
-        up two sets of landmarks or two maps of the same points. Both grids need the same size. SciPy
+        up two sets of landmarks or two maps of the same points. R may include a reflection (a mirror image;
+        determinant -1), as SciPy allows; the sentence says which. Both grids need the same size. SciPy
         linalg.orthogonal_procrustes (from the singular value decomposition), as R vegan::procrustes and MATLAB
         procrustes without the scaling. table.find_correlation_between_profiles compares two tables this way.
         Nothing changes in the grid.
@@ -222,11 +261,14 @@ class MatrixWords:
         if theirs.shape != mine.shape:
             raise SimplydataError(f"{step}() needs two grids of the same size: this one is {mine.shape[0]} x "
                                   f"{mine.shape[1]} and the other {theirs.shape[0]} x {theirs.shape[1]}.")
-        rotation, scale = linalg.orthogonal_procrustes(mine, theirs)
+        rotation, _ = linalg.orthogonal_procrustes(mine, theirs)
         left = float(np.linalg.norm(mine @ rotation - theirs))
-        print(f"The best rotation, a {rotation.shape[0]} x {rotation.shape[1]} grid with columns of length 1 at right "
-              f"angles (SciPy linalg.orthogonal_procrustes): grid times it is as close as it can be to the other "
-              f"grid. The size left over (the length of the differences) is {left:.6g}; the scale is {scale:.6g}.")
+        turn = float(linalg.det(rotation))
+        kind = "a rotation" if turn > 0 else "a rotation with a reflection (a mirror image)"
+        print(f"The best turn is {kind}: a {rotation.shape[0]} x {rotation.shape[1]} grid with columns of length 1 at "
+              f"right angles, determinant {turn:+.0f} (SciPy linalg.orthogonal_procrustes, which allows reflections). "
+              f"Grid times it is as close as it can be to the other grid; the size left over (the length of the "
+              f"differences) is {left:.6g}.")
         return NumberGrid(rotation)
 
     @friendly(renamed={"other": "other_grid"})

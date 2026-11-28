@@ -46,6 +46,8 @@ BREAK_DOWN = {
 }
 JORDAN_HINT = ('The exact Jordan form is slow when the eigenvalues are not simple numbers (roots of a cubic ...); '
                'test_method="schur" or "real eigen blocks" give the decimals.')
+# "real eigen blocks": eigenvectors with a condition number above this (NumPy linalg.cond) do not rebuild the grid
+EIGENVECTORS_CONDITION = 1e8
 # other spellings of test_method= of break_down: SciPy's and SymPy's names
 BREAK_DOWN_SPELLINGS = {"cossin": "cs", "cosine-sine": "cs", "cosine sine": "cs", "cdf2rdf": "real eigen blocks",
                         "jordan_form": "jordan", "jordan form": "jordan"}
@@ -184,6 +186,10 @@ def _jordan_parts(values) -> dict:
     """break_down(test_method="jordan"): SymPy jordan_form on the numbers as fractions, under one time limit."""
     from .._formula import MAX_EXACT_EIGEN, _guarded, _show, exact_matrix, run_exactly
 
+    if values.shape[0] > MAX_EXACT_EIGEN:
+        raise SimplydataError(f'test_method="jordan" works exactly, on grids of up to {MAX_EXACT_EIGEN} x '
+                              f"{MAX_EXACT_EIGEN}; this one is {values.shape[0]} x {values.shape[0]}. "
+                              'test_method="schur" or "real eigen blocks" give the decimals.')
     matrix = exact_matrix(values, "break_down", MAX_EXACT_EIGEN)
     p, j = _guarded(matrix.jordan_form, what="SymPy jordan_form", hint=JORDAN_HINT)
     if not all(v.is_real for v in list(p) + list(j)):
@@ -432,6 +438,11 @@ class SolvingWords:
         elif test_method == "real eigen blocks":
             w, v = linalg.eig(values)
             blocks, vectors = linalg.cdf2rdf(w, v)
+            if not np.linalg.cond(vectors) < EIGENVECTORS_CONDITION:
+                raise SimplydataError('test_method="real eigen blocks": this grid has a repeated eigenvalue without '
+                                      "enough eigenvectors (V has almost no inverse), so grid = V times the blocks "
+                                      "times the inverse of V does not hold. test_method=\"jordan\" gives its Jordan "
+                                      "form.")
             parts = {"eigenvalue blocks": blocks, "V": vectors}
         elif test_method == "jordan":
             parts = _jordan_parts(values)
