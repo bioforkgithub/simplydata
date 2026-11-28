@@ -667,3 +667,21 @@ def test_small_review_fixes():
     with pytest.raises(sdata.SimplydataError, match="no decimal for mathieuc"):
         _quiet(_formula("mathieuc(1, 1, x)").find_value_at, x=[0.5, 1.0])
     sdata.help("sympy.piecewise_exclusive")
+
+
+# regression of the review fix 7: only the product words keep SymPy's form; every other answer is fully worked out
+def test_values_after_the_helper_are_exact_where_they_should_be():
+    sp, x = _sp()
+    assert _quiet(_formula("x**2 - 4").find_value_at, x=2) == 0.0  # exactly 0 at a root
+    assert _quiet(_formula("2 - a/3").find_value_at, a=6) == 0.0
+    expanded = _formula("(x + 2)**2 - 4")
+    _quiet(expanded.turn_into_sum)
+    assert _quiet(expanded.find_value_at, x=-4) == 0.0
+    slope = _quiet(_formula("x**3 - 12*x").find_slope_formula)
+    assert _quiet(slope.find_value_at, x=2) == 0.0
+    assert _quiet(_formula("sin(x) / x").find_limit_as, "x", goes_to=0) == 1.0
+    answer = _quiet(sdata.solve, "x**2 = 4", exactly=True)
+    assert sorted(_column(answer, "x")) == [-2.0, 2.0]
+    product = _formula("2*x + 4*y")
+    _quiet(product.turn_into_product)
+    assert str(product) == "2*(x + 2*y)" and _quiet(product.find_value_at, x=-4, y=2) == 0.0
