@@ -10,10 +10,10 @@ working for one release and prints a one-line note with its new name.
 Approved by Manish 2026-11-28 (plan section 4, G21). Every public name of pandas 3.1, Polars 2.1, NumPy 2.5,
 SciPy 1.18 (stats, optimize, integrate, interpolate, signal, linalg, special, fft, ndimage, spatial), SymPy 1.14
 and seaborn 0.13 (with seaborn.objects), 4,324 names, was typed into `sdata.help()`. Each now leads to a word or an
-option value (3,681), to the hand-over with a one-line note (253), or to one of the approved "leave" areas (211:
+option value (3,682), to the hand-over with a one-line note (253), or to one of the approved "leave" areas (211:
 SymPy sets, logic, geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in
-tables; `einsum` and `tensorinv`; `HalfspaceIntersection`). The other 179 are data types, classes, warnings and
-settings. No name is left without an answer.
+tables; `einsum` and `tensorinv`; `HalfspaceIntersection`). The others are data types, classes, warnings and
+settings (178), which simplydata chooses by itself; no other name is left without an answer.
 
 - Help pointers in bulk for the last names: pandas' and Polars' arithmetic and comparison methods (`sub`, `rmul`,
   `eq`, `is_close`), bins, ranks and positions (`bin`, `arg_sort`, `search_sorted`), rolling and exponential
