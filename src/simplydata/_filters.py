@@ -137,7 +137,7 @@ def design(kind, cutoffs, step, method="butterworth", steepness=4, ripple=0.5, r
     f_r = (_g(cut_used[0]) if len(cut_used) == 1 else  # cutoffs in cycles per unit of time
            f"c({_g(cut_used[0])}, {_g(cut_used[1])})")
     words = f"{NAMES[method]} filter, " + (found if found else f"steepness {n}")
-    return dict(sos=sos, words=words,
+    return dict(sos=sos, words=words, steepness=n, losses=(float(ripple), float(removed_by)) if found else None,
                 r_call=R_DESIGN[method].format(n=n, w=w_r, t=R_TYPE[kind], rp=_g(ripple), rs=_g(removed_by),
                                                fs=_g(1 / step), f=f_r))
 

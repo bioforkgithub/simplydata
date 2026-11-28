@@ -59,9 +59,14 @@ def filter_numbers(values, keep, condition, value, step, method, steepness, both
     forwards = ("run forwards only, from the steady state for the first reading" if start_from == "first value" else
                 "run forwards only, from rest (as a live instrument would)")
     ways = ("run forwards and backwards so nothing moves in time" + (
-        f" (steepness {2 * steepness} in effect)" if "sos" in made and condition != "equal_to"
-        and find_order_for is None else "")
+        f" (steepness {2 * made.get('steepness', steepness)} in effect)" if "sos" in made and condition != "equal_to"
+        else "")
             if both_ways else forwards)
+    if both_ways and made.get("losses"):  # run twice, the losses in decibels add up: say what the order gives
+        ripple_found, removed_found = made["losses"]
+        ways += (f"; run twice, the losses double: at most {2 * ripple_found:g} dB lost where it keeps and at least "
+                 f"{2 * removed_found:g} dB removed (find_order_for= is for one run; both_ways=False keeps them as "
+                 "asked)")
     sentence = f"{verb} the frequencies {what} in {len(out)} readings ({step:g} apart): {made['words']}, {ways}."
     if made.get("scipy_only"):  # a SciPy design with no R call to name: say what SciPy runs
         runs = ("sosfiltfilt" if "sos" in made else "filtfilt") if both_ways else ("sosfilt" if "sos" in made else

@@ -290,7 +290,8 @@ ENTRIES = [
             np.abs(z.T.ravel())
         """},
         compare="value", tolerance=1e-10,
-        choices=("pieces of window=64 readings, each moved on by half of it, with periodic Hann weights.",
+        choices=("pieces of window=64 readings, each moved on by half of it, with periodic Hann weights; not scaled "
+                 "(scale_to=None): the legacy signal.stft would divide the sizes by the sum of the weights.",
                  "SciPy's padding: the pieces at the ends hang over the readings and are filled with zeros, so "
                  "sdata.find_inverse_fourier_transform can give every reading back (ShortTimeFFT.istft).",),
         also="The table holds time, frequency, size, phase, real part and imaginary part, one row for each piece and "

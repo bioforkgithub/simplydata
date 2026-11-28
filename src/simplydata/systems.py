@@ -199,7 +199,8 @@ class System:
 
     _OLD_WORDS: dict = {}  # no old names (sdata.help reads this, as for tables and charts)
 
-    def __init__(self, numerator, denominator, time_step=None, sos=None, label=None, units="radians per second"):
+    def __init__(self, numerator, denominator, time_step=None, sos=None, label=None, units="radians per second",
+                 designed=False):
         num = np.trim_zeros(np.atleast_1d(np.asarray(numerator, dtype=float)), "f")
         den = np.trim_zeros(np.atleast_1d(np.asarray(denominator, dtype=float)), "f")
         if not len(den):
@@ -210,9 +211,12 @@ class System:
             raise SimplydataError("The top of the formula has a higher power than the bottom (an improper system): "
                                   "no real system responds like that. Check the formula.")
         num, den = num / den[0], den / den[0]  # leading coefficient 1, as SciPy's TransferFunction
-        # rounding noise from conversions (such as 4e-16 from ss2tf) is not a coefficient
-        noise = 1e-13 * max(np.abs(num).max(), np.abs(den).max())
-        num, den = np.where(np.abs(num) < noise, 0.0, num), np.where(np.abs(den) < noise, 0.0, den)
+        # rounding noise from conversions (such as 4e-16 from ss2tf) is not a coefficient; coefficients SciPy designed
+        # (a filter, sections) are kept whole: an analog filter's last coefficient is (2 pi x cutoff) ** order times
+        # its first, so a relative trim would remove real coefficients
+        if not designed:
+            noise = 1e-13 * max(np.abs(num).max(), np.abs(den).max())
+            num, den = np.where(np.abs(num) < noise, 0.0, num), np.where(np.abs(den) < noise, 0.0, den)
         num = np.trim_zeros(num, "f") if np.any(num) else np.array([0.0])
         self._num, self._den = num, den
         self._time_step = None if time_step is None else float(time_step)
@@ -225,7 +229,7 @@ class System:
     def from_coefficients(cls, numerator, denominator, time_step=None, sos=None, label=None):
         """A System from its coefficients (highest power first); used by sdata.frequency_filter."""
         return cls(numerator, denominator, time_step, sos, label,
-                   units="cycles per second" if sos is not None or label else "radians per second")
+                   units="cycles per second" if sos is not None or label else "radians per second", designed=True)
 
     @property
     def _variable(self):
@@ -578,16 +582,42 @@ class System:
 
     def _group_delay(self, w):
         """The group delay in units of time at the angular frequencies w: SciPy signal.group_delay (in steps of the
-        system) times the time step."""
+        system) times the time step, added up over the second-order sections when the system has them (the
+        multiplied-out formula of a steep or narrow filter loses the digits group_delay needs). Where SciPy finds the
+        delay singular (the gain is 0 there) the delay is empty and the frequencies are named; where SciPy warns that
+        the bottom of the formula is nearly 0, the frequencies are named too."""
         import warnings
 
         from scipy import signal
 
-        top = np.concatenate([np.zeros(len(self._den) - len(self._num)), self._num])
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")  # SciPy warns at a frequency the system blocks fully (delay 0 there)
-            steps = signal.group_delay((top, self._den), w=w * self._time_step)[1]
-        return np.asarray(steps, dtype=float) * self._time_step
+        if self._sos is not None:
+            parts = [(row[:3], row[3:]) for row in np.asarray(self._sos, dtype=float)]
+        else:
+            parts = [(np.concatenate([np.zeros(len(self._den) - len(self._num)), self._num]), self._den)]
+        delay = np.zeros(len(w))
+        undefined, unsure = [], []
+        for i, one in enumerate(np.asarray(w, dtype=float) * self._time_step):
+            for b, a in parts:
+                with warnings.catch_warnings(record=True) as said:
+                    warnings.simplefilter("always")
+                    delay[i] += signal.group_delay((b, a), w=[one])[1][0]
+                text = " ".join(str(x.message) for x in said)
+                if "is singular at" in text:
+                    undefined.append(i)
+                elif "extremely small" in text:
+                    unsure.append(i)
+        delay = delay * self._time_step
+        scale = self._units == "cycles per second"
+        shown = (lambda idx: ", ".join(_g(w[j] / (2 * np.pi) if scale else w[j], 4) for j in idx[:5])
+                 + (" ..." if len(idx) > 5 else ""))
+        if undefined:
+            delay[sorted(set(undefined))] = np.nan
+            print(f"Note: the delay is undefined at {shown(sorted(set(undefined)))} (the system passes nothing there: "
+                  "SciPy group_delay finds it singular), so it is empty there.")
+        if unsure:
+            print(f"Note: SciPy group_delay warns that the bottom of the formula is nearly 0 near "
+                  f"{shown(sorted(set(unsure)))}: the delay may not be exact there.")
+        return delay
 
     def _margins(self):
         """(gain margin in dB, frequency, phase margin in degrees, frequency) in radians per unit of time;
@@ -792,6 +822,11 @@ class System:
         if self._time_step is not None and np.any(np.abs(wanted) >= 1):
             print("Note: a pole at a distance of 1 or more from 0 makes a system in steps unstable.")
         wanted = np.real_if_close(wanted)
+        if len(np.unique(np.round(np.atleast_1d(wanted), 12))) < len(np.atleast_1d(wanted)):
+            raise SimplydataError("SciPy place_poles cannot put a pole in the same place twice for a system with one "
+                                  "input (each pole may be given once). Give poles a little apart, such as "
+                                  "[-2, -2.01]. "
+                                  "(R control::acker allows repeated poles; SciPy has no acker.)")
         try:
             placed = signal.place_poles(a, b, wanted)
         except ValueError as error:
@@ -824,7 +859,22 @@ class System:
         if form not in FORMS:
             raise choice_error("table", "form", form, list(FORMS))
         if form == "sections":
-            sos = self._sos if self._sos is not None else signal.tf2sos(self._num, self._den)
+            if self._time_step is None:
+                raise SimplydataError('form="sections" is for a system in steps (second-order sections run on '
+                                      "readings): system.in_steps(time_step=0.1).table(form=\"sections\").")
+            delay = 0
+            if self._sos is not None:
+                sos = self._sos
+            else:
+                # SciPy's sections are in powers of 1/z, and tf2sos and zpk2sos both drop the delay of a top shorter
+                # than the bottom (tf2sos strips the leading zeros of the padded top). So the sections are SciPy
+                # zpk2sos of the poles and zeros (tf2zpk), followed by one section [0, 0, 1 | 1, 0, 0] (two steps
+                # of delay) or [0, 1, 0 | 1, 0, 0] (one step) for each step the top is shorter: exactly the formula.
+                sos = signal.zpk2sos(*signal.tf2zpk(self._num, self._den))
+                delay = len(self._den) - len(self._num)
+                rows = [[0.0, 0.0, 1.0, 1.0, 0.0, 0.0]] * (delay // 2) + [[0.0, 1.0, 0.0, 1.0, 0.0, 0.0]] * (delay % 2)
+                if rows:
+                    sos = np.vstack([sos, rows])
             sos = np.atleast_2d(np.asarray(sos, dtype=float))
             data = {"section": list(range(1, len(sos) + 1))}
             for i in range(3):
@@ -832,7 +882,10 @@ class System:
             for i in range(3):
                 data[f"denominator {i + 1}"] = sos[:, 3 + i]
             print(f"{len(sos)} second-order section{'s' if len(sos) != 1 else ''}, run one after the other "
-                  "(SciPy " + ("sections of the filter)." if self._sos is not None else "signal.tf2sos)."))
+                  "(SciPy " + ("sections of the filter)." if self._sos is not None else "signal.zpk2sos of tf2zpk)")
+                  + (f"; the last {'one is' if (delay + 1) // 2 == 1 else str((delay + 1) // 2) + ' are'} the delay of "
+                     f"{delay} step{'s' if delay != 1 else ''} (the top of the formula is shorter than the bottom)."
+                     if delay else ""))
             return self._result(data)
         if form == "partial fractions":
             return self._partial_fractions()
@@ -1132,14 +1185,20 @@ def _from_sections(sections, time_step):
     if time_step is None:
         raise SimplydataError("sections= is a filter in steps: give time_step=, such as sdata.system(sections=rows, "
                               "time_step=0.005).")
-    sos = np.atleast_2d(np.asarray(getattr(sections, "_values", sections), dtype=float))
+    frame = getattr(sections, "_frame", None)
+    if frame is not None:  # the table of system.table(form="sections"): its section column is a count, not a number
+        frame = frame.to_pandas() if hasattr(frame, "to_pandas") else frame
+        frame = frame.drop(columns=[c for c in ("section",) if c in frame.columns])
+        sections = frame.to_numpy()
+    # a C-ordered copy: SciPy's sosfilt needs one it can use, and a table gives a read-only or column-ordered array
+    sos = np.atleast_2d(np.array(getattr(sections, "_values", sections), dtype=float, order="C"))
     if sos.ndim != 2 or sos.shape[1] != 6:
         raise SimplydataError("sections= needs one row of six numbers for each section (numerator 1 to 3, denominator "
                               "1 to 3), as system.table(form=\"sections\") gives them.")
     if np.any(sos[:, 3] == 0):
         raise SimplydataError("The first denominator number of each section (denominator 1) cannot be 0.")
     num, den = signal.sos2tf(sos)
-    made = System(num, den, time_step=float(time_step), sos=sos)
+    made = System(num, den, time_step=float(time_step), sos=sos, designed=True)
     print(made._describe())
     print(f"Method: SciPy signal.sos2tf ({len(sos)} sections; the system runs them one after the other, as R "
           "gsignal::sos2tf).")
@@ -1166,8 +1225,8 @@ def _from_partial_fractions(residues, poles, direct_terms, time_step):
         den = np.concatenate([den, np.zeros(size - len(den))])
     made = System(np.asarray(num, dtype=float), np.asarray(den, dtype=float), time_step=time_step)
     print(made._describe())
-    print(f"Method: SciPy signal.{fn} (the partial fractions added up), as R gsignal::"
-          + ("rresidue" if time_step is None else "residuez") + ".")
+    print(f"Method: SciPy signal.{fn} (the partial fractions added up)"
+          + (", as R gsignal::rresidue." if time_step is None else "."))
     return made
 
 
@@ -1270,7 +1329,7 @@ def _analog_filter(keep_below, keep_above, keep_between, remove_between, remove_
     verb = "keeps" if option.startswith("keep") else "removes"
     label = (f"The analog filter that {verb} the frequencies {what} ({_filters.NAMES[chosen]}, "
              f"{found or f'steepness {n}'})")
-    made = System(b, a, time_step=None, label=label, units="cycles per second")
+    made = System(b, a, time_step=None, label=label, units="cycles per second", designed=True)
     print(f"{label}: output / input = {made._formula()} (s in radians per unit of time).")
     print(f"Method: SciPy signal.{call}(..., analog=True) at 2 pi x the cutoff"
           + (" (SciPy signal." + fd.ORDER_FINDERS[chosen] + "(..., analog=True) for the steepness)" if found else "")

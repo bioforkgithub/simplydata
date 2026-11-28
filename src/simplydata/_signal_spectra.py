@@ -58,7 +58,9 @@ def short_time_table(x, step, words, window, window_shape):
     flat = z.T.ravel()
     print(f"Short-time Fourier transform of {n} readings ({words}): {len(times)} pieces of {size} readings (half "
           f"overlap, {window_shape} weights), {len(freq)} frequencies from 0 to {freq[-1]:g} each.")
-    print("Method: SciPy signal.ShortTimeFFT(win, hop, fs).stft (the pieces at the ends padded with zeros).")
+    print("Method: SciPy signal.ShortTimeFFT(win, hop, fs).stft, not scaled (the sizes of the plain transform of each "
+          "weighted piece; SciPy's legacy stft divides them by the sum of the weights), the pieces at the ends padded "
+          "with zeros.")
     table = Table(pd.DataFrame({"time": grid_t.T.ravel(), "frequency": grid_f.T.ravel(), "size": np.abs(flat),
                                 "phase": np.degrees(np.angle(flat)), "real part": flat.real,
                                 "imaginary part": flat.imag}))

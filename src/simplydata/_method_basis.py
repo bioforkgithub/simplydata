@@ -3778,10 +3778,12 @@ BASIS["system.frequency_response with_delay="] = _b(
     "SciPy's group delay, as R gsignal::grpdelay (the same numbers, in steps).", (), "P3",
     "Only for systems in steps.", "convention")
 BASIS["nums.take_fourier_transform over_time="] = _b(
-    "SciPy ShortTimeFFT: pieces of min(256, n) readings, half overlap, periodic Hann weights, the pieces at the ends "
-    "padded with zeros.",
+    "SciPy ShortTimeFFT without scaling (scale_to=None): the plain Fourier transform of each weighted piece of "
+    "min(256, n) readings, half overlap, periodic Hann weights, the pieces at the ends padded with zeros.",
     "window=, window_shape=.",
-    "SciPy's stft defaults (256 readings, half overlap, Hann); the padding lets istft give every reading back.", (),
+    "The piece length, overlap and window are those of SciPy's legacy stft, but the sizes are not divided by the sum "
+    "of the weights as stft does: they are the sizes of the plain transform, as take_fourier_transform gives for the "
+    "whole series. The padding lets istft give every reading back.", (),
     "P3", "window= from 4 to n.", "convention")
 BASIS["nums.take_fourier_transform between="] = _b(
     "SciPy zoom_fft at how_many=100 frequencies from low to high, both ends included.",

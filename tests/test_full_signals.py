@@ -266,9 +266,9 @@ def test_sections_of_a_filter_and_of_any_system():
     system = quiet(sdata.frequency_filter, keep_below=10, time_step=0.005)
     got = quiet(system.table, form="sections").as_pandas().iloc[:, 1:].to_numpy()
     assert got == pytest.approx(signal.butter(4, 10, output="sos", fs=200), rel=1e-12, abs=1e-15)
-    plain = quiet(sdata.system, "(s + 1) / (s**2 + 2*s + 5)")
+    plain = quiet(sdata.system, "(z**2 + 1) / (z**2 - 0.5*z + 0.06)", time_step=0.1)
     got = quiet(plain.table, form="second-order sections").as_pandas().iloc[:, 1:].to_numpy()
-    assert got == pytest.approx(signal.tf2sos([1, 1], [1, 2, 5]), rel=1e-12, abs=1e-15)
+    assert got == pytest.approx(signal.zpk2sos(*signal.tf2zpk([1, 0, 1], [1, -0.5, 0.06])), rel=1e-12, abs=1e-15)
 
 
 def test_a_system_from_sections_is_sos2tf():
@@ -431,3 +431,62 @@ def test_two_dimensional_and_helper_names_point_to_the_hand_over(capsys):
     for name in ("order_filter", "hilbert2", "correlate2d", "check_COLA", "symiirorder1"):
         sdata.help(f"scipy.signal.{name}")
         assert "as_numpy() hands" in capsys.readouterr().out, name
+
+
+# ---------------------------------------------------------------------------------------- independent review fixes
+@pytest.mark.parametrize("options, design", [
+    ({"keep_below": 1000}, lambda: signal.butter(4, 2 * np.pi * 1000, analog=True)),
+    ({"keep_above": 50, "steepness": 6}, lambda: signal.butter(6, 2 * np.pi * 50, "highpass", analog=True)),
+    ({"keep_between": [1, 5], "steepness": 8, "test_method": "chebyshev 2"},
+     lambda: signal.cheby2(8, 40, 2 * np.pi * np.array([1, 5]), "bandpass", analog=True)),
+])
+def test_analog_filters_keep_every_coefficient_scipy_designed(options, design):
+    """The relative noise trim of System once zeroed the small real coefficients of an analog design."""
+    system = quiet(sdata.frequency_filter, analog=True, **options)
+    b, a = design()
+    assert len(system._poles()) == len(a) - 1
+    f = np.array([0.5, 1.0, 2.0]) * (options.get("keep_below") or options.get("keep_above") or 2.5)
+    got = quiet(system.frequency_response, between=[f[0], f[-1]], how_many=3, unit="cycles per second")
+    expected = np.abs(signal.freqs(b, a, worN=2 * np.pi * f)[1])
+    assert got.as_pandas()["gain"].to_numpy() == pytest.approx(expected, rel=1e-8, abs=1e-12)
+
+
+def test_sections_of_a_formula_are_not_one_step_early():
+    system = quiet(sdata.system, "0.5 / (z - 0.5)", time_step=0.1)
+    rows = quiet(system.table, form="sections")
+    sos = np.array(rows.as_pandas().iloc[:, 1:].to_numpy(), dtype=float, order="C")
+    impulse = signal.unit_impulse(6)
+    expected = np.asarray(signal.dimpulse(signal.dlti([0.5], [1, -0.5], dt=0.1), n=6)[1][0]).ravel()
+    assert signal.sosfilt(sos, impulse) == pytest.approx(expected, abs=1e-14)  # 0, 0.5, 0.25 ... not 0.5, 0.25
+    three = quiet(sdata.system, "1 / ((z - 0.5) * (z - 0.2) * (z + 0.1))", time_step=0.1)  # three steps of delay
+    rows3 = np.array(quiet(three.table, form="sections").as_pandas().iloc[:, 1:].to_numpy(), dtype=float, order="C")
+    expected3 = np.asarray(signal.dimpulse(signal.dlti(three._num, three._den, dt=0.1), n=8)[1][0]).ravel()
+    assert signal.sosfilt(rows3, signal.unit_impulse(8)) == pytest.approx(expected3, abs=1e-14)
+    back = quiet(sdata.system, sections=rows, time_step=0.1)  # the table itself, its section column left out
+    assert quiet(back.impulse_response, how_many=6).as_pandas()["output"].to_numpy() == pytest.approx(expected,
+                                                                                                    abs=1e-14)
+    with pytest.raises(SimplydataError, match="in steps"):
+        quiet(quiet(sdata.system, "1 / (s + 1)").table, form="sections")
+
+
+def test_group_delay_of_a_narrow_band_is_added_up_over_its_sections(capsys):
+    system = quiet(sdata.frequency_filter, keep_between=[20, 21], time_step=0.005, steepness=8)
+    got = system.frequency_response(between=[20.5, 30], how_many=2, with_delay=True).as_pandas()["delay"]
+    sos = signal.butter(8, [20, 21], btype="bandpass", output="sos", fs=200)
+    expected = [sum(signal.group_delay((r[:3], r[3:]), w=[f], fs=200)[1][0] for r in sos) * 0.005 for f in (20.5, 30)]
+    assert got.to_numpy() == pytest.approx(expected, rel=1e-9)
+    assert got.iloc[0] > 1.5  # the multiplied-out formula gave 0 here
+    assert "may not be exact" in capsys.readouterr().out  # SciPy's warning is said, not hidden
+
+
+def test_find_order_for_run_both_ways_says_the_losses_double(capsys):
+    quiet_out = sensor()
+    quiet_out.keep_each_frequency_that(is_below=10, time_step=0.005, find_order_for={"loss_at": 20})
+    out = capsys.readouterr().out
+    assert "the losses double: at most 1 dB lost where it keeps and at least 80 dB removed" in out
+    assert "steepness 16 in effect" in out
+
+
+def test_a_pole_given_twice_is_refused_with_the_reason():
+    with pytest.raises(SimplydataError, match="acker"):
+        quiet(quiet(sdata.system, "1 / (s**2 + 2*s + 5)").move_poles_to, [-2, -2])

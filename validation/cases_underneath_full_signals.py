@@ -193,20 +193,78 @@ def cases(Case):
                  f <- gsignal::butter(4, 2 * pi * 3, "low", "s")
                  list(a1 = f$a[2] / f$a[1], b4 = f$b[length(f$b)] / f$a[1])
              """, r_packages=("gsignal",), r_tolerance=1e-9),
-        Case("sdata.frequency_filter", "the smallest elliptic filter that keeps 10 and removes 40 dB from 20 on, at "
-             "200 readings a second", "closed form (no data)", "closed form", option="find_order_for=",
-             ours="""
-                 f = sdata.frequency_filter(keep_below=10, time_step=0.005, test_method="elliptic",
-                                            find_order_for={"loss_at": 20})
-                 {"steepness": f.poles().count_rows()}
+        Case("sdata.frequency_filter", "the drivers killed or seriously injured: the smallest elliptic filter that "
+             "keeps the cycles slower than a year and removes 40 dB from two a year on, run on the series",
+             "Seatbelts", "real data", option="find_order_for=",
+             ours=f"""
+                 f = sdata.frequency_filter(keep_below=1, time_step=1 / 12, test_method="elliptic",
+                                            find_order_for={{"loss_at": 2}})
+                 out = f.response_to({DRIVERS})
+                 {{"steepness": f.poles().count_rows(), "month 96": out.get_cell_at(row=96, column="output")}}
              """,
              parent="""
                  from scipy import signal
-                 {"steepness": signal.ellipord(10, 20, 0.5, 40, fs=200)[0]}
-             """, parent_label="SciPy signal.ellipord", parent_tolerance=0,
+                 n, wn = signal.ellipord(1, 2, 0.5, 40, fs=12)
+                 sos = signal.ellip(n, 0.5, 40, wn, output="sos", fs=12)
+                 {"steepness": n, "month 96": signal.sosfilt(sos, data["drivers"].to_numpy(dtype=float))[95]}
+             """, parent_label="SciPy signal.ellipord, ellip and sosfilt", parent_tolerance=1e-10,
              r="""
-                 list(steepness = gsignal::ellipord(0.1, 0.2, 0.5, 40)$n)
+                 list(steepness = gsignal::ellipord(1 / 6, 2 / 6, 0.5, 40)$n)
              """, r_packages=("gsignal",), r_tolerance=0),
+        Case("nums.keep_each_frequency_that", "the Lake Huron level by a windowed FIR filter of 31 weights with a "
+             "Blackman window", "Lake Huron", "real data", option="how_many_weights=",
+             ours=f"""
+                 s = {LEVEL}.keep_each_frequency_that(is_below=0.1, time_step=1, test_method="fir", how_many_weights=31,
+                                                       window_shape="blackman")
+                 {{"year 50": s.get_number_at(50)}}
+             """,
+             parent="""
+                 from scipy import signal
+                 h = signal.firwin(31, 0.1, window="blackman", fs=1)
+                 {"year 50": signal.filtfilt(h, [1.0], data["level"].to_numpy(dtype=float))[49]}
+             """, parent_label="SciPy signal.firwin and filtfilt", parent_tolerance=1e-12,
+             r="""
+                 k <- -15:15; h <- 0.2 * ifelse(k == 0, 1, sin(pi * 0.2 * k) / (pi * 0.2 * k)) * signal::blackman(31)
+                 h <- h / sum(h)
+                 s <- stats::filter(stats::filter(level, h, sides = 2), h, sides = 2)
+                 list(`year 50` = s[50])
+             """, r_packages=("signal",), r_tolerance=1e-9,
+             note="firwin's formula written out in R with R signal's Blackman window, run twice in the middle."),
+        Case("table.add_filtered_column", "the Lake Huron level: a column of the cycles slower than 10 years by an "
+             "equiripple FIR filter", "Lake Huron", "real data", option='test_method="fir equiripple"',
+             ours="""
+                 t = sdata.table(data)
+                 t.add_filtered_column("slow", from_column="level", keep_below=0.1, sorted_by="year",
+                                       test_method="fir equiripple", how_many_weights=21, transition_width=0.1)
+                 {"1924": t.get_cell_at(row=50, column="slow")}
+             """,
+             parent="""
+                 from scipy import signal
+                 h = signal.remez(21, [0, 0.05, 0.15, 0.5], [1, 0], fs=1)
+                 s = signal.filtfilt(h, [1.0], data.sort_values("year")["level"].to_numpy(dtype=float))
+                 {"1924": s[49]}
+             """, parent_label="SciPy signal.remez and filtfilt", parent_tolerance=1e-12,
+             r="""
+                 s <- signal::filtfilt(signal::remez(20, c(0, 0.05, 0.15, 0.5) / 0.5, c(1, 1, 0, 0)), level)
+                 list(`1924` = s[50])
+             """, r_packages=("signal",), r_tolerance=1e-9),
+        Case("system.table", "the drivers killed or seriously injured run through the sections of the filter that "
+             "keeps the cycles slower than a year", "Seatbelts", "real data", option='form="sections"',
+             ours=f"""
+                 rows = sdata.frequency_filter(keep_below=1, time_step=1 / 12).table(form="sections")
+                 out = sdata.system(sections=rows, time_step=1 / 12).response_to({DRIVERS})
+                 {{"sections": rows.count_rows(), "month 96": out.get_cell_at(row=96, column="output")}}
+             """,
+             parent="""
+                 from scipy import signal
+                 sos = signal.butter(4, 1, output="sos", fs=12)
+                 {"sections": len(sos), "month 96": signal.sosfilt(sos, data["drivers"].to_numpy(dtype=float))[95]}
+             """, parent_label="SciPy signal.butter (sections) and sosfilt", parent_tolerance=1e-12,
+             r="""
+                 f <- gsignal::butter(4, 1 / 6)
+                 list(`month 96` = gsignal::filter(f, drivers)[96])
+             """, r_packages=("gsignal",), r_tolerance=1e-8,
+             note="R runs the same filter as one numerator and denominator: it agrees to rounding."),
         Case("system.table", "(s + 3) / (s^2 + 3 s + 2) = 2 / (s + 1) - 1 / (s + 2)", "closed form (no data)",
              "closed form", option='form="partial fractions"',
              ours="""
@@ -263,14 +321,23 @@ def cases(Case):
              """, parent_label="SciPy signal.place_poles", parent_tolerance=1e-10,
              note="R control::place gives other gains for this system (it warns that its poles are more than 10 % "
                   "off), so the closed form is the reference."),
-        Case("system.frequency_response", "the delay of the Butterworth filter that keeps 10 at 200 readings a "
-             "second, at 1.5625 and 25 per second", "closed form (no data)", "closed form", option="with_delay=",
+        Case("system.frequency_response", "the delay of z / (z - 0.5), worked out by hand, and of the Butterworth "
+             "filter that keeps 10 at 200 readings a second", "closed form (no data)", "closed form",
+             option="with_delay=",
              ours="""
+                 one = sdata.system("z / (z - 0.5)", time_step=1)
+                 d = one.frequency_response(between=[0.125, 0.25], how_many=2, unit="cycles per second",
+                                            with_delay=True)
                  f = sdata.frequency_filter(keep_below=10, time_step=0.005)
                  g = f.frequency_response(between=[1.5625, 25], how_many=2, with_delay=True)
-                 {"delay at 1.5625": g.get_cell_at(row=1, column="delay"),
+                 {"first order at 1/8": d.get_cell_at(row=1, column="delay"),
+                  "first order at 1/4": d.get_cell_at(row=2, column="delay"),
+                  "delay at 1.5625": g.get_cell_at(row=1, column="delay"),
                   "delay at 25": g.get_cell_at(row=2, column="delay")}
              """,
+             published={"first order at 1/8": ((0.5 * 0.5 ** 0.5 - 0.25) / (1.25 - 0.5 ** 0.5), 1e-12,
+                                               "exact: (a cos w - a^2) / (1 - 2 a cos w + a^2), a = 0.5, w = pi / 4"),
+                        "first order at 1/4": (-0.2, 1e-12, "exact: (0 - 0.25) / (1 + 0.25) at w = pi / 2")},
              parent="""
                  from scipy import signal
                  b, a = signal.sos2tf(signal.butter(4, 10, output="sos", fs=200))
@@ -279,9 +346,12 @@ def cases(Case):
              """, parent_label="SciPy signal.group_delay", parent_tolerance=1e-9,
              r="""
                  g <- gsignal::grpdelay(gsignal::butter(4, 0.1), n = 512)
-                 list(`delay at 1.5625` = g$gd[9] * 0.005, `delay at 25` = g$gd[129] * 0.005)
+                 h <- gsignal::grpdelay(c(1, 0), c(1, -0.5), n = 512)
+                 list(`delay at 1.5625` = g$gd[9] * 0.005, `delay at 25` = g$gd[129] * 0.005,
+                      `first order at 1/8` = h$gd[129], `first order at 1/4` = h$gd[257])
              """, r_packages=("gsignal",), r_tolerance=1e-8,
-             note="R's grid has 512 frequencies from 0 to 100 per second: 1.5625 and 25 are its 9th and 129th."),
+             note="R's grid has 512 frequencies from 0 to half the readings per unit of time: 1.5625 and 25 per "
+                  "second are its 9th and 129th, 1/8 and 1/4 per step its 129th and 257th."),
         # ---------------------------------------------------------------- spectra
         Case("nums.take_fourier_transform", "the drivers killed or seriously injured: the short-time Fourier "
              "transform in pieces of 48 months, and back", "Seatbelts", "real data", option="over_time=",
