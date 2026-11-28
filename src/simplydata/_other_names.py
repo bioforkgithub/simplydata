@@ -678,6 +678,8 @@ _TABLE = [
      "the length of each run", "rle"),
     ('table.find_summary_of("marks", show=["product"])', "prod product"),
     ('table.find_summary_of("marks", show=["entropy"])', "entropy"),
+    ('table.find_summary_of("marks", show=["first", "last"], for_each_group_in="class") for the first and last value '
+     "of each group, or table.keep_first_rows(1) and table.keep_last_rows(1) for whole rows", "first last"),
     ('table.find_summary_of("name", show=["joined text"], separator="; ", for_each_group_in="class")', "implode"),
     ('table.save("table_1.md"), a Markdown table', "to_markdown"),
     ('table.save("table_1.tex"), a LaTeX table (also .docx for Word)', "to_latex"),
@@ -701,7 +703,8 @@ _TABLE = [
     ('table.join_with(other_table, using="date", match="nearest before")', "asof"),
     ('table.add_column("best", "marks + hours"): a formula works on two columns, cell by cell', "combine"),
     ('table.turn_into_categories("class")', "cat"),
-    ('table.add_rank_column("group_number", from_column="class", biggest_first=False, when_tied="no gaps")',
+    ('table.add_rank_column("group_number", from_column="class", biggest_first=False, when_tied="no gaps"): a number '
+     "for each group, in sorted order (pandas factorize numbers them in the order they first turn up, from 0)",
      "factorize"),
     ('table.find_average_of("marks", for_each_group_in="date", every="month"): every= groups dates by "week", '
      '"month", "quarter" or "year"', "to_period period_range"),
@@ -1103,7 +1106,10 @@ _TEXT = [
      "find index rfind rindex"),
     ('table.turn_into_lowercase("name")', "lower to_lowercase casefold"),
     ('table.turn_into_uppercase("name")', "upper to_uppercase"),
-    ('table.turn_into_title_case("name")', "title capitalize to_titlecase"),
+    ('table.turn_into_title_case("name")', "title to_titlecase"),
+    ('table.as_pandas(), then df["name"].str.capitalize() in pandas (a capital for the first letter of the whole text '
+     "only; table.turn_into_title_case(\"name\") gives every word one), and give the result to sdata.table to come "
+     "back", "capitalize"),
     ('table.as_pandas(), then df["name"].str.swapcase() in pandas, and give the result to sdata.table to come back: '
      "simplydata has no word that swaps capital and small letters", "swapcase"),
     ('table.remove_extra_spaces_in("name")', "strip lstrip rstrip strip_chars strip_chars_start strip_chars_end"),
@@ -1617,7 +1623,9 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "so": "so", "objects": "so",
               # Polars list and array columns (G12): pl.col("genes").list.sum, Series.arr.max
               "list": "lists", "arr": "lists"}
-NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D", "lists": "list"}
+NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
+# list. and arr. names (Polars list columns) are looked up only with list. or arr. in front: a bare sum, first or
+# unique means the table's word, so the list namespace is not among the ones a bare name lists
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
 # A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word

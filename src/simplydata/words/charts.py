@@ -411,7 +411,9 @@ def check_move(word, by):
     """move_layer_by= (seaborn so.Shift): a number of x units, or None."""
     if by is None:
         return None
-    if isinstance(by, bool) or not isinstance(by, (int, float)) or by != by:
+    import math
+
+    if isinstance(by, bool) or not isinstance(by, (int, float)) or not math.isfinite(by):
         raise SimplydataError(f".{word}() needs move_layer_by= as a number, such as move_layer_by=0.2 (a group on a "
                               "group axis is 1 wide).")
     return float(by)
@@ -426,7 +428,13 @@ def _draw_dashes(ctx, x, y, colour, width=0.8, thickness=None, transparency=None
     table, n = _frame(ctx, x=x, y=y, colour=group)
     # seaborn stripplot(jitter=False) puts each value at its group's place (and colour) on the axis; each dot then
     # becomes a flat dash, as so.Dash does
-    kw = dict(data=table, x=n["x"], y=n["y"], **_hue(table, n), ax=ctx.ax, jitter=False, dodge=False)
+    import pandas as pd
+
+    column = table[n["x"]]
+    native = pd.api.types.is_numeric_dtype(column) or pd.api.types.is_datetime64_any_dtype(column)
+    # numbers and dates keep their own scale (seaborn native_scale=True); groups stand at 0, 1, 2 ...
+    kw = dict(data=table, x=n["x"], y=n["y"], **_hue(table, n), ax=ctx.ax, jitter=False, dodge=False,
+              native_scale=native)
     if n["colour"]:
         kw["palette"] = palette_for(table, n["colour"], ctx.settings)
     else:
@@ -434,9 +442,11 @@ def _draw_dashes(ctx, x, y, colour, width=0.8, thickness=None, transparency=None
     before = list(ctx.ax.collections)
     sns.stripplot(**kw)
     dashes, colours = [], []
-    for collection in ctx.ax.collections:
-        if collection in before:
-            continue
+    new = [c for c in ctx.ax.collections if c not in before]
+    places = np.unique(np.concatenate([np.asarray(c.get_offsets(), dtype=float)[:, 0] for c in new])) if new else []
+    if native and len(places) > 1:  # as so.Dash: width= is a share of the smallest step between x values
+        width = width * float(np.diff(places).min())
+    for collection in new:
         offsets = np.asarray(collection.get_offsets(), dtype=float)
         faces = collection.get_facecolors()
         for i, (cx, cy) in enumerate(offsets):

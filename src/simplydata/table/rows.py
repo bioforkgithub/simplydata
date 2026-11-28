@@ -392,7 +392,7 @@ def _rule_of(step: str, rule, example: str):
 
 def _significant(value: float, figures: int) -> float:
     """value with this many significant figures, rounded as written (its shortest text), a half to the even digit:
-    Python's decimal module, as R signif()."""
+    Python's decimal module (R signif() in nearly every case)."""
     from decimal import ROUND_HALF_EVEN, Decimal
 
     written = Decimal(repr(float(value)))
@@ -721,7 +721,8 @@ class RowWords:
         col = nw.col(column)
         # Polars gives the parts as small whole numbers (Int8), pandas decimals where a time is empty: decimals here
         of_day = (col.dt.hour().cast(nw.Float64) * 3600 + col.dt.minute().cast(nw.Float64) * 60
-                  + col.dt.second().cast(nw.Float64))
+                  + col.dt.second().cast(nw.Float64) + col.dt.nanosecond().cast(nw.Float64) / 1e9)
+        # a part of a second counts: 17:00:00.5 is after 17:00, as pandas between_time says
         start, end = seconds
         cond = ((of_day >= start) & (of_day <= end)) if start <= end else ((of_day >= start) | (of_day <= end))
         cond = cond.fill_null(False)
@@ -2016,7 +2017,7 @@ class RowWords:
         return self._change(f"replace {what} in {column}", new)
 
     def _round_significant(self, column, figures):
-        """round_numbers_in(significant_figures=3): the digits that count, rounded as R signif() rounds them."""
+        """round_numbers_in(significant_figures=3): the digits that count, a half of the written number to even."""
         if not isinstance(figures, numbers.Integral) or isinstance(figures, bool) or figures < 1:
             raise SimplydataError("significant_figures= is a whole number of digits that count, 1 or more, like 3.")
         number_columns = [c for c in self._columns if self._kind_of(c) == "number"]
@@ -2052,8 +2053,10 @@ class RowWords:
         round_numbers_in("price", with_decimals=0) gives whole numbers; a negative number of places rounds to tens (-1), hundreds (-2)
         (pandas round(-1); Polars rounds to decimal places only, so on a Polars table tens come from NumPy's round).
         significant_figures=3 keeps 3 digits that count, whatever the size (123.456 becomes 123, 0.0012345
-        becomes 0.00123), as R signif(x, 3), on both engines: each number as it is written, a half to the even
-        digit as everywhere in simplydata (5.25 becomes 5.2; Polars round_sig_figs would give 5.3):
+        becomes 0.00123), on both engines: each number as it is written, a half to the even digit as everywhere in
+        simplydata (5.25 becomes 5.2; Polars round_sig_figs would give 5.3). That is R signif(x, 3) in nearly every
+        case; R works on the number as stored, so a few numbers whose last digit is a 5 go the other way there
+        (0.639075 at 5 figures: R 0.63907, simplydata 0.63908, the even digit of the number as written):
           table.round_numbers_in("hours", significant_figures=2)
         """
         example = 'table.round_numbers_in("hours", 0)'

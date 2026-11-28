@@ -251,8 +251,20 @@ class FullWords:
                   f'{"was" if empty == 1 else "were"} left out.')
         values = frame[column]
         native = values.to_native()
+        kind = self._frame.schema[column]
+        if kind == nw.Categorical or kind == nw.Enum:
+            # groups in their own order (turn_into_categories(in_order=)): their places in that order, the same on
+            # both engines (pandas cat.codes; a Polars table's column goes through pandas)
+            import numpy as np
+
+            codes = values.to_pandas().astype("category").cat.codes.to_numpy()
+            steps = np.diff(codes)
+            answer = bool((steps <= 0).all() if biggest_first else (steps >= 0).all())
+            values = nw.new_series("__codes", codes, nw.Int64, backend=frame.implementation)
+            frame = frame.with_columns(values.alias("__codes"))
+            values = frame["__codes"]
         # pandas Series.is_monotonic_increasing / _decreasing, Polars Series.is_sorted(descending=)
-        if frame.implementation.is_polars():
+        elif frame.implementation.is_polars():
             answer = bool(native.is_sorted(descending=biggest_first))
         else:
             answer = bool(native.is_monotonic_decreasing if biggest_first else native.is_monotonic_increasing)
@@ -264,9 +276,10 @@ class FullWords:
         wrong = (values > before) if biggest_first else (values < before)
         positions = frame.with_columns(wrong.alias("__wrong")).filter(nw.col("__wrong").fill_null(False))
         at = int(positions["__row"].item(0))
-        previous = frame.filter(nw.col("__row") < at)[column].to_list()[-1]
+        here = positions[column].item(0)
+        before_value = frame.filter(nw.col("__row") < at)[column].to_list()[-1]
         print(f'No: the rows are not in order of "{column}", {order}: row {at + 1} '
-              f"({_say_value(positions[column].item(0))}) comes after {_say_value(previous)}.")
+              f"({_say_value(here)}) comes after {_say_value(before_value)}.")
         return False
 
     # ------------------------------------------------------------------ runs of the same value
@@ -315,12 +328,18 @@ class FullWords:
 
         table.turn_into_title_case("name")   (with sdata.get_example("marks"))
         The other letters of each word become small ("McDONALD" becomes "Mcdonald"). A new word starts after
-        anything that is not a letter, so "o'neil" becomes "O'Neil" and "2nd" becomes "2Nd" (pandas str.title(),
-        Polars str.to_titlecase(): the same answer on both).
+        anything that is not a letter, so "o'neil" becomes "O'Neil" and "2nd" becomes "2Nd" (pandas str.title(), on
+        both engines; Polars str.to_titlecase() gives the same answer except for ligatures and letter pairs such as
+        "ﬁ" and "ǆ").
         """
         step = "turn_into_title_case"
-        text = self._need_text(step, column, f'table.{step}("name")')
-        changed = self._frame.with_columns(text.str.to_titlecase().alias(column))  # pandas title, Polars to_titlecase
+        self._need_text(step, column, f'table.{step}("name")')
+        # one rule on both engines: pandas str.title(); Polars to_titlecase()
+        # differs for ligatures and letter pairs such as "ﬁ" and "ǆ"
+        native = self._frame[column].to_pandas()
+        titled = native.astype("string").str.title().astype(object).where(native.notna(), None)
+        changed = self._frame.with_columns(
+            nw.new_series(column, titled.tolist(), nw.String, backend=self._frame.implementation))
         before = self._frame[column].drop_nulls()
         after = changed[column].drop_nulls()
         example = ""

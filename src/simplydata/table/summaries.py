@@ -2027,10 +2027,13 @@ class SummaryWords:
                                   'cannot have that name.')
         self._need_columns(*columns)
         frame, periods = self._periods(step, self._frame, groups or None, every)
+        from ._base import polars_text
+
         polars = frame.to_polars()
+        polars = polars.with_columns(polars_text(polars[c]).alias(c) for c in columns)  # dates as 2026-03-01
         parts = []
         for c in columns:
-            joined = pl.col(c).drop_nulls().cast(pl.String).str.join(separator).alias("joined text")
+            joined = pl.col(c).drop_nulls().str.join(separator).alias("joined text")
             if groups:
                 part = polars.group_by(groups, maintain_order=True).agg(joined).sort(groups, nulls_last=True)
             else:
@@ -2080,10 +2083,13 @@ class SummaryWords:
             part = part.drop("column").rename(renamed)
             if result is None:
                 result = part
-            elif groups:
-                result = result.join(part, on=groups, how="left")
             else:
-                result = nw.concat([result, part], how="horizontal")
+                # every part has the same groups in the same order (one group_by of the same rows, sorted, empty
+                # keys last), so the measures are put side by side; a join would lose the empty-key group, whose
+                # key never equals itself
+                if groups:
+                    part = part.drop(groups)
+                result = nw.concat([nw.maybe_reset_index(result), nw.maybe_reset_index(part)], how="horizontal")
         table = self._new_table(nw.maybe_reset_index(result))
         out_names = [c for c in result.columns if c not in groups]
         print("Summary" + (f" for each {_each(groups, periods)}" if groups else "") + ", different measures for "

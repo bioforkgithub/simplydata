@@ -107,7 +107,7 @@ def _move_new_artists(ctx, before, by):
     """move_layer_by=0.2: what a step drew moves 0.2 along x (a group on a group axis is 1 wide), as seaborn
     so.Shift(x=0.2): the dots, lines and error bars of the layer, so it sits beside another layer."""
     import numpy as np
-    from matplotlib.collections import LineCollection, PathCollection
+    from matplotlib.collections import LineCollection, PathCollection, PolyCollection
     from matplotlib.lines import Line2D
 
     ax = ctx.ax
@@ -123,6 +123,10 @@ def _move_new_artists(ctx, before, by):
             artist.set_xdata(xs + by)
         elif isinstance(artist, LineCollection):
             artist.set_segments([np.asarray(seg, dtype=float) + np.array([by, 0.0]) for seg in artist.get_segments()])
+        elif isinstance(artist, PolyCollection):  # the shaded band of error= (matplotlib fill_between)
+            for path in artist.get_paths():
+                path.vertices = np.asarray(path.vertices, dtype=float) + np.array([by, 0.0])
+            artist.stale = True
     ax.relim()
     ax.autoscale_view()
 

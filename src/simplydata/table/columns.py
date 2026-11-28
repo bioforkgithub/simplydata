@@ -2041,11 +2041,15 @@ class ColumnWords:
         native = self._frame[from_column].to_native()
         try:
             if self._frame.implementation.is_polars():
-                found = native.str.extract_all(pattern).list.join(separator)  # Polars str.extract_all
+                import polars as pl
+
+                pieces = native.str.extract_all(pattern)  # Polars str.extract_all; empty pieces left out, as below
+                found = pieces.list.eval(pl.element().filter(pl.element() != "")).list.join(separator)
                 found = found.replace("", None)
             else:
                 lists = native.str.findall(pattern)  # pandas str.findall
-                found = lists.map(lambda v: separator.join(v) if isinstance(v, list) and v else None)
+                kept = lists.map(lambda v: [m for m in v if m] if isinstance(v, list) else v)  # no empty pieces
+                found = kept.map(lambda v: separator.join(v) if isinstance(v, list) and v else None)
         except Exception as error:
             raise self._pattern_engine_error(pattern, error) from None
         frame = self._frame.with_columns(nw.from_native(found, series_only=True).cast(nw.String).alias(name))

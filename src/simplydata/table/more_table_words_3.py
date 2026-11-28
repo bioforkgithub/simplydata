@@ -468,14 +468,25 @@ class MoreTableWordsThree:
             raise SimplydataError(f"where= looks at every pair of rows, and these tables make {pairs:,} pairs (more "
                                   f"than {WHERE_PAIRS_LIMIT:,}). Keep fewer rows first, or join on a column with "
                                   "using= and then keep_rows_where.")
+        clash = [c for c in right.columns if c in self._columns and f"{c}{JOIN_SUFFIX}" in self._columns]
+        if clash:
+            name = clash[0]
+            raise SimplydataError(f'Both tables have a column "{name}", so the copy from the other table would be '
+                                  f'called "{name}{JOIN_SUFFIX}", but this table already has a column with that name. '
+                                  f'Rename one first, for example table.rename_column("{name}{JOIN_SUFFIX}", '
+                                  'to="...").')
         frame = self._frame.join(right, how="cross", suffix=JOIN_SUFFIX)  # every pair, the other's names _other
         joined = self._new_table(frame)
         cond, note = joined._read_condition("join_with", where)
         kept = frame.filter(cond)
         print(f"Paired each row with the rows of the other table where {where}: {_rows(len(kept))} "
               f"(of {pairs:,} pairs).")
-        if note:
-            print(note)
+        if note:  # said of the pairs of rows, not of this table's rows
+            print(note.replace("1 row has", "1 pair of rows has").replace(" rows have", " pairs of rows have")
+                  .replace("so it was not removed", "so that pair was left out")
+                  .replace("so they were not removed", "so those pairs were left out")
+                  .replace("so it was left out", "so that pair was left out")
+                  .replace("so they were left out", "so those pairs were left out"))
         return self._change(f"join with another table where {where}", kept)
 
     def _join_nearest(self, other, using, keep, match, within, check_that, with_match_column):

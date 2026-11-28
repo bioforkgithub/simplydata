@@ -85,6 +85,25 @@ def _true_false_text(native):
     return native.replace_strict({True: "True", False: "False"}, return_dtype=pl.String)
 
 
+def polars_text(column):
+    """A Polars column as the text a reader expects: dates as 2026-03-01 (with the time, 2026-03-01 14:30:00, only
+    when a cell has one; fractions of a second only when there are some), other values as Polars writes them."""
+    import datetime
+
+    import polars as pl
+
+    kind = column.dtype
+    if isinstance(kind, pl.Datetime):
+        filled = column.drop_nulls()
+        at_midnight = bool((filled.dt.time() == datetime.time(0)).all()) if len(filled) else True
+        fractions = bool((filled.dt.microsecond() != 0).any()) if len(filled) else False
+        layout = "%Y-%m-%d" if at_midnight else ("%Y-%m-%d %H:%M:%S%.f" if fractions else "%Y-%m-%d %H:%M:%S")
+        return column.dt.to_string(layout)
+    if kind == pl.Date:
+        return column.dt.to_string("%Y-%m-%d")
+    return column.cast(pl.String)
+
+
 def counted(n: int, word: str) -> str:
     """1 column, 2 columns: a count with its word in the singular or the plural."""
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
@@ -534,8 +553,11 @@ class BaseTable:
 
         native = frame.to_polars()
         numbers = [name for name, kind_ in native.schema.items() if kind_.is_numeric()]
-        text = native.with_columns(pl.all().cast(pl.String).fill_null(""))  # one text for every cell, in every file
-        if kind == "md":
+        text = native.with_columns(polars_text(native[name]).fill_null("").alias(name) for name in native.columns)
+        if kind in ("md", "tex"):  # a line break inside a cell would end the row: a space instead
+            text = text.with_columns(pl.all().str.replace_all(r"\r\n|\n|\r", " "))
+        if kind == "md":  # a bar would start a new cell: Markdown writes it \|
+            text = text.with_columns(pl.all().str.replace_all("|", "\\|", literal=True))
             with pl.Config(tbl_formatting="MARKDOWN", tbl_hide_column_data_types=True, tbl_hide_dataframe_shape=True,
                            tbl_rows=-1, tbl_cols=-1, fmt_str_lengths=10_000, tbl_width_chars=-1):
                 written = str(text)  # Polars writes the table in Markdown
@@ -569,14 +591,22 @@ class BaseTable:
 
     def _save_to_clipboard(self):
         """table.save("clipboard"): pandas to_clipboard(excel=True), tabs between the values, to paste into Excel."""
+        native = self._frame.to_pandas()
+        broken = [str(c) for c in native.columns if native[c].dtype == object or str(native[c].dtype) == "str"
+                  if native[c].astype("string").str.contains(r"[\r\n]", regex=True).fillna(False).any()]
         try:
-            self._frame.to_pandas().to_clipboard(index=False, excel=True)  # pandas to_clipboard
+            native.to_clipboard(index=False, excel=True)  # pandas to_clipboard (a cell with a line break is quoted)
         except Exception as problem:  # noqa: BLE001 - no clipboard program (a server, a Linux without xclip)
             raise SimplydataError("simplydata could not copy to the clipboard on this computer "
                                   f"({type(problem).__name__}). Save the table as a file instead, such as "
                                   'table.save("results.xlsx").') from None
         print(f"Copied the table to the clipboard: {len(self._frame)} rows and {len(self._frame.columns)} columns, "
               "ready to paste into Excel.")
+        if broken:
+            names = ", ".join(f'"{c}"' for c in broken)
+            print(f"Note: some cells of {names} have a line break; they are copied in quotes, which Excel reads as one "
+                  "cell, but other programs (and sdata.table(\"clipboard\")) may split them. A file keeps them whole: "
+                  'table.save("results.xlsx").')
         return self
 
     def _save_in_table(self, path, kind, in_table):

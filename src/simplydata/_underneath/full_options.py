@@ -182,8 +182,9 @@ ENTRIES = [
             """,
         },
         compare="table",
-        choices=("each number as it is written, a half to the even digit, as R signif() (Polars round_sig_figs takes "
-                 "a half away from 0: 5.25 would be 5.3).",),
+        choices=("each number as it is written, a half to the even digit, R signif() in nearly every case (R works "
+                 "on the stored number, so 0.639075 at 5 figures is 0.63907 there); Polars round_sig_figs takes a "
+                 "half away from 0: 5.25 would be 5.3.",),
         also=SAID,
     ),
     Entry(
