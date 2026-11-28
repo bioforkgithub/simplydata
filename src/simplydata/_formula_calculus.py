@@ -89,7 +89,8 @@ LANGUAGE_SPELLINGS = {"cpp": "c++", "cxx": "c++", "matlab": "octave", "js": "jav
                       "smt": "smt-lib", "wolfram": "mathematica", "srepr": "sympy tree", "repr": "sympy tree",
                       "str": "text", "string": "text", "py": "python", "f90": "fortran", "f95": "fortran"}
 for _language, (_printer, _) in LANGUAGES.items():
-    LANGUAGE_SPELLINGS.setdefault(_printer, _language)
+    if _printer not in LANGUAGES:  # "python" is a language here, and the name of the printer of "sympy"
+        LANGUAGE_SPELLINGS.setdefault(_printer, _language)
 del _language, _printer
 
 MAX_TERMS = 10_000  # list_terms: at most this many terms
