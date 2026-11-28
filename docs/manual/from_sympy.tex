@@ -107,12 +107,15 @@ root.show_as_decimal(digits=50)
 {Printing}.
 
 \textbf{In simplydata.} \code{print(formula)} shows the text; \code{formula.show\_as\_latex()} gives
-the LaTeX. In Jupyter a formula is shown as typeset maths by itself.
+the LaTeX. In Jupyter a formula is shown as typeset maths by itself. \code{formula.show\_as\_code("r")} writes
+the formula as code for R, C, Fortran, Julia, MATLAB and more (SymPy's \code{rcode}, \code{ccode} ...), and
+\code{show\_as\_tree()} shows how the formula is built (\code{print\_tree}).
 
 \begin{lstlisting}[style=py]
 formula = sdata.formula("sqrt(x) / (x**2 + 1)")
 print(formula)
 latex = formula.show_as_latex()
+formula.show_as_code("r")
 \end{lstlisting}
 
 \unsection{Simpler forms}{from-sympy:simplification}
@@ -124,7 +127,11 @@ the powers of a letter, and split a fraction into partial fractions (SymPy's \co
 
 \textbf{In simplydata.} \code{make\_simpler}, \code{turn\_into\_sum}, \code{turn\_into\_product},
 \code{group\_by\_powers\_of} and \code{turn\_into\_partial\_fractions}. Each changes the formula and
-\code{undo} takes it back.
+\code{undo} takes it back. \code{by=} picks one kind of rule: \code{make\_simpler(by="trig functions")} is
+\code{trigsimp}, \code{by="powers"} is \code{powsimp}, and \code{turn\_into\_sum(by="logs")} is
+\code{expand\_log}. For polynomials there are \code{find\_roots}, \code{find\_degree}, \code{divide\_by},
+\code{find\_common\_factor\_with} and \code{turn\_into\_one\_fraction}; the rarer facts of a polynomial
+(the discriminant, a Gr\"obner basis, the Sturm sequence ...) are one family word, \code{find\_fact}.
 
 \begin{lstlisting}[style=py]
 formula = sdata.formula("(x**2 - 1) / (x - 1)")
@@ -135,6 +142,11 @@ formula = sdata.formula("a*x**2 + b*x**2 + a*x - x")
 formula.group_by_powers_of("x")
 formula = sdata.formula("(3*x + 5) / ((x + 1)*(x + 2))")
 formula.turn_into_partial_fractions()
+formula = sdata.formula("sin(x)**2 + cos(x)**2")
+formula.make_simpler(by="trig functions")                # 1
+formula = sdata.formula("x**3 - 2*x**2 - x + 2")
+formula.find_roots()                     # -1, 1 and 2
+formula.find_fact("discriminant")
 \end{lstlisting}
 
 \unsection{Slopes, areas, limits and series}{from-sympy:calculus}
@@ -146,7 +158,10 @@ a Taylor series and the sum of a series (SymPy's \code{diff}, \code{integrate}, 
 
 \textbf{In simplydata.} \code{find\_slope\_formula} (with \code{how\_many\_times=} for the second
 derivative), \code{find\_area\_formula}, \code{sdata.find\_area\_under(..., exactly=True)},
-\code{find\_limit\_as}, \code{find\_taylor\_series} and \code{sdata.find\_sum\_of\_series}.
+\code{find\_limit\_as}, \code{find\_taylor\_series} and \code{sdata.find\_sum\_of\_series}. More words:
+\code{take\_transform("laplace")} (and \code{"fourier"}, \code{"mellin"} and their inverses),
+\code{find\_turning\_points}, \code{find\_fourier\_series}, \code{check\_if\_always("rising")} and
+\code{sdata.find\_product\_of\_series}.
 
 \begin{lstlisting}[style=py]
 formula = sdata.formula("x**3 - 2*x")
@@ -158,6 +173,10 @@ wave.find_limit_as("x", goes_to=0)       # 1
 cosine = sdata.formula("cos(x)")
 cosine.find_taylor_series(around=0, up_to_power=4)
 sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])            # pi**2/6
+wave = sdata.formula("exp(-2*t)")
+wave.take_transform("laplace")           # 1/(s + 2)
+slope = sdata.formula("x**3 - 3*x")
+slope.find_turning_points()              # at x = -1 and x = 1
 \end{lstlisting}
 
 \unsection{Solving equations}{from-sympy:solvers}
@@ -169,6 +188,8 @@ tutorial: \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/solvers.h
 \textbf{In simplydata.} \code{sdata.solve(..., exactly=True)} solves one equation or a list of them;
 \code{for\_letter=} solves for one letter and leaves the others; a rule with \code{<} or \code{>} gives
 the ranges where it holds. \code{sdata.find\_path\_over\_time(..., exactly=True)} is \code{dsolve}.
+\code{sdata.check\_solution} is \code{checksol} and \code{checkodesol}: it says whether a solution makes the
+equation true.
 
 \begin{lstlisting}[style=py]
 sdata.solve("x**2 - 5*x + 6 = 0", exactly=True)                        # x = 2 or x = 3
@@ -177,6 +198,7 @@ sdata.solve("p*V = n*R*T", for_letter="T", exactly=True)               # T = V*p
 sdata.solve("x**2 - 4 > 0", exactly=True)                              # x < -2 or x > 2
 sdata.find_path_over_time("dN/dt = r * N", at_start={"N": 10}, between=[0, 5], known={"r": 0.3},
                           exactly=True)
+sdata.check_solution("dy/dx = y", "y = 3*exp(x)")                      # True
 \end{lstlisting}
 
 \unsection{Exact matrices}{from-sympy:matrices}
@@ -189,7 +211,9 @@ solving its equations (SymPy's \code{Matrix} with \code{det}, \code{inv}, \code{
 \textbf{In simplydata.} A matrix is a grid, \code{sdata.number\_grid([[...], [...]])}. The grid words
 take \code{exactly=True} for SymPy's exact answer: \code{find\_determinant}, \code{take\_inverse},
 \code{find\_eigenvalues}, \code{find\_null\_space} and \code{solve\_for}. The fractions are printed, and
-the grid keeps their decimals.
+the grid keeps their decimals. \code{sdata.number\_grid([...], exactly=True)} is a grid that stays exact all the
+way and may hold letters, as SymPy's \code{Matrix} does; \code{find\_permanent} and
+\code{make\_columns\_orthogonal} are \code{per} and \code{GramSchmidt}.
 
 \begin{lstlisting}[style=py]
 grid = sdata.number_grid([[2, 1], [1, 2]])
@@ -198,32 +222,35 @@ grid.find_eigenvalues(exactly=True)      # 3 and 1
 grid.solve_for([1, 0], exactly=True)     # [2/3, -1/3]
 flat = sdata.number_grid([[1, 2, 3], [2, 4, 6]])
 flat.find_null_space(exactly=True)
+grid = sdata.number_grid([[1, "a"], ["a", 1]], exactly=True)
+grid.find_determinant()                  # 1 - a**2
 \end{lstlisting}
 
 \unsection{The jobs left to SymPy}{from-sympy:left-out}
 
-simplydata does the exact maths most people need in research and teaching, with one word each. These
-jobs are left out on purpose. Each one is a hand-over: \code{expr = formula.as\_sympy()}, then SymPy
-code, then \code{sdata.formula(str(...))} to come back. The tutorial's
+simplydata does the exact maths most people need in research and teaching, with one word each. Many jobs
+that were once left to SymPy now have words: \code{srepr} is \code{show\_as\_code("sympy tree")},
+\code{trigsimp} is \code{make\_simpler(by="trig functions")}, \code{factorint} is
+\code{numbers.find\_prime\_factors()}, \code{ccode} and \code{codegen}'s printers are \code{show\_as\_code},
+and the Legendre polynomial is \code{legendre(3, x)} in a formula, or \code{sdata.polynomial("legendre",
+degree=3)}. These jobs are left out on purpose. Each one is a hand-over: \code{expr = formula.as\_sympy()}, then
+SymPy code, then \code{sdata.formula(str(...))} to come back. The tutorial's
 \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/manipulation.html}{Advanced Expression
 Manipulation} and \href{https://docs.sympy.org/latest/tutorials/intro-tutorial/next.html}{What's
 Next} pages lead to most of them.
 \begin{itemize}
-  \item \textbf{The tree of an expression} (\code{srepr}, \code{args}, \code{func}) and rewriting it by
-    hand.
-  \item \textbf{More simplification by kind} (\code{trigsimp}, \code{powsimp}, \code{logcombine},
-    \code{rewrite}); \code{make\_simpler} is \code{simplify}, which tries these.
-  \item \textbf{Functions a formula cannot use} (Bessel functions other than \code{besselJ}, Legendre
-    polynomials, the zeta function).
-  \item \textbf{Matrices with letters in them} and matrix forms (\code{rref}, \code{jordan\_form});
-    the grid words work on numbers.
-  \item \textbf{Sets, logic, number theory, geometry and physics} (\code{sympy.sets},
-    \code{sympy.logic}, \code{factorint}, \code{sympy.geometry}, \code{sympy.physics}).
-  \item \textbf{Code generation} (\code{codegen}, \code{ccode}) and SymPy's own plots; a chart of a
-    formula is \code{chart.draw\_curve}.
+  \item \textbf{Rewriting the tree of an expression by hand} (\code{args}, \code{func}, \code{replace}).
+  \item \textbf{Matrix forms} (\code{rref}) and matrix expressions (symbols for whole matrices).
+  \item \textbf{Sets, logic, geometry and tensors} (\code{sympy.sets}, \code{sympy.logic},
+    \code{sympy.geometry}, \code{sympy.tensor}), and number transforms such as \code{ntt}: simplydata writes its
+    answers in plain words and leaves these areas to SymPy.
+  \item \textbf{Physics} (\code{sympy.physics}) and SymPy's own plots; a chart of a formula is
+    \code{chart.draw\_curve}.
+  \item \textbf{The machinery inside SymPy} (\code{Add}, \code{Mul}, \code{Dummy}, \code{Wild}, domains and
+    rings): \code{sdata.help} names the word that uses it.
 \end{itemize}
 
-One more example: a Legendre polynomial, and back.
+One more example: a Legendre polynomial made by SymPy itself, and back.
 
 \begin{lstlisting}[style=py]
 formula = sdata.formula("x")

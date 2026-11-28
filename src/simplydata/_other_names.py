@@ -2538,8 +2538,8 @@ def _sympy_formula_names() -> list:
 # families for 100 %, batches 24-26 (plan section 2.10, approved by Manish 2026-11-28, G11, G13 and G15): SymPy's
 # calculus checks, series, solvers, transforms, printers, number theory, ways and matrices, each to the simplydata
 # word and option that runs it; the matrix expressions and other machinery point to the hand-over.
-_GRID_HAND_OVER = "grid.as_sympy() on an exact grid (sdata.number_grid(..., exactly=True)) hands the SymPy Matrix " \
-                  "to SymPy; formula.as_sympy() hands the formula to SymPy, where SymPy's"
+_GRID_HAND_OVER = ("formula.as_sympy() hands the formula to SymPy (and as_sympy on an exact grid, "
+                   "sdata.number_grid(..., exactly=True), hands its SymPy Matrix), where SymPy's")
 _SYMPY_CALCULUS = [
     # transforms (F40)
     ('sdata.formula("exp(-2*t)"), then formula.take_transform("laplace")', "laplace_transform LaplaceTransform"),
@@ -2581,12 +2581,12 @@ _SYMPY_CALCULUS = [
      "differentiate_finite"),
     ('sdata.formula("n**2"), then formula.find_slope_formula(step=1): the step between neighbouring terms',
      "difference_delta"),
-    ("the weights of finite-difference formulas: " + _HAND_OVER
-     + " finite_diff_weights and apply_finite_diff work", "finite_diff_weights apply_finite_diff"),
+    (_HAND_OVER + " finite_diff_weights and apply_finite_diff work (the weights of finite-difference formulas)",
+     "finite_diff_weights apply_finite_diff"),
     (_HAND_OVER + " euler_equations works (the Euler-Lagrange equations of a Lagrangian; "
      "formula.find_slope_formula() takes each slope)", "euler_equations"),
-    ('sdata.formula("sin(1/x)"), then formula.find_limit_as("x", goes_to=0): simplydata says when the formula '
-     "keeps swinging and has no limit (SymPy's AccumBounds)", "AccumBounds"),
+    ('formula.find_limit_as("x", goes_to=...) says when the formula keeps swinging and has no limit, as '
+     "sdata.formula(\"sin(1/x)\") does at 0 (SymPy's AccumBounds)", "AccumBounds"),
     (_HAND_OVER + " not_empty_in works (sdata.solve(\"...\", exactly=True) with rules gives where a formula is "
      "defined and true)", "not_empty_in"),
     # series (F37)
@@ -2644,7 +2644,7 @@ _SYMPY_CALCULUS = [
     ('sdata.formula("x**2 + 1"), then formula.show_as_tree(as_graphviz=True)', "dotprint"),
     ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_latex(over_lines=True)', "multiline_latex"),
     ('sdata.formula("x**2"), then formula.show_as_latex()', "print_latex"),
-    ('print(formula) shows a formula (in Jupyter it is typeset by itself)',
+    ('sdata.formula("x**2 + 1"), then print(formula) shows it (in Jupyter a formula is typeset by itself)',
      "pretty_print pprint_use_unicode pprint_try_use_unicode pager_print"),
     (_HAND_OVER + " preview and print_gtk work (they open a window with the typeset formula; "
      "formula.show_as_latex() gives the LaTeX)", "preview print_gtk"),
@@ -2656,7 +2656,7 @@ _SYMPY_CALCULUS = [
      'sdata.solve("x**2 + y**2 = 1", for_letter="y", exactly=True) gives each branch to draw',
      "plot_implicit"),
     ("sdata.number_list(0, to=6.28, how_many=200), then a table of x(t) and y(t) with table.add_column, then "
-     'chart.draw_lines(x="x", y="y") (a curve given by t)', "plot_parametric"),
+     "chart.draw_lines(x=..., y=..., in_row_order=True) (a curve given by t)", "plot_parametric"),
     # number theory (F36 and the whole-number tools of F46)
     ("numbers.check_if_prime() (on numbers = sdata.number_list([2, 9, 11]))", "isprime"),
     ("numbers.find_prime_factors(show=\"different primes\")", "primefactors"),
@@ -2678,7 +2678,7 @@ _SYMPY_CALCULUS = [
     ('numbers.find_number_fact("nth mersenne exponent")', "mersenne_prime_exponent"),
     ('numbers.find_number_fact("perfect power")', "perfect_power"),
     ('numbers.find_number_fact("next prime")', "nextprime"),
-    ('numbers.find_number_fact("previous prime")', "prevprime"),
+    ('numbers.find_number_fact("previous prime") (on numbers = sdata.number_list([10, 20]))', "prevprime"),
     ('numbers.find_number_fact("nth prime")', "prime"),
     ('numbers.find_number_fact("nth composite")', "composite"),
     ('numbers.find_number_fact("number of composites up to")', "compositepi"),
@@ -2687,17 +2687,19 @@ _SYMPY_CALCULUS = [
     ('numbers.find_number_fact("binomial coefficients")', "binomial_coefficients binomial_coefficients_list"),
     ('numbers.find_number_fact("multinomial coefficients", other=3)', "multinomial_coefficients"),
     ('numbers.find_number_fact("times divisible by", other=2)', "multiplicity"),
-    ('numbers.find_number_fact("primitive root")', "primitive_root"),
-    ('numbers.find_number_fact("primitive root modulo", modulo=7)', "is_primitive_root"),
+    ('numbers.find_number_fact("primitive root") (on numbers = sdata.number_list([7, 11]))', "primitive_root"),
+    ('numbers.find_number_fact("primitive root modulo", modulo=7) (on numbers = sdata.number_list([3, 5]))',
+     "is_primitive_root"),
     ('numbers.find_number_fact("quadratic residue modulo", modulo=7)', "is_quad_residue"),
     ('numbers.find_number_fact("power residue modulo", modulo=7, power=3)', "is_nthpow_residue"),
-    ('numbers.find_number_fact("order modulo", modulo=7)', "n_order"),
+    ('numbers.find_number_fact("order modulo", modulo=7) (on numbers = sdata.number_list([2, 3]))', "n_order"),
     ('numbers.find_number_fact("discrete log", modulo=41, base=7)', "discrete_log"),
     ('numbers.find_number_fact("square roots modulo", modulo=13)', "sqrt_mod sqrt_mod_iter"),
     ('numbers.find_number_fact("nth roots modulo", modulo=7, power=3)', "nthroot_mod"),
     ('numbers.find_number_fact("quadratic residues")', "quadratic_residues"),
-    ('numbers.find_number_fact("quadratic congruence", modulo=8) on the list [a, b, c]', "quadratic_congruence"),
-    ('numbers.find_number_fact("inverse modulo", modulo=7)', "mod_inverse"),
+    ('numbers.find_number_fact("quadratic congruence", modulo=8) on the list [a, b, c] (numbers = '
+     "sdata.number_list([1, 0, -1]) for x**2 - 1)", "quadratic_congruence"),
+    ('numbers.find_number_fact("inverse modulo", modulo=7) (on numbers = sdata.number_list([2, 3]))', "mod_inverse"),
     ('numbers.find_number_fact("whole nth root", power=2)', "integer_nthroot"),
     ('numbers.find_number_fact("whole log", base=2)', "integer_log"),
     ('numbers.find_number_fact("number of digits")', "num_digits"),
@@ -2707,10 +2709,12 @@ _SYMPY_CALCULUS = [
     ('numbers.find_number_fact("continued fraction")', "continued_fraction continued_fraction_iterator"),
     ('numbers.find_number_fact("continued fraction convergents")', "continued_fraction_convergents"),
     ('numbers.find_number_fact("number from continued fraction") of the whole list', "continued_fraction_reduce"),
-    ('numbers.find_number_fact("periodic continued fraction") of the list [p, q, d]', "continued_fraction_periodic"),
-    ('numbers.find_number_fact("egyptian fraction")', "egyptian_fraction"),
+    ('numbers.find_number_fact("periodic continued fraction") of the list [p, q, d] (numbers = '
+     "sdata.number_list([0, 1, 2]) for sqrt(2))", "continued_fraction_periodic"),
+    ('numbers.find_number_fact("egyptian fraction") (on numbers = sdata.number_list([0.75, 0.4]))',
+     "egyptian_fraction"),
     (_HAND_OVER + " cycle_length and randprime work (simplydata's random numbers come from NumPy with a seed: "
-     "sdata.make_random_numbers(seed=1))", "cycle_length randprime"),
+     "sdata.make_random_numbers(how_many=10, with_seed=1))", "cycle_length randprime"),
     # ways (F49)
     ('sdata.list_ways_to_choose(2, out_of=["A", "B", "C", "D"])', "subsets"),
     ('sdata.list_ways_to_order(2, out_of=["A", "B", "C"])', "variations"),
@@ -2727,9 +2731,9 @@ _SYMPY_CALCULUS = [
     ('sdata.formula("x**2*y + y**3"), then formula.find_hessian()', "hessian"),
     ('sdata.formula("exp(x)"), then formula.find_wronskian(["exp(2*x)"])', "wronskian"),
     ('sdata.formula("2**n"), then formula.find_wronskian(["3**n"], whole_numbers_only=True)', "casoratian"),
-    ("grid.as_numpy() gives the grid's numbers to NumPy; on an exact grid, grid.find_value_at() gives a grid of "
-     "decimals first", "matrix2numpy list2numpy"),
-    ("sdata.number_grid([[1, 2], [3, 4]]) times another, cell by cell: grid.times(other)",
+    ("grid.as_numpy() gives the grid's numbers to NumPy (an exact grid gives a grid of decimals first with its "
+     "find_value_at)", "matrix2numpy list2numpy"),
+    ("sdata.number_grid([[1, 2], [3, 4]]), then grid.times(grid) multiplies two grids cell by cell",
      "HadamardProduct hadamard_product matrix_multiply_elementwise"),
     ("grid.raise_to_power(2) raises each cell", "HadamardPower"),
     # the matrix makers that have simplydata words (eye, diag and the rotations point to number_grid(kind=...) in
@@ -2743,8 +2747,8 @@ _SYMPY_CALCULUS = [
      "Trace trace DiagonalOf"),
     ('sdata.number_grid([4, 1, 0], kind="diagonal") + sdata.number_grid([1, 1], kind="diagonal", shifted_by=1): a '
      'banded grid from its diagonals; grid.check_if_grid_is("banded") checks one', "banded"),
-    ("sdata.make_random_numbers(how_many=9, between=[0, 9], whole_numbers=True, with_seed=1), then "
-     "sdata.number_grid(numbers, columns=3): a random grid", "randMatrix"),
+    ("sdata.make_random_numbers(rows=3, columns=3, between=[0, 9], whole_numbers=True, with_seed=1): a random grid",
+     "randMatrix"),
     ("numbers.make_pair_table_with(other) gives the products of two lists; for grids, "
      + _GRID_HAND_OVER + " kronecker_product works", "kronecker_product KroneckerProduct"),
     (_GRID_HAND_OVER + " matrix expressions work (symbols for whole grids and their sums, products and slices); "

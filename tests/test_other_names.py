@@ -770,7 +770,7 @@ NUMBER_AUDIT_POINTERS = [
     ("sympy.integrate", "formula.find_area_formula()"), ("sp.diff", "formula.find_slope_formula()"),
     ("sympy.Matrix", "sdata.number_grid("), ("sympy.Matrix.det", "grid.find_determinant(exactly=True)"),
     ("sp.Matrix.LUsolve", "grid.solve_for([5, 10], exactly=True)"), ("sympy.dsolve", "exactly=True"),
-    ("sp.srepr", "formula.as_sympy()"),
+    ("sp.srepr", 'formula.show_as_code("sympy tree")'),  # batch 26 gives srepr a word
     # a name in capitals keeps them when a list has it (scipy.interpolate.CubicSpline was not found, as cubicspline)
     ("scipy.interpolate.CubicSpline", "table.find_values_at("), ("scipy.spatial.KDTree", "find_nearest_rows_to"),
     ("scipy.signal.TransferFunction", "sdata.system("), ("scipy.stats.logrank", "compare_survival"),
@@ -915,7 +915,7 @@ def test_every_number_pointer_call_runs(calls, tmp_path, monkeypatch):
     ("np.greater_equal", "is_at_least=20", "is_above"), ("np.less_equal", "is_at_most=20", "is_above"),
     ("np.equal", "is_equal_to=20", "is_above"), ("np.not_equal", "is_not_equal_to=20", "is_above"),
     ("np.logical_xor", "np.logical_xor(", "is_above"),
-    ("sympy.factorint", "formula.as_sympy()", "turn_into_product"),
+    ("sympy.factorint", "numbers.find_prime_factors()", "turn_into_product"),  # batch 26 gives it a word
     ("sp.nsolve", "between=[0, 3]", "exactly=True"),
     ("np.random.sample", "keep_random_numbers(5", "numbers.count()"),
 ])
