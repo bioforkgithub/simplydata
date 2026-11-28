@@ -5261,8 +5261,8 @@ BASIS["grid.move_and_stretch_by"] = _b(
     "test_method=\"nearest\" or \"cubic\", as change_size_to.",
     "Straight lines never overshoot the numbers; empty cells say plainly where the old grid ended (as grid.rotate).",
     (), "P5", "matrix= is a 2 x 2 grid; no empty cells.", "starting value")
-BASIS["grid.move_and_stretch_by rule="] = _b(
-    "The rule's row and column count from 1, as every position in simplydata.",
+BASIS["grid.move_and_stretch_by formulas="] = _b(
+    "The formulas' row and column count from 1, as every position in simplydata.",
     "matrix= and shift= for straight-line moves.", "Positions count from 1 everywhere in simplydata.", (), "P5",
     "Formulas of row and column only.", "starting value")
 BASIS["grid.move_and_stretch_by test_method=\"fourier\""] = _b(

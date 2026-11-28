@@ -608,13 +608,13 @@ class ImageWords:
 
     # ------------------------------------------------------------------ move and stretch (batch 21)
     @friendly(renamed={"method": "test_method", "offset": "shift"})
-    def move_and_stretch_by(self: _Same, matrix=None, shift=None, rule=None, test_method="linear") -> _Same:
+    def move_and_stretch_by(self: _Same, matrix=None, shift=None, formulas=None, test_method="linear") -> _Same:
         """Move, stretch, shear or turn a grid as a picture, cell by cell from where each new cell comes. grid.move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])
 
         Each new cell takes its number from the old grid at matrix times its position, plus shift= (both in
         cells, measured from the first cell; SciPy ndimage.affine_transform). So shift=[0, 2] takes each number
         from 2 columns further on (the picture moves 2 columns back), matrix=[[2, 0], [0, 2]] takes from twice as
-        far (the picture shrinks to half). rule={"row": "row + 0.1*column**2", "column": "column"} gives where each
+        far (the picture shrinks to half). formulas={"row": "row + 0.1*column**2", "column": "column"} gives where each
         new cell comes from as formulas of row and column (positions from 1; SciPy ndimage.geometric_transform).
         test_method= "linear" (the default), "nearest" or "cubic", as change_size_to; "fourier" moves by shift=
         alone, also by part of a cell, with the picture wrapping round (ndimage.fourier_shift on NumPy's FFT).
@@ -628,11 +628,11 @@ class ImageWords:
             raise choice_error(step, "test_method", test_method, list(MOVE_METHODS))
         values = np.asarray(self._values, dtype=float)
         _no_empty(values, step)
-        if rule is not None and (matrix is not None or shift is not None):
-            raise SimplydataError("rule= gives where each new cell comes from on its own; leave out matrix= and "
+        if formulas is not None and (matrix is not None or shift is not None):
+            raise SimplydataError("formulas= gives where each new cell comes from on its own; leave out matrix= and "
                                   "shift=.")
-        if rule is None and matrix is None and shift is None:
-            raise SimplydataError(f"{step}() needs matrix=, shift= or rule=."
+        if formulas is None and matrix is None and shift is None:
+            raise SimplydataError(f"{step}() needs matrix=, shift= or formulas=."
                                   + self._example("move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])"))
         offset = np.zeros(2)
         if shift is not None:
@@ -641,8 +641,8 @@ class ImageWords:
                 raise SimplydataError("shift= needs two numbers: rows and columns, such as shift=[0, 2].")
             offset = np.asarray(shift, dtype=float)
         if test_method == "fourier":
-            if matrix is not None or rule is not None:
-                raise SimplydataError('test_method="fourier" moves by shift= alone; leave out matrix= and rule=.')
+            if matrix is not None or formulas is not None:
+                raise SimplydataError('test_method="fourier" moves by shift= alone; leave out matrix= and formulas=.')
             moved = ndimage.fourier_shift(np.fft.fft2(values), -offset)
             out = np.fft.ifft2(moved).real
             print(f"Each new cell takes its number from {say(offset[0])} rows and {say(offset[1])} columns further on, "
@@ -650,11 +650,11 @@ class ImageWords:
                   f"{[-float(v) for v in offset]}), then np.fft.ifft2, the real part).")
             return self._change("move (fourier)", out)
         order, how = ZOOM_ORDERS[test_method]
-        if rule is not None:
-            mapping, said = self._rule_mapping(rule, step)
+        if formulas is not None:
+            mapping, said = self._rule_mapping(formulas, step)
             out = ndimage.geometric_transform(values, mapping, order=order, mode="constant", cval=np.nan)
             call = f"ndimage.geometric_transform(grid, mapping, order={order}, mode=\"constant\", cval=np.nan)"
-            what = f"from where the rule says ({said})"
+            what = f"from where the formulas says ({said})"
         else:
             grid = np.eye(2) if matrix is None else (np.asarray(matrix._values, dtype=float) if hasattr(
                 matrix, "_values") else np.asarray(matrix, dtype=float))

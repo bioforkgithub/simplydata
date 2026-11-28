@@ -2261,7 +2261,7 @@ _SCIPY += [
     ('grid.find_distance_to_nearest(is_above=0.5, test_method="brute force")', "distance_transform_bf"),
     ("grid.split_touching_patches(starting_points=[[1, 1], [2, 2]])", "watershed_ift"),
     ("grid.move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])", "affine_transform"),
-    ('grid.move_and_stretch_by(rule={"row": "row", "column": "column + 0.5*row"})', "geometric_transform"),
+    ('grid.move_and_stretch_by(formulas={"row": "row", "column": "column + 0.5*row"})', "geometric_transform"),
     ('table.find_triangles_between_points(x="east", y="north"), on a table', "Delaunay"),
     ('table.find_triangles_between_points(x="east", y="north", containing={"east": [4000], "north": [1000]}), on a '
      "table", "tsearch"),

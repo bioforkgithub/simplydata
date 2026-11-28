@@ -559,11 +559,11 @@ def more_cases(Case):
           for method, call in (("city block", 'ndimage.distance_transform_cdt(~(g > 400), metric="taxicab")'),
                                ("chessboard", 'ndimage.distance_transform_cdt(~(g > 400), metric="chessboard")'),
                                ("brute force", 'ndimage.distance_transform_bf(~(g > 400), metric="euclidean")'))],
-        _air(Case, "grid.move_and_stretch_by", "each month taken from half a month on per year (a rule)",
-             'grid.move_and_stretch_by(rule={"row": "row", "column": "column + 0.5*row"}); '
+        _air(Case, "grid.move_and_stretch_by", "each month taken from half a month on per year (formulas)",
+             'grid.move_and_stretch_by(formulas={"row": "row", "column": "column + 0.5*row"}); '
              "grid.replace_each_number_that(is_empty=True, with_value=0)",
              "np.nan_to_num(ndimage.geometric_transform(g, lambda p: (p[0], p[1] + 0.5 * (p[0] + 1)), order=1, "
-             "cval=np.nan), nan=0.0)", option="rule="),
+             "cval=np.nan), nan=0.0)", option="formulas="),
         _air(Case, "grid.move_and_stretch_by", "moved by half a year and one month, wrapping round (Fourier)",
              'grid.move_and_stretch_by(shift=[0.5, 1], test_method="fourier")',
              "np.fft.ifft2(ndimage.fourier_shift(np.fft.fft2(g), [-0.5, -1])).real", option='test_method="fourier"',

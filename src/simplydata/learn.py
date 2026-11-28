@@ -1280,7 +1280,8 @@ HELP_EXAMPLES = {
     "system.add": _system_x('system.add(sdata.system("1 / (s + 3)"))'),
     "system.with_feedback": _system_x("system.with_feedback()"),
     "system.table": _system_x('system.table()\nsystem.table(form="state space")\n'
-                              'system.table(form="partial fractions")\nsystem.table(form="sections")'),
+                              'system.table(form="partial fractions")\n'
+                              'system.in_steps(time_step=0.1).table(form="sections")'),
     "system.chart": _system_x('chart = system.chart()\nchart.save("bode.png")'),
     # families for 100 %, batches 17-18 (approved by Manish 2026-11-28)
     "system.move_poles_to": _system_x("faster = system.move_poles_to([-2, -3])\nfaster.step_response(until=5)"),

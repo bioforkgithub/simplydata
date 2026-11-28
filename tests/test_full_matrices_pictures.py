@@ -381,14 +381,14 @@ def test_move_and_stretch_by_is_affine_geometric_or_fourier():
     theirs = ndimage.affine_transform(G, [[1, 0.5], [0, 1]], offset=[0, 1], order=1, cval=np.nan)
     assert np.allclose(g.as_numpy(), theirs, equal_nan=True)
     g = grid(RAMP)
-    g.move_and_stretch_by(rule={"row": "row", "column": "column + 0.5*row"}, test_method="cubic")
+    g.move_and_stretch_by(formulas={"row": "row", "column": "column + 0.5*row"}, test_method="cubic")
     theirs = ndimage.geometric_transform(G, lambda p: (p[0], p[1] + 0.5 * (p[0] + 1)), order=3, cval=np.nan)
     assert np.allclose(g.as_numpy(), theirs, equal_nan=True)
     g = grid(RAMP)
     g.move_and_stretch_by(shift=[0.5, 1], test_method="fourier")
     assert np.allclose(g.as_numpy(), np.fft.ifft2(ndimage.fourier_shift(np.fft.fft2(G), [-0.5, -1])).real)
-    with pytest.raises(SimplydataError, match="rule= gives"):
-        grid(RAMP).move_and_stretch_by(rule={"row": "row", "column": "column"}, shift=[1, 1])
+    with pytest.raises(SimplydataError, match="formulas= gives"):
+        grid(RAMP).move_and_stretch_by(formulas={"row": "row", "column": "column"}, shift=[1, 1])
 
 
 # ---------------------------------------------------------------- scipy.signal's 2-D names
@@ -471,7 +471,7 @@ def test_minkowski_distances_between_rows():
     ("ndimage.binary_hit_or_miss", "match pattern"), ("ndimage.extrema", "find_each_patch_that"),
     ("ndimage.value_indices", 'show="positions"'), ("ndimage.histogram", "counts in bins"),
     ("ndimage.distance_transform_edt", "find_distance_to_nearest"), ("ndimage.watershed_ift", "split_touching"),
-    ("ndimage.affine_transform", "move_and_stretch_by"), ("ndimage.geometric_transform", "rule="),
+    ("ndimage.affine_transform", "move_and_stretch_by"), ("ndimage.geometric_transform", "formulas="),
     ("ndimage.fourier_shift", 'test_method="fourier"'), ("scipy.spatial.Delaunay", "find_triangles_between_points"),
     ("spatial.tsearch", "containing="), ("scipy.spatial.Voronoi", "find_regions_around_points"),
     ("spatial.SphericalVoronoi", "longitude="), ("spatial.minkowski_distance", 'measure="minkowski"'),
