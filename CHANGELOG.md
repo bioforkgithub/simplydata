@@ -7,13 +7,19 @@ working for one release and prints a one-line note with its new name.
 
 ### Added: the proof of 100 %: the last help pointers, the final audit and the chapters (families for 100 %, batches 27-28)
 
-Approved by Manish 2026-11-28 (plan section 4, G21). Every public name of pandas 3.1, Polars 2.1, NumPy 2.5,
-SciPy 1.18 (stats, optimize, integrate, interpolate, signal, linalg, special, fft, ndimage, spatial), SymPy 1.14
-and seaborn 0.13 (with seaborn.objects), 4,324 names, was typed into `sdata.help()`. Each now leads to a word or an
-option value (3,682), to the hand-over with a one-line note (253), or to one of the approved "leave" areas (211:
-SymPy sets, logic, geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in
-tables; `einsum` and `tensorinv`; `HalfspaceIntersection`). The others are data types, classes, warnings and
-settings (178), which simplydata chooses by itself; no other name is left without an answer.
+Approved by Manish 2026-11-28 (plan section 4, G21). 5,719 public names were typed into `sdata.help()`:
+pandas 3.1 (DataFrame, Series, groupby, `.str`, `.dt`, the top level and its classes, the rolling, expanding, ewm
+and resample objects), Polars 2.1 (DataFrame, Series, expressions, `.str`, `.dt`, `.list`, group_by, the top level
+and its classes), NumPy 2.5 (top level, `linalg`, `fft`, a Generator, `np.random`, array methods, `np.polynomial`,
+`np.ma`, `np.strings`), SciPy 1.18 (stats with qmc, optimize, integrate, interpolate, signal, linalg, special, fft,
+ndimage, spatial with distance and transform, sparse with sparse.linalg and csgraph, cluster, io, constants), SymPy
+1.14 (top level, Matrix methods, sympy.stats) and seaborn 0.13 (with seaborn.objects). 4,669 lead to a word or an
+option value, 705 to the hand-over with a one-line note, and 196 to the approved "leave" areas (SymPy sets, logic,
+geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in tables; `einsum`,
+`einsum_path` and `tensorinv`; `HalfspaceIntersection`). The other 149 are data types, classes, warnings and
+settings, which simplydata chooses by itself; no other name is left without an answer. Not checked name by name:
+NumPy's `char`, `rec`, `emath`, `lib` and `testing`, SciPy's `odr`, `datasets`, `differentiate` and `misc`, and
+SymPy's submodules other than `stats`.
 
 - Help pointers in bulk for the last names: pandas' and Polars' arithmetic and comparison methods (`sub`, `rmul`,
   `eq`, `is_close`), bins, ranks and positions (`bin`, `arg_sort`, `search_sorted`), rolling and exponential
@@ -32,6 +38,19 @@ settings (178), which simplydata chooses by itself; no other name is left withou
 
 ### Fixed: where the SymPy batches 22-26 meet batches 1-21
 
+- Review of numbers-int-2: `np.concat` points to the word that joins in order, `np.e` to `exp(1)`, Polars
+  `is_finite` keeps both bounds, `nan_max`/`nan_min` point to `find_biggest_of`/`find_smallest_of`, `over` to
+  `for_each_group_in=`, `bitwise_count_ones` to `work_on_bits("count ones")`, `rolling_skew` to
+  `show="skewness"`, `np.log2` to `take_log(base=2)`, `np.rint` to rounding to whole numbers and `pd.Series.size`
+  to the count of values; Polars-only jobs (exponentially weighted spread, folds, struct and JSON columns,
+  `clear`, `rolling_rank`) hand over to Polars; SymPy `deg` and `rad` point to `change_angles_to`.
+- `formula.find_value_at` gives 0 for a true 0 that SymPy's `subs` leaves unsimplified
+  (`sin(x)**2 + cos(x)**2 - 1` at 0.3), checked by SymPy `equals` under the time limit.
+- `sdata.number_grid(..., exactly=True)` refuses `filled_with=`.
+- `sdata.help("pl.DataFrame.show")` and `"pd.Series.size"` give the table's meaning when a pandas or Polars table
+  is in front; `df.rolling(3).mean`, `df.expanding().sum`, `df.ewm(span=3).mean` and `df.resample("M").sum` have
+  their own help namespaces.
+- validation/README.md names the 155 closed-form checks of the reliability study.
 - The maths family's formula names (batches 7-9) and the SymPy names of batches 22-23 both work in formula text; no
   name is in both tables.
 - `sdata.number_grid` keeps `kind=` and `from_formula=` and gains `exactly=True`; giving both says which to leave

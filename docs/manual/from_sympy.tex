@@ -262,9 +262,10 @@ back.find_value_at(x=0.5)
 \end{lstlisting}
 
 \paragraph{How complete is simplydata?}
-We typed every public name of the library into \code{sdata.help()} (the libraries' versions of November 2026).
-Of SymPy's 902 names at its top level, 615 lead to a simplydata
-word or option, 180 hand over to SymPy with a note (most are the classes and tools inside SymPy, such as
-\code{Add}, \code{Dummy} and \code{sift}), and 84 belong to the areas left to SymPy on purpose: sets, logic,
-geometry, tensors and number transforms. The other 23 are SymPy's own errors and settings. Every other name
-has an answer in \code{sdata.help()}.
+We typed every public name of these parts of the library into \code{sdata.help()} (the versions of November 2026).
+SymPy's top level, the methods of a \code{Matrix} and \code{sympy.stats}, 1,265 names: 865 lead to a simplydata
+word or option, 298 hand over to SymPy with a note (most are the classes and tools inside SymPy, such as
+\code{Add}, \code{Dummy} and \code{sift}, and the matrix methods with no word, such as \code{rref}), and 82
+belong to the areas left to SymPy on purpose: sets, logic, geometry, tensors and number transforms. The other 20
+are SymPy's own errors and settings. Not checked name by name: SymPy's other submodules (\code{physics},
+\code{combinatorics}, \code{vector}, \code{codegen} and the rest), which are left to SymPy.
