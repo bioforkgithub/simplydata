@@ -13,10 +13,10 @@ and resample objects), Polars 2.1 (DataFrame, Series, expressions, `.str`, `.dt`
 and its classes), NumPy 2.5 (top level, `linalg`, `fft`, a Generator, `np.random`, array methods, `np.polynomial`,
 `np.ma`, `np.strings`), SciPy 1.18 (stats with qmc, optimize, integrate, interpolate, signal, linalg, special, fft,
 ndimage, spatial with distance and transform, sparse with sparse.linalg and csgraph, cluster, io, constants), SymPy
-1.14 (top level, Matrix methods, sympy.stats) and seaborn 0.13 (with seaborn.objects). 4,669 lead to a word or an
-option value, 705 to the hand-over with a one-line note, and 196 to the approved "leave" areas (SymPy sets, logic,
+1.14 (top level, Matrix methods, sympy.stats) and seaborn 0.13 (with seaborn.objects). 4,336 lead to a word or an
+option value, 1,016 to the hand-over with a one-line note, and 196 to the approved "leave" areas (SymPy sets, logic,
 geometry, tensors and number transforms; no row index, list columns, lazy plans and pipe in tables; `einsum`,
-`einsum_path` and `tensorinv`; `HalfspaceIntersection`). The other 149 are data types, classes, warnings and
+`einsum_path` and `tensorinv`; `HalfspaceIntersection`). The other 171 are data types, classes, warnings and
 settings, which simplydata chooses by itself; no other name is left without an answer. Not checked name by name:
 NumPy's `char`, `rec`, `emath`, `lib` and `testing`, SciPy's `odr`, `datasets`, `differentiate` and `misc`, and
 SymPy's submodules other than `stats`.
@@ -51,6 +51,13 @@ SymPy's submodules other than `stats`.
   is in front; `df.rolling(3).mean`, `df.expanding().sum`, `df.ewm(span=3).mean` and `df.resample("M").sum` have
   their own help namespaces.
 - validation/README.md names the 155 closed-form checks of the reliability study.
+- Second review of numbers-int-2: each probed part of a library (np.strings, np.ma, ndarray, sympy.Matrix,
+  sympy.stats, cluster.hierarchy, sparse) has its own help list, so `np.strings.add` joins text and a pandas name
+  never gets a SymPy or NumPy meaning; the jobs these parts leave to the library (SciPy constants, NumPy's bit
+  generators, `stats.qmc`, most of `sympy.stats`) say so and count as hand-overs; the SymPy distributions simplydata
+  has point to `sdata.distribution`; `df.ewm().mean` is `adjust=False`, `df.resample().bfill` takes the value
+  below, `onenormest` is `find_size(kind="biggest column total")`, and `find_value_at` gives the exact value when
+  SymPy shows that a tiny value is not 0.
 - The maths family's formula names (batches 7-9) and the SymPy names of batches 22-23 both work in formula text; no
   name is in both tables.
 - `sdata.number_grid` keeps `kind=` and `from_formula=` and gains `exactly=True`; giving both says which to leave

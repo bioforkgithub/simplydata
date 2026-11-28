@@ -625,15 +625,14 @@ grid.find_determinant()
 \paragraph{How complete is simplydata?}
 We typed every public name of these parts of the library into \code{sdata.help()} (the versions of November 2026).
 NumPy: the top level, \code{linalg}, \code{fft}, a random Generator and \code{np.random}, the methods of an
-array, \code{np.polynomial}, \code{np.ma} and \code{np.strings}, 986 names. 816 lead to a simplydata word or
-option, 67 hand over to NumPy with a note, and 3 are left to NumPy on purpose (\code{einsum}, \code{einsum\_path}
-and \code{tensorinv}); the other 100 are data types, classes and settings, which simplydata chooses by itself.
+array, \code{np.polynomial}, \code{np.ma} and \code{np.strings}, 986 names. 756 lead to a simplydata word or
+option, 119 hand over to NumPy with a note, and 3 are left to NumPy on purpose (\code{einsum}, \code{einsum\_path}
+and \code{tensorinv}); the other 108 are data types, classes and settings, which simplydata chooses by itself.
 Not checked name by name: \code{np.char}, \code{np.rec}, \code{np.emath}, \code{np.lib} and \code{np.testing}.
 SciPy: \code{stats} (with \code{stats.qmc}), \code{optimize}, \code{integrate}, \code{interpolate},
 \code{signal}, \code{linalg}, \code{special}, \code{fft}, \code{ndimage}, \code{spatial} (with
 \code{distance} and \code{transform}), \code{sparse} (with \code{sparse.linalg} and \code{csgraph}),
-\code{cluster}, \code{io} and \code{constants}, 1,612 names. 1,433 lead to a word or option (the 164 physical
-constants and units point to \code{formula.put\_in}, which puts a value into a formula), 149 hand over to SciPy
-with a note (most of them sparse storage, graph routines and file formats), one is left to SciPy on purpose
-(\code{HalfspaceIntersection}), and 29 are classes, warnings and settings. Not checked name by name: SciPy's
-\code{odr}, \code{datasets}, \code{differentiate} and \code{misc}.
+\code{cluster}, \code{io} and \code{constants}, 1,612 names. 1,246 lead to a word or option, 324 hand over to
+SciPy with a note (most of them physical constants and units, sparse storage, graph routines and file formats),
+one is left to SciPy on purpose (\code{HalfspaceIntersection}), and 41 are classes, warnings and settings. Not
+checked name by name: SciPy's \code{odr}, \code{datasets}, \code{differentiate} and \code{misc}.
