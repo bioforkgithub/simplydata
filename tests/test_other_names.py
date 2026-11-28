@@ -491,6 +491,11 @@ def _runnable_pointers():
 @pytest.mark.parametrize("calls", _runnable_pointers())
 def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)  # table.save("results.csv") and friends write here
+    import pandas as pd  # table.save("clipboard") must never touch this computer's real clipboard in a test
+
+    copied = {}
+    monkeypatch.setattr(pd.DataFrame, "to_clipboard", lambda self, **kw: copied.setdefault("table", self))
+    monkeypatch.setattr(pd, "read_clipboard", lambda **kw: copied["table"])
     errors = []
     for source in [None, *EXAMPLES]:
         table = _pointer_table() if source is None else sdata.get_example(source)
