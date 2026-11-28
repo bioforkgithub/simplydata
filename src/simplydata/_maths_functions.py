@@ -1186,9 +1186,9 @@ def check_whole_options(entry: MathsFunction, values: list) -> None:
 
 
 def prepare(entry: MathsFunction, values: list) -> tuple[list, np.ndarray | bool]:
-    """The inputs of an entry (in its order) made ready for the library: decimals, and whole numbers (int64) for
-    the inputs that must be whole. Returns the inputs and where an input that must be whole is not (a decimal, or
-    empty): the answer is empty there (False when every input is fine). None stays None (an option left out)."""
+    """The inputs of an entry (in its order) made ready for the library: decimals, whole numbers (int64) for
+    the inputs that must be whole, and a whole degree as int64. Returns the inputs and where an input that must be
+    whole is not (a decimal, or empty): the answer is empty there (False when every input is fine). None stays None (an option left out)."""
     ready, bad = [], False
     for key, value in zip(entry.inputs, values):
         if value is None:
@@ -1199,6 +1199,10 @@ def prepare(entry: MathsFunction, values: list) -> tuple[list, np.ndarray | bool
             fine = np.isfinite(value) & (value == np.round(value))
             bad = bad | ~fine
             value = np.where(fine, value, 0).astype(np.int64)
+        elif key == "degree" and value.size and np.all(np.isfinite(value)) and np.all(value == np.round(value)):
+            # a whole degree goes in as a whole number, as SciPy's own call with degree 3 does: SciPy then uses the
+            # exact recurrence, not the formula for any degree (U_3(0) is 0, not 2.6e-17 on some computers)
+            value = value.astype(np.int64)
         ready.append(value)
     return ready, bad
 
