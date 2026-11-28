@@ -704,7 +704,7 @@ class FittingWords:
     # ------------------------------------------------------------------ fit_curve(always=)
     def _fit_always(self, x, y, always, weights, for_each_group_in):
         """Isotonic regression (families for 100 %, batch 14): SciPy optimize.isotonic_regression on y in the order
-        of x (ties of x kept in the order of the rows, as R isoreg()), with weights= as its weights."""
+        of x (at a tied x the biggest y first when rising, as R isoreg() orders them), with weights= as its weights."""
         from scipy import optimize
 
         step = "fit_curve"

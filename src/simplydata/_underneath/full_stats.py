@@ -96,11 +96,12 @@ ENTRIES = [
              choices=("the limit included; \"biggest up to 80\" is SciPy tmax(upperlimit=80).",)),
     _summary('show="circular average"', "circular average in degrees",
              "stats.circmean(values, high=360, low=0)                # (1)",
-             choices=("angles from 0 to 360 with \"in degrees\", otherwise radians from 0 to 2 pi (SciPy's "
-                      "default); circstd and circvar the same.",)),
+             choices=("angles from 0 to 360 with \"in degrees\" (2 pi \"in radians\", 24 \"in hours\"; a circular "
+                      "measure without its unit is refused); circstd and circvar the same.",)),
     _summary('show="differential entropy"', "differential entropy",
              "stats.differential_entropy(values)                     # (1)",
-             choices=("SciPy's automatic estimator (Vasicek below 10 values, Ebrahimi from 10 to 1000).",)),
+             choices=("SciPy's automatic estimator (van Es up to 10 values, Ebrahimi from 11 to 1000, Vasicek "
+                      "above 1000).",)),
     _summary('show="percentile rank v"', "percentile rank 70",
              "float(stats.estimated_cdf(values, 70)) * 100           # (1)",
              choices=("the inverse of \"percentile p\" (R type 7, SciPy method=\"linear\"), in percent.",)),

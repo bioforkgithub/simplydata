@@ -5301,3 +5301,996 @@ BASIS["grid.convolve_with row_weights="] = _b(
     "sepfir2d.",
     "A kernel grid with convolve2d (cells outside count as 0).", _SCIPY_OWN, (), "P3",
     "Two lists of an odd number of weights.", "convention")
+
+# ---------------------------------------------------------------- families for 100 %: bases of the batch A choices
+# Table words (data handling, not statistical methods): each choice follows pandas or Polars, or says plainly where
+# the two differ and which one simplydata follows on both engines; no study fixes them, so they are conventions.
+BASIS["table.get_different_values_in"] = _b(
+    "The different values in the order they first turn up in the table, empty cells left out with a note (pandas "
+    "Series.unique(), Polars unique(maintain_order=True)); a column of numbers gives sdata.number_list, any other a "
+    "plain list.",
+    "sort_by() first for another order; count_different_values_in() for how many there are.",
+    "Data handling: the order of first appearance is pandas unique()'s order and gives the same list every time; "
+    "empty cells are left out, as count_different_values_in leaves them out (pandas unique() would keep one).", (),
+    "P3", "One column name; capital letters matter (\"Apple\" and \"apple\" are two values).", "convention")
+BASIS["table.check_if_all_values_in"] = _b(
+    "Empty cells are left out, with a note, as pandas all() and Polars all() leave them out; a column with no values "
+    "gives True (as pandas all() of an empty column), and the sentence says so.",
+    "check_if_any_value_in(); a list of columns checks them all (Polars all_horizontal); for_each_group_in= gives the "
+    "answer for each group (pandas groupby().all()).",
+    "Data handling: an empty cell is not known to meet or fail a condition, so it is left out, as both packages do; "
+    "the sentence says how many values fail and the first row that does.", (), "P3",
+    "One condition at a time; a column without True and False needs a condition.", "convention")
+BASIS["table.check_if_any_value_in"] = _b(
+    "Empty cells are left out, with a note, as pandas any() and Polars any() leave them out.",
+    "check_if_all_values_in(); a list of columns (Polars any_horizontal); for_each_group_in= for each group (pandas "
+    "groupby().any()).",
+    "Data handling: as check_if_all_values_in(); the sentence says how many values meet the condition and the first "
+    "row that does.", (), "P3",
+    "One condition at a time; a column without True and False needs a condition.", "convention")
+BASIS["table.check_if_sorted_by"] = _b(
+    "Smallest first, values that tie may follow each other (pandas is_monotonic_increasing, Polars is_sorted()); "
+    "empty cells are left out, with a note.",
+    "biggest_first=True checks the other direction (is_monotonic_decreasing, is_sorted(descending=True)).",
+    "Data handling: pandas says False for a column with an empty cell, which would hide whether the filled values are "
+    "in order; leaving empty cells out and saying so answers the question asked. The first row out of order is "
+    "named.", (), "P3", "biggest_first= is True or False; groups in their own order are read in that order.",
+    "convention")
+BASIS["table.add_run_number_column"] = _b(
+    "The number goes up by one each time the value changes, counted from 1 within each group (Polars rle_id() plus "
+    "1); empty cells next to each other are one run, as Polars counts them; the runs follow sorted_by=, but the rows "
+    "keep their place in the table.",
+    "Without for_each_group_in= the whole table is one run of numbers; count_rows(for_each_group_in=[group, name]) "
+    "then gives the length of each run (Polars rle()).",
+    "Data handling: counting from 1 matches every position in simplydata; the runs are Polars rle_id()'s and pandas "
+    "(s != s.shift()).cumsum()'s.", (), "P3", "", "convention")
+BASIS["table.turn_into_title_case"] = _b(
+    "Each word starts with a capital and its other letters become small; a new word starts after anything that is "
+    "not a letter (\"o'neil\" becomes \"O'Neil\"), pandas str.title() on both engines.",
+    "There is no other title-case rule here; turn_into_lowercase() and turn_into_uppercase() for the other cases.",
+    "Data handling: pandas str.title() and Polars str.to_titlecase() agree except for ligatures and letter pairs, so "
+    "one rule on both engines gives the same text.", (), "P3", "A column of text.", "convention")
+BASIS['table.find_summary_of show="product"'] = _b(
+    "The values multiplied together in decimals (NumPy prod), so a product of whole numbers never wraps round, as "
+    "pandas prod() of int64 would; empty cells left out, as pandas prod() and Polars product() skip them.",
+    "show=[\"geometric mean\"] or [\"entropy\"], often what is wanted when the product gets big.",
+    "Data handling: the same product as pandas and Polars, without the silent wrap-round of whole-number "
+    "arithmetic.", (), "P3", "A column of numbers.", "convention")
+BASIS['table.find_summary_of show="entropy"'] = _b(
+    "The Shannon entropy of the values shared out to 1 (each value over the total), natural log (SciPy entropy, "
+    "Polars entropy(base=e, normalize=True)).",
+    "There is no other base here; divide by log(2) in add_column for bits.",
+    "Shannon's entropy (Shannon 1948) with the natural log is what SciPy and Polars give by default, so the numbers "
+    "agree with them.", ("shannon1948",), "P3",
+    "Negative values, or values that add up to 0, give an empty cell with a note.", "convention")
+BASIS['table.find_summary_of show="joined text"'] = _b(
+    "The texts of each group in the order of the rows, empty cells left out, \"; \" between them (Polars str.join on "
+    "both engines, as pandas groupby().agg(\"; \".join)).",
+    "separator= for another mark; split_into_rows() makes one row for each piece again.",
+    "Data handling: \"; \" seldom turns up inside a text, so the pieces can be split again; it is simplydata's own "
+    "starting value, changed with separator=.", (), "P5",
+    "show=[\"joined text\"] goes on its own; separator= is text and goes only with it.", "starting value")
+BASIS["table.find_summary_of show={column: measures}"] = _b(
+    "One row for each group, the columns named after the column then the measure (\"marks average\"), as pandas "
+    "named aggregation and Polars group_by().agg().",
+    "show= a list of measures for the same measures on every column.",
+    "Data handling: different measures for different columns in one table, with names that say both.", (), "P3",
+    "Leave out the column (the dict names the columns); every key is a column name.", "convention")
+BASIS["table.add_previous_value_column rows_ahead="] = _b(
+    "The value from the row after (a lead: pandas and Polars shift(-1), R dplyr lead()); the last row of each group "
+    "has no row after it and stays empty.",
+    "rows_back= (the default, 1) for the value before.",
+    "Data handling: the same shift as pandas, Polars and R, within each group and in the order of sorted_by=.", (),
+    "P3", "rows_back= and rows_ahead= are not given together; a whole number of rows.", "convention")
+BASIS["table.round_numbers_in significant_figures="] = _b(
+    "Each number as it is written, a half to the even digit (5.25 becomes 5.2 at 2 figures), as everywhere in "
+    "simplydata; that is R signif() in nearly every case (R works on the stored number, so 0.639075 at 5 figures is "
+    "0.63907 there).",
+    "with_decimals= for decimal places; Polars round_sig_figs would take a half away from 0 (5.3).",
+    "Rounding halves to even stops a run of halves from always pushing totals up, as R and NumPy round; the number "
+    "as written is what the reader sees.", (), "P3", "A whole number of 1 or more; columns of numbers; not with "
+    "decimal places.", "convention")
+BASIS["table.keep_rows_where time_of_day_between="] = _b(
+    "Both clock times included, on any day; a start after the end goes past midnight, as pandas between_time (Polars "
+    "dt.time().is_between()); a part of a second counts.",
+    "[\"08:00\", \"08:00\"] keeps one clock time (pandas at_time); is_after= and is_before= for whole dates.",
+    "Data handling: the same rows as pandas between_time, whose default includes both ends.", (), "P3",
+    "A column of dates with times, or times; two clock times such as \"08:00\" or \"08:00:30\"; on its own.",
+    "convention")
+BASIS["table.add_column_with_part_of_text every_match="] = _b(
+    "Every piece that fits the pattern, joined with \";\" (pandas str.findall, Polars str.extract_all); a text with "
+    "none gives an empty cell, and the sentence says how many.",
+    "separator= for another mark; without every_match= only the first piece.",
+    "Data handling: one cell per row keeps the table's shape; split_into_rows() then gives one row for each piece. "
+    "\";\" is simplydata's own starting value.", (), "P5",
+    "Goes with matches_pattern=; no capturing brackets ( ) in the pattern.", "starting value")
+BASIS["table.add_column_with_part_of_text position_of="] = _b(
+    "Where the piece starts, counted from 1, and an empty cell where it is not found (pandas str.find plus 1, which "
+    "gives -1); characters are counted on both engines (Polars str.find counts bytes).",
+    "There is no other way to count here; capital letters matter.",
+    "Data handling: counting from 1 matches every position in simplydata, and an empty cell cannot be mistaken for "
+    "a position.", (), "P5", "A piece of text in quotes, not empty.", "convention")
+BASIS['table.add_column_with_part_of_date part="is month start"'] = _b(
+    "True on the first day of a month, worked out by Polars on both engines; an empty date gives an empty cell "
+    "(pandas dt.is_month_start gives False).",
+    "part=\"is quarter start\", \"is quarter end\", \"is year start\", \"is year end\", \"is month end\", and "
+    "\"month end\" for the date of the month's last day (Polars dt.month_end()).",
+    "Data handling: an empty date is not known to be a month start, so it stays empty, as every other date part "
+    "does.", (), "P3", "A column of dates.", "convention")
+BASIS['table.add_column_with_part_of_date part="is working day"'] = _b(
+    "Monday to Friday (NumPy is_busday, Polars dt.is_business_day()); no public holidays are left out.",
+    "There is no holiday calendar here: remove the holidays with keep_rows_where() afterwards.",
+    "Public holidays differ from country to country; the weekmask of NumPy and Polars without holidays is their own "
+    "default.", (), "P3", "A column of dates.", "convention")
+BASIS['table.add_column_with_part_of_date part="unix time"'] = _b(
+    "Whole seconds since 1 January 1970 on the UTC clock (Polars dt.epoch(\"s\")).",
+    "turn_into_dates(from_unix_seconds=True) turns such seconds back into dates.",
+    "Unix time is counted in seconds from 1970 in UTC, as computers keep it.", (), "P3", "A column of dates.",
+    "convention")
+BASIS["table.turn_into_dates from_unix_seconds="] = _b(
+    "Dates and times on the UTC clock, to the microsecond (Polars from_epoch on both engines; pandas "
+    "to_datetime(unit=\"s\") gives the same times).",
+    "Without from_unix_seconds=: dates read from text (order=, written_like=).",
+    "Unix time counts seconds from 1 January 1970 in UTC, so the times are on that clock.", (), "P3",
+    "A column of numbers; on its own, without order= or written_like=.", "convention")
+BASIS["table.add_column floor() ceil() log10() log1p() sign() cbrt()"] = _b(
+    "Worked out with NumPy (floor, ceil, log10, log1p, sign, cbrt) on both engines; an answer that is not a number "
+    "(the log of a negative number) gives an empty cell.",
+    "There is no other way here; round() for rounding to the nearest number.",
+    "Data handling: NumPy's functions are the reference ones, so the numbers agree with NumPy and Polars.", (), "P3",
+    "Columns of numbers.", "convention")
+BASIS["table.add_column add_working_days() count_working_days()"] = _b(
+    "add_working_days: a date on a weekend first moves to the Monday (roll=\"forward\"), then Monday to Friday are "
+    "counted, no holidays (Polars dt.add_business_days, NumPy busday_offset); count_working_days counts them from "
+    "the start up to the end, the end not counted (Polars business_day_count, NumPy busday_count).",
+    "There is no holiday calendar here.",
+    "The forward roll and the end left out are what NumPy and Polars do, so the dates agree with them.", (), "P3",
+    "Columns of dates; a whole number of days or a column of them.", "convention")
+BASIS['sdata.make_run_of_dates every="working day"'] = _b(
+    "Monday to Friday (pandas bdate_range); a first date on a weekend starts on the Monday after; no public holidays "
+    "are left out.",
+    "how_many= gives that many working days instead of to=; every=\"day\" for every day.",
+    "Public holidays differ from country to country; pandas bdate_range without holidays is the package default.",
+    (), "P3", "Either to= or how_many=; at least one working day between the dates.", "convention")
+BASIS["table.add_rolling_column with_column="] = _b(
+    "from_column= and with_column= are the same as from_column=[two columns]; the first rows of each group are empty "
+    "until the window is full (pandas rolling().corr(), Polars rolling_corr).",
+    "show=\"covariance\" works the same way (pandas rolling().cov(), Polars rolling_cov).",
+    "Data handling: a window that is not full gives no value, as pandas rolling() does by default.", (), "P3",
+    "Goes with show=\"correlation\" or \"covariance\"; one column name each, both of numbers.", "convention")
+BASIS["table.join_with where="] = _b(
+    "Every pair of rows that meets the condition (Polars join_where); the rows keep this table's order, each "
+    "followed by its partners, on both engines; a row without a partner is left out.",
+    "using= for joins on equal columns; match= for the nearest date; then keep_rows_where() for other conditions.",
+    "Data handling: Polars join_where gives no order of its own, so simplydata makes every pair (a cross join) and "
+    "keeps the ones that meet the condition, which keeps the table's order and gives the same rows on both "
+    "engines.", (), "P5",
+    "No using=, keep=, match=, within=, check_that= or with_match_column=; at most 20,000,000 pairs of rows.",
+    "convention")
+BASIS["draw_lines in_row_order="] = _b(
+    "Every row, joined in the order of the rows: no average, no sorting by x (seaborn so.Path, lineplot(sort=False, "
+    "estimator=None)).",
+    "Without in_row_order=: the average at each x, joined from the smallest x.",
+    "Showing results: a path such as a ship's track must follow the rows; an average or a sort would change it.",
+    (), "P3", "Takes no show=, error= or joined_by=.", "convention")
+BASIS["draw_dots move_layer_by="] = _b(
+    "The dots move the number given along x (seaborn so.Shift); on a group axis each group is 1 wide.",
+    "draw_lines, draw_all_dots and draw_dashes take move_layer_by= too.",
+    "Showing results: x units, as seaborn so.Shift, so a second layer sits beside the first.", (), "P3",
+    "A number.", "convention")
+BASIS["draw_dashes"] = _b(
+    "Each dash is 0.8 wide (width=), centred on its group, as seaborn so.Dash(width=0.8).",
+    "width= from above 0 to 1; move_layer_by= to move the dashes along x.",
+    "Showing results: seaborn's own width leaves a gap between neighbouring groups.", (), "P3",
+    "x= and y=, y of numbers; width= above 0 and at most 1.", "convention")
+
+# ---------------------------------------------------------------- families for 100 %: bases of the batch 3-9 choices
+# (group B: the scipy.stats summaries, tests and distributions, scipy.special). Each new reference was looked up in
+# Crossref (authors, year, title, journal, volume:pages from there) or opened at its URL.
+REFERENCES.update({
+    "hosking1990": _ref("Hosking 1990", "Hosking JRM (1990). L-Moments: Analysis and Estimation of Distributions "
+                        "Using Linear Combinations of Order Statistics. Journal of the Royal Statistical Society "
+                        "Series B: Statistical Methodology 52:105-124.", doi="10.1111/j.2517-6161.1990.tb01775.x"),
+    "newey1987": _ref("Newey & Powell 1987", "Newey WK, Powell JL (1987). Asymmetric Least Squares Estimation and "
+                      "Testing. Econometrica 55:819.", doi="10.2307/1911031"),
+    "vasicek1976": _ref("Vasicek 1976", "Vasicek O (1976). A Test for Normality Based on Sample Entropy. Journal of "
+                        "the Royal Statistical Society Series B: Statistical Methodology 38:54-59.",
+                        doi="10.1111/j.2517-6161.1976.tb01566.x"),
+    "ebrahimi1994": _ref("Ebrahimi et al. 1994", "Ebrahimi N, Pflughoeft K, Soofi ES (1994). Two measures of sample "
+                         "entropy. Statistics & Probability Letters 20:225-234.", doi="10.1016/0167-7152(94)90046-9"),
+    "baumgartner1998": _ref("Baumgartner et al. 1998", "Baumgartner W, Weiß P, Schindler H (1998). A Nonparametric "
+                            "Test for the General Two-Sample Problem. Biometrics 54:1129.", doi="10.2307/2533862"),
+    "anderson1962": _ref("Anderson 1962", "Anderson TW (1962). On the Distribution of the Two-Sample Cramer-von Mises "
+                         "Criterion. The Annals of Mathematical Statistics 33:1148-1159.",
+                         doi="10.1214/aoms/1177704477"),
+    "epps1986": _ref("Epps & Singleton 1986", "Epps TW, Singleton KJ (1986). An omnibus test for the two-sample "
+                     "problem using the empirical characteristic function. Journal of Statistical Computation and "
+                     "Simulation 26:177-203.", doi="10.1080/00949658608810963"),
+    "dagostino1970": _ref("D'Agostino 1970", "D'Agostino RB (1970). Transformation to normality of the null "
+                          "distribution of g1. Biometrika 57:679-681.", doi="10.1093/biomet/57.3.679"),
+    "anscombe1983": _ref("Anscombe & Glynn 1983", "Anscombe FJ, Glynn WJ (1983). Distribution of the kurtosis "
+                         "statistic b2 for normal samples. Biometrika 70:227-234.", doi="10.1093/biomet/70.1.227"),
+    "cressie1984": _ref("Cressie & Read 1984", "Cressie N, Read TRC (1984). Multinomial Goodness-Of-Fit Tests. Journal "
+                        "of the Royal Statistical Society Series B: Statistical Methodology 46:440-464.",
+                        doi="10.1111/j.2517-6161.1984.tb01318.x"),
+    "obrien1981": _ref("O'Brien 1981", "O'Brien RG (1981). A simple test for variance effects in experimental "
+                       "designs. Psychological Bulletin 89:570-574.", doi="10.1037/0033-2909.89.3.570"),
+    "chatterjee2021": _ref("Chatterjee 2021", "Chatterjee S (2021). A New Coefficient of Correlation. Journal of the "
+                           "American Statistical Association 116:2009-2022.", doi="10.1080/01621459.2020.1758115"),
+    "vigna2015": _ref("Vigna 2015", "Vigna S (2015). A Weighted Correlation Index for Rankings with Ties. Proceedings "
+                      "of the 24th International Conference on World Wide Web 1166-1176.",
+                      doi="10.1145/2736277.2741088"),
+    "vogelstein2019": _ref("Vogelstein et al. 2019", "Vogelstein JT, Bridgeford EW, Wang Q et al. (2019). Discovering "
+                           "and deciphering relationships across disparate data modalities. eLife 8:e41690.",
+                           doi="10.7554/eLife.41690"),
+    "krishnamoorthy2004": _ref("Krishnamoorthy & Thomson 2004", "Krishnamoorthy K, Thomson J (2004). A more powerful "
+                               "test for comparing two Poisson means. Journal of Statistical Planning and Inference "
+                               "119:23-35.", doi="10.1016/S0378-3758(02)00408-1"),
+    "oliphant2006": _ref("Oliphant 2006", "Oliphant TE (2006). A Bayesian perspective on estimating mean, variance, "
+                         "and standard-deviation from data. Brigham Young University, Faculty Publications 278.",
+                         url="https://scholarsarchive.byu.edu/facpub/278"),
+    "yeo2000": _ref("Yeo & Johnson 2000", "Yeo IK, Johnson RA (2000). A new family of power transformations to "
+                    "improve normality or symmetry. Biometrika 87:954-959.", doi="10.1093/biomet/87.4.954"),
+    "szekely2013": _ref("Székely & Rizzo 2013", "Székely GJ, Rizzo ML (2013). Energy statistics: A class of "
+                        "statistics based on distances. Journal of Statistical Planning and Inference 143:1249-1272.",
+                        doi="10.1016/j.jspi.2013.03.018"),
+    "saltelli2010": _ref("Saltelli et al. 2010", "Saltelli A, Annoni P, Azzini I et al. (2010). Variance based "
+                         "sensitivity analysis of model output. Design and estimator for the total sensitivity index. "
+                         "Computer Physics Communications 181:259-270.", doi="10.1016/j.cpc.2009.09.018"),
+})
+
+_SCIPY_STATS_OWN = ("SciPy's own default (scipy.stats), so the numbers agree with SciPy's; no study fixes this "
+                    "choice.")
+
+# ---- find_summary_of: the scipy.stats summaries
+BASIS['table.find_summary_of show="geometric standard deviation"'] = _b(
+    "exp of the standard deviation of the logs, dividing by n - 1 (SciPy gstd, its default ddof=1), as R "
+    "exp(sd(log(x))).",
+    "show=[\"geometric mean\"] for the middle; there is no option for n in the bottom.",
+    "n - 1 is the sample standard deviation used everywhere in simplydata (the GUM's experimental standard "
+    "deviation, R sd()); it is also SciPy's default here, so SciPy and R agree.", ("gum2008",), "P3",
+    "Numbers above 0 and at least 2 values; otherwise the cell is left empty, with the reason.", "convention")
+BASIS['table.find_summary_of show="cumulant k"'] = _b(
+    "The k-statistic: the unbiased estimate of the k-th cumulant (SciPy kstat); \"cumulant variance k\" gives the "
+    "unbiased estimate of its variance (SciPy kstatvar).",
+    "show=[\"central moment k\"] for the plain moment, divided by n.",
+    "The k-statistics are the usual unbiased estimates of cumulants, and SciPy's kstat and kstatvar give them. "
+    + _SCIPY_STATS_OWN, (), "P3",
+    "k from 1 to 4 (1 or 2 for the variance), as SciPy allows; at least k values (2 for the variance), otherwise the "
+    "cell is left empty, with the reason.", "convention")
+BASIS['table.find_summary_of show="l-moment k"'] = _b(
+    "The sample L-moment lambda_k itself (SciPy lmoment(standardize=False)); \"l-skewness\" and \"l-kurtosis\" are "
+    "the ratios tau_3 = lambda_3 / lambda_2 and tau_4 = lambda_4 / lambda_2 (SciPy's standardized default).",
+    "show=[\"l-skewness\"] or [\"l-kurtosis\"] for the ratios.",
+    "These are Hosking's L-moments and L-moment ratios, which R lmom::samlmu also gives; Hosking 1990 reports "
+    "lambda_1 and lambda_2 as they are and the higher ones as ratios, which is how simplydata names them.",
+    ("hosking1990",), "P3",
+    "At least k values; the ratios need at least 3 (or 4) values that differ, otherwise the cell is left empty.",
+    "published")
+BASIS['table.find_summary_of show="central moment k"'] = _b(
+    "The average of (value - average)^k, divided by n (SciPy moment, its default center=None: around the average).",
+    "show=[\"cumulant k\"] for the unbiased k-statistic; show=[\"variance\"] for the variance with n - 1.",
+    "Dividing by n is the definition of the sample central moment, as SciPy moment and R moments::moment(central = "
+    "TRUE) give it. " + _SCIPY_STATS_OWN, (), "P3", "", "convention")
+BASIS['table.find_summary_of show="expectile p"'] = _b(
+    "The expectile is written in percent, as \"percentile 90\" is: \"expectile 90\" is SciPy expectile(alpha=0.9); "
+    "\"expectile 50\" is the average.",
+    "None: the percent is part of the name; show=[\"percentile p\"] for the quantile.",
+    "Expectiles are Newey & Powell's asymmetric least-squares counterpart of quantiles; writing them in percent, as "
+    "percentiles are, keeps one way of writing for both.", ("newey1987",), "P5",
+    "The percent must be above 0 and below 100, otherwise it is refused with an example.", "starting value")
+BASIS['table.find_summary_of show="average between a and b"'] = _b(
+    "Only the values from a to b, both limits included (SciPy tmean's default inclusive=(True, True)); \"standard "
+    "deviation between\", \"variance between\" and \"standard error between\" the same, with n - 1 (tstd, tvar, "
+    "tsem, ddof=1).",
+    "show=[\"trimmed average\"] cuts a share from each end instead of fixed limits; limits that leave a value out are "
+    "not offered.",
+    "Both limits included is SciPy's default; n - 1 is the sample spread used everywhere in simplydata. "
+    + _SCIPY_STATS_OWN, (), "P3",
+    "At least 1 value between the limits (2 for the spreads), otherwise the cell is left empty, with the reason.",
+    "convention")
+BASIS['table.find_summary_of show="smallest from a"'] = _b(
+    "The smallest value at or above a: the limit is included (SciPy tmin(lowerlimit=a), its default inclusive=True); "
+    "\"biggest up to b\" is SciPy tmax(upperlimit=b), also inclusive.",
+    "show=[\"smallest\"] or [\"biggest\"] for no limit.", _SCIPY_STATS_OWN, (), "P3",
+    "No value at or above (or at or below) the limit leaves the cell empty, with the reason.", "convention")
+BASIS['table.find_summary_of show="circular average"'] = _b(
+    "The unit of the angles is part of the name: \"in degrees\" (a full turn from 0 to 360), \"in radians\" (0 to 2 "
+    "pi) or \"in hours\" (0 to 24), given to SciPy circmean as high= with low=0; circular standard deviation and "
+    "circular variance (circstd, circvar) the same.",
+    "find_average_direction_of(full_turn=) for the direction with its length and test.",
+    "The circular average is the direction of the average unit vector (Fisher 1993; Mardia & Jupp 1999), as SciPy "
+    "circmean works it out; the unit is asked for rather than assumed, because degrees read as radians give a "
+    "wrong answer without any warning.", ("fisher1993", "mardia1999"), "P4",
+    "Without a unit the measure is refused, naming the three units (as find_average_direction_of needs "
+    "full_turn=).", "convention")
+BASIS['table.find_summary_of show="differential entropy"'] = _b(
+    "In nats, by SciPy differential_entropy's method=\"auto\": the van Es estimator for 10 values or fewer, "
+    "Ebrahimi's from 11 to 1000 values and Vasicek's above 1000, with SciPy's window length.",
+    "None: the method follows SciPy's rule; show=[\"entropy\"] is the entropy of the values as counts.",
+    "Ebrahimi, Pflughoeft & Soofi 1994 found their estimator less biased than Vasicek's spacing estimator (Vasicek "
+    "1976), which SciPy keeps for large samples, where the two agree. " + _SCIPY_STATS_OWN,
+    ("vasicek1976", "ebrahimi1994"), "P3",
+    "At least 2 values that differ; when SciPy's window is too small for the values the cell is left empty, with "
+    "the reason.", "convention")
+BASIS['table.find_summary_of show="percentile rank v"'] = _b(
+    "The inverse of \"percentile p\": the percent p whose percentile (R type 7, linear interpolation) is v (SciPy "
+    "estimated_cdf, times 100).",
+    "show=[\"percent at or below v\"] for the plain share of values at or below v.",
+    "Type 7 is the percentile simplydata, R, NumPy and pandas use by default (Hyndman & Fan 1996), so the percentile "
+    "rank of the percentile 90 is 90.", ("hyndman1996",), "P3", "", "convention")
+BASIS['table.find_summary_of show="percent at or below v"'] = _b(
+    "The values at or below v count (SciPy percentileofscore(kind=\"weak\")), so it is the plain share in percent, "
+    "as R ecdf(x)(v) * 100.",
+    "show=[\"percentile rank v\"] for the interpolated inverse of the percentile.",
+    "\"Weak\" is the empirical distribution function, the usual meaning of \"at or below\"; SciPy's default "
+    "kind=\"rank\" averages ties and would not match the words.", (), "P5", "", "convention")
+BASIS['table.find_summary_of show="sigma-clipped average"'] = _b(
+    "Values more than 4 standard deviations from the average are cut, again and again until none is (SciPy "
+    "sigmaclip's default low=4, high=4), then the average of the rest.",
+    "\"sigma-clipped average 3\" (or any number above 0) cuts at that many standard deviations.",
+    _SCIPY_STATS_OWN, (), "P3", "The number of standard deviations must be above 0.", "convention")
+BASIS["table.find_summary_of in_bins_of="] = _b(
+    "Bins of the width given, from the multiple of the width at or below the smallest value to the first at or above "
+    "the biggest; a bin holds its lower edge, the last one its upper edge too (as SciPy binned_statistic). Bins with "
+    "no values are left out, where SciPy gives an empty number (NaN).",
+    "A list of edges (in_bins_of={\"hours\": [0, 2, 5, 10]}) for bins of your own; two columns or more make bins of "
+    "each (binned_statistic_2d, binned_statistic_dd).",
+    "Edges on multiples of the width are easy to read (0-2, 2-4 rather than 0.7-2.7); the edge rule is SciPy's, so "
+    "the counts agree with binned_statistic.", (), "P5",
+    "A width above 0 or at least 2 edges, each bigger than the one before; more than 100 000 bins are refused; not "
+    "with every= or separator=; a column cannot be in both in_bins_of= and for_each_group_in=.", "starting value")
+BASIS["table.find_summary_of in_bins_of= two columns"] = _b(
+    "Each column is cut as with one column (bins of its own width from a multiple of the width); the rows go bin "
+    "after bin of the first column, then of the second, the empty bins left out.",
+    "A list of edges for either column; the order of the columns in in_bins_of= sets the order of the rows.",
+    "The same rule for each column as for one column (SciPy binned_statistic_2d); leaving out empty bins keeps the "
+    "table to the bins that hold values.", (), "P5", "As in_bins_of= with one column.", "starting value")
+BASIS['table.find_summary_of show="running count"'] = _b(
+    "The counts of the bins of in_bins_of= added up in the order of the bins (SciPy cumfreq), within each column and "
+    "group.",
+    "show=[\"share of values\"] for each bin's share instead (SciPy relfreq).",
+    "Adding up in the order of the bins is the cumulative frequency SciPy cumfreq gives, on simplydata's bins.", (),
+    "P3", "Needs in_bins_of= with one column; otherwise it is refused, with an example.", "convention")
+BASIS['table.find_summary_of show="share of values"'] = _b(
+    "Each bin's count divided by all the values in the bins of that column and group (SciPy relfreq), so the shares "
+    "add up to 1.",
+    "show=[\"running count\"] for the counts added up.",
+    "The relative frequency of SciPy relfreq, on simplydata's bins.", (), "P3",
+    "Needs in_bins_of= with one column; otherwise it is refused, with an example.", "convention")
+
+# ---- tests: compare_averages_of, compare_shapes_of, compare_shape_to, compare_counts_to, compare_spreads_of
+BASIS['table.compare_averages_of test_method="wilcoxon rank sum"'] = _b(
+    "The rank sum of the first group against the normal curve, with no continuity correction and no allowance for "
+    "ties (SciPy ranksums), as R wilcox.test(exact = FALSE, correct = FALSE) without ties.",
+    "based_on=\"ranks\" (Mann-Whitney U, exact for small groups, the usual choice); sides= for one side.",
+    "Wilcoxon's rank-sum test and Mann-Whitney's U are the same test (Wilcoxon 1945; Mann & Whitney 1947); this "
+    "form is SciPy ranksums as it is, for those who need its z; the sentence names the exact test.",
+    ("wilcoxon1945", "mann1947"), "P3", "Two groups.", "convention")
+BASIS['table.compare_averages_of test_method="baumgartner-weiss-schindler"'] = _b(
+    "The p-value from shuffling the group labels: every way when there are fewer than 9999, otherwise 9999 random "
+    "ways with seed 1 (SciPy bws_test with PermutationMethod).",
+    "sides= for one side; based_on=\"ranks\" for Mann-Whitney.",
+    "Baumgartner, Weiß & Schindler 1998 give the test and a large-sample formula (R BWStest's default p-value); a "
+    "permutation p-value is exact at any size (Ernst 2004). 9999 shuffles and seed 1 are simplydata's usual starting "
+    "values.", ("baumgartner1998", "ernst2004"), "P2", "Two groups.", "starting value")
+BASIS['table.compare_shapes_of test_method="cramer-von mises"'] = _b(
+    "SciPy cramervonmises_2samp's method=\"auto\": the exact p-value when both groups have 20 values or fewer, "
+    "Anderson's approximation above.",
+    "Leave test_method= out for Kolmogorov-Smirnov; \"anderson-darling\" or \"epps-singleton\".",
+    "The exact distribution is used where it can be worked out quickly, and Anderson 1962's limiting distribution "
+    "otherwise. " + _SCIPY_STATS_OWN, ("anderson1962",), "P3", "Two groups.", "convention")
+BASIS['table.compare_shapes_of test_method="epps-singleton"'] = _b(
+    "SciPy epps_singleton_2samp's two points t = (0.4, 0.8) and its small-sample correction (used when a group has "
+    "fewer than 25 values).",
+    "Leave test_method= out for Kolmogorov-Smirnov; \"cramer-von mises\" or \"anderson-darling\".",
+    "Epps & Singleton 1986 recommend these two points and give the correction; the test works on characteristic "
+    "functions, so it also suits values with many ties.", ("epps1986",), "P1",
+    "Two groups of at least 5 values each.", "published")
+BASIS['table.compare_shape_to test_method="skewness"'] = _b(
+    "D'Agostino's test of the skewness alone (SciPy skewtest, as R moments::agostino.test()).",
+    "Leave test_method= out for Shapiro-Wilk; \"kurtosis\", \"dagostino\" (skewness and kurtosis together), "
+    "\"jarque-bera\".",
+    "D'Agostino 1970 gives the transformation that makes the sample skewness close to normal from 8 values, which "
+    "SciPy and R use.", ("dagostino1970",), "P3", "At least 8 values.", "published")
+BASIS['table.compare_shape_to test_method="kurtosis"'] = _b(
+    "The Anscombe-Glynn test of the kurtosis alone (SciPy kurtosistest, as R moments::anscombe.test()); SciPy's "
+    "warning below 20 values is left out, as R gives the same z without it.",
+    "Leave test_method= out for Shapiro-Wilk; \"skewness\", \"dagostino\", \"jarque-bera\".",
+    "Anscombe & Glynn 1983 give the transformation of the sample kurtosis that SciPy and R use.", ("anscombe1983",),
+    "P3", "SciPy's smallest size (5 values).", "published")
+BASIS['table.compare_counts_to test_method="g"'] = _b(
+    "The G-test (SciPy power_divergence(lambda_=\"log-likelihood\")), as R DescTools::GTest(); \"freeman-tukey\", "
+    "\"neyman\", \"modified g\" and \"cressie-read\" (lambda 2/3) are the other lambda_ values.",
+    "Leave test_method= out for Pearson's chi-square (the default).",
+    "All of them belong to Cressie & Read's power-divergence family and share the chi-square limit; Cressie & Read "
+    "1984 recommend lambda 2/3 as a compromise between Pearson's chi-square and G.", ("cressie1984",), "P3",
+    "As compare_counts_to: expected counts below 5 get a note.", "convention")
+BASIS["table.compare_spreads_of test_method=\"o'brien\""] = _b(
+    "The one-way ANOVA of O'Brien's scores, whose group averages are the group variances (SciPy obrientransform, "
+    "then f_oneway).",
+    "Leave test_method= out for Levene's test centred on the median; \"bartlett\", \"fligner\".",
+    "O'Brien 1981 turns each value into a score whose group average is the group's variance, so the ordinary ANOVA "
+    "tests the spreads.", ("obrien1981",), "P3", "At least 3 values in each group.", "published")
+
+# ---- correlation, rates, intervals, combined p-values
+BASIS['table.find_correlation_between test_method="chatterjee xi"'] = _b(
+    "xi of the second column given the first (it is not symmetric), with the one-sided p-value of the normal "
+    "approximation; ties in the first column are broken in SciPy's order, y_continuous=False (SciPy chatterjeexi, "
+    "as R XICOR::xicor()).",
+    "Swap the columns for the other direction; test_method=\"spearman\" or \"kendall\" for a link that goes one way.",
+    "Chatterjee 2021 defines xi and its p-value; y_continuous=False is the form that allows ties in the second "
+    "column. Chatterjee suggests breaking ties in the first column at random; SciPy breaks them by its own order, "
+    "so the answer repeats.", ("chatterjee2021",), "P3", "At least 3 rows with both values.", "convention")
+BASIS['table.find_correlation_between test_method="weighted kendall"'] = _b(
+    "SciPy weightedtau's hyperbolic weights, ranked by both columns (rank=True): the pairs near the top of the "
+    "ranking count most; no p-value.",
+    "test_method=\"kendall\" for the unweighted tau-b, with a p-value.",
+    "Vigna 2015 defines the weighted tau and the hyperbolic weights SciPy uses by default. " + _SCIPY_STATS_OWN,
+    ("vigna2015",), "P3", "At least 3 rows with both values.", "convention")
+BASIS['table.find_correlation_between test_method="multiscale graph"'] = _b(
+    "1000 shuffles for the p-value, seed 1 (printed), as SciPy multiscale_graphcorr's default reps=1000 and R "
+    "mgc::mgc.test().",
+    "with_seed= for another seed.",
+    "Vogelstein et al. 2019 define the multiscale graph correlation and its permutation p-value; 1000 shuffles is "
+    "SciPy's default, the seed simplydata's, so the answer repeats.", ("vogelstein2019",), "P3",
+    "At least 5 rows with both values.", "convention")
+BASIS['table.compare_rates test_method="e-test"'] = _b(
+    "The other group against against= (the first group in sorted order unless against= says), with diff=0: equal "
+    "rates (SciPy poisson_means_test).",
+    "sides= for one side; leave test_method= out for the exact conditional test of R poisson.test().",
+    "Krishnamoorthy & Thomson 2004 found the E-test more powerful than the conditional test while keeping its error "
+    "rate; diff=0 is SciPy's default and the usual question.", ("krishnamoorthy2004",), "P2",
+    "Two groups, each with some time; not with same_within=, not_lower=, not_higher=, allowing_for= or "
+    "standard_rates=.", "published")
+BASIS['table.find_interval_of test_method="bayesian"'] = _b(
+    "Jeffreys' uninformative prior, as SciPy bayes_mvs; the middle is the posterior mean, and \"variance\" and "
+    "\"standard deviation\" take bayes_mvs's other two parts. The level is interval= (95 % unless given), not "
+    "SciPy's 90 %.",
+    "interval= for the level; leave test_method= out for the BCa bootstrap interval.",
+    "Oliphant 2006 works out these intervals under the uninformative prior; the average's interval is then the "
+    "usual t interval.", ("oliphant2006",), "P3",
+    "The \"average\", \"variance\" or \"standard deviation\" only; at least 2 different numbers in each group.",
+    "convention")
+BASIS["table.combine_studies p_values="] = _b(
+    "Fisher's method when test_method= is left out (SciPy combine_pvalues's default method=\"fisher\"); no R "
+    "needed.",
+    "test_method=\"stouffer\" (with counts= to weigh by the square root of each study's size), \"pearson\", "
+    "\"tippett\" or \"mudholkar-george\".",
+    "Fisher's method is the classic way to combine p-values and SciPy's default. It says whether any study shows an "
+    "effect, not how big it is, which the sentence says. " + _SCIPY_STATS_OWN, (), "P3",
+    "At least 2 p-values, each above 0 and at most 1; not with the other ways in (events=, estimates= ...).",
+    "convention")
+
+# ---- find_best_power_of: the SciPy power tables
+BASIS['table.find_best_power_of show="log-likelihood"'] = _b(
+    "The powers -2 to 2 in steps of 0.1 (row 21 is power 0, the log), each with SciPy boxcox_llf; yeojohnson_llf "
+    "with test_method=\"yeo-johnson\".",
+    "show=\"power\" (the default) for the best power itself with its interval.",
+    "-2 to 2 holds the usual powers (Box & Cox 1964; Yeo & Johnson 2000), and steps of 0.1 are fine enough to read "
+    "the curve; the range is simplydata's starting value, the same as for the normal plot.",
+    ("box1964", "yeo2000"), "P5", "At least 10 values; Box-Cox needs values above 0; not with test_method=\"tukey "
+    "lambda\".", "starting value")
+BASIS['table.find_best_power_of show="normal plot correlation"'] = _b(
+    "41 powers from -2 to 2 (SciPy boxcox_normplot, its N=41 points); yeojohnson_normplot with test_method=\"yeo-"
+    "johnson\", and ppcc_plot of the Tukey lambda shape with test_method=\"tukey lambda\".",
+    "show=\"best by normal plot\" for the single straightest power.",
+    "The probability plot correlation measures how straight the plot is (Filliben 1975); 41 points from -2 to 2 "
+    "match the log-likelihood table, step 0.1.", ("filliben1975",), "P5",
+    "At least 10 values; Box-Cox needs values above 0.", "starting value")
+BASIS['table.find_best_power_of show="best by normal plot"'] = _b(
+    "The Box-Cox power whose normal probability plot is straightest (SciPy boxcox_normmax(method=\"pearsonr\")).",
+    "show=\"power\" (the default) for the power by maximum likelihood, as Box & Cox chose it.",
+    "Maximum likelihood is Box & Cox's own way and stays the default; the straightest plot (Filliben 1975) is "
+    "offered for those who choose by the plot.", ("box1964", "filliben1975"), "P3",
+    "Box-Cox only (Yeo-Johnson is refused); at least 10 values above 0.", "convention")
+BASIS['table.find_best_power_of test_method="tukey lambda"'] = _b(
+    "The Tukey lambda shape whose probability plot correlation is biggest (SciPy ppcc_max, its default "
+    "dist=\"tukeylambda\"); the sentence names the usual shape it is close to.",
+    "test_method=\"box-cox\" or \"yeo-johnson\" for a power of the values.",
+    "Filliben 1975 introduced the probability plot correlation with the Tukey lambda family to tell long tails from "
+    "short ones. " + _SCIPY_STATS_OWN, ("filliben1975",), "P3",
+    "At least 10 values; not with show=\"log-likelihood\" or \"best by normal plot\".", "convention")
+
+# ---- compare_distributions_for(show=): distances between groups
+BASIS['table.compare_distributions_for show="wasserstein distance"'] = _b(
+    "One row per pair of groups, in sorted order (A and B first), each the area between the groups' cumulative "
+    "shares (SciPy wasserstein_distance, as R transport::wasserstein1d()); a list of columns uses "
+    "wasserstein_distance_nd.",
+    "show=\"energy distance\"; leave show= out to fit and rank distributions.",
+    "Every pair is shown, in the order the groups sort, so the table is the same each time. " + _SCIPY_STATS_OWN,
+    (), "P5", "At least 2 groups; needs for_each_group_in=; not with distributions=.", "convention")
+BASIS['table.compare_distributions_for show="energy distance"'] = _b(
+    "Székely's energy distance (SciPy energy_distance) for each pair of groups in sorted order: A and B, A and C, "
+    "then B and C.",
+    "show=\"wasserstein distance\" (also for a list of columns).",
+    "SciPy's energy distance is the square root of Székely & Rizzo's energy statistic; the pairs in sorted order "
+    "make the table the same each time.", ("szekely2013",), "P5",
+    "One column; at least 2 groups; needs for_each_group_in=.", "convention")
+
+# ---- sensitivity, censored fits, distributions
+BASIS["sdata.find_sensitivity_of"] = _b(
+    "The names in the order they first turn up in the formula, each spread evenly over its range; a Sobol' sample of "
+    "1024 points for each base sample and seed 1 (SciPy sobol_indices).",
+    "how_many= (a power of 2, at least 64) and with_seed=.",
+    "Sobol' indices with Saltelli et al. 2010's estimators are the standard variance-based sensitivity measure; an "
+    "even spread says only the range is known. 1024 points and seed 1 are simplydata's starting values (more points, "
+    "steadier indices).", ("saltelli2010",), "P5",
+    "A range for every name in the formula and none extra, each low then high; a formula that does not vary is "
+    "refused.", "starting value")
+BASIS["table.fit_distribution_to censored_by="] = _b(
+    "The rows where censored_by= says yes are right-censored (the value is only a lower limit): maximum likelihood "
+    "adds the log density of each value seen and the log chance above of each censored one, as SciPy "
+    "fit(CensoredData) and R fitdistrplus::fitdistcens(); no location for the Weibull, as R survival::survreg().",
+    "fixed= to hold parameters; leave censored_by= out to treat every value as seen.",
+    "This is the standard likelihood for right-censored data (Kalbfleisch & Prentice 2002); simplydata polishes "
+    "SciPy's search so the answers agree with R to about 5 digits.", ("kalbfleisch2002", "delignette2015"), "P3",
+    "A yes/no column; at least 2 values that are not censored; smooth distributions only; no standard errors (no "
+    "package simplydata uses gives them for a censored fit).", "published")
+BASIS['sdata.distribution "studentized range"'] = _b(
+    "Every SciPy distribution by a plain name, with a plain name for each parameter: here k is groups= and df "
+    "degrees_of_freedom=; SciPy's names work too.",
+    "SciPy's name (\"studentized_range\") and parameters (k=, df=).",
+    "Plain names read as words; SciPy's numbers are unchanged, so the percentiles agree with R ptukey()/qtukey().",
+    (), "P3", "", "convention")
+BASIS['sdata.distribution "multivariate normal"'] = _b(
+    "Joint distributions are names of sdata.distribution too: averages= is SciPy's mean and covariance= its cov; "
+    "make_random_numbers gives one row per draw.",
+    "SciPy's names (mean=, cov=) work too.",
+    "One maker for every distribution; SciPy multivariate_normal does the sums, so the numbers agree with SciPy's.",
+    (), "P3", "covariance= must be a square, symmetric grid with no negative eigenvalue.", "convention")
+BASIS['sdata.distribution "multinomial"'] = _b(
+    "For counts, find_density_at gives the chance of exactly those counts (SciPy multinomial pmf).",
+    "find_chance_that_value(is_below=) for the chance of each count below the values.",
+    "For counts the chance of a value is the density, as R dmultinom() gives it.", (), "P3",
+    "chances= of 0 or more adding up to 1; tries= a whole number.", "convention")
+BASIS['sdata.distribution "wishart"'] = _b(
+    "A value of a matrix distribution is a grid; random draws come as a block, one page per draw (SciPy wishart).",
+    "None: a grid is the only form of a matrix value.",
+    "A grid holds a matrix as it is; one page per draw keeps each draw whole.", (), "P5",
+    "scale= must be a square, symmetric grid with no negative eigenvalue.", "convention")
+BASIS['sdata.distribution "mixture"'] = _b(
+    "The shares times each distribution's density and chances, added up (as SciPy stats.Mixture); percentiles by "
+    "root finding, random numbers by first picking a distribution with its share.",
+    "None: of= and shares= say the mixture.",
+    "This is the definition of a mixture; picking the distribution first is the standard way to draw from one.", (),
+    "P3",
+    "At least 2 distributions of one value, all smooth or all counts; one share each, 0 or more, adding up to 1.",
+    "convention")
+BASIS['sdata.distribution "from values"'] = _b(
+    "The values sorted, each with its chance (SciPy rv_discrete(values=)); without chances= every value has the "
+    "same chance.",
+    "chances= for chances of your own.",
+    "SciPy rv_discrete needs the values in order; equal chances is the plain reading of a list of values.", (), "P3",
+    "Different values, one chance each, 0 or more, adding up to 1.", "convention")
+BASIS['sdata.distribution "histogram"'] = _b(
+    "The values are spread evenly within each bin (SciPy rv_histogram); of=numbers with bins= counts the numbers "
+    "first (NumPy histogram, 10 bins unless bins= says).",
+    "counts= and bin_edges= for bins of your own.",
+    "Even within each bin is SciPy rv_histogram's model; 10 bins is NumPy histogram's default.", (), "P3",
+    "One more edge than counts, each bigger than the one before; counts 0 or more, not all 0; of= needs at least 2 "
+    "numbers.", "convention")
+BASIS["dist.take_function"] = _b(
+    "The change of variables: the chances of the new values come from the old distribution (exp of a normal is a "
+    "lognormal), as SciPy stats.exp, stats.log and stats.abs.",
+    "name=\"log\", \"exp\", \"absolute value\" or \"order statistic\" (with rank= and out_of=).",
+    "The change of variables is exact, so no random numbers are needed. " + _SCIPY_STATS_OWN, (), "P3",
+    "A smooth distribution of one value; the log needs values above 0.", "convention")
+BASIS['dist.take_function "order statistic"'] = _b(
+    "rank=1 is the smallest of out_of= values drawn (SciPy stats.order_statistic's r= and n=).",
+    "rank=out_of for the biggest.",
+    "Positions count from 1 everywhere in simplydata, as SciPy's r= also does.", (), "P5",
+    "Whole numbers with 1 <= rank <= out_of.", "convention")
+BASIS["sdata.find_parameter_that_gives"] = _b(
+    "The one parameter left out is found with scipy.special's inverse function for it (stdtridf, bdtri, "
+    "nrdtrisd ...); for counts chance_below= means fewer than at_value, as find_chance_that_value(is_below=).",
+    "chance_at_most=, chance_above= or chance_at_least=.",
+    "The inverse functions of scipy.special (from the Cephes and CDFLIB libraries) solve for the parameter "
+    "directly; \"below\" means the same in every simplydata word.", (), "P3",
+    "One chance between 0 and 1; exactly one parameter left out; at_value= a whole number for counts; no parameter "
+    "giving that chance is refused, with a sentence.", "convention")
+BASIS["nums.take_function"] = _b(
+    "The plain name comes from one name table (\"bessel J\" is SciPy special.jv, and \"jv\" works too); the numbers "
+    "go where SciPy's x goes and the other inputs are options with plain names (order=).",
+    "SciPy's or NumPy's own name; take_function() with no name lists every function.",
+    "One name table for take_function and formula text; the numbers are SciPy's own. " + _SCIPY_STATS_OWN.replace(
+        "(scipy.stats)", "(scipy.special)"), (), "P5",
+    "Unknown options and missing inputs are refused, naming the options; where a function has no value the answer "
+    "is empty and a note says how many.", "convention")
+BASIS["nums.take_function part="] = _b(
+    "simplydata numbers are real numbers: a complex answer gives its real part unless part= asks for \"imaginary\", "
+    "\"size\" (np.abs) or \"angle\" (np.angle); the sentence says which.",
+    "part=\"imaginary\", \"size\" or \"angle\".",
+    "The real part is the plain reading of a complex answer, and the sentence names it so nothing is lost "
+    "unknowingly.", (), "P5",
+    "part= only for functions with complex answers; other values are refused.", "starting value")
+
+# ---------------------------------------------------------------- families for 100 %: bases of the batch 14-16 choices
+# (group C: SciPy optimize, integrate and interpolate; every DOI below was looked up in Crossref on 2026-11-28)
+REFERENCES.update({
+    "kiefer1953": _ref("Kiefer 1953", "Kiefer J (1953). Sequential minimax search for a maximum. Proceedings of the "
+                       "American Mathematical Society 4:502-506.", doi="10.1090/S0002-9939-1953-0055639-3"),
+    "byrd1995": _ref("Byrd et al. 1995", "Byrd RH, Lu P, Nocedal J, Zhu C (1995). A Limited Memory Algorithm for Bound "
+                     "Constrained Optimization. SIAM Journal on Scientific Computing 16:1190-1208.",
+                     doi="10.1137/0916069"),
+    "nash1984": _ref("Nash 1984", "Nash SG (1984). Newton-Type Minimization via the Lanczos Method. SIAM Journal on "
+                     "Numerical Analysis 21:770-788.", doi="10.1137/0721052"),
+    "aitken1927": _ref("Aitken 1927", "Aitken AC (1927). On Bernoulli's Numerical Solution of Algebraic Equations. "
+                       "Proceedings of the Royal Society of Edinburgh 46:289-305.", doi="10.1017/S0370164600022070"),
+    "broyden1965": _ref("Broyden 1965", "Broyden CG (1965). A class of methods for solving nonlinear simultaneous "
+                        "equations. Mathematics of Computation 19:577-593.", doi="10.1090/S0025-5718-1965-0198670-6"),
+    "anderson1965": _ref("Anderson 1965", "Anderson DG (1965). Iterative Procedures for Nonlinear Integral Equations. "
+                         "Journal of the ACM 12:547-560.", doi="10.1145/321296.321305"),
+    "knoll2004": _ref("Knoll & Keyes 2004", "Knoll DA, Keyes DE (2004). Jacobian-free Newton-Krylov methods: a survey "
+                      "of approaches and applications. Journal of Computational Physics 193:357-397.",
+                      doi="10.1016/j.jcp.2003.08.010"),
+    "ayer1955": _ref("Ayer et al. 1955", "Ayer M, Brunk HD, Ewing GM, Reid WT, Silverman E (1955). An Empirical "
+                     "Distribution Function for Sampling with Incomplete Information. The Annals of Mathematical "
+                     "Statistics 26:641-647.", doi="10.1214/aoms/1177728423"),
+    "crouse2016": _ref("Crouse 2016", "Crouse DF (2016). On implementing 2D rectangular assignment algorithms. IEEE "
+                       "Transactions on Aerospace and Electronic Systems 52:1679-1696.",
+                       doi="10.1109/TAES.2016.140952"),
+    "vogelstein2015": _ref("Vogelstein et al. 2015", "Vogelstein JT, Conroy JM, Lyzinski V et al. (2015). Fast "
+                           "Approximate Quadratic Programming for Graph Matching. PLoS ONE 10:e0121002.",
+                           doi="10.1371/journal.pone.0121002"),
+    "halton1960": _ref("Halton 1960", "Halton JH (1960). On the efficiency of certain quasi-random sequences of points "
+                       "in evaluating multi-dimensional integrals. Numerische Mathematik 2:84-90.",
+                       doi="10.1007/BF01386213"),
+    "kierzenka2001": _ref("Kierzenka & Shampine 2001", "Kierzenka J, Shampine LF (2001). A BVP solver based on "
+                          "residual control and the Matlab PSE. ACM Transactions on Mathematical Software 27:299-316.",
+                          doi="10.1145/502800.502801"),
+    "floater2007": _ref("Floater & Hormann 2007", "Floater MS, Hormann K (2007). Barycentric rational interpolation "
+                        "with no poles and high rates of approximation. Numerische Mathematik 107:315-331.",
+                        doi="10.1007/s00211-007-0093-y"),
+    "nakatsukasa2018": _ref("Nakatsukasa et al. 2018", "Nakatsukasa Y, Sète O, Trefethen LN (2018). The AAA Algorithm "
+                            "for Rational Approximation. SIAM Journal on Scientific Computing 40:A1494-A1522.",
+                            doi="10.1137/16M1106122"),
+    "nielson1983": _ref("Nielson 1983", "Nielson GM (1983). A method for interpolating scattered data based upon a "
+                        "minimum norm network. Mathematics of Computation 40:253-271.",
+                        doi="10.1090/S0025-5718-1983-0679444-7"),
+    "renka1984": _ref("Renka & Cline 1984", "Renka RL, Cline AK (1984). A triangle-based C1 interpolation method. "
+                      "Rocky Mountain Journal of Mathematics 14:223-238.",
+                      doi="10.1216/RMJ-1984-14-1-223"),
+    "deboor1978": _ref("de Boor 1978", "de Boor C (1978). A Practical Guide to Splines. Applied Mathematical Sciences. "
+                       "Springer, New York.", doi="10.1007/978-1-4612-6333-3"),
+    "green1994": _ref("Green & Silverman 1994", "Green PJ, Silverman BW (1994). Nonparametric Regression and "
+                      "Generalized Linear Models: A roughness penalty approach. Chapman and Hall.",
+                      doi="10.1007/978-1-4899-4473-3"),
+})
+
+# ---- find_where_smallest: the other methods of SciPy minimize and minimize_scalar
+BASIS["sdata.find_where_smallest test_method=\"golden section\""] = _b(
+    "The lowest of 200 evenly spaced points and its two neighbours make the bracket, so the golden sections stay "
+    "inside between=; then SciPy minimize_scalar(method=\"golden\") to a tolerance of 1e-10, as Brent's method in "
+    "find_where_smallest (R optimize(tol = 1e-10)).",
+    "Without test_method=: Brent's method (golden sections with parabolic steps, R optimize()); start= instead of "
+    "between= makes the bracket around the start; search=\"whole range\" looks everywhere.",
+    "The golden-section search closes in on one dip inside a bracket (Kiefer 1953); the 200-point scan makes that "
+    "bracket inside the range, as for Brent's method, and the tolerance is find_where_smallest's, so the two "
+    "methods agree. The 200 points are simplydata's own starting value; a narrower between= looks closer.",
+    ("kiefer1953",), "P3",
+    "A formula with no value at any of the 200 points is refused; a lowest point at an end of the range, or a flat "
+    "bottom (several points as low), gets a note.", "starting value")
+BASIS["sdata.find_where_smallest test_method=\"grid search\""] = _b(
+    "SciPy brute on about 20,000 grid points in all, shared evenly among the names (20,000 for one name, 141 along "
+    "each of two), then a local polish that keeps to between= (L-BFGS-B), as after DIRECT; SciPy brute's own "
+    "finish (fmin) may leave the range.",
+    "search=\"whole range\" with test_method=\"differential evolution\", \"dual annealing\", \"shgo\", \"basin "
+    "hopping\" or \"direct\".",
+    "A grid finds the best region only as finely as its spacing, so a local search settles inside it; L-BFGS-B "
+    "keeps to the limits (Byrd et al. 1995), where Nelder-Mead, brute's own finish, does not. The 20,000 points "
+    "are simplydata's own starting value; no option changes them.",
+    ("byrd1995",), "P4",
+    "Up to 9 names (at least 3 points along each); more are refused, with test_method=\"differential evolution\" "
+    "named.", "starting value")
+BASIS["sdata.find_where_smallest test_method=\"newton conjugate gradient\""] = _b(
+    "SciPy minimize(method=\"Newton-CG\") with the slopes from scipy.differentiate.jacobian (Newton-CG needs slopes "
+    "as a function and SciPy has no default for them), the bends by SciPy's central differences of those slopes "
+    "(hess=\"3-point\"), a tight tolerance (xtol 1e-10) and up to 10,000 steps.",
+    "Without test_method=: Nelder-Mead (L-BFGS-B within limits); test_method=\"truncated newton\", \"bfgs\" and "
+    "the other slope methods.",
+    "SciPy leaves the slopes to the user, so simplydata works them out with SciPy's own differentiation; SciPy's "
+    "default for the bends is too rough to settle on a flat minimum, so central differences are used. The "
+    "tolerance and the steps are simplydata's own starting values.",
+    (), "P5",
+    "Newton-CG cannot keep to between=, so it is used for the start only (a note says so); a formula with a corner "
+    "or a jump (abs, floor, sign ...) gets a note.", "starting value")
+BASIS["sdata.find_where_smallest test_method=\"truncated newton\""] = _b(
+    "SciPy minimize(method=\"TNC\") with the slopes by SciPy's central differences (jac=\"3-point\"; its default "
+    "uses forward differences), tight tolerances (xtol 1e-12, ftol 1e-15, gtol 1e-10) and up to 20,000 "
+    "evaluations; TNC keeps to between= when it is given.",
+    "Without test_method=: Nelder-Mead (L-BFGS-B within limits); test_method=\"newton conjugate gradient\", "
+    "\"bfgs\" and the other slope methods.",
+    "A truncated Newton method solves each Newton step only roughly, by an inner iteration (Nash 1984), as R "
+    "nloptr's NLOPT_LD_TNEWTON; central differences give more accurate slopes than forward ones. The tolerances are "
+    "simplydata's own starting values.",
+    ("nash1984",), "P5",
+    "A formula with a corner or a jump (abs, floor, sign ...) gets a note; so does a search that did not settle.",
+    "starting value")
+
+# ---- solve: fixed-point iteration and the other solvers of SciPy root
+BASIS["sdata.solve test_method=\"fixed point\""] = _b(
+    "SciPy optimize.fixed_point with Steffensen's acceleration (method=\"del2\", SciPy's default) from start= (or "
+    "the middle of between=), to a tolerance of 1e-12, as R uniroot(tol = 1e-12) in solve; up to 1000 steps.",
+    "Without test_method=: Brent's method in a range (between=); test_method=\"secant\" from start=.",
+    "Aitken's delta-squared process (Aitken 1927), used at every step as in Steffensen's method, speeds up a "
+    "fixed-point iteration that would otherwise settle slowly; it is SciPy's default. The tolerance is the one of "
+    "solve's other methods, so they agree.",
+    ("aitken1927",), "P3",
+    "The equation needs the letter alone on the left (x = g(x)); an iteration that does not settle, or an answer "
+    "that does not meet the equation, is refused; an answer outside between= gets a note.", "convention")
+_ROOT_TIGHT = ("SciPy's own tolerance for these solvers stops at about 6e-6, far looser than solve's other methods "
+               "(1e-12, as R uniroot), so a tight one is used and every equation is checked at the answer. ")
+_ROOT_OTHERS = ("Without test_method=: exact linear algebra for straight-line equations, else Powell's hybrid method "
+                "(MINPACK hybrd); test_method=\"broyden\", \"levenberg-marquardt\" and the other solvers of SciPy "
+                "root.")
+_ROOT_CHECKS = ("A search that breaks down, or values that do not make every equation true (left minus right within "
+                "1e-8 of the size at the start), is refused; a value outside between= gets a note.")
+BASIS["sdata.solve test_method=\"broyden second\""] = _b(
+    "Each equation as left minus right, solved by SciPy root(method=\"broyden2\") from start= to a tight tolerance "
+    "(fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "Broyden's second method updates the inverse of the Jacobian (Broyden 1965).",
+    ("broyden1965",), "P5", _ROOT_CHECKS, "starting value")
+BASIS["sdata.solve test_method=\"diagonal broyden\""] = _b(
+    "Each equation as left minus right, solved by SciPy root(method=\"diagbroyden\") from start= to a tight "
+    "tolerance (fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "The diagonal Broyden method is SciPy's; no published comparison fixes these settings.",
+    (), "P5", _ROOT_CHECKS, "starting value")
+BASIS["sdata.solve test_method=\"anderson mixing\""] = _b(
+    "Each equation as left minus right, solved by SciPy root(method=\"anderson\") from start= to a tight tolerance "
+    "(fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "Anderson mixing combines the last few steps to choose the next one (Anderson 1965).",
+    ("anderson1965",), "P5", _ROOT_CHECKS, "starting value")
+BASIS["sdata.solve test_method=\"newton-krylov\""] = _b(
+    "Each equation as left minus right, solved by SciPy root(method=\"krylov\") from start= to a tight tolerance "
+    "(fatol 1e-12) and up to 5000 steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "Newton-Krylov methods take Newton steps without forming the Jacobian (Knoll & Keyes 2004).",
+    ("knoll2004",), "P5", _ROOT_CHECKS, "starting value")
+BASIS["sdata.solve test_method=\"linear mixing\""] = _b(
+    "Each equation as right minus left (these methods take the Jacobian to be about minus 1, as for x = g(x)), "
+    "solved by SciPy root(method=\"linearmixing\") from start= to a tight tolerance (fatol 1e-12) and up to 5000 "
+    "steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "With right minus left, an equation written as x = g(x) settles as a damped fixed-point "
+    "iteration.",
+    (), "P5", _ROOT_CHECKS + " When it fails, the sentence says to write each name alone on the left, one equation "
+    "for each name in order.", "starting value")
+BASIS["sdata.solve test_method=\"exciting mixing\""] = _b(
+    "Each equation as right minus left (these methods take the Jacobian to be about minus 1, as for x = g(x)), "
+    "solved by SciPy root(method=\"excitingmixing\") from start= to a tight tolerance (fatol 1e-12) and up to "
+    "5000 steps; SciPy's own default stops at about 6e-6.",
+    _ROOT_OTHERS,
+    _ROOT_TIGHT + "With right minus left, an equation written as x = g(x) settles as a tuned fixed-point "
+    "iteration.",
+    (), "P5", _ROOT_CHECKS + " When it fails, the sentence says to write each name alone on the left, one equation "
+    "for each name in order.", "starting value")
+
+# ---- fit_curve(always=): isotonic regression
+BASIS["table.fit_curve always="] = _b(
+    "Isotonic regression by pool adjacent violators (SciPy optimize.isotonic_regression) on y in the order of x; at "
+    "a tied x the biggest y comes first for a rising curve (the smallest for a falling one), as R isoreg() orders "
+    "them (order(x, -y)), so the values at a tied x are pooled.",
+    "always=\"falling\"; weights= for weighted pooling (R isoreg() has no weights); of_degree= or of_kind= for a "
+    "curve with a formula.",
+    "Pool adjacent violators gives the least-squares curve that never goes down (Ayer et al. 1955); ordering the "
+    "ties as R isoreg() does makes the fitted values equal R's $yf.",
+    ("ayer1955",), "P3",
+    "No of_degree= or of_kind= with always=; weights= above 0 in every row used.", "published")
+
+# ---- find_best_pairing
+BASIS["sdata.find_best_pairing"] = _b(
+    "The exact answer of the linear assignment problem: SciPy optimize.linear_sum_assignment (the shortest "
+    "augmenting path of Crouse 2016), as R lpSolve::lp.assign(); rows and columns named 1, 2, 3 ... (or by the "
+    "table's names), not counted from 0.",
+    "aim_for=\"biggest total\" for scores instead of costs; with_distances= for the quadratic assignment problem.",
+    "The assignment problem has an exact answer that is quick to find, so no approximate method is needed; Crouse "
+    "2016 describes the algorithm SciPy uses. Positions count from 1 everywhere in simplydata.",
+    ("crouse2016",), "P3",
+    "Empty cells are pairs that are not allowed, and a grid where they leave no full pairing is refused; infinite "
+    "numbers are refused; rows or columns left free are said; test_method= is refused without with_distances=.",
+    "published")
+BASIS["sdata.find_best_pairing with_distances="] = _b(
+    "The Fast Approximate QAP method (Vogelstein et al. 2015), SciPy quadratic_assignment's default; "
+    "test_method=\"2-opt\" swaps places instead.",
+    "test_method=\"2-opt\" (swaps of two places until no swap helps, with_seed=1); aim_for=\"biggest total\".",
+    "The quadratic assignment problem is hard: no method proves the best answer for more than a few items, so "
+    "simplydata says the answer is a good one. FAQ is SciPy's default (Vogelstein et al. 2015); R has no common "
+    "equivalent.",
+    ("vogelstein2015",), "P5",
+    "Both grids square and of the same size, with a number in every cell.", "convention")
+
+# ---- find_area_under and find_volume_under: quasi-Monte Carlo and Romberg
+BASIS["sdata.find_area_under test_method=\"quasi monte carlo\""] = _b(
+    "SciPy integrate.qmc_quad with scrambled Halton points with_seed=1 (8 samples of 1024 points, SciPy's own "
+    "numbers), so the same call gives the same estimate; the standard error is printed.",
+    "test_method=\"quad\" (the default), \"tanh-sinh\", \"cubature\", \"gauss\" or \"romberg on even steps\"; "
+    "exactly=True.",
+    "Quasi-random points such as Halton's fill the range more evenly than random ones (Halton 1960); the fixed seed "
+    "makes the scrambling repeatable. Seed 1 is simplydata's own starting value; no option changes it.",
+    ("halton1960",), "P5", "Both ends must be numbers (not infinity).", "starting value")
+BASIS["sdata.find_area_under test_method=\"romberg on even steps\""] = _b(
+    "SciPy integrate.romb on 1025 evenly spaced points (2**10 + 1, as romb needs).",
+    "test_method=\"quad\" (the default) for an error estimate, \"tanh-sinh\", \"cubature\", \"gauss\" or "
+    "\"quasi monte carlo\".",
+    "romb needs 2**k + 1 evenly spaced points; 1025 is simplydata's own starting value, and the printout says that "
+    "romb gives no error estimate. SciPy removed integrate.romberg in version 1.15, so test_method=\"romberg\" "
+    "points here.",
+    (), "P5",
+    "One letter; both ends numbers; a formula with no value at some of the points (such as a division by 0 at an "
+    "end) is refused, with test_method=\"tanh-sinh\" named.", "starting value")
+BASIS["sdata.find_volume_under test_method=\"quasi monte carlo\""] = _b(
+    "SciPy integrate.qmc_quad with scrambled Halton points with_seed=1 (8 samples of 1024 points), as for "
+    "find_area_under; the standard error is printed.",
+    "test_method=\"quad\" (the default, nested QUADPACK) or \"cubature\"; exactly=True.",
+    "As find_area_under(test_method=\"quasi monte carlo\") (Halton 1960); seed 1 is simplydata's own starting value.",
+    ("halton1960",), "P5", "A range of two numbers for every letter (not infinity).", "starting value")
+
+# ---- find_path_between_ends
+BASIS["sdata.find_path_between_ends"] = _b(
+    "SciPy integrate.solve_bvp on 101 evenly spaced places in the table, with a straight line between the known ends "
+    "as the first guess and a tolerance of 1e-8 (SciPy's own default is 1e-3), as R bvpSolve's 1e-6 or tighter.",
+    "step= for other places in the table; known= fixes other letters.",
+    "solve_bvp is the collocation with control of the residual of Kierzenka & Shampine 2001 (MATLAB bvp4c). A "
+    "straight line is the simplest guess that meets both ends; the 101 places and the tolerance are simplydata's "
+    "own starting values.",
+    ("kierzenka2001",), "P5",
+    "As many known values as values that change; ends that are numbers; step= must fit the range a whole number of "
+    "times; a collocation that does not settle is refused.", "starting value")
+
+# ---- find_values_at: rational curves and smooth triangles
+BASIS["table.find_values_at joined_by=\"rational curve\""] = _b(
+    "SciPy FloaterHormannInterpolator of degree 3 (d=3, SciPy's default), or one less than the number of points when "
+    "there are fewer.",
+    "joined_by=\"straight lines\" (the default), \"smooth curve\", \"aaa\", \"polynomial\" and the others.",
+    "Floater & Hormann 2007 rational curves have no poles on the real line, so they never shoot to infinity "
+    "between the points; d=3 is SciPy's default.",
+    ("floater2007",), "P3",
+    "Several values at one place are averaged first; places outside the points are empty.", "convention")
+BASIS["table.find_values_at joined_by=\"aaa\""] = _b(
+    "The real part of SciPy's AAA curve (SciPy gives complex numbers); a place between two known points where the "
+    "curve has a pole is left empty, with a note.",
+    "joined_by=\"rational curve\" (no poles), \"smooth curve\" and the others.",
+    "The AAA algorithm (Nakatsukasa et al. 2018) works in complex numbers; for real points the imaginary part is only "
+    "rounding. A value next to a pole means nothing, so it is left empty.",
+    ("nakatsukasa2018",), "P4",
+    "Several values at one place are averaged first; places outside the points are empty.", "convention")
+BASIS["table.find_values_at joined_by=\"smooth triangles\""] = _b(
+    "SciPy CloughTocher2DInterpolator, with the slopes at the points found step by step to a tolerance of 1e-12 "
+    "(SciPy's default is 1e-6, at which the order of the points changes the last digits), up to 10,000 steps.",
+    "joined_by=\"straight lines\" (flat triangles), \"smooth surface\" (thin-plate spline) or \"nearest\"; "
+    "outside=\"nearest end\".",
+    "Clough-Tocher surfaces are cubic over each Delaunay triangle with matching slopes (Renka & Cline 1984); SciPy "
+    "estimates the slopes by an iteration (Nielson 1983), which simplydata runs to 1e-12 so that the answer does not "
+    "depend on the order of the rows. The tolerance is simplydata's own starting value.",
+    ("renka1984", "nielson1983"), "P5",
+    "Two directions only; outside=\"extend\" is refused; points on one line are refused; places outside the outline "
+    "are counted (empty, or the nearest point's value with outside=\"nearest end\").", "starting value")
+
+# ---- curve_through_points and its options
+BASIS["sdata.curve_through_points"] = _b(
+    "A cubic spline through every point with natural ends (no bend at the first and last point): SciPy "
+    "make_interp_spline(bc_type=\"natural\"), as R splinefun(method = \"natural\") and find_values_at(joined_by="
+    "\"smooth curve\"); places outside the points are empty.",
+    "degree= 1 to 5; ends=\"not-a-knot\", \"periodic\" or \"clamped\"; smoothness=, allowed_error= or knots= to "
+    "pass near the points; slopes=; in_order=True for a path; z= for a surface.",
+    "Of all curves through the points, the natural cubic spline has the smallest total squared bend (de Boor "
+    "1978); it is R's and find_values_at's smooth curve, so all three agree. A curve carried on beyond its points "
+    "is guesswork, so those places are empty.",
+    ("deboor1978",), "P3",
+    "x and y of the same length, numbers only; two points with the same x are refused (average them, or "
+    "smoothness=); one way of making the curve at a time; weights= only for a curve that passes near the points.",
+    "convention")
+BASIS["sdata.curve_through_points smoothness="] = _b(
+    "x rescaled to run from 0 to 1, so smoothness= is R smooth.spline's lambda, as in find_values_at (SciPy "
+    "make_smoothing_spline, a knot at every distinct x; values at a repeated x averaged and weighted by their "
+    "count, as R).",
+    "smoothness=\"auto\": R smooth.spline chooses lambda by generalised cross-validation; smoothness=0 (the "
+    "default) passes through every point.",
+    "The smoothing spline makes the sum of squared distances plus lambda times the total squared bend as small as "
+    "possible (Green & Silverman 1994); rescaling x as R does makes one lambda give the same curve in both.",
+    ("green1994",), "P3", "No degree= (the curve is cubic) and no weights=; \"auto\" needs R.", "convention")
+BASIS["sdata.curve_through_points knots="] = _b(
+    "Least squares with the inner knots given and the first and last x repeated degree + 1 times at the ends (SciPy "
+    "make_lsq_spline), as splines::bs() in R.",
+    "Without knots=: through every point; allowed_error= lets FITPACK choose the knots.",
+    "A B-spline needs degree + 1 knots at each end to reach the first and last point (de Boor 1978); this is the "
+    "knot sequence of R lm(y ~ splines::bs(x, knots = ...)), so the fitted curves agree.",
+    ("deboor1978",), "P3",
+    "Each knot strictly between the first and last x; knots that leave a piece without points (Schoenberg-Whitney) "
+    "are refused with a sentence that explains it.", "convention")
+BASIS["sdata.curve_through_points degree="] = _b(
+    "SciPy's own ends for degrees other than 3 (make_interp_spline with no bc_type: not-a-knot for odd degrees); "
+    "natural, clamped and periodic ends are chosen with ends= for cubic splines.",
+    "ends=\"periodic\" for any degree; degree=3 (the default) with ends=\"natural\", \"not-a-knot\" or "
+    "\"clamped\".",
+    "Natural ends are defined for cubic splines; for other degrees SciPy's own ends keep the curve the same as "
+    "SciPy's make_interp_spline and splrep(s=0). The sentence says which ends were used.",
+    (), "P3",
+    "degree= a whole number from 1 to 5, with at least degree + 1 points; ends=\"clamped\" or \"not-a-knot\" with "
+    "another degree is refused.", "convention")
+BASIS["sdata.curve_through_points z="] = _b(
+    "Points that form a full grid go to SciPy RectBivariateSpline (through every point); scattered points to "
+    "SmoothBivariateSpline (FITPACK's own smoothing); knots= to LSQBivariateSpline.",
+    "allowed_error= for the smoothing; knots={\"x\": [...], \"y\": [...]}; degree=; on_sphere=True.",
+    "On a full grid a spline through every point is exact and quick; scattered points need FITPACK's smoothing "
+    "surface, as bisplrep. The sentence says which spline was used.",
+    (), "P3",
+    "One z for each x and y; on a grid at least degree + 1 values along each direction, scattered at least "
+    "(degree + 1)**2 points; weights= send grid points to the scattered spline; places outside are empty.",
+    "convention")
+BASIS["sdata.curve_through_points on_sphere="] = _b(
+    "Latitude in degrees turned into SciPy's colatitude in radians (90 degrees minus the latitude), and longitude "
+    "in degrees into radians from -pi to pi, as RectSphereBivariateSpline needs (a full grid); scattered points "
+    "use SmoothSphereBivariateSpline.",
+    "knots= for LSQSphereBivariateSpline; allowed_error= for the smoothing.",
+    "Maps give latitude and longitude in degrees; SciPy's sphere splines take colatitude and longitude in radians, "
+    "so simplydata converts them and the words keep taking degrees.",
+    (), "P5",
+    "Latitudes from -90 to 90; z= is needed; slopes and volumes on a sphere are not given (as_scipy() has the "
+    "spline in radians).", "convention")
+
+# ---- the words of a curve: each follows the curve's own choice
+_CURVE_CHOICE = ("The curve made by curve_through_points (by default a cubic spline through every point with natural "
+                 "ends, as R splinefun(method = \"natural\")), ")
+_CURVE_WHY = "The numbers are those of the SciPy spline itself, so they agree with SciPy and with R splinefun. "
+BASIS["curve.find_value_at"] = _b(
+    _CURVE_CHOICE + "read at the places: SciPy BSpline called there, as splev and R predict(splinefun(...)); places "
+    "outside the points are empty, with a note.",
+    "A path (in_order=True) takes the fraction along it; a surface takes find_value_at(x, y).",
+    _CURVE_WHY + "A curve carried on beyond its points is guesswork.", (), "P3",
+    "Places are numbers; a path takes fractions from 0 to 1; a surface needs x and y.", "convention")
+BASIS["curve.find_slope_at"] = _b(
+    _CURVE_CHOICE + "its slope at the places: SciPy BSpline.derivative, as splev(der=) and R splinefun(...)(x, "
+    "deriv = 1); order=1 is the slope.",
+    "order=2 and up to the degree; order=\"all\" gives every slope at one place (as spalde); along=\"y\" for a "
+    "surface.",
+    _CURVE_WHY + "Places outside the points are empty, as for find_value_at.", (), "P3",
+    "order= from 1 to the degree of the curve; slopes on a sphere are refused.", "convention")
+BASIS["curve.find_area_between"] = _b(
+    _CURVE_CHOICE + "integrated from low to high: SciPy BSpline.integrate, exact for the spline (as splint); area "
+    "below 0 counts as minus.",
+    "y_between= for the volume under a surface; turn_into_area_curve() for the area at every place.",
+    _CURVE_WHY + "An area beyond the points would rest on guesswork.", (), "P3",
+    "low and high are numbers inside the points; an area beyond them is refused; a volume on a sphere is refused.",
+    "convention")
+BASIS["curve.find_zeros"] = _b(
+    _CURVE_CHOICE + "solved piece by piece: SciPy PPoly.solve (as sproot), each place kept once.",
+    "where_value_is= another value than 0.",
+    _CURVE_WHY + "Solving the pieces finds every crossing inside the points, not only the first.", (), "P3",
+    "A curve of y over x only; when the curve never gets there, the sentence says so.", "convention")
+BASIS["curve.turn_into_slope_curve"] = _b(
+    _CURVE_CHOICE + "turned into its slope: SciPy BSpline.derivative (as splder), a spline one degree lower for each "
+    "order.",
+    "order=2 and up to the degree for the slope of the slope.",
+    _CURVE_WHY + "The new curve is a curve like any other, so every word works on it.", (), "P3",
+    "A curve of y over x only; order= from 1 to the degree.", "convention")
+BASIS["curve.turn_into_area_curve"] = _b(
+    _CURVE_CHOICE + "turned into its area: SciPy BSpline.antiderivative (as splantider), one degree higher; the area "
+    "curve starts at 0 at the first point.",
+    "None; curve.find_area_between(low, high) for one area.",
+    "SciPy's antiderivative is fixed only up to a constant; starting at 0 at the first point makes its value the "
+    "area from the first point, the same as find_area_between.", (), "P5", "A curve of y over x only.",
+    "convention")
+BASIS["curve.show_pieces"] = _b(
+    _CURVE_CHOICE + "shown as polynomial pieces (SciPy PPoly.from_spline), one row per piece; pieces of no width "
+    "(the repeated knots at the ends) are left out.",
+    "basis=\"bernstein\" gives the pieces in the Bernstein basis (SciPy BPoly), the control values of a Bezier "
+    "curve.",
+    "A piece of no width holds no part of the curve, so leaving it out gives one row for each stretch between "
+    "knots.", (), "P5", "A curve of y over x only; basis= \"powers\" or \"bernstein\".", "convention")
+BASIS["curve.show_knots"] = _b(
+    _CURVE_CHOICE + "shown in one table of knots and coefficients (SciPy BSpline t and c, as splrep's tck): the "
+    "coefficients run out before the knots (there are degree + 1 fewer), so the last cells are empty.",
+    "None; a surface gives its knots along x and along y, a curve with slopes= its points.",
+    "One table keeps the knots and coefficients together as SciPy and FITPACK hold them; empty cells say plainly "
+    "that there is no coefficient there.", (), "P5", "", "convention")
+BASIS["curve.as_scipy"] = _b(
+    _CURVE_CHOICE + "handed over as the same SciPy object (a BSpline; a PPoly for slopes=; a bivariate spline for a "
+    "surface), with places outside the points empty (extrapolate=False).",
+    "None; SciPy's own words work on the object.",
+    "Handing over the object itself lets every number be checked in SciPy; extrapolate=False keeps simplydata's rule "
+    "of no guesswork beyond the points.", (), "P5", "", "convention")

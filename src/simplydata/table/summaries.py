@@ -748,8 +748,8 @@ def _scipy_measure(name: str, values):
                                      (SciPy circmean, circstd, circvar); the average and standard deviation are in
                                      that unit, the circular variance (1 minus the mean resultant length) has none
       differential entropy           the entropy of the density the values come from, in nats (natural log; SciPy
-                                     differential_entropy: Vasicek's estimate for fewer than 10 values, Ebrahimi's
-                                     from 10 to 1000)
+                                     differential_entropy: van Es's estimate up to 10 values, Ebrahimi's from 11
+                                     to 1000, Vasicek's above)
       percentile rank v              the percent p at which the usual percentile rule (R type 7, a straight line
                                      between the sorted values) gives v: the inverse of "percentile p" (SciPy
                                      estimated_cdf, times 100); not the plain share below v ("percent at or below v")
@@ -926,8 +926,8 @@ def _method_line(name: str) -> str:
         ("circular variance ", "1 minus the mean resultant length, from 0 to 1, with no unit (SciPy circvar)"),
         ("circular ", "angles on a circle (SciPy circmean, circstd), the answer in "
                       + (words[-1] if len(words) > 1 else "") + ", from 0 to a full turn for the average"),
-        ("differential entropy", "in nats (natural log), SciPy differential_entropy (Vasicek below 10 values, "
-                                 "Ebrahimi from 10 to 1000)"),
+        ("differential entropy", "in nats (natural log), SciPy differential_entropy (van Es up to 10 values, "
+                                 "Ebrahimi from 11 to 1000, Vasicek above)"),
         ("percentile rank ", "the percent at which the usual percentile rule (R type 7) gives the value: the inverse "
                              "of \"percentile p\" (SciPy estimated_cdf)"),
         ("percent at or below ", "the share of the values at or below the value, in percent (SciPy "

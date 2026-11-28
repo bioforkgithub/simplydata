@@ -198,7 +198,8 @@ ENTRIES = [
         """},
         compare="table",
         tolerance=1e-12,
-        choices=("the rows in the order of x, ties kept in the order of the rows, as R isoreg().",),
+        choices=("the rows in the order of x, and at a tied x the biggest y first when rising (the smallest first "
+                 "when falling), as R isoreg() orders them (order(x, -y)).",),
         also="simplydata also says how many levels the curve has and the sum of squared distances.",
     ),
     Entry(
