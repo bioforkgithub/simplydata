@@ -280,7 +280,37 @@ def _wait(process, answers, seconds: float):
             return False
 
 
-def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_HINT, **named):
+def _plain(answer, sympy) -> bool:
+    """Whether an answer is SymPy expressions only (or lists of them), with no root objects inside."""
+    if isinstance(answer, (list, tuple)):
+        return all(_plain(part, sympy) for part in answer)
+    if not isinstance(answer, sympy.Basic):
+        return not hasattr(answer, "__dict__") or isinstance(answer, (int, float, complex, str))
+    return isinstance(answer, sympy.Expr) and not answer.has(sympy.CRootOf, sympy.RootSum)
+
+
+def _read_back(data: bytes, keep_form: bool):
+    """(status, answer) from the helper. SymPy remakes each part of an expression when it is read back, and a number
+    times a sum is multiplied out then (2*(x + 2*y) would come back as 2*x + 4*y). keep_form=True (only the words
+    that write a formula as a product: SymPy factor and its kin) reads an answer of plain expressions again with
+    SymPy's evaluate off, so it keeps the form SymPy gave. Every other answer is read the usual way, fully worked out,
+    because it is used for further work (families for 100 %, batches 22-23)."""
+    status, answer = pickle.loads(data)
+    if status != "done" or not keep_form:
+        return status, answer
+    try:
+        import sympy
+
+        if not _plain(answer, sympy):
+            return status, answer
+        with sympy.evaluate(False):
+            return pickle.loads(data)
+    except Exception:  # noqa: BLE001 - the answer as read the usual way
+        return status, answer
+
+
+def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_HINT, keep_form: bool = False,
+                        **named):
     """call(*values, **named) in the helper process, stopped after TIME_LIMIT seconds with a plain sentence.
 
     call is always a function of SymPy itself (sympy.simplify, sympy.integrate, a SymPy object's method ...), and
@@ -318,7 +348,8 @@ def run_with_time_limit(call, *values, what: str = "SymPy", hint: str = FORMULA_
             _kill()
             raise SimplydataError(_stop_message(what, TIME_LIMIT, hint))
         try:
-            status, answer = answers.recv()
+            raw = getattr(answers, "recv_bytes", None)  # a pipe gives the bytes, to read them back with care
+            status, answer = _read_back(raw(), keep_form) if raw else answers.recv()
         except (EOFError, OSError):
             _kill()
             raise SimplydataError(f"{what} stopped the helper process (it may have run out of memory). Try a "

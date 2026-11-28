@@ -53,6 +53,14 @@ from ._maths_functions import FORMULA_NAMES as _TABLE_NAMES, FORMULA_SIZES as _T
 TABLE_FUNCTIONS = tuple(name for name in _TABLE_SIZES if name not in FUNCTIONS and name not in SPELLINGS)
 FUNCTIONS.update({name: _TABLE_SIZES[name] for name in TABLE_FUNCTIONS})
 FREE_NAMES = ("gamma", "beta", *TABLE_FUNCTIONS)  # without brackets they are letters, as in fit_formula
+# families for 100 %, batches 22-23 (plan section 2.10, approved by Manish 2026-11-28): more of SymPy's own functions
+# by their SymPy names (cot, floor, Max, fibonacci, hankel1, hyper, Piecewise ...) and SymPy's constants (Catalan,
+# EulerGamma, GoldenRatio, TribonacciConstant), for sdata.formula only (_formula_names.py). Without brackets the names
+# stay letters. A name of the maths family's table is never one of these (checked by tests/test_formula_algebra.py).
+from . import _formula_names  # noqa: E402
+
+FUNCTIONS.update({name: size for name, size in _formula_names.sizes().items() if name not in FUNCTIONS})
+FREE_NAMES = FREE_NAMES + tuple(entry.name for entry in _formula_names.NAMES)
 INFINITY = ("infinity", "inf", "oo", "+infinity")
 MINUS_INFINITY = ("-infinity", "-inf", "-oo", "minus infinity")
 
@@ -60,7 +68,14 @@ MINUS_INFINITY = ("-infinity", "-inf", "-oo", "minus infinity")
 WORDS = ("make_simpler", "turn_into_sum", "turn_into_product", "find_slope_formula", "find_area_formula",
          "find_value_at", "put_in", "show_as_latex", "find_limit_as", "find_taylor_series", "undo",
          # numbers phase, batch 4 (approved by Manish 2026-11-26)
-         "show_as_decimal", "group_by_powers_of", "turn_into_partial_fractions", "as_sympy")
+         "show_as_decimal", "group_by_powers_of", "turn_into_partial_fractions", "as_sympy",
+         # families for 100 %, batches 22-23 (plan section 2.10, approved by Manish 2026-11-28, G14)
+         "find_roots", "find_degree", "divide_by", "find_common_factor_with", "find_common_multiple_with",
+         "turn_into_one_fraction", "split_into_top_and_bottom", "find_repeated_parts", "find_fact",
+         # families for 100 %, batches 24-26 (plan section 2.10, approved by Manish 2026-11-28, G15)
+         "take_transform", "find_area_along_path", "check_if_always", "find_turning_points", "find_where_undefined",
+         "find_period", "find_fourier_series", "find_residue_at", "list_terms", "find_hessian", "find_wronskian",
+         "show_as_code", "show_as_tree")
 # names from SymPy, MATLAB and R -> the formula word (they never run)
 HINTS = {"simplify": "make_simpler()", "expand": "turn_into_sum() (multiplied out)",
          "factor": "turn_into_product()", "factorise": "turn_into_product()", "factorize": "turn_into_product()",
@@ -85,7 +100,32 @@ HINTS = {"simplify": "make_simpler()", "expand": "turn_into_sum() (multiplied ou
          "summation": 'sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
          "Sum": 'sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
          "pretty": "show_as_latex() (in Jupyter a formula is shown typeset by itself)",
-         "pprint": "show_as_latex() (in Jupyter a formula is shown typeset by itself)"}
+         "pprint": "show_as_latex() (in Jupyter a formula is shown typeset by itself)",
+         # families for 100 %, batches 22-23 (SymPy's polynomial names as methods: f.as_poly().degree() ...)
+         "roots": "find_roots()", "all_roots": "find_roots()", "real_roots": "find_roots(real_only=True)",
+         "nroots": "find_roots(exactly=False)", "count_roots": 'find_roots(show="count")',
+         "intervals": 'find_roots(show="intervals")', "degree": "find_degree()", "total_degree": "find_degree()",
+         "div": 'divide_by("x - 1")', "quo": 'divide_by("x - 1", show="quotient")',
+         "rem": 'divide_by("x - 1", show="remainder")', "gcd": 'find_common_factor_with("x**2 - 1")',
+         "lcm": 'find_common_multiple_with("x**2 - 1")', "together": "turn_into_one_fraction()",
+         "fraction": "split_into_top_and_bottom()", "numer": "split_into_top_and_bottom()",
+         "denom": "split_into_top_and_bottom()", "as_numer_denom": "split_into_top_and_bottom()",
+         "cse": "find_repeated_parts()", "discriminant": 'find_fact("discriminant")', "LC": 'find_fact("LC")',
+         "coeffs": 'find_fact("coefficients")', "all_coeffs": 'find_fact("coefficients")',
+         "trigsimp": 'make_simpler(by="trig functions")', "powsimp": 'make_simpler(by="powers")',
+         "expand_log": 'turn_into_sum(by="logs")', "horner": 'turn_into_product(by="nested")',
+         # families for 100 %, batches 24-26 (SymPy's calculus, series, transforms and printers as methods)
+         "laplace_transform": 'take_transform("laplace")', "fourier_transform": 'take_transform("fourier")',
+         "fourier_series": 'find_fourier_series(between=["-pi", "pi"])', "fps": "find_taylor_series(all_terms=True)",
+         "residue": "find_residue_at(0)", "is_increasing": 'check_if_always("rising")',
+         "is_decreasing": 'check_if_always("falling")', "is_convex": 'check_if_always("bending up")',
+         "stationary_points": "find_turning_points()", "singularities": "find_where_undefined()",
+         "periodicity": "find_period()", "hessian": "find_hessian()", "wronskian": 'find_wronskian(["cos(x)"])',
+         "rcode": 'show_as_code("r")', "ccode": 'show_as_code("c")', "pycode": 'show_as_code("python")',
+         "print_tree": "show_as_tree()", "dotprint": "show_as_tree(as_graphviz=True)",
+         "sequence": "list_terms(between=[1, 10])", "line_integrate": 'find_area_along_path(path="x = cos(t), '
+         'y = sin(t)", between=[0, "2*pi"])', "limit_seq": 'find_limit_as("n", goes_to="infinity", '
+         'whole_numbers_only=True)', "differentiate_finite": "find_slope_formula(step=1)"}
 
 # letters_are= (batch 4): what a letter is -> SymPy's assumptions on its Symbol
 LETTER_KINDS = {"positive": {"positive": True}, "zero or more": {"nonnegative": True},
@@ -103,6 +143,7 @@ FROM_SIDE_SPELLINGS = {"right": "above", "+": "above", "from above": "above", "f
 MAX_SLOPE_TIMES = 20  # how_many_times= (a slope of a big product grows quickly)
 MAX_DECIMAL_DIGITS = 10_000  # show_as_decimal(digits=)
 MAX_LETTER_POWER = 100  # a sum with letters raised to a higher whole power is not multiplied out
+NEAR_ZERO = 1e-100  # find_value_at: a decimal this close to 0 is checked exactly (cancellation noise of evalf)
 
 
 def need_sympy(what: str):
@@ -136,6 +177,7 @@ SPECIAL_FUNCTIONS = ("gamma", "lgamma", "digamma", "beta", "besselJ",
                      # the maths family's functions that SymPy works out exactly (families for 100 %, 2.3)
                      *(name for name in TABLE_FUNCTIONS if _TABLE_NAMES[name].entry.sympy
                        or _TABLE_NAMES[name].entry.sympy_expr))
+SPECIAL_FUNCTIONS = SPECIAL_FUNCTIONS + _formula_names.CAPPED  # the counting functions (factorial(1000) at most)
 # names SymPy's reader writes into the text it runs (Integer(2), Symbol('x'), and Add, Mul and Pow when it reads
 # unevaluated): never letters of a formula
 RESERVED = ("Integer", "Float", "Rational", "Symbol", "Function", "Lambda", "Add", "Mul", "Pow")
@@ -358,7 +400,7 @@ def _check_node(node, text: str, letters: list, functions: set, inner=None):
         if name in RESERVED:
             raise _formula_error(f'"{name}" cannot be a letter in a formula: SymPy uses that name itself. Use '
                                  f'another name, such as "{name.lower()}_value".')
-        if name != "pi" and name not in letters:
+        if name != "pi" and name not in _formula_names.CONSTANTS and name not in letters:
             letters.append(name)
         return
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
@@ -391,6 +433,11 @@ def _check_node(node, text: str, letters: list, functions: set, inner=None):
             raise _formula_error(f"{node.func.id}() takes {wanted} value{'s' if most > 1 else ''}, "
                                  f"not {len(node.args)}.")
         functions.add(node.func.id)
+        if name in _formula_names.LIST_FUNCTIONS:  # lists in brackets (hyper, meijerg), or Piecewise's pairs
+            _formula_names.check_list_call(node, name, text,
+                                           lambda piece: _check_node(piece, text, letters, functions, inner),
+                                           _formula_error)
+            return
         for arg in node.args:
             _check_node(arg, text, letters, functions, inner)
         if name in SPECIAL_FUNCTIONS:
@@ -414,7 +461,7 @@ def _sympy_functions(sp) -> dict:
             "arccos": sp.acos, "arctan": sp.atan, "arctan2": sp.atan2, "erf": sp.erf, "erfc": sp.erfc,
             "gamma": sp.gamma, "lgamma": sp.loggamma, "digamma": sp.digamma, "beta": sp.beta,
             "besselJ": lambda x, nu: sp.besselj(nu, x), "sinc": lambda x: sp.sinc(sp.pi * x),
-            **_table_functions(True)}
+            **_table_functions(True), **_formula_names.sympy_functions(True)}
 
 
 def _table_functions(evaluate: bool) -> dict:
@@ -441,6 +488,7 @@ def _unevaluated_functions(sp) -> dict:
     named["besselJ"] = lambda x, nu, **_: sp.besselj(nu, x, evaluate=False)
     named["sinc"] = lambda x, **_: sp.sinc(sp.Mul(sp.pi, x, evaluate=False), evaluate=False)
     named.update(_table_functions(False))
+    named.update(_formula_names.sympy_functions(False))  # families for 100 %, batches 22-23
     return named
 
 
@@ -750,6 +798,15 @@ def _work_out(sp, tree, text: str):
                 if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
                     raise _too_big_special(text, _special_name(node))
             found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
+        elif isinstance(node, _formula_names.sympy_classes()):  # batches 22-23: SymPy works them out, time-limited
+            heavy = True
+            if isinstance(node, _formula_names.capped_classes()):
+                for value in node.args:
+                    size = _size_of_number(sp, value)
+                    if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
+                        raise _too_big_special(text, type(node).__name__)
+                _formula_names.check_values(node, text, _formula_error)
+            found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
         elif isinstance(node, sp.exp):
             power = worked_out(node.args[0])[0] if node.args[0].has(sp.log) else node.args[0]
             found = _exp_size(sp, power, sizes)  # exp(3000*log(10)) is 10**3000
@@ -878,7 +935,10 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     if not text.strip():
         raise _formula_error("The formula is empty.")
     for sign in ("<=", ">=", "==", "=", "<", ">"):
-        if sign in text:
+        # Piecewise's conditions (x > 0, x <= 1) are no equation (families for 100 %, batches 22-23)
+        rest = text.replace("<=", "").replace(">=", "") if "Piecewise" in text else text
+        if sign in text and not (sign in ("<=", ">=", "<", ">") and "Piecewise" in text) and (
+                sign not in ("=", "==") or sign in rest):
             raise _formula_error(
                 f'"{text}" has {sign} in it, so it is an equation, not a formula. Give only the formula here, such as '
                 '"x**2 - 2"; to solve an equation exactly use sdata.solve("x**2 = 2", exactly=True).')
@@ -909,6 +969,7 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     for name in functions:
         local[name] = named[SPELLINGS.get(name, name)]
     local["pi"] = sp.pi
+    local.update({name: value for name, value in _formula_names.constants().items()})  # Catalan ... (batches 22-23)
     safe = {"Integer": sp.Integer, "Float": sp.Float, "Rational": sp.Rational, "Symbol": sp.Symbol,
             "__builtins__": {}}
     transformations = standard_transformations + (convert_xor,)
@@ -918,7 +979,8 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     try:
         worked_out = _work_out(sp, _read_pieces(sp, groups, values, evaluate=False, local_dict=unevaluated,
                                                 transformations=transformations,
-                                                global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow}),
+                                                global_dict={**safe, "Add": sp.Add, "Mul": sp.Mul, "Pow": sp.Pow,
+                                                             **_formula_names.relations()}),
                                text.strip())
         if worked_out is not None:
             return worked_out
@@ -997,6 +1059,11 @@ def _python_printer():
             if name in _PRINTED_AS:
                 return f"{_PRINTED_AS[name]}({', '.join(args)})"
             return f"{names.get(name, name)}({', '.join(args)})"
+
+        def _constant(self, expr):  # Catalan, EulerGamma ... (batches 22-23) as decimals for the decimal words
+            return repr(float(expr))
+
+        _print_Catalan = _print_EulerGamma = _print_GoldenRatio = _print_TribonacciConstant = _constant
 
         def _print_Exp1(self, expr):
             return "exp(1)"
@@ -1206,7 +1273,7 @@ def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
         elif node.is_Pow:
             found = _pow_size(sp, put_in(node.args[0]), put_in(node.args[1]), plain)
         else:
-            if isinstance(node, _specials(sp)):
+            if isinstance(node, _specials(sp) + _formula_names.capped_classes()):  # counting functions too (22-23)
                 for part in node.args:
                     size = _size_of_number(sp, put_in(part))
                     if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
@@ -1266,6 +1333,10 @@ def _said_letters(symbols) -> str:
     return ", ".join(parts)
 
 
+from ._formula_algebra import _AlgebraWords  # noqa: E402  (families for 100 %, batches 22-23)
+from ._formula_calculus import _CalculusWords  # noqa: E402  (families for 100 %, batches 24-26)
+
+
 def check_letter_powers(sp, expr, step: str) -> None:
     """Refuse a sum with letters raised to a whole power above MAX_LETTER_POWER before it is multiplied out:
     (x + y + z + 1)**200 has about 1.4 million terms."""
@@ -1277,12 +1348,16 @@ def check_letter_powers(sp, expr, step: str) -> None:
                                   f"{MAX_LETTER_POWER}; use a smaller power, or keep the brackets.")
 
 
-class Formula:
+class Formula(_AlgebraWords, _CalculusWords):
     """A formula that SymPy works with exactly. Make one with sdata.formula("(x + 2)**2 - 4").
 
     Words: make_simpler, turn_into_sum, turn_into_product, find_slope_formula, find_area_formula, find_value_at,
     put_in, show_as_latex, find_limit_as, find_taylor_series, undo, show_as_decimal, group_by_powers_of,
-    turn_into_partial_fractions, as_sympy.
+    turn_into_partial_fractions, as_sympy; and the polynomial words find_roots, find_degree, divide_by,
+    find_common_factor_with, find_common_multiple_with, turn_into_one_fraction, split_into_top_and_bottom,
+    find_repeated_parts and find_fact (_formula_algebra.py); and take_transform, find_area_along_path,
+    check_if_always, find_turning_points, find_where_undefined, find_period, find_fourier_series, find_residue_at,
+    list_terms, find_hessian, find_wronskian, show_as_code and show_as_tree (_formula_calculus.py).
     """
 
     _OLD_WORDS: dict = {}  # no old names (sdata.help reads this, as for tables and systems)
@@ -1376,40 +1451,82 @@ class Formula:
 
     # ---------------------------------------------------------------- changing the formula (with undo)
     @friendly
-    def make_simpler(self):
+    def make_simpler(self, by=None):
         """Write the formula in a simpler way (SymPy simplify). formula.make_simpler()
 
         formula = sdata.formula("(x**2 - 1) / (x - 1)"), then formula.make_simpler() gives x + 1. The formula changes;
-        the step can be taken back with formula.undo(). As SymPy simplify(); MATLAB simplify.
+        the step can be taken back with formula.undo(). As SymPy simplify(); MATLAB simplify. by= uses one of
+        SymPy's own simplifiers: "trig functions" (trigsimp), "exponentials and trig" (exptrigsimp), "trig rules"
+        (fu), "powers" (powsimp), "powers of powers" (powdenest), "logs" (logcombine), "fractions" (ratsimp),
+        "common factors" (cancel), "roots in the bottom" (radsimp), "nested roots" (sqrtdenest), "gamma functions"
+        (gammasimp), "factorials" (combsimp), "bessel functions" (besselsimp), "hypergeometric functions"
+        (hyperexpand), "kronecker deltas" (kroneckersimp), "signs" (signsimp), "letters apart" (separatevars),
+        "conditions" (piecewise_fold) or "decimals as fractions" (nsimplify);
+        SymPy's names work too: formula.make_simpler(by="powers").
         """
         sp = need_sympy("formula.make_simpler()")
+        if by is not None:
+            from ._formula_algebra import SIMPLER, SIMPLER_SPELLINGS, by_value
+
+            key = by_value(SIMPLER, SIMPLER_SPELLINGS, by, "make_simpler")
+            name = SIMPLER[key][0]
+            new = _guarded(getattr(sp, name), self._expr, what=f"SymPy {name}")
+            print(f"{_show(self._expr)} written more simply ({key}): {_show(new)}   (SymPy {name})")
+            return self._change(f"make simpler by {key}", new)
         new = _guarded(sp.simplify, self._expr, what="SymPy simplify")
         print(f"{_show(self._expr)} written more simply: {_show(new)}   (SymPy simplify)")
         return self._change("make simpler", new)
 
     @friendly
-    def turn_into_sum(self):
+    def turn_into_sum(self, by=None):
         """Multiply out the brackets, so the formula is a sum of terms (SymPy expand). formula.turn_into_sum()
 
         formula = sdata.formula("(x + 2)**2 - 4"), then formula.turn_into_sum() gives x**2 + 4*x. The formula changes;
         the step can be taken back with formula.undo(). turn_into_product() goes the other way. As SymPy expand(). A
-        sum with letters raised to a whole power above 100 is refused (it would have far too many terms).
+        sum with letters raised to a whole power above 100 is refused (it would have far too many terms). by= does
+        one kind of step only: "logs" (expand_log), "trig functions" (expand_trig), "powers" (expand_power_exp),
+        "power of a product" (expand_power_base), "products" (expand_mul), "powers of sums" (expand_multinomial),
+        "real and imaginary parts" (expand_complex) or "special functions" (expand_func):
+        formula.turn_into_sum(by="logs").
         """
         sp = need_sympy("formula.turn_into_sum()")
         check_letter_powers(sp, self._expr, "turn_into_sum")
+        if by is not None:
+            from ._formula_algebra import SUM, SUM_SPELLINGS, by_value
+
+            key = by_value(SUM, SUM_SPELLINGS, by, "turn_into_sum")
+            name = SUM[key][0]
+            new = _guarded(getattr(sp, name), self._expr, what=f"SymPy {name}")
+            print(f"{_show(self._expr)} multiplied out ({key}): {_show(new)}   (SymPy {name})")
+            return self._change(f"turn into sum by {key}", new)
         new = _guarded(sp.expand, self._expr, what="SymPy expand")
         print(f"{_show(self._expr)} multiplied out: {_show(new)}   (SymPy expand)")
         return self._change("turn into sum", new)
 
     @friendly
-    def turn_into_product(self):
+    def turn_into_product(self, by=None):
         """Write the formula as a product of factors (SymPy factor). formula.turn_into_product()
 
         formula = sdata.formula("x**2 + 4*x"), then formula.turn_into_product() gives x*(x + 4). The formula changes;
-        the step can be taken back with formula.undo(). turn_into_sum() goes the other way. As SymPy factor().
+        the step can be taken back with formula.undo(). turn_into_sum() goes the other way. As SymPy factor(). by=
+        takes out one kind of factor only: "common factors" (factor_terms), "common factors over one fraction"
+        (gcd_terms), "common power of letters" (terms_gcd), "repeated factors" (sqf) or "nested", Horner's form
+        (horner): formula.turn_into_product(by="nested"). formula.find_fact("factorial factors") gives the falling
+        factorials.
         """
         sp = need_sympy("formula.turn_into_product()")
-        new = _guarded(sp.factor, self._expr, what="SymPy factor")
+        if by is not None:
+            from ._formula_algebra import PRODUCT, PRODUCT_SPELLINGS, _polynomial_error, _poly_errors, by_value
+
+            key = by_value(PRODUCT, PRODUCT_SPELLINGS, by, "turn_into_product")
+            name = PRODUCT[key][0]
+            try:  # keep_form: a product as SymPy wrote it (2*(x + 2*y)), for this formula only
+                new = _guarded(getattr(sp, name), self._expr, what=f"SymPy {name}", keep_form=True)
+            except _poly_errors() as problem:
+                raise _polynomial_error("turn_into_product", _show(self._expr), problem) from None
+            print(f"{_show(self._expr)} as a product ({key}): {_show(new)}   (SymPy {name})")
+            return self._change(f"turn into product by {key}", new)
+        new = _guarded(sp.factor, self._expr, what="SymPy factor", keep_form=True)  # 2*(x + 2*y) stays a product
         print(f"{_show(self._expr)} as a product: {_show(new)}   (SymPy factor)")
         return self._change("turn into product", new)
 
@@ -1461,18 +1578,23 @@ class Formula:
 
     # ---------------------------------------------------------------- new formulas
     @friendly
-    def find_slope_formula(self, for_letter=None, how_many_times=1) -> Formula:
+    def find_slope_formula(self, for_letter=None, how_many_times=1, step=None) -> Formula:
         """The formula of the slope (the derivative), as a new formula. formula.find_slope_formula()
 
         formula = sdata.formula("x**3 - 2*x"), then formula.find_slope_formula() gives 3*x**2 - 2. for_letter= says
         which letter when there are several. how_many_times=2 takes the slope of the slope (the second derivative), up
-        to 20 times. for_letter=["x", "y"] takes the slope for x, then for y (a mixed partial derivative). As SymPy
+        to 20 times. for_letter=["x", "y"] takes the slope for x, then for y (a mixed partial derivative). step=1
+        gives the slope over a step instead, (f(x + step) - f(x))/step (a forward difference: SymPy
+        differentiate_finite with the points x and x + step); step= takes a number or a letter ("h"), and with
+        step=1 it is the difference between neighbouring terms of a sequence (SymPy difference_delta). As SymPy
         diff(); MATLAB diff; R D().
         """
         sp = need_sympy("formula.find_slope_formula()")
         example = 'find_slope_formula(for_letter="x")'
         times = _whole(how_many_times, "how_many_times=", 1, MAX_SLOPE_TIMES,
                        "formula.find_slope_formula(how_many_times=2)")
+        if step is not None:  # families for 100 %, batches 24-25 (plan section 2.10): a slope over a step
+            return self._slope_over_step(sp, for_letter, times, step, example)
         if isinstance(for_letter, (list, tuple)):
             if times != 1:
                 raise SimplydataError('how_many_times= works with one letter. With a list, name a letter more than '
@@ -1497,6 +1619,29 @@ class Formula:
         else:
             print(f"The slope of {_show(self._expr)} as {x} changes, {times} times over: {_show(new)}   (the "
                   f"{_ordinal(times)} derivative; SymPy diff)")
+        return Formula(new)
+
+    def _slope_over_step(self, sp, for_letter, times, step, example):
+        """find_slope_formula(step=): SymPy differentiate_finite at the points x and x + step."""
+        if times != 1 or isinstance(for_letter, (list, tuple)):
+            raise SimplydataError("step= gives the slope over one step for one letter; leave out how_many_times= and "
+                                  "give for_letter= one letter.")
+        x = self._letter("find_slope_formula", for_letter, example)
+        if isinstance(step, str):
+            if not step.isidentifier() or step == str(x):
+                raise SimplydataError(f'step= is a number or a new letter in quotes, such as step=1 or step="h"; '
+                                      f'"{step}" is not.')
+            size = self._symbols().get(step, sp.Symbol(step))
+        elif isinstance(step, bool) or not isinstance(step, (int, float, np.integer, np.floating)) or not (
+                math.isfinite(float(step)) and step != 0):
+            raise SimplydataError("step= is a number other than 0, or a letter in quotes, such as step=1 or "
+                                  'step="h".')
+        else:
+            size = exact_number(sp, step)
+        new = _guarded(sp.differentiate_finite, self._expr, x, what="SymPy differentiate_finite",
+                       points=[x, x + size])
+        print(f"The slope of {_show(self._expr)} over a step of {_show(size)} in {x}: {_show(new)}   (a forward "
+              "difference; SymPy differentiate_finite)")
         return Formula(new)
 
     @friendly
@@ -1560,7 +1705,18 @@ class Formula:
         by_numbers = bool(many) or singles_empty or self._expr.has(sp.loggamma)
         if not by_numbers:
             swaps = {self._symbol(k): parse(v, "find_value_at()") for k, v in values.items()}
-            found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
+            try:
+                found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
+            except _formula_names.NO_VALUE as problem:  # batches 22-23: jacobi_symbol(2, 36) and the like
+                if not self._expr.has(*_formula_names.sympy_classes()):
+                    raise
+                raise SimplydataError(f"SymPy has no value of {_show(self._expr)} at {_places(values)} "
+                                      f"({problem}).") from None
+            if found.is_Float and found != 0 and abs(found) < NEAR_ZERO:
+                # evalf with subs leaves the noise of a cancellation (x**2 - 4 at 2 is 9.5e-125): the exact value says
+                # whether it is 0 (SymPy subs, under the time limit)
+                if _guarded(self._expr.subs, swaps, what="SymPy subs") == 0:
+                    found = sp.Float(0)
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
                                       "decimal (float). formula.put_in(...).show_as_decimal() shows it.")
@@ -1586,8 +1742,14 @@ class Formula:
         # the maths family's SymPy functions are worked out as numbers.take_function works them out (families for
         # 100 %, batches 7-9): SciPy names SymPy's printer does not know (elliptic_k) are found that way too
         function = lambdify([self._symbol(n) for n in letters], self._expr, {"loggamma": special.gammaln})
-        with np.errstate(all="ignore"):
-            out = np.asarray(function(*arrays), dtype=complex)
+        how = "SymPy lambdify, worked out by NumPy and SciPy"
+        if self._expr.has(*_formula_names.by_value_classes()):
+            # batches 22-23: a SymPy function NumPy and SciPy lack or work out otherwise (fibonacci, factorial below 0)
+            out = _formula_names.value_by_value(self._expr, [self._symbol(n) for n in letters], arrays)
+            how = "SymPy evalf, value by value, as NumPy and SciPy lack a function of it"
+        else:
+            with np.errstate(all="ignore"):
+                out = np.asarray(function(*arrays), dtype=complex)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
         out = np.broadcast_to(out, shape)
         if np.any(np.abs(out.imag) > 1e-12 * np.maximum(1.0, np.abs(out.real))):
@@ -1596,10 +1758,10 @@ class Formula:
         result = np.array(out.real, dtype=float)
         if not many:
             answer = float(result.reshape(-1)[0])
-            print(f"{_show(self._expr)} at {_places(values)}: {_decimal(answer)}   (SymPy lambdify, worked out by NumPy "
-                  "and SciPy" + ("; an empty value gives an empty answer)" if singles_empty else ")"))
+            print(f"{_show(self._expr)} at {_places(values)}: {_decimal(answer)}   ({how}"
+                  + ("; an empty value gives an empty answer)" if singles_empty else ")"))
             return answer
-        print(f"{_show(self._expr)} at {result.size} values (SymPy lambdify, worked out by NumPy and SciPy).")
+        print(f"{_show(self._expr)} at {result.size} values ({how}).")
         return Numbers(result.ravel())
 
     @friendly
@@ -1648,14 +1810,27 @@ class Formula:
         return Formula(new)
 
     @friendly
-    def show_as_latex(self) -> str:
+    def show_as_latex(self, left_side=None, over_lines=False) -> str:
         """Show the formula as LaTeX, to paste into a paper; also gives the text back. formula.show_as_latex()
 
         formula = sdata.formula("x**3 - 2*x"), then formula.show_as_latex() prints x^{3} - 2 x. Nothing is written to a
-        file. As SymPy latex(). In Jupyter a formula is shown typeset by itself.
+        file. As SymPy latex(). In Jupyter a formula is shown typeset by itself. left_side="y" writes y = x^{3} - 2 x.
+        over_lines=True writes one term on each line, in an align environment (SymPy multiline_latex), with
+        left_side= in front (y by itself).
         """
         sp = need_sympy("formula.show_as_latex()")
+        if left_side is not None and (not isinstance(left_side, str) or not left_side.strip()):
+            raise SimplydataError('left_side= is what stands before the = sign, in quotes, such as left_side="y".')
+        if not isinstance(over_lines, bool):
+            raise SimplydataError("over_lines= is True or False.")
+        if over_lines:  # families for 100 %, batches 24-26 (plan section 2.10)
+            text = _guarded(sp.multiline_latex, parse(left_side or "y", "left_side="), self._expr,
+                            what="SymPy multiline_latex")
+            print(text)
+            return text
         text = sp.latex(self._expr)
+        if left_side is not None:
+            text = sp.latex(parse(left_side, "left_side=")) + " = " + text
         print(text)
         return text
 
@@ -1702,14 +1877,16 @@ class Formula:
 
     @friendly
     @one_deadline
-    def find_limit_as(self, letter=None, goes_to=0, from_side="both"):
+    def find_limit_as(self, letter=None, goes_to=0, from_side="both", whole_numbers_only=False):
         """The limit: the value the formula comes close to as a letter goes to a value. formula.find_limit_as("x")
 
         formula = sdata.formula("sin(x) / x"), then formula.find_limit_as("x", goes_to=0) gives 1. goes_to= takes a
         number, "infinity" or "-infinity". At a number the formula must come to the same value from both sides (as in
         school maths; SymPy's own limit() looks from above only); from_side="above" or "below" looks from one side only
         ("right" and "left" work too): for 1/x, formula.find_limit_as("x", goes_to=0, from_side="above") gives infinity.
-        Gives a number, or a formula when other letters are left. As SymPy limit().
+        Gives a number, or a formula when other letters are left. whole_numbers_only=True takes the letter through the
+        whole numbers only, the limit of a sequence (SymPy limit_seq; goes_to="infinity"): for (-1)**n/n it is 0.
+        As SymPy limit().
         """
         sp = need_sympy("formula.find_limit_as()")
         if letter is None:
@@ -1717,6 +1894,10 @@ class Formula:
             letter = letters[0] if len(letters) == 1 else None
         x = self._letter("find_limit_as", letter, 'find_limit_as("x", goes_to=0)')
         target = _limit_value(sp, goes_to, "goes_to=")
+        if not isinstance(whole_numbers_only, bool):
+            raise SimplydataError("whole_numbers_only= is True or False.")
+        if whole_numbers_only:  # families for 100 %, batches 24-25 (plan section 2.10): a limit of a sequence
+            return self._limit_of_sequence(sp, x, target, from_side)
         key = from_side.strip().lower() if isinstance(from_side, str) else None
         key = FROM_SIDE_SPELLINGS.get(key, key)
         if key not in FROM_SIDES:
@@ -1767,18 +1948,53 @@ class Formula:
         value = complex(decimal_of(found))  # SymPy may not know it is real (besselj(0, 1)): its decimal says
         return value.real if value.imag == 0 else value
 
+    def _limit_of_sequence(self, sp, x, target, from_side):
+        """find_limit_as(whole_numbers_only=True): SymPy limit_seq, as the letter runs through the whole numbers."""
+        if target != sp.oo or from_side != "both":
+            raise SimplydataError('whole_numbers_only=True gives the limit of a sequence, as the letter goes to '
+                                  '"infinity" through the whole numbers: goes_to="infinity", without from_side=.')
+        found = _guarded(sp.limit_seq, self._expr, x, what="SymPy limit_seq")
+        if found is None or found.has(sp.Limit) or isinstance(found, sp.AccumBounds) or found.has(sp.zoo):
+            raise SimplydataError(f"SymPy found no limit of {_show(self._expr)} as {x} goes to infinity through the "
+                                  f"whole numbers (SymPy limit_seq gave {found}).")
+        print(f"As {x} goes to infinity through the whole numbers, {_show(self._expr)} comes close to {_show(found)}   "
+              "(SymPy limit_seq)")
+        if found.free_symbols:
+            return Formula(found)
+        if found in (sp.oo, -sp.oo):
+            return math.inf if found == sp.oo else -math.inf
+        return float_of(found)
+
     @friendly
-    def find_taylor_series(self, around=0, up_to_power=4, for_letter=None) -> Formula:
+    def find_taylor_series(self, around=0, up_to_power=4, for_letter=None, all_terms=False) -> Formula:
         """The formula as a sum of powers near one value (the Taylor series), as a new formula.
 
         formula.find_taylor_series(around=0, up_to_power=4)
         formula = sdata.formula("exp(x)"), then formula.find_taylor_series(around=0, up_to_power=4) gives
         x**4/24 + x**3/6 + x**2/2 + x + 1: the powers of (x - around) up to up_to_power=, with the rest left
-        out. As SymPy series(...).removeO().
+        out. all_terms=True gives every term at once, as a sum to infinity with the formula of its terms (SymPy fps,
+        the formal power series); up_to_power= is then not used. As SymPy series(...).removeO().
         """
         sp = need_sympy("formula.find_taylor_series()")
         x = self._letter("find_taylor_series", for_letter, 'find_taylor_series(around=0, up_to_power=4, '
                                                            'for_letter="x")')
+        if not isinstance(all_terms, bool):
+            raise SimplydataError("all_terms= is True or False.")
+        if all_terms:  # families for 100 %, batches 24-25 (plan section 2.10): the formal power series
+            point = _limit_value(sp, around, "around=")
+            if not point.is_finite:
+                raise SimplydataError("around= needs a number for a Taylor series.")
+            series = _guarded(sp.fps, self._expr, x, point, what="SymPy fps")
+            from sympy.series.formal import FormalPowerSeries
+
+            if not isinstance(series, FormalPowerSeries):
+                raise SimplydataError(f"SymPy found no formula for every term of the series of {_show(self._expr)} "
+                                      f"(SymPy fps gave {_show(series)}); leave out all_terms=True for the first "
+                                      "terms.")
+            new = series.infinite
+            print(f"{_show(self._expr)} near {x} = {point}, every term: {_show(new)}   (SymPy fps, the formal power "
+                  "series)")
+            return Formula(new)
         if isinstance(up_to_power, bool) or not isinstance(up_to_power, (int, np.integer)) or up_to_power < 0:
             raise SimplydataError("up_to_power= needs a whole number, 0 or more, such as up_to_power=4.")
         point = _limit_value(sp, around, "around=")

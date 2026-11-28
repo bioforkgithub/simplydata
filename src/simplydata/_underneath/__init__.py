@@ -61,6 +61,10 @@ full_signals.py (batches 17-18: the scipy.signal filter designs, FIR filters, an
 placement, spectra over time, waves and phase locking).
 full_matrices.py (families for 100 %, batch 19: the matrices of scipy.linalg) and full_pictures.py (batches 20-21:
 grids as pictures with SciPy ndimage, and points with SciPy spatial).
+formula_algebra.py (batches 22-23: polynomial algebra on a formula, the family find_fact, the by= values of
+make_simpler, turn_into_sum and turn_into_product).
+formula_calculus.py (batches 24-26: calculus checks, series, transforms and code on a formula, check_solution,
+products, ways, the new kinds of solve, number theory, exact grids, the permanent and orthogonal columns).
 signals.py (U3, batch 7): time series, cycles, waves and systems (spectra, filters, forecasts and sdata.system).
 From phase U1 on, the words that were still without an entry join the file of their area (tables.py, numbers.py,
 statistics.py, charts.py ...); starting.py holds the starting words (a table, a chart, numbers, a grid, a distribution,
@@ -174,10 +178,10 @@ class Entry:
 
 def _join() -> dict[str, Entry]:
     from . import (bayesian, causal, charts, charts_batch1, charts_batch3, charts_more, charts_seaborn, checking,
-                   combining, communities, full_distributions, full_matrices, full_numpy, full_optimize,
-                   full_options, full_pictures, full_polynomial, full_signals, full_stats, full_tables,
-                   maths_functions, hidden_factors, lines, models, more_words, numbers, numbers_2, numbers_3,
-                   numbers_4, numbers_5, numbers_batch1, places, planning, planning_surveys, signals,
+                   combining, communities, formula_algebra, formula_calculus, full_distributions, full_matrices,
+                   full_numpy, full_optimize, full_options, full_pictures, full_polynomial, full_signals, full_stats,
+                   full_tables, maths_functions, hidden_factors, lines, models, more_words, numbers, numbers_2,
+                   numbers_3, numbers_4, numbers_5, numbers_batch1, places, planning, planning_surveys, signals,
                    small_additions, starting, statistics, survival, tables)
 
     found: dict[str, Entry] = {}
@@ -186,7 +190,7 @@ def _join() -> dict[str, Entry]:
                    more_words, signals, starting, charts_batch1, charts_batch3, numbers_batch1, numbers_2, numbers_3,
                    numbers_4, numbers_5, charts_seaborn, full_tables, full_options, full_stats,
                    full_distributions, maths_functions, full_numpy, full_polynomial, full_optimize,
-                   full_signals, full_matrices, full_pictures):
+                   full_signals, full_matrices, full_pictures, formula_algebra, formula_calculus):
         for entry in module.ENTRIES:
             if entry.key in found:
                 raise ValueError(f"{entry.key} has two underneath entries")

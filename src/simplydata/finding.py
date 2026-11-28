@@ -1194,7 +1194,7 @@ def _solve_one_range(text, name, gap, low, high, chosen):
 
 @friendly(renamed={"method": "test_method"})
 def solve(equations=None, between=None, start=None, test_method=None, known=None, fast=False, exactly=False,
-          for_letter=None, letters_are=None):
+          for_letter=None, letters_are=None, whole_numbers_only=False, at_start=None):
     """Find the values that make an equation true.
 
     sdata.solve("x**3 - 2*x = 5", between=[0, 3])   (x = 2.09455)
@@ -1221,7 +1221,11 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
     ranges where they hold (sdata.solve("x**2 - 4 > 0", exactly=True): x < -2 or x > 2, SymPy solveset over the
     real numbers); letters_are={"c": "positive"} says what a letter is. A formula made with sdata.formula() means
     formula = 0: sdata.solve(formula.find_slope_formula(), exactly=True) finds where the slope is flat. Equations
-    already written as a grid of numbers (grid times x = b) are solved by grid.solve_for(b).
+    already written as a grid of numbers (grid times x = b) are solved by grid.solve_for(b). With exactly=True also:
+    whole_numbers_only=True gives the solutions in whole numbers (sdata.solve("x**2 + y**2 = 25", exactly=True,
+    whole_numbers_only=True); SymPy diophantine); a sequence, "a(n + 2) = a(n + 1) + a(n)" with at_start={0: 0,
+    1: 1}, gives the formula of its terms (SymPy rsolve); an equation with slopes in two letters, "du/dx + 2*du/dy =
+    0", gives the formula of u (SymPy pdsolve; F stands for any function).
     """
     if not isinstance(exactly, bool):
         raise SimplydataError("exactly= should be True or False.")
@@ -1231,10 +1235,27 @@ def solve(equations=None, between=None, start=None, test_method=None, known=None
         texts = list(equations)
     else:
         raise SimplydataError(f"solve() needs an equation in quotes, for example {_solve_example()}.")
+    if not isinstance(whole_numbers_only, bool):
+        raise SimplydataError("whole_numbers_only= should be True or False.")
+    if (whole_numbers_only or at_start is not None) and not exactly:
+        raise SimplydataError("whole_numbers_only= and at_start= go with exactly=True: sdata.solve(\"x**2 + y**2 = "
+                              "25\", exactly=True, whole_numbers_only=True).")
     if exactly:
         if between is not None or start is not None or test_method is not None:
             raise SimplydataError("exactly=True finds every solution SymPy can write down, so it takes no between=, "
                                   "start= or test_method=. Leave them out, or leave out exactly=True.")
+        # families for 100 %, batches 24-25 (plan section 2.10): whole numbers, sequences, partial equations
+        from ._solve_more import kind_of_equations, solve_more
+
+        kind = kind_of_equations(texts)
+        if kind is not None or whole_numbers_only:
+            if letters_are is not None:
+                raise SimplydataError("letters_are= does not go with whole numbers, sequences or partial equations.")
+            return solve_more(texts, kind, known, fast, for_letter=for_letter, whole_numbers_only=whole_numbers_only,
+                              at_start=at_start)
+        if at_start is not None:
+            raise SimplydataError('at_start= gives the first terms of a sequence, such as sdata.solve("a(n + 1) = '
+                                  '2*a(n)", exactly=True, at_start={0: 1}).')
         from ._formula import solve_exactly
 
         return solve_exactly(texts, known, fast, for_letter=for_letter, letters_are=letters_are)

@@ -56,6 +56,8 @@ from ._pairing import find_best_pairing  # families for 100 %, batch 14: SciPy l
 from ._boundary import find_path_between_ends  # families for 100 %, batch 15: SciPy solve_bvp
 from ._curves import curve_through_points  # families for 100 %, batch 16: SciPy splines (G6)
 from ._matrix_equations import solve_matrix_equation  # families for 100 %, batch 19: Lyapunov, Sylvester, Riccati
+from ._solve_more import (check_solution, find_product_of_series, list_ways_to_choose,  # families for 100 %,
+                          list_ways_to_order)  # batches 24-26: SymPy checksol, product, subsets, variations
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -115,18 +117,19 @@ def __getattr__(name):
 
 __all__ = [
     "Chart", "NumberBlock", "NumberGrid", "Numbers", "SimplydataError", "System", "Table", "change_colour", "chart",
-    "compare_averages",
+    "check_solution", "compare_averages",
     "compare_counts", "compare_rates", "compare_risks", "compare_to_truth", "count_ways_to_choose",
     "count_ways_to_order", "distribution", "draw_all_pairs", "find_area_points", "find_area_under",
     "find_chance_of_finding",
     "find_how_many_needed", "find_inverse_fourier_transform", "find_parameter_that_gives", "find_path_over_time",
+    "find_product_of_series",  # families for 100 %, batches 24-26
     "find_sensitivity_of", "find_sum_of_series", "make_coordinate_grids", "polynomial", "find_volume_under",
     "find_best_pairing",  # families for 100 %, batch 14
     "find_path_between_ends",  # families for 100 %, batch 15
     "curve_through_points",  # families for 100 %, batch 16
     "find_where_biggest", "find_where_smallest", "find_zeros_of", "formula", "frequency_filter", "get_example",
     "go_to_next_day",
-    "help", "hide_stretching_notes", "make_design_table",
+    "help", "hide_stretching_notes", "list_ways_to_choose", "list_ways_to_order", "make_design_table",
     "make_random_assignments", "make_random_numbers",
     "make_run_of_dates", "make_wave", "make_window_shape", "number_block", "number_grid", "number_list",
     "pick_colours_with_sliders",
