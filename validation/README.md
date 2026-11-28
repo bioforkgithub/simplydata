@@ -37,7 +37,7 @@ with Python 3.11 to 3.13 for every change.
    that agree. A word must match at least 9 digits; for the nonlinear (curve) problems, at least 6, the
    level at which statistical software is judged on them (McCullough 1999).
    In these cases, made-up data are used only for edge cases that no real dataset tests (empty cells, no
-   rows left, an exact line): 3 of the 1017 cases, each labelled *made-up* in the report.
+   rows left, an exact line): 3 of the 1104 cases, each labelled *made-up* in the report.
    Words that take no data at all (a system, a wave, a window shape) are checked against the answer
    worked out by hand from their formula; the report labels them *closed form*.
 
@@ -49,23 +49,23 @@ with Python 3.11 to 3.13 for every change.
    a limit of precision (for example the NIST Wampler polynomials, below) is listed as an *explained
    difference*, with its reason, and counted apart from the passes and the failures.
 
-2. **The same underneath** (`src/simplydata/_underneath/`). For 594 of simplydata's 594 words (848
+2. **The same underneath** (`src/simplydata/_underneath/`). For 608 of simplydata's 608 words (935
    entries, counting the options that change what a word calls), the manual shows the same job written in
    the package underneath. Each of those boxes is run next to the word and compared: numbers to a stated
    tolerance, tables by values and column order (on a pandas and on a Polars table), and charts by their
    data (bars, dots, lines, labels, limits), never by pixels. These checks show that a word makes the call
-   it says it makes; they are not checks against an independent answer, and 530 of the 848 run on made-up
-   practice tables (all practice tables are made up; 318 need no table). The report counts them together with the cases of
+   it says it makes; they are not checks against an independent answer, and 535 of the 935 run on made-up
+   practice tables (all practice tables are made up; 400 need no table). The report counts them together with the cases of
    part 1, so its total number of checks mixes both kinds.
 
 3. **Choices simplydata makes.** Where simplydata's default differs from the package underneath (for
    example Welch's t-test where SciPy's `ttest_ind` assumes equal spreads, or 10 histogram bins), the report lists it, so a difference is never hidden.
 
-The study now has 1017 cases on 101 datasets (94 with a published or certified answer, 863 compared with the
+The study now has 1104 cases on 102 datasets (94 with a published or certified answer, 950 compared with the
 parent package and R, 3 made-up edge cases). The "datasets" include published sources that hold no data (power
-manuals, design tables, worked examples): 23 of the 863 are simulation and formula checks against R that use no data at
-all; the other 840 run on real data. A word passes when it agrees with the reference to the stated, justified
-tolerance. They cover 572 words, or 846 words and options. Words are added with each release; a word counts as done only
+manuals, design tables, worked examples): 23 of the 950 are simulation and formula checks against R that use no data at
+all; the other 927 run on real data. A word passes when it agrees with the reference to the stated, justified
+tolerance. They cover 586 words, or 933 words and options. Words are added with each release; a word counts as done only
 when its checks pass.
 
 ### Which words are compared, and where
@@ -152,6 +152,7 @@ which table is in [DATA_LICENSES.md](../DATA_LICENSES.md).
 | Port Pirie, daily rain (S3c-3) | not stored | Coles, S. (2001). An Introduction to Statistical Modeling of Extreme Values. Springer, sections 3.4.1 and 4.4.1. Shipped with the R package ismev (the Port Pirie numbers are also the practice table `sea_levels`) | GPL (>= 2) (ismev); read from the installed package, so they need R |
 | Hedenfalk's genes (S3c-4) | not stored | Hedenfalk, I. et al. (2001). New England Journal of Medicine 344, 539-548; the p-values of Storey, J. D. & Tibshirani, R. (2003). PNAS 100, 9440-9445. Shipped with the R package qvalue (Bioconductor) | LGPL (qvalue); read from the installed package, so it needs R |
 | Quetelet's chest sizes (S3c-4) | `data/chest_sizes.csv` | Quetelet, A. (1846). Lettres sur la theorie des probabilites. Hayez, Brussels; Stigler, S. M. (1986). The History of Statistics. The same counts as R HistData's ChestSizes | Published 1846 (facts); stored with its numbers unchanged |
+| state.center (R datasets; families for 100 %, batch 21) | not stored | U.S. Department of Commerce, Bureau of the Census (1977). Statistical Abstract of the United States. Copy from R's `datasets::state.center` | Published 1977 (facts); R's copy is GPL-2 \| GPL-3; read from the installed package (`r_data.py`), so it needs R |
 | AirPassengers (S3c-4) | not stored | Box, G. E. P. & Jenkins, G. M. (1976). Time Series Analysis: Forecasting and Control, series G. Copy from R's `datasets::AirPassengers` | Published 1976 (facts); R's copy is GPL-2 \| GPL-3; read from the installed package (`r_data.py`), so it needs R |
 | rounding first base (S3c-4) | `data/rounding_first_base.csv` | Hollander, M. & Wolfe, D. A. (1973). Nonparametric Statistical Methods. Wiley, p. 140; the example of R's `friedman.test` help | Published 1973 (facts); stored with its numbers unchanged |
 | smokers (S3c-4) | `data/smokers.csv` | Fleiss, J. L. (1981). Statistical Methods for Rates and Proportions, 2nd ed., p. 139; the example of R's `prop.test` help | Published 1981 (facts); stored with its numbers unchanged |

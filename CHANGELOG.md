@@ -5,6 +5,44 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: matrices of scipy.linalg, grids as pictures and points (families for 100 %, batches 19-21)
+
+Approved by Manish 2026-11-28 (plan sections 2.8 and 2.9, G7 and G9). Every number comes from SciPy (NumPy's FFT and
+matrix_power, SymPy's jordan_form); each word, option and value is tested against its library and has a box in the
+manual and cases in the reliability study.
+
+- New family word `grid.take_matrix_function("log")` (G7): `"square root"`, `"exp"`, `"cos"`, `"sin"`, `"tan"`,
+  `"cosh"`, `"sinh"`, `"tanh"`, `"sign"`, `"power"` with `power=`, and any formula of x such as `"1 / (1 + x)"`
+  (SciPy `logm`, `sqrtm`, `expm`, `cosm` ... `signm`, `fractional_matrix_power`, NumPy `matrix_power`, `funm`).
+  `take_matrix_exp` stays. An answer with complex numbers is refused with the reason.
+- New words `grid.check_if_grid_is("symmetric")` (`"hermitian"`, `"diagonal"`, `"upper triangle"`, `"lower
+  triangle"`, `"banded"`; `within=`), `grid.find_best_rotation_to(other_grid)` (orthogonal Procrustes),
+  `grid.find_angles_to(other_grid)` (principal angles, in degrees) and `sdata.solve_matrix_equation("lyapunov", a=,
+  q=)` with `"discrete lyapunov"`, `"sylvester"`, `"riccati"` and `"discrete riccati"`.
+- `grid.break_down(test_method=)` gets `"rq"`, `"cs"` (with `split_at=`), `"real eigen blocks"` (eig with
+  cdf2rdf) and `"jordan"` (exact); `grid.solve_for(structure="banded")` and `grid.find_eigenvalues(structure=
+  "banded" / "tridiagonal")` work from the band; `make_pair_table_with(as_blocks=True, column_by_column=True)` is
+  the Khatri-Rao product.
+- A grid as a picture: `grid.smooth(test_method=)` gets `"biggest"`, `"smallest"`, `"percentile"` (`percentile=`),
+  `"rank"` (`rank=`; `ends="zeros"` is signal.order_filter), `"summary"` (`summary=`), `"fourier gaussian"`,
+  `"fourier uniform"`, `"fourier ellipsoid"` and `"spline"` (`smoothness=`, signal.spline_filter). New words
+  `grid.find_edges()` (Sobel, Prewitt, Laplace, Gaussian Laplace and slope size; `along=`),
+  `grid.change_patch_shapes("grow", by=1)` (G9: `"shrink"`, `"open"`, `"close"`, `"fill holes"`, `"top hat"`,
+  `"dark top hat"`, `"outline"`, `"laplace"`, `"match pattern"`, `"keep patches with points"`; patches from a
+  condition, or a grey picture), `grid.find_distance_to_nearest(is_above=0)`, `grid.split_touching_patches()`
+  (watershed), `grid.move_and_stretch_by()` (`matrix=`, `shift=`, `rule=`, `test_method="fourier"`),
+  `grid.convolve_with()` (convolve2d, correlate2d with `flip=False`, sepfir2d with `row_weights=` and
+  `column_weights=`) and `grid.find_envelope()` (hilbert2). `grid.find_each_patch_that(show=)` adds the biggest and
+  smallest and where they are, the median, standard deviation, variance, range, the cells and `"counts in bins"`.
+- Points: new words `table.find_triangles_between_points(x=, y=)` (Delaunay; `containing=` for tsearch) and
+  `table.find_regions_around_points(x=, y=)` (Voronoi with each region's area; `longitude=` and `latitude=` for
+  regions on the earth, SphericalVoronoi); `find_distances_between_rows(measure="minkowski", power=3)`.
+- Help pointers for the names of scipy.linalg, scipy.ndimage, scipy.spatial and scipy.signal's 2-D names
+  (`linalg.logm`, `ndimage.binary_dilation`, `spatial.Delaunay`, `signal.hilbert2` ...); steps inside the solvers
+  (`expm_frechet`, `qr_update`, `matrix_balance` ...) point to the hand-over. Left to the library, as approved:
+  `scipy.spatial.HalfspaceIntersection`.
+- The reliability study gains the dataset `state.center` (R datasets), read from R.
+
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 
 Approved by Manish 2026-11-28 (plan section 2.2, G3 and G4). One name table gives the 101 SciPy distributions that
