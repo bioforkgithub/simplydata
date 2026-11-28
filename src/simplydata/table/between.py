@@ -26,6 +26,12 @@ One direction (one column in at=):
   "makima" (modified Akima, as MATLAB makima()), "not-a-knot" (cubic spline with
   not-a-knot ends, as MATLAB spline()), "periodic" (cubic spline for a cycle, the first
   and last values equal, as R splinefun(method = "periodic")).
+* families for 100 %, batch 15 (approved by Manish 2026-11-28): "polynomial" (the one polynomial through every
+  point, in the stable barycentric form: SciPy BarycentricInterpolator, the same curve as lagrange and
+  KroghInterpolator, as R pracma::barylag()), "rational curve" (a ratio of polynomials without poles, Floater and
+  Hormann 2007 of degree 3: SciPy FloaterHormannInterpolator) and "aaa" (the AAA rational curve of Nakatsukasa,
+  Sete and Trefethen 2018: SciPy AAA, as R has none; a place between two known points where the curve has a
+  pole is left empty, with a note).
 * smoothness="auto" or a number: a smoothing spline that does NOT pass through every
   point. With x rescaled to run from 0 to 1 (as R does), it makes
   sum (y - curve)**2 + smoothness * integral(curve''**2)  as small as possible, with a knot
@@ -49,6 +55,9 @@ Two or more directions (at= with two or more columns):
   through the points (added to the diagonal of the system).
 * "nearest": the value of the nearest point.
 * experts on full grids: "cubic", "quintic", "pchip" (SciPy RegularGridInterpolator).
+* "smooth triangles" (two directions; families for 100 %, batch 15): a smooth surface over the Delaunay triangles,
+  piecewise cubic with matching slopes (Clough-Tocher; SciPy CloughTocher2DInterpolator, as R
+  interp::interp(linear = FALSE)).
 
 outside= says what happens at places beyond the known points: "empty" (default, as R
 approx(rule = 1)), "nearest end" (the value at the nearest end, as R approx(rule = 2); with
@@ -70,8 +79,10 @@ from .stat_tests import _list_words, _num, _skipped_note
 
 # ------------------------------------------------------------------ vocabulary
 JOINED_BY = ("straight lines", "smooth curve", "curve without overshoot", "steps", "nearest",
-             "akima", "makima", "not-a-knot", "periodic")
-JOINED_BY_MANY = ("straight lines", "smooth surface", "nearest", "cubic", "quintic", "pchip")
+             "akima", "makima", "not-a-knot", "periodic",
+             "polynomial", "rational curve", "aaa")  # families for 100 %, batch 15
+JOINED_BY_MANY = ("straight lines", "smooth surface", "nearest", "cubic", "quintic", "pchip",
+                  "smooth triangles")  # families for 100 %, batch 15
 OUTSIDE = ("empty", "nearest end", "extend")
 # other names people bring (R, SciPy, MATLAB, everyday words) -> the simplydata words
 JOIN_ALIASES = {
@@ -85,10 +96,17 @@ JOIN_ALIASES = {
     "nearest point": "nearest", "nearest neighbour": "nearest", "nearest neighbor": "nearest",
     "not a knot": "not-a-knot", "notaknot": "not-a-knot",
     "thin plate spline": "smooth surface", "thin-plate spline": "smooth surface", "surface": "smooth surface",
+    # families for 100 %, batch 15: SciPy's names for the new ways
+    "barycentric": "polynomial", "lagrange": "polynomial", "krogh": "polynomial", "polynomial through every point":
+    "polynomial", "barycentric interpolate": "polynomial", "krogh interpolate": "polynomial",
+    "floater-hormann": "rational curve", "floater hormann": "rational curve", "rational": "rational curve",
+    "aaa rational": "aaa", "clough-tocher": "smooth triangles", "clough tocher": "smooth triangles",
+    "cloughtocher": "smooth triangles", "cubic triangles": "smooth triangles",
 }
 OUTSIDE_ALIASES = {"nearest": "nearest end", "nearest ends": "nearest end", "clamp": "nearest end",
                    "extrapolate": "extend", "none": "empty", "nan": "empty", "na": "empty"}
-CURVES = ("smooth curve", "curve without overshoot", "akima", "makima", "not-a-knot", "periodic")
+CURVES = ("smooth curve", "curve without overshoot", "akima", "makima", "not-a-knot", "periodic",
+          "polynomial", "rational curve", "aaa")
 
 # what each way of joining is, in words, for the printed sentence
 SAID = {
@@ -102,6 +120,11 @@ SAID = {
     "makima": "the modified Akima curve (as MATLAB makima())",
     "not-a-knot": "a cubic spline with not-a-knot ends (as MATLAB spline())",
     "periodic": 'a periodic cubic spline (as R splinefun(method = "periodic"))',
+    "polynomial": "the one polynomial through every known point (barycentric form, SciPy BarycentricInterpolator, "
+                  "as R pracma::barylag())",
+    "rational curve": "a rational curve through every known point, without poles (Floater-Hormann of degree 3, "
+                      "SciPy FloaterHormannInterpolator)",
+    "aaa": "the AAA rational curve through the known points (Nakatsukasa, Sete and Trefethen 2018, SciPy AAA)",
 }
 MIN_SMOOTHING_POINTS = 5  # SciPy make_smoothing_spline needs 5 (R smooth.spline needs 4)
 MAP_LIMIT = 1_000_000  # make_map_of: places at most
@@ -255,6 +278,34 @@ def _curve_through(x, y, how):
         return interpolate.CubicSpline(x, y, bc_type="not-a-knot", extrapolate=True)
     if how == "periodic":
         return interpolate.CubicSpline(x, y, bc_type="periodic", extrapolate="periodic")
+    if how == "polynomial":
+        return interpolate.BarycentricInterpolator(x, y)
+    if how == "rational curve":
+        return interpolate.FloaterHormannInterpolator(x, y, d=min(3, len(x) - 1))
+    if how == "aaa":
+        curve = interpolate.AAA(x, y)
+        poles = np.asarray(curve.poles(), dtype=complex)
+        scale = max(1.0, float(np.max(np.abs(x))))
+        real = np.array([z.real for z in poles if abs(z.imag) <= 1e-9 * scale and x[0] <= z.real <= x[-1]])
+
+        def evaluate(at):
+            at = np.asarray(at, dtype=float)
+            values = np.real(curve(at))
+            if real.size:
+                # a place between the same two known points as a real pole: the curve shoots to infinity in that gap,
+                # so its value there means nothing
+                gap_of = lambda v: np.searchsorted(x, v, side="right")  # noqa: E731
+                bad = np.isin(gap_of(at), gap_of(real)) & (at >= x[0]) & (at <= x[-1])
+                if bad.any():
+                    values = np.where(bad, np.nan, values)
+                    count = int(bad.sum())
+                    print(f"Note: the AAA curve has a pole (it shoots to infinity) at "
+                          f"{', '.join(f'{v:.6g}' for v in np.sort(real)[:5])}, between known points; {count} "
+                          f"place{'s' if count > 1 else ''} in the same gap {'are' if count > 1 else 'is'} left empty. "
+                          'joined_by="rational curve" has no poles.')
+            return values
+
+        return evaluate
     raise ValueError(how)  # pragma: no cover
 
 
@@ -343,6 +394,22 @@ def join_many_directions(points, values, at, how="straight lines", smoothness=0.
     at = np.asarray(at, dtype=float)
     axes = full_grid(points)
     kind = "grid" if axes is not None else "scattered"
+    if how == "smooth triangles":  # families for 100 %, batch 15
+        if points.shape[1] != 2:
+            raise SimplydataError('joined_by="smooth triangles" works in two directions (at= with two columns).')
+        if outside == "extend":
+            raise SimplydataError('outside="extend" needs joined_by="smooth surface"; smooth triangles end at the '
+                                  'outline of the points. Use outside="nearest end".')
+        try:
+            # the slopes at the points, found step by step, to 1e-12
+            out = interpolate.CloughTocher2DInterpolator(points, values, tol=1e-12, maxiter=10000)(at)
+        except Exception:
+            raise SimplydataError("The points lie on one line, so no triangles can be made between them. Use "
+                                  'joined_by="nearest", or one direction only.') from None
+        if outside == "nearest end":
+            empty = np.isnan(out)
+            out[empty] = interpolate.NearestNDInterpolator(points, values)(at[empty])
+        return out, kind
     if how in ("cubic", "quintic", "pchip") and axes is None:
         raise SimplydataError(f'joined_by="{how}" needs points on a full grid (every value of one column with every '
                               'value of the others). These points are scattered: use joined_by="smooth surface" '
@@ -637,6 +704,9 @@ class BetweenWords:
             return f"a smooth surface (a thin-plate spline{extra})"
         if how == "nearest":
             return "the value of the nearest known point"
+        if how == "smooth triangles":
+            return ("a smooth surface over the Delaunay triangles between the points (Clough-Tocher, piecewise cubic, "
+                    "as R interp::interp(linear = FALSE))")
         return f'{how} curves along each direction of the full grid (SciPy RegularGridInterpolator(method="{how}"))'
 
     def _notes(self, facts, directions, outside, how, smoothness, count, keys):
@@ -723,9 +793,11 @@ class BetweenWords:
         joined_by= says how the points are joined (one column): "straight lines" (default,
         linear interpolation, R approx()), "smooth curve" (natural cubic spline, R
         splinefun(method = "natural")), "curve without overshoot" (PCHIP), "steps", "nearest";
-        experts: "akima", "makima", "not-a-knot", "periodic". Two or more columns: "straight
-        lines" (bilinear on a full grid, triangles otherwise), "smooth surface" (thin-plate
-        spline), "nearest"; on a full grid also "cubic", "quintic", "pchip".
+        experts: "akima", "makima", "not-a-knot", "periodic", "polynomial" (one polynomial through
+        every point, SciPy BarycentricInterpolator), "rational curve" (Floater-Hormann), "aaa" (SciPy
+        AAA). Two or more columns: "straight lines" (bilinear on a full grid, triangles otherwise),
+        "smooth surface" (thin-plate spline), "smooth triangles" (Clough-Tocher, two columns),
+        "nearest"; on a full grid also "cubic", "quintic", "pchip".
         smoothness="auto" or a number gives a smoothing spline that passes near, not through,
         the points (R smooth.spline(); a number is R's lambda=); 0 passes through every point.
         "auto" lets R itself choose the smoothness and needs R (pip install "simplydata[r]");

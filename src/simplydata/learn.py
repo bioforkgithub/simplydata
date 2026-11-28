@@ -134,7 +134,9 @@ GROUPS = [
                 "table.fit_dose_response", "table.find_best_power_of"]),
     ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
                              # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy sobol_indices
-                             "sdata.find_sensitivity_of"]),
+                             "sdata.find_sensitivity_of",
+                             # families for 100 %, batch 14: SciPy linear_sum_assignment and quadratic_assignment
+                             "sdata.find_best_pairing"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
     # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
     ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
@@ -148,8 +150,16 @@ GROUPS = [
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
-                                   "sdata.find_sum_of_series"]),
-    ("Values between points", ["table.find_values_at", "table.make_map_of"]),
+                                   "sdata.find_sum_of_series",
+                                   # families for 100 %, batch 15: SciPy solve_bvp
+                                   "sdata.find_path_between_ends"]),
+    ("Values between points", ["table.find_values_at", "table.make_map_of",
+                               # families for 100 %, batch 16 (G6): "curve.name" is a step on a curve,
+                               # curve = sdata.curve_through_points(x=..., y=...), then curve.find_value_at(12)
+                               "sdata.curve_through_points", "curve.find_value_at", "curve.find_slope_at",
+                               "curve.find_area_between", "curve.find_zeros", "curve.turn_into_slope_curve",
+                               "curve.turn_into_area_curve", "curve.show_pieces", "curve.show_knots",
+                               "curve.as_scipy"]),
     # "dist.name" is a step on a distribution: dist = sdata.distribution("normal"), then dist.find_chance_that_value(...).
     ("Distributions", ["sdata.distribution", "table.fit_distribution_to", "table.compare_distributions_for",
                        "nums.fit_distribution", "dist.find_chance_that_value", "dist.find_density_at", "dist.find_percentile", "dist.find_cut_off",
@@ -414,6 +424,14 @@ def _dx(body: str) -> str:
 def _system_x(body: str, formula: str = "1 / (s**2 + 2*s + 5)") -> str:
     """A runnable system example: make a system, then the steps."""
     lines = ["import simplydata as sdata", f'system = sdata.system("{formula}")']
+    lines += textwrap.dedent(body).strip().splitlines()
+    return "\n".join(lines)
+
+
+def _curve_x(body: str) -> str:
+    """A runnable curve example (families for 100 %, batch 16): make a curve through points, then the steps."""
+    lines = ["import simplydata as sdata",
+             "curve = sdata.curve_through_points(x=[0, 5, 10, 20, 30, 40], y=[8.1, 7.9, 6.2, 5.0, 4.4, 4.6])"]
     lines += textwrap.dedent(body).strip().splitlines()
     return "\n".join(lines)
 
@@ -870,6 +888,39 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         answer = sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})
         answer.show()"""),
+    # families for 100 %, batches 14-16 (approved by Manish 2026-11-28)
+    "sdata.find_best_pairing": textwrap.dedent("""\
+        import simplydata as sdata
+        costs = sdata.number_grid([[4, 1, 3], [2, 0, 5], [3, 2, 2]])
+        pairs = sdata.find_best_pairing(costs)
+        pairs.show()
+        sdata.find_best_pairing(costs, aim_for="biggest total")
+        flows = sdata.number_grid([[0, 5, 2], [5, 0, 3], [2, 3, 0]])
+        distances = sdata.number_grid([[0, 8, 15], [8, 0, 13], [15, 13, 0]])
+        sdata.find_best_pairing(flows, with_distances=distances)"""),
+    "sdata.find_path_between_ends": textwrap.dedent("""\
+        import simplydata as sdata
+        path = sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])
+        path.show_first_rows(5)
+        sdata.find_path_between_ends(["dy/dx = v", "dv/dx = -y"], at_ends={"y": [0, None], "v": [None, 2]},
+                                     between=[0, 1], step=0.25)"""),
+    "sdata.curve_through_points": textwrap.dedent("""\
+        import simplydata as sdata
+        depths = sdata.number_list([0, 5, 10, 20, 30, 40])
+        oxygen = sdata.number_list([8.1, 7.9, 6.2, 5.0, 4.4, 4.6])
+        curve = sdata.curve_through_points(x=depths, y=oxygen)
+        curve.find_value_at(12)
+        smooth = sdata.curve_through_points(x=depths, y=oxygen, smoothness=0.01)
+        smooth.find_value_at([12, 25])"""),
+    "curve.find_value_at": _curve_x("curve.find_value_at(12)\ncurve.find_value_at([1, 12, 35])"),
+    "curve.find_slope_at": _curve_x('curve.find_slope_at(12)\ncurve.find_slope_at(12, order="all")'),
+    "curve.find_area_between": _curve_x("curve.find_area_between(0, 20)"),
+    "curve.find_zeros": _curve_x("depths = curve.find_zeros(where_value_is=5)\nprint(depths)"),
+    "curve.turn_into_slope_curve": _curve_x("slopes = curve.turn_into_slope_curve()\nslopes.find_zeros()"),
+    "curve.turn_into_area_curve": _curve_x("areas = curve.turn_into_area_curve()\nareas.find_value_at(20)"),
+    "curve.show_pieces": _curve_x('pieces = curve.show_pieces()\npieces.show()\ncurve.show_pieces(basis="bernstein")'),
+    "curve.show_knots": _curve_x("knots = curve.show_knots()\nknots.show()"),
+    "curve.as_scipy": _curve_x("spline = curve.as_scipy()\nprint(spline.k)"),
     # values between points
     "table.find_values_at": _tx("growth", 'estimates = table.find_values_at("population", at={"year": [2001, 2003, 2011]}, '
                                      'for_each_group_in="country")\nestimates.show()\n'
@@ -1853,14 +1904,15 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f"}
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system",
+           "formula": "f", "curve": "curve"}  # curve: families for 100 %, batch 16
 # Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
 # distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
 _WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}
 # How a word is shown to people (headings, help, word lists): the object written in full in front. The keys of
 # GROUPS keep the short names (nums.find_average), and sdata.help() takes either spelling.
 _SHOWN = {"table": "table", "numbers": "numbers", "grid": "grid", "block": "block", "dist": "distribution",
-          "system": "system", "formula": "formula"}
+          "system": "system", "formula": "formula", "curve": "curve"}
 # A short name typed in front of a word, and how it is shown: sdata.help("nums.average") says "numbers.average".
 _SHOWN_TYPED = {"nums": "numbers", "dist": "distribution", "f": "formula"}
 
@@ -1891,6 +1943,12 @@ def _system_class():
     return System
 
 
+def _curve_class():
+    from ._curves import Curve
+
+    return Curve
+
+
 def _formula_class():
     from ._formula import Formula
 
@@ -1902,7 +1960,7 @@ def _classes():
     return [(_chart_class(), "chart"), (_table_class(), "table"), (_numbers_class(), "numbers"),
             (_grid_class(), "grid"), (_block_class(), "block"), (_distribution_class(), "dist"),
             (_system_class(), "system"),
-            (_formula_class(), "formula")]
+            (_formula_class(), "formula"), (_curve_class(), "curve")]
 
 
 def _kind(key: str) -> str:
@@ -2071,6 +2129,8 @@ def show_all_words() -> None:
           "system.step_response().")
     print('Formula words are steps on a formula: formula = sdata.formula("(x + 2)**2 - 4"), then '
           "formula.turn_into_sum().")
+    print("Curve words are steps on a curve: curve = sdata.curve_through_points(x=[0, 5, 10], y=[8, 7, 6]), then "
+          "curve.find_value_at(2).")
     print('The examples use the practice tables; sdata.help("word") shows which one, ready to run.')
     for group, keys in GROUPS:
         print()
@@ -2089,7 +2149,7 @@ def show_all_words() -> None:
 def _normalise(word: str) -> str:
     w = str(word).strip()
     for start in ("simplydata.", "sdata.", "sd.", "chart.", "charts.", "table.", "page.", "numbers.", "nums.", "grid.",
-                  "block.", "distribution.", "dist.", "system.", "formula.", "f.", "."):
+                  "block.", "distribution.", "dist.", "system.", "formula.", "f.", "curve.", "."):
         if w.startswith(start):
             w = w[len(start):]
     if w.endswith("()"):
@@ -2158,7 +2218,7 @@ def _lookup_all(word) -> list[str]:
 # so it narrows nothing.
 _TYPED_KINDS = {"chart": {"chart"}, "page": {"chart"}, "charts": {"chart"}, "table": {"table"}, "nums": {"numbers"},
                 "grid": {"grid", "numbers"}, "block": {"block", "grid", "numbers"}, "dist": {"dist"},
-                "system": {"system"}, "f": {"formula"},
+                "system": {"system"}, "f": {"formula"}, "curve": {"curve"},
                 "numbers": {"numbers"}, "distribution": {"dist"}, "formula": {"formula"}}
 
 

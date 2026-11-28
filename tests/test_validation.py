@@ -30,6 +30,8 @@ NO_DATA_BY_NATURE = ("sdata.system", "system.", "sdata.frequency_filter", "sdata
                      # numbers phase, batch 3: a formula is the input, so the answer worked out by hand is the check
                      "sdata.formula", "f.", "sdata.solve", "sdata.find_area_under", "sdata.find_volume_under",
                      "sdata.find_path_over_time",
+                     # families for 100 %, batch 15: the path between two ends has no data either
+                     "sdata.find_path_between_ends",
                      # numbers phase, batch 4: the sum of a formula's series has no data either
                      "sdata.find_sum_of_series",
                      # seaborn's colour tools: a set of colours and a changed colour are made from no data

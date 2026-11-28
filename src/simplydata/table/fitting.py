@@ -701,9 +701,56 @@ class FittingWords:
                                "the p-value and confidence intervals may be off."))
         return self._result_table(row)
 
+    # ------------------------------------------------------------------ fit_curve(always=)
+    def _fit_always(self, x, y, always, weights, for_each_group_in):
+        """Isotonic regression (families for 100 %, batch 14): SciPy optimize.isotonic_regression on y in the order
+        of x (ties of x kept in the order of the rows, as R isoreg()), with weights= as its weights."""
+        from scipy import optimize
+
+        step = "fit_curve"
+        choices = {"rising": True, "falling": False, "increasing": True, "decreasing": False, "up": True,
+                   "down": False}
+        key = str(always).strip().lower() if isinstance(always, str) else None
+        if key not in choices:
+            raise choice_error(step, "always", always, ["rising", "falling"])
+        rising = choices[key]
+        example = 'table.fit_curve(x="dose", y="response", always="rising")'
+        groups = self._fit_data(step, [x, y], for_each_group_in, weights, example)
+        rows, said = [], []
+        for label, group_key, arrays in groups:
+            # rows in the order of x, and at a tied x the biggest y first when rising (smallest first when falling),
+            # as R isoreg() orders them (order(x, -y)), so the values at a tied x are pooled
+            order = np.lexsort((-arrays[y] if rising else arrays[y], arrays[x]))
+            xs, ys = arrays[x][order], arrays[y][order]
+            w = None if weights is None else arrays[weights][order]
+            if w is not None and np.any(w <= 0):
+                raise SimplydataError("weights= needs a number above 0 in every row used.")
+            fitted = optimize.isotonic_regression(ys, weights=w, increasing=rising).x
+            steps = int(np.count_nonzero(np.diff(fitted) != 0)) + 1 if len(fitted) else 0
+            for xv, yv, fv in zip(xs, ys, fitted):
+                row = {} if label is None else {for_each_group_in: group_key}
+                row.update({x: float(xv), y: float(yv), f"fitted {y}": float(fv)})
+                rows.append(row)
+            change = float(np.sum((ys - fitted) ** 2))
+            said.append((label, len(xs), steps, change))
+        word = "rises" if rising else "falls"
+        for label, n, steps, change in said:
+            where = "" if label is None else f' in group "{label}"'
+            print(f"The closest curve that only {word}{where}: {steps} level{'s' if steps != 1 else ''} through "
+                  f"{n} rows (sum of squared distances {change:.6g}).")
+        r_call = f"isoreg({x}, {y})" if rising else f"-isoreg({x}, -{y})"
+        if weights is None:
+            print(f"Method: isotonic regression (pool adjacent violators), SciPy optimize.isotonic_regression, as R "
+                  f"{r_call}$yf.")
+        else:  # R isoreg() takes no weights
+            print(f'Method: weighted isotonic regression (pool adjacent violators, weights "{weights}"), SciPy '
+                  "optimize.isotonic_regression; R isoreg() has no weights.")
+        return self._rows_table(rows)
+
     # ------------------------------------------------------------------ fit_curve
     @friendly(renamed={"degree": "of_degree", "for_each": "for_each_group_in"})
-    def fit_curve(self: _Same, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None, of_kind=None) -> _Same:
+    def fit_curve(self: _Same, x=None, y=None, of_degree=2, weights=None, for_each_group_in=None, of_kind=None,
+                  always=None) -> _Same:
         """Fit a curve y = b0 + b1 * x + b2 * x**2 ... that best follows the points.
 
         table.fit_curve(x="hours", y="marks", of_degree=2)   (with sdata.get_example("marks"), one subject)
@@ -722,6 +769,10 @@ class FittingWords:
         (SSmicmen), "rise to a limit" (SSasympOrig), "rise or fall to a limit" (SSasymp),
         "gompertz growth" (SSgompertz), "weibull growth" (SSweibull) or "two exponentials"
         (SSbiexp). Prints each value with what it means and its 95 % interval.
+        always="rising" (or "falling") fits the closest curve that never goes down (or up): steps through the
+        points by isotonic regression (pool adjacent violators, SciPy optimize.isotonic_regression, as R
+        isoreg(), which also pools the values at a tied x); gives back x, y and the fitted value of each row, in the
+        order of x.
         """
         st = _st()
         step = "fit_curve"
@@ -730,6 +781,11 @@ class FittingWords:
         self._need_name(step, "y=", y, example)
         if x == y:
             raise SimplydataError(f"{step}() needs two different columns, for example {example}.")
+        if always is not None:  # families for 100 %, batch 14: isotonic regression
+            if of_kind is not None or of_degree != 2:
+                raise SimplydataError("always= fits a curve that only rises (or only falls), with no formula, so it "
+                                      "takes no of_degree= or of_kind=.")
+            return self._fit_always(x, y, always, weights, for_each_group_in)
         if of_kind is not None:
             from .lines_more import read_curve_kind
 

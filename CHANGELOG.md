@@ -47,6 +47,47 @@ library itself. Positions count from 1, as everywhere in simplydata.
 - `sdata.help("np.argsort")`, `"np.linalg.pinv"`, `"np.fft.fft2"`, `"scipy.linalg.toeplitz"`, `"special.chebyt"`,
   `"np.polynomial.Hermite"`, `"sp.legendre_poly"` and the other names of plan section 2.4 point to the word. Left to
   NumPy, with a pointer to the hand-over: `einsum` (G17), `linalg.tensorinv`, `trim_zeros`.
+### Added: SciPy optimize, integrate and interpolate (families for 100 %, batches 14-16)
+
+Approved by Manish 2026-11-28 (plan section 2.6, G6). Each new value or word calls SciPy, prints the method in a plain
+sentence, has its help text, its "same underneath" box and reliability cases (mtcars, stackloss, Lake Huron, and
+closed-form answers for the words that take a formula), checked against SciPy and, where it does the same, R.
+
+- Every search of `find_where_smallest`, `find_where_biggest` and `solve` now says plainly whether it settled
+  (converged), after how many steps, and how many times the formula was worked out; the result table of
+  `find_where_smallest` and `find_where_biggest` has a new column, "evaluations".
+- `find_where_smallest(test_method=)`: `"golden section"` (golden-section search, SciPy `minimize_scalar(method=
+  "golden")`; `"golden"` keeps its old meaning, Brent's method), `"newton conjugate gradient"` (Newton-CG, slopes from
+  `scipy.differentiate`) and `"truncated newton"` (TNC, SciPy's central differences), which say that they need a
+  smooth formula, and with `search="whole range"` `"grid search"` (SciPy `brute` over the grid points, then a polish
+  that keeps to `between=`). SciPy's legacy names work as values: `fmin`, `fmin_bfgs`, `fmin_cg`, `fmin_cobyla`,
+  `fmin_l_bfgs_b`, `fmin_ncg`, `fmin_powell`, `fmin_slsqp`, `fmin_tnc`, `brute`. A method that cannot keep to
+  `between=` says when its answer is outside it.
+- `solve(test_method=)`: `"fixed point"` for an equation written as `"x = cos(x)"` (SciPy `fixed_point`), and for
+  several equations `"broyden second"`, `"diagonal broyden"`, `"anderson mixing"`, `"linear mixing"`, `"exciting
+  mixing"` and `"newton-krylov"` (SciPy `root`); Broyden's method now runs to the same tight tolerance as these.
+- `table.fit_curve(x=, y=, always="rising")` (or `"falling"`): the closest curve that never goes down, by isotonic
+  regression (SciPy `isotonic_regression`, as R `isoreg()`, which pools the values at a tied x).
+- New word `sdata.find_best_pairing(costs)`: pair each row with one column for the smallest (or `aim_for="biggest
+  total"`) total, exactly (SciPy `linear_sum_assignment`, as R `lpSolve::lp.assign()`); `with_distances=` places
+  items at places for the smallest total of flow times distance (SciPy `quadratic_assignment`).
+- `find_area_under(test_method=)`: `"tanh-sinh"`, `"cubature"`, `"quasi monte carlo"` and `"romberg on even steps"`
+  (SciPy `tanhsinh`, `cubature`, `qmc_quad`, `romb`); `find_volume_under` has `test_method=` too (`"cubature"`,
+  `"quasi monte carlo"`).
+- New word `sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])`: a path with
+  values given at both ends (a boundary value problem, SciPy `solve_bvp`).
+- `table.find_values_at(joined_by=)`: `"polynomial"` (SciPy `BarycentricInterpolator`; also as `"lagrange"`,
+  `"krogh"`), `"rational curve"` (Floater-Hormann), `"aaa"` (SciPy `AAA`; a place between two known points where
+  the curve has a pole is left empty, with a note) and, for two columns, `"smooth triangles"` (Clough-Tocher).
+- New word `sdata.curve_through_points(x=, y=)` (G6; "spline" is its other name): a spline to read anywhere, with
+  `smoothness=`, `allowed_error=`, `knots=`, `slopes=`, `degree=`, `ends=`, `weights=`, `in_order=True` (a path),
+  `z=` (a surface) and `on_sphere=True`. New words on the curve: `curve.find_value_at`, `curve.find_slope_at`,
+  `curve.find_area_between`, `curve.find_zeros`, `curve.turn_into_slope_curve`, `curve.turn_into_area_curve`,
+  `curve.show_pieces`, `curve.show_knots` and `curve.as_scipy` (SciPy `BSpline`, `PPoly`, `BPoly` and the FITPACK
+  functions `splev`, `splder`, `splantider`, `splint`, `sproot`, `spalde`).
+  A curve or surface is empty outside its points.
+- `sdata.help("optimize.basinhopping")`, `"integrate.solve_bvp"`, `"interpolate.splrep"` and every other name of
+  scipy.optimize, integrate and interpolate in the plan point to the word or value that does the job.
 
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 
