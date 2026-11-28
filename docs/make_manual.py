@@ -366,6 +366,8 @@ UNDERNEATH = {
                            "differential_evolution and other global searches)",
     "sdata.find_where_biggest": "SciPy (the same as find_smallest, on minus the formula)",
     "sdata.solve": "SciPy (optimize.brentq, root_scalar, root) and NumPy (polynomial roots, linalg.solve)",
+    # families for 100 %, batches 3-4 (approved by Manish 2026-11-28)
+    "sdata.find_sensitivity_of": "SciPy (stats.sobol_indices on a Sobol' sample, Saltelli et al. 2010)",
     # values between points
     "table.find_values_at": "NumPy (interp) and SciPy (interpolate: CubicSpline, PchipInterpolator, Akima1DInterpolator, "
                        "make_smoothing_spline, griddata, RegularGridInterpolator, RBFInterpolator); "

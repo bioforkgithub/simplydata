@@ -132,7 +132,9 @@ GROUPS = [
     ("Fitting", ["table.fit_line", "table.fit_curve", "table.fit_formula",
                 # S3a-2 (lines and curves): core, then "more"
                 "table.fit_dose_response", "table.find_best_power_of"]),
-    ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve"]),
+    ("Finding and solving", ["sdata.find_where_smallest", "sdata.find_where_biggest", "sdata.solve",
+                             # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy sobol_indices
+                             "sdata.find_sensitivity_of"]),
     # numbers phase, batch 3 (approved by Manish 2026-11-25): "f.name" is a step on a formula,
     # f = sdata.formula("(x + 2)**2 - 4"), then f.turn_into_sum()
     ("Formulas and exact answers", ["sdata.formula", "f.make_simpler", "f.turn_into_sum", "f.turn_into_product",
@@ -839,6 +841,10 @@ HELP_EXAMPLES = {
         sdata.solve("x**3 - 2*x = 5", between=[0, 3])
         sdata.solve("x**2 - 2*x + 5 = 0")
         sdata.solve(["x + y = 3", "x * y = 2"], start={"x": 0, "y": 1})"""),
+    "sdata.find_sensitivity_of": textwrap.dedent("""\
+        import simplydata as sdata
+        answer = sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})
+        answer.show()"""),
     # values between points
     "table.find_values_at": _tx("growth", 'estimates = table.find_values_at("population", at={"year": [2001, 2003, 2011]}, '
                                      'for_each_group_in="country")\nestimates.show()\n'

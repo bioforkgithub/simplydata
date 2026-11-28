@@ -28,6 +28,17 @@ from .checking_more import _new_rows_table
 from .stat_tests import _list_words, _num, _skipped_note
 from .summaries import _p_sentence
 
+# combine_studies(p_values=, test_method=): families for 100 %, batches 3-4 (approved by Manish 2026-11-28), SciPy
+# combine_pvalues: name -> (test in sentences, SciPy method, statistic name)
+P_VALUE_METHODS = {"fisher": ("Fisher's method of combining p-values", "fisher", "chi-square"),
+                   "stouffer": ("Stouffer's z method of combining p-values", "stouffer", "z"),
+                   "pearson": ("Pearson's method of combining p-values", "pearson", "chi-square"),
+                   "tippett": ("Tippett's method (the smallest p-value)", "tippett", "smallest p"),
+                   "mudholkar-george": ("Mudholkar and George's logit method", "mudholkar_george", "t")}
+P_VALUE_METHOD_SPELLINGS = {"fisher's": "fisher", "stouffer's": "stouffer", "z": "stouffer",
+                            "mudholkar_george": "mudholkar-george", "mudholkar george": "mudholkar-george",
+                            "logit": "mudholkar-george", "combine_pvalues": "fisher"}
+
 EXAMPLE = ('table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"], '
            'out_of=["vaccinated", "unvaccinated"])   (with sdata.get_example("bcg"))')
 SETS = "sets of studies like these"
@@ -147,13 +158,55 @@ def _pair(step, option, value):
 
 class MetaWords:
     # ------------------------------------------------------------------ combine_studies
+    def _combine_p_values(self, step, names, p_values, test_method, counts, others):
+        """combine_studies(p_values=): SciPy combine_pvalues on one column of p-values (one row per study)."""
+        from scipy import stats
+
+        example = 'table.combine_studies(names="study", p_values="p", test_method="fisher")'
+        if any(o is not None for o in others):
+            raise SimplydataError("p_values= combines only the p-values; leave out the other ways in (events=, "
+                                  f"estimates=, averages= ...), show=, interval_by=, for_each_group_in= and using=.\n"
+                                  f"For example:  {example}")
+        method = "fisher" if test_method in (None, "reml") else str(test_method).strip().lower()
+        method = P_VALUE_METHOD_SPELLINGS.get(method, method)
+        self._check_choice(step, "test_method", method, tuple(P_VALUE_METHODS))
+        if not isinstance(p_values, str):
+            raise SimplydataError(f"p_values= names the column of p-values in quotes.\nFor example:  {example}")
+        if counts is not None and (method != "stouffer" or not isinstance(counts, str)):
+            raise SimplydataError('counts= (one column of study sizes) weighs the studies in test_method="stouffer".')
+        columns = [p_values] + ([counts] if counts else [])
+        frame = self._number_frame(step, columns).drop_nulls(subset=columns)
+        _skipped_note(len(self._frame) - len(frame), columns)
+        p = frame[p_values].to_numpy().astype(float)
+        if len(p) < 2:
+            raise SimplydataError(f"{step}() needs the p-values of at least 2 studies; there are {len(p)}.")
+        if ((p <= 0) | (p > 1)).any():
+            raise SimplydataError(f'Every p-value in "{p_values}" should be above 0 and at most 1.')
+        weights = None
+        if counts:
+            weights = np.sqrt(frame[counts].to_numpy().astype(float))
+        result = stats.combine_pvalues(p, method=P_VALUE_METHODS[method][1], weights=weights)
+        stat, combined = float(result.statistic), float(result.pvalue)
+        title, stat_name = P_VALUE_METHODS[method][0], P_VALUE_METHODS[method][2]
+        row = {"test": title, "what it compares": f'the p-values in "{p_values}" of {len(p)} studies',
+               "statistic name": stat_name, "statistic": stat, "p-value": combined, "studies": len(p)}
+        if names is not None:
+            self._need_columns(names)
+        print(f'Combined p-value of {len(p)} studies ("{p_values}"): {_num(combined)} ({stat_name} = {_num(stat)}).')
+        print(_p_sentence(combined, "none of the studies' effects were real", "p-values this small together"))
+        print(f"Method: {title} (SciPy combine_pvalues(method=\"{P_VALUE_METHODS[method][1]}\")"
+              + (", weighted by the square root of each study's size" if counts else "")
+              + "); it says whether any study shows an effect, not how big it is: combine the estimates with their "
+                "standard errors (estimates=, standard_errors=) when you have them.")
+        return self._result_table(row)
+
     @friendly(renamed={"method": "test_method"}, others={"slab": "names", "studlab": "names", "subgroup": "for_each_group_in", "byvar": "for_each_group_in",
                       "mods": "using", "moderators": "using", "sei": "standard_errors", "measure": "show",
                       "sm": "show", "test": "interval_by", "ri": "correlations"})
     def combine_studies(self, names=None, events=None, out_of=None, estimates=None, standard_errors=None,
                         averages=None, standard_deviations=None, counts=None, time=None, correlations=None,
                         show=None, test_method="reml", interval_by=None, for_each_group_in=None, using=None,
-                        estimates_are_ratios=None):
+                        estimates_are_ratios=None, p_values=None):
         """Combine the results of several studies into one (a meta-analysis), with how much they differ.
 
         table.combine_studies(names="trial", events=["tb_vaccinated", "tb_unvaccinated"],
@@ -183,10 +236,19 @@ class MetaWords:
         its own spread, and the test of their difference first); using=["latitude"]
         (meta-regression). Needs R metafor (pip install "simplydata[r]"). Other names:
         meta-analysis, rma, metagen, metabin, hksj, egger, trimfill, i2.
+        p_values="p" (families for 100 %) combines only the p-values of independent studies of the same question,
+        when nothing else is known (SciPy combine_pvalues, no R): test_method="fisher" (the default here),
+        "stouffer", "pearson", "tippett" or "mudholkar-george"; counts= (one column) weighs Stouffer's z by the
+        square root of each study's size.
         """
         from .meta_r import combine
 
         step = "combine_studies"
+        if p_values is not None:
+            return self._combine_p_values(step, names, p_values, test_method, counts,
+                                          [events, out_of, estimates, standard_errors, averages, standard_deviations,
+                                           time, correlations, show, interval_by, for_each_group_in, using,
+                                           estimates_are_ratios])
         route, cols = self._meta_route(step, events, out_of, estimates, standard_errors, averages,
                                        standard_deviations, counts, time, correlations)
         method_name = _text_choice(test_method if test_method is not None else "reml", METHOD_SPELLINGS, tuple(METHODS),

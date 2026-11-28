@@ -5,6 +5,44 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: the SciPy tests and summaries that had no word yet (families for 100 %, batches 3-4)
+
+Approved by Manish 2026-11-28 (plan section 2.2). Each option value calls scipy.stats, prints the method in a plain
+sentence, has its help text, its "same underneath" box and reliability cases on real data (NIST, mtcars, iris,
+warpbreaks, lung, turtles, hedenfalk), checked against SciPy and, where it does the same, R.
+
+- `find_summary_of(show=)`: `"geometric standard deviation"` (`gstd`), `"power mean 3"` (`pmean`), `"cumulant 2"`
+  and `"cumulant variance 2"` (`kstat`, `kstatvar`), `"l-moment 2"` (`lmoment`), `"central moment 3"` (`moment`),
+  `"expectile 90"`, `"average between 40 and 80"` with the same for the standard deviation, variance and standard
+  error (`tmean`, `tstd`, `tvar`, `tsem`), `"smallest from 40"` and `"biggest up to 80"` (`tmin`, `tmax`),
+  `"circular average"`, `"circular standard deviation"` and `"circular variance"` (also `"... in degrees"`),
+  `"differential entropy"`, `"percentile rank 70"` (`estimated_cdf`), `"percent at or below 70"`
+  (`percentileofscore`) and `"sigma-clipped average"` (`sigmaclip`).
+- `find_summary_of(in_bins_of={"depth": 10})` summarises the values in bins of another column (`binned_statistic`,
+  `binned_statistic_2d`, `binned_statistic_dd`), with `show=["running count"]` (`cumfreq`) and `"share of values"`
+  (`relfreq`).
+- New `test_method=` values: `compare_averages_of` `"wilcoxon rank sum"` (`ranksums`) and
+  `"baumgartner-weiss-schindler"` (`bws_test`); `compare_shapes_of(test_method=)` (new option) `"cramer-von mises"`
+  and `"epps-singleton"`; `compare_shape_to` `"skewness"` and `"kurtosis"` (`skewtest`, `kurtosistest`);
+  `compare_counts_to(test_method=)` (new option) `"g"`, `"freeman-tukey"`, `"neyman"`, `"modified g"` and
+  `"cressie-read"` (`power_divergence`); `compare_spreads_of` `"o'brien"` (`obrientransform`);
+  `find_correlation_between` `"chatterjee xi"`, `"weighted kendall"` and `"multiscale graph"`;
+  `compare_rates(test_method="e-test")` (`poisson_means_test`); `find_interval_of(test_method="bayesian")`
+  (`bayes_mvs`).
+- `combine_studies(p_values="p")` combines the p-values of independent studies (`combine_pvalues`: Fisher, Stouffer,
+  Pearson, Tippett, Mudholkar-George), no R needed.
+- `find_best_power_of(show=)`: `"log-likelihood"` and `"normal plot correlation"` give a table of the powers from -2
+  to 2 (`boxcox_llf`, `yeojohnson_llf`, `boxcox_normplot`, `yeojohnson_normplot`), `"best by normal plot"`
+  (`boxcox_normmax(method="pearsonr")`); `test_method="tukey lambda"` (`ppcc_max`, `ppcc_plot`).
+- `compare_distributions_for(show="wasserstein distance")` and `"energy distance"`: the distance between the values
+  of each pair of groups (`wasserstein_distance`, `wasserstein_distance_nd`, `energy_distance`).
+- `fit_distribution_to(censored_by="still_alive")`: a fit that allows for right-censored values (`CensoredData`, as R
+  `fitdistrplus::fitdistcens` and `survival::survreg`).
+- New word `sdata.find_sensitivity_of("a * x**2 + b", ranges={...})`: which input of a formula matters most
+  (Sobol' indices, SciPy `sobol_indices`).
+- `sdata.help("scipy.stats.ranksums")` and every other scipy.stats test and summary of the plan now names its word
+  and value.
+
 ### Added: the last pandas and Polars jobs, and seaborn's Path, Shift and Dash (families for 100 %, batches 1-2)
 
 Approved by Manish 2026-11-28. Each word and option calls pandas, Polars, NumPy, SciPy or seaborn, gives one

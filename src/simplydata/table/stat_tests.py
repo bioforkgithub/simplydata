@@ -99,12 +99,22 @@ from .summaries import _key, _order, _p_clause, _p_sentence, _p_shown, _plain, _
 
 BASED_ON = ("averages", "ranks")
 AVERAGE_TESTS = ("welch", "student", "welch anova", "anova", "mann-whitney", "kruskal-wallis", "yuen",
-                 "brunner-munzel", "alexander-govern", "median", "jonckheere")
+                 "brunner-munzel", "alexander-govern", "median", "jonckheere",
+                 # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy ranksums and bws_test
+                 "wilcoxon rank sum", "baumgartner-weiss-schindler")
 # test= choices of compare_averages_of with their own engine (_more_average_test); the first two take 2 groups
-MORE_AVERAGE_TESTS = ("yuen", "brunner-munzel", "alexander-govern", "median")
-RANK_LIKE = ("mann-whitney", "kruskal-wallis", "brunner-munzel", "median", "jonckheere")  # with based_on="ranks"
+MORE_AVERAGE_TESTS = ("yuen", "brunner-munzel", "alexander-govern", "median", "wilcoxon rank sum",
+                      "baumgartner-weiss-schindler")
+RANK_LIKE = ("mann-whitney", "kruskal-wallis", "brunner-munzel", "median", "jonckheere", "wilcoxon rank sum",
+             "baumgartner-weiss-schindler")  # with based_on="ranks"
 RANK_TESTS = ("mann-whitney", "kruskal-wallis")
-TWO_GROUP_TESTS = ("welch", "student", "mann-whitney", "yuen", "brunner-munzel")
+TWO_GROUP_TESTS = ("welch", "student", "mann-whitney", "yuen", "brunner-munzel", "wilcoxon rank sum",
+                   "baumgartner-weiss-schindler")
+# the other spellings of the test_method= values of compare_averages_of (SciPy's names among them)
+AVERAGE_TEST_ALIASES = {"ranksums": "wilcoxon rank sum", "rank sum": "wilcoxon rank sum",
+                        "wilcoxon rank-sum": "wilcoxon rank sum", "bws": "baumgartner-weiss-schindler",
+                        "bws_test": "baumgartner-weiss-schindler", "brunnermunzel": "brunner-munzel",
+                        "alexandergovern": "alexander-govern", "median_test": "median"}
 COUNT_TESTS = ("chi-square", "fisher", "g", "barnard", "boschloo")
 FISHER_TABLES = 100_000  # Fisher on a bigger table: the p-value from this many random tables (seeded)
 EXACT_METHODS = {"barnard": "z-pooled", "boschloo": "boschloo"}  # R Exact::exact.test(method =)
@@ -114,10 +124,12 @@ PAIR_ALIASES = {"games howell": "games-howell", "gameshowell": "games-howell", "
 FRIEDMAN_PAIR_ALIASES = {"nemenyi-wilcoxon-wilcox": "nemenyi", "nemenyi's": "nemenyi", "conover's": "conover",
                          "conover-iman": "conover"}
 PERCENT_PAIR_TESTS = ("chi-square", "fisher")  # compare_each_pair_of(based_on="percents", test=)
-SPREAD_TESTS = ("levene", "bartlett", "fligner", "ansari", "mood", "f")
+SPREAD_TESTS = ("levene", "bartlett", "fligner", "ansari", "mood", "f",
+                "o'brien")  # families for 100 %, batches 3-4: SciPy obrientransform, then f_oneway
 TWO_GROUP_SPREAD_TESTS = ("ansari", "mood", "f")
 SPREAD_ALIASES = {"brown-forsythe": "levene", "brown forsythe": "levene", "fligner-killeen": "fligner",
-                  "fligner killeen": "fligner"}
+                  "fligner killeen": "fligner", "obrien": "o'brien", "obrientransform": "o'brien",
+                  "o'brien's": "o'brien"}
 SPREAD_RATIO = 2  # Tukey note: the biggest standard deviation more than twice the smallest
 EXACT_LIMIT = 50  # exact p-values below 50 values, as R wilcox.test()
 CLT_SIZE = 30  # from this many values, a "not bell-shaped" note does not suggest switching
@@ -131,14 +143,33 @@ SHAPE_TESTS = {
     "jarque-bera": ("Jarque-Bera test", "JB", "tseries::jarque.bera.test()", 3),
     "kolmogorov-smirnov": ("one-sample Kolmogorov-Smirnov test", "D", 'ks.test(x, "DIST", ...)', 2),
     "cramer-von-mises": ("Cramer-von Mises test", "omega2", 'goftest::cvm.test(x, "DIST", ...)', 2),
+    # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): the two halves of D'Agostino-Pearson
+    "skewness": ("D'Agostino skewness test", "z", "moments::agostino.test()", 8),
+    "kurtosis": ("Anscombe-Glynn kurtosis test", "z", "moments::anscombe.test()", 5),
 }
-NORMAL_TESTS = ("shapiro-wilk", "lilliefors", "dagostino", "jarque-bera")
+NORMAL_TESTS = ("shapiro-wilk", "lilliefors", "dagostino", "jarque-bera", "skewness", "kurtosis")
 FIXED_SHAPE_TESTS = ("kolmogorov-smirnov", "cramer-von-mises")
+# compare_counts_to(test_method=): families for 100 %, batches 3-4 (approved by Manish 2026-11-28), SciPy
+# power_divergence: name -> (test in sentences, SciPy lambda_, statistic name)
+COUNTS_TO_TESTS = {"chi-square": ("chi-square goodness-of-fit test", "pearson", "chi-square"),
+                   "g": ("G-test of goodness of fit", "log-likelihood", "G"),
+                   "freeman-tukey": ("Freeman-Tukey goodness-of-fit test", "freeman-tukey", "T"),
+                   "neyman": ("Neyman's modified chi-square test", "neyman", "chi-square (Neyman)"),
+                   "modified g": ("modified G-test (modified log-likelihood ratio)", "mod-log-likelihood",
+                                  "G (modified)"),
+                   "cressie-read": ("Cressie-Read goodness-of-fit test (lambda 2/3)", "cressie-read", "CR")}
+COUNTS_TO_ALIASES = {"pearson": "chi-square", "chisquare": "chi-square", "chi square": "chi-square",
+                     "g-test": "g", "g test": "g", "log-likelihood": "g", "likelihood ratio": "g",
+                     "freeman tukey": "freeman-tukey", "mod-log-likelihood": "modified g",
+                     "cressie read": "cressie-read",
+                     "power_divergence": "cressie-read"}
 SHAPE_TEST_ALIASES = {"shapiro": "shapiro-wilk", "shapiro wilk": "shapiro-wilk", "d'agostino": "dagostino",
                       "dagostino-pearson": "dagostino", "d'agostino-pearson": "dagostino", "normaltest": "dagostino",
                       "jarque bera": "jarque-bera", "jb": "jarque-bera", "lillie": "lilliefors", "ks": "kolmogorov-smirnov",
                       "kolmogorov smirnov": "kolmogorov-smirnov", "cvm": "cramer-von-mises",
-                      "cramer von mises": "cramer-von-mises", "cramer-von mises": "cramer-von-mises"}
+                      "cramer von mises": "cramer-von-mises", "cramer-von mises": "cramer-von-mises",
+                      "skewtest": "skewness", "skew": "skewness", "agostino": "skewness",
+                      "kurtosistest": "kurtosis", "anscombe-glynn": "kurtosis", "anscombe": "kurtosis"}
 # add_adjusted_p_value_column: method -> (name in sentences, R p.adjust name)
 ADJUST_METHODS = {
     "holm": ("Holm", "holm"),
@@ -728,7 +759,9 @@ class StatTestWords:
         "brunner-munzel" (R brunnermunzel.test, SciPy brunnermunzel), "alexander-govern" (3 or
         more groups with different spreads, R onewaytests::ag.test, SciPy alexandergovern) or
         "median" (Mood's median test, SciPy median_test, as R chisq.test on the counts above and
-        not above the overall median).
+        not above the overall median), "wilcoxon rank sum" (2 groups, the rank sum against the normal
+        curve, SciPy ranksums) or "baumgartner-weiss-schindler" (2 groups, a rank test that weighs the
+        ends more, SciPy bws_test, its p-value from shuffling: every way, or 9999 ways with seed 1).
         Prints the answer in words (with the test used and why) and gives back a one-row
         table of results. The effect size says how big the difference is: Hedges' g (the
         difference in standard deviations) for 2 groups, omega-squared (the share of the
@@ -859,6 +892,8 @@ class StatTestWords:
         example = 'with sdata.get_example("marks"): table.compare_averages_of("marks", for_each_group_in="class")'
         self._check_based_on(step, based_on)
         self._check_choice(step, "p_value_by", p_value_by, ("formula", "shuffling"))
+        if isinstance(test_method, str) and test_method.strip().lower() in AVERAGE_TEST_ALIASES:
+            test_method = AVERAGE_TEST_ALIASES[test_method.strip().lower()]
         if test_method is not None:
             self._check_choice(step, "test_method", test_method, AVERAGE_TESTS + ("bayesian",))
             if based_on == "ranks" and test_method not in RANK_LIKE:
@@ -1099,7 +1134,8 @@ class StatTestWords:
         return self._result_table(row)
 
     def _more_average_test(self, column, for_each, groups, test, alt, up, side_words, if_none):
-        """compare_averages(test_method="yuen" | "brunner-munzel" | "alexander-govern" | "median"): SciPy, as R."""
+        """compare_averages(test_method="yuen" | "brunner-munzel" | "alexander-govern" | "median" | "wilcoxon rank
+        sum" | "baumgartner-weiss-schindler"): SciPy, as R."""
         from scipy import stats
 
         names = [g[0] for g in groups]
@@ -1151,6 +1187,37 @@ class StatTestWords:
             p_line = _p_sentence(p, *ALIKE)
             second = (f"Test: Alexander-Govern test (A = {_num(a_stat)}, df = {len(arrays) - 1}), which, like Welch's "
                       "ANOVA, does not assume the groups have the same spread; as R onewaytests::ag.test().")
+        elif test == "wilcoxon rank sum":
+            a, b = arrays
+            result = stats.ranksums(a, b, alternative=alt)
+            z, p = float(result.statistic), float(result.pvalue)
+            medians = [float(np.median(v)) for v in arrays]
+            row.update({"test": "Wilcoxon rank-sum test (normal approximation)", "statistic name": "z",
+                        "statistic": z, "p-value": p})
+            for n, m in zip(names, medians):
+                row[f"median in {n}"] = m
+            first = f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}.'
+            p_line = _p_sentence(p, if_none, "a difference this big or bigger in the ranks")
+            second = (f"Test: Wilcoxon rank-sum test (z = {_num(z)}), the rank sum of {names[0]} against the normal "
+                      "curve, with no continuity correction and no allowance for ties (SciPy ranksums); "
+                      'test_method="mann-whitney" gives the exact p-value for small groups. As R wilcox.test(exact = '
+                      "FALSE, correct = FALSE) without ties.")
+        elif test == "baumgartner-weiss-schindler":
+            a, b = arrays
+            result = stats.bws_test(a, b, alternative=alt, method=stats.PermutationMethod(
+                n_resamples=9999, rng=np.random.default_rng(1)))
+            bws, p = float(result.statistic), float(result.pvalue)
+            medians = [float(np.median(v)) for v in arrays]
+            row.update({"test": "Baumgartner-Weiss-Schindler test", "statistic name": "B", "statistic": bws,
+                        "p-value": p, "p-value by": "shuffled 9999 times, seed 1"})
+            for n, m in zip(names, medians):
+                row[f"median in {n}"] = m
+            first = f'The median "{column}" is {_num(medians[0])} in {names[0]} and {_num(medians[1])} in {names[1]}.'
+            p_line = _p_sentence(p, if_none, "ranks this far apart or further")
+            second = (f"Test: Baumgartner-Weiss-Schindler test (B = {_num(bws)}), a rank test that weighs the ends of "
+                      "the groups more than Mann-Whitney does; the p-value comes from shuffling the group labels "
+                      "(every way when there are fewer than 9999, otherwise 9999 random ways with seed 1; SciPy "
+                      "bws_test, as R BWStest::bws_test()).")
         else:
             result = stats.median_test(*arrays)
             chi, p, grand = float(result.statistic), float(result.pvalue), float(result.median)
@@ -1679,6 +1746,8 @@ class StatTestWords:
         test_method="mood" (Mood's test of scale, R mood.test(), SciPy mood) and test_method="f" (the F test
         of the ratio of two variances, R var.test(), run in R through simplydata[r]; it assumes
         bell-shaped values).
+        test_method="o'brien": O'Brien's test, the one-way ANOVA of each value's O'Brien score, whose group
+        averages are the group variances (SciPy obrientransform, then f_oneway; as R HH::hov(..., method = "obrien")).
         Empty cells are skipped. Prints the standard deviation of each group and the answer
         in words; gives back a one-row table of results. compare_averages_of() uses Welch's
         test by default, which does not need equal spreads.
@@ -1762,6 +1831,19 @@ class StatTestWords:
             second = (f"Test: {name} (F = {_num(stat)}, df = {_whole(df1)} and {_whole(df2)}; 95 % CI of the ratio of "
                       f"the variances {_num(low)} to {_num(high)}), as R var.test(), run in R; it assumes bell-shaped "
                       "values and is easily fooled when they are not.")
+        elif chosen == "o'brien":
+            if any(len(v) < 3 for v in arrays):
+                raise SimplydataError("O'Brien's test needs at least 3 values in each group.")
+            scores = stats.obrientransform(*arrays)
+            result = stats.f_oneway(*scores)
+            stat, p = float(result.statistic), float(result.pvalue)
+            df1, df2 = float(len(arrays) - 1), float(sum(len(v) for v in arrays) - len(arrays))
+            name = "O'Brien's test"
+            row.update({"test": name, "statistic name": "F", "statistic": stat, "degrees of freedom 1": df1,
+                        "degrees of freedom 2": df2, "p-value": p})
+            second = (f"Test: {name} (F = {_num(stat)}, df = {_whole(df1)} and {_whole(df2)}): the one-way ANOVA of "
+                      "each value's O'Brien score, whose average in each group is the group's variance (SciPy "
+                      "obrientransform, then f_oneway); chosen with test_method=.")
         else:
             result = stats.fligner(*arrays, center="median")
             stat, p = float(result.statistic), float(result.pvalue)
@@ -2628,8 +2710,8 @@ class StatTestWords:
         _skipped_note(len(self._frame) - len(kept), [column])
         return [_plain(v) for v in kept[column].to_list()]
 
-    @friendly
-    def compare_counts_to(self: _Same, column=None, expected=None) -> _Same:
+    @friendly(renamed={"method": "test_method", "test": "test_method", "lambda_": "test_method"})
+    def compare_counts_to(self: _Same, column=None, expected=None, test_method="chi-square") -> _Same:
         """Does how often each value turns up really differ from the shares you expect?
 
         table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})   (with sdata.get_example("school"))
@@ -2641,8 +2723,14 @@ class StatTestWords:
         are from the expected shares (0.1 small, 0.3 medium, 0.5 large). For one value
         against one percent, compare_percent_to() gives an exact test.
         Gives back a one-row table with the count and expected count of each value.
+        test_method= chooses another statistic of the Cressie-Read family (SciPy power_divergence): "g" (the
+        G-test, from the log-likelihood ratio, as R DescTools::GTest()), "freeman-tukey", "neyman", "modified g"
+        or "cressie-read" (lambda 2/3, the one Cressie and Read recommend); "chi-square" is Pearson's (the default).
         """
         step = "compare_counts_to"
+        chosen = test_method.strip().lower() if isinstance(test_method, str) else test_method
+        chosen = COUNTS_TO_ALIASES.get(chosen, chosen)
+        self._check_choice(step, "test_method", chosen, list(COUNTS_TO_TESTS))
         example = ('with sdata.get_example("school"): '
                    'table.compare_counts_to("breakfast", expected={"yes": 0.6, "no": 0.4})')
         values = self._filled_values(step, column, example)
@@ -2666,15 +2754,20 @@ class StatTestWords:
         from scipy import stats
 
         expected_counts = np.asarray(shares) * n
-        chi = stats.chisquare(np.asarray(observed, dtype=float), expected_counts)
+        if chosen == "chi-square":
+            chi = stats.chisquare(np.asarray(observed, dtype=float), expected_counts)
+        else:
+            chi = stats.power_divergence(np.asarray(observed, dtype=float), expected_counts,
+                                         lambda_=COUNTS_TO_TESTS[chosen][1])
         stat, p = float(chi.statistic), float(chi.pvalue)
         df = len(labels) - 1
+        title, stat_name = COUNTS_TO_TESTS[chosen][0], COUNTS_TO_TESTS[chosen][2]
         from statsmodels.stats.gof import chisquare_effectsize
 
         w = float(chisquare_effectsize(np.asarray(shares, dtype=float), np.asarray(observed, dtype=float) / n))
         w_ci = interval_only("cohens_w", x=np.asarray(observed, dtype=float), p=np.asarray(shares, dtype=float))
         what = f'how often each "{column}" turns up, against {how}'
-        row = {"test": "chi-square goodness-of-fit test", "what it compares": what, "statistic name": "chi-square",
+        row = {"test": title, "what it compares": what, "statistic name": stat_name,
                "statistic": stat, "degrees of freedom": float(df), "p-value": p,
                "effect size name": "distance of the counts from the expected shares (Cohen's w)", "effect size": w,
                "effect size 95 % CI low": w_ci["low"], "effect size 95 % CI high": w_ci["high"],
@@ -2691,8 +2784,15 @@ class StatTestWords:
         print(_p_sentence(p, "the expected shares were true", "differences this big or bigger from the expected counts",
                           "that the expected shares are right"))
         r_call = "chisq.test(table(x))" if expected is None else "chisq.test(x, p = ...)"
-        print(f"Test: chi-square goodness-of-fit test (chi-square = {_num(stat)}, df = {df}), as R {r_call}; "
-              "the usual test of counts against expected shares.")
+        if chosen == "chi-square":
+            print(f"Test: chi-square goodness-of-fit test (chi-square = {_num(stat)}, df = {df}), as R {r_call}; "
+                  "the usual test of counts against expected shares.")
+        else:
+            print(f"Test: {title} ({stat_name} = {_num(stat)}, df = {df}), chosen with test_method=: a statistic of "
+                  "the Cressie-Read power divergence family (SciPy power_divergence(lambda_="
+                  f'"{COUNTS_TO_TESTS[chosen][1]}")'
+                  + (", as R DescTools::GTest())" if chosen == "g" else ")")
+                  + ", with its p-value from the chi-square distribution.")
         if w_ci["note"]:
             print(w_ci["note"])
         low = int((expected_counts < 5).sum())
@@ -2880,6 +2980,14 @@ class StatTestWords:
             result = stats.normaltest(v)
         elif test == "jarque-bera":
             result = stats.jarque_bera(v)
+        elif test == "skewness":
+            result = stats.skewtest(v)
+        elif test == "kurtosis":
+            import warnings
+
+            with warnings.catch_warnings():  # SciPy warns below 20 values; R moments::anscombe.test gives the same z
+                warnings.simplefilter("ignore")
+                result = stats.kurtosistest(v)
         elif test == "lilliefors":
             from .._r import r_call
 
@@ -2915,7 +3023,10 @@ class StatTestWords:
         test_method= chooses another test of a bell shape: "lilliefors" (Kolmogorov-Smirnov with the
         average and standard deviation taken from the data, run in R: nortest::lillie.test()),
         "dagostino" (D'Agostino-Pearson, from skewness and kurtosis, SciPy normaltest, as R
-        fBasics::dagoTest()) or "jarque-bera" (SciPy jarque_bera, as R tseries::jarque.bera.test()).
+        fBasics::dagoTest()), "jarque-bera" (SciPy jarque_bera, as R tseries::jarque.bera.test()),
+        "skewness" (D'Agostino's test of the skewness alone, 8 values or more, SciPy skewtest, as R
+        moments::agostino.test()) or "kurtosis" (the Anscombe-Glynn test of the kurtosis alone, SciPy kurtosistest,
+        as R moments::anscombe.test()).
 
         A distribution with fixed numbers can be the shape too:
         table.compare_shape_to("marks", sdata.distribution("normal", average=60, standard_deviation=15))

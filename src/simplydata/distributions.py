@@ -2058,6 +2058,104 @@ def fit(values, name="normal", fixed=None, say=False, column=None, backend=None)
     return dist
 
 
+def fit_censored(values, censored, name="weibull", fixed=None, say=False, column=None, backend=None,
+                 censored_by=None) -> Distribution:
+    """Families for 100 %, batches 3-4 (approved by Manish 2026-11-28): fit_distribution_to(censored_by=). Maximum
+    likelihood with right-censored values (a censored value is only a lower limit: the event had not happened yet):
+    the log-likelihood adds log density for each value seen and log chance above for each censored one, as SciPy
+    fit(CensoredData(uncensored=, right=)) and R fitdistrplus::fitdistcens() / survival::survreg(). Families without a
+    location in R keep it at 0, as for the plain fit."""
+    family = _find_family(name, "fit_distribution")
+    if isinstance(family, Distribution) or _is_kernel(name):
+        raise SimplydataError("censored_by= goes with the name of a distribution to fit, such as \"weibull\".")
+    discrete = family.discrete if isinstance(family, Family) else isinstance(getattr(_st(), family), _st().rv_discrete)
+    if discrete:
+        raise SimplydataError("censored_by= fits smooth (continuous) distributions, such as \"weibull\", "
+                              "\"lognormal\", \"gamma\" or \"exponential\"; not counts.")
+    if isinstance(family, Family) and family.fit is None:
+        raise SimplydataError(f"A {family.title} distribution cannot be fitted here: {family.not_fittable}.")
+    x = np.asarray(values, dtype=float).ravel()
+    right = np.asarray(censored, dtype=bool).ravel()
+    what = f'"{column}"' if column else "the numbers"
+    if len(x) - int(right.sum()) < 2:
+        raise SimplydataError(f"A fit with censored values needs at least 2 values that are not censored; {what} has "
+                              f"{len(x) - int(right.sum())}.")
+    if isinstance(family, Family):
+        problem = _data_problem(family, x, what)
+        if problem:
+            raise SimplydataError(f"Cannot fit: {problem}.")
+    held = _read_fixed(family, fixed)
+    seen, cut = x[~right], x[right]
+
+    def loglik(params):
+        frozen = family.scipy(params) if isinstance(family, Family) else _scipy_generic(family, params)
+        with np.errstate(all="ignore"):
+            total = float(np.sum(frozen.logpdf(seen)) + np.sum(frozen.logsf(cut)))
+        return total if math.isfinite(total) else -math.inf
+
+    start = _fit_values(family, x, held).params  # the fit that treats every value as seen: a starting point
+    start = {k: v for k, v in start.items() if v is not None}
+    if isinstance(family, Family):
+        kinds = {p.name: p.kind for p in family.params}
+        names = [p.name for p in family.params if start.get(p.name) is not None]
+    else:
+        names = list(start)
+        kinds = {k: ("positive" if k == "scale" else "real") for k in names}
+    free = [k for k in names if k not in held]
+    if not free:
+        raise SimplydataError("Every parameter is held fixed, so there is nothing to fit.")
+    params, ok = _maximise(loglik, start, free, kinds)
+    ll = loglik(params)
+    if not math.isfinite(ll):
+        raise SimplydataError(f"simplydata could not fit this distribution to {what} with its censored values.")
+    point = np.array([params[k] for k in free], dtype=float)
+
+    def ll_free(v):
+        p = dict(params)
+        p.update(zip(free, (float(t) for t in v)))
+        return loglik(p)
+
+    errors = {k: math.nan for k in free}
+    with np.errstate(all="ignore"):
+        h = _hessian(ll_free, point)
+    if np.all(np.isfinite(h)):
+        try:
+            cov = np.linalg.inv(-h)
+            errors = {k: (math.sqrt(v) if v > 0 else math.nan) for k, v in zip(free, np.diag(cov))}
+        except np.linalg.LinAlgError:
+            pass
+    n, k = len(x), len(free)
+    aic, bic = -2 * ll + 2 * k, -2 * ll + k * math.log(n)
+    shown = (lambda t: t.replace("_", " ")) if isinstance(family, Family) else (lambda t: t)
+    row = {shown(key): float(v) for key, v in params.items() if v is not None}
+    row.update({f"standard error of {shown(key)}": float(errors.get(key, math.nan)) for key, v in params.items()
+                if v is not None})
+    row.update({"log-likelihood": ll, "AIC": aic, "BIC": bic, "rows": n, "censored": int(right.sum()),
+                "held fixed": ", ".join(shown(h) for h in held) if held else "",
+                "method": "maximum likelihood with censored values (numerical search)",
+                "settled": "yes" if ok else "no"})
+    info = {"rows": n, "column": column, "log-likelihood": ll, "AIC": aic, "BIC": bic, "errors": errors,
+            "free": free, "held": held, "row": row, "settled": ok, "method": "censored", "censored": int(right.sum())}
+    if isinstance(family, Family):
+        dist = Distribution(family, {p.name: params.get(p.name) for p in family.params}, fit_info=info,
+                            backend=backend)
+    else:
+        dist = Distribution(family, params, fit_info=info, backend=backend)
+    if say:
+        title = family.title if isinstance(family, Family) else f"SciPy {family}"
+        article = "an" if title[0].lower() in "aeiou" else "a"
+        by = f', where "{censored_by}" says so' if censored_by else ""
+        print(f"Fitted {article} {title} distribution to {what} ({n} values, {int(right.sum())} of them censored"
+              f"{by}): {_fit_parts(dist)}. Log-likelihood {ll:.1f}, AIC {aic:.1f}.")
+        print("Method: maximum likelihood with right-censored values: each value seen adds its log density, each "
+              "censored one the log chance of a value above it (SciPy fit(CensoredData(uncensored=, right=)), as R "
+              "fitdistrplus::fitdistcens(); for a Weibull, R survival::survreg(Surv(time, event) ~ 1, dist = "
+              '"weibull") gives the same fit, written as shape = 1 / scale and scale = exp(intercept)).')
+        if not ok:
+            print("Note: the search did not settle; the values may not be the best. Try fixed= for one parameter.")
+    return dist
+
+
 def _fit_parts(dist) -> str:
     info = dist._fit_info
     parts = []

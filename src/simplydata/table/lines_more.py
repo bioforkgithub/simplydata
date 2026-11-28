@@ -503,7 +503,7 @@ class LinesMoreWords:
 
     # ------------------------------------------------------------------ find_best_power_of
     @friendly(renamed={"method": "test_method"})
-    def find_best_power_of(self, column=None, using=None, test_method="box-cox"):
+    def find_best_power_of(self, column=None, using=None, test_method="box-cox", show="power"):
         """Find the power to raise a column to that brings it closest to a normal shape (Box-Cox).
 
         table.find_best_power_of("days")   (with sdata.get_example("trial"))
@@ -516,8 +516,14 @@ class LinesMoreWords:
         test_method="yeo-johnson" (SciPy stats.yeojohnson) works with zeros and negative values too.
         Box-Cox needs values above 0. For counts or shares, a model made for them
         (explain(..., outcome=)) is usually better than a power. Gives back one row.
+        show="log-likelihood" gives a table of the log-likelihood of each power from -2 to 2 (SciPy boxcox_llf,
+        yeojohnson_llf), show="normal plot correlation" how straight the normal probability plot is for each
+        (boxcox_normplot, yeojohnson_normplot), and show="best by normal plot" the Box-Cox power with the
+        straightest plot (boxcox_normmax(method="pearsonr")). test_method="tukey lambda" finds the Tukey lambda
+        shape with the straightest probability plot (SciPy ppcc_max: lambda 0.14 is about normal, 0 logistic, -1
+        Cauchy), and with show="normal plot correlation" the table of each lambda (ppcc_plot).
         """
-        return best_power_word(self, column, using, test_method)
+        return best_power_word(self, column, using, test_method, show)
 
 
 # ---------------------------------------------------------------------------- fit_curve(of_kind=)
@@ -798,9 +804,19 @@ DRC_FCT = {"4 parameter log-logistic": "LL.4", "3 parameter log-logistic": "LL.3
 
 
 # ---------------------------------------------------------------------------- find_best_power_of
-POWER_METHODS = ("box-cox", "yeo-johnson")
+POWER_METHODS = ("box-cox", "yeo-johnson",
+                 # families for 100 %, batches 3-4 (approved by Manish 2026-11-28): SciPy ppcc_max / ppcc_plot
+                 "tukey lambda")
 POWER_SPELLINGS = {"boxcox": "box-cox", "box cox": "box-cox", "yeojohnson": "yeo-johnson",
-                   "yeo johnson": "yeo-johnson"}
+                   "yeo johnson": "yeo-johnson", "boxcox_normmax": "box-cox", "yeojohnson_normmax": "yeo-johnson",
+                   "ppcc": "tukey lambda", "ppcc_max": "tukey lambda", "tukeylambda": "tukey lambda"}
+# find_best_power_of(show=): families for 100 %, batches 3-4; the tables are for the powers -2 to 2 in steps of 0.1
+POWER_SHOWS = ("power", "log-likelihood", "normal plot correlation", "best by normal plot")
+POWER_SHOW_SPELLINGS = {"llf": "log-likelihood", "boxcox_llf": "log-likelihood", "yeojohnson_llf": "log-likelihood",
+                        "normplot": "normal plot correlation", "boxcox_normplot": "normal plot correlation",
+                        "yeojohnson_normplot": "normal plot correlation", "ppcc_plot": "normal plot correlation",
+                        "probability plot correlation": "normal plot correlation", "pearsonr": "best by normal plot"}
+POWER_GRID = (-2.0, 2.0, 41)
 SIMPLE_POWERS = (1.0, 0.0, -1.0, 0.5, -0.5, 2.0, -2.0)
 
 
@@ -810,7 +826,7 @@ def _power_words(power, column) -> str:
         float(power), f"{column} ** {_num(power)}")
 
 
-def best_power_word(table, column, using, method):
+def best_power_word(table, column, using, method, show="power"):
     from scipy import stats
 
     step = "find_best_power_of"
@@ -820,6 +836,15 @@ def best_power_word(table, column, using, method):
     key = POWER_SPELLINGS.get(key, key)
     if key not in POWER_METHODS:
         raise choice_error(step, "test_method", method, list(POWER_METHODS))
+    shown = show.strip().lower() if isinstance(show, str) else show
+    shown = POWER_SHOW_SPELLINGS.get(shown, shown)
+    if shown not in POWER_SHOWS:
+        raise choice_error(step, "show", show, list(POWER_SHOWS))
+    if (shown != "power" or key == "tukey lambda") and using is not None:
+        raise SimplydataError(f'using= finds the power for the leftovers of a model (R car); show="{shown}" and '
+                              'test_method="tukey lambda" work on the column itself: leave out using=.')
+    if shown != "power" or key == "tukey lambda":
+        return _power_more(table, step, column, key, shown, example)
     if using is None:
         values = table._number_values(step, [column])[0]
         X = None
@@ -881,6 +906,77 @@ def best_power_word(table, column, using, method):
     print(f"Method: {how}.")
     print("Note: for counts or shares, a model made for them (explain(..., outcome=\"counts\" or \"shares\")) is "
           "usually better than a power.")
+    return table._result_table(row)
+
+
+def _power_more(table, step, column, key, shown, example):
+    """find_best_power_of(show="log-likelihood" | "normal plot correlation" | "best by normal plot") and
+    test_method="tukey lambda": SciPy boxcox_llf, yeojohnson_llf, boxcox_normplot, yeojohnson_normplot,
+    boxcox_normmax(method="pearsonr"), ppcc_max and ppcc_plot."""
+    from scipy import stats
+
+    values = table._number_values(step, [column])[0]
+    n = len(values)
+    if n < 10:
+        raise SimplydataError(f"{step}() needs at least 10 values to find a power; there are {n}.")
+    if key == "box-cox" and np.any(values <= 0):
+        raise SimplydataError(f'Box-Cox needs values above 0, and "{column}" has {int(np.sum(values <= 0))} at 0 or '
+                              f'below. Yeo-Johnson works with them: table.{step}("{column}", '
+                              f'test_method="yeo-johnson", show="{shown}")')
+    name = {"box-cox": "Box-Cox", "yeo-johnson": "Yeo-Johnson", "tukey lambda": "Tukey lambda"}[key]
+    powers = np.linspace(*POWER_GRID)
+    if shown == "log-likelihood":
+        if key == "tukey lambda":
+            raise SimplydataError('show="log-likelihood" is for test_method="box-cox" or "yeo-johnson".')
+        function = stats.boxcox_llf if key == "box-cox" else stats.yeojohnson_llf
+        found = np.asarray([float(function(p, values)) for p in powers])
+        best = float(powers[int(np.argmax(found))])
+        print(f'The log-likelihood of each {name} power from -2 to 2 for "{column}" ({n} values): highest at '
+              f"{best:g} among them (SciPy {'boxcox_llf' if key == 'box-cox' else 'yeojohnson_llf'}); the best power "
+              'itself comes from show="power".')
+        data = {"power": powers.round(10).tolist(), "log-likelihood": found.tolist()}
+        return table._new_table(nw.from_dict(data, backend=table._frame.implementation))
+    if shown == "normal plot correlation":
+        if key == "tukey lambda":
+            found_powers, found = stats.ppcc_plot(values, POWER_GRID[0], POWER_GRID[1], dist="tukeylambda",
+                                                  N=POWER_GRID[2])
+            what = "Tukey lambda shape"
+            how = "SciPy ppcc_plot(dist=\"tukeylambda\")"
+        else:
+            function = stats.boxcox_normplot if key == "box-cox" else stats.yeojohnson_normplot
+            found_powers, found = function(values, POWER_GRID[0], POWER_GRID[1], N=POWER_GRID[2])
+            what = f"{name} power"
+            how = f"SciPy {'boxcox_normplot' if key == 'box-cox' else 'yeojohnson_normplot'}"
+        best = float(found_powers[int(np.argmax(found))])
+        print(f'How straight the normal probability plot of "{column}" is (its correlation) for each {what} from -2 '
+              f"to 2: straightest at {best:g} among them ({how}).")
+        data = {"power" if key != "tukey lambda" else "lambda": np.asarray(found_powers).round(10).tolist(),
+                "normal plot correlation": np.asarray(found, dtype=float).tolist()}
+        return table._new_table(nw.from_dict(data, backend=table._frame.implementation))
+    if key == "tukey lambda":
+        if shown == "best by normal plot":
+            raise SimplydataError('test_method="tukey lambda" already finds the best shape by the probability plot; '
+                                  'leave out show=.')
+        best = float(stats.ppcc_max(values))
+        kind = ("close to a Cauchy shape (very long tails)" if best < -0.5 else
+                "close to a logistic shape (longer tails than a bell)" if -0.5 <= best < 0.07 else
+                "close to a normal (bell) shape" if 0.07 <= best < 0.3 else
+                "close to a uniform shape (short tails)" if 0.7 <= best <= 1.3 else "between the usual shapes")
+        print(f'Best Tukey lambda shape for "{column}": lambda = {_num(best)}, {kind}: the shape whose probability '
+              "plot is straightest (lambda -1 is about Cauchy, 0 logistic, 0.14 normal, 1 uniform).")
+        print("Method: SciPy ppcc_max (the probability plot correlation coefficient, Filliben 1975, made biggest).")
+        row = {"test": "best Tukey lambda shape (probability plot correlation)", "column": column, "lambda": best,
+               "rows": n}
+        return table._result_table(row)
+    if key == "yeo-johnson":
+        raise SimplydataError('show="best by normal plot" is for test_method="box-cox" (SciPy boxcox_normmax); the '
+                              'Yeo-Johnson power comes from maximum likelihood (show="power").')
+    best = float(stats.boxcox_normmax(values, method="pearsonr"))
+    print(f'Best Box-Cox power for "{column}" by the normal plot: {_num(best)}, the power whose normal probability '
+          "plot is straightest (SciPy boxcox_normmax(method=\"pearsonr\")); show=\"power\" gives the one by maximum "
+          "likelihood.")
+    row = {"test": "best power (Box-Cox, by the normal plot)", "column": column, "power": best, "rows": n}
+    del example
     return table._result_table(row)
 
 

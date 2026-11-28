@@ -41,6 +41,15 @@ MATCHED_TESTS = ("friedman", "quade", "cochran", "page")
 MATCHED_ALIASES = {"cochran's q": "cochran", "cochran q": "cochran", "cochrans q": "cochran",
                    "friedman test": "friedman", "quade test": "quade"}
 SHUFFLES = 9999  # compare_shapes_of, 3 or more groups: the group labels are shuffled this often
+# compare_shapes_of(test_method=): families for 100 %, batches 3-4 (approved by Manish 2026-11-28); the last two
+# compare 2 groups (SciPy cramervonmises_2samp, epps_singleton_2samp)
+SHAPES_TESTS = ("kolmogorov-smirnov", "anderson-darling", "cramer-von mises", "epps-singleton")
+SHAPES_ALIASES = {"ks": "kolmogorov-smirnov", "ks_2samp": "kolmogorov-smirnov", "kolmogorov smirnov":
+                  "kolmogorov-smirnov", "anderson_ksamp": "anderson-darling", "anderson darling": "anderson-darling",
+                  "ad": "anderson-darling", "cramervonmises_2samp": "cramer-von mises",
+                  "cramer von mises": "cramer-von mises", "cramer-von-mises": "cramer-von mises",
+                  "cvm": "cramer-von mises", "epps_singleton_2samp": "epps-singleton",
+                  "epps singleton": "epps-singleton", "es": "epps-singleton"}
 
 
 def _yes_no(column, values):
@@ -251,8 +260,10 @@ class MoreTestWords:
         return self._result_table(row)
 
     # ------------------------------------------------------------------ compare_shapes_of
-    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed"})
-    def compare_shapes_of(self: _Same, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1) -> _Same:
+    @friendly(renamed={"for_each": "for_each_group_in", "seed": "with_seed", "method": "test_method",
+                       "test": "test_method"})
+    def compare_shapes_of(self: _Same, column=None, for_each_group_in=None, shuffles=SHUFFLES, with_seed=1,
+                          test_method=None) -> _Same:
         """Do the groups differ in the whole shape of their values, not only in the average?
 
         table.compare_shapes_of("marks", for_each_group_in="class")   (with sdata.get_example("marks"), one subject)
@@ -266,6 +277,11 @@ class MoreTestWords:
         midrank version for ties, as R kSamples::ad.test() version 2), with its p-value from
         shuffling the group labels shuffles=9999 times (with_seed=1, printed; the same seed gives the
         same p-value). Empty cells are skipped. Gives back a one-row table.
+        test_method= chooses the test: "kolmogorov-smirnov" (2 groups, the default for 2), "anderson-darling"
+        (the default for 3 or more; for 2 groups too), "cramer-von mises" (2 groups: the squared gaps between the
+        cumulative shares added up, SciPy cramervonmises_2samp, exact for small groups, as R twosamples::cvm_test)
+        or "epps-singleton" (2 groups: compares the groups' characteristic functions, so it also works for counts
+        with many ties; SciPy epps_singleton_2samp).
         """
         step = "compare_shapes_of"
         example = 'table.compare_shapes_of("marks", for_each_group_in="class")'
@@ -274,9 +290,53 @@ class MoreTestWords:
         if isinstance(shuffles, bool) or not isinstance(shuffles, (int, np.integer)) or shuffles < 99:
             raise SimplydataError("shuffles= needs a whole number of 99 or more, such as shuffles=9999.")
         groups = self._groups(step, column, for_each_group_in, example)
-        if len(groups) == 2:
+        chosen = test_method
+        if isinstance(chosen, str):
+            chosen = SHAPES_ALIASES.get(chosen.strip().lower(), chosen.strip().lower())
+        if chosen is not None:
+            self._check_choice(step, "test_method", chosen, SHAPES_TESTS)
+            if chosen != "anderson-darling" and len(groups) != 2:
+                raise SimplydataError(f'test_method="{chosen}" compares 2 groups; "{for_each_group_in}" has '
+                                      f'{len(groups)}. test_method="anderson-darling" compares them all at once.')
+        if chosen in ("cramer-von mises", "epps-singleton"):
+            return self._two_shapes(column, for_each_group_in, groups, chosen)
+        if len(groups) == 2 and chosen != "anderson-darling":
             return self._ks_two(column, for_each_group_in, groups)
         return self._ad_many(column, for_each_group_in, groups, int(shuffles), int(with_seed))
+
+    def _two_shapes(self, column, for_each, groups, test):
+        """compare_shapes_of(test_method="cramer-von mises" | "epps-singleton"): SciPy cramervonmises_2samp (exact
+        below 20 values in each group, as SciPy's method="auto"), epps_singleton_2samp."""
+        from scipy import stats
+
+        (name_a, a), (name_b, b) = groups
+        if test == "cramer-von mises":
+            result = stats.cramervonmises_2samp(a, b)
+            title, stat_name = "two-sample Cramer-von Mises test", "T"
+            how = ("exact" if max(len(a), len(b)) <= 20 else "an approximation for larger groups")
+            said = (f"the squared gaps between the groups' cumulative shares, added up (p-value {how}); SciPy "
+                    "cramervonmises_2samp, as R twosamples::cvm_test()")
+        else:
+            if min(len(a), len(b)) < 5:
+                raise SimplydataError(f"The Epps-Singleton test needs at least 5 values in each group; {name_a} has "
+                                      f"{len(a)} and {name_b} {len(b)}.")
+            result = stats.epps_singleton_2samp(a, b)
+            title, stat_name = "Epps-Singleton test", "W2"
+            said = ("the groups' empirical characteristic functions at two points (with the small-sample correction), "
+                    "so it also works for values with many ties; SciPy epps_singleton_2samp")
+        stat, p = float(result.statistic), float(result.pvalue)
+        row = {"test": title, "what it compares":
+               f'the shape of "{column}" in each "{for_each}" ({name_a}, {name_b})', "statistic name": stat_name,
+               "statistic": stat, "p-value": p}
+        parts = []
+        for n, v in ((name_a, a), (name_b, b)):
+            row[f"median in {n}"], row[f"count in {n}"] = float(np.median(v)), len(v)
+            parts.append(f"{_num(float(np.median(v)))} in {n}")
+        print(f'The median "{column}" is {_list_words(parts)}.')
+        print(_p_sentence(p, "the two groups truly had the same shape", "differences in shape this big or bigger",
+                          "that the groups have the same shape"))
+        print(f"Test: {title} ({stat_name} = {_num(stat)}), which compares the whole shapes: {said}.")
+        return self._result_table(row)
 
     def _ks_two(self, column, for_each, groups):
         from scipy import stats
