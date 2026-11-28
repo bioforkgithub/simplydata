@@ -5119,8 +5119,10 @@ BASIS["grid.find_edges along="] = _b(
     "change in one direction.",
     "along=\"rows\" or \"columns\".", _SCIPY_OWN, (), "P5", "test_method=\"sobel\" or \"prewitt\".", "convention")
 BASIS["grid.change_patch_shapes"] = _b(
-    "The neighbours touch by their sides (SciPy generate_binary_structure(2, 1), the default of binary_dilation), and "
-    "by= cells are by= steps (iterations=).",
+    "The neighbours touch by their sides (SciPy generate_binary_structure(2, 1), the default of binary_dilation), "
+    "by= cells are by= steps (iterations=), and at the edges the edge cells are repeated (the grid padded 2 x by "
+    "cells with NumPy pad \"symmetric\", SciPy's mode \"reflect\"), as for the grey picture, so closing never "
+    "removes a cell.",
     "touching=\"corners\" lets a shared corner count too.", _SCIPY_OWN, (), "P3",
     "Patches from a condition, a yes or no grid or a grid of 0 and 1; any other grid changes as a grey picture.",
     "convention")
@@ -5178,7 +5180,7 @@ BASIS["table.find_regions_around_points longitude="] = _b(
     "x= and y= in metres for a small area.", "The mean radius of the earth is the IUGG value.", (), "P5",
     "At least 4 points spread over the earth.", "convention")
 BASIS["table.find_distances_between_rows measure=\"minkowski\""] = _b(
-    "power= is the p of the Minkowski distance (SciPy minkowski_distance): 1 is Manhattan, 2 straight-line.",
+    "power= is the p of the Minkowski distance (SciPy distance.cdist): 1 is Manhattan, 2 straight-line.",
     "measure=\"euclidean\" or \"manhattan\".", _SCIPY_OWN, (), "P3", "power= of 1 or more.", "convention")
 BASIS["grid.convolve_with"] = _b(
     "Cells outside the grid count as 0 (SciPy convolve2d's boundary \"fill\"), and keep=\"all\" keeps every overlap, "
@@ -5186,6 +5188,7 @@ BASIS["grid.convolve_with"] = _b(
     "keep=\"same\" or \"overlap\"; flip=False for a correlation.", _SCIPY_OWN, (), "P3",
     "A kernel of numbers; no empty cells.", "convention")
 BASIS["grid.convolve_with row_weights="] = _b(
-    "The grid is mirrored at its edges and keeps its size, as SciPy sepfir2d.",
+    "At the edges the edge numbers are repeated (as SciPy mode \"reflect\") and the grid keeps its size, as SciPy "
+    "sepfir2d.",
     "A kernel grid with convolve2d (cells outside count as 0).", _SCIPY_OWN, (), "P3",
     "Two lists of an odd number of weights.", "convention")

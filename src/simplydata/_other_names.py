@@ -1778,8 +1778,8 @@ _SCIPY += [
     ('grid.smooth(test_method="spline", smoothness=5), on a big grid such as sdata.number_grid(rows=30, columns=30, '
      "filled_with=1): the cubic spline coefficients (cspline2d; qspline2d for quadratic ones) are worked out inside "
      "it", "cspline2d qspline2d"),
-    ("numbers.convolve_with([1, 2, 1]) along a list; grid.convolve_with(row_weights=[1, 2, 1], "
-     "column_weights=[1, 2, 1]) on a grid", "correlate1d"),
+    ("numbers.convolve_with(other.reverse()): a correlation is a convolution with the weights turned round (on a "
+     "grid, grid.convolve_with(kernel, flip=False))", "correlate1d"),
     ("grid.convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]])", "convolve2d"),
     ("grid.convolve_with([[1, 2], [0, -1]], flip=False): the weights slide without turning round", "correlate2d"),
     ("grid.convolve_with(row_weights=[1, 2, 1], column_weights=[1, 2, 1])", "sepfir2d"),

@@ -1,7 +1,8 @@
 """Families for 100 %, batch 21 (approved by Manish 2026-11-28, plan section 2.9): points in a plane or on the earth,
 with SciPy spatial.
 
-find_triangles_between_points: SciPy spatial.Delaunay (and tsearch for the triangle that holds a point).
+find_triangles_between_points: SciPy spatial.Delaunay (and Delaunay.find_simplex for the triangle that holds a point;
+tsearch does the same and is deprecated).
 find_regions_around_points: SciPy spatial.Voronoi (each region's area from spatial.ConvexHull of its corners, as a
 Voronoi region is convex), or spatial.SphericalVoronoi for longitudes and latitudes (with its own calculate_areas).
 Rows with an empty cell in the columns used are left out, with a note. Own code is glue only.
@@ -38,10 +39,10 @@ class PointWords:
         and y of each corner. Of all ways to join the points into triangles, this one avoids thin slivers: no
         point lies inside the circle through any triangle's corners. Used for maps of values between stations and
         for meshes. containing={"east": [4000, 5200], "north": [1000, 2500]} instead gives the triangle that holds
-        each of those points (empty outside all triangles). SciPy spatial.Delaunay (Qhull) and spatial.tsearch,
+        each of those points (empty outside all triangles). SciPy spatial.Delaunay (Qhull) and its find_simplex,
         as R deldir and sf::st_triangulate; chart them with draw_lines.
         """
-        from scipy.spatial import Delaunay, QhullError, tsearch
+        from scipy.spatial import Delaunay, QhullError
 
         step = "find_triangles_between_points"
         example = 'table.find_triangles_between_points(x="east", y="north")'
@@ -63,14 +64,14 @@ class PointWords:
             xs, ys = (np.atleast_1d(np.asarray(containing[c], dtype=float)) for c in (x, y))
             if xs.shape != ys.shape or xs.ndim != 1 or not np.isfinite(np.r_[xs, ys]).all():
                 raise SimplydataError(f"containing= needs as many numbers for {x} as for {y}.")
-            found = tsearch(mesh, np.column_stack([xs, ys]))
+            found = mesh.find_simplex(np.column_stack([xs, ys]))
             inside = found >= 0
             data = {x: xs.tolist(), y: ys.tolist(),
                     "triangle": [int(t) + 1 if t >= 0 else None for t in found]}
             for k in range(3):
                 data[f"corner {k + 1}"] = [int(rows[corners[t, k]]) + 1 if t >= 0 else None for t in found]
-            print(f"{int(inside.sum())} of {len(found)} points lie inside a triangle (SciPy spatial.tsearch on "
-                  f"spatial.Delaunay of {len(points)} points); the corners are the table's rows, from 1.")
+            print(f"{int(inside.sum())} of {len(found)} points lie inside a triangle (SciPy Delaunay.find_simplex, "
+                  f"the triangulation of {len(points)} points); the corners are the table's rows, from 1.")
             # a point outside every triangle has empty cells, so the numbers are decimals (pandas' whole numbers
             # cannot be empty)
             schema = {name: nw.Float64 for name in data}

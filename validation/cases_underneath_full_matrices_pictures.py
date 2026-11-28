@@ -239,7 +239,8 @@ def _cases(Case):
         _air(Case, "grid.find_edges", "the Laplace filter of a bell curve", 'grid.find_edges(test_method="gaussian '
              'laplace", width=1)', "ndimage.gaussian_laplace(g, 1)", option='test_method="gaussian laplace"'),
         _air(Case, "grid.change_patch_shapes", "the months above 400 thousand grown by one cell",
-             'grid.change_patch_shapes("grow", by=1, is_above=400)', "ndimage.binary_dilation(g > 400, iterations=1)",
+             'grid.change_patch_shapes("grow", by=1, is_above=400)',
+             "ndimage.binary_dilation(np.pad(g > 400, 2, mode='symmetric'))[2:-2, 2:-2]",
              option="is_above="),
         _air(Case, "grid.change_patch_shapes", "the grey opening by one cell",
              'grid.change_patch_shapes("open", by=1)',
@@ -322,11 +323,11 @@ def _cases(Case):
                   "total": sum(d.get_column(c).find_total() for c in ["1", "2", "3", "4", "5"])}
              """,
              parent="""
-                 from scipy.spatial import minkowski_distance
+                 from scipy.spatial.distance import cdist
                  xy = data[["x", "y"]].to_numpy(dtype=float)[:5]
-                 d = minkowski_distance(xy[:, None, :], xy[None, :, :], 3)
+                 d = cdist(xy, xy, "minkowski", p=3)
                  {"row 1 to 2": d[0, 1], "row 4 to 5": d[3, 4], "total": d.sum()}
-             """, parent_label="SciPy spatial.minkowski_distance", parent_tolerance=1e-12,
+             """, parent_label="SciPy spatial.distance.cdist (minkowski)", parent_tolerance=1e-12,
              r="""
                  d <- as.matrix(dist(cbind(x, y)[1:5, ], method = "minkowski", p = 3))
                  list(`row 1 to 2` = d[1, 2], `row 4 to 5` = d[4, 5], total = sum(d))
@@ -365,7 +366,8 @@ def _grey_air(Case, how, scipy_name):
 
 def more_cases(Case):
     m = "(g > 400)"
-    u8 = "(g > 400).astype(np.uint8)"
+    u8 = "(g > 400).astype(np.int16)"
+    big = "np.pad(g > 400, 2, mode='symmetric')"
     s = "ndimage.generate_binary_structure(2, 1)"
     return [
         # ---------------------------------------------------------------- batch 19 on real data
@@ -505,10 +507,11 @@ def more_cases(Case):
           for kind, scipy_name in (("riccati", "solve_continuous_are"), ("discrete riccati", "solve_discrete_are"))],
         # ---------------------------------------------------------------- batch 20 on real data (ndimage)
         _air(Case, "grid.change_patch_shapes", "the months above 300 thousand grown by one cell",
-             'grid.change_patch_shapes("grow", is_above=300)', "ndimage.binary_dilation(g > 300)"),
-        _binary_air(Case, "shrink", "", f"ndimage.binary_erosion({m})"),
-        _binary_air(Case, "open", "", f"ndimage.binary_opening({m})"),
-        _binary_air(Case, "close", "", f"ndimage.binary_closing({m})"),
+             'grid.change_patch_shapes("grow", is_above=300)',
+             "ndimage.binary_dilation(np.pad(g > 300, 2, mode='symmetric'))[2:-2, 2:-2]"),
+        _binary_air(Case, "shrink", "", f"ndimage.binary_erosion({big})[2:-2, 2:-2]"),
+        _binary_air(Case, "open", "", f"ndimage.binary_opening({big})[2:-2, 2:-2]"),
+        _binary_air(Case, "close", "", f"ndimage.binary_closing({big})[2:-2, 2:-2]"),
         _binary_air(Case, "fill holes", "", f"ndimage.binary_fill_holes({m})"),
         _binary_air(Case, "top hat", "", f"ndimage.white_tophat({u8}, footprint={s}) > 0"),
         _binary_air(Case, "dark top hat", "", f"ndimage.black_tophat({u8}, footprint={s}) > 0"),
@@ -573,11 +576,11 @@ def more_cases(Case):
                  {"first": t.get_cell_at(row=1, column="triangle"), "second": t.get_cell_at(row=2, column="triangle")}
              """,
              parent="""
-                 from scipy.spatial import Delaunay, tsearch
+                 from scipy.spatial import Delaunay
                  mesh = Delaunay(data[["x", "y"]].to_numpy(dtype=float))
-                 t = tsearch(mesh, np.array([[179500, 331500], [180500, 332500.0]])) + 1
+                 t = mesh.find_simplex(np.array([[179500, 331500], [180500, 332500.0]])) + 1
                  {"first": float(t[0]), "second": float(t[1])}
-             """, parent_label="SciPy spatial.tsearch", parent_tolerance=0.0,
+             """, parent_label="SciPy Delaunay.find_simplex", parent_tolerance=0.0,
              note="R deldir is not among the R packages the study installs, so SciPy itself is the reference."),
         Case("table.find_regions_around_points", "state.center: the regions round the centres of the 50 US states on "
              "the earth, in square kilometres", "state.center (R datasets)", "real data", option="longitude=",

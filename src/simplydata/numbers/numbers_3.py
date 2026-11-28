@@ -94,14 +94,22 @@ def _patch_columns(shown, bins, values, labels, index) -> dict:
         elif value == "positions":
             found = ndimage.value_indices(labels, ignore_value=0)
             columns["positions"] = [" ".join(f"({r + 1}, {c + 1})" for r, c in zip(*found[i])) for i in index]
-        else:
-            low, high = float(values.min()), float(values.max())
+        else:  # the bins run over the cells of the patches (never empty: an empty cell is in no patch)
+            inside = values[labels > 0]
+            low, high = float(np.nanmin(inside)), float(np.nanmax(inside))
+            if low == high:
+                if bins != 1:
+                    raise SimplydataError(f'show="counts in bins": every cell of the patches is {low:.6g}, so there '
+                                          "is only one bin; use bins=1.")
+                columns["bin 1"] = [int(v) for v in ndimage.sum_labels(np.ones_like(values), labels, index)]
+                print(f"Every cell of the patches is {low:.6g}, so bin 1 holds them all (SciPy ndimage.sum_labels).")
+                continue
             counts = ndimage.histogram(values, low, high, bins, labels, index)
             for b in range(bins):
                 columns[f"bin {b + 1}"] = [int(np.asarray(c)[b]) for c in counts]
-            edges = np.linspace(low, high, bins + 1)
-            print(f"The bins run from {edges[0]:.6g} to {edges[-1]:.6g} in {bins} equal steps (SciPy "
-                  f"ndimage.histogram(grid, {low:.6g}, {high:.6g}, {bins}, labels, patches)).")
+            print(f"The bins run from {low:.6g} to {high:.6g} (the smallest and biggest cell of the patches) in "
+                  f"{bins} equal steps (SciPy ndimage.histogram(grid, {low:.6g}, {high:.6g}, {bins}, labels, "
+                  "patches)).")
     return columns
 
 
@@ -325,7 +333,7 @@ class GridWords3:
         row and column, from 1; SciPy ndimage.extrema), "median", "standard deviation", "variance" (SciPy ndimage's
         own, with n in the bottom, as NumPy), "range" (biggest minus smallest;
         labeled_comprehension with NumPy ptp), "positions" (every cell of the patch, from 1; value_indices) and
-        "counts in bins" with bins= a number of equal bins from the smallest to the biggest number of the grid
+        "counts in bins" with bins= a number of equal bins from the smallest to the biggest cell of the patches
         (ndimage.histogram).
         """
         import pandas as pd

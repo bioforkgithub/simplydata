@@ -91,6 +91,14 @@ def _conditions(is_above, is_below, is_at_least, is_at_most, is_equal_to, is_not
             "is_one_of": is_one_of}
 
 
+def _window_words(k: int, axes, along: str) -> str:
+    """The window of smooth(): "a 3 x 3 window (9 cells)" over both directions, "3 neighbours along the rows"
+    along one."""
+    if len(axes) == 2:
+        return f"a {k} x {k} window ({k * k} cells)"
+    return f"{k} neighbours along the {along}"
+
+
 def _window(window, step: str) -> int:
     if not isinstance(window, _nb.Integral) or isinstance(window, bool) or window < 3 or window % 2 == 0:
         raise SimplydataError(f"{step}() needs window= as an odd whole number of places, at least 3, such as "
@@ -142,7 +150,8 @@ class ImageWords:
         and "smallest" (SciPy ndimage.maximum_filter and minimum_filter; maximum_filter1d and minimum_filter1d
         along one direction), "percentile" with percentile=90 (percentile_filter), "rank" with rank=1 (the cell
         that comes at that place when the window is sorted, from 1; rank_filter), "summary" with summary="range"
-        (or "average", "median", "total", "standard deviation", "biggest", "smallest": that NumPy summary of each
+        (or "average", "median", "total", "standard deviation" with n in the bottom, "biggest", "smallest": that
+        NumPy summary of each
         window; vectorized_filter, as generic_filter), and the Fourier filters "fourier gaussian" (width=),
         "fourier uniform" and "fourier ellipsoid" (window=), which smooth in the frequencies and wrap round at the
         edges (fourier_gaussian, fourier_uniform, fourier_ellipsoid on NumPy's FFT). "rank" with ends="zeros"
@@ -234,14 +243,16 @@ class ImageWords:
             else:
                 out = getattr(ndimage, scipy_name)(values, size=k, mode=mode)
                 call = f"ndimage.{scipy_name}(grid, size={k}, mode=\"{mode}\")"
-            words = f"the {method} of {k} neighbours along {along}"
+            words = f"the {method} of {_window_words(k, axes, along)}"
         elif method == "percentile":
             if not is_number(percentile) or not 0 <= percentile <= 100:
                 raise SimplydataError('test_method="percentile" needs percentile= from 0 to 100, such as '
                                       "percentile=90.")
             out = ndimage.percentile_filter(values, float(percentile), size=k, mode=mode, axes=tuple(axes))
             call = f"ndimage.percentile_filter(grid, {say(percentile)}, size={k}, mode=\"{mode}\", axes={tuple(axes)})"
-            words = f"the {say(percentile)} percentile of {k} neighbours along {along}"
+            words = (f"the {say(percentile)} percentile of {_window_words(k, axes, along)} (SciPy takes the cell "
+                     "at that place in the sorted window, without averaging between cells, so 90 % of 9 cells is "
+                     "the biggest)")
         elif method == "rank":
             cells = k ** len(axes)
             if not isinstance(rank, _nb.Integral) or isinstance(rank, bool) or not 1 <= rank <= cells:
@@ -255,7 +266,7 @@ class ImageWords:
             else:
                 out = ndimage.rank_filter(values, int(rank) - 1, size=k, mode=mode, axes=tuple(axes))
                 call = f"ndimage.rank_filter(grid, {int(rank) - 1}, size={k}, mode=\"{mode}\", axes={tuple(axes)})"
-            words = f"number {int(rank)} of the {cells} neighbours along {along}, sorted from the smallest"
+            words = f"number {int(rank)} of {_window_words(k, axes, along)}, sorted from the smallest"
         else:
             if summary not in SUMMARIES:
                 raise choice_error(step, "summary", summary, list(SUMMARIES))
@@ -263,7 +274,8 @@ class ImageWords:
             out = ndimage.vectorized_filter(values, function, size=k, mode=mode, axes=tuple(axes))
             call = (f"ndimage.vectorized_filter(grid, np.{function.__name__}, size={k}, mode=\"{mode}\", "
                     f"axes={tuple(axes)})")
-            words = f"the {summary} of {k} neighbours along {along}"
+            words = f"the {summary} of {_window_words(k, axes, along)}" + (
+                " (with n in the bottom, as NumPy std)" if summary == "standard deviation" else "")
         edge = "the cells outside the grid count as 0" if zeros else SMOOTH_ENDS[mode]
         print(f"Smoothed with {words}; {edge}. SciPy {call}")
         return self._change(f"smooth ({method}) over {along}", np.asarray(out, dtype=float))
@@ -374,7 +386,9 @@ class ImageWords:
         "outline" (grown minus shrunk), "laplace" (grown plus shrunk minus twice the grid), "match pattern" with
         pattern= rows of 1 (in the patch) and 0 (outside) (hit or miss), or "keep patches with points" with
         starting_points=[[row, column], ...] from 1. by= cells (1 unless you say); touching="sides" (the default)
-        or "corners" for the neighbours. SciPy ndimage.binary_dilation, binary_erosion, binary_opening,
+        or "corners" for the neighbours. At the edges the edge cells are repeated, for patches and grey pictures
+        alike (SciPy mode "reflect"), so closing never removes a cell. SciPy
+        ndimage.binary_dilation, binary_erosion, binary_opening,
         binary_closing, binary_fill_holes, binary_hit_or_miss, binary_propagation (iterations=by), and for numbers
         grey_dilation, grey_erosion, grey_opening, grey_closing, white_tophat, black_tophat,
         morphological_gradient and morphological_laplace, with the neighbours from generate_binary_structure grown
@@ -435,8 +449,14 @@ class ImageWords:
         scipy_name = PATCH_SHAPES[chosen][0]
         before = int(mask.sum())
         if chosen in ("grow", "shrink", "open", "close"):
-            out = getattr(ndimage, scipy_name)(mask, structure=structure, iterations=steps)
-            call = f"ndimage.{scipy_name}(mask, structure, iterations={steps})"
+            # the grid is repeated at its edges (NumPy pad "symmetric", SciPy's mode "reflect"), 2 x by cells, so
+            # the edges behave as in the grey picture: closing never removes a cell, shrinking keeps a patch that
+            # reaches the edge
+            pad = 2 * steps
+            big = np.pad(mask, pad, mode="symmetric")
+            out = getattr(ndimage, scipy_name)(big, structure=structure, iterations=steps)[pad:-pad, pad:-pad]
+            call = (f"ndimage.{scipy_name}(np.pad(mask, {pad}, mode=\"symmetric\"), structure, iterations={steps}), "
+                    "the padding cut off again")
         elif chosen == "fill holes":
             out = ndimage.binary_fill_holes(mask, structure=structure)
             call = "ndimage.binary_fill_holes(mask, structure)"
@@ -458,15 +478,19 @@ class ImageWords:
             call = "ndimage.binary_propagation(starting cells, structure, mask=mask)"
         else:
             footprint = ndimage.iterate_structure(structure, steps)
-            out = getattr(ndimage, scipy_name)(mask.astype(np.uint8), footprint=footprint)
+            out = getattr(ndimage, scipy_name)(mask.astype(np.int16), footprint=footprint)
             call = f"ndimage.{scipy_name}(mask as 0 and 1, footprint=iterate_structure(structure, {steps}))"
         out = np.asarray(out)
         keep_numbers = chosen == "laplace"
         out = out.astype(float) if keep_numbers else out.astype(bool)
         by_words = f" {amount(steps, 'cell')}" if PATCH_SHAPES[chosen][2].endswith(" by") else ""
         after = "" if keep_numbers else f"; {before} yes cells before, {int(out.sum())} after"
+        edge = "" if chosen in ("match pattern", "keep patches with points") else (
+            "; outside the grid counts as no patch" if chosen == "fill holes" else
+            "; at the edges the edge cells are repeated (as SciPy mode \"reflect\")")
         print(f"The patches of {said}, {PATCH_SHAPES[chosen][2]}{by_words}, the neighbours touching by their "
-              f"{touching}{after} (SciPy {call}, structure = generate_binary_structure(2, {TOUCHING[touching]})).")
+              f"{touching}{after}{edge} (SciPy {call}, structure = generate_binary_structure(2, "
+              f"{TOUCHING[touching]})).")
         return self._change(f"patch shapes ({chosen})", out)
 
     # ------------------------------------------------------------------ distances (batch 21)
@@ -566,6 +590,10 @@ class ImageWords:
                                   f"numbers from {values.min():.6g} to {values.max():.6g}. Round them first, for "
                                   "example grid.round_to(with_decimals=0) after scaling.")
         points = _points(starting_points, values.shape, step, "starting_points", example)
+        twice = sorted({p for p in points if points.count(p) > 1})
+        if twice:
+            raise SimplydataError(f"starting_points= has [{twice[0][0] + 1}, {twice[0][1] + 1}] more than once; each "
+                                  "starting point makes its own patch, so give each place once.")
         markers = np.zeros(values.shape, dtype=np.int32)
         for label, (row, column) in enumerate(points, 1):
             markers[row, column] = label
@@ -675,7 +703,8 @@ class ImageWords:
         outside the grid counting as 0. flip=False slides the weights without turning them round (a
         correlation; SciPy signal.correlate2d), as for matching a pattern. row_weights= and column_weights=
         instead give one list of weights along the rows and one down the columns (a separable filter, much
-        faster; SciPy signal.sepfir2d, with the grid mirrored at its edges and its size kept). Undo with
+        faster; SciPy signal.sepfir2d, with the edge numbers repeated, d c b a | a b c d as SciPy mode "reflect",
+        and its size kept). Undo with
         grid.undo().
         """
         from scipy import signal
@@ -704,7 +733,8 @@ class ImageWords:
                 lists.append(found)
             out = signal.sepfir2d(values, lists[0], lists[1])
             print(f"Filtered with {lists[0].size} weights along the rows and {lists[1].size} down the columns (a "
-                  "separable filter; the grid is mirrored at its edges and keeps its size). SciPy signal.sepfir2d")
+                  "separable filter; at the edges the edge number is repeated, as SciPy mode \"reflect\", and the "
+                  "grid keeps its size). SciPy signal.sepfir2d")
             return self._change("separable filter", np.asarray(out, dtype=float))
         if other is None:
             raise SimplydataError(f"{step}() needs a small grid of weights (a kernel)."
@@ -716,6 +746,12 @@ class ImageWords:
             raise SimplydataError(f"{step}() needs the kernel as rows of numbers, such as [[0, 1, 0], [1, 4, 1], "
                                   "[0, 1, 0]].")
         scipy_name = "convolve2d" if flip else "correlate2d"
+        if keep == "overlap" and (kernel.shape[0] > values.shape[0] or kernel.shape[1] > values.shape[1]) and (
+                kernel.shape[0] < values.shape[0] or kernel.shape[1] < values.shape[1]):
+            raise SimplydataError(f'keep="overlap" keeps the places where the kernel fits fully inside the grid; this '
+                                  f"{kernel.shape[0]} x {kernel.shape[1]} kernel is bigger than the "
+                                  f"{values.shape[0]} x {values.shape[1]} grid in one direction, so it never fits. "
+                                  'Use keep="same" or keep="all".')
         out = getattr(signal, scipy_name)(values, kernel, mode=KEEPS[keep])
         print(f"{'Convolved' if flip else 'Correlated'} the {values.shape[0]} x {values.shape[1]} grid with a "
               f"{kernel.shape[0]} x {kernel.shape[1]} kernel{'' if flip else ' (not turned round)'}: a "

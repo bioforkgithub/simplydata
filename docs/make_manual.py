@@ -468,7 +468,7 @@ UNDERNEATH = {
     "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
                           "test_method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
-    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist; spatial.minkowski_distance for "
+    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist; spatial.distance.cdist for "
                                          "measure=\"minkowski\"); R vegan::vegdist for the Aitchison, robust "
                                          "Aitchison and Hellinger distances",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
@@ -637,7 +637,7 @@ UNDERNEATH = {
     "grid.move_and_stretch_by": "SciPy (ndimage.affine_transform, geometric_transform; fourier_shift on NumPy's FFT)",
     "grid.convolve_with": "SciPy (signal.convolve2d, correlate2d, sepfir2d)",
     "grid.find_envelope": "SciPy (signal.hilbert2)",
-    "table.find_triangles_between_points": "SciPy (spatial.Delaunay, tsearch; Qhull)",
+    "table.find_triangles_between_points": "SciPy (spatial.Delaunay, find_simplex; Qhull)",
     "table.find_regions_around_points": "SciPy (spatial.Voronoi, SphericalVoronoi; ConvexHull for the areas)",
     # numbers phase, batch 4 (each also has a tested entry in simplydata._underneath)
     "f.show_as_decimal": "SymPy (N, evalf with the digits asked for)",

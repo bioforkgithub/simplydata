@@ -657,7 +657,7 @@ class PatternWords:
         vegan::vegdist("aitchison")); "robust aitchison" uses the values above 0 only and needs no
         replacement; "hellinger" is the straight-line distance between the square roots of the
         rows' shares. "minkowski" with power= (such as power=3) is the p-th root of the total of the differences
-        to the power p: power=1 is "manhattan", power=2 "euclidean" (SciPy spatial.minkowski_distance, as R
+        to the power p: power=1 is "manhattan", power=2 "euclidean" (SciPy spatial.distance.cdist, as R
         dist(method = "minkowski", p =)).
         names= is a column whose values label the rows and columns.
         """
@@ -678,10 +678,10 @@ class PatternWords:
         if measure != "minkowski":
             self._check_measure(measure, x, columns, step)
         first, labels = self._labels(step, names, keep, example)
-        if measure == "minkowski":  # families for 100 %, batch 21 (plan section 2.9): SciPy minkowski_distance
-            from scipy.spatial import minkowski_distance
+        if measure == "minkowski":  # families for 100 %, batch 21 (plan section 2.9); spatial.minkowski_distance
+            from scipy.spatial.distance import cdist  # is deprecated (SciPy 1.20 drops it): cdist does the same
 
-            square = minkowski_distance(x[:, None, :], x[None, :, :], float(power))
+            square = cdist(x, x, "minkowski", p=float(power))
         else:
             square = _square(_distances(x, measure))
         data = {first: labels}
@@ -689,7 +689,8 @@ class PatternWords:
             data[lab] = [float(v) for v in square[:, j]]
         if measure == "minkowski":
             print(f"Minkowski distances (power {float(power):g}) between {len(x)} rows from {_columns_used(columns)} "
-                  f"(SciPy spatial.minkowski_distance, as R dist(x, \"minkowski\", p = {float(power):g})). 0 means the "
+                  f"(SciPy spatial.distance.cdist, metric \"minkowski\", as R dist(x, \"minkowski\", p = "
+                  f"{float(power):g})). 0 means the "
                   "same; the bigger, the more different.")
             return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
         print(f"{MEASURES[measure]} distances between {len(x)} rows from {_columns_used(columns)}, as R vegan::"

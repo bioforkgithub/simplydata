@@ -70,7 +70,8 @@ def _binary(how: str, call: str, extra: str = "", word_entry: bool = False) -> E
             {call}
         """},
         compare="value",
-        choices=("the neighbours touch by their sides (touching=\"corners\" lets a shared corner count too).",)
+        choices=("the neighbours touch by their sides (touching=\"corners\" lets a shared corner count too), and "
+                 "the grid is repeated 2 x by cells out at its edges (as SciPy mode \"reflect\").",)
         if word_entry else (),
         also=SHAPES,
     )
@@ -163,15 +164,16 @@ ENTRIES = [
         also=EDGES,
     ),
     # ---------------------------------------------------------------- change_patch_shapes (batch 20, G9)
-    _binary("grow", "ndimage.binary_dilation(mask, structure=s, iterations=1)", ", by=1", word_entry=True),
-    _binary("shrink", "ndimage.binary_erosion(mask, structure=s, iterations=1)"),
-    _binary("open", "ndimage.binary_opening(mask, structure=s, iterations=1)"),
-    _binary("close", "ndimage.binary_closing(mask, structure=s, iterations=1)"),
+    _binary("grow", "ndimage.binary_dilation(np.pad(mask, 2, mode='symmetric'), structure=s)[2:-2, 2:-2]", ", by=1",
+            word_entry=True),
+    _binary("shrink", "ndimage.binary_erosion(np.pad(mask, 2, mode='symmetric'), structure=s)[2:-2, 2:-2]"),
+    _binary("open", "ndimage.binary_opening(np.pad(mask, 2, mode='symmetric'), structure=s)[2:-2, 2:-2]"),
+    _binary("close", "ndimage.binary_closing(np.pad(mask, 2, mode='symmetric'), structure=s)[2:-2, 2:-2]"),
     _binary("fill holes", "ndimage.binary_fill_holes(mask, structure=s)"),
-    _binary("top hat", "ndimage.white_tophat(mask.astype(np.uint8), footprint=s) > 0"),
-    _binary("dark top hat", "ndimage.black_tophat(mask.astype(np.uint8), footprint=s) > 0"),
-    _binary("outline", "ndimage.morphological_gradient(mask.astype(np.uint8), footprint=s) > 0"),
-    _binary("laplace", "ndimage.morphological_laplace(mask.astype(np.uint8), footprint=s)"),
+    _binary("top hat", "ndimage.white_tophat(mask.astype(np.int16), footprint=s) > 0"),
+    _binary("dark top hat", "ndimage.black_tophat(mask.astype(np.int16), footprint=s) > 0"),
+    _binary("outline", "ndimage.morphological_gradient(mask.astype(np.int16), footprint=s) > 0"),
+    _binary("laplace", "ndimage.morphological_laplace(mask.astype(np.int16), footprint=s)"),
     _binary("match pattern", "ndimage.binary_hit_or_miss(mask, structure1=np.array([[1, 1], [1, 0]]) == 1,\n"
                              "                           structure2=np.array([[1, 1], [1, 0]]) == 0)",
             ", pattern=[[1, 1], [1, 0]]"),
@@ -191,10 +193,12 @@ ENTRIES = [
             g = np.array({PICTURE}, dtype=float)
             # change_patch_shapes("grow", by=2, is_above=5)
             s = ndimage.generate_binary_structure(2, 1)
-            ndimage.binary_dilation(g > 5, structure=s, iterations=2)   # (1)
+            big = np.pad(g > 5, 4, mode="symmetric")   # (1)
+            ndimage.binary_dilation(big, structure=s, iterations=2)[4:-4, 4:-4]
         """},
         compare="value",
-        choices=("the patches are the cells that meet the condition; by=2 is two steps (iterations=2).",),
+        choices=("the patches are the cells that meet the condition; by=2 is two steps (iterations=2), and the "
+                 "edge cells are repeated 2 x by cells out (as the grey picture's mode \"reflect\").",),
         also=SHAPES,
     ),
     *[_grey(how, scipy_name, first=how == "grow") for how, scipy_name in (
@@ -342,11 +346,11 @@ ENTRIES = [
         """,
         code={"SciPy": """
             import numpy as np, pandas as pd
-            from scipy.spatial import Delaunay, tsearch
+            from scipy.spatial import Delaunay
             df = pd.read_csv("stations.csv")
             # find_triangles_between_points(x="east", y="north", containing=...)
             mesh = Delaunay(df[["east", "north"]].to_numpy())
-            tsearch(mesh, np.array([[4000, 1000], [5200, 2500]])) + 1.0   # (1)
+            mesh.find_simplex(np.array([[4000, 1000], [5200, 2500]])) + 1.0   # (1)
         """},
         compare="value",
         choices=("the triangle numbers count from 1; a point outside every triangle is empty.",),
@@ -405,10 +409,10 @@ ENTRIES = [
         """,
         code={"SciPy": """
             import pandas as pd
-            from scipy.spatial import minkowski_distance
+            from scipy.spatial.distance import cdist
             xy = pd.read_csv("stations.csv").head(4)[["east", "north"]].to_numpy()
             # find_distances_between_rows(columns=["east", "north"], measure="minkowski", power=3)
-            d = minkowski_distance(xy[:, None, :], xy[None, :, :], 3)   # (1)
+            d = cdist(xy, xy, "minkowski", p=3)   # (1)
             out = pd.DataFrame(d, columns=["1", "2", "3", "4"])
             out.insert(0, "row", ["1", "2", "3", "4"])
             out
@@ -505,7 +509,8 @@ ENTRIES = [
         """},
         compare="value",
         tolerance=1e-12,
-        choices=("the grid is mirrored at its edges and keeps its size, as SciPy sepfir2d.",),
+        choices=("at the edges the edge numbers are repeated (as SciPy mode \"reflect\") and the grid keeps its "
+                 "size, as SciPy sepfir2d.",),
         also="simplydata also checks each list has an odd number of weights.",
     ),
     Entry(
