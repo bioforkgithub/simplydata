@@ -504,7 +504,7 @@ def more_cases(Case):
                             f"f = linalg.{scipy_name}(-c, np.eye(4), np.eye(4), np.eye(4))", READ_PARENT),
                parent_label=f"SciPy linalg.{scipy_name}", parent_tolerance=1e-9,
                note="Base R has no Riccati solver; SciPy itself is the reference.")
-          for kind, scipy_name in (("riccati", "solve_continuous_are"), ("discrete riccati", "solve_discrete_are"))],
+          for kind, scipy_name in [("riccati", "solve_continuous_are"), ("discrete riccati", "solve_discrete_are")]],
         # ---------------------------------------------------------------- batch 20 on real data (ndimage)
         _air(Case, "grid.change_patch_shapes", "the months above 300 thousand grown by one cell",
              'grid.change_patch_shapes("grow", is_above=300)',

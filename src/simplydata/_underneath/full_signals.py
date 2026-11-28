@@ -191,7 +191,7 @@ ENTRIES = [
                           "pole (imaginary part)": p.imag, "power": [np.nan] * 2})
         """},
         compare="table", tolerance=1e-12,
-        choices=("SciPy residue for a continuous system (residuez for a system in steps), as R gsignal::residue; "
+        choices=("SciPy residue for a continuous system, and residuez for a system in steps, as R gsignal::residue; "
                  "direct terms, when the top is as long as the bottom, come as extra rows.",),
         also="sdata.system(residues=, poles=) adds the fractions up again (SciPy invres).",
     ),
@@ -204,7 +204,7 @@ ENTRIES = [
         code={"SciPy": """
             import numpy as np, pandas as pd
             from scipy import signal
-            # system(sections=[[1, 2, 1, 1, -0.5, 0.1], [1, 0, -1, 1, 0.2, 0.3]], time_step=0.01)
+            # the system made with sections=[[1, 2, 1, 1, -0.5, 0.1], [1, 0, -1, 1, 0.2, 0.3]], time_step=0.01
             b, a = signal.sos2tf([[1, 2, 1, 1, -0.5, 0.1], [1, 0, -1, 1, 0.2, 0.3]])
             pd.DataFrame({"power of z": [4, 3, 2, 1, 0], "numerator": b, "denominator": a})
         """},
@@ -220,7 +220,7 @@ ENTRIES = [
         code={"SciPy": """
             import numpy as np, pandas as pd
             from scipy import signal
-            # system(residues=[-1, 2], poles=[-1, -2])
+            # the system made with residues=[-1, 2], poles=[-1, -2]
             b, a = signal.invres([-1, 2], [-1, -2], [])
             pd.DataFrame({"power of s": [2, 1, 0], "numerator": np.concatenate([[0], b]), "denominator": a})
         """},

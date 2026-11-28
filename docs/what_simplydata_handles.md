@@ -93,6 +93,7 @@ so you never need them:
 | ape | a second Moran's I (`ape::Moran.I`) that `find_autocorrelation_of(x=, y=)` is checked against |
 | gsignal, pracma, control | the filter, envelope, peak and system answers that `frequency_filter`, `find_envelope`, `find_each_peak_that` and the `system` words are checked against (Octave-style `butter` and `hilbert`, `findpeaks`, and transfer functions) |
 | Matrix | the matrix exponential (`Matrix::expm`) that `grid.take_matrix_exp()` is checked against |
+| nleqslv, lpSolve, cubature | Broyden's method for a set of equations (`nleqslv`), the linear assignment problem (`lp.assign`) and adaptive cubature (`hcubature`) that the new `sdata.solve(test_method=)` values, `sdata.find_best_pairing` and `find_area_under(test_method="cubature")` are checked against |
 | AER, alr4, HH, mediation | published data the reliability study reads from the installed package instead of storing a copy (NMES 1988, Galton's sweet peas, Heiberger & Robbins's survey counts, the JOBS II records; see [DATA_LICENSES.md](../DATA_LICENSES.md)) |
 
 Many printouts also name the R function that gives the same answer ("as R zoo::na.spline"); those are pointers for

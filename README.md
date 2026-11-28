@@ -223,7 +223,7 @@ on your own computer, and in Jupyter or IPython on the server you press Tab. See
 ## What simplydata handles
 
 **591 words (commands) in 67 groups, with 481 different options, on top of 22 Python packages (10 installed always, 12 with an extra; patsy comes with statsmodels) and
-87 R packages that it runs (plus R's own `stats`, and 16 more used only to check its answers), checked by 46513 reliability checks.** Every word hands the work to
+87 R packages that it runs (plus R's own `stats`, and 19 more used only to check its answers), checked by 46513 reliability checks.** Every word hands the work to
 an established package; simplydata chooses the settings, prints the answer in words and names the
 method it used. Words that need an extra say so: `pip install "simplydata[files]"`,
 `[systems]`, `[sql]` or `[r]` (the R words also need R itself; see [Using the words that need R](#using-the-words-that-need-r)).
