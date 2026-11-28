@@ -663,11 +663,12 @@ ENTRIES = [
             import numpy as np
             import sympy as sp
             # number_grid(kind="rotation", axis="z", by_degrees=30)
-            np.array(sp.rot_axis3(sp.pi / 6).evalf(), dtype=float)
+            np.array(sp.rot_ccw_axis3(sp.pi / 6).evalf(), dtype=float)
         """},
         compare="value",
         tolerance=1e-12,
-        also="SymPy works under simplydata's time limit for SymPy; by_degrees= is the angle in degrees.",
+        also="A counterclockwise turn of a point, as MATLAB rotz and SciPy Rotation; SymPy works under simplydata's "
+             "time limit for SymPy; by_degrees= is the angle in degrees.",
     ),
     Entry(
         word="sdata.number_grid", option="from_formula=",

@@ -148,7 +148,8 @@ class GridWords4:
         simplydata says so. exactly=True works it out exactly with SymPy (the numbers as fractions), prints the
         fractions and keeps their decimals. closest_possible=True gives the closest thing to an inverse for any grid,
         also one that is not square or has no inverse (the Moore-Penrose pseudo-inverse from the SVD: SciPy
-        linalg.pinv, or pinvh for a symmetric grid; R MASS::ginv). Undo with grid.undo(). To solve equations,
+        linalg.pinv, or pinvh for a symmetric grid; R MASS::ginv gives the same, with its own cut-off for tiny
+        singular values). Undo with grid.undo(). To solve equations,
         sdata.solve is better than an inverse.
         """
         from scipy import linalg

@@ -54,6 +54,8 @@ OTHER_NAMES = {"legendre_poly": "legendre", "sh_legendre": "shifted legendre", "
                "chebyshevu_poly": "chebyshev second kind", "sh_chebyt": "shifted chebyshev",
                "sh_chebyu": "shifted chebyshev second kind", "chebyc": "chebyshev c", "chebys": "chebyshev s",
                "hermite_poly": "hermite", "physicists hermite": "hermite", "hermitenorm": "probabilists hermite",
+               "hermite_e": "probabilists hermite",
+               "hermite e": "probabilists hermite",
                "hermite_prob_poly": "probabilists hermite", "hermitee": "probabilists hermite",
                "laguerre_poly": "laguerre", "genlaguerre": "generalized laguerre",
                "assoc_laguerre": "generalized laguerre", "associated laguerre": "generalized laguerre",

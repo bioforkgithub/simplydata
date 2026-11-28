@@ -1026,7 +1026,8 @@ _NUMBERS = [
     ("numbers.turn_into_running_area(time_step=60)", "cumulative_trapezoid cumtrapz cumulative_simpson"),
     ("numbers.take_cube_root()", "cbrt nthroot"),
     ("numbers.find_coherence_with(other, time_step=0.01)", "coherence csd mscohere cohere"),
-    ("numbers.take_cosine_transform()", "dct dst"),
+    ("numbers.take_cosine_transform()", "dct"),
+    ('numbers.take_cosine_transform(kind="sine")', "dst"),
     ("numbers.show_as_fraction()", "nsimplify Rational rat as_fraction"),
     # families for 100 %, batches 10-12 (approved by Manish 2026-11-28, plan section 2.4): NumPy and R names
     ("numbers.find_product()", "prod product nanprod"),
@@ -1411,7 +1412,8 @@ _NUMPY = [
     ('sdata.make_window_shape(("kaiser", 5), how_many=64)', "kaiser"),
     ("sdata.number_list([3, 5, 2]) for a list, sdata.number_grid([[1, 2], [3, 4]]) for a grid (a copy of numbers: "
      "sdata.number_list(numbers))", "asarray asanyarray asarray_chkfinite asmatrix copy fromiter frombuffer"),
-    ("numbers.take_whole_part() for whole numbers (NumPy astype(int) drops the decimals)", "astype"),
+    (_NUMPY_HAND_OVER + ": numbers.as_numpy().astype(int) (simplydata keeps whole numbers and decimals itself; to "
+     "change the values, numbers.round_to() or numbers.take_whole_part())", "astype"),
     (_NUMPY_HAND_OVER + ": np.trim_zeros(numbers.as_numpy())", "trim_zeros"),
     # numpy.polynomial (np.polynomial.Legendre ...): the same polynomials as sdata.polynomial
     ('sdata.polynomial("legendre", degree=3)', "Legendre legval legfromroots"),
@@ -1481,7 +1483,9 @@ _LINALG = [
      "matmul_toeplitz"),
     ("numbers.take_fourier_transform(show=\"all\"): the Fourier transform without the grid of complex numbers (NumPy "
      "and SciPy dft makes that grid)", "dft"),
-    (_NUMPY_HAND_OVER + ": np.linalg.matrix_power(grid.as_numpy(), 3)", "matrix_power tensorinv logm sqrtm"),
+    (_NUMPY_HAND_OVER + ": np.linalg.matrix_power(grid.as_numpy(), 3)", "matrix_power tensorinv"),
+    (_NUMPY_HAND_OVER + ": scipy.linalg.logm(grid.as_numpy()) or scipy.linalg.sqrtm(grid.as_numpy())",
+     "logm sqrtm"),
 ]
 
 # random.<name>: np.random, a NumPy Generator (rng = np.random.default_rng()) and Python's random
@@ -1542,7 +1546,8 @@ _FFT = [
     ("numbers.take_fourier_transform(time_step=0.01)", "fft rfft dft fftfreq rfftfreq"),
     ("sdata.find_inverse_fourier_transform(table), on the table take_fourier_transform gives", "ifft irfft"),
     ("numbers.take_fourier_transform(with_zero_in_middle=True)", "fftshift ifftshift"),
-    ("numbers.take_cosine_transform()", "dct dst"),
+    ("numbers.take_cosine_transform()", "dct"),
+    ('numbers.take_cosine_transform(kind="sine")', "dst"),
     # families for 100 %, batch 11 (approved by Manish 2026-11-28, plan section 2.4)
     ('grid.take_fourier_transform(over="rows and columns") (show="all" for fft2; one direction: over="rows")',
      "fft2 rfft2 fftn rfftn"),
@@ -1912,10 +1917,10 @@ _SYMPY = [
     ('sdata.polynomial("from numbers", numbers=[1, 0, -2]): a polynomial as a formula', "Poly PurePoly poly"),
     ('sdata.polynomial("from numbers", numbers=sdata.make_random_numbers(how_many=4, between=[-5, 5], '
      "whole_numbers=True, with_seed=1))", "random_poly"),
-    ('sdata.number_grid(kind="rotation", axis="x", by_degrees=30) (axis="y", "z" for rot_axis2, rot_axis3)',
-     "rot_axis1 rot_axis2 rot_axis3"),
-    ('sdata.number_grid(kind="rotation", axis="x", by_degrees=-30): SymPy rot_ccw_axis1 turns the other way',
-     "rot_ccw_axis1 rot_ccw_axis2 rot_ccw_axis3"),
+    ('sdata.number_grid(kind="rotation", axis="x", by_degrees=30) (a counterclockwise turn; axis="y", "z" for '
+     "rot_ccw_axis2, rot_ccw_axis3)", "rot_ccw_axis1 rot_ccw_axis2 rot_ccw_axis3"),
+    ('sdata.number_grid(kind="rotation", axis="x", by_degrees=-30): SymPy rot_axis1 turns the frame, the other way '
+     "round from a point (axis=\"y\", \"z\" for rot_axis2, rot_axis3)", "rot_axis1 rot_axis2 rot_axis3"),
     ('sdata.number_grid(kind="identity", size=3)', "eye"),
     ('sdata.number_grid([1, 2, 3], kind="diagonal")', "diag"),
 ]

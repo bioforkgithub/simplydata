@@ -62,13 +62,19 @@ def _show_numbers(values, most: int = 8) -> str:
     return shown + (" ..." if np.size(values) > most else "")
 
 
-def running_product(values: np.ndarray) -> np.ndarray:
-    """turn_into_running_total(show="product"): NumPy nancumprod, with the empty values left empty again (as the
-    running total leaves them)."""
-    out = np.nancumprod(values.astype(float) if values.dtype.kind == "f" else values)
+def running_product(values: np.ndarray) -> tuple[np.ndarray, str]:
+    """turn_into_running_total(show="product"): NumPy nancumprod for decimals, with the empty values left empty again
+    (as the running total leaves them). Whole numbers are multiplied as Python's whole numbers (NumPy
+    multiply.accumulate on objects), so they never wrap round; products too big for a whole number of 64 bits come
+    back as decimals, with a note."""
     if values.dtype.kind == "f":
-        out = np.where(np.isnan(values), np.nan, out)
-    return out
+        out = np.nancumprod(values)
+        return np.where(np.isnan(values), np.nan, out), "NumPy nancumprod"
+    exact = np.multiply.accumulate(values.astype(object)) if values.size else values
+    if values.size and max(abs(int(v)) for v in exact) >= 2 ** 63:
+        return exact.astype(float), ("NumPy multiply.accumulate on Python's whole numbers; the products are too big "
+                                     "for whole numbers of 64 bits, so they are given as decimals")
+    return np.asarray(exact, dtype=np.int64), "NumPy multiply.accumulate on Python's whole numbers, so none wraps round"
 
 
 def sort_positions(values: np.ndarray, biggest_first: bool, then_by=None) -> np.ndarray:
@@ -135,11 +141,19 @@ class NumPyListWords:
             raise SimplydataError(f"turn_into_changes() needs more than {rows_back * how_many_times} numbers for "
                                   f"rows_back={rows_back} and how_many_times={how_many_times}; there are "
                                   f"{values.size}.")
-        out = values
-        for _ in range(int(how_many_times)):
-            out = np.diff(out) if rows_back == 1 else out[rows_back:] - out[:-rows_back]
-        how = ("NumPy diff" if rows_back == 1 else
-               f"each number minus the one {rows_back} before, as R diff(x, lag = {rows_back})")
+        if rows_back == 1:
+            out = np.diff(values, n=int(how_many_times))
+            how = "NumPy diff"
+        else:
+            import pandas as pd
+
+            out = pd.Series(values)
+            for _ in range(int(how_many_times)):
+                out = out.diff(periods=int(rows_back)).iloc[int(rows_back):]
+            out = out.to_numpy()
+            if values.dtype.kind in "iu" and not np.isnan(out).any():
+                out = out.astype(np.int64)
+            how = f"pandas Series.diff(periods={rows_back}), as R diff(x, lag = {rows_back})"
         print(f"{amount(out.size)} left: the change{'s of the changes' if how_many_times > 1 else ''} from "
               f"{'the number before' if rows_back == 1 else f'{rows_back} numbers before'} ({how}"
               + (f", n={how_many_times})" if how_many_times > 1 else ")"))
@@ -190,8 +204,6 @@ class NumPyListWords:
 
         from ..table import Table
 
-        values, empty = _filled(np.asarray(self._values, dtype=float).ravel())
-        bins, said = self._bins(values, edges, how_many_bins, between, "count_in_bins")
         if together_with is not None:
             other = _other(together_with, "count_in_bins", "numbers.count_in_bins(edges=5, together_with=other)")
             mine = np.asarray(self._values, dtype=float).ravel()
@@ -199,18 +211,29 @@ class NumPyListWords:
                 raise SimplydataError(f"together_with= needs one number for each of yours ({mine.size}); it has "
                                       f"{other.size}.")
             keep = ~np.isnan(mine) & ~np.isnan(other.astype(float))
+            if (~keep).any():
+                print(f"Note: {amount(int((~keep).sum()), 'pair')} with an empty value "
+                      f"{'was' if (~keep).sum() == 1 else 'were'} left out (count_in_bins counts pairs of numbers).")
+            bins, _ = self._bins(mine[keep], edges, how_many_bins, between, "count_in_bins")
             other_bins, _ = self._bins(other.astype(float)[keep], other_edges, None, None, "count_in_bins")
             counts, row_edges, column_edges = np.histogram2d(mine[keep], other.astype(float)[keep],
                                                              bins=[bins, other_bins])
-            print(f"Counted {int(keep.sum())} pairs in {counts.shape[0]} x {counts.shape[1]} bins (NumPy histogram2d): "
-                  f"row edges {_show_numbers(row_edges)}; column edges {_show_numbers(column_edges)}.")
+            print(f"Counted {int(counts.sum())} of {int(keep.sum())} pairs in {counts.shape[0]} x {counts.shape[1]} "
+                  f"bins (NumPy histogram2d): row edges {_show_numbers(row_edges)}; column edges "
+                  f"{_show_numbers(column_edges)}.")
             return self._wrap(counts.astype(np.int64))
         if other_edges is not None:
             raise SimplydataError("other_edges= goes with together_with=, the bins of the other numbers.")
+        values, empty = _filled(np.asarray(self._values, dtype=float).ravel())
+        bins, said = self._bins(values, edges, how_many_bins, between, "count_in_bins")
         counts, found = np.histogram(values, bins=bins)
         _note_left_out(empty, "count_in_bins")
-        print(f"{amount(values.size)} counted in {counts.size} bins {said}; each bin holds its left edge, the last one "
-              "its right edge too (NumPy histogram).")
+        inside = int(counts.sum())
+        outside = values.size - inside
+        print(f"{amount(inside)} counted in {counts.size} bins {said}"
+              + (f"; {amount(outside)} outside the edges {'was' if outside == 1 else 'were'} not counted"
+                 if outside else "")
+              + "; each bin holds its left edge, the last one its right edge too (NumPy histogram).")
         return Table(pd.DataFrame({"from": found[:-1], "to": found[1:], "count": counts.astype(np.int64)}))
 
     def _bins(self, values, edges, how_many_bins, between, step):
@@ -244,8 +267,10 @@ class NumPyListWords:
         """For each number, the bin it falls in, counting from 1. bins = numbers.find_bin_of_each(edges=[0, 10, 20, 50])
 
         Bin 1 is from the first edge to the second, and so on (NumPy digitize, as R findInterval). bins_include="left
-        edge" puts a number on an edge in the bin that starts there; "right edge" in the bin that ends there.
-        Numbers outside the edges, and empty ones, get an empty bin. Gives new numbers; these stay as they are.
+        edge" puts a number on an edge in the bin that starts there; "right edge" in the bin that ends there. The
+        outer edge on the other side belongs to the bin next to it, as in count_in_bins (R findInterval with
+        rightmost.closed = TRUE). Numbers outside the edges, and empty ones, get an empty bin. Gives new numbers;
+        these stay as they are.
         """
         if edges is None:
             raise SimplydataError("find_bin_of_each() needs edges=, such as edges=[0, 10, 20, 50].")
@@ -256,11 +281,15 @@ class NumPyListWords:
             raise SimplydataError("edges= needs at least 2 edges, each bigger than the one before.")
         values = np.asarray(self._values, dtype=float).ravel()
         index = np.digitize(values, found, right=BIN_EDGES[bins_include])
+        if BIN_EDGES[bins_include]:  # the first edge closes the first bin
+            index = np.where(values == found[0], 1, index)
+        else:  # the last edge closes the last bin, as count_in_bins (NumPy histogram) does
+            index = np.where(values == found[-1], found.size - 1, index)
         outside = (index == 0) | (index == found.size) | np.isnan(values)
         out = np.where(outside, np.nan, index.astype(float))
         n_out = int(np.count_nonzero(outside & ~np.isnan(values)))
         print(f"The bin of each of the {values.size} numbers among {found.size - 1} bins, counting from 1 (NumPy "
-              f"digitize, right={BIN_EDGES[bins_include]})"
+              f"digitize, right={BIN_EDGES[bins_include]}, with the outer edge in the bin next to it)"
               + (f"; {amount(n_out)} outside the edges {'has' if n_out == 1 else 'have'} an empty bin." if n_out
                  else "."))
         return self._wrap(out if np.isnan(out).any() else out.astype(np.int64))
@@ -348,8 +377,10 @@ class NumPyListWords:
             raise SimplydataError("find_cross_product_with() needs 3 numbers in each list (or 2 in each); these have "
                                   f"{mine.size} and {theirs.size}.")
         if mine.size == 2:
-            found = mine[0] * theirs[1] - mine[1] * theirs[0]  # NumPy 2 refuses 2-number lists in np.cross
-            print(f"The cross product of two directions on a flat page: {say(found)}   (the z part of NumPy cross)")
+            # NumPy 2 refuses 2-number lists in np.cross: each gets a third number 0, and the z part is the answer
+            found = np.cross(np.append(mine, 0), np.append(theirs, 0))[2]
+            print(f"The cross product of two directions on a flat page: {say(found)}   (the z part of NumPy cross, "
+                  "with 0 as the third number)")
             return found.item()
         found = np.cross(mine, theirs)
         print(f"The cross product: {_show_numbers(found)}   (NumPy cross: at right angles to both)")

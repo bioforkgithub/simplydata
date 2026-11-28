@@ -177,7 +177,8 @@ def inverse_grid_fourier(info, frame):
 
 def closest_inverse(values):
     """take_inverse(closest_possible=True): SciPy linalg.pinvh for a symmetric grid, linalg.pinv otherwise (the
-    Moore-Penrose inverse, from the SVD, as R MASS::ginv)."""
+    Moore-Penrose inverse, from the SVD; R MASS::ginv gives the same, with its own cut-off for tiny singular
+    values)."""
     from scipy import linalg
 
     from .numbers_4 import _is_symmetric
@@ -203,7 +204,7 @@ class NumPyGridWords:
 
         Each number of the answer is a row of this grid times a column of the other, added up (NumPy matmul, R %*%);
         the grid needs as many columns as the other has rows. other= numbers (one for each column) gives numbers
-        (NumPy matvec). from_the_left=True puts the other one first: other times grid (NumPy vecmat for numbers). A
+        (NumPy matmul with a list). from_the_left=True puts the other one first: other times grid. A
         list of grids multiplies them all in turn, in the fastest order (NumPy linalg.multi_dot). Gives a new grid;
         this one stays as it is.
         """
@@ -233,8 +234,8 @@ class NumPyGridWords:
                 f"{amount(inner_second, 'row')}; they need to be the same. "
                 + ("Turn this grid round with grid.swap_rows_and_columns()." if not from_the_left else ""))
         if theirs.ndim == 1:
-            found = np.vecmat(first, second) if from_the_left else np.matvec(first, second)
-            how = "NumPy vecmat: numbers times grid" if from_the_left else "NumPy matvec: grid times numbers"
+            found = np.matmul(first, second)  # a list as a vector (as NumPy 2.2's matvec and vecmat)
+            how = "NumPy matmul: numbers times grid" if from_the_left else "NumPy matmul: grid times numbers"
         else:
             found = np.matmul(first, second)
             how = "NumPy matmul, R %*%"
@@ -445,8 +446,9 @@ class NumPyGridWords:
     def find_rank(self):
         """The rank of the grid: how many of its rows (or columns) are not made from the others. rank = grid.find_rank()
 
-        From the singular values, counting those above a small tolerance (NumPy linalg.matrix_rank, as R
-        qr(x)$rank and MATLAB rank). A square grid has an inverse only when its rank is its size. Nothing changes.
+        From the singular values, counting those above a small tolerance (NumPy linalg.matrix_rank, as MATLAB rank;
+        R qr(x)$rank uses its own tolerance, so the two can differ for columns that are very nearly made from the
+        others). A square grid has an inverse only when its rank is its size. Nothing changes.
         """
         values = self._no_empty_cells("find_rank")
         found = int(np.linalg.matrix_rank(values))
@@ -468,6 +470,10 @@ class NumPyGridWords:
         if kind not in CONDITION_KINDS:
             raise choice_error("find_condition_number", "kind", kind, list(CONDITION_KINDS))
         values = self._no_empty_cells("find_condition_number")
+        if kind != "biggest stretch" and values.shape[0] != values.shape[1]:
+            raise SimplydataError(f'find_condition_number(kind="{kind}") needs a square grid (it uses the inverse); '
+                                  f"this one is {values.shape[0]} x {values.shape[1]}. Leave out kind= for the "
+                                  "biggest stretch divided by the smallest, which works on any grid.")
         with np.errstate(all="ignore"):
             found = float(np.linalg.cond(values, p=CONDITION_KINDS[kind]))
         print(f"The condition number of the grid ({kind}): {found:.6g}   (NumPy linalg.cond"

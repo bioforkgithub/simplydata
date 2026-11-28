@@ -388,16 +388,19 @@ class PickingWords(ReplacingWords):
             from ..table import Table
 
             values = self._values.ravel()
+            # equal_nan=True: empty values count as one value, as in the plain word (NumPy unique_all would keep
+            # each empty value apart)
+            found, first, inverse, counts = np.unique(values, return_index=True, return_inverse=True,
+                                                      return_counts=True, equal_nan=True)
             if show == "positions":
-                found = np.unique_all(values)
-                print(f"{amount(found.values.size, 'different number')}, smallest first, with where each first comes "
-                      "(from 1) and how many times (NumPy unique_all); the numbers do not change.")
-                return Table(pd.DataFrame({"number": found.values, "first position": found.indices + 1,
-                                           "count": found.counts.astype(np.int64)}))
-            found = np.unique_inverse(values)
-            print(f"Which of the {amount(found.values.size, 'different number')} (smallest first, counting from 1) "
-                  "each number is (NumPy unique_inverse); the numbers do not change.")
-            return self._wrap((found.inverse_indices + 1).astype(np.int64))
+                print(f"{amount(found.size, 'different number')}, smallest first (empty last), with where each first "
+                      "comes (from 1) and how many times (NumPy unique_all, empty values counted once); the numbers do "
+                      "not change.")
+                return Table(pd.DataFrame({"number": found, "first position": first + 1,
+                                           "count": counts.astype(np.int64)}))
+            print(f"Which of the {amount(found.size, 'different number')} (smallest first, counting from 1) each "
+                  "number is (NumPy unique_inverse, empty values counted once); the numbers do not change.")
+            return self._wrap((inverse.ravel() + 1).astype(np.int64))
         mask = ~pd.Series(self._values).duplicated().to_numpy()
         return self._keep("remove duplicate numbers", mask, kept_word=False)
 
@@ -459,8 +462,9 @@ class PickingWords(ReplacingWords):
         """Put the numbers in order, smallest first; empty values go last. numbers.sort(biggest_first=True)
 
         then_by= other numbers (one for each) puts numbers that are the same in the order of those (NumPy lexsort).
-        show="positions" changes nothing and gives new numbers instead: the position (from 1) of each number in the
-        sorted order (NumPy argsort, stable; R order(x)).
+        show="positions" changes nothing and gives new numbers instead: which number comes first, second ... in the
+        sorted order, by its position (from 1) in the list: the first is where the smallest number is (NumPy argsort,
+        stable; R order(x)).
         """
         from .numpy_list_words import SORT_SHOWS, sort_positions
 
@@ -478,8 +482,8 @@ class PickingWords(ReplacingWords):
             order = sort_positions(self._values, biggest_first, second)
             how = "NumPy lexsort, then_by= for the ties" if second is not None else "NumPy argsort, stable"
             if show == "positions":
-                print(f"The position of each number in {'biggest' if biggest_first else 'smallest'}-first order, "
-                      f"counting from 1 ({how}); the numbers do not change.")
+                print(f"Which number comes first, second ... in {'biggest' if biggest_first else 'smallest'}-first "
+                      f"order, by its position counting from 1 ({how}); the numbers do not change.")
                 return self._wrap((order + 1).astype(np.int64))
             print(f"Sorted, {'biggest' if biggest_first else 'smallest'} first, ties in the order of then_by= ({how}).")
             return self._change("sort, then by other numbers", self._values[order])
@@ -508,9 +512,10 @@ class PickingWords(ReplacingWords):
         if show not in RUNNING_SHOWS:
             raise choice_error("turn_into_running_total", "show", show, list(RUNNING_SHOWS))
         if show == "product":
-            print(f"Each of the {self._values.size} numbers is now the product so far (NumPy nancumprod; empty values "
-                  "stay empty).")
-            return self._change("running product", running_product(self._values))
+            out, how = running_product(self._values)
+            print(f"Each of the {self._values.size} numbers is now the product so far ({how}; empty values stay "
+                  "empty).")
+            return self._change("running product", out)
         empty = self._empty_mask()
         totals = np.cumsum(np.where(empty, 0, self._values))
         if empty.any():

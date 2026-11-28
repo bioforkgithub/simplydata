@@ -41,7 +41,8 @@ KINDS = {
     "inverse pascal": ("size=", "SciPy linalg.invpascal"),
     "leslie": ("first_row= (births), survival=", "SciPy linalg.leslie"),
     "helmert": ("size=", "SciPy linalg.helmert"),
-    "rotation": ("axis= (\"x\", \"y\" or \"z\"), by_degrees=", "SymPy rot_axis1, rot_axis2, rot_axis3"),
+    "rotation": ("axis= (\"x\", \"y\" or \"z\"), by_degrees=",
+                 "SymPy rot_ccw_axis1, rot_ccw_axis2, rot_ccw_axis3"),
 }
 AXES = {"x": 1, "y": 2, "z": 3}
 EXAMPLE = 'sdata.number_grid(kind="toeplitz", first_column=[1, 2, 3])'
@@ -80,6 +81,12 @@ def special_grid(kind, values=None, rows=None, columns=None, size=None, first_co
         raise SimplydataError("shifted_by= needs a whole number (1 is just above the main diagonal, -1 just below).")
     k = int(shifted_by)
     how = KINDS[kind][1]
+    if values is not None and kind in ("identity", "ones below diagonal", "blocks", "block diagonal", "toeplitz",
+                                       "hankel", "circulant", "hadamard", "hilbert", "inverse hilbert", "pascal",
+                                       "lower pascal", "upper pascal", "inverse pascal", "leslie", "helmert",
+                                       "rotation"):
+        raise SimplydataError(f'kind="{kind}" takes no numbers of its own; it needs {KINDS[kind][0]}.\n'
+                              f"For example:  {EXAMPLE}")
     if kind == "identity":
         n = _whole(size if size is not None else rows, "size")
         m = n if columns is None else _whole(columns, "columns")
@@ -143,7 +150,9 @@ def special_grid(kind, values=None, rows=None, columns=None, size=None, first_co
 
 
 def _rotation(axis, by_degrees):
-    """kind="rotation": SymPy rot_axis1, rot_axis2 or rot_axis3 at the angle in radians, as decimals."""
+    """kind="rotation": SymPy rot_ccw_axis1, rot_ccw_axis2 or rot_ccw_axis3 at the angle in radians, as decimals:
+    the grid that turns a point counterclockwise round the axis (seen from its positive end), as MATLAB rotx, roty,
+    rotz and SciPy Rotation. SymPy's rot_axis1-3 turn the frame instead (the other way)."""
     from .._formula import need_sympy, run_exactly
 
     sp = need_sympy('sdata.number_grid(kind="rotation")')
@@ -151,9 +160,9 @@ def _rotation(axis, by_degrees):
         raise choice_error("number_grid", "axis", axis, list(AXES))
     if not is_number(by_degrees):
         raise SimplydataError('kind="rotation" needs by_degrees=, such as by_degrees=30.')
-    func = getattr(sp, f"rot_axis{AXES[axis]}")
+    func = getattr(sp, f"rot_ccw_axis{AXES[axis]}")
     angle = sp.pi * sp.nsimplify(by_degrees) / 180
-    matrix = run_exactly(func, angle, what=f"SymPy rot_axis{AXES[axis]}")
+    matrix = run_exactly(func, angle, what=f"SymPy rot_ccw_axis{AXES[axis]}")
     return np.array(run_exactly(matrix.evalf, what="SymPy evalf"), dtype=float)
 
 
@@ -179,7 +188,9 @@ def grid_from_formula(text, rows, columns) -> np.ndarray:
     with contextlib.redirect_stdout(io.StringIO()):
         found = made.find_value_at(**given) if given else None
     if found is None:
-        return np.full((n, m), float(made.find_value_at()))
+        with contextlib.redirect_stdout(io.StringIO()):
+            constant = float(made.find_value_at())
+        return np.full((n, m), constant)
     return np.asarray(found._values, dtype=float).reshape(n, m)
 
 

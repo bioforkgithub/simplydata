@@ -436,7 +436,7 @@ def test_number_grid_kinds_match_numpy_and_scipy(kind, options, expected):
 @pytest.mark.parametrize("axis, n", [("x", 1), ("y", 2), ("z", 3)])
 def test_number_grid_rotation_matches_sympy(axis, n):
     sp = pytest.importorskip("sympy")
-    expected = np.array(getattr(sp, f"rot_axis{n}")(sp.pi * 30 / 180).evalf(), dtype=float)
+    expected = np.array(getattr(sp, f"rot_ccw_axis{n}")(sp.pi * 30 / 180).evalf(), dtype=float)
     assert np.allclose(values(sdata.number_grid(kind="rotation", axis=axis, by_degrees=30)), expected)
 
 
@@ -479,3 +479,106 @@ def test_new_words_have_numpy_pointers(capsys):
                         ("sp.rot_axis3", 'kind="rotation"')]:
         sdata.help(typed)
         assert word in capsys.readouterr().out, typed
+
+
+# ---------------------------------------------------------------- independent review fixes (2026-11-28)
+def test_running_product_of_whole_numbers_never_wraps_round(capsys):
+    numbers = sdata.number_list([10] * 20)  # 10**19 is past int64, which wraps to a negative number
+    numbers.turn_into_running_total(show="product")
+    got = values(numbers)
+    assert got[17] == 10 ** 18 and got[-1] == pytest.approx(1e20, rel=1e-15) and (got > 0).all()
+    assert "given as decimals" in capsys.readouterr().out
+    small = sdata.number_list([2, 3, 4]).turn_into_running_total(show="product")
+    assert values(small).dtype.kind == "i" and values(small).tolist() == [2, 6, 24]
+
+
+def test_multiply_as_matrix_by_a_list_uses_matmul_not_numpy_2_2_only_calls():
+    import inspect
+
+    from simplydata.numbers import numpy_grid_words
+
+    source = inspect.getsource(numpy_grid_words.NumPyGridWords.multiply_as_matrix_by)
+    assert "np.matvec" not in source and "np.vecmat" not in source  # NumPy 2.2; the floor is numpy>=2.1
+    a = np.array([[1.0, 2], [3, 4]])
+    assert np.allclose(values(sdata.number_grid(a).multiply_as_matrix_by([1, 2])), a @ [1, 2])
+    assert np.allclose(values(sdata.number_grid(a).multiply_as_matrix_by([1, 2], from_the_left=True)), [1, 2] @ a)
+
+
+def test_rotation_turns_a_point_counterclockwise(capsys):
+    turn = values(sdata.number_grid(kind="rotation", axis="z", by_degrees=90))
+    assert np.allclose(turn @ [1, 0, 0], [0, 1, 0])  # x goes to y, as MATLAB rotz(90) and SciPy Rotation
+    from scipy.spatial.transform import Rotation
+
+    for axis in "xyz":
+        expected = Rotation.from_euler(axis, 30, degrees=True).as_matrix()
+        assert np.allclose(values(sdata.number_grid(kind="rotation", axis=axis, by_degrees=30)), expected), axis
+    assert "rot_ccw_axis3" in capsys.readouterr().out
+    sdata.help("sp.rot_ccw_axis1")
+    assert "by_degrees=30" in capsys.readouterr().out
+
+
+def test_count_in_bins_says_how_many_fell_outside(capsys):
+    sdata.number_list([1, 5, 15, 25, 99]).count_in_bins(edges=[0, 10, 20])
+    out = capsys.readouterr().out
+    assert "3 numbers counted in 2 bins" in out and "2 numbers outside the edges were not counted" in out
+
+
+def test_find_bin_of_each_closes_the_outer_edge_like_count_in_bins():
+    edges = [0, 10, 20, 50]
+    bins = values(sdata.number_list([50, 0, 20]).find_bin_of_each(edges=edges))
+    assert bins.tolist() == [3, 1, 3]
+    counts = sdata.number_list([50]).count_in_bins(edges=edges).as_pandas()["count"].tolist()
+    assert counts == [0, 0, 1]  # both put 50 in the last bin
+    right = values(sdata.number_list([0, 10, 50]).find_bin_of_each(edges=edges, bins_include="right edge"))
+    assert right.tolist() == [1, 1, 3]
+
+
+def test_sort_positions_sentence_says_which_comes_first(capsys):
+    sdata.number_list([30, 10, 20]).sort(show="positions")
+    assert "Which number comes first, second" in capsys.readouterr().out
+
+
+def test_remove_duplicate_numbers_show_counts_empty_values_once():
+    table = sdata.number_list([3, None, 3, None]).remove_duplicate_numbers(show="positions").as_pandas()
+    assert len(table) == 2 and table["count"].tolist() == [2, 2] and table["first position"].tolist() == [1, 2]
+    which = values(sdata.number_list([3, None, 3, None]).remove_duplicate_numbers(show="which number"))
+    assert which.tolist() == [1, 2, 1, 2]
+
+
+def test_changes_from_further_back_and_two_number_cross_product_call_libraries(capsys):
+    x = [3, 5, 9, 15, 23, 31]
+    got = values(sdata.number_list(x).turn_into_changes(rows_back=2, how_many_times=2))
+    assert got.tolist() == [8, 6]  # R: diff(c(3, 5, 9, 15, 23, 31), lag = 2, differences = 2)
+    assert "pandas Series.diff(periods=2)" in capsys.readouterr().out
+    assert sdata.number_list([1, 2]).find_cross_product_with([3, 4]) == -2
+    assert "with 0 as the third number" in capsys.readouterr().out
+
+
+def test_from_formula_with_a_constant_prints_one_line(capsys):
+    pytest.importorskip("sympy")
+    grid = sdata.number_grid(from_formula="5", rows=2, columns=2)
+    assert values(grid).tolist() == [[5, 5], [5, 5]]
+    assert len([line for line in capsys.readouterr().out.splitlines() if line.strip()]) == 1
+
+
+def test_pointers_after_the_review(capsys):
+    for typed, word in [("scipy.fft.dst", 'take_cosine_transform(kind="sine")'), ("np.astype", "astype(int)"),
+                        ("np.linalg.logm", "scipy.linalg.logm"), ("scipy.linalg.sqrtm", "scipy.linalg.sqrtm")]:
+        sdata.help(typed)
+        assert word in capsys.readouterr().out, typed
+
+
+def test_small_review_fixes():
+    with pytest.raises(SimplydataError, match="takes no numbers of its own"):
+        sdata.number_grid([1, 2, 3], kind="identity", size=3)
+    with pytest.raises(SimplydataError, match="needs a square grid"):
+        sdata.number_grid([[1, 2, 3], [4, 5, 6]]).find_condition_number(kind="frobenius")
+    grid = sdata.number_list([1, 2, None, 4]).count_in_bins(edges=2, together_with=[1, None, 3, 4])
+    assert values(grid).sum() == 2  # the two whole pairs only
+
+
+def test_polynomial_hermite_e_name():
+    pytest.importorskip("sympy")
+    import sympy as sp
+
+    assert sdata.polynomial("Hermite_E", degree=3).as_sympy() == sp.hermite_prob_poly(3, sp.Symbol("x"))

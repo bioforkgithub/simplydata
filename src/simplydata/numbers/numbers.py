@@ -662,7 +662,8 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0, kind=None, 
         "block diagonal" (of= grids), "toeplitz", "hankel", "circulant" (first_column=, first_row=, last_row=),
         "companion", "fiedler companion", "fiedler", "convolution", "hadamard", "hilbert", "inverse hilbert",
         "pascal", "lower pascal", "upper pascal", "inverse pascal", "leslie" (first_row= births, survival=),
-        "helmert" (size=; SciPy linalg) and "rotation" (axis="x", by_degrees=30; SymPy rot_axis1-3).
+        "helmert" (size=; SciPy linalg) and "rotation" (axis="x", by_degrees=30: a counterclockwise turn round the
+        axis, SymPy rot_ccw_axis1-3).
         shifted_by=1 moves a diagonal one place up, -1 down.
     sdata.number_grid(from_formula="row * column", rows=3, columns=4)   each cell from a formula of its row and
         column, counting from 1 (NumPy fromfunction)
