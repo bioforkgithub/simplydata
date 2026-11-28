@@ -2824,6 +2824,268 @@ _SEABORN_MORE = [
 ]
 
 
+# families for 100 %, batches 27-28 (plan section 4, G21, approved by Manish 2026-11-28): the pointers in bulk for
+# every public name the final audit of pandas, Polars, NumPy, SciPy, SymPy and seaborn found without one. Plumbing
+# (SymPy's core classes, Polars' memory layout, pandas' options) points to the hand-over with a one-line note.
+_PANDAS_HAND_OVER = "table.as_pandas() hands the table to pandas, where"
+_POLARS_HAND_OVER = "table.as_polars() hands the table to Polars, where"
+_TABLE_FINAL = [
+    # arithmetic and comparisons of whole columns
+    ('table.add_column("marks_per_hour", "marks / hours"): a formula with + - * / ** // and % works on whole columns',
+     "sub subtract mul truediv truncdiv radd rsub rmul rdiv rtruediv rfloordiv rmod rpow rdivmod neg"),
+    ('table.keep_rows_where("marks", is_above=50) keeps rows by a comparison (is_below=, is_equal_to=, '
+     "is_at_least=, is_at_most=, is_not_equal_to=); a written condition such as \"marks > 50\" works in rules=",
+     "eq ne lt le gt ge eq_missing ne_missing is_close"),
+    ('table.keep_rows_where("class", is_one_of=["A", "B"]) and the other options join conditions; a written '
+     'condition joins them with and, or and not: table.add_group_column("good", rules={"marks > 60 and hours > 6": '
+     '"yes"}, otherwise="no")', "and_ or_ xor not_"),
+    ('table.add_column("marks_per_hour", "marks / hours"): the formula is written as text', "eval"),
+    # empty and special values
+    ('table.count_empty_cells_in() counts the empty cells; simplydata keeps one kind of empty value, so NaN and '
+     "null are the same", "is_nan is_not_nan drop_nans nan_max nan_min"),
+    ('table.keep_rows_where("marks", is_below=1e300) keeps the rows with a finite number; infinite values are left to '
+     "pandas: table.as_pandas()", "is_finite is_infinite"),
+    # the same value again, first and last
+    ('table.show_duplicate_rows(columns=["name", "subject"]) shows the rows whose values come again',
+     "is_unique is_first_distinct is_last_distinct arg_unique"),
+    ('table.count_different_values_in("name") (Polars approx_n_unique counts them roughly; simplydata counts '
+     "exactly)", "approx_n_unique"),
+    ('table.find_percentile_of("marks", 90) (exactly; Polars approx_quantile estimates it)', "approx_quantile"),
+    # positions and order
+    ('table.add_rank_column("rank", from_column="marks") gives the place of each row in the order of a column',
+     "arg_sort rolling_rank rolling_rank_by"),
+    ('table.add_row_number_column("number", for_each_group_in="station"), then table.keep_rows_where(...) gives '
+     "the row numbers where a condition holds", "arg_true index_of search_sorted lower_bound upper_bound"),
+    ('table.sort_by("marks"): Polars set_sorted only marks a column as sorted, which simplydata does not need',
+     "set_sorted"),
+    # bins
+    ('table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"]) puts '
+     'values into bins (into_equal_groups=4 for bins of the same size)',
+     "bin bin_intervals bin_quantiles bin_ranks"),
+    # running, rolling and smoothed values
+    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time"): the '
+     "exponentially weighted average; its spread and sum are left to Polars: table.as_polars()",
+     "ewm_std ewm_sum ewm_sum_by ewm_var"),
+    ('table.add_rolling_column("spread", from_column="temperature", show="standard deviation") (show= the summary of '
+     "each window); skewness and kurtosis of a window, and a function of your own, are left to pandas: "
+     "table.as_pandas()", "rolling_skew rolling_kurtosis rolling_map"),
+    ('table.add_running_column("sales_so_far", from_column="sales", show="total") (show="product", "biggest", '
+     '"smallest", "count"); other running steps are left to Polars: table.as_polars()',
+     "cumulative_eval cum_fold cum_reduce cum_sum_horizontal fold reduce"),
+    ('table.find_each_peak_that("temperature", is_at_least=10) finds the peaks of a column (find_each_dip_that the '
+     "dips)", "peak_max peak_min"),
+    # bits
+    ('table.add_column("both", "marks + hours") works on numbers; the bits of whole numbers: sdata.number_list(...), '
+     'then numbers.work_on_bits("and", with_numbers=...)',
+     "bitwise_count_ones bitwise_count_zeros bitwise_leading_ones bitwise_leading_zeros bitwise_trailing_ones "
+     "bitwise_trailing_zeros"),
+    # building and joining columns
+    ('table.add_column("year_2", "year") adds a column, the same as pandas assign and Polars with_columns; the order '
+     "of steps is the order you write them", "with_columns_seq select_seq replace_column isetitem hstack"),
+    ('table.add_column("kind", by_joining_text=["class", "name"], separator=" ") joins columns into one; columns '
+     "that hold several values each (struct) are left to Polars: table.as_polars()",
+     "struct to_struct unnest zip_with"),
+    ('table.keep_columns("name", "marks") keeps columns (table.remove_columns(...) leaves some out); Polars '
+     "expressions such as col(\"marks\").alias(...) are written as words", "exclude alias name over meta inspect"),
+    ('table.add_rows_from(other_table) adds the rows of another table below', "extend extend_constant"),
+    ('table.split_into_rows("genes", separator=";") gives each value a row of its own', "repeat repeat_by"),
+    ('table.remove_columns("marks")', "drop_in_place pop remove"),
+    ('table.get_column_names() lists the columns; table.describe_columns() gives the kind of each',
+     "keys schema collect_schema get_column_index"),
+    ('table.get_column("marks") gives the values of one column; table.as_list() gives every row',
+     "items get_columns iter_columns iter_slices to_frame"),
+    ("table.get_row(3) gives one row (counting from 1); table.as_list() gives every row",
+     "rows rows_by_key new_from_index"),
+    ('table.count_rows() for the rows, or table.count_columns() for the columns', "ndim is_empty"),
+    ('table.make_copy(), as in backup = table.make_copy(); simplydata starts a new table with sdata.table(...)',
+     "clear"),
+    ("table.swap_rows_and_columns() turns rows into columns; other shapes are left to pandas: table.as_pandas()",
+     "reshape squeeze"),
+    ('table.turn_into_dates("date") turns text or numbers into dates', "to_timestamp"),
+    # saving and handing over
+    ('table.save("results.csv"): the end of the file name chooses the type (.csv, .xlsx, .parquet, .json, .feather, '
+     ".dta, .html); HDF5, ORC, XML, pickle, Avro, Delta and Iceberg files are left to pandas and Polars: "
+     "table.as_pandas() or table.as_polars()",
+     "to_hdf to_orc to_xml to_pickle to_iceberg write_avro write_delta write_iceberg write_ipc_stream serialize "
+     "deserialize"),
+    ("table.as_pandas() gives the table as pandas, table.as_polars() as Polars (and Arrow from there)",
+     "to_pandas to_arrow to_init_repr"),
+    # plumbing: Polars' memory layout and pandas' flags and attributes
+    (_POLARS_HAND_OVER + " its memory layout and types work (simplydata chooses them by itself)",
+     "rechunk n_chunks chunk_lengths get_chunks reinterpret to_physical ext match_to_schema"),
+    (_PANDAS_HAND_OVER + " its flags, attributes and sparse values work (simplydata keeps plain columns)",
+     "attrs flags set_flags set_axis sparse nbytes"),
+    (_POLARS_HAND_OVER + " hashing works (table.show_duplicate_rows() finds rows that come again)",
+     "hash hash_rows"),
+]
+_TEXT_FINAL = [
+    ('table.keep_rows_where("name", matches_pattern="^[A-Z]+$") keeps text that matches a pattern (letters in '
+     "capitals, small letters or spaces)", "isupper islower istitle isspace isascii"),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) splits text at the separator',
+     "partition rpartition"),
+    ('table.replace_text_in("name", "Mr ", with_value="") replaces part of a text', "slice_replace translate"),
+    ('table.add_column("name_twice", by_joining_text=["name", "name"], separator="") joins text; repeating it is '
+     "left to pandas: table.as_pandas()", "repeat"),
+    ('table.add_column("name_length", "length(name)") counts the characters; bytes, wrapping and codes are left to '
+     "pandas and Polars: table.as_pandas()", "len_bytes wrap encode decode"),
+    ('table.keep_rows_where("name", contains="an") reads the text as it is; a pattern goes in matches_pattern=, where '
+     "\\. matches a dot", "escape_regex"),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) for text in parts; JSON inside a '
+     'cell: sdata.table("samples.json") reads JSON files, and JSON text in a column is left to Polars: '
+     "table.as_polars()", "json_decode json_path_match"),
+]
+_DATES_FINAL = [
+    ('table.add_column_with_part_of_date("second", from_column="time", part="second"): simplydata keeps time to the '
+     "second; parts below it are left to pandas: table.as_pandas()",
+     "microsecond millisecond nanosecond total_microseconds total_milliseconds total_nanoseconds"),
+    ('table.add_column_with_part_of_date("year", from_column="date", part="year") (the century and millennium follow '
+     "from the year)", "century millennium"),
+    ('table.change_time_zone_in("time", to="UTC", recorded_in="Europe/Oslo") changes and names time zones',
+     "tz base_utc_offset dst_offset timetz"),
+    ('table.turn_into_dates("date"): simplydata keeps dates and times in one unit; units and Python objects are left '
+     "to pandas: table.as_pandas()", "as_unit unit cast_time_unit to_pydatetime"),
+    ('table.add_missing_dates("date", every="day") fills a run of dates; the step of a column (freq) is left to '
+     "pandas: table.as_pandas()", "freq"),
+]
+_GROUPS_FINAL = [
+    ('chart.draw_boxes(x="class", y="marks") draws one box for each group', "boxplot"),
+    ('chart.draw_histogram(x="marks", colour="class") draws the groups together', "hist"),
+    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time")',
+     "ewm"),
+    ('table.make_one_table_for_each_group_in("class") gives a table for each group; table.count_rows('
+     'for_each_group_in="class") counts the rows of each', "groups indices keys predicates df by named_by level"),
+    ('table.count_different_values_in("class") counts the groups', "ngroups ndim"),
+    ('table.find_average_of("sales", for_each_group_in="date", every="month") (every= works in every find_..._of '
+     "word)", "resample"),
+    ('table.find_summary_of("marks", show=["average"], for_each_group_in="class") keeps the groups in the order they '
+     "first come", "maintain_order"),
+]
+_SDATA_FINAL = [
+    ('sdata.table("my_file.csv") reads CSV, Excel, Parquet, JSON, Stata, SPSS and more by the end of the name; HDF5, '
+     "ORC, pickle, Avro, Delta, Iceberg, ODS and Arrow streams are left to pandas and Polars (then give the table to "
+     "sdata.table)",
+     "read_hdf read_orc read_pickle read_avro read_delta read_iceberg read_ods read_ipc_stream read_ipc_schema "
+     "read_parquet_metadata read_parquet_schema read_database_uri read_lines from_torch from_repr"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes a run of dates or times',
+     "date_ranges datetime_ranges time_range time_ranges timedelta_range interval_range datetime duration "
+     "to_timedelta infer_freq"),
+    ("sdata.number_list(0, to=1, how_many=11) makes a run of numbers", "linear_space linear_spaces int_range "
+     "int_ranges"),
+    ('sdata.table({"name": ["Asha", "Ben"], "marks": [61, 73]}) makes a table; Polars expressions (col, lit, '
+     "element, struct) are written as words with column names", "col lit element struct_with_fields wrap_df "
+     "wrap_s concat_arr concat_list arg_where arg_sort_by sql_expr dtype_of self_dtype"),
+    ('sdata.run_sql("SELECT station, avg(nitrate) AS nitrate FROM \'river.csv\' GROUP BY station") runs SQL on files',
+     "delete_iceberg"),
+    ("sdata.make_random_numbers(how_many=10, with_seed=1): with_seed= in each word sets the seed", "set_random_seed"),
+    ('table.spread_into_yes_no_columns("class") makes yes/no columns; back from them: table.gather_into_rows(...)',
+     "from_dummies lreshape"),
+    ("sdata.show_packages_used() lists the packages and versions simplydata uses; options, caches and threads of "
+     "pandas and Polars are left to them (simplydata sets what it needs)",
+     "show_versions build_info get_option set_option reset_option describe_option option_context "
+     "set_eng_float_format thread_pool_size enable_string_cache disable_string_cache using_string_cache "
+     "get_index_type get_extension_type register_extension_type unregister_extension_type "
+     "CredentialProviderFunction CredentialProviderFunctionReturn"),
+]
+_NUMPY_FINAL = [
+    ('sdata.formula("pi * r**2"): pi is written in a formula',
+     "pi"),
+    ('sdata.formula("exp(1)") is e (E in a formula); the Euler-Mascheroni constant is EulerGamma in a formula',
+     "e euler_gamma"),
+    ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"]): infinity is written "infinity"', "inf"),
+    ("numbers.count_empty_numbers(): an empty number is written None or float(\"nan\")", "nan"),
+    ("numbers.join_numbers_with(other) joins two lists of numbers", "concat"),
+    ('block.find_average(over="month") works along a named direction; a function of your own along one: '
+     + _NUMPY_HAND_OVER, "apply_along_axis apply_over_axes"),
+    ('numbers.take_function("hyperbolic sine") takes a function of every number; a formula of your own: '
+     'sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2])', "vectorize"),
+    ('numbers.work_on_bits("and", with_numbers=1) works on the bits; writing them as text is left to NumPy: '
+     + _NUMPY_HAND_OVER, "base_repr binary_repr"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes dates; dates in arrays are left to '
+     "NumPy: " + _NUMPY_HAND_OVER, "datetime_as_string datetime_data"),
+    ('numbers.turn_into_yes_or_no(is_="complex") checks every number; simplydata numbers are real numbers, so '
+     "complex arrays are left to NumPy: " + _NUMPY_HAND_OVER, "iscomplexobj isrealobj real_if_close sort_complex"),
+    ("numbers.round_to(with_decimals=0) gives whole numbers; NumPy's number types are left to NumPy: "
+     + _NUMPY_HAND_OVER, "int_"),
+]
+_RANDOM_FINAL = [
+    ('sdata.distribution("rayleigh").make_random_numbers(how_many=100)', "rayleigh"),
+    ('sdata.distribution("zipf", shape=2).make_random_numbers(how_many=100)', "zipf"),
+    ('sdata.distribution("logarithmic", chance=0.5).make_random_numbers(how_many=100)', "logseries"),
+    ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).make_random_numbers('
+     "how_many=100)", "noncentral_chisquare"),
+    ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=10, noncentrality=2)'
+     ".make_random_numbers(how_many=100)", "noncentral_f"),
+    ('sdata.distribution("power function", shape=2).make_random_numbers(how_many=100)', "power"),
+    ("sdata.make_random_numbers(how_many=10, between=[0, 255], whole_numbers=True, with_seed=1); random bytes are "
+     "left to NumPy: numbers.as_numpy()", "bytes"),
+]
+_SCIPY_FINAL = [
+    ('sdata.find_where_smallest("x**2 - 4*x + 1", between=[0, 5]) prints what it found (SciPy keeps it in an '
+     "OptimizeResult; its updating strategies are chosen by test_method=)", "OptimizeResult HessianUpdateStrategy"),
+    ('table.find_fence_around(x="east", y="north") finds the fence around points; the intersection of half-spaces '
+     "is left to SciPy (approved: expert geometry with no data job): numbers.as_numpy(), then "
+     "spatial.HalfspaceIntersection", "HalfspaceIntersection"),
+]
+_FFT_FINAL = [
+    ("numbers.take_fourier_transform(time_step=0.01) chooses the length by itself; a fast length is left to SciPy: "
+     "numbers.as_numpy()", "next_fast_len prev_fast_len"),
+]
+_SEABORN_OBJECTS_FINAL = [
+    ('chart.draw_dots(x="hours", y="marks"): every mark is a draw word (draw_dots, draw_lines, draw_bars ...)',
+     "Mark"),
+    ('chart.draw_bars(x="class", y="marks"): the summary is chosen by show= ("average", "total" ...)', "Stat"),
+    ('chart.draw_bars(x="subject", y="marks", colour="class"): the groups stand side by side by themselves; '
+     "move_layer_by= moves a layer", "Move"),
+    ('chart.draw_dots(x="hours", y="marks", colour="class"): a yes or no column colours the dots in two colours',
+     "Boolean"),
+]
+_SYMPY_FINAL = [
+    # functions written in formula text
+    ('sdata.formula("gamma(x)"): the gamma function inside formula text', "gamma"),
+    ('sdata.formula("digamma(x)"): the digamma function inside formula text', "digamma"),
+    ('sdata.formula("beta(x, 2)"): the beta function inside formula text', "beta"),
+    ('numbers.take_function("double factorial") (as SciPy: 0 for a whole number below 0)', "factorial2"),
+    ('numbers.take_function("exponential integral E1"), or expint(1, x) in formula text', "E1"),
+    ('numbers.take_function("regularized incomplete beta", a=2, b=3) gives the share of beta(a, b) up to x; SymPy\'s '
+     "betainc is the incomplete beta itself: " + _HAND_OVER + " betainc works", "betainc"),
+    ("numbers.find_product() multiplies the numbers together", "prod"),
+    ('sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2]) works it out at many values', "vectorize"),
+    ('sdata.formula("x**2 + 1") is a function of x; a formula is the function (SymPy Lambda)', "Lambda"),
+    ('sdata.formula("x + y"): the letters of the text are the symbols', "var"),
+    ('sdata.formula("1/3"), then formula.show_as_decimal(digits=10) writes it in decimals',
+     "Float RealNumber nfloat"),
+    ("numbers.show_as_fraction() writes numbers as fractions; whole numbers are numbers", "Integer PythonRational"),
+    ("numbers.count_empty_numbers(): an empty number is None; SymPy's nan and zoo (no number, complex infinity) are "
+     "said in words when a formula has no value", "nan zoo"),
+    ('sdata.solve("x**2 - 4 > 0", exactly=True): equations and rules are written as text with =, <, >, <= and >=',
+     "Equality Unequality Rel Ge Gt Le Lt Ne GreaterThan LessThan StrictGreaterThan StrictLessThan"),
+    ('sdata.formula("sqrt(k**2)", letters_are={"k": "positive"}) says what a letter is; the assumption system '
+     "itself: " + _HAND_OVER + " predicates work",
+     "AppliedPredicate AssumptionsContext Predicate check_assumptions failing_assumptions register_handler "
+     "remove_handler"),
+    ("grid.get_all_numbers() gives the numbers of a grid in one list; numbers.make_number_grid(rows=4, columns=5) "
+     "makes a grid of a list", "flatten unflatten reshape"),
+    ("numbers.keep_first_numbers(3) keeps the first numbers", "take"),
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_tree() shows the parts a formula is built of; '
+     "building one by hand: " + _HAND_OVER + " Add, Mul, Pow and the other classes work",
+     "Add Mul Pow Atom AtomicExpr Basic Expr Number NumberSymbol AlgebraicNumber Tuple Dict FunctionClass "
+     "UnevaluatedExpr count_ops"),
+    # F46 core plumbing and F49 utilities: the hand-over
+    (_HAND_OVER + " Dummy, Wild and pattern matching work (simplydata words find their own letters)",
+     "Dummy Wild WildFunction numbered_symbols"),
+    (_HAND_OVER + " its tree-walking and expression tools work (simplydata words choose them by themselves)",
+     "bottom_up postfixes prefixes capture comp evaluate factor_nc threaded xthreaded arity"),
+    (_HAND_OVER + " its list tools work (sorting, grouping and sifting lists: simplydata's numbers words do it for "
+     "numbers: numbers.sort(), numbers.count_each())",
+     "sift group has_dups has_variety rotations topological_sort dict_merge"),
+    (_HAND_OVER + " its development tools work (doctests, timing, debugging and settings: not a data job)",
+     "doctest timed public filldedent memoize_property lazy_function use SYMPY_DEBUG PrecisionExhausted"),
+    ('sdata.formula("x**3 - 3*x"), then chart.draw_curve(formula, between=[-2, 2]) draws a formula; SymPy\'s plot '
+     "backends are left to SymPy", "plot_backends"),
+    (_HAND_OVER + " the imaginary unit I works (simplydata formulas stay on the real numbers)", "I"),
+]
+
+
 # families for 100 %, batches 7-9 (plan section 2.3, approved by Manish 2026-11-28): the pointers of the maths family,
 # made from its one name table (_maths_functions.py): numbers.take_function, work_on_bits, turn_into_yes_or_no(is_=),
 # sdata.find_zeros_of and sdata.find_area_points. A name a list above already points keeps that pointer.
@@ -2838,16 +3100,19 @@ def _maths_family() -> dict:
 
 _MATHS = _maths_family()
 
-OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
+OTHER_NAMES = {"sdata": _build(_SDATA + _SDATA_FINAL), "table": _build(_TABLE + _TABLE_FINAL),
                "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4 + _SEABORN_MORE), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
-               "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
+               "text": _build(_TEXT + _TEXT_FINAL), "dates": _build(_DATES + _DATES_FINAL),
+               "groups": _build(_GROUPS + _GROUPS_FINAL),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
-               "numpy": _build(_NUMPY + _MATHS["numpy"]), "linalg": _build(_LINALG), "random": _build(_RANDOM),
-               "fft": _build(_FFT),
+               "numpy": _build(_NUMPY + _NUMPY_FINAL + _MATHS["numpy"]), "linalg": _build(_LINALG),
+               "random": _build(_RANDOM + _RANDOM_FINAL),
+               "fft": _build(_FFT + _FFT_FINAL),
                "stats": _build(_STATS), "special": _build(_SPECIAL + _MATHS["special"]),
-               "scipy": _build(_SCIPY + _MATHS["scipy"]), "sympy": _build(_SYMPY + _MATHS["sympy"]),
-               "so": _build(_SEABORN_OBJECTS),
+               "scipy": _build(_SCIPY + _SCIPY_FINAL + _MATHS["scipy"]),
+               "sympy": _build(_SYMPY + _SYMPY_FINAL + _MATHS["sympy"]),
+               "so": _build(_SEABORN_OBJECTS + _SEABORN_OBJECTS_FINAL),
                "lists": _build(_LISTS)}  # families for 100 %, batches 1-2 (G12)
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")

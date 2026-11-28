@@ -148,18 +148,17 @@ GROUPS = [
                                     "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
                                     "f.as_sympy",
                                     # families for 100 %, batch 13 (G5, approved by Manish 2026-11-28)
-                                    "sdata.polynomial",
-                                    # families for 100 %, batches 22-23 (plan section 2.10, approved by Manish
-                                    # 2026-11-28, G14): polynomial algebra and the family find_fact
-                                    "f.find_roots", "f.find_degree", "f.divide_by", "f.find_common_factor_with",
-                                    "f.find_common_multiple_with", "f.turn_into_one_fraction",
-                                    "f.split_into_top_and_bottom", "f.find_repeated_parts", "f.find_fact",
-                                    # families for 100 %, batches 24-26 (plan section 2.10, approved by Manish
-                                    # 2026-11-28, G15): calculus checks, series, transforms and code
-                                    "f.take_transform", "f.find_area_along_path", "f.check_if_always",
-                                    "f.find_turning_points", "f.find_where_undefined", "f.find_period",
-                                    "f.find_fourier_series", "f.find_residue_at", "f.list_terms", "f.find_hessian",
-                                    "f.find_wronskian", "f.show_as_code", "f.show_as_tree"]),
+                                    "sdata.polynomial"]),
+    # families for 100 %, batches 22-23 (plan section 2.10, approved by Manish 2026-11-28, G14): polynomial algebra
+    # and the family find_fact; batches 24-26 (G15): calculus checks, series, transforms and code. Their own cards
+    # (batch 27), so the formula card of the cheat sheet stays short
+    ("Formulas: polynomial algebra", ["f.find_roots", "f.find_degree", "f.divide_by", "f.find_common_factor_with",
+                                      "f.find_common_multiple_with", "f.turn_into_one_fraction",
+                                      "f.split_into_top_and_bottom", "f.find_repeated_parts", "f.find_fact"]),
+    ("Formulas: calculus checks, transforms and code", [
+        "f.take_transform", "f.find_area_along_path", "f.check_if_always", "f.find_turning_points",
+        "f.find_where_undefined", "f.find_period", "f.find_fourier_series", "f.find_residue_at", "f.list_terms",
+        "f.find_hessian", "f.find_wronskian", "f.show_as_code", "f.show_as_tree"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
@@ -2732,6 +2731,12 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
         return None
     if not keys and _print_shared_option(word):
         return None
+    if not keys and isinstance(word, str):  # pl.DataFrame.show, pl.Series.clear: the library's name is a word too
+        from ._other_names import other_name_parts
+
+        parts = other_name_parts(_normalise(word))
+        if parts is not None and parts[0] is None and _normalise(word) != parts[1]:
+            keys = _lookup_all(parts[1])
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})
         lines = [f'simplydata has no word called "{word}".']
