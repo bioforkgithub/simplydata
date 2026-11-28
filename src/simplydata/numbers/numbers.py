@@ -687,6 +687,8 @@ def number_grid(values=None, rows=None, columns=None, filled_with=0, kind=None, 
                   "by_degrees": by_degrees}
         given_too = [name + "=" for name, value in others.items() if value is not None] + (
             ["shifted_by="] if shifted_by else [])
+        if isinstance(filled_with, bool) or not (isinstance(filled_with, (int, float)) and filled_with == 0):
+            given_too.append("filled_with=")  # an exact grid is made from your cells only (review of numbers-int-2)
         if given_too:
             raise SimplydataError(f"exactly=True makes a grid from your rows of cells; leave out {', '.join(given_too)}"
                                   " (for a special grid, use kind= without exactly=).")

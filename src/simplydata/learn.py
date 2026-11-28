@@ -2622,6 +2622,10 @@ def _print_one(key: str) -> None:
     print(textwrap.indent(HELP_EXAMPLES[key], "    "))
 
 
+# What in front of a name says it is a pandas or Polars table's name (review of numbers-int-2)
+_TABLE_FRONTS = {"pd", "pl", "pandas", "polars", "df", "DataFrame", "Series", "Expr", "LazyFrame", "frame"}
+
+
 def _print_other_names(word) -> bool:
     """sdata.help("minimize"): a name from another tool points to the simplydata word (it never runs).
 
@@ -2653,6 +2657,10 @@ def _print_other_names(word) -> bool:
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
                                                                  *NAMESPACE_SHOWN)]
         found = [(kind, pointer) for kind, pointer in found if pointer is not None]
+        # a pandas or Polars table in front (pd.Series.size, pl.DataFrame.clear) means the table's own meaning
+        front = set(str(word).strip().split(".")[:-1])
+        if front & _TABLE_FRONTS and any(kind in ("table", "sdata") for kind, _ in found):
+            found = [(kind, pointer) for kind, pointer in found if kind in ("table", "sdata")]
         if not found:  # lstsq, svd, rfftfreq: names only NumPy, SciPy or SymPy use (numbers finishing PR)
             found = [(kind, other_name_pointer(kind, w)) for kind in NUMBER_SPACES]
             found = [(kind, pointer) for kind, pointer in found if pointer is not None]
@@ -2741,6 +2749,10 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             keys = _lookup_all(parts[1])
             if not keys and _old_names(parts[1]):  # pl.DataFrame.row: an old name of a word (row is get_row)
                 return help(parts[1])
+            # a pandas or Polars table in front means the table word: pl.DataFrame.show is table.show, not chart.show
+            front = set(str(word).strip().split(".")[:-1])
+            if front & _TABLE_FRONTS:
+                keys = [k for k in keys if _kind(k) == "table"] or keys
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})
         lines = [f'simplydata has no word called "{word}".']

@@ -263,8 +263,11 @@ def test_readme_counts_of_the_study_are_true():
     from simplydata._underneath import UNDERNEATH
 
     text = " ".join((VALIDATION / "README.md").read_text(encoding="utf-8").split())
-    kinds = {k: sum(1 for c in study.CASES if c.kind == k) for k in ("published", "real data", "made-up")}
+    kinds = {k: sum(1 for c in study.CASES if c.kind == k) for k in ("published", "real data", "made-up",
+                                                                     "closed form")}
     datasets = {c.dataset for c in study.CASES} - {"made-up"}
+    assert sum(kinds.values()) == len(study.CASES), "every case is of one of the kinds the README names"
+    assert f"The other {kinds['closed form']} are closed-form checks" in text
     found = re.search(r"The study now has (\d+) cases on (\d+) datasets \((\d+) with a published or certified answer, "
                       r"(\d+) compared with the parent package and R, (\d+) made-up edge cases\)", text)
     assert found, "the sentence with the study's counts is missing from validation/README.md"

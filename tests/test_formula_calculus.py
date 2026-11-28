@@ -568,3 +568,27 @@ def test_list_terms_says_too_big_once():
     with contextlib.redirect_stdout(out), pytest.raises(sdata.SimplydataError):
         _formula("10**(n*100)").list_terms(between=[1, 20])
     assert out.getvalue().count("too big") <= 1
+
+
+# review of numbers-int-2 (2026-11-28)
+@pytest.mark.parametrize("text, at", [("sin(x)**2 + cos(x)**2 - 1", 0.3), ("x**2 - 4", 2.0),
+                                       ("cosh(x)**2 - sinh(x)**2 - 1", 1.7)])
+def test_find_value_at_gives_0_for_a_true_0(text, at):
+    """evalf leaves the noise of a cancellation (about 1e-127); SymPy's exact check gives the 0 it stands for."""
+    assert _quiet(_formula(text).find_value_at, x=at) == 0.0
+
+
+def test_find_value_at_keeps_a_tiny_value_that_is_not_0():
+    value = _quiet(_formula("x - 1/10**130").find_value_at, x=0)
+    assert value == pytest.approx(-1e-130, rel=1e-9)
+
+
+@pytest.mark.parametrize("filled_with", [1, None, 2.5])
+def test_an_exact_grid_refuses_filled_with(filled_with):
+    with pytest.raises(sdata.SimplydataError, match="filled_with="):
+        _quiet(sdata.number_grid, [[1, 2], [3, 4]], exactly=True, filled_with=filled_with)
+
+
+def test_an_exact_grid_with_the_default_filled_with_works():
+    grid = _quiet(sdata.number_grid, [[1, "1/3"], [2, 4]], exactly=True)
+    assert grid.count_rows() == 2

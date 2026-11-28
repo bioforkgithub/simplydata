@@ -1313,12 +1313,14 @@ _NUMPY = [
     ("numbers.take_square_root()", "sqrt"),
     ("numbers.take_absolute_value()", "abs absolute fabs"),
     ("numbers.take_exp()", "exp"),
-    ('numbers.take_log() for the natural log, or numbers.take_log(base=10)', "log log10 log2"),
+    ('numbers.take_log() for the natural log, or numbers.take_log(base=10)', "log log10"),
+    ("numbers.take_log(base=2)", "log2"),
     ("numbers.raise_to_power(2)", "power pow float_power square"),
     ("numbers.times(3)", "multiply"),
     ("numbers.times(-1)", "negative"),
     ("numbers.divide_by(2)", "divide true_divide"),
-    ("numbers.round_to(with_decimals=2)", "round around rint"),
+    ("numbers.round_to(with_decimals=2)", "round around"),
+    ("numbers.round_to(with_decimals=0) rounds to whole numbers", "rint"),
     ("numbers.reverse() for numbers, or block.reverse(over=\"row\") for a block", "flip"),
     ("numbers.remove_duplicate_numbers()", "unique unique_values"),
     ("numbers.count_each()", "unique_counts bincount"),
@@ -2514,8 +2516,8 @@ _SYMPY_POLYNOMIALS = [
     (_HAND_OVER + " geometry works (simplydata leaves points, lines and shapes to SymPy; "
      'table.find_fence_around(x="east", y="north") finds the fence around points of a table)',
      "Circle Curve Ellipse Line Line2D Line3D Parabola Plane Point Point2D Point3D Polygon Ray Ray2D Ray3D "
-     "RegularPolygon Segment Segment2D Segment3D Triangle are_similar centroid closest_points convex_hull deg "
-     "farthest_points intersection rad"),
+     "RegularPolygon Segment Segment2D Segment3D Triangle are_similar centroid closest_points convex_hull "
+     "farthest_points intersection"),
     (_HAND_OVER + " tensors and indexed arrays work (simplydata leaves them to SymPy; sdata.number_block(...) holds "
      "numbers in three directions)",
      "DenseNDimArray Idx ImmutableDenseNDimArray ImmutableSparseNDimArray Indexed IndexedBase MutableDenseNDimArray "
@@ -2842,9 +2844,11 @@ _TABLE_FINAL = [
     ('table.add_column("marks_per_hour", "marks / hours"): the formula is written as text', "eval"),
     # empty and special values
     ('table.count_empty_cells_in() counts the empty cells; simplydata keeps one kind of empty value, so NaN and '
-     "null are the same", "is_nan is_not_nan drop_nans nan_max nan_min"),
-    ('table.keep_rows_where("marks", is_below=1e300) keeps the rows with a finite number; infinite values are left to '
-     "pandas: table.as_pandas()", "is_finite is_infinite"),
+     "null are the same", "is_nan is_not_nan drop_nans"),
+    ('table.find_biggest_of("marks") skips empty cells (as nan_max does)', "nan_max"),
+    ('table.find_smallest_of("marks") skips empty cells (as nan_min does)', "nan_min"),
+    ('table.keep_rows_where("marks", is_between=[-1e300, 1e300]) keeps the rows with a finite number (not inf or '
+     "-inf); a yes or no column of it is left to pandas: table.as_pandas()", "is_finite is_infinite"),
     # the same value again, first and last
     ('table.show_duplicate_rows(columns=["name", "subject"]) shows the rows whose values come again',
      "is_unique is_first_distinct is_last_distinct arg_unique"),
@@ -2853,7 +2857,9 @@ _TABLE_FINAL = [
     ('table.find_percentile_of("marks", 90) (exactly; Polars approx_quantile estimates it)', "approx_quantile"),
     # positions and order
     ('table.add_rank_column("rank", from_column="marks") gives the place of each row in the order of a column',
-     "arg_sort rolling_rank rolling_rank_by"),
+     "arg_sort"),
+    (_POLARS_HAND_OVER + " rolling_rank works (the rank inside each moving window; table.add_rank_column ranks the "
+     "whole column)", "rolling_rank rolling_rank_by"),
     ('table.add_row_number_column("number", for_each_group_in="station"), then table.keep_rows_where(...) gives '
      "the row numbers where a condition holds", "arg_true index_of search_sorted lower_bound upper_bound"),
     ('table.sort_by("marks"): Polars set_sorted only marks a column as sorted, which simplydata does not need',
@@ -2863,30 +2869,36 @@ _TABLE_FINAL = [
      'values into bins (into_equal_groups=4 for bins of the same size)',
      "bin bin_intervals bin_quantiles bin_ranks"),
     # running, rolling and smoothed values
-    ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time"): the '
-     "exponentially weighted average; its spread and sum are left to Polars: table.as_polars()",
+    (_POLARS_HAND_OVER + " the spread and sum of an exponentially weighted window work; the weighted average itself "
+     'is table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", sorted_by="time")',
      "ewm_std ewm_sum ewm_sum_by ewm_var"),
-    ('table.add_rolling_column("spread", from_column="temperature", show="standard deviation") (show= the summary of '
-     "each window); skewness and kurtosis of a window, and a function of your own, are left to pandas: "
-     "table.as_pandas()", "rolling_skew rolling_kurtosis rolling_map"),
-    ('table.add_running_column("sales_so_far", from_column="sales", show="total") (show="product", "biggest", '
-     '"smallest", "count"); other running steps are left to Polars: table.as_polars()',
+    ('table.add_rolling_column("skew", from_column="temperature", show="skewness") (show="kurtosis" for the '
+     "kurtosis of each window)", "rolling_skew rolling_kurtosis"),
+    (_PANDAS_HAND_OVER + " a function of your own on each window works (df.rolling(3).apply(f)); the usual summaries "
+     'are table.add_rolling_column("spread", from_column="temperature", show="standard deviation")', "rolling_map"),
+    (_POLARS_HAND_OVER + " folds and running steps of your own work; the usual running totals are "
+     'table.add_running_column("sales_so_far", from_column="sales", show="total") (show="product", "biggest", '
+     '"smallest", "count"), and a total across columns is table.add_column("both", "marks + hours")',
      "cumulative_eval cum_fold cum_reduce cum_sum_horizontal fold reduce"),
     ('table.find_each_peak_that("temperature", is_at_least=10) finds the peaks of a column (find_each_dip_that the '
      "dips)", "peak_max peak_min"),
     # bits
-    ('table.add_column("both", "marks + hours") works on numbers; the bits of whole numbers: sdata.number_list(...), '
-     'then numbers.work_on_bits("and", with_numbers=...)',
-     "bitwise_count_ones bitwise_count_zeros bitwise_leading_ones bitwise_leading_zeros bitwise_trailing_ones "
-     "bitwise_trailing_zeros"),
+    ('table.get_column("marks"), then numbers.work_on_bits("count ones") counts the 1 bits of each whole number',
+     "bitwise_count_ones"),
+    (_POLARS_HAND_OVER + " the other bit counts work (zeros, leading and trailing bits); numbers.work_on_bits("
+     '"count ones") counts the 1 bits', "bitwise_count_zeros bitwise_leading_ones bitwise_leading_zeros "
+     "bitwise_trailing_ones bitwise_trailing_zeros"),
     # building and joining columns
     ('table.add_column("year_2", "year") adds a column, the same as pandas assign and Polars with_columns; the order '
      "of steps is the order you write them", "with_columns_seq select_seq replace_column isetitem hstack"),
-    ('table.add_column("kind", by_joining_text=["class", "name"], separator=" ") joins columns into one; columns '
-     "that hold several values each (struct) are left to Polars: table.as_polars()",
-     "struct to_struct unnest zip_with"),
+    (_POLARS_HAND_OVER + " struct columns work (several values in each cell); joining columns into one text is "
+     'table.add_column("kind", by_joining_text=["class", "name"], separator=" ")', "struct to_struct unnest"),
+    (_POLARS_HAND_OVER + " zip_with works (a value from one of two columns, row by row, by a yes or no column)",
+     "zip_with"),
     ('table.keep_columns("name", "marks") keeps columns (table.remove_columns(...) leaves some out); Polars '
-     "expressions such as col(\"marks\").alias(...) are written as words", "exclude alias name over meta inspect"),
+     "expressions such as col(\"marks\").alias(...) are written as words", "exclude alias name meta inspect"),
+    ('table.add_column("share", "marks / total(marks) * 100", for_each_group_in="class") works out a formula within '
+     "each group (Polars over)", "over"),
     ('table.add_rows_from(other_table) adds the rows of another table below', "extend extend_constant"),
     ('table.split_into_rows("genes", separator=";") gives each value a row of its own', "repeat repeat_by"),
     ('table.remove_columns("marks")', "drop_in_place pop remove"),
@@ -2897,7 +2909,9 @@ _TABLE_FINAL = [
     ("table.get_row(3) gives one row (counting from 1); table.as_list() gives every row",
      "rows rows_by_key new_from_index"),
     ('table.count_rows() for the rows, or table.count_columns() for the columns', "ndim is_empty"),
-    ('table.make_copy(), as in backup = table.make_copy(); simplydata starts a new table with sdata.table(...)',
+    ("table.count_rows() is how many values a column has (empty ones too); table.count_empty_cells_in() counts the "
+     "empty ones", "size"),
+    (_POLARS_HAND_OVER + " clear works (an empty table with the same columns); table.make_copy() copies a table",
      "clear"),
     ("table.swap_rows_and_columns() turns rows into columns; other shapes are left to pandas: table.as_pandas()",
      "reshape squeeze"),
@@ -2930,9 +2944,8 @@ _TEXT_FINAL = [
      "pandas and Polars: table.as_pandas()", "len_bytes wrap encode decode"),
     ('table.keep_rows_where("name", contains="an") reads the text as it is; a pattern goes in matches_pattern=, where '
      "\\. matches a dot", "escape_regex"),
-    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) for text in parts; JSON inside a '
-     'cell: sdata.table("samples.json") reads JSON files, and JSON text in a column is left to Polars: '
-     "table.as_polars()", "json_decode json_path_match"),
+    (_POLARS_HAND_OVER + " JSON text inside a column works (str.json_decode); a JSON file is read by "
+     'sdata.table("samples.json")', "json_decode json_path_match"),
 ]
 _DATES_FINAL = [
     ('table.add_column_with_part_of_date("second", from_column="time", part="second"): simplydata keeps time to the '
@@ -2987,13 +3000,25 @@ _SDATA_FINAL = [
      "CredentialProviderFunction CredentialProviderFunctionReturn"),
 ]
 _NUMPY_FINAL = [
+    ('block.add_numbers_from(other, over="row") joins numbers in their order (the r_ and c_ shorthands of NumPy)',
+     "r_ c_"),
+    ('sdata.make_run_of_dates("2026-01-01", to="2026-12-31", every="day") makes dates, and '
+     'table.add_column("days", by_subtracting=["end", "start"], counted_in="days") gives time spans; the date '
+     "types of NumPy are left to NumPy: " + _NUMPY_HAND_OVER, "datetime64 timedelta64"),
+    ("numbers.round_to(with_decimals=2), then numbers.show() shows the numbers as you want them written",
+     "array2string array_str array_repr format_float_positional format_float_scientific"),
+    ('sdata.help("find_average") explains a word, with an example you can run', "info"),
+    ('sdata.number_block("big_file.nc") reads a big file of numbers; memory-mapped arrays are left to NumPy: '
+     + _NUMPY_HAND_OVER, "memmap"),
+    ('numbers.take_function("hyperbolic sine") takes a function of every number; a formula of your own: '
+     'sdata.formula("x**2 + 1"), then formula.find_value_at(x=[0, 1, 2])', "frompyfunc"),
     ('sdata.formula("pi * r**2"): pi is written in a formula',
      "pi"),
-    ('sdata.formula("exp(1)") is e (E in a formula); the Euler-Mascheroni constant is EulerGamma in a formula',
+    ('sdata.formula("exp(1)") is e; the Euler-Mascheroni constant is EulerGamma in a formula',
      "e euler_gamma"),
     ('sdata.find_area_under("exp(-x**2)", between=[0, "infinity"]): infinity is written "infinity"', "inf"),
     ("numbers.count_empty_numbers(): an empty number is written None or float(\"nan\")", "nan"),
-    ("numbers.join_numbers_with(other) joins two lists of numbers", "concat"),
+    ('block.add_numbers_from(other, over="row") joins numbers in their order, as concatenate does', "concat"),
     ('block.find_average(over="month") works along a named direction; a function of your own along one: '
      + _NUMPY_HAND_OVER, "apply_along_axis apply_over_axes"),
     ('numbers.take_function("hyperbolic sine") takes a function of every number; a formula of your own: '
@@ -3040,6 +3065,10 @@ _SEABORN_OBJECTS_FINAL = [
      "Boolean"),
 ]
 _SYMPY_FINAL = [
+    ('sdata.formula("x**2 + 2*x + 1"), then formula.show_as_tree() shows every part of a formula, in order',
+     "preorder_traversal postorder_traversal"),
+    ('sdata.formula("x**2 + 1") is shown as typeset maths in Jupyter by itself; formula.show_as_latex() gives the '
+     "LaTeX", "init_printing"),
     # functions written in formula text
     ('sdata.formula("gamma(x)"): the gamma function inside formula text', "gamma"),
     ('sdata.formula("digamma(x)"): the digamma function inside formula text', "digamma"),
@@ -3083,6 +3112,8 @@ _SYMPY_FINAL = [
     ('sdata.formula("x**3 - 3*x"), then chart.draw_curve(formula, between=[-2, 2]) draws a formula; SymPy\'s plot '
      "backends are left to SymPy", "plot_backends"),
     (_HAND_OVER + " the imaginary unit I works (simplydata formulas stay on the real numbers)", "I"),
+    ('numbers.change_angles_to("degrees") (or "radians") turns angles from one unit into the other; in a formula, '
+     'sdata.formula("x * pi / 180")', "deg rad"),
 ]
 
 

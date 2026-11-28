@@ -923,3 +923,36 @@ def test_review_fixes_of_the_number_pointers(typed, word, not_word, capsys):
     sdata.help(typed)
     out = capsys.readouterr().out
     assert word in out and not_word not in out, out
+
+
+# review of numbers-int-2 (2026-11-28): each name points to the word that does the same job
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("np.concat", "add_numbers_from", "join_numbers_with"),  # concat keeps the order and the repeats
+    ("np.e", "exp(1)", "(E in a formula)"),  # E is a letter in formula text
+    ("pl.Expr.is_finite", "is_between=[-1e300, 1e300]", "is_below=1e300"),  # -inf is not finite
+    ("pl.Expr.nan_max", "find_biggest_of", "count_empty_cells_in"),
+    ("pl.Expr.nan_min", "find_smallest_of", "count_empty_cells_in"),
+    ("pl.Expr.over", "for_each_group_in=", "keep_columns"),
+    ("pl.DataFrame.clear", "as_polars()", "make_copy(), as in"),
+    ("pl.Expr.bitwise_count_ones", 'work_on_bits("count ones")', '"and"'),
+    ("pl.Expr.rolling_rank", "as_polars()", "add_rank_column(\"rank\", from_column"),
+    ("pl.Expr.rolling_skew", 'show="skewness"', "left to pandas"),
+    ("np.log2", "take_log(base=2)", "base=10"),
+    ("np.rint", "with_decimals=0", "with_decimals=2"),
+    ("pd.Series.size", "table.count_rows() is how many values", "for_each_group_in"),
+    ("sympy.deg", "change_angles_to", "geometry"),
+    ("np.c_", "add_numbers_from", "show_all_words"),
+    ("np.datetime64", "make_run_of_dates", "show_all_words"),
+    ("np.array2string", "numbers.show()", "show_all_words"),
+    ("sympy.preorder_traversal", "show_as_tree", "show_all_words"),
+])
+def test_review_fixes_of_the_final_pointers(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out
+
+
+def test_a_table_name_in_front_narrows_a_shared_word_to_the_table_word(capsys):
+    sdata.help("pl.DataFrame.show")
+    out = capsys.readouterr().out
+    assert out.startswith("table.show()") and "can mean more than one word" not in out, out[:300]

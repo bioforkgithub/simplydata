@@ -1715,7 +1715,11 @@ class Formula(_AlgebraWords, _CalculusWords):
             if found.is_Float and found != 0 and abs(found) < NEAR_ZERO:
                 # evalf with subs leaves the noise of a cancellation (x**2 - 4 at 2 is 9.5e-125): the exact value says
                 # whether it is 0 (SymPy subs, under the time limit)
-                if _guarded(self._expr.subs, swaps, what="SymPy subs") == 0:
+                exact = _guarded(self._expr.subs, swaps, what="SymPy subs")
+                # a true 0 that subs leaves unsimplified (sin(x)**2 + cos(x)**2 - 1 at 0.3): SymPy equals decides,
+                # under the same time limit (review of numbers-int-2)
+                if exact == 0 or (isinstance(exact, sp.Basic)
+                                  and _guarded(exact.equals, 0, what="SymPy equals") is True):
                     found = sp.Float(0)
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
