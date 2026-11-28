@@ -1,4 +1,4 @@
-# TEMPORARY diagnostic for PR #79 (removed before merge): which attached package breaks predict(MASS::lda fit)?
+# TEMPORARY diagnostic for PR #79 (removed before merge): which attached packages break predict(MASS::lda fit)?
 try_lda <- function() {
   env <- new.env()
   set.seed(1)
@@ -10,17 +10,14 @@ try_lda <- function() {
     "out })")), envir = env), error = function(e) conditionMessage(e))
   if (is.character(r)) r else "ok"
 }
-pkgs <- strsplit(Sys.getenv("PKGS"), ",")[[1]]
-cat("start:", try_lda(), "\n")
-for (p in pkgs) {
-  suppressMessages(suppressWarnings(library(p, character.only = TRUE)))
-  res <- try_lda()
-  if (res != "ok") {
-    cat("BROKEN after attaching", p, ":", res, "\n")
-    cat("predict found in:", environmentName(environment(get("predict"))), "\n")
-    m <- getS3method("predict", "lda"); cat("predict.lda from:", environmentName(environment(m)), "\n")
-    print(find("predict"))
-    break
-  }
+one <- Sys.getenv("ONE")
+if (nzchar(one)) {
+  suppressMessages(suppressWarnings(library(one, character.only = TRUE)))
+  cat("ALONE", one, "->", try_lda(), "\n")
+  quit(save = "no")
 }
-cat("end:", try_lda(), "\n")
+pkgs <- strsplit(Sys.getenv("PKGS"), ",")[[1]]
+for (p in pkgs) suppressMessages(suppressWarnings(library(p, character.only = TRUE)))
+maskers <- sub("^package:", "", setdiff(find("predict"), "package:stats"))
+cat("MASKERS of predict:", maskers, "\n")
+for (m in maskers) system2(file.path(R.home("bin"), "Rscript"), c(".github/diag/lda.R"), env = paste0("ONE=", m))
