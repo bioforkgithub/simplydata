@@ -142,7 +142,12 @@ GROUPS = [
                                     "f.show_as_latex", "f.find_limit_as", "f.find_taylor_series", "f.undo",
                                     # numbers phase, batch 4 (approved by Manish 2026-11-26)
                                     "f.show_as_decimal", "f.group_by_powers_of", "f.turn_into_partial_fractions",
-                                    "f.as_sympy"]),
+                                    "f.as_sympy",
+                                    # families for 100 %, batches 22-23 (plan section 2.10, approved by Manish
+                                    # 2026-11-28, G14): polynomial algebra and the family find_fact
+                                    "f.find_roots", "f.find_degree", "f.divide_by", "f.find_common_factor_with",
+                                    "f.find_common_multiple_with", "f.turn_into_one_fraction",
+                                    "f.split_into_top_and_bottom", "f.find_repeated_parts", "f.find_fact"]),
     ("Areas and paths over time", ["sdata.find_area_under", "sdata.find_volume_under", "sdata.find_path_over_time",
                                    "nums.turn_into_running_area",
                                    # numbers phase, batch 4
@@ -1618,9 +1623,12 @@ def _lines(*lines: str) -> str:
 # numbers phase, batch 3 (approved by Manish 2026-11-25)
 HELP_EXAMPLES.update({
     "sdata.formula": _lines('formula = sdata.formula("(x + 2)**2 - 4")', "print(formula)"),
-    "f.make_simpler": _fx("formula.make_simpler()", "(x**2 - 1) / (x - 1)"),
-    "f.turn_into_sum": _fx("formula.turn_into_sum()"),
-    "f.turn_into_product": _fx("formula.turn_into_product()", "x**2 + 4*x"),
+    "f.make_simpler": _fx('formula.make_simpler()\nother = sdata.formula("sin(x)**2 + cos(x)**2")\n'
+                          'other.make_simpler(by="trig functions")', "(x**2 - 1) / (x - 1)"),
+    "f.turn_into_sum": _fx('formula.turn_into_sum()\nother = sdata.formula("sin(a + b)")\n'
+                           'other.turn_into_sum(by="trig functions")'),
+    "f.turn_into_product": _fx('formula.turn_into_product()\nformula.undo()\nformula.turn_into_product(by="nested")',
+                               "x**2 + 4*x"),
     "f.find_slope_formula": _fx("slope = formula.find_slope_formula()\nslope.find_value_at(x=1)", "x**3 - 2*x"),
     "f.find_area_formula": _fx("area = formula.find_area_formula()", "x**3 - 2*x"),
     "f.find_value_at": _fx("formula.find_value_at(x=2)\nformula.find_value_at(x=[0, 1, 2, 3])", "x**3 - 2*x"),
@@ -1669,6 +1677,24 @@ HELP_EXAMPLES.update({
     "f.group_by_powers_of": _fx('formula.group_by_powers_of("x")\nformula.undo()', "a*x**2 + b*x**2 + a*x - x"),
     "f.turn_into_partial_fractions": _fx("formula.turn_into_partial_fractions()", "(3*x + 5) / ((x + 1)*(x + 2))"),
     "f.as_sympy": _fx("expr = formula.as_sympy()\nprint(type(expr))"),
+    # families for 100 %, batches 22-23 (approved by Manish 2026-11-28): polynomial algebra (SymPy)
+    "f.find_roots": _fx('roots = formula.find_roots()\nroots.show()\nformula.find_roots(show="count")\n'
+                        "formula.find_roots(exactly=False)", "x**3 - 2*x**2 - x + 2"),
+    "f.find_degree": _fx('formula.find_degree()\nformula.find_degree(for_letter="x")', "x**3*y + x*y**2 + 1"),
+    "f.divide_by": _fx('quotient, remainder = formula.divide_by("x - 1")\nprint(quotient)\nprint(remainder)\n'
+                       'formula.divide_by("x - 1", show="remainder")', "x**3 - 2*x + 5"),
+    "f.find_common_factor_with": _fx('factor = formula.find_common_factor_with("x**2 - 1")\nprint(factor)\n'
+                                     'formula.find_common_factor_with("x**2 - 1", show="common factor and the rest")',
+                                     "x**2 + 2*x + 1"),
+    "f.find_common_multiple_with": _fx('multiple = formula.find_common_multiple_with("x**2 - 1")\n'
+                                       "multiple.turn_into_product()", "x**2 + 2*x + 1"),
+    "f.turn_into_one_fraction": _fx("formula.turn_into_one_fraction()\nformula.undo()", "1/x + 1/(x + 1)"),
+    "f.split_into_top_and_bottom": _fx("top, bottom = formula.split_into_top_and_bottom()\ntop.find_roots()",
+                                       "(x**2 - 1)/(x - 2)"),
+    "f.find_repeated_parts": _fx("parts, shorter = formula.find_repeated_parts()\nprint(parts)\nprint(shorter)",
+                                 "(x + 1)**2 + sin(x + 1)"),
+    "f.find_fact": _fx('formula.find_fact("discriminant")\nformula.find_fact("resultant", other="x - 1")\n'
+                       'formula.find_fact("viete formulas")\nformula.find_fact("galois group")', "x**2 - 3*x + 1"),
     "sdata.find_sum_of_series": _lines('sdata.find_sum_of_series("1/k**2", between=[1, "infinity"])',
                                        'sdata.find_sum_of_series("k", between=[1, "n"])',
                                        'sdata.find_sum_of_series("1/k", between=[1, "infinity"])'),
