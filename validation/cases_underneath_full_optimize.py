@@ -175,7 +175,8 @@ def cases(Case):
              parent="""
                  from scipy import optimize
                  a, b = data.iloc[:6], data.iloc[6:12]
-                 c = np.array([[abs(i.wt - j.wt) + abs(i.hp - j.hp) / 100 for j in b.itertuples()] for i in a.itertuples()])
+                 c = np.array([[abs(i.wt - j.wt) + abs(i.hp - j.hp) / 100 for j in b.itertuples()]
+                               for i in a.itertuples()])
                  rows, cols = optimize.linear_sum_assignment(c)
                  {"total": c[rows, cols].sum(), "pairs": len(rows)}
              """, parent_label="SciPy optimize.linear_sum_assignment", parent_tolerance=1e-12,
@@ -288,9 +289,11 @@ def cases(Case):
              **CLOSED,
              ours="""
                  path = sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])
-                 {"y at 0.75": path.get_cell_at(row=51, column="y"), "slope at 0": path.get_cell_at(row=1, column="dy/dx")}
+                 {"y at 0.75": path.get_cell_at(row=51, column="y"),
+                  "slope at 0": path.get_cell_at(row=1, column="dy/dx")}
              """,
-             published={"y at 0.75": (0.6816387600233341 / 0.9974949866040544, 1e-8, "worked out: sin(0.75) / sin(1.5)"),
+             published={"y at 0.75": (0.6816387600233341 / 0.9974949866040544, 1e-8,
+                                      "worked out: sin(0.75) / sin(1.5)"),
                         "slope at 0": (1 / 0.9974949866040544, 1e-7, "worked out: cos(0) / sin(1.5)")},
              parent="""
                  from scipy import integrate
@@ -350,7 +353,8 @@ def cases(Case):
              ours="""
                  r = sdata.table(data).find_values_at("stack_loss", at={"air_flow": [60, 70], "water_temp": [20, 22]},
                                                       joined_by="smooth triangles")
-                 {"first": r.get_cell_at(row=1, column="stack_loss"), "second": r.get_cell_at(row=2, column="stack_loss")}
+                 {"first": r.get_cell_at(row=1, column="stack_loss"),
+                  "second": r.get_cell_at(row=2, column="stack_loss")}
              """,
              parent="""
                  from scipy import interpolate
@@ -459,7 +463,8 @@ def cases(Case):
              parent="""
                  from scipy import interpolate
                  w = np.where((data["year"] >= 1930) & (data["year"] < 1940), 2.0, 1.0)
-                 f = interpolate.make_splrep(data["year"].to_numpy(float), data["level"].to_numpy(float), s=30, k=3, w=w)
+                 x, y = data["year"].to_numpy(float), data["level"].to_numpy(float)
+                 f = interpolate.make_splrep(x, y, s=30, k=3, w=w)
                  {"1935": float(f(1935))}
              """, parent_label="SciPy make_splrep(w=)", parent_tolerance=1e-12),
         Case("sdata.curve_through_points", "mtcars: a path through the weight and miles per gallon of the first 6 "
@@ -485,8 +490,8 @@ def cases(Case):
              """,
              parent="""
                  from scipy import interpolate
-                 f = interpolate.SmoothBivariateSpline(data["air_flow"].to_numpy(float), data["water_temp"].to_numpy(float),
-                                                       data["stack_loss"].to_numpy(float), kx=1, ky=1, s=100)
+                 x, y = data["air_flow"].to_numpy(float), data["water_temp"].to_numpy(float)
+                 f = interpolate.SmoothBivariateSpline(x, y, data["stack_loss"].to_numpy(float), kx=1, ky=1, s=100)
                  {"value": float(f.ev(62, 21))}
              """, parent_label="SciPy SmoothBivariateSpline", parent_tolerance=1e-12),
         Case("sdata.curve_through_points", "mtcars: miles per gallon placed on a sphere by weight (as latitude) and "
@@ -552,7 +557,8 @@ def cases(Case):
                  keep = np.diff(p.x) > 0
                  {"pieces": int(keep.sum()), "first constant": p.c[3][keep][0], "last cube": p.c[0][keep][-1]}
              """), parent_label="SciPy PPoly.from_spline", parent_tolerance=1e-9,
-             note="R splinefun(method = \"natural\") keeps the same pieces inside (environment(f)$z), in another form."),
+             note="R splinefun(method = \"natural\") keeps the same pieces inside (environment(f)$z), in another "
+                  "form."),
         Case("curve.show_knots", "Lake Huron every 10 years: the knots and coefficients of the natural spline",
              **HURON,
              ours=_code(_curve(), """

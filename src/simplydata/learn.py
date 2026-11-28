@@ -1797,8 +1797,8 @@ def _grid_class():
 
 # The objects that have steps, and the name they go by in examples ("chart" has no prefix
 # in GROUPS: a plain name is a chart word).
-_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system", "formula": "f",
-           "curve": "curve"}  # curve: families for 100 %, batch 16
+_PREFIX = {"table": "table", "numbers": "nums", "grid": "grid", "block": "block", "dist": "dist", "system": "system",
+           "formula": "f", "curve": "curve"}  # curve: families for 100 %, batch 16
 # Examples write numbers, distributions and formulas with their names in full (numbers.find_average(),
 # distribution.find_median(), formula.turn_into_sum()); the short names still count when an example is read.
 _WRITTEN_AS = {"numbers": "numbers|nums", "dist": "distribution|dist", "formula": "formula|f"}

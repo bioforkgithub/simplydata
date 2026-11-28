@@ -26,7 +26,9 @@ MAX_NODES = 100_000
 
 @friendly(others={"bc": "at_ends", "boundary": "at_ends", "x": "between"})
 def find_path_between_ends(equations=None, at_ends=None, between=None, known=None, step=None):
-    """The path between two ends. path = sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1])
+    """Path between two ends. sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1])
+
+    path = sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])
 
     The equations say how fast each value changes, as in find_path_over_time ("dy/dx = ..." in a list, or one
     "d2y/dx2 = ..." for the slope of the slope). at_ends= gives the known values at the two ends: {"y": [0, 1]}

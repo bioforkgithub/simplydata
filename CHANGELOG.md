@@ -15,15 +15,17 @@ closed-form answers for the words that take a formula), checked against SciPy an
   (converged), after how many steps, and how many times the formula was worked out; the result table of
   `find_where_smallest` and `find_where_biggest` has a new column, "evaluations".
 - `find_where_smallest(test_method=)`: `"golden section"` (golden-section search, SciPy `minimize_scalar(method=
-  "golden")`; `"golden"` used to mean Brent's method), `"newton conjugate gradient"` (Newton-CG) and `"truncated
-  newton"` (TNC), both with slopes by central differences, and with `search="whole range"` `"grid search"` (SciPy
-  `brute`, then a polish that keeps to `between=`). SciPy's legacy names work as values: `fmin`, `fmin_bfgs`,
-  `fmin_cg`, `fmin_cobyla`, `fmin_l_bfgs_b`, `fmin_ncg`, `fmin_powell`, `fmin_slsqp`, `fmin_tnc`, `brute`.
+  "golden")`; `"golden"` keeps its old meaning, Brent's method), `"newton conjugate gradient"` (Newton-CG, slopes from
+  `scipy.differentiate`) and `"truncated newton"` (TNC, SciPy's central differences), which say that they need a
+  smooth formula, and with `search="whole range"` `"grid search"` (SciPy `brute` over the grid points, then a polish
+  that keeps to `between=`). SciPy's legacy names work as values: `fmin`, `fmin_bfgs`, `fmin_cg`, `fmin_cobyla`,
+  `fmin_l_bfgs_b`, `fmin_ncg`, `fmin_powell`, `fmin_slsqp`, `fmin_tnc`, `brute`. A method that cannot keep to
+  `between=` says when its answer is outside it.
 - `solve(test_method=)`: `"fixed point"` for an equation written as `"x = cos(x)"` (SciPy `fixed_point`), and for
   several equations `"broyden second"`, `"diagonal broyden"`, `"anderson mixing"`, `"linear mixing"`, `"exciting
   mixing"` and `"newton-krylov"` (SciPy `root`); Broyden's method now runs to the same tight tolerance as these.
 - `table.fit_curve(x=, y=, always="rising")` (or `"falling"`): the closest curve that never goes down, by isotonic
-  regression (SciPy `isotonic_regression`, as R `isoreg()`).
+  regression (SciPy `isotonic_regression`, as R `isoreg()`, which pools the values at a tied x).
 - New word `sdata.find_best_pairing(costs)`: pair each row with one column for the smallest (or `aim_for="biggest
   total"`) total, exactly (SciPy `linear_sum_assignment`, as R `lpSolve::lp.assign()`); `with_distances=` places
   items at places for the smallest total of flow times distance (SciPy `quadratic_assignment`).
@@ -33,14 +35,15 @@ closed-form answers for the words that take a formula), checked against SciPy an
 - New word `sdata.find_path_between_ends("d2y/dx2 = -y", at_ends={"y": [0, 1]}, between=[0, 1.5])`: a path with
   values given at both ends (a boundary value problem, SciPy `solve_bvp`).
 - `table.find_values_at(joined_by=)`: `"polynomial"` (SciPy `BarycentricInterpolator`; also as `"lagrange"`,
-  `"krogh"`), `"rational curve"` (Floater-Hormann), `"aaa"` (SciPy `AAA`) and, for two columns, `"smooth
-  triangles"` (Clough-Tocher).
+  `"krogh"`), `"rational curve"` (Floater-Hormann), `"aaa"` (SciPy `AAA`; a place between two known points where
+  the curve has a pole is left empty, with a note) and, for two columns, `"smooth triangles"` (Clough-Tocher).
 - New word `sdata.curve_through_points(x=, y=)` (G6; "spline" is its other name): a spline to read anywhere, with
   `smoothness=`, `allowed_error=`, `knots=`, `slopes=`, `degree=`, `ends=`, `weights=`, `in_order=True` (a path),
   `z=` (a surface) and `on_sphere=True`. New words on the curve: `curve.find_value_at`, `curve.find_slope_at`,
   `curve.find_area_between`, `curve.find_zeros`, `curve.turn_into_slope_curve`, `curve.turn_into_area_curve`,
   `curve.show_pieces`, `curve.show_knots` and `curve.as_scipy` (SciPy `BSpline`, `PPoly`, `BPoly` and the FITPACK
   functions `splev`, `splder`, `splantider`, `splint`, `sproot`, `spalde`).
+  A curve or surface is empty outside its points.
 - `sdata.help("optimize.basinhopping")`, `"integrate.solve_bvp"`, `"interpolate.splrep"` and every other name of
   scipy.optimize, integrate and interpolate in the plan point to the word or value that does the job.
 

@@ -174,6 +174,25 @@ class Curve:
             return np.radians(90.0 - xs), np.radians(np.mod(ys, 360.0)), xs, ys
         return xs, ys, xs, ys
 
+    def _surface_outside(self, xs, ys, values):
+        """Places outside the points of a surface (beyond the lowest and highest x and y; for a sphere, the latitudes)
+        made empty, with a note, as for a curve."""
+        box = self._extra.get("box")
+        if box is None:
+            return values
+        (x_low, x_high), (y_low, y_high) = box
+        out = (xs < x_low) | (xs > x_high)
+        if y_low is not None:
+            out |= (ys < y_low) | (ys > y_high)
+        values = np.where(out, np.nan, np.asarray(values, dtype=float))
+        count = int(np.count_nonzero(out))
+        if count:
+            print(f"Note: {count} place{'s are' if count > 1 else ' is'} outside the points (x from {_show(x_low)} to "
+                  f"{_show(x_high)}" + ("" if y_low is None else f", y from {_show(y_low)} to {_show(y_high)}") +
+                  f"), so {'they are' if count > 1 else 'it is'} empty: a surface carried on beyond its points is "
+                  "guesswork.")
+        return values
+
     # ------------------------------------------------------------------ words
     @friendly(others={"x": "at", "u": "at"})
     def find_value_at(self, at=None, y=None):
@@ -189,7 +208,7 @@ class Curve:
             if y is None:
                 raise SimplydataError("A surface needs two places: curve.find_value_at(x, y).")
             u, v, xs, ys = self._surface_places("find_value_at", at, y)
-            values = self._spline.ev(u, v)
+            values = self._surface_outside(xs, ys, self._spline.ev(u, v))
             name = getattr(self._spline, "scipy_name", type(self._spline).__name__)
             print(f"The surface at {xs.size} place{'s' if xs.size != 1 else ''} (SciPy {name}.ev).")
             return self._one_or_many(at if np.ndim(at) else y, values)
@@ -245,8 +264,9 @@ class Curve:
             if self._extra.get("sphere"):
                 raise SimplydataError("Slopes of a surface on a sphere are not given; curve.as_scipy() has them in "
                                       "radians.")
-            u, v, xs, _ys = self._surface_places("find_slope_at", at, y)
-            values = self._spline.ev(u, v, dx=order if along == "x" else 0, dy=order if along == "y" else 0)
+            u, v, xs, ys = self._surface_places("find_slope_at", at, y)
+            values = self._surface_outside(xs, ys, self._spline.ev(u, v, dx=order if along == "x" else 0,
+                                                                   dy=order if along == "y" else 0))
             print(f"The slope of the surface along {along} (order {order}) at {xs.size} place"
                   f"{'s' if xs.size != 1 else ''} (SciPy ev(dx=, dy=)).")
             return self._one_or_many(at if np.ndim(at) else y, values)
@@ -568,7 +588,7 @@ def _curve(xs, ys, smoothness, degree, ends, knots, allowed_error, slopes, w, na
         gap = float(np.sum(((ys - spline(xs)) * (1 if w is None else w[order])) ** 2))
         how = (f"a spline of degree {degree} with the fewest knots ({spline.t.size - 2 * (degree + 1)} inner) that "
                f"keep the sum of squared distances at most {_show(allowed_error)} (here {_show(gap)}; SciPy "
-               "make_splrep, FITPACK s, as splrep(s=))")
+               "make_splrep, FITPACK s" + (")" if w is not None else ", as splrep(s=))"))
         low, high = float(xs[0]), float(xs[-1])
     else:
         xs, ys, order = _sorted_points(xs, ys, example)
@@ -652,7 +672,8 @@ def _surface(xs, ys, zs, degree, knots, allowed_error, w, on_sphere, chosen):
             how = "a smoothing spline on the sphere through scattered points (SciPy SmoothSphereBivariateSpline)"
         said = f"A surface over {xs.size} points on a sphere (x the latitude, y the longitude): {how}."
         print(said)
-        return Curve(spline, "surface", said, extra={"degree": 3, "sphere": True, "x": "x", "y": "y"})
+        return Curve(spline, "surface", said, extra={"degree": 3, "sphere": True, "x": "x", "y": "y",
+                                                     "box": ((float(xs.min()), float(xs.max())), (None, None))})
     if knots is not None:
         tx, ty = _surface_knots(knots)
         spline = interpolate.LSQBivariateSpline(xs, ys, zs, np.sort(tx), np.sort(ty), w=w, kx=degree, ky=degree)
@@ -676,7 +697,8 @@ def _surface(xs, ys, zs, degree, knots, allowed_error, w, on_sphere, chosen):
                "bisplrep)")
     said = f"A surface over {xs.size} points: {how}."
     print(said)
-    return Curve(spline, "surface", said, extra={"degree": degree, "x": "x", "y": "y"})
+    box = ((float(xs.min()), float(xs.max())), (float(ys.min()), float(ys.max())))
+    return Curve(spline, "surface", said, extra={"degree": degree, "x": "x", "y": "y", "box": box})
 
 
 def _surface_knots(knots):
