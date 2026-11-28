@@ -106,18 +106,34 @@ def cases(Case):
                """, option="exactly="),
         closed("f.find_roots", 'show="count": x^3 - 2x^2 - x + 2 has 3 different real roots (Sturm)',
                """
-                   {"count": sdata.formula("x**3 - 2*x**2 - x + 2").find_roots(show="count"),
-                    "between 0 and 3": len(sdata.formula("x**3 - 2*x**2 - x + 2").find_roots(between=[0, 3])
-                                           .get_column("root").as_numpy())}
-               """, {"count": (3.0, 0.0, CLOSED_FORM), "between 0 and 3": (2.0, 0.0, CLOSED_FORM + ": 1 and 2")},
+                   {"count": sdata.formula("x**3 - 2*x**2 - x + 2").find_roots(show="count")}
+               """, {"count": (3.0, 0.0, CLOSED_FORM + ": -1, 1 and 2")},
                """
                    import sympy as sp
                    x = sp.Symbol("x")
-                   {"count": sp.count_roots(x**3 - 2*x**2 - x + 2),
-                    "between 0 and 3": sp.count_roots(x**3 - 2*x**2 - x + 2, 0, 3)}
+                   {"count": sp.count_roots(x**3 - 2*x**2 - x + 2)}
                """, "SymPy count_roots", option="show="),
+        closed("f.find_roots", "between=[0, 3]: of the roots -1, 1, 2 of x^3 - 2x^2 - x + 2, two lie between 0 and 3",
+               """
+                   roots = sdata.formula("x**3 - 2*x**2 - x + 2").find_roots(between=[0, 3])
+                   values = roots.get_column("root").as_numpy()
+                   {"roots": len(values), "first": float(values[0]), "last": float(values[-1])}
+               """, {"roots": (2.0, 0.0, CLOSED_FORM), "first": (1.0, 0.0, CLOSED_FORM),
+                     "last": (2.0, 0.0, CLOSED_FORM)},
+               """
+                   import sympy as sp
+                   x = sp.Symbol("x")
+                   found = [float(r) for r in sp.real_roots(x**3 - 2*x**2 - x + 2) if 0 <= r <= 3]
+                   {"roots": len(found), "first": found[0], "last": found[-1]}
+               """, "SymPy real_roots",
+               r="""
+                   z <- sort(Re(polyroot(c(2, -1, -2, 1))))
+                   z <- z[z >= 0 & z <= 3]
+                   list(roots = length(z), first = z[1], last = z[length(z)])
+               """, option="between="),
         closed("f.find_roots", 'show="intervals", within=0.001: an interval narrower than 0.001 around sqrt(2)',
                """
+                   import math
                    found = sdata.formula("x**2 - 2").find_roots(show="intervals", within=0.001)
                    low, high = found.get_column("from").as_numpy()[1], found.get_column("to").as_numpy()[1]
                    {"sqrt(2) inside": float(low <= math.sqrt(2) <= high), "narrow": float(high - low <= 0.001)}
@@ -127,22 +143,31 @@ def cases(Case):
                    import sympy as sp
                    x = sp.Symbol("x")
                    (low, high), _ = sp.intervals(x**2 - 2, eps=sp.Rational(1, 1000))[1]
-                   {"sqrt(2) inside": float(low <= math.sqrt(2) <= high), "narrow": float(high - low <= 0.001)}
+                   {"sqrt(2) inside": float(bool(low <= math.sqrt(2) <= high)),
+                    "narrow": float(bool(high - low <= 0.001))}
                """, "SymPy intervals", option="within="),
         # ---------------------------------------------------------------- find_degree
-        closed("f.find_degree", "x^3 y + x y^2 + 1: total degree 4, degree 3 in x and 2 in y",
+        closed("f.find_degree", "x^3 y + x y^2 + 1 has the total degree 4 (the term x^3 y); x^7 - 1 the degree 7",
                """
-                   formula = sdata.formula("x**3*y + x*y**2 + 1")
-                   each = formula.find_degree(for_letter=["x", "y"])
-                   {"total": formula.find_degree(), "in x": each["x"], "in y": each["y"]}
-               """, {"total": (4.0, 0.0, CLOSED_FORM), "in x": (3.0, 0.0, CLOSED_FORM),
-                     "in y": (2.0, 0.0, CLOSED_FORM)},
+                   {"total": sdata.formula("x**3*y + x*y**2 + 1").find_degree(),
+                    "one letter": sdata.formula("x**7 - 1").find_degree()}
+               """, {"total": (4.0, 0.0, CLOSED_FORM), "one letter": (7.0, 0.0, CLOSED_FORM)},
                """
                    import sympy as sp
                    x, y = sp.symbols("x y")
-                   f = x**3*y + x*y**2 + 1
-                   {"total": sp.total_degree(f), "in x": sp.degree(f, x), "in y": sp.degree(f, y)}
+                   {"total": sp.total_degree(x**3*y + x*y**2 + 1), "one letter": sp.degree(x**7 - 1, x)}
                """, "SymPy total_degree and degree"),
+        closed("f.find_degree", "for_letter=: x^3 y + x y^2 + 1 has the degree 3 in x and 2 in y",
+               """
+                   formula = sdata.formula("x**3*y + x*y**2 + 1")
+                   each = formula.find_degree(for_letter=["x", "y"])
+                   {"in x": formula.find_degree(for_letter="x"), "in y": each["y"]}
+               """, {"in x": (3.0, 0.0, CLOSED_FORM), "in y": (2.0, 0.0, CLOSED_FORM)},
+               """
+                   import sympy as sp
+                   x, y = sp.symbols("x y")
+                   {"in x": sp.degree(x**3*y + x*y**2 + 1, x), "in y": sp.degree_list(x**3*y + x*y**2 + 1, x, y)[1]}
+               """, "SymPy degree and degree_list", option="for_letter="),
         # ---------------------------------------------------------------- divide_by
         closed("f.divide_by", "(x^3 - 2x + 5) / (x - 1): quotient x^2 + x - 1, remainder f(1) = 4",
                """
@@ -160,6 +185,34 @@ def cases(Case):
                    d <- pracma::deconv(c(1, 0, -2, 5), c(1, -1))
                    list(`quotient at 2` = sum(d$q * 2^(2:0)), remainder = d$r[length(d$r)])
                """, r_packages=("pracma",)),
+        closed("f.divide_by", 'show="remainder": the remainder of (x^3 - 2x + 5) / (x + 2) is f(-2) = 1',
+               """
+                   remainder = sdata.formula("x**3 - 2*x + 5").divide_by("x + 2", show="remainder")
+                   {"remainder": remainder.find_value_at()}
+               """, {"remainder": (1.0, 0.0, "the remainder theorem: f(-2) = -8 + 4 + 5")},
+               """
+                   import sympy as sp
+                   x = sp.Symbol("x")
+                   {"remainder": float(sp.rem(x**3 - 2*x + 5, x + 2, x))}
+               """, "SymPy rem",
+               r="""
+                   d <- pracma::deconv(c(1, 0, -2, 5), c(1, 2))
+                   list(remainder = d$r[length(d$r)])
+               """, r_packages=("pracma",), option="show="),
+        closed("f.divide_by", "with_no_remainder=True: x^3 - 1 = (x - 1)(x^2 + x + 1)",
+               """
+                   quotient = sdata.formula("x**3 - 1").divide_by("x - 1", with_no_remainder=True)
+                   {"quotient at 2": quotient.find_value_at(x=2)}
+               """, {"quotient at 2": (7.0, 0.0, CLOSED_FORM + ": 4 + 2 + 1")},
+               """
+                   import sympy as sp
+                   x = sp.Symbol("x")
+                   {"quotient at 2": float(sp.exquo(x**3 - 1, x - 1, x).subs(x, 2))}
+               """, "SymPy exquo",
+               r="""
+                   d <- pracma::deconv(c(1, 0, 0, -1), c(1, -1))
+                   list(`quotient at 2` = sum(d$q * 2^(2:0)))
+               """, r_packages=("pracma",), option="with_no_remainder="),
         closed("f.divide_by", "without_fractions=True: 8(x^3 - 2x + 5) = (2x - 1)(4x^2 + 2x - 7) + 33",
                """
                    quotient, remainder = sdata.formula("x**3 - 2*x + 5").divide_by("2*x - 1", without_fractions=True)
@@ -173,20 +226,29 @@ def cases(Case):
                    {"quotient at 1": float(q.subs(x, 1)), "remainder": float(r)}
                """, "SymPy pdiv", option="without_fractions="),
         # ---------------------------------------------------------------- common factor and multiple
-        closed("f.find_common_factor_with", "gcd((x + 1)^2, (x - 1)(x + 1)) = x + 1 and lcm = (x - 1)(x + 1)^2",
+        closed("f.find_common_factor_with", "gcd((x + 1)^2, (x - 1)(x + 1)) = x + 1",
                """
-                   formula = sdata.formula("x**2 + 2*x + 1")
-                   factor = formula.find_common_factor_with("x**2 - 1")
-                   multiple = formula.find_common_multiple_with("x**2 - 1")
-                   {"factor at 2": factor.find_value_at(x=2), "multiple at 2": multiple.find_value_at(x=2)}
-               """, {"factor at 2": (3.0, 0.0, CLOSED_FORM + ": x + 1"),
-                     "multiple at 2": (9.0, 0.0, CLOSED_FORM + ": (x - 1)(x + 1)^2")},
+                   factor = sdata.formula("x**2 + 2*x + 1").find_common_factor_with("x**2 - 1")
+                   {"factor at 2": factor.find_value_at(x=2), "factor at 0": factor.find_value_at(x=0)}
+               """, {"factor at 2": (3.0, 0.0, CLOSED_FORM + ": x + 1"), "factor at 0": (1.0, 0.0, CLOSED_FORM)},
                """
                    import sympy as sp
                    x = sp.Symbol("x")
-                   f, g = x**2 + 2*x + 1, x**2 - 1
-                   {"factor at 2": float(sp.gcd(f, g).subs(x, 2)), "multiple at 2": float(sp.lcm(f, g).subs(x, 2))}
-               """, "SymPy gcd and lcm"),
+                   h = sp.gcd(x**2 + 2*x + 1, x**2 - 1)
+                   {"factor at 2": float(h.subs(x, 2)), "factor at 0": float(h.subs(x, 0))}
+               """, "SymPy gcd"),
+        closed("f.find_common_multiple_with", "lcm((x + 1)^2, (x - 1)(x + 1)) = (x - 1)(x + 1)^2",
+               """
+                   multiple = sdata.formula("x**2 + 2*x + 1").find_common_multiple_with("x**2 - 1")
+                   {"multiple at 2": multiple.find_value_at(x=2), "multiple at 0": multiple.find_value_at(x=0)}
+               """, {"multiple at 2": (9.0, 0.0, CLOSED_FORM + ": 1 * 3^2"),
+                     "multiple at 0": (-1.0, 0.0, CLOSED_FORM + ": -1 * 1^2")},
+               """
+                   import sympy as sp
+                   x = sp.Symbol("x")
+                   m = sp.lcm(x**2 + 2*x + 1, x**2 - 1)
+                   {"multiple at 2": float(m.subs(x, 2)), "multiple at 0": float(m.subs(x, 0))}
+               """, "SymPy lcm"),
         closed("f.find_common_factor_with", 'show="combination": s f + t g = gcd(f, g) (Bezout\'s identity)',
                """
                    f = sdata.formula("x**2 - 1")
@@ -216,6 +278,17 @@ def cases(Case):
                    top, bottom = sp.fraction(sp.together(1/x + 1/(x + 1)))
                    {"top at 2": float(top.subs(x, 2)), "bottom at 2": float(bottom.subs(x, 2))}
                """, "SymPy together and fraction"),
+        closed("f.split_into_top_and_bottom", "(x^2 - 1)/(x - 2): the top x^2 - 1 and the bottom x - 2",
+               """
+                   top, bottom = sdata.formula("(x**2 - 1)/(x - 2)").split_into_top_and_bottom()
+                   {"top at 3": top.find_value_at(x=3), "bottom at 3": bottom.find_value_at(x=3)}
+               """, {"top at 3": (8.0, 0.0, CLOSED_FORM), "bottom at 3": (1.0, 0.0, CLOSED_FORM)},
+               """
+                   import sympy as sp
+                   x = sp.Symbol("x")
+                   top, bottom = sp.fraction((x**2 - 1)/(x - 2))
+                   {"top at 3": float(top.subs(x, 3)), "bottom at 3": float(bottom.subs(x, 3))}
+               """, "SymPy fraction"),
         closed("f.find_repeated_parts", "(x + 1)^2 + sin(x + 1): the repeated part x + 1, worked out once",
                """
                    parts, shorter = sdata.formula("(x + 1)**2 + sin(x + 1)").find_repeated_parts()
@@ -297,7 +370,8 @@ def cases(Case):
                """
                    formula = sdata.formula("sin(a + b)")
                    formula.turn_into_sum(by="trig functions")
-                   {"terms": float(len(formula.as_sympy().args)), "at a=0.3, b=0.5": formula.find_value_at(a=0.3, b=0.5)}
+                   {"terms": float(len(formula.as_sympy().args)),
+                    "at a=0.3, b=0.5": formula.find_value_at(a=0.3, b=0.5)}
                """, {"terms": (2.0, 0.0, CLOSED_FORM), "at a=0.3, b=0.5": (math.sin(0.8), 1e-15, CLOSED_FORM)},
                """
                    import sympy as sp
