@@ -78,9 +78,9 @@ ENTRIES = [
                       "variance (SciPy kstatvar).",)),
     _summary('show="cumulant variance k"', "cumulant variance 2", "stats.kstatvar(values, 2)"),
     _summary('show="l-moment k"', "l-moment 3",
-             "stats.lmoment(values, order=3)                         # (1)",
-             choices=("from order 3 on the L-moment ratio (L-skewness, L-kurtosis), as SciPy's default "
-                      "standardize=True and R lmom::samlmu.",)),
+             "stats.lmoment(values, order=3, standardize=False)      # (1)",
+             choices=("the L-moment lambda_k itself (standardize=False); \"l-skewness\" and \"l-kurtosis\" are the "
+                      "ratios tau_3 and tau_4, SciPy's default and R lmom::samlmu's.",)),
     _summary('show="central moment k"', "central moment 3",
              "stats.moment(values, order=3)                          # (1)",
              choices=("divided by n, around the average (SciPy moment's center=None).",)),
@@ -581,7 +581,7 @@ ENTRIES = [
         choices=("the rows where censored_by= says yes are right-censored: their value is only a lower limit.",
                  "no location for the Weibull, as R; simplydata polishes SciPy's search, so the two agree to about "
                  "5 digits.",),
-        also="simplydata also gives the standard errors, the log-likelihood and AIC, and says how many values were "
-             "censored.",
+        also="simplydata also gives the log-likelihood and AIC and says how many values were censored; it gives no "
+             "standard errors for a censored fit (no package it uses gives them).",
     ),
 ]

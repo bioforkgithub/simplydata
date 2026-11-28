@@ -24,7 +24,7 @@ SHOWN = 8  # inputs written out in the sentence; the table has them all
 
 @friendly(renamed={"seed": "with_seed", "n": "how_many"}, others={"bounds": "ranges", "dists": "ranges"})
 def find_sensitivity_of(formula=None, ranges=None, how_many=HOW_MANY, with_seed=SEED):
-    """Which input of a formula matters most. answer = sdata.find_sensitivity_of("a + b", ranges={"a": [0, 1], "b": [0, 5]})
+    """Which input matters most. answer = sdata.find_sensitivity_of("a + b", ranges={"a": [0, 1], "b": [0, 5]})
 
     answer = sdata.find_sensitivity_of("a * x**2 + b", ranges={"a": [0, 1], "b": [0, 5], "x": [0, 2]})
     Which input of a formula matters most? Every name in the formula varies evenly over its range in ranges=, all

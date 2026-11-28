@@ -1561,8 +1561,8 @@ _STATS = [
     ('table.find_summary_of("hours", show=["share of values"], in_bins_of={"hours": 2})', "relfreq"),
     ('table.add_z_score_column("marks_z", from_column="marks"), or on the log of the values for the geometric one',
      "zmap gzscore"),
-    ('table.find_best_power_of("days"), the Box-Cox power by maximum likelihood (test_method="yeo-johnson" for '
-     "Yeo-Johnson)", "boxcox_normmax"),
+    ('table.find_best_power_of("days", show="best by normal plot") (SciPy boxcox_normmax\'s default, the '
+     "straightest normal plot); show=\"power\" gives the power by maximum likelihood", "boxcox_normmax"),
     ('table.find_best_power_of("days", test_method="yeo-johnson")', "yeojohnson_normmax"),
     ('table.find_best_power_of("days", show="log-likelihood")', "boxcox_llf yeojohnson_llf"),
     ('table.find_best_power_of("days", show="normal plot correlation")', "boxcox_normplot yeojohnson_normplot"),
@@ -1655,7 +1655,6 @@ _SPECIAL = [
      "nbdtr nbdtrc"),
     ('sdata.distribution("poisson", average=3).find_chance_that_value(is_at_most=2)', "pdtr pdtrc"),
     ('sdata.distribution("t", degrees_of_freedom=5).find_chance_that_value(is_below=2.0)', "stdtr"),
-    ('sdata.distribution("beta", shape1=2, shape2=5).find_chance_that_value(is_below=0.3)', "btdtr"),
     ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_chance_that_value('
      "is_below=5)", "chndtr"),
     ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'
@@ -1666,7 +1665,6 @@ _SPECIAL = [
     ('sdata.distribution("F", degrees_of_freedom=[3, 20]).find_percentile(95)', "fdtri"),
     ('sdata.distribution("gamma", shape=2, rate=1).find_percentile(95)', "gdtrix"),
     ('sdata.distribution("t", degrees_of_freedom=5).find_percentile(97.5)', "stdtrit"),
-    ('sdata.distribution("beta", shape1=2, shape2=5).find_percentile(95)', "btdtri"),
     ('sdata.distribution("noncentral chi-square", degrees_of_freedom=3, noncentrality=2).find_percentile(95)',
      "chndtrix"),
     ('sdata.distribution("noncentral F", degrees_of_freedom_1=3, degrees_of_freedom_2=20, noncentrality=2)'

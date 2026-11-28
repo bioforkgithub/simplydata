@@ -131,6 +131,11 @@ PLAIN = {
     "zipfian": ("zipfian", ("finite zipf",), {"a": "shape", "n": "highest"}),
 }
 
+# Ends written in the units of the data: SciPy takes them in standard units ((end - loc) / scale); simplydata takes
+# lower_end=3, upper_end=9 as the values themselves and works out SciPy's numbers (SciPy's own names a=, b= ... stay
+# in standard units, as in SciPy)
+DATA_UNITS = {"truncnorm": ("a", "b"), "truncexpon": ("b",), "truncweibull_min": ("a", "b"), "truncpareto": ("c",),
+              "trapezoid": ("c", "d")}
 LOC_SCALE = {"loc": "location", "scale": "scale"}  # smooth distributions
 LOC_COUNTS = {"loc": "shift"}  # counts: SciPy's loc moves every count by a whole number
 
@@ -169,7 +174,7 @@ class Named(str):
         """The parameters as typed (plain or SciPy names) -> SciPy's names; an unknown name is kept, for SciPy's
         own error."""
         back = {plain: scipy for scipy, plain in self.names.items()}
-        out = {}
+        out, in_data_units = {}, []
         for key, value in given.items():
             name = back.get(key, key)
             if name in out:
@@ -177,7 +182,22 @@ class Named(str):
 
                 raise SimplydataError(f"{key}= gives {self.names.get(name, name)}= a second time: give it once.")
             out[name] = value
+            if key != name and name in DATA_UNITS.get(str(self), ()):
+                in_data_units.append(name)
+        loc, scale = out.get("loc", 0), out.get("scale", 1)
+        numbers = all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (loc, scale))
+        if numbers and scale:
+            for name in in_data_units:
+                if isinstance(out[name], (int, float)) and not isinstance(out[name], bool):
+                    out[name] = (out[name] - loc) / scale  # the value itself -> SciPy's standard units
         return out
+
+    def data_value(self, scipy_param, value, params):
+        """A parameter as simplydata shows it: the ends of the truncated and trapezoidal distributions back in the
+        units of the data."""
+        if scipy_param in DATA_UNITS.get(str(self), ()) and isinstance(value, float):
+            return params.get("loc", 0.0) + params.get("scale", 1.0) * value
+        return value
 
     def shown(self, scipy_param: str) -> str:
         return self.names.get(scipy_param, scipy_param).replace("_", " ")

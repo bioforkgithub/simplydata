@@ -866,6 +866,10 @@ def distribution(name=None, *values, **parameters) -> Distribution:
         raise SimplydataError(f"Write the parameters with their names.\nFor example:  {_named_example(family)}")
     if isinstance(family, Named):
         return Distribution(family, _scipy_params(family, family.to_scipy(parameters)))
+    from ._distribution_names import PLAIN
+
+    if isinstance(family, str) and family in PLAIN:  # "skewnorm" with shape= works as "skew normal" does
+        return Distribution(family, _scipy_params(family, Named(family).to_scipy(parameters)))
     if values:
         example = _example(family) if isinstance(family, Family) else f'sdata.distribution("{family}", c=2)'
         raise SimplydataError(f"Write the parameters with their names.\nFor example:  {example}")
@@ -1053,7 +1057,9 @@ class Distribution:
             lines.append(f"Fitted by maximum likelihood to {info['rows']} values"
                          + (f' of "{info["column"]}"' if info.get("column") else "")
                          + f": log-likelihood {info['log-likelihood']:.4g}, AIC {info['AIC']:.6g}. "
-                           "fit.turn_into_table() gives the standard errors.")
+                         + ("Censored values were allowed for; no standard errors are given."
+                            if info.get("method") == "censored" else
+                            "fit.turn_into_table() gives the standard errors."))
         return "\n".join(lines)
 
     def __getattr__(self, name):
@@ -1454,7 +1460,9 @@ class Distribution:
             return ", ".join(f"{p.shown} {_say(self._params[p.name])}" for p in self._family.params
                              if self._params.get(p.name) is not None)
         if getattr(self._family, "plain", None):
-            return ", ".join(f"{self._family.shown(k)} {_say_value(v)}" for k, v in self._params.items()
+            family = self._family
+            return ", ".join(f"{family.shown(k)} {_say_value(family.data_value(k, v, self._params))}"
+                             for k, v in self._params.items()
                              if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
         return ", ".join(f"{k}={_say(v)}" for k, v in self._params.items()
                          if not (k == "loc" and v == 0) and not (k == "scale" and v == 1))
@@ -1486,7 +1494,8 @@ class Distribution:
     def show_parameters(self):
         """The parameters as a dictionary of plain names: {"average": 50, "standard_deviation": 10}. distribution.show_parameters()"""
         if getattr(self._family, "plain", None):
-            return {self._family.names.get(k, k): v for k, v in self._params.items()}
+            family = self._family
+            return {family.names.get(k, k): family.data_value(k, v, self._params) for k, v in self._params.items()}
         return dict(self._params)
 
     # ------------------------------------------------------------------ random numbers
@@ -2199,28 +2208,14 @@ def fit_censored(values, censored, name="weibull", fixed=None, say=False, column
     ll = loglik(params)
     if not math.isfinite(ll):
         raise SimplydataError(f"simplydata could not fit this distribution to {what} with its censored values.")
-    point = np.array([params[k] for k in free], dtype=float)
-
-    def ll_free(v):
-        p = dict(params)
-        p.update(zip(free, (float(t) for t in v)))
-        return loglik(p)
-
+    # no standard errors: no package simplydata uses gives them for a censored fit of these families (SciPy's fit
+    # of CensoredData gives only the estimates), and simplydata does not work them out itself
     errors = {k: math.nan for k in free}
-    with np.errstate(all="ignore"):
-        h = _hessian(ll_free, point)
-    if np.all(np.isfinite(h)):
-        try:
-            cov = np.linalg.inv(-h)
-            errors = {k: (math.sqrt(v) if v > 0 else math.nan) for k, v in zip(free, np.diag(cov))}
-        except np.linalg.LinAlgError:
-            pass
     n, k = len(x), len(free)
     aic, bic = -2 * ll + 2 * k, -2 * ll + k * math.log(n)
-    shown = (lambda t: t.replace("_", " ")) if isinstance(family, Family) else (lambda t: t)
+    shown = ((lambda t: t.replace("_", " ")) if isinstance(family, Family) else family.shown
+             if getattr(family, "plain", None) else (lambda t: t))
     row = {shown(key): float(v) for key, v in params.items() if v is not None}
-    row.update({f"standard error of {shown(key)}": float(errors.get(key, math.nan)) for key, v in params.items()
-                if v is not None})
     row.update({"log-likelihood": ll, "AIC": aic, "BIC": bic, "rows": n, "censored": int(right.sum()),
                 "held fixed": ", ".join(shown(h) for h in held) if held else "",
                 "method": "maximum likelihood with censored values (numerical search)",
@@ -2233,11 +2228,16 @@ def fit_censored(values, censored, name="weibull", fixed=None, say=False, column
     else:
         dist = Distribution(family, params, fit_info=info, backend=backend)
     if say:
-        title = family.title if isinstance(family, Family) else f"SciPy {family}"
+        title = (family.title if isinstance(family, Family) else f"{family.plain} (SciPy {family})"
+                 if getattr(family, "plain", None) else f"SciPy {family}")
         article = "an" if title[0].lower() in "aeiou" else "a"
         by = f', where "{censored_by}" says so' if censored_by else ""
+        parts = ", ".join(f"{dist._shown(key)} = {_answer(v)}" + (" (held fixed)" if key in held else "")
+                          for key, v in dist._params.items() if v is not None)
         print(f"Fitted {article} {title} distribution to {what} ({n} values, {int(right.sum())} of them censored"
-              f"{by}): {_fit_parts(dist)}. Log-likelihood {ll:.1f}, AIC {aic:.1f}.")
+              f"{by}): {parts}. Log-likelihood {ll:.1f}, AIC {aic:.1f}.")
+        print("No standard errors are given: no package simplydata uses gives them for a censored fit (R "
+              "survival::survreg gives them for its own parameters: log scale and intercept).")
         print("Method: maximum likelihood with right-censored values: each value seen adds its log density, each "
               "censored one the log chance of a value above it (SciPy fit(CensoredData(uncensored=, right=)), as R "
               "fitdistrplus::fitdistcens(); for a Weibull, R survival::survreg(Surv(time, event) ~ 1, dist = "

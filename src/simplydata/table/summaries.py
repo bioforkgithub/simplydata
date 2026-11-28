@@ -126,7 +126,8 @@ MEASURES = ("count", "average", "median", "total", "smallest", "biggest", "stand
             # kstat, kstatvar, lmoment, moment, expectile, tmean ..., circmean ..., differential_entropy,
             # estimated_cdf, percentileofscore, sigmaclip); the ones with a number are written with it ("power mean 3")
             "geometric standard deviation", "circular average", "circular standard deviation", "circular variance",
-            "differential entropy", "power mean", "cumulant", "cumulant variance", "l-moment", "central moment",
+            "differential entropy", "power mean", "cumulant", "cumulant variance", "l-moment", "l-skewness",
+            "l-kurtosis", "central moment",
             "expectile", "percentile rank", "percent at or below", "sigma-clipped average",
             # with in_bins_of= only: the counts of the bins added up (cumfreq) and each bin's share (relfreq)
             "running count", "share of values")
@@ -162,13 +163,13 @@ ARRAY_MEASURES = ("geometric mean", "skewness", "kurtosis", "coefficient of vari
                   "product", "entropy",
                   # families for 100 %, batches 3-4
                   "geometric standard deviation", "circular average", "circular standard deviation",
-                  "circular variance", "differential entropy", "sigma-clipped average")
+                  "circular variance", "differential entropy", "sigma-clipped average", "l-skewness", "l-kurtosis")
 # the beginnings of the measures written with numbers ("power mean 3", "circular average in degrees" ...)
 ARRAY_PREFIXES = ("percentile ", "trimmed average ", "winsorised average ", "power mean ", "cumulant ",
                   "l-moment ", "central moment ", "expectile ", "percent at or below ",
                   "average between ", "standard deviation between ", "variance between ", "standard error between ",
                   "smallest from ", "biggest up to ", "circular average ", "circular standard deviation ",
-                  "circular variance ", "sigma-clipped average ")
+                  "circular variance ", "sigma-clipped average ", "l-skewness", "l-kurtosis")
 TEXT_SEPARATOR = "; "  # show="joined text": what goes between the texts of a group, unless separator= says
 TRIM_PERCENT = 10  # "trimmed average": 10 % cut from each end, unless another percent is given
 WINSOR_PERCENT = 20  # "winsorised average": 20 % pulled in at each end (R WRS2::winmean(tr = 0.2))
@@ -621,11 +622,21 @@ def _numbered_measure(name: str):
     found = re.fullmatch(r"(smallest from|biggest up to)\s+" + _NUMBER, name)
     if found:
         return f"{found.group(1)} {float(found.group(2)):g}"
-    found = re.fullmatch(r"(circular average|circular mean|circular standard deviation|circular variance)"
-                         r"\s+in\s+degrees", name)
+    found = re.fullmatch(r"(circular average|circular mean|circular standard deviation|circular variance|circmean|"
+                         r"circstd|circvar)\s+in\s+(degrees|radians|hours)", name)
     if found:
-        kind = "circular average" if found.group(1) == "circular mean" else found.group(1)
-        return f"{kind} in degrees"
+        kind = {"circular mean": "circular average", "circmean": "circular average",
+                "circstd": "circular standard deviation", "circvar": "circular variance"}.get(found.group(1),
+                                                                                           found.group(1))
+        return f"{kind} in {found.group(2)}"
+    if name in ("circular average", "circular mean", "circular standard deviation", "circular variance",
+                "circmean", "circstd", "circvar"):
+        plain = {"circular mean": "circular average", "circmean": "circular average",
+                 "circstd": "circular standard deviation", "circvar": "circular variance"}.get(name, name)
+        raise SimplydataError(f'show="{plain}" needs the unit of the angles, as find_average_direction_of needs '
+                              f'full_turn=: "{plain} in degrees" (a full turn is 360), "{plain} in radians" (2 pi) or '
+                              f'"{plain} in hours" (24, times of day).\nFor example:  table.find_summary_of('
+                              f'"wind_direction", show=["{plain} in degrees"])   (with sdata.get_example("weather"))')
     found = re.fullmatch(r"sigma[- ]clipped (?:average|mean)\s+" + _NUMBER, name)
     if found:
         if float(found.group(1)) <= 0:
@@ -723,8 +734,9 @@ def _scipy_measure(name: str, values):
       power mean p                   (mean(x ** p)) ** (1 / p) (SciPy pmean); numbers above 0
       cumulant k                     the unbiased estimate of the k-th cumulant, k = 1 to 4 (SciPy kstat)
       cumulant variance k            the unbiased estimate of its variance, k = 1 or 2 (SciPy kstatvar)
-      l-moment k                     the k-th sample L-moment; from k = 3 on the L-moment ratio (3: L-skewness,
-                                     4: L-kurtosis), as SciPy lmoment and R lmom::samlmu give them
+      l-moment k                     the k-th sample L-moment lambda_k (SciPy lmoment(standardize=False))
+      l-skewness, l-kurtosis         the L-moment ratios tau_3 = lambda_3 / lambda_2 and tau_4 = lambda_4 /
+                                     lambda_2 (SciPy lmoment, as R lmom::samlmu gives them)
       central moment k               mean((x - mean(x)) ** k), divided by n (SciPy moment)
       expectile p                    the value t where p % of the squared distances lie below (SciPy expectile,
                                      alpha = p / 100); expectile 50 is the average
@@ -732,12 +744,15 @@ def _scipy_measure(name: str, values):
                                      standard deviation, variance and standard error the same, with n - 1
                                      (tstd, tvar, tsem)
       smallest from a / biggest up to b   SciPy tmin(lowerlimit=a) / tmax(upperlimit=b)
-      circular average ...           angles in radians from 0 to 2 pi, or "in degrees" from 0 to 360 (SciPy circmean,
-                                     circstd, circvar)
-      differential entropy           the entropy of the density the values come from (SciPy differential_entropy,
-                                     Vasicek's estimate for fewer than 10 values, Ebrahimi's from 10 to 1000)
-      percentile rank v              the percent of the values below v, the inverse of "percentile p" (R type 7):
-                                     SciPy estimated_cdf, times 100
+      circular average ...           angles "in degrees" (a full turn 360), "in radians" (2 pi) or "in hours" (24)
+                                     (SciPy circmean, circstd, circvar); the average and standard deviation are in
+                                     that unit, the circular variance (1 minus the mean resultant length) has none
+      differential entropy           the entropy of the density the values come from, in nats (natural log; SciPy
+                                     differential_entropy: Vasicek's estimate for fewer than 10 values, Ebrahimi's
+                                     from 10 to 1000)
+      percentile rank v              the percent p at which the usual percentile rule (R type 7, a straight line
+                                     between the sorted values) gives v: the inverse of "percentile p" (SciPy
+                                     estimated_cdf, times 100); not the plain share below v ("percent at or below v")
       percent at or below v          the percent of the values at or below v (SciPy percentileofscore(kind="weak"))
       sigma-clipped average k        the average after values more than k standard deviations out are cut, again
                                      until none is (SciPy sigmaclip(low=k, high=k), k = 4 unless written)
@@ -773,7 +788,12 @@ def _scipy_measure(name: str, values):
     if name.startswith("l-moment "):
         if n < int(number):
             return None, f"needs at least {int(number)} values", None
-        return float(stats.lmoment(values, order=int(number))), None, None
+        return float(stats.lmoment(values, order=int(number), standardize=False)), None, None
+    if name in ("l-skewness", "l-kurtosis"):
+        order = 3 if name == "l-skewness" else 4
+        if n < order or np.ptp(values) == 0:
+            return None, f"needs at least {order} values that differ", None
+        return float(stats.lmoment(values, order=order)), None, None
     if name.startswith("central moment "):
         return float(stats.moment(values, order=int(number))), None, None
     if name.startswith("expectile "):
@@ -797,8 +817,8 @@ def _scipy_measure(name: str, values):
             return None, f"has no value of {number:g} or less", None
         return float(stats.tmax(values, upperlimit=number)), None, None
     if name.startswith("circular "):
-        high = 360.0 if name.endswith(" in degrees") else 2 * math.pi
-        kind = name.replace(" in degrees", "")
+        kind, unit = name.split(" in ")
+        high = {"degrees": 360.0, "radians": 2 * math.pi, "hours": 24.0}[unit]
         function = {"circular average": stats.circmean, "circular standard deviation": stats.circstd,
                     "circular variance": stats.circvar}[kind]
         return float(function(values, high=high, low=0.0)), None, None
@@ -840,14 +860,18 @@ def _bin_edges(step, name, how, x, example):
     filled = x[~np.isnan(x)]
     if len(filled) == 0:
         raise SimplydataError(f'"{name}" has no numbers to cut into bins.')
+    from decimal import Decimal
+
     width = float(how)
-    start = math.floor(filled.min() / width) * width
-    count = max(1, math.ceil((filled.max() - start) / width))
-    if start + count * width < filled.max():
+    decimals = max(0, -Decimal(repr(width)).normalize().as_tuple().exponent)
+    tiny = 1e-9 * width  # a value a hair below a multiple of the width (3.9 / 0.1 = 38.999...) is on it
+    start = round(math.floor(filled.min() / width + 1e-9) * width, decimals)
+    count = max(1, math.ceil((filled.max() - start) / width - 1e-9))
+    if start + count * width < filled.max() - tiny:
         count += 1
     if count > 100_000:
         raise SimplydataError(f'in_bins_of={{"{name}": {how:g}}} makes {count} bins; give wider bins.')
-    return start + width * np.arange(count + 1)
+    return np.round(start + width * np.arange(count + 1), decimals)  # edges written with the width's decimals
 
 
 def _add_bin_measures(result, columns, groups, key, extra, keep_count):
@@ -876,6 +900,45 @@ def _add_bin_measures(result, columns, groups, key, extra, keep_count):
         frame = frame.drop("count")
     del columns, key
     return result._new_table(frame)
+
+
+def _method_line(name: str) -> str:
+    """The method of a scipy.stats measure of the families for 100 % (one line printed after the summary)."""
+    words = name.split()
+    lines = [
+        ("geometric standard deviation", "exp of the standard deviation of the logs, n - 1 (SciPy gstd)"),
+        ("power mean ", "(average of x ** p) ** (1 / p) (SciPy pmean)"),
+        ("cumulant variance ", "the unbiased estimate of the variance of the k-statistic (SciPy kstatvar)"),
+        ("cumulant ", "the k-statistic, the unbiased estimate of the cumulant (SciPy kstat)"),
+        ("l-moment ", "the sample L-moment lambda_k (SciPy lmoment(standardize=False))"),
+        ("l-skewness", "the L-moment ratio tau_3 = lambda_3 / lambda_2 (SciPy lmoment, as R lmom::samlmu)"),
+        ("l-kurtosis", "the L-moment ratio tau_4 = lambda_4 / lambda_2 (SciPy lmoment, as R lmom::samlmu)"),
+        ("central moment ", "the average of (x - average) ** k, divided by n (SciPy moment)"),
+        ("expectile ", "the value where the squared distances above and below balance at that percent (SciPy "
+                       "expectile)"),
+        ("average between ", "only the values between the limits, both included (SciPy tmean; tstd, tvar, tsem with "
+                             "n - 1)"),
+        ("standard deviation between ", "only the values between the limits, both included, n - 1 (SciPy tstd)"),
+        ("variance between ", "only the values between the limits, both included, n - 1 (SciPy tvar)"),
+        ("standard error between ", "only the values between the limits, both included, n - 1 (SciPy tsem)"),
+        ("smallest from ", "the smallest value at or above the limit (SciPy tmin)"),
+        ("biggest up to ", "the biggest value at or below the limit (SciPy tmax)"),
+        ("circular variance ", "1 minus the mean resultant length, from 0 to 1, with no unit (SciPy circvar)"),
+        ("circular ", "angles on a circle (SciPy circmean, circstd), the answer in "
+                      + (words[-1] if len(words) > 1 else "") + ", from 0 to a full turn for the average"),
+        ("differential entropy", "in nats (natural log), SciPy differential_entropy (Vasicek below 10 values, "
+                                 "Ebrahimi from 10 to 1000)"),
+        ("percentile rank ", "the percent at which the usual percentile rule (R type 7) gives the value: the inverse "
+                             "of \"percentile p\" (SciPy estimated_cdf)"),
+        ("percent at or below ", "the share of the values at or below the value, in percent (SciPy "
+                                 "percentileofscore(kind=\"weak\"))"),
+        ("sigma-clipped average", "values more than k standard deviations (4 unless written) from the average cut "
+                                  "again and again, then the average (SciPy sigmaclip)"),
+    ]
+    for start, line in lines:
+        if name.startswith(start):
+            return f'Method of "{name}": {line}.'
+    return ""
 
 
 def _measure_values(names, raw: dict) -> dict:
@@ -2305,14 +2368,15 @@ class SummaryWords:
           table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")
         The columns of that table are called "marks average", "marks count" and "hours total".
         More scipy.stats measures (families for 100 %): "geometric standard deviation" (gstd), "power mean 3"
-        (pmean), "cumulant 2" and "cumulant variance 2" (kstat, kstatvar), "l-moment 2" (lmoment; from 3 on the
-        L-moment ratios, as R lmom::samlmu), "central moment 3"
+        (pmean), "cumulant 2" and "cumulant variance 2" (kstat, kstatvar), "l-moment 2" (lmoment), "l-skewness"
+        and "l-kurtosis" (the L-moment ratios, as R lmom::samlmu), "central moment 3"
         (moment, divided by n), "expectile 90" (expectile), "average between 40 and 80" and the same for "standard
         deviation", "variance" and "standard error" (tmean, tstd, tvar, tsem: only the values from 40 to 80),
-        "smallest from 40" and "biggest up to 80" (tmin, tmax), "circular average", "circular standard deviation"
-        and "circular variance" of angles in radians, or "circular average in degrees" (circmean, circstd, circvar),
-        "differential entropy", "percentile rank 70" (the percent below 70, the inverse of "percentile 90":
-        estimated_cdf), "percent at or below 70" (percentileofscore) and "sigma-clipped average" (sigmaclip).
+        "smallest from 40" and "biggest up to 80" (tmin, tmax), "circular average in degrees", "circular standard
+        deviation in degrees" and "circular variance in degrees" (or "in radians", "in hours"; circmean, circstd,
+        circvar), "differential entropy" (in nats), "percentile rank 70" (the percent at which the usual percentile
+        rule gives 70, the inverse of "percentile 90": estimated_cdf), "percent at or below 70" (percentileofscore)
+        and "sigma-clipped average" (sigmaclip). Each of these prints one line with its method.
         in_bins_of= cuts a column of numbers into bins and summarises each bin (SciPy binned_statistic):
           table.find_summary_of("marks", show=["average", "count"], in_bins_of={"hours": 2})
         {"hours": 2} makes bins 2 wide, starting at a multiple of 2; {"hours": [0, 5, 10, 20]} gives the edges.
@@ -2416,6 +2480,9 @@ class SummaryWords:
         table = self._new_table(result)
         self._note_empty(frame, columns)
         self._say_summary(table, columns, groups, out_names, periods)
+        for line in dict.fromkeys(_method_line(n) for n in out_names if isinstance(n, str)):
+            if line:
+                print(line)
         for (name, why), places in problems.items():
             where = ", ".join(places[:GROUPS_IN_SENTENCE]) + (" ..." if len(places) > GROUPS_IN_SENTENCE else "")
             if why.startswith("tied:"):
@@ -3059,8 +3126,8 @@ class SummaryWords:
             value, p = float(result.statistic), float(result.pvalue)
             meaning = (f'how well "{column_b}" follows from "{column_a}" in any shape, from 0 (not at all) to 1 '
                        "(fully), read from the ranks; it is not symmetric (swap the columns for the other way)")
-            how = ("SciPy chatterjeexi (Chatterjee 2021), its p-value from the normal approximation, as R "
-                   "XICOR::xicor(pvalue = TRUE)")
+            how = ("SciPy chatterjeexi (Chatterjee 2021); its p-value is one-sided (is xi bigger than 0, as it "
+                   "would be by chance?), from the normal approximation, as R XICOR::xicor(pvalue = TRUE)")
         elif method == "weighted kendall":
             result = stats.weightedtau(x, y)
             value, p = float(result.statistic), math.nan
