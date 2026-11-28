@@ -1332,10 +1332,7 @@ _NUMPY = [
     (_NUMPY_HAND_OVER + ": np.argsort(numbers.as_numpy())", "argsort lexsort partition argpartition"),
     (_NUMPY_HAND_OVER + ": np.meshgrid(x.as_numpy(), y.as_numpy())", "meshgrid mgrid ogrid indices"),
     (_NUMPY_HAND_OVER + ": np.polyval([1, 0, -2], numbers.as_numpy())", "polyval poly1d polyder polyint"),
-    (_NUMPY_HAND_OVER + ": np.sign(numbers.as_numpy())",
-     "sign arcsin arccos arctan arctan2 asin acos atan atan2 sinh cosh tanh arcsinh arccosh arctanh hypot "
-     "log1p expm1 mod remainder fmod divmod reciprocal gcd lcm"),
-]
+]  # sign, arcsin ... gcd, lcm: the maths family below (families for 100 %, batches 7-9)
 
 # linalg.<name>: np.linalg and scipy.linalg
 _GRID = "sdata.number_grid([[4, 2, 1], [2, 3, 0.5], [1, 0.5, 2]])"
@@ -1593,14 +1590,30 @@ _SEABORN_MORE = [
 ]
 
 
+# families for 100 %, batches 7-9 (plan section 2.3, approved by Manish 2026-11-28): the pointers of the maths family,
+# made from its one name table (_maths_functions.py): numbers.take_function, work_on_bits, turn_into_yes_or_no(is_=),
+# sdata.find_zeros_of and sdata.find_area_points. A name a list above already points keeps that pointer.
+def _maths_family() -> dict:
+    from ._maths_functions import pointer_groups
+
+    # the names a namespace's own list, or the lists it falls back on (NAMESPACE_FALLBACK), already point
+    lists = {"special": _SPECIAL + _NUMBERS + _SDATA, "numpy": _NUMPY + _NUMBERS + _BLOCKS + _SDATA,
+             "sympy": _SYMPY + _SDATA, "scipy": _SCIPY + _SDATA + _NUMBERS + _BLOCKS}
+    return pointer_groups({kind: {n for _, names in found for n in names.split()} for kind, found in lists.items()})
+
+
+_MATHS = _maths_family()
+
 OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
                "chart": _build(_CHART + _CHART_2 + _CHART_3 + _CHART_4 + _SEABORN_MORE), "chart3d": _build(_CHART_3D),
                "numbers": _build(_NUMBERS), "block": _build(_BLOCKS),
                "text": _build(_TEXT), "dates": _build(_DATES), "groups": _build(_GROUPS),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
-               "numpy": _build(_NUMPY), "linalg": _build(_LINALG), "random": _build(_RANDOM), "fft": _build(_FFT),
-               "stats": _build(_STATS), "special": _build(_SPECIAL), "scipy": _build(_SCIPY),
-               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS),
+               "numpy": _build(_NUMPY + _MATHS["numpy"]), "linalg": _build(_LINALG), "random": _build(_RANDOM),
+               "fft": _build(_FFT),
+               "stats": _build(_STATS), "special": _build(_SPECIAL + _MATHS["special"]),
+               "scipy": _build(_SCIPY + _MATHS["scipy"]), "sympy": _build(_SYMPY + _MATHS["sympy"]),
+               "so": _build(_SEABORN_OBJECTS),
                "lists": _build(_LISTS)}  # families for 100 %, batches 1-2 (G12)
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")

@@ -212,7 +212,12 @@ GROUPS = [
                                  "nums.take_square_root", "nums.take_absolute_value", "nums.round_to", "nums.take_log",
                                  "nums.take_exp", "nums.turn_into_running_total",
                                  # numbers phase, batch 3
-                                 "nums.take_cube_root", "nums.show_as_fraction"]),
+                                 "nums.take_cube_root", "nums.show_as_fraction",
+                                 # families for 100 %, batches 7-9 (plan section 2.3, approved by Manish
+                                 # 2026-11-28): the maths family of NumPy and scipy.special, one name table shared
+                                 # with formula text (G1-G3, G10)
+                                 "nums.take_function", "nums.work_on_bits", "sdata.find_zeros_of",
+                                 "sdata.find_area_points"]),
     ("Numbers: choose, sort and fill", ["nums.keep_each_number_that", "nums.remove_each_number_that", "nums.keep_first_numbers",
                                         "nums.keep_last_numbers", "nums.keep_random_numbers",
                                         "nums.remove_duplicate_numbers", "nums.remove_empty_numbers",
@@ -1331,6 +1336,18 @@ HELP_EXAMPLES = {
     "nums.make_pair_table_with": _nx("depths = sdata.number_list([0, 10, 50])\n"
                                      "table = numbers.make_pair_table_with(depths, by_subtracting=True)\nprint(table)",
                                      "[0, 10, 50]"),
+    # families for 100 %, batches 7-9: the maths family (one name table for take_function and formula text)
+    "nums.take_function": _nx('numbers.take_function("bessel J", order=1)\nnumbers.show()\nnumbers.undo()\n'
+                              'numbers.take_function("erfinv")\nnumbers.show()', "[0.1, 0.5, 0.9, 2.0]"),
+    "nums.work_on_bits": _nx('numbers.work_on_bits("and", with_numbers=6)\nnumbers.show()\n'
+                             'numbers.work_on_bits("shift left", by=1)\nnumbers.show()', "[12, 10, 7, 3]"),
+    "sdata.find_zeros_of": ('import simplydata as sdata\n'
+                            'zeros = sdata.find_zeros_of("bessel J", order=0, how_many=5)\n'
+                            'zeros.show()\nsdata.find_zeros_of("airy Ai", how_many=3)'),
+    "sdata.find_area_points": ('import simplydata as sdata\n'
+                               'points = sdata.find_area_points("legendre", how_many=5)\n'
+                               'points.add_column("value", "weight * exp(point)")\n'
+                               'area = points.find_total_of("value")'),
     # blocks of numbers
     "sdata.number_block": textwrap.dedent("""\
         import simplydata as sdata
