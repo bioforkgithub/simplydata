@@ -754,8 +754,7 @@ def _work_out(sp, tree, text: str):
                     size = _size_of_number(sp, value)
                     if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
                         raise _too_big_special(text, type(node).__name__)
-                if node.free_symbols:
-                    _formula_names.check_letters(node, text, _formula_error)
+                _formula_names.check_values(node, text, _formula_error)
             found = _combined(sp, node, [_size(sp, p, sizes) for p in node.args])
         elif isinstance(node, sp.exp):
             power = worked_out(node.args[0])[0] if node.args[0].has(sp.log) else node.args[0]
@@ -885,8 +884,10 @@ def parse(text, what: str = "sdata.formula()", letters_known=None, symbols=None)
     if not text.strip():
         raise _formula_error("The formula is empty.")
     for sign in ("<=", ">=", "==", "=", "<", ">"):
-        # Piecewise's conditions (x > 0) are no equation (families for 100 %, batches 22-23)
-        if sign in text and not (sign in ("<=", ">=", "<", ">") and "Piecewise" in text):
+        # Piecewise's conditions (x > 0, x <= 1) are no equation (families for 100 %, batches 22-23)
+        rest = text.replace("<=", "").replace(">=", "") if "Piecewise" in text else text
+        if sign in text and not (sign in ("<=", ">=", "<", ">") and "Piecewise" in text) and (
+                sign not in ("=", "==") or sign in rest):
             raise _formula_error(
                 f'"{text}" has {sign} in it, so it is an equation, not a formula. Give only the formula here, such as '
                 '"x**2 - 2"; to solve an equation exactly use sdata.solve("x**2 = 2", exactly=True).')
@@ -1212,7 +1213,7 @@ def _check_put_in_digits(sp, expr, symbol, value, said: str) -> None:
         elif node.is_Pow:
             found = _pow_size(sp, put_in(node.args[0]), put_in(node.args[1]), plain)
         else:
-            if isinstance(node, _specials(sp)):
+            if isinstance(node, _specials(sp) + _formula_names.capped_classes()):  # counting functions too (22-23)
                 for part in node.args:
                     size = _size_of_number(sp, put_in(part))
                     if size is not None and not size <= MAX_SPECIAL_ARGUMENT:
@@ -1613,7 +1614,13 @@ class Formula(_AlgebraWords):
         by_numbers = bool(many) or singles_empty or self._expr.has(sp.loggamma)
         if not by_numbers:
             swaps = {self._symbol(k): parse(v, "find_value_at()") for k, v in values.items()}
-            found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
+            try:
+                found = _guarded(self._expr.evalf, 15, subs=swaps, what="SymPy evalf")
+            except _formula_names.NO_VALUE as problem:  # batches 22-23: jacobi_symbol(2, 36) and the like
+                if not self._expr.has(*_formula_names.sympy_classes()):
+                    raise
+                raise SimplydataError(f"SymPy has no value of {_show(self._expr)} at {_places(values)} "
+                                      f"({problem}).") from None
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
                                       "decimal (float). formula.put_in(...).show_as_decimal() shows it.")
@@ -1636,12 +1643,14 @@ class Formula(_AlgebraWords):
         # lgamma is the log of the size of gamma (SciPy gammaln, as R lgamma and fit_formula), real for every x
         function = sp.lambdify([self._symbol(n) for n in letters], self._expr,
                                modules=[{"loggamma": special.gammaln}, "scipy", "numpy"])
-        try:
+        how = "SymPy lambdify, worked out by NumPy and SciPy"
+        if self._expr.has(*_formula_names.by_value_classes()):
+            # batches 22-23: a SymPy function NumPy and SciPy lack or work out otherwise (fibonacci, factorial below 0)
+            out = _formula_names.value_by_value(self._expr, [self._symbol(n) for n in letters], arrays)
+            how = "SymPy evalf, value by value, as NumPy and SciPy lack a function of it"
+        else:
             with np.errstate(all="ignore"):
                 out = np.asarray(function(*arrays), dtype=complex)
-        except _formula_names.BY_VALUE_ERRORS if self._expr.has(*_formula_names.sympy_classes()) else ():
-            # batches 22-23: a SymPy function NumPy and SciPy do not have (fibonacci, lerchphi ...), value by value
-            out = _formula_names.value_by_value(self._expr, [self._symbol(n) for n in letters], arrays)
         shape = np.broadcast_shapes(*[np.shape(a) for a in arrays])
         out = np.broadcast_to(out, shape)
         if np.any(np.abs(out.imag) > 1e-12 * np.maximum(1.0, np.abs(out.real))):
@@ -1650,10 +1659,10 @@ class Formula(_AlgebraWords):
         result = np.array(out.real, dtype=float)
         if not many:
             answer = float(result.reshape(-1)[0])
-            print(f"{_show(self._expr)} at {_places(values)}: {_decimal(answer)}   (SymPy lambdify, worked out by NumPy "
-                  "and SciPy" + ("; an empty value gives an empty answer)" if singles_empty else ")"))
+            print(f"{_show(self._expr)} at {_places(values)}: {_decimal(answer)}   ({how}"
+                  + ("; an empty value gives an empty answer)" if singles_empty else ")"))
             return answer
-        print(f"{_show(self._expr)} at {result.size} values (SymPy lambdify, worked out by NumPy and SciPy).")
+        print(f"{_show(self._expr)} at {result.size} values ({how}).")
         return Numbers(result.ravel())
 
     @friendly

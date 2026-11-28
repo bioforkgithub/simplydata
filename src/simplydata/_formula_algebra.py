@@ -118,7 +118,8 @@ FACTS = {
     "factors": ("factor_list", None, "factors", "each factor with how many times it repeats"),
     "repeated factors": ("sqf_list", None, "factors", "the square-free factors with how many times each repeats"),
     "square-free part": ("sqf_part", None, "formula", "the product of the different factors, each once"),
-    "factorial factors": ("gff_list", None, "factors", "the falling-factorial factors with their powers"),
+    "factorial factors": ("gff_list", None, "factors", "the falling factorials ff(g, k) = g(g - 1)...(g - k + 1) "
+                          "whose product, times the leading coefficient, is the polynomial"),
     "divided by leading coefficient": ("monic", None, "formula", "the polynomial divided by its leading "
                                        "coefficient (monic)"),
     "parts it is made of": ("decompose", None, "formulas", "polynomials f1, f2 ... with f1(f2(...)) the formula"),
@@ -126,7 +127,8 @@ FACTS = {
     "inverse modulo": ("invert", "other", "formula", "the polynomial that times the formula leaves 1 after "
                        "division by the other"),
     "coefficients modulo": ("trunc", "number", "formula", "each coefficient as its remainder after division by "
-                            "the number"),
+                            "the number, from -p/2 to p/2 (the symmetric remainder: -3 modulo 2 is 1, 3 modulo 4 is "
+                            "-1)"),
     "powers of roots": ("nth_power_roots_poly", "power", "formula", "the polynomial whose roots are the roots of "
                         "the formula to the power"),
     "term ratio": ("hypersimp", "letter", "formula", "the ratio of one term to the one before, f(k + 1)/f(k), "
@@ -153,7 +155,7 @@ _ROOTS_HINT = (" find_roots() works exactly on whole-number and fraction coeffic
                "of any polynomial in decimals.")
 # the facts of a polynomial in one letter: with several letters, for_letter= says which
 ONE_LETTER = ("discriminant", "resultant", "subresultants", "sturm sequence", "parts it is made of", "put into",
-              "inverse modulo", "powers of roots", "coefficients")
+              "inverse modulo", "powers of roots", "coefficients", "viete formulas", "galois group")
 DIVIDE_SHOW = ("quotient and remainder", "quotient", "remainder")
 FACTOR_SHOW = ("common factor", "common factor and the rest", "combination", "half combination")
 DIVIDE_SHOW_SPELLINGS = {"both": "quotient and remainder", "div": "quotient and remainder", "quo": "quotient",
@@ -191,7 +193,7 @@ def _poly_errors():
     """SymPy's errors that say the formula is not a polynomial it can work with."""
     from sympy.polys.polyerrors import BasePolynomialError
 
-    return (BasePolynomialError, NotImplementedError)
+    return (BasePolynomialError, NotImplementedError, ValueError)
 
 
 class _AlgebraWords:
@@ -295,6 +297,9 @@ class _AlgebraWords:
             if not isinstance(between, (list, tuple)) or len(between) != 2:
                 raise SimplydataError("between= needs two values, such as between=[0, 3].")
             low, high = (_limit_value(sp, v, "between=") for v in between)
+            if _guarded(sp.Gt, low, high, what="SymPy Gt") == sp.true:
+                raise SimplydataError(f"between= needs the smaller value first, such as between=[{between[1]}, "
+                                      f"{between[0]}].")
         if within is not None and key != "intervals":
             raise SimplydataError('within= is for show="intervals": how narrow each interval is.')
         if within is not None and (isinstance(within, bool) or not isinstance(within, (int, float))
@@ -432,6 +437,9 @@ class _AlgebraWords:
         if g == 0:
             raise SimplydataError("A polynomial cannot be divided by 0.")
         shown, by = _show(self._expr), _show(g)
+        if for_letter is None and len(letters) > 1:
+            print(f"Divided as polynomials in {', '.join(str(s) for s in letters)}, in that order (SymPy's lex "
+                  'order); for_letter="x" divides as polynomials in one letter, the others kept as numbers.')
         if with_no_remainder:
             call, name = (sp.pexquo, "pexquo") if without_fractions else (sp.exquo, "exquo")
             try:
@@ -604,6 +612,8 @@ class _AlgebraWords:
         coefficient", "parts it is made of", "put into" (other=), "inverse modulo" (other=), "coefficients modulo"
         (other= a whole number), "powers of roots" (power=), "term ratio" (for_letter= the letter that counts) and
         "coefficients". SymPy's names work too ("LC", "groebner", "sqf_list"). The formula itself does not change.
+        An exact answer can be very big (the resultant of two polynomials of degree 900); a number too big for a
+        decimal comes back as a formula, and every step stops at the time limit.
         """
         from ._errors import SimplydataError
         from ._formula import Formula, _show, need_sympy
@@ -658,9 +668,15 @@ class _AlgebraWords:
             if not letters:
                 raise SimplydataError(f'find_fact("{key}") works on a polynomial with a letter; {shown} has none.')
             if key == "galois group":
-                if len(letters) != 1:
-                    raise SimplydataError('find_fact("galois group") works on a polynomial in one letter.')
+                degree = self._poly("find_fact", sp.degree, self._expr, letters[0], what="SymPy degree")
+                if not 1 <= degree <= MAX_FACT_DEGREE:
+                    raise SimplydataError(f'find_fact("galois group") works on a polynomial of degree 1 to '
+                                          f"{MAX_FACT_DEGREE} (SymPy's galois_group); {shown} has degree "
+                                          f"{_show(degree)}.")
+                values += letters
                 named["by_name"] = True
+            elif key == "viete formulas":
+                values += [None, *letters]  # viete(f, roots, *gens): SymPy's own names r1, r2 ... for the roots
             elif key in ("groebner basis", "remainder by several"):
                 values += letters
                 named["order"] = "lex"
@@ -669,7 +685,7 @@ class _AlgebraWords:
                 named["formal"] = True
             elif key == "coefficients":
                 pass
-            elif key not in ("viete formulas",):
+            else:
                 values += letters
             if key in ONE_LETTER and len(letters) > 1:
                 raise SimplydataError(f'find_fact("{key}") works on a polynomial in one letter; {shown} has '
@@ -683,6 +699,9 @@ class _AlgebraWords:
             found = self._poly("find_fact", getattr(sp, function_name), *values, what=f"SymPy {function_name}",
                                **named)
         how = f"SymPy {function_name}"
+        if key == "term ratio" and found is None:
+            raise SimplydataError(f"SymPy found no simple ratio of one term to the one before for {shown}: it is not "
+                                  "a hypergeometric term (SymPy hypersimp gives None).")
         with_said = f" with {', '.join(_show(o) for o in also)}" if also else (f" and {other}" if needs == "number"
                                                                                else "")
         if key == "galois group":
@@ -707,11 +726,16 @@ class _AlgebraWords:
                   f"{', '.join(_show(q) for q in quotients)} and the remainder {_show(rest)}   ({how})")
             return Formula(rest)
         if gives == "factors":
-            number, pairs = (1, found) if function_name == "gff_list" else found  # gff_list has no number factor
-            rows = [{"factor": _show(f), "times": int(k)} for f, k in pairs]
+            if function_name == "gff_list":  # falling factorials ff(g, k), and gff_list leaves out the number in front
+                number = self._poly("find_fact", sp.LC, self._expr, *letters, what="SymPy LC")
+                rows = [{"factor": f"ff({_show(f)}, {int(k)})", "times": 1} for f, k in found]
+            else:
+                number, pairs = found
+                rows = [{"factor": _show(f), "times": int(k)} for f, k in pairs]
             if number != 1:
                 rows.insert(0, {"factor": _show(number), "times": 1})
-            written = [f"({r['factor']})" + (f"**{r['times']}" if r["times"] > 1 else "") for r in rows]
+            written = [(r["factor"] if r["factor"].startswith("ff(") else f"({r['factor']})")
+                       + (f"**{r['times']}" if r["times"] > 1 else "") for r in rows]
             print(f'find_fact("{key}") of {shown}: ' + " * ".join(written) + f"   ({how})")
             from ._formula import _result_rows
 
@@ -750,7 +774,12 @@ def _back(sp, value):
     if getattr(value, "free_symbols", None):
         return Formula(value)
     if value.is_real:
-        return float_of(value)
+        found = float_of(value)
+        if not math.isfinite(found) and value.is_finite:  # too big for a float: the exact number, as a formula
+            print("The answer is too big for a decimal (float), so it comes back exactly, as a formula; "
+                  "formula.show_as_decimal() shows its first digits.")
+            return Formula(value)
+        return found
     found = complex(decimal_of(value))
     return found.real if found.imag == 0 else found
 

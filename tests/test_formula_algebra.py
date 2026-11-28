@@ -322,7 +322,7 @@ def test_find_fact_lists_tables_and_texts_are_sympys(sympy_calls):
     repeated = _quiet(_formula("(x - 1)**2*(x + 1)").find_fact, "repeated factors")
     assert _column(repeated, "times") == [k for _, k in sp.sqf_list((x - 1) ** 2 * (x + 1))[1]]
     falling = _quiet(_formula("x**3 - x").find_fact, "factorial factors")
-    assert _column(falling, "factor") == [str(p) for p, _ in sp.gff_list(x ** 3 - x)]
+    assert _column(falling, "factor") == [f"ff({p}, {k})" for p, k in sp.gff_list(x ** 3 - x)]
     symmetric, rest = _quiet(_formula("x**2 + y**2").find_fact, "symmetric form")
     s1, s2 = sp.symbols("s1 s2")
     assert (symmetric.as_sympy(), rest.as_sympy()) == (s1 ** 2 - 2 * s2, 0)
@@ -562,3 +562,108 @@ def test_a_counting_function_that_takes_whole_numbers_only_refuses_a_letter():
     import sympy as sp
 
     assert _quiet(_formula("motzkin(10)").find_value_at) == float(sp.motzkin(10))
+
+
+# ------------------------------------------------------------------------------------------------ review fixes
+def test_many_values_of_a_whole_number_function_are_its_values_at_whole_numbers():
+    import sympy as sp
+
+    for text, values in [("totient(n)", [36, 12, 7]), ("partition(n)", [5, 10]), ("mobius(n)", [30, 4, 7]),
+                         ("lucas(n) + subfactorial(n)", [3, 6]), ("legendre_symbol(n, 7)", [2, 3])]:
+        found = _quiet(_formula(text).find_value_at, n=values).as_numpy().tolist()
+        n = sp.Symbol("n")
+        expected = [float(_formula(text).as_sympy().subs(n, v)) for v in values]
+        assert found == expected, text
+
+
+def test_factorial_at_several_values_is_the_same_as_at_one_value():
+    found = _quiet(_formula("factorial(x)").find_value_at, x=[-0.5, -1, 2]).as_numpy()
+    one = _quiet(_formula("factorial(x)").find_value_at, x=-0.5)
+    assert found[0] == pytest.approx(math.gamma(0.5), rel=1e-14) == pytest.approx(one, rel=1e-14)
+    assert math.isnan(found[1]) and found[2] == 2.0
+
+
+def test_put_in_keeps_the_rule_for_counting_functions():
+    with pytest.raises(sdata.SimplydataError, match="bigger than 1000"):
+        _quiet(_formula("factorial(n)").put_in, n=100000)
+
+
+def test_a_fact_too_big_for_a_decimal_comes_back_exactly():
+    sp, x = _sp()
+    found = _quiet(_formula("x**300 - 999**100").find_fact, "discriminant")
+    assert hasattr(found, "as_sympy") and found.as_sympy() == sp.discriminant(x ** 300 - sp.Integer(999) ** 100)
+
+
+def test_piecewise_takes_at_most_and_at_least_conditions():
+    sp, x = _sp()
+    found = _formula("Piecewise((x, x <= 1), (1, x >= 1))").as_sympy()
+    assert found == sp.Piecewise((x, x <= 1), (1, x >= 1))
+    with pytest.raises(sdata.SimplydataError, match="equation"):
+        _formula("Piecewise((x, x <= 1), (0, True)) = 2")
+
+
+def test_factorial_factors_keep_the_number_in_front_and_print_falling_factorials():
+    sp, x = _sp()
+    printed = io.StringIO()
+    with contextlib.redirect_stdout(printed):
+        found = _formula("2*x**3 - 2*x").find_fact("factorial factors")
+    rows = _column(found, "factor")
+    assert rows[0] == str(sp.LC(2 * x ** 3 - 2 * x)) == "2"
+    assert rows[1:] == [f"ff({g}, {k})" for g, k in sp.gff_list(2 * x ** 3 - 2 * x)]
+    product = sp.LC(2 * x ** 3 - 2 * x) * sp.Mul(*[sp.ff(g, k) for g, k in sp.gff_list(2 * x ** 3 - 2 * x)])
+    assert sp.expand(product) == 2 * x ** 3 - 2 * x
+    assert "ff(" in printed.getvalue() and "**" not in printed.getvalue().split(":")[-1]
+
+
+@pytest.mark.parametrize("text, by", [("2*x + 4*y", None), ("2*x + 4*y", "common factors")])
+def test_a_number_times_a_sum_stays_a_product_after_the_time_limit_helper(text, by):
+    sp, _ = _sp()
+    x, y = sp.symbols("x y")
+    formula = _formula(text)
+    _quiet(formula.turn_into_product, **({} if by is None else {"by": by}))
+    assert str(formula) == str(sp.factor(2 * x + 4 * y)) == "2*(x + 2*y)"
+
+
+@pytest.mark.parametrize("call, said", [
+    (lambda: _formula("x**7 - x - 1").find_fact("galois group"), "degree 1 to 6"),
+    (lambda: _formula("jacobi_symbol(2, n)").find_value_at(n=36), "no value"),
+    (lambda: _formula("legendre_symbol(2, 9)"), "no value of legendre_symbol"),
+    (lambda: _formula("chebyshevt_root(3, 7)"), "no value of chebyshevt_root"),
+])
+def test_sympys_value_errors_are_plain_sentences(call, said):
+    with pytest.raises(sdata.SimplydataError, match=said):
+        _quiet(call)
+
+
+def test_viete_formulas_use_the_letter_asked_for():
+    sp, _ = _sp()
+    a, x = sp.symbols("a x")
+    found = _quiet(_formula("x**2 - a*x + 1").find_fact, "viete formulas", for_letter="x")
+    assert found == [f"{l} = {r}" for l, r in sp.viete(x ** 2 - a * x + 1, None, x)]
+    with pytest.raises(sdata.SimplydataError, match="for_letter="):
+        _quiet(_formula("x**2 - a*x + 1").find_fact, "viete formulas")
+
+
+def test_value_by_value_has_one_deadline_and_says_its_method_once(capsys):
+    from simplydata import _formula_names
+
+    assert hasattr(_formula_names.value_by_value, "__wrapped__")  # one_deadline
+    _formula("fibonacci(n)").find_value_at(n=[1, 2])
+    printed = capsys.readouterr().out
+    assert "value by value" in printed and "lambdify" not in printed
+
+
+def test_small_review_fixes():
+    sp, x = _sp()
+    with pytest.raises(sdata.SimplydataError, match="no simple ratio"):
+        _quiet(_formula("2**(k**2)").find_fact, "term ratio")
+    with pytest.raises(sdata.SimplydataError, match="smaller value first"):
+        _quiet(_formula("x**2 - 1").find_roots, between=[3, -3])
+    printed = io.StringIO()
+    with contextlib.redirect_stdout(printed):
+        _formula("x**2 + a*x").divide_by("x + a")
+    assert "in a, x, in that order" in printed.getvalue()
+    assert "-p/2 to p/2" in _formula_algebra.FACTS["coefficients modulo"][3]
+    with pytest.raises(sdata.SimplydataError, match="no decimal for mathieuc"):
+        _quiet(_formula("mathieuc(1, 1, x)").find_value_at, x=[0.5, 1.0])
+    sdata.help("sympy.piecewise_exclusive")
