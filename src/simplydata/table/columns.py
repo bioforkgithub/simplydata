@@ -61,6 +61,8 @@ FORMULA_HELP = (
     "  log10(x)  log1p(x)         log to base 10, and log(1 + x) for x near 0 (as NumPy)\n"
     "  floor(x)  ceil(x)          round down, round up to a whole number\n"
     "  sign(x)  cbrt(x)           -1, 0 or 1 for the sign, and the cube root\n"
+    "  bessel_j(1, x)  erfinv(x)  the maths functions of numbers.take_function, by formula name (_ for spaces),\n"
+    "                             SciPy name or SymPy name; sdata.help(\"take_function\") lists them\n"
     "  add_working_days(d, 10)    the date 10 working days (Monday to Friday) after a date column\n"
     "  count_working_days(a, b)   working days from date a up to (not counting) date b\n"
     "  length(x)                  how many characters the text in a column has\n"
@@ -86,6 +88,15 @@ SPECIAL_FUNCTIONS = ("tan", "erf", "erfc", "gamma", "lgamma", "digamma", "beta",
 # Polars business_day_count (NumPy busday_count): Monday to Friday, the end date not counted
 DATE_FUNCTIONS = {"add_working_days": 2, "count_working_days": 2}
 FUNCTION_SPELLINGS = {"besselj": "besselJ"}  # both spellings work
+# families for 100 %, batches 7-9 (plan section 2.3, approved by Manish 2026-11-28): every maths function of
+# numbers.take_function by its formula name, its library name or SymPy's name (bessel_j(1, x), erfinv(x), Ei(x)),
+# from the one name table (_maths_functions.py), worked out by SciPy or NumPy on the numbers. Without brackets
+# these names stay column names and values to find, as before (y0, k1, agm ...).
+from .._maths_functions import FORMULA_SIZES as _TABLE_SIZES  # noqa: E402
+
+TABLE_FUNCTIONS = tuple(name for name in _TABLE_SIZES if name not in FUNCTIONS)
+FUNCTIONS.update({name: _TABLE_SIZES[name] for name in TABLE_FUNCTIONS})
+SPECIAL_FUNCTIONS = SPECIAL_FUNCTIONS + TABLE_FUNCTIONS
 CONSTANTS = {"pi": math.pi}
 # text functions (tables phase, batch 3): how many things inside the brackets. length(name) is pandas str.len() and
 # Polars str.len_chars(); count_text(notes, ";") is pandas str.count(re.escape(";")) and Polars
@@ -101,7 +112,7 @@ OTHER_TOOL_NAMES = {"mean": "average", "avg": "average", "sum": "total", "min": 
                     "count_matches": "count_text", "busday_offset": "add_working_days",
                     "add_business_days": "add_working_days", "busday_count": "count_working_days",
                     "business_day_count": "count_working_days",
-                    "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "besselJ",
+                    "gammaln": "lgamma", "loggamma": "lgamma", "psi": "digamma", "jv": "bessel_j",
                     "power": "**", "pow": "**"}
 MAX_FORMULA_LENGTH = 500
 
@@ -195,6 +206,10 @@ def special_function(name: str, *values):
             return np.sinc(values[0])
         if name in ("log10", "log1p", "sign", "cbrt", "floor", "ceil"):
             return getattr(np, name)(values[0])  # NumPy log10, log1p, sign, cbrt, floor, ceil
+        if name in TABLE_FUNCTIONS:  # the maths family (families for 100 %, batches 7-9)
+            from .._maths_functions import formula_value
+
+            return formula_value(name, *values)
         found = {"erf": special.erf, "erfc": special.erfc, "gamma": special.gamma,
                  "lgamma": special.gammaln, "digamma": special.digamma}[name]
         return found(values[0])
@@ -316,7 +331,7 @@ class _FormulaReader:
                 return self._column(name)
             if node.id in CONSTANTS:
                 return nw.lit(CONSTANTS[node.id])
-            if node.id in FUNCTIONS or node.id in SUMMARY_WORDS:
+            if (node.id in FUNCTIONS and node.id not in TABLE_FUNCTIONS) or node.id in SUMMARY_WORDS:
                 raise self._error(f"{node.id} needs brackets after it, for example {node.id}(marks).")
             raise column_error(node.id, self.columns)
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):

@@ -154,6 +154,15 @@ DATASETS = {d.name: d for d in [
             "https://www.jstatsoft.org/v027/i08"),
     Dataset("made-up", "", "small made-up tables for edge cases (empty cells, no rows left, an exact line)",
             "simplydata's validation/cases.py.", "Same as simplydata (see LICENSE).", ""),
+    Dataset("published special-function tables (no data)", "",
+            "no data: values of the special functions printed in published tables (Bessel, Airy, error, elliptic and "
+            "exponential integrals, zeta, Lambert W, the zeros of J and Ai, Gauss-Legendre points), for the maths "
+            "family (families for 100 %, plan section 2.3)",
+            "Olver, F. W. J. et al. (eds.), NIST Digital Library of Mathematical Functions, release 1.2 (2024); "
+            "Abramowitz, M. & Stegun, I. A. (1964). Handbook of Mathematical Functions. National Bureau of Standards "
+            "Applied Mathematics Series 55.",
+            "Works of the US Government (public domain in the United States); a few numbers are quoted, nothing "
+            "stored.", "https://dlmf.nist.gov"),
     Dataset("closed form (no data)", "",
             "no data: systems, waves and window shapes made from a formula, and formulas, areas, volumes and paths "
             "over time (numbers phase, batch 3), checked against the answer worked out by hand from the same formula",

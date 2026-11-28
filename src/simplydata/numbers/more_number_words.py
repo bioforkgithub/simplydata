@@ -22,6 +22,21 @@ from ._base import NOT_GIVEN, BaseNumbers, amount, is_number, note_empty, plain,
 _CONDITION_OPTIONS = ("is_above", "is_below", "is_at_least", "is_at_most", "is_equal_to", "is_not_equal_to",
                       "is_between", "is_one_of", "is_empty")
 ANGLE_UNITS = ("degrees", "radians")
+# turn_into_yes_or_no(is_=): what kind of number each is (families for 100 %, plan section 2.3, approved by Manish
+# 2026-11-28) -> (the NumPy word, what it means)
+NUMBER_KINDS = {
+    "finite": ("isfinite", "not empty and not infinite"),
+    "infinite": ("isinf", "inf or -inf"),
+    "minus infinity": ("isneginf", "-inf"),
+    "plus infinity": ("isposinf", "inf"),
+    "real": ("isreal", "simplydata numbers are real numbers, so every one is"),
+    "complex": ("iscomplex", "simplydata numbers are real numbers, so none is"),
+    "not a time": ("isnat", "NumPy's empty date or time; numbers hold no dates, so none is"),
+}
+NUMBER_KIND_SPELLINGS = {"isfinite": "finite", "isinf": "infinite", "inf": "infinite", "infinity": "infinite",
+                         "isneginf": "minus infinity", "-inf": "minus infinity", "negative infinity": "minus infinity",
+                         "isposinf": "plus infinity", "+inf": "plus infinity", "positive infinity": "plus infinity",
+                         "isreal": "real", "iscomplex": "complex", "isnat": "not a time", "nat": "not a time"}
 
 
 def _short(option: str) -> str:
@@ -230,12 +245,16 @@ class MoreNumberWords:
     @friendly
     def turn_into_yes_or_no(self, *extra, is_above=NOT_GIVEN, is_below=NOT_GIVEN, is_at_least=NOT_GIVEN,
                             is_at_most=NOT_GIVEN, is_equal_to=NOT_GIVEN, is_not_equal_to=NOT_GIVEN,
-                            is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN):
+                            is_between=NOT_GIVEN, is_one_of=NOT_GIVEN, is_empty=NOT_GIVEN, is_=NOT_GIVEN):
         """New yes or no values, one for each number: yes where the number passes the test. warm = numbers.turn_into_yes_or_no(is_above=20)
 
         The same conditions as keep_each_number_that; empty numbers are no (except is_empty=True). Join tests with
         & (both), | (either) and ~ (not): warm & ~salty. The numbers themselves do not change.
-        NumPy: numbers > 20 (a bool array).
+        NumPy: numbers > 20 (a bool array). is_= asks what kind of number each is (NumPy's is* words): "finite"
+        (np.isfinite: not empty and not inf), "infinite" (np.isinf), "minus infinity" (np.isneginf), "plus
+        infinity" (np.isposinf), "real" (np.isreal) and "complex" (np.iscomplex): simplydata numbers are real
+        numbers, so "real" is always yes and "complex" always no; "not a time" (np.isnat) is always no, as numbers
+        hold no dates (an empty date in a table column is is_empty=True there).
         """
         if extra:
             raise SimplydataError("turn_into_yes_or_no() needs one condition, like is_above=20."
@@ -243,10 +262,33 @@ class MoreNumberWords:
         given = dict(is_above=is_above, is_below=is_below, is_at_least=is_at_least, is_at_most=is_at_most,
                      is_equal_to=is_equal_to, is_not_equal_to=is_not_equal_to, is_between=is_between,
                      is_one_of=is_one_of, is_empty=is_empty)
+        if is_ is not NOT_GIVEN:
+            if any(value is not NOT_GIVEN for value in given.values()):
+                raise SimplydataError("turn_into_yes_or_no() takes is_= alone, without the other conditions."
+                                      + self._example('turn_into_yes_or_no(is_="infinite")'))
+            return self._number_kind(is_)
         cond, words = self._condition_from("turn_into_yes_or_no", given, allow_none_for_yes_no=False)
         cond = np.asarray(cond, dtype=bool)
         print(f"{amount(cond.size, 'yes or no value')} (NumPy bool): {int(np.count_nonzero(cond))} yes "
               f"(the numbers that {words}).")
+        return self._like(cond)
+
+    def _number_kind(self, kind):
+        """turn_into_yes_or_no(is_=...): NumPy's isfinite, isinf, isneginf, isposinf, isreal, iscomplex and isnat
+        (families for 100 %, plan section 2.3)."""
+        key = str(kind).strip().lower() if isinstance(kind, str) else None
+        key = NUMBER_KIND_SPELLINGS.get(key, key)
+        if key not in NUMBER_KINDS:
+            raise choice_error("turn_into_yes_or_no", "is_", kind, list(NUMBER_KINDS))
+        function_name, about = NUMBER_KINDS[key]
+        values = self._values
+        if function_name == "isnat":
+            cond = np.zeros(values.shape, dtype=bool)
+        else:
+            cond = getattr(np, function_name)(values.astype(float) if values.dtype.kind == "b" else values)
+        cond = np.asarray(cond, dtype=bool)
+        print(f"{amount(cond.size, 'yes or no value')} (NumPy bool): {int(np.count_nonzero(cond))} yes (the numbers "
+              f"that are {key}: {about}). NumPy: np.{function_name}({self._name})")
         return self._like(cond)
 
     def __invert__(self):

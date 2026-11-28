@@ -89,8 +89,8 @@ import numpy as np
 
 from .._errors import SimplydataError, choice_error, friendly
 from .._stats import _plain_name
-from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SPECIAL_FUNCTIONS, _formula_error,
-                      _FormulaReader, _is_number, special_function)
+from .columns import (CONSTANTS, FORMULA_HELP, FUNCTION_SPELLINGS, FUNCTIONS, SPECIAL_FUNCTIONS, TABLE_FUNCTIONS,
+                      _formula_error, _FormulaReader, _is_number, special_function)
 from .summaries import GROUPS_IN_SENTENCE as GROUPS_SHOWN
 from .effect_sizes import effect_size, interval_only, interval_text
 from .post_hoc import R_PAIR_TESTS, dunnett_pairs, pair_letters, r_pairs
@@ -521,7 +521,7 @@ FIT_FUNCTIONS = {"exp": (1, 1), "log": (1, 2), "sqrt": (1, 1), "abs": (1, 1),
 FIT_NUMPY = {"arctan": np.arctan, "arcsin": np.arcsin, "arccos": np.arccos}
 FIT_SPELLINGS = {"atan": "arctan", "asin": "arcsin", "acos": "arccos", "atan2": "arctan2"}
 # gamma and beta are also usual names for values to find: written without brackets they are values
-FIT_NAMES_FREE = ("gamma", "beta")
+FIT_NAMES_FREE = ("gamma", "beta", *TABLE_FUNCTIONS)  # the maths family's names too (families for 100 %, 2.3)
 FIT_HELP = (
     "A formula to fit has the column to fit on the left of =, and on the right:\n"
     "  column names               hours  (names with spaces go in backticks: `max temp`)\n"
@@ -539,6 +539,8 @@ FIT_HELP = (
     "  digamma(x)  beta(a, b)     digamma function, beta function (as R)\n"
     "  besselJ(x, nu)             Bessel function of the first kind, order nu (as R)\n"
     "  sinc(x)                    sin(pi x) / (pi x), and 1 at x = 0 (as NumPy sinc)\n"
+    "  bessel_j(1, x)  erfinv(x)  the maths functions of numbers.take_function, by formula name (_ for spaces),\n"
+    "                             SciPy name or SymPy name; sdata.help(\"take_function\") lists them\n"
     'Example: table.fit_formula("marks = a * hours + b")   (with sdata.get_example("marks"))'
 )
 
