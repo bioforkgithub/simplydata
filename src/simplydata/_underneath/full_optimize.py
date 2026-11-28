@@ -112,24 +112,20 @@ ENTRIES = [
             import numpy as np
             from scipy import optimize
             # find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start=..., test_method="newton conjugate gradient")
-            f, h = lambda v: (1 - v[0])**2 + 100*(v[1] - v[0]**2)**2, np.finfo(float).eps ** (1 / 3)
-            def slopes(v):                                                     # (1)
-                steps = [h * max(1.0, abs(t)) * np.eye(2)[i] for i, t in enumerate(v)]
-                return np.array([(f(v + s) - f(v - s)) / (2 * np.abs(s).max()) for s in steps])
-            def bends(v, p, k=1.0):                                            # (2)
-                k = h * max(1.0, np.linalg.norm(v)) / np.linalg.norm(p)
-                return (slopes(v + k * p) - slopes(v - k * p)) / (2 * k)
-            found = optimize.minimize(f, [-1.2, 1], method="Newton-CG", jac=slopes, hessp=bends,
+            from scipy import differentiate
+            f = lambda v: (1 - v[0])**2 + 100*(v[1] - v[0]**2)**2
+            slopes = lambda v: differentiate.jacobian(f, np.asarray(v, dtype=float)).df   # (1)
+            found = optimize.minimize(f, [-1.2, 1], method="Newton-CG", jac=slopes, hess="3-point",  # (2)
                                       options={"xtol": 1e-10, "maxiter": 10000})  # (3)
             {"x": found.x[0], "y": found.x[1]}
         """},
         compare="result",
         fields=("x", "y"),
         tolerance=1e-6,
-        choices=("the slopes by central differences (step: the cube root of the machine epsilon times each value); "
-                 "Newton-CG needs slopes and SciPy has no default for them.",
-                 "the bends along a direction by central differences of those slopes; SciPy's own forward "
-                 "differences are too rough to settle on a flat minimum.",
+        choices=("the slopes from scipy.differentiate.jacobian; Newton-CG needs slopes as a function and SciPy has "
+                 "no default for them.",
+                 "the bends by SciPy's central differences of those slopes (hess=\"3-point\"); SciPy's own default "
+                 "is too rough to settle on a flat minimum.",
                  "a tight tolerance (xtol 1e-10) and up to 10,000 steps."),
         also=TOLD,
     ),
@@ -145,17 +141,14 @@ ENTRIES = [
             from scipy import optimize
             # find_where_smallest("(1 - x)**2 + 100*(y - x**2)**2", start=..., test_method="truncated newton")
             f = lambda v: (1 - v[0])**2 + 100*(v[1] - v[0]**2)**2
-            def slopes(v, h=np.finfo(float).eps ** (1 / 3)):                   # (1)
-                steps = [h * max(1.0, abs(t)) * np.eye(2)[i] for i, t in enumerate(v)]
-                return np.array([(f(v + s) - f(v - s)) / (2 * np.abs(s).max()) for s in steps])
-            found = optimize.minimize(f, [-1.2, 1], method="TNC", jac=slopes, options={
+            found = optimize.minimize(f, [-1.2, 1], method="TNC", jac="3-point", options={   # (1)
                 "xtol": 1e-12, "ftol": 1e-15, "gtol": 1e-10, "maxfun": 20000})   # (2)
             {"x": found.x[0], "y": found.x[1]}
         """},
         compare="result",
         fields=("x", "y"),
         tolerance=1e-6,
-        choices=("the slopes by central differences, as for Newton-CG (SciPy's TNC would use forward differences).",
+        choices=("the slopes by SciPy's central differences (jac=\"3-point\"); its default uses forward differences.",
                  "tight tolerances and up to 20,000 evaluations; TNC keeps to between= when it is given."),
         also=TOLD,
     ),

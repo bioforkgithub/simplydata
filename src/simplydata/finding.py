@@ -66,8 +66,8 @@ LOCAL_METHODS = {
     "cobyla": ("COBYLA", "COBYLA (linear approximations, no slopes needed)",
                'R nloptr(algorithm = "NLOPT_LN_COBYLA")'),
     # families for 100 %, batch 14 (approved by Manish 2026-11-28): SciPy minimize's other two slope methods
-    "newton conjugate gradient": ("Newton-CG", "Newton conjugate gradients (Newton-CG, slopes and bends by "
-                                  "central differences)", "SciPy minimize(method = \"Newton-CG\"); base R has no exact "
+    "newton conjugate gradient": ("Newton-CG", "Newton conjugate gradients (Newton-CG, slopes from "
+                                  "scipy.differentiate)", "SciPy minimize(method = \"Newton-CG\"); base R has no exact "
                                   "equivalent"),
     "truncated newton": ("TNC", "a truncated Newton method (TNC)", 'R nloptr(algorithm = "NLOPT_LD_TNEWTON")'),
 }
@@ -88,7 +88,7 @@ METHOD_SPELLINGS = {
     "nelder mead": "nelder-mead", "neldermead": "nelder-mead", "lbfgsb": "l-bfgs-b", "l-bfgs": "l-bfgs-b",
     "lbfgs": "l-bfgs-b", "cg": "conjugate gradient", "conjugate-gradient": "conjugate gradient",
     "conjugate gradients": "conjugate gradient", "trust-constr": "trust region", "trust constr": "trust region",
-    "trust-region": "trust region", "brent's method": "brent", "bounded": "brent", "golden": "golden section",
+    "trust-region": "trust region", "brent's method": "brent", "bounded": "brent", "golden": "brent",
     "de": "differential evolution", "differential-evolution": "differential evolution",
     "dual-annealing": "dual annealing", "simulated annealing": "dual annealing",
     "basin-hopping": "basin hopping", "basinhopping": "basin hopping", "highs-ds": "simplex",
@@ -471,7 +471,7 @@ def _find(step, goal, formula, between, start, rules, whole_numbers, search, met
             first = _starts(step, names, start, limits, True, 'start={"x": 1, "y": 1}')
             if chosen is None:
                 chosen = "l-bfgs-b" if has_limits else "nelder-mead"
-            answer = _local(names, limits, has_limits, objective, first, chosen)
+            answer = _local(names, limits, has_limits, objective, first, chosen, text=formula)
             from_start = first
 
     value = sign * answer.value
@@ -705,22 +705,42 @@ def _golden_range(name, low, high, objective, biggest=False):
         raise SimplydataError(f"Between {_show(low)} and {_show(high)}, the formula has no value at any of the "
                               f"{SCAN_POINTS} evenly spaced points checked (it is not a number there, or is "
                               "infinite). Check between=.")
-    best = int(np.nanargmin(np.where(finite, ys, np.nan)))
+    values = np.where(finite, ys, np.inf)
+    best = int(np.argmin(values))
     notes = []
-    if best in (0, len(xs) - 1):
-        place, value, settled, iterations = float(xs[best]), float(ys[best]), True, 0
-        notes.append(f"Note: the {lowest} point is at the end of the range, {name} = {_show(place)}; a wider "
-                     "between= may give a better value.")
-        where = "the end of the range"
-    else:
-        bracket = (float(xs[best - 1]), float(xs[best]), float(xs[best + 1]))
-        with warnings.catch_warnings(), np.errstate(all="ignore"):
-            warnings.simplefilter("ignore")
-            found = optimize.minimize_scalar(objective, bracket=bracket, method="golden",
-                                             options={"xtol": BRENT_TOL, "maxiter": 10000})
+    # the bracket needs a strictly higher point on each side: past a flat bottom (several scan points as low as the
+    # lowest), the nearest scan points that are higher
+    left = best - 1
+    while left >= 0 and not values[left] > values[best]:
+        left -= 1
+    right = best + 1
+    while right < len(xs) and not values[right] > values[best]:
+        right += 1
+    ties = int(np.count_nonzero(values == values[best]))
+    found = None
+    if left >= 0 and right < len(xs):
+        try:
+            with warnings.catch_warnings(), np.errstate(all="ignore"):
+                warnings.simplefilter("ignore")
+                found = optimize.minimize_scalar(objective, bracket=(float(xs[left]), float(xs[best]),
+                                                                     float(xs[right])),
+                                                 method="golden", options={"xtol": BRENT_TOL, "maxiter": 10000})
+        except (ValueError, RuntimeError):  # SciPy refuses a bracket it finds flat: keep the lowest scan point
+            found = None
+    if found is not None and float(found.fun) <= values[best]:
         place, value = float(found.x), float(found.fun)
         settled, iterations = bool(found.success), int(found.nit)
         where = f"the {dip} around {name} = {_show(xs[best])}"
+    else:
+        place, value, settled, iterations = float(xs[best]), float(values[best]), True, 0
+        at_end = left < 0 or right >= len(xs)
+        where = "the end of the range" if at_end else f"the lowest of the scan points, {name} = {_show(place)}"
+        if at_end:
+            notes.append(f"Note: the {lowest} part is at the end of the range, near {name} = {_show(place)}; a wider "
+                         "between= may give a better value.")
+    if ties > 1:
+        notes.append(f"Note: the formula is flat at its {lowest} value ({ties} of the {SCAN_POINTS} scan points are as "
+                     f"{'high' if biggest else 'low'}), so many places give it; this is one of them.")
     words = (f"Method: golden-section search on {where}, the {lowest} of {SCAN_POINTS} evenly spaced points, "
              "with SciPy minimize_scalar(method=\"golden\"); base R has no golden-only search (R optimize() adds "
              "parabolic steps, which is Brent's method, the default).")
@@ -787,7 +807,12 @@ def _bounds(names, limits):
              None if not math.isfinite(limits[n][1]) else limits[n][1]) for n in names]
 
 
-def _local(names, limits, has_limits, objective, first, chosen):
+SLOPE_METHODS = ("bfgs", "l-bfgs-b", "conjugate gradient", "newton conjugate gradient", "truncated newton", "slsqp",
+                 "trust region")
+_ROUGH = __import__("re").compile(r"\b(abs|floor|ceil|ceiling|sign|min|max|round)\s*\(")
+
+
+def _local(names, limits, has_limits, objective, first, chosen, text=None):
     from scipy import optimize
 
     scipy_name, words, r_name = LOCAL_METHODS[chosen]
@@ -803,10 +828,11 @@ def _local(names, limits, has_limits, objective, first, chosen):
                "newton conjugate gradient": {"xtol": 1e-10, "maxiter": 10000},
                "truncated newton": {"xtol": 1e-12, "ftol": 1e-15, "gtol": 1e-10, "maxfun": 20000}}[chosen]
     kwargs = {}
-    if chosen in ("newton conjugate gradient", "truncated newton"):
-        kwargs["jac"] = _central_slopes(objective)  # Newton-CG needs slopes; SciPy has no default for it
-    if chosen == "newton conjugate gradient":  # and the bends along a direction, from the slopes the same way
-        kwargs["hessp"] = _central_bends(kwargs["jac"])
+    if chosen == "truncated newton":  # the slopes by SciPy's own central differences
+        kwargs["jac"] = "3-point"
+    if chosen == "newton conjugate gradient":  # Newton-CG needs slopes as a function: scipy.differentiate's, and
+        kwargs["jac"] = _library_slopes(objective)  # the bends by SciPy's central differences of them
+        kwargs["hess"] = "3-point"
     if has_limits:
         if chosen in ("nelder-mead", "l-bfgs-b", "powell", "trust region", "slsqp", "cobyla", "truncated newton"):
             kwargs["bounds"] = _bounds(names, limits)
@@ -820,47 +846,37 @@ def _local(names, limits, has_limits, objective, first, chosen):
     start_words = _places(names, first)
     limit_words = " with the limits in between=" if "bounds" in kwargs else ""
     sentence = f"Method: {words} from {start_words}{limit_words}, as {r_name}."
+    if chosen in SLOPE_METHODS:
+        sentence += " It follows the slopes of the formula, so it needs a smooth formula (no corners or jumps)."
     if chosen == "nelder-mead":
         sentence += " It finds the nearest dip to the start; search=\"whole range\" looks everywhere."
     iterations = int(getattr(found, "nit", getattr(found, "nfev", 0)) or 0)
+    notes = []
+    if chosen in SLOPE_METHODS and _ROUGH.search(text or ""):
+        notes.append("Note: the formula has a corner or a jump (abs, floor, ceiling, sign, min, max or round), where "
+                     "it has no slope; a slope method can stop or settle away from the answer there. Try "
+                     'test_method="nelder-mead", or search="whole range".')
+    outside = [n for n, v in zip(names, place) if not limits[n][0] - 1e-9 <= v <= limits[n][1] + 1e-9]
+    if has_limits and outside:  # a method that cannot keep to between= used it only for the start
+        notes.append(f"Note: the answer is outside between= for {_list_words(outside)}.")
     return _Answer(place, float(found.fun), sentence, settled=bool(found.success), iterations=iterations,
-                   method_name=words)
+                   method_name=words, notes=notes)
 
 
-def _central_slopes(objective):
-    """The slopes of the objective by central differences (step about the cube root of the machine epsilon times
-    the size of each value), for the methods that need them: SciPy optimize.approx_fprime does the same with forward
-    differences, which are less exact."""
-    step = np.finfo(float).eps ** (1 / 3)
+def _library_slopes(objective):
+    """The slopes of the objective from scipy.differentiate.jacobian (adaptive central differences with Richardson
+    extrapolation), for Newton-CG, which needs them as a function."""
+    from scipy import differentiate
+
+    def many(points):  # scipy.differentiate works the formula out at many points at once: one column each
+        points = np.asarray(points, dtype=float)
+        flat = points.reshape(points.shape[0], -1)
+        return np.array([objective(flat[:, i]) for i in range(flat.shape[1])]).reshape(points.shape[1:])
 
     def slopes(theta):
-        theta = np.asarray(theta, dtype=float)
-        out = np.empty_like(theta)
-        for i in range(theta.size):
-            h = step * max(1.0, abs(float(theta[i])))
-            up, down = theta.copy(), theta.copy()
-            up[i] += h
-            down[i] -= h
-            out[i] = (objective(up) - objective(down)) / (2 * h)
-        return out
+        return np.asarray(differentiate.jacobian(many, np.asarray(theta, dtype=float)).df, dtype=float)
 
     return slopes
-
-
-def _central_bends(slopes):
-    """The bend (Hessian) times a direction p, by central differences of the slopes along p: Newton-CG's own
-    forward differences of differenced slopes are too rough to settle on a flat minimum."""
-    step = np.finfo(float).eps ** (1 / 3)
-
-    def bends(theta, p):
-        theta, p = np.asarray(theta, dtype=float), np.asarray(p, dtype=float)
-        size = float(np.linalg.norm(p))
-        if size == 0:
-            return np.zeros_like(p)
-        h = step * max(1.0, float(np.linalg.norm(theta))) / size
-        return (slopes(theta + h * p) - slopes(theta - h * p)) / (2 * h)
-
-    return bends
 
 
 def _constraints(names, rule_list):
@@ -1047,15 +1063,16 @@ def _whole_range(step, names, limits, objective, rule_list, whole, start, chosen
                                       f"9 names ({len(names)} here would need too many points). Use "
                                       'test_method="differential evolution".')
             corner, fun, _grid, _values = optimize.brute(objective, bounds, Ns=per, finish=None, full_output=True)
-            found = optimize.OptimizeResult(x=np.atleast_1d(corner), fun=float(fun), nit=per ** len(names),
-                                            success=True)
-            polished = optimize.minimize(objective, found.x, method="L-BFGS-B", bounds=bounds,
+            polished = optimize.minimize(objective, np.atleast_1d(corner), method="L-BFGS-B", bounds=bounds,
                                          options={"ftol": 1e-15, "gtol": 1e-10})
+            # the steps and whether it settled are the polish's; the grid points are said in the sentence
+            found = optimize.OptimizeResult(x=np.atleast_1d(corner), fun=float(fun), nit=int(polished.nit),
+                                            success=bool(polished.success))
             if polished.fun <= found.fun:
                 found.x, found.fun = polished.x, polished.fun
-            polish_words = ((f" ({per:,} points" if len(names) == 1 else
-                             f" ({per:,} points along each name, {per ** len(names):,} in all") +
-                            ") then a local polish (L-BFGS-B)")
+            polish_words = ((f" (searched {per:,} grid points" if len(names) == 1 else
+                             f" (searched {per ** len(names):,} grid points, {per:,} along each name") +
+                            ") then a local polish (L-BFGS-B, whose steps are counted)")
         else:
             found = optimize.direct(objective, bounds, maxfun=20000 * len(names), len_tol=1e-8)
             polished = optimize.minimize(objective, found.x, method="L-BFGS-B", bounds=bounds,
@@ -1098,7 +1115,7 @@ def find_where_smallest(formula=None, between=None, start=None, rules=None, whol
     "slsqp", "cobyla", "newton conjugate gradient", "truncated newton"; one name: "brent",
     "golden section"; with search="whole range": "differential evolution", "dual annealing",
     "shgo", "basin hopping", "direct", "grid search"). SciPy's names work too (fmin_bfgs,
-    fmin_tnc, brute, golden ...). Gives back a one-row table: the value of each name,
+    fmin_tnc, brute ...; "golden" is an old name of "brent"). Gives back a one-row table: the value of each name,
     the smallest value, the method, whether the search settled (converged), its steps and how many
     times the formula was worked out (evaluations), all also said in a sentence, and for linear programs
     the value of one more on the right of each rule (shadow price, R lp(compute.sens = TRUE)$duals).
@@ -1278,7 +1295,7 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
     low, high = limits[name]
     rows = []
     if chosen == "fixed point":  # families for 100 %, batch 14
-        return _solve_fixed_point(text, name, formula, limits, start, fast)
+        return _solve_fixed_point(text, name, formula, limits, start, fast, has_limits)
     if has_limits and math.isfinite(low) and math.isfinite(high):
         if chosen == "secant":
             raise SimplydataError('test_method="secant" searches from start=; with between= use test_method="brent".')
@@ -1342,7 +1359,7 @@ def _solve_one(text, name, formula, limits, has_limits, start, method, fast):
     return _solve_polynomial(text, name, coefficients, gap, fast)
 
 
-def _solve_fixed_point(text, name, formula, limits, start, fast):
+def _solve_fixed_point(text, name, formula, limits, start, fast, has_limits=False):
     """x = g(x) by fixed-point iteration (families for 100 %, batch 14): SciPy optimize.fixed_point with Steffensen's
     acceleration (method="del2"), from start= (or the middle of between=)."""
     from scipy import optimize
@@ -1375,6 +1392,10 @@ def _solve_fixed_point(text, name, formula, limits, start, fast):
     print(f"Method: {SOLVE_ONE_METHODS['fixed point']}; plain fixed-point iteration is R SQUAREM::fpiter().")
     print(f"Search: fixed-point iteration; it settled (converged), and the right side was worked out {calls[0]:,} "
           "times.")
+    low, high = limits[name]
+    if has_limits and not low <= root <= high:
+        print(f"Note: the solution is outside between= ({_range_words(low, high)}); fixed-point iteration uses "
+              "between= only for its start.")
     return _result([{name: root, "left minus right": check, "method": "fixed-point iteration"}], fast)
 
 
@@ -1424,6 +1445,15 @@ def _solve_polynomial(text, name, coefficients, gap, fast):
     return _result(rows, fast)
 
 
+def _mixing_hint(chosen, names):
+    """For linear and exciting mixing: how the equations must be written for them to settle."""
+    if chosen not in MIXING:
+        return ""
+    shown = ", ".join(f'"{n} = ..."' for n in names[:4])
+    return (f"\n{SOLVE_SYSTEM_METHODS[chosen][1].capitalize()} settles only for equations written with each name alone "
+            f"on the left, one for each name in this order: {shown} (the right sides close to the names).")
+
+
 def _solve_system(texts, names, formulas, limits, start, method, fast):
     from scipy import optimize
 
@@ -1465,13 +1495,14 @@ def _solve_system(texts, names, formulas, limits, start, method, fast):
         except (OverflowError, ValueError, ZeroDivisionError, np.linalg.LinAlgError):
             raise SimplydataError(
                 f"Searching from {_places(names, first)}, {words} broke down (the steps grew without end). Try other "
-                "start values, or the default method.") from None
+                "start values, or the default method." + _mixing_hint(chosen, names)) from None
         place = np.asarray(found.x, dtype=float)
         check = gaps(place)
         if not np.all(np.isfinite(check)) or np.max(np.abs(check)) > 1e-8 * (1 + np.max(np.abs(gaps(first)))):
             raise SimplydataError(
                 f"Searching from {_places(names, first)}, simplydata found no values that make every equation true. "
                 "Try other start values, or check that the equations can all be true at once."
+                + _mixing_hint(chosen, names)
             )
         print(f"{_list_words(texts)} when {_places(names, place)}: the solution found by searching from "
               f"{_places(names, first)} (other solutions may exist; another start= may find them).")
