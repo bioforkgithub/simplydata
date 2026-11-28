@@ -10,9 +10,9 @@ from .._time_axis import read_time_step
 
 
 class SignalNumberWords:
-    @friendly(renamed={"method": "test_method", "times": "time_points"})
+    @friendly(renamed={"method": "test_method", "times": "time_points", "spectrogram": "over_time"})
     def find_spectrum(self, time_step=None, test_method="periodogram", window=None, window_shape="hann", show="power",
-                      between=None, time_points=None, sampling_rate=None, fs=None):
+                      between=None, time_points=None, sampling_rate=None, fs=None, over_time=False):
         """Which repeating cycles (frequencies) the numbers hold, and how strong each is.
 
         numbers.find_spectrum(time_step=0.01)   (readings 0.01 seconds apart: frequencies per second)
@@ -26,9 +26,26 @@ class SignalNumberWords:
         simplydata[r] and R). show="power", "decibels" (10 x log10 of the power) or "amplitude" (the
         size of the cycle in the numbers' own units). between=[low, high] keeps that frequency range in
         the table. Gives back a table: frequency, repeats every (1 / frequency) and the power at each
-        frequency. Prints the 3 strongest cycles.
+        frequency. Prints the 3 strongest cycles. over_time=True gives the spectrum of each piece of window=
+        readings (min(256, n); half overlap, window_shape= weights, each piece's mean removed): a table of time
+        (the middle of each piece), frequency and power, as chart.draw_spectrum_over_time draws it (SciPy
+        signal.spectrogram, built on ShortTimeFFT).
         """
         step_name = "find_spectrum"
+        if not isinstance(over_time, bool):
+            raise SimplydataError("over_time= needs True or False (no quotes).")
+        if over_time:
+            from .._signal_spectra import spectrum_over_time_table
+
+            if test_method != "periodogram" or time_points is not None:
+                raise SimplydataError("over_time=True gives the periodogram of each piece: leave out test_method= and "
+                                      "time_points=.")
+            values = np.asarray(self._values, dtype=float).ravel()
+            if np.isnan(values).any():
+                raise SimplydataError("find_spectrum() needs a value at every step; fill the empty ones first.")
+            step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None), step_name)
+            return spectrum_over_time_table(values, step, words, window, window_shape, show,
+                                            _signals.check_frequency_range(between, step_name))
         name = _signals.read_method(test_method, step_name)
         values = np.asarray(self._values, dtype=float).ravel()
         if name == "lomb-scargle":

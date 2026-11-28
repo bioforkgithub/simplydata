@@ -88,6 +88,40 @@ closed-form answers for the words that take a formula), checked against SciPy an
   A curve or surface is empty outside its points.
 - `sdata.help("optimize.basinhopping")`, `"integrate.solve_bvp"`, `"interpolate.splrep"` and every other name of
   scipy.optimize, integrate and interpolate in the plan point to the word or value that does the job.
+### Added: SciPy signals and systems: FIR filters, filter order, analog filters, spectra over time (families for 100 %, batches 17-18)
+
+Approved by Manish 2026-11-28 (plan section 2.7). Every number comes from scipy.signal; each new option value is
+tested against SciPy directly, has its "same underneath" box, and reliability cases on Lake Huron, Seatbelts and the
+air passengers compared with SciPy and, where R has the same function, with R signal and gsignal.
+
+- FIR filters on `keep_each_frequency_that`, `remove_each_frequency_that`, `add_filtered_column` and
+  `sdata.frequency_filter`: `test_method="fir"` (SciPy `firwin`, now offered: its weights follow firwin's own formula,
+  not R `signal::fir1`, which designs by frequency sampling), `"fir least squares"` (`firls`, as R `gsignal::firls`),
+  `"fir equiripple"` (`remez`, as R `signal::remez`) and `"fir frequency sampling"` (`firwin2`), with
+  `how_many_weights=` (101), `window_shape=` and `transition_width=`.
+- `find_order_for={"loss_at": 20}`: the smallest steepness that keeps the loss within `ripple=` and removes
+  `removed_by=` dB from 20 on (SciPy `buttord`, `cheb1ord`, `cheb2ord`, `ellipord`; `kaiserord` for `"fir"`).
+- `start_from="first value"` (with `both_ways=False`): the filter starts in its steady state (SciPy `sosfilt_zi`,
+  `lfilter_zi`); `with_least_delay=True` for FIR filters (SciPy `minimum_phase`); `test_method="gammatone"` with
+  `is_equal_to=` (SciPy `gammatone`).
+- `sdata.frequency_filter(..., analog=True)`: the continuous filter (SciPy's designs with `analog=True`: the
+  prototypes `buttap` ... `besselap` moved by `lp2lp`, `lp2hp`, `lp2bp`, `lp2bs`).
+- Systems: `system.table(form="sections")` (SciPy `tf2sos`) and `form="partial fractions"` (`residue`, `residuez`);
+  `sdata.system(sections=..., time_step=...)` (`sos2tf`) and `sdata.system(residues=, poles=, direct_terms=)`
+  (`invres`, `invresz`); new word `system.move_poles_to([-2, -3])` (SciPy `place_poles`);
+  `system.frequency_response(with_delay=True)` (SciPy `group_delay`).
+- Spectra: `numbers.take_fourier_transform(over_time=True)` (SciPy `ShortTimeFFT.stft`; `sdata.find_inverse_fourier_
+  transform` gives the numbers back with `istft`), `take_fourier_transform(between=[low, high], how_many=)` (SciPy
+  `zoom_fft`, the chirp z-transform on the unit circle) and `numbers.find_spectrum(over_time=True)` (SciPy
+  `spectrogram`, as `chart.draw_spectrum_over_time`).
+- Waves and resampling: `sdata.make_wave("maximum length sequence")` (SciPy `max_len_seq`), `sweep="polynomial"`
+  (`sweep_poly`); `numbers.change_time_step(test_method="cubic spline")` and `"quadratic spline"` (`cspline1d`,
+  `qspline1d` and their `_eval`).
+- New word `numbers.find_phase_locking_to(period=0.1)`: how strongly event times keep time with a cycle (SciPy
+  `vectorstrength`).
+- `sdata.help("scipy.signal.buttord")` and the other scipy.signal names point to the word or option; SciPy's helpers
+  and its 2-D filters (`order_filter`, `hilbert2`, `correlate2d`, `sepfir2d` ...) point to the hand-over
+  (`numbers.as_numpy()`).
 
 ### Added: every SciPy distribution by a plain name, joint distributions, mixtures (families for 100 %, batches 5-6)
 

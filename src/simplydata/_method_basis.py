@@ -3699,6 +3699,115 @@ BASIS["system.chart"] = _b(
     "The Bode chart is the usual first look at a system, as R control::bode and MATLAB bode draw it.", (),
     "P3",
     "Options that do not go with the chosen show= are refused.", "convention")
+# ---- Families for 100 %, batches 17-18 (plan 2.7, approved by Manish 2026-11-28): scipy.signal's filter design,
+# system forms, spectra over time, waves and phase locking. SciPy's own defaults unless the entry says otherwise.
+BASIS['nums.keep_each_frequency_that test_method="fir"'] = _b(
+    "SciPy firwin: 101 weights and a Hamming window, run both ways.",
+    "how_many_weights=, window_shape=; test_method=\"fir least squares\", \"fir equiripple\", \"fir frequency "
+    "sampling\"; find_order_for= picks the length by the Kaiser rule.",
+    "The window method is SciPy's and MATLAB's first FIR design; the Hamming window is firwin's default. 101 weights "
+    "is a starting length, not a published rule; find_order_for= works it out from the losses asked.",
+    (), "P3", "An even number of weights is refused (an odd one works for every kind of band).", "starting value")
+BASIS['nums.keep_each_frequency_that test_method="fir least squares"'] = _b(
+    "SciPy firls with the cutoff in the middle of transition_width=, equal weight in each band.",
+    "transition_width=, how_many_weights=.",
+    "SciPy firls with its default weights, as R gsignal::firls; the cutoff in the middle of the change follows "
+    "SciPy kaiserord's documentation.",
+    (), "P3", "transition_width= is needed, and bands that would overlap or leave 0 to half the readings per unit "
+    "of time are refused.", "convention")
+BASIS['nums.keep_each_frequency_that test_method="fir equiripple"'] = _b(
+    "SciPy remez (Parks-McClellan) with the band edges of \"fir least squares\", equal weight in each band.",
+    "transition_width=, how_many_weights=.",
+    "SciPy remez with its defaults, as R signal::remez (the same numbers).", (), "P3",
+    "As \"fir least squares\".", "convention")
+BASIS['nums.keep_each_frequency_that test_method="fir frequency sampling"'] = _b(
+    "SciPy firwin2 with a jump at the cutoff (or the change of transition_width=), SciPy's frequency grid and a "
+    "Hamming window.",
+    "transition_width=, window_shape=, how_many_weights=.",
+    "SciPy firwin2's defaults; R gsignal::fir2 uses a finer grid (512 points) by default, so its weights differ "
+    "slightly unless the grids are the same.", (), "P3", "As \"fir least squares\".", "convention")
+BASIS['nums.keep_each_frequency_that test_method="gammatone"'] = _b(
+    "SciPy gammatone(f, \"iir\"): its width is fixed by the frequency (Slaney's design), as in models of hearing.",
+    "is_equal_to= with the other designs: a peak filter of width=.",
+    "SciPy's only gammatone design; width= does not apply.", (), "P3",
+    "Only with keep_each_frequency_that(is_equal_to=).", "convention")
+BASIS["nums.keep_each_frequency_that find_order_for="] = _b(
+    "The smallest steepness that loses at most ripple= dB (0.5) where it keeps and removes at least removed_by= dB "
+    "(40) from \"loss_at\" on: SciPy buttord, cheb1ord, cheb2ord, ellipord (kaiserord for \"fir\").",
+    "steepness= instead; ripple= and removed_by= for other losses.",
+    "SciPy's order selection, as R gsignal::buttord and the others (the same numbers); 0.5 dB and 40 dB are "
+    "simplydata's starting values for ripple= and removed_by=.", (), "P5",
+    "\"loss_at\" on the wrong side of the cutoff, a design with no order rule (bessel) and more than steepness 20 "
+    "are refused.", "starting value")
+BASIS['nums.keep_each_frequency_that start_from="first value"'] = _b(
+    "Forwards only, starting in the steady state for the first reading: SciPy sosfilt_zi (lfilter_zi) times it.",
+    "start_from=\"rest\" (the default), both_ways=True.",
+    "What SciPy's documentation shows for a filter that should not swing up from 0 at the start, as R "
+    "gsignal::filter_zi.", (), "P3", "Only with both_ways=False.", "convention")
+BASIS["nums.keep_each_frequency_that with_least_delay="] = _b(
+    "SciPy minimum_phase(method=\"homomorphic\", half=False): the same gain, the least delay.",
+    "both_ways=True for no delay at all.",
+    "half=False keeps the gain at every frequency (SciPy's default half=True takes its square root).", (), "P5",
+    "Only for FIR designs run forwards (both_ways=False).", "convention")
+BASIS["sdata.frequency_filter analog="] = _b(
+    "SciPy's design with analog=True at 2 pi x the cutoff: the prototype (buttap ...) moved to the cutoff by lp2lp, "
+    "lp2hp, lp2bp or lp2bs.",
+    "test_method=, steepness=, find_order_for=.",
+    "SciPy's analog design, as R gsignal::butter(..., \"s\"); cutoffs stay in cycles per unit of time like the "
+    "filter words.", (), "P3", "time_step= and remove_at= are refused with analog=True.", "convention")
+BASIS["sdata.frequency_filter find_order_for="] = _b(
+    "As numbers.keep_each_frequency_that(find_order_for=).", "steepness=.",
+    "As numbers.keep_each_frequency_that(find_order_for=).", (), "P5",
+    "As numbers.keep_each_frequency_that(find_order_for=).", "starting value")
+BASIS['system.table form="sections"'] = _b(
+    "The filter's own sections for sdata.frequency_filter; SciPy tf2sos for any other system.",
+    "form=\"transfer function\", \"state space\", \"poles and zeros\", \"partial fractions\".",
+    "SciPy's own sections are more exact than sections made again from the formula.", (), "P3", "", "convention")
+BASIS['system.table form="partial fractions"'] = _b(
+    "SciPy residue (residuez for a system in steps), its default tolerance for repeated poles.",
+    "sdata.system(residues=, poles=) adds them up again.",
+    "SciPy's partial fractions, as R gsignal::residue.", (), "P3", "", "convention")
+BASIS["system.move_poles_to"] = _b(
+    "SciPy place_poles (Tits and Yang's method) on the controller form of SciPy tf2ss.",
+    "There is no other method here (SciPy's other method is for systems with one input too).",
+    "SciPy's default method; R control::place gives other gains for the same request, with a warning, so it is not "
+    "the reference.", (), "P3", "The number of poles must match; complex poles must come in pairs.", "convention")
+BASIS["system.frequency_response with_delay="] = _b(
+    "SciPy group_delay in steps, times the time step.",
+    "with_delay=False (the default).",
+    "SciPy's group delay, as R gsignal::grpdelay (the same numbers, in steps).", (), "P3",
+    "Only for systems in steps.", "convention")
+BASIS["nums.take_fourier_transform over_time="] = _b(
+    "SciPy ShortTimeFFT without scaling (scale_to=None): the plain Fourier transform of each weighted piece of "
+    "min(256, n) readings, half overlap, periodic Hann weights, the pieces at the ends padded with zeros.",
+    "window=, window_shape=.",
+    "The piece length, overlap and window are those of SciPy's legacy stft, but the sizes are not divided by the sum "
+    "of the weights as stft does: they are the sizes of the plain transform, as take_fourier_transform gives for the "
+    "whole series. The padding lets istft give every reading back.", (),
+    "P3", "window= from 4 to n.", "convention")
+BASIS["nums.take_fourier_transform between="] = _b(
+    "SciPy zoom_fft at how_many=100 frequencies from low to high, both ends included.",
+    "how_many=.",
+    "endpoint=True so both ends asked for are shown; 100 frequencies is a starting value.", (), "P5",
+    "between= must lie within 0 and half the readings per unit of time.", "starting value")
+BASIS["nums.find_spectrum over_time="] = _b(
+    "As chart.draw_spectrum_over_time: SciPy spectrogram, pieces of min(256, n) readings, half overlap, Hann "
+    "weights, each piece's mean removed.",
+    "window=, window_shape=, show=\"decibels\".", "As chart.draw_spectrum_over_time.", ("welch1967",), "P3",
+    "", "convention")
+BASIS['sdata.make_wave shape="maximum length sequence"'] = _b(
+    "SciPy max_len_seq with the fewest bits whose run is at least how_many= long, SciPy's taps and start.",
+    "how_many=.", "SciPy's own taps and start, so the run can be made again exactly.", (), "P3", "", "convention")
+BASIS['sdata.make_wave sweep="polynomial"'] = _b(
+    "SciPy sweep_poly with frequency= as the polynomial of the frequency in time, highest power first, phase 0.",
+    "sweep=\"linear\" and the others with frequency=[start, end].",
+    "Highest power first, as NumPy poly1d and SciPy sweep_poly.", (), "P3", "", "convention")
+BASIS['nums.change_time_step test_method="cubic spline"'] = _b(
+    "SciPy cspline1d (no smoothing, ends mirrored) read at the new times by cspline1d_eval, from the first reading "
+    "to the last.",
+    "test_method=\"quadratic spline\", \"fourier\", \"polyphase\", \"filter then keep\".",
+    "SciPy's defaults (lamb=0: the spline goes through every reading); no filter, so it is for making the step "
+    "smaller or for smooth readings.", (), "P3", "", "convention")
 # ---- Phase U3, batch 5: chart words
 BASIS["draw_area"] = _b(
     "Rows at the same x averaged; the space under each line filled down to 0 in its colour, see-through (alpha "

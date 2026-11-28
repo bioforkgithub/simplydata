@@ -14,7 +14,7 @@ from .._time_axis import read_time_step
 FOURIER_SHOWS = ("half", "all")
 ENVELOPE_SHOWS = ("envelope", "phase", "frequency")
 KEEPS = {"all": "full", "same": "same", "overlap": "valid"}
-RESAMPLE_METHODS = ("fourier", "polyphase", "filter then keep")
+RESAMPLE_METHODS = ("fourier", "polyphase", "filter then keep", "cubic spline", "quadratic spline")
 
 
 def envelope_values(x, show, step):
@@ -30,8 +30,10 @@ def envelope_values(x, show, step):
 
 
 class FourierNumberWords:
-    @friendly
-    def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None, with_zero_in_middle=False):
+    @friendly(renamed={"nperseg": "window", "fn": "between", "m": "how_many"})
+    def take_fourier_transform(self, time_step=None, show="half", sampling_rate=None, fs=None,
+                               with_zero_in_middle=False, over_time=False, window=None, window_shape="hann",
+                               between=None, how_many=None):
         """The numbers as a sum of waves: the size and phase of each frequency (the Fourier transform).
 
         numbers.take_fourier_transform(time_step=0.005)
@@ -40,7 +42,13 @@ class FourierNumberWords:
         ones too, SciPy fft). The sizes are R's Mod(fft(x)) and the phases Arg(fft(x)) in degrees.
         with_zero_in_middle=True gives every frequency in order, the negative ones first and 0 in the middle (SciPy
         fftshift); it implies show="all".
-        sdata.find_inverse_fourier_transform(table) turns the table back into the numbers.
+        over_time=True takes the transform of pieces of window= readings (min(256, n)) that overlap by half,
+        each weighted by window_shape="hann": the short-time Fourier transform (SciPy ShortTimeFFT.stft; the
+        pieces at the ends are padded with zeros so the numbers can come back). The table gets a time column (the
+        middle of each piece) before frequency. between=[low, high] with how_many= (100) gives the transform at
+        how_many evenly spaced frequencies from low to high only, finer than the plain transform (the zoom FFT:
+        SciPy zoom_fft, a chirp z-transform on the unit circle).
+        sdata.find_inverse_fourier_transform(table) turns the table back into the numbers (not after between=).
         """
         import pandas as pd
         from scipy import fft
@@ -58,6 +66,22 @@ class FourierNumberWords:
             raise SimplydataError("take_fourier_transform() needs a value at every step; fill the empty ones first.")
         step, words = read_time_step(time_step, sampling_rate, fs, getattr(self, "_time_step", None),
                                      "take_fourier_transform")
+        if not isinstance(over_time, bool):
+            raise SimplydataError("over_time= needs True or False (no quotes).")
+        if over_time and between is not None:
+            raise SimplydataError("over_time= and between= are two different transforms: give one of them.")
+        if not over_time and (window is not None or window_shape != "hann"):
+            raise SimplydataError("window= and window_shape= go with over_time=True (the transform of pieces).")
+        if between is None and how_many is not None:
+            raise SimplydataError("how_many= goes with between=[low, high] (the frequencies to zoom in on).")
+        if over_time or between is not None:
+            if show != "half" or with_zero_in_middle:
+                raise SimplydataError("over_time= and between= give the frequencies from 0 up (show=\"half\").")
+            from .._signal_spectra import short_time_table, zoom_table
+
+            if over_time:
+                return short_time_table(x, step, words, window, window_shape)
+            return zoom_table(x, step, words, between, how_many)
         n = len(x)
         if show == "half":
             z, freq = fft.rfft(x), fft.rfftfreq(n, d=step)
@@ -147,7 +171,10 @@ class FourierNumberWords:
         to= is the new time between readings; time_step= the present one (or remembered). test_method="fourier"
         (SciPy signal.resample: treats the recording as repeating), "polyphase" (SciPy resample_poly with
         the ratio as a fraction, Kaiser window 5) or "filter then keep" (SciPy decimate: a Chebyshev filter
-        run both ways, then every n-th reading; to= must be a whole number of steps). Keeping every n-th
+        run both ways, then every n-th reading; to= must be a whole number of steps), "cubic spline" or
+        "quadratic spline" (SciPy cspline1d / qspline1d and their _eval: a spline through every reading, ends
+        mirrored, read at the new times from the first reading on; no filter, so make the step smaller or take
+        the fast cycles out first). Keeping every n-th
         reading without a filter is keep_numbers_by_position(1, step=n), which can fold fast cycles into
         slow ones (aliasing). The numbers remember the new time step. Undo with numbers.undo().
         """
@@ -173,6 +200,11 @@ class FourierNumberWords:
         elif test_method == "polyphase":
             out = signal.resample_poly(x, ratio.numerator, ratio.denominator)
             actual = step * ratio.denominator / ratio.numerator  # the ratio as a fraction (denominator at most 1000)
+        elif test_method in ("cubic spline", "quadratic spline"):
+            from .._signal_spectra import spline_resample
+
+            out = spline_resample(x, step, float(to), test_method)
+            actual = float(to)
         else:
             factor = to / step
             if abs(factor - round(factor)) > 1e-9 or round(factor) < 2:

@@ -1844,6 +1844,10 @@ _SPECIAL = [
 
 # scipy.<name>, optimize., integrate., interpolate., signal., ndimage. and spatial.: names whose word the sdata,
 # numbers, table and block lists do not already give
+# families for 100 %, batches 17-18: the signal jobs left to SciPy (2-D filters belong to grids as images, plan 2.9;
+# the others are SciPy's helpers and checks)
+_SIGNAL_HAND_OVER = ("numbers.as_numpy() hands the numbers to NumPy (a grid too: grid.as_numpy()), where the SciPy "
+                     "signal call works")
 _SCIPY = [
     ("numbers.find_envelope()", "envelope"),
     ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.step_response() (impulse_response, response_to and '
@@ -1862,6 +1866,90 @@ _SCIPY = [
     ('table.find_distances_to_rows_of(other, using=["east", "north"])', "distance_matrix"),
     ("grid.take_matrix_exp()", "expm"),
     ("grid.find_null_space()", "null_space"),
+    # families for 100 %, batches 17-18 (plan 2.7, approved by Manish 2026-11-28): scipy.signal's filter design,
+    # system forms, spectra over time, FIR filters and the other signal tools
+    ('sdata.frequency_filter(keep_below=10, time_step=0.005, find_order_for={"loss_at": 20}): the smallest steepness '
+     "for the losses asked (SciPy buttord, cheb1ord, cheb2ord or ellipord, by test_method=; band_stop_obj is their "
+     "helper for a band removed)", "buttord cheb1ord cheb2ord ellipord band_stop_obj"),
+    ('sdata.frequency_filter(keep_below=10, time_step=0.005, test_method="fir", find_order_for={"loss_at": 20}): the '
+     "number of weights and the Kaiser window (SciPy kaiserord, which uses kaiser_beta)", "kaiserord kaiser_beta"),
+    ('sdata.frequency_filter(keep_below=10, time_step=0.005, test_method="fir", how_many_weights=31), then '
+     "system.frequency_response() shows how much the filter removes at each frequency", "kaiser_atten"),
+    ("sdata.frequency_filter(keep_between=[1, 5], analog=True): the analog (continuous) filter, which SciPy makes from "
+     "its prototype (buttap, cheb1ap, cheb2ap, ellipap, besselap) moved to the cutoff (lp2lp, lp2hp, lp2bp, lp2bs)",
+     "buttap cheb1ap cheb2ap ellipap besselap lp2lp lp2hp lp2bp lp2bs lp2lp_zpk lp2hp_zpk lp2bp_zpk lp2bs_zpk"),
+    ('sdata.system("1 / (s + 1)"), then system.in_steps(time_step=0.1, test_method="bilinear") (SciPy cont2discrete '
+     "with the bilinear transform)", "bilinear bilinear_zpk"),
+    ('sdata.system("1 / (s + 1)"), then system.in_steps(time_step=0.1) (SciPy cont2discrete; zero order hold unless '
+     "test_method= says otherwise)", "cont2discrete"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.table(form="state space") (SciPy tf2ss)', "tf2ss"),
+    ("sdata.system(a=[[0, 1], [-5, -2]], b=[[0], [1]], c=[[1, 0]]) (SciPy ss2tf; d= is 0 when left out, and the "
+     "matrices are checked to fit)", "ss2tf abcd_normalize"),
+    ('sdata.system(a=[[0, 1], [-5, -2]], b=[[0], [1]], c=[[1, 0]]), then system.table(form="poles and zeros")',
+     "ss2zpk"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.table(form="poles and zeros") (SciPy tf2zpk)', "tf2zpk"),
+    ("sdata.system(poles=[-1, -2], zeros=[0], gain=2) (SciPy zpk2tf)", "zpk2tf"),
+    ('sdata.system(poles=[-1, -2], zeros=[0], gain=2), then system.table(form="state space")', "zpk2ss"),
+    ('sdata.frequency_filter(keep_below=10, time_step=0.005), then system.table(form="sections") (for any system: '
+     "SciPy tf2sos)", "tf2sos zpk2sos"),
+    ("sdata.system(sections=[[1, 2, 1, 1, -0.5, 0.1]], time_step=0.01) (SciPy sos2tf), then "
+     'system.table(form="poles and zeros") for the poles and zeros', "sos2tf sos2zpk"),
+    ("sdata.system(numerator=[2, 4], denominator=[2, 4, 10]): the formula is written with the first number of the "
+     "bottom 1 (SciPy normalize)", "normalize"),
+    ('sdata.system("(s + 1) / (s**2 + 3*s + 2)"), then system.table(form="partial fractions") (SciPy residue; '
+     "residuez for a system in steps)", "residue residuez"),
+    ("sdata.system(residues=[0, 1], poles=[-1, -2]) (SciPy invres; invresz with time_step=)", "invres invresz"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.move_poles_to([-2, -3]) (SciPy place_poles)', "place_poles"),
+    ('sdata.system("1 / (s**2 + 2*s + 5)"), then system.frequency_response() (SciPy freqresp; freqz or sosfreqz in '
+     "steps; findfreqs picks the frequencies when between= is left out)",
+     "freqs freqs_zpk freqz_zpk freqz_sos dfreqresp findfreqs"),
+    ("sdata.frequency_filter(keep_below=10, time_step=0.005), then system.frequency_response(with_delay=True) (SciPy "
+     "group_delay)", "group_delay"),
+    ("numbers.take_fourier_transform(time_step=0.01, over_time=True) (SciPy ShortTimeFFT.stft; "
+     "sdata.find_inverse_fourier_transform(table) gives the numbers back with ShortTimeFFT.istft)",
+     "stft ShortTimeFFT"),
+    ("sdata.find_inverse_fourier_transform(table) on the table of numbers.take_fourier_transform(time_step=0.01, "
+     "over_time=True) (SciPy ShortTimeFFT.istft, which checks the pieces overlap enough to come back: check_NOLA)",
+     "istft check_NOLA"),
+    ("numbers.take_fourier_transform(time_step=0.01, between=[2, 6], how_many=50) (SciPy zoom_fft: the chirp "
+     "z-transform on the unit circle; other spirals are left to SciPy czt after numbers.as_numpy())",
+     "zoom_fft ZoomFFT czt CZT czt_points"),
+    ('numbers.keep_each_frequency_that(is_below=2, time_step=0.05, test_method="fir", both_ways=False) (SciPy '
+     "firwin)", "firwin"),
+    ('numbers.keep_each_frequency_that(is_below=2, time_step=0.05, test_method="fir least squares", '
+     "transition_width=2, both_ways=False) (SciPy firls)", "firls"),
+    ('numbers.keep_each_frequency_that(is_below=2, time_step=0.05, test_method="fir equiripple", '
+     "transition_width=2, both_ways=False) (SciPy remez)", "remez"),
+    ('numbers.keep_each_frequency_that(is_below=2, time_step=0.05, test_method="fir frequency sampling", '
+     "both_ways=False) (SciPy firwin2)", "firwin2"),
+    ('numbers.keep_each_frequency_that(is_below=2, time_step=0.05, test_method="fir", both_ways=False, '
+     "with_least_delay=True) (SciPy minimum_phase)", "minimum_phase"),
+    ('numbers.keep_each_frequency_that(is_equal_to=2, time_step=0.05, test_method="gammatone", both_ways=False) '
+     "(SciPy gammatone)", "gammatone"),
+    ('numbers.smooth(test_method="savitzky-golay", window=11, of_degree=2) (SciPy savgol_filter, which uses '
+     "savgol_coeffs)", "savgol_coeffs"),
+    ('numbers.keep_each_frequency_that(is_below=0.2, time_step=1, both_ways=False, start_from="first value") (SciPy '
+     "sosfilt_zi; lfilter_zi for FIR filters): the filter starts in its steady state", "lfilter_zi sosfilt_zi"),
+    ('numbers.keep_each_frequency_that(is_below=0.2, time_step=1, both_ways=False, start_from="first value") is '
+     "related, not the same: it starts the filter in its steady state for the first reading, while SciPy lfiltic "
+     "builds the start from earlier inputs and outputs you give (left to SciPy after numbers.as_numpy())", "lfiltic"),
+    ('sdata.make_wave("maximum length sequence", time_step=0.01, how_many=127) (SciPy max_len_seq)', "max_len_seq"),
+    ('sdata.make_wave("chirp", sweep="polynomial", frequency=[2, 1], time_step=0.01, how_many=500) (SciPy sweep_poly)',
+     "sweep_poly"),
+    ('numbers.change_time_step(to=0.5, time_step=1, test_method="polyphase") (SciPy resample_poly, which runs '
+     "upfirdn)", "upfirdn"),
+    ('numbers.change_time_step(to=0.5, time_step=1, test_method="cubic spline") (SciPy cspline1d and '
+     'cspline1d_eval; test_method="quadratic spline" for qspline1d)',
+     "cspline1d cspline1d_eval qspline1d qspline1d_eval"),
+    ("numbers.find_phase_locking_to(period=0.1), the numbers being the times of the events (SciPy vectorstrength)",
+     "vectorstrength"),
+    ("numbers.convolve_with([1, 2, 1]) (SciPy convolve chooses the fastest way itself: choose_conv_method)",
+     "choose_conv_method"),
+    ('grid.smooth(test_method="median", window=3) (SciPy ndimage.median_filter; signal.medfilt2d pads the edges with '
+     "zeros instead)", "medfilt2d"),
+    (_SIGNAL_HAND_OVER, "BadCoefficients check_COLA closest_STFT_dual_window gauss_spline symiirorder1 symiirorder2 "
+                        "cspline2d qspline2d spline_filter sepfir2d order_filter hilbert2 correlate2d "
+                        "correlation_lags firwin_2d unique_roots"),
 ]
 
 # families for 100 %, batches 14-16 (approved by Manish 2026-11-28): the names of scipy.optimize, integrate and
