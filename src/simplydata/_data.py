@@ -77,7 +77,7 @@ _KIND_NAMES = {
 # Which reading options make sense for which kind of file.
 _OPTIONS_FOR = {
     "separator": ("csv", "tsv"),
-    "encoding": ("csv", "tsv"),
+    "encoding": ("csv", "tsv", "html"),
     "decimal_mark": ("csv", "tsv", "excel", "word"),
     "thousands_mark": ("csv", "tsv", "excel", "word"),
     "empty_values": ("csv", "tsv", "excel", "word"),
@@ -445,7 +445,7 @@ def read_file(path, sheet=None, fast: bool = False, keep_fast: bool = False, opt
 def _read_one(source, kind, size, label, sheet=None, fast=False, keep_fast=False, options=None):
     """Read one file (a path, or the bytes of a downloaded file)."""
     options = options or {}
-    if "column_names" in options and kind in ("csv", "tsv", "excel"):
+    if "column_names" in options and kind in ("csv", "tsv", "excel") and "fixed_widths" not in options:
         _check_column_names(source, kind, label, options)
     if "skip_lines_starting_with" in options and kind in ("csv", "tsv"):
         _check_note_mark(source, label, options)
@@ -545,9 +545,19 @@ def _read_one_file(source, kind, size, label, sheet, fast, keep_fast, options):
     _check_options_fit(kind, options, label)
     if "fixed_widths" in options:  # columns at fixed places: pandas read_fwf (families for 100 %, batches 1-2)
         widths = options["fixed_widths"]
+        if "separator" in options:
+            raise SimplydataError("separator= reads values with a mark between them, and fixed_widths= reads columns "
+                                  "that stand at fixed places: give one of them.")
+        extra = {}
+        if "column_names" in options:  # pandas read_fwf(header=None, names=)
+            extra.update(header=None, names=options["column_names"])
+        if "read_as_text" in options:  # pandas read_fwf(dtype={"sample_id": str})
+            extra["dtype"] = {name: str for name in options["read_as_text"]}
         found = pd.read_fwf(_rewind(source), **({"colspecs": "infer"} if widths is True else {"widths": widths}),
                             skiprows=options.get("skip_rows"), encoding=options.get("encoding"),
-                            na_values=options.get("empty_values"))
+                            na_values=options.get("empty_values"), decimal=options.get("decimal_mark", "."),
+                            thousands=options.get("thousands_mark"), comment=options.get("skip_lines_starting_with"),
+                            **extra)
         return pl_from(found) if keep_fast and fast else found
 
     asked = fast
@@ -620,19 +630,28 @@ def pl_from(found):
     return pl.from_pandas(found)
 
 
-def _read_json(source, label):
+def _read_json(source, label, lines=False):
     """A .json file: pandas read_json, and pandas json_normalize when its rows hold objects inside objects
     ({"site": {"name": "N1", "depth": 30}} becomes the columns site.name and site.depth), so each cell holds one
     value (families for 100 %, batches 1-2)."""
     import json
 
-    found = pd.read_json(_rewind(source))
+    found = pd.read_json(_rewind(source), lines=lines)
     nested = [str(c) for c in found.columns if found[c].map(lambda v: isinstance(v, dict)).any()]
     if not nested:
         return found
     raw = _rewind(source)
     text = raw.getvalue().decode("utf-8") if isinstance(raw, io.BytesIO) else Path(raw).read_text(encoding="utf-8")
-    flat = pd.json_normalize(json.loads(text), sep=".")  # pandas json_normalize
+    rows = [json.loads(line) for line in text.splitlines() if line.strip()] if lines else json.loads(text)
+    flat = pd.json_normalize(rows, sep=".")  # pandas json_normalize
+    for name in flat.columns:  # dates, as pandas read_json finds them by the name (its keep_default_dates rule)
+        last = str(name).split(".")[-1].lower()
+        if (last.endswith(("_at", "_time")) or last.startswith("timestamp") or last in ("modified", "date",
+                                                                                         "datetime")):
+            try:
+                flat[name] = pd.to_datetime(flat[name])
+            except (ValueError, TypeError):
+                pass
     names = ", ".join(f'"{c}"' for c in nested)
     print(f"Read {label}: {names} held values inside values, so each part became a column of its own "
           f"({', '.join(c for c in flat.columns if '.' in str(c))[:200]}), as pandas json_normalize does.")
@@ -646,12 +665,13 @@ def _read_html(source, label, options):
     except ImportError:
         raise SimplydataError(f"Reading the tables of a web page needs lxml.\n{_FILES_HINT}") from None
     raw = _rewind(source)
-    # the page's text, read here from this computer (or from the bytes sdata.table already has): pandas read_html
-    # only ever gets that text, never a web address, so it reaches nothing outside (tests/test_privacy.py)
-    text = (raw.getvalue().decode("utf-8", errors="replace") if isinstance(raw, io.BytesIO)
-            else Path(raw).read_text(encoding="utf-8", errors="replace"))
+    # the page's bytes, read here from this computer (or the bytes sdata.table already has): pandas read_html only
+    # ever gets those bytes, never a web address, so it reaches nothing outside (tests/test_privacy.py); lxml reads
+    # the page's own <meta charset>, and encoding= says it when the page does not
+    data = raw.getvalue() if isinstance(raw, io.BytesIO) else Path(raw).read_bytes()
     try:
-        tables = pd.read_html(io.StringIO(text), flavor="lxml")  # pandas read_html, on the text itself
+        tables = pd.read_html(io.BytesIO(data), flavor="lxml",  # pandas read_html, on the bytes themselves
+                              encoding=options.get("encoding"))
     except ValueError:
         raise SimplydataError(f'"{label}" has no table in it (simplydata reads the <table> parts of a web page).'
                               ) from None
@@ -681,6 +701,10 @@ def _read_clipboard(options):
                               f"({type(problem).__name__}). Paste what you copied into a file and read the "
                               "file.") from None
     print(f"Read the clipboard: {len(found)} rows and {len(found.columns)} columns.")
+    texts = [c for c in found.columns if found[c].dtype == object or str(found[c].dtype) == "str"]
+    if any(found[c].astype("string").str.startswith('"').fillna(False).any() for c in texts):
+        print("Note: a cell starts with a quote mark, so a cell with a line break in it may have been split into two "
+              "rows. Copy it without line breaks, or save it as a file and read the file.")
     return found
 
 
@@ -737,8 +761,8 @@ def _read_more(source, kind, label, options):
     """Feather, JSON lines, XML, SAS and database files, each read by pandas (or DuckDB) itself."""
     if kind == "feather":
         return pd.read_feather(_rewind(source))  # pandas read_feather
-    if kind == "jsonl":
-        return pd.read_json(_rewind(source), lines=True)  # pandas read_json(lines=True): one row per line
+    if kind == "jsonl":  # pandas read_json(lines=True): one row per line (json_normalize for values inside values)
+        return _read_json(source, label, lines=True)
     if kind == "xml":
         return pd.read_xml(_rewind(source), parser="etree")  # pandas read_xml, with Python's own XML reader
     if kind == "sas":

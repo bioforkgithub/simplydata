@@ -96,6 +96,8 @@ answer on both table engines, has its help example, its "same underneath" box an
   `table.save("clipboard")`; `sdata.table("page.html", table_number=)`, `fixed_widths=` (text files with columns
   at fixed places), `sdata.table("clipboard")`, and `.json` files with values inside values (`json_normalize`).
   `pip install "simplydata[files]"` now brings jinja2 (for `.tex`) and lxml (for `.html`).
+  A web page is read in its own character set (`encoding=` when it names none); `fixed_widths=` takes
+  `decimal_mark=`, `thousands_mark=`, `read_as_text=`, `column_names=` and `skip_lines_starting_with=`.
 - Charts: `draw_lines(in_row_order=True)` joins the points in the order of the rows (`so.Path`), and
   `move_layer_by=` on `draw_dots`, `draw_lines`, `draw_all_dots` and `draw_dashes` moves a layer along x
   (`so.Shift`).

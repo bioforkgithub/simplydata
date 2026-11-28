@@ -288,7 +288,15 @@ can write it up in a report or a paper.
   \item[{\hyperref[part:from-pandas]{Part V: From pandas and Polars}}] For readers who know pandas or
     Polars: each topic of their user guides, the simplydata words for it, and how to hand a table over
     for the jobs simplydata leaves to them.
-  \item[{\hyperref[part:solutions]{Part VI: Solutions}}] A worked solution for every
+  \item[{\hyperref[part:from-matplotlib]{Part VI: From matplotlib and seaborn}}] For readers who know
+    matplotlib or seaborn: each topic of their guides, the simplydata words for it, and how to hand a chart
+    over with \code{chart.as\_matplotlib()} for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:from-numpy]{Part VII: From NumPy and SciPy}}] For readers who know NumPy or
+    SciPy: each topic of their guides, the simplydata words for it, and how to hand numbers over with
+    \code{numbers.as\_numpy()} for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:from-sympy]{Part VIII: From SymPy}}] For readers who know SymPy: each page of its
+    tutorial, the simplydata words for it, and how to hand a formula over with \code{formula.as\_sympy()}.
+  \item[{\hyperref[part:solutions]{Part IX: Solutions}}] A worked solution for every
     ``Try it yourself'' task.
 \end{description}
 Keep the \href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet}
@@ -6027,6 +6035,47 @@ chart.undo()
 chart.save("undo.png")
 \end{lstlisting}
 \undertext{\textit{Nothing underneath:} simplydata's own: a chart is a list of steps drawn only when it is shown or saved, so undo takes the last word's steps and settings back before anything is drawn again. In matplotlib you would draw the chart again without that line.}
+\wordentry{chart.as\_matplotlib()}{word:as-matplotlib}
+Give back the chart as a plain matplotlib Figure, for matplotlib code. fig = \code{chart.\allowbreak{}as\_\allowbreak{}matplotlib()}
+
+Only needed for a job no simplydata word does: simplydata words never need it. The Figure holds the charts as matplotlib Axes in fig.axes: ax = fig.axes[0] is the (first) chart. A second y-axis, a colour bar, a chart put inside and the other charts of a page come after it in fig.axes. Then use any matplotlib method, such as \code{ax.\allowbreak{}annotate(.\allowbreak{}.\allowbreak{}.\allowbreak{})}, and save with \code{fig.\allowbreak{}savefig(\textquotedbl{}chart.\allowbreak{}png\textquotedbl{},\allowbreak{} dpi=300)}.
+
+It is a copy, as \code{table.\allowbreak{}as\_\allowbreak{}pandas()} and \code{numbers.\allowbreak{}as\_\allowbreak{}numpy()} are: changing fig does not change the chart, and later words on the chart do not change fig (\code{chart.\allowbreak{}save()} saves the chart without your matplotlib changes). It is always the matplotlib Figure, also for a chart you save as a web page (\code{chart.\allowbreak{}save(\textquotedbl{}chart.\allowbreak{}html\textquotedbl{})} or \code{show\_\allowbreak{}in\_\allowbreak{}web\_\allowbreak{}page()}, which plotly draws from this same picture), and for an animation it is the last frame. fig.savefig uses matplotlib's own settings; \code{chart.\allowbreak{}save()} also trims the picture to what is drawn and keeps the text as text in \code{.\allowbreak{}pdf}, .eps and \code{.\allowbreak{}svg} files. In Jupyter, put fig on the last line of a cell to see it.
+
+\wordfield{Options}{none: just write the empty brackets.}
+
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{annotate()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+fig = chart.as_matplotlib()
+ax = fig.axes[0]
+ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+fig.savefig("as_matplotlib.png", dpi=300)
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_as_matplotlib.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# as_matplotlib(): the Figure, to carry on in matplotlib
+ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+fig
+\end{lstlisting}
+\undertext{simplydata draws a new Figure each time, so changing it never changes the chart; a second y-axis, a colour bar and the other charts of a page are in fig.axes too. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the axis labels, the words written on the chart and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Chart types}{group:Chart-types}
 \wordentry{chart.draw\_bars()}{word:draw-bars}
 Bars. \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}name\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -9556,9 +9605,12 @@ ax.invert_yaxis()
 \wordfield{Also written}{\code{chart.\allowbreak{}use\_\allowbreak{}color()}}
 One colour for the whole chart. \code{chart.\allowbreak{}use\_\allowbreak{}colour(\textquotedbl{}blue\textquotedbl{})} or \code{chart.\allowbreak{}use\_\allowbreak{}colour(\textquotedbl{}\#0072B2\textquotedbl{})}
 
+\code{from\_\allowbreak{}colour\_\allowbreak{}list=\textquotedbl{}xkcd\textquotedbl{}} reads the name from the 949 colours of xkcd's colour survey (\code{\textquotedbl{}windows blue\textquotedbl{}}), and \code{\textquotedbl{}crayon\textquotedbl{}} from Crayola's crayons (\code{\textquotedbl{}Mahogany\textquotedbl{}}) (seaborn \code{xkcd\_\allowbreak{}palette} and \code{crayon\_\allowbreak{}palette}).
+
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{name} & needed\\
+\code{from\_\allowbreak{}colour\_\allowbreak{}list=} & \\
 \end{optiontable}
 
 \wordfield{Good to know}{Inside a chart step, \code{colour=} does more: \code{colour=\textquotedbl{}class\textquotedbl{}} gives each class its own colour (and a legend), and \code{colour=\textquotedbl{}red\textquotedbl{}} makes that one step red.}
@@ -9595,17 +9647,38 @@ sns.barplot(df, x="class", y="marks", errorbar=None, color="purple",
 \undertext{Any matplotlib colour name or a code such as \code{\textquotedbl{}\#0072B2\textquotedbl{}} works. Without groups every chart type uses it; with groups \code{use\_\allowbreak{}colours()} chooses the colours. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the colours and the bars (the chart's data, not its pixels).}
 \end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_colour_from_colour_list.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same colours, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{from\_\allowbreak{}colour\_\allowbreak{}list=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# use_colour("Mahogany", from_colour_list="crayon")
+sns.barplot(df, x="class", y="marks", errorbar=None, color=sns.crayon_palette(["Mahogany"])[0],
+            saturation=1, ax=ax)
+\end{lstlisting}
+\undertext{\textit{Checked:} a test runs both and compares the colours and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.use\_colours()}{word:use-colours}
 \wordfield{Also written}{\code{chart.\allowbreak{}use\_\allowbreak{}colors()}}
 Your own colours for the groups, in order. \code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}blue\textquotedbl{},\allowbreak{} \textquotedbl{}orange\textquotedbl{},\allowbreak{} \textquotedbl{}green\textquotedbl{})}
 
 Or a named set of colours: \code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}Set2\textquotedbl{})}, \code{\textquotedbl{}tab10\textquotedbl{}}, \code{\textquotedbl{}Dark2\textquotedbl{}}, \code{\textquotedbl{}Paired\textquotedbl{}}, seaborn's \code{\textquotedbl{}deep\textquotedbl{}}, \code{\textquotedbl{}muted\textquotedbl{}} and \code{\textquotedbl{}colorblind\textquotedbl{}}, or \code{\textquotedbl{}colour-blind safe\textquotedbl{}} (Okabe-Ito, simplydata's own colours). With a colour scale and \code{how\_\allowbreak{}many=}, the colours are taken evenly from it:\\
-\codeline{chart.use\_colours(\textquotedbl{}viridis\textquotedbl{}, how\_many=5).}
+\codeline{chart.use\_colours(\textquotedbl{}viridis\textquotedbl{}, how\_many=5). from\_colour\_list=\textquotedbl{}xkcd\textquotedbl{} reads the names from xkcd's colour}\\
+survey (\code{chart.\allowbreak{}use\_\allowbreak{}colours(\textquotedbl{}windows blue\textquotedbl{},\allowbreak{} \textquotedbl{}amber\textquotedbl{},\allowbreak{} from\_\allowbreak{}colour\_\allowbreak{}list=\textquotedbl{}xkcd\textquotedbl{})}), and \code{\textquotedbl{}crayon\textquotedbl{}} from Crayola's crayons (seaborn \code{xkcd\_\allowbreak{}palette} and \code{crayon\_\allowbreak{}palette}).
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{names.\allowbreak{}.\allowbreak{}.\allowbreak{}} & as many as you like, separated by commas\\
 \code{how\_\allowbreak{}many=} & \\
+\code{from\_\allowbreak{}colour\_\allowbreak{}list=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:use-colours]{How simplydata chooses methods}, page \pageref{basis:use-colours}: the default, the evidence and the checks.}
@@ -9643,12 +9716,33 @@ sns.barplot(df, x="subject", y="marks", hue="class",
 \undertext{With more groups than colours the colours repeat, and a line says so. The rest of simplydata's paper look (fonts, no top and right lines) is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the colours, the bars and the legend (the chart's data, not its pixels).}
 \end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_colours_from_colour_list.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same colours, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{from\_\allowbreak{}colour\_\allowbreak{}list=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# use_colours("windows blue", "amber", "faded green", from_colour_list="xkcd")
+sns.barplot(df, x="subject", y="marks", hue="class", hue_order=["A", "B", "C"],
+            palette=sns.xkcd_palette(["windows blue", "amber", "faded green"]),
+            errorbar=None, saturation=1, ax=ax)
+\end{lstlisting}
+\undertext{\code{from\_\allowbreak{}colour\_\allowbreak{}list=\textquotedbl{}crayon\textquotedbl{}} reads Crayola's names (seaborn \code{crayon\_\allowbreak{}palette}); a name the list lacks gets a \code{\textquotedbl{}Did you mean\textquotedbl{}} line.}
+\undertext{\textit{Checked:} a test runs both and compares the colours and the bars (the chart's data, not its pixels).}
+\end{underneathbox}
 \wordentry{chart.use\_colour\_scale()}{word:use-colour-scale}
 \wordfield{Also written}{\code{chart.\allowbreak{}use\_\allowbreak{}color\_\allowbreak{}scale()}}
 The colours for numbers on a heatmap, contour map, surface or dots coloured by a number column.\\
 \codeline{chart.use\_colour\_scale(\textquotedbl{}magma\textquotedbl{}) (with chart.draw\_heatmap(x=\textquotedbl{}month\textquotedbl{}, y=\textquotedbl{}city\textquotedbl{}, value=\textquotedbl{}rain\textquotedbl{}) on sdata.get\_example(\textquotedbl{}weather\textquotedbl{}))}
 
-A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquotedbl{}cividis\textquotedbl{}}, \code{\textquotedbl{}magma\textquotedbl{}}, \code{\textquotedbl{}blues\textquotedbl{}}, \code{\textquotedbl{}greens\textquotedbl{}} ..., \code{\textquotedbl{}blue to red\textquotedbl{}} or \code{\textquotedbl{}purple to orange\textquotedbl{}} for numbers on both sides of a middle; these are all safe for colour-blind readers. Any matplotlib colour map name works too (\code{\textquotedbl{}Blues\textquotedbl{}}, \code{\textquotedbl{}plasma\textquotedbl{}}, \code{\textquotedbl{}rocket\textquotedbl{}}), and two or more colours make your own: \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}white\textquotedbl{},\allowbreak{} \textquotedbl{}navy\textquotedbl{})}. \code{middle=0} puts the middle colour of a two-sided scale at 0 (or \code{middle=1} for ratios); the scale goes equally far on both sides, so a step of 1 is the same change of colour. \code{log=True} spreads the colours on a log scale (1, 10, 100 ... evenly), for counts that span many sizes. \code{steps=5} cuts the scale into 5 colours, or \code{steps=[0,\allowbreak{} 5,\allowbreak{} 10,\allowbreak{} 20]} sets where each colour starts. \code{between=[0,\allowbreak{} 30]} fixes the ends of the scale, so several charts can share it; values beyond them get the end colour (the colour bar shows an arrow).
+A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquotedbl{}cividis\textquotedbl{}}, \code{\textquotedbl{}magma\textquotedbl{}}, \code{\textquotedbl{}blues\textquotedbl{}}, \code{\textquotedbl{}greens\textquotedbl{}} ..., \code{\textquotedbl{}blue to red\textquotedbl{}} or \code{\textquotedbl{}purple to orange\textquotedbl{}} for numbers on both sides of a middle; these are all safe for colour-blind readers. Any matplotlib colour map name works too (\code{\textquotedbl{}Blues\textquotedbl{}}, \code{\textquotedbl{}plasma\textquotedbl{}}, \code{\textquotedbl{}rocket\textquotedbl{}}), and two or more colours make your own: \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}white\textquotedbl{},\allowbreak{} \textquotedbl{}navy\textquotedbl{})}. \code{middle=0} puts the middle colour of a two-sided scale at 0 (or \code{middle=1} for ratios); the scale goes equally far on both sides, so a step of 1 is the same change of colour. \code{log=True} spreads the colours on a log scale (1, 10, 100 ... evenly), for counts that span many sizes. \code{steps=5} cuts the scale into 5 colours, or \code{steps=[0,\allowbreak{} 5,\allowbreak{} 10,\allowbreak{} 20]} sets where each colour starts. \code{between=[0,\allowbreak{} 30]} fixes the ends of the scale, so several charts can share it; values beyond them get the end colour (the colour bar shows an arrow). \code{from\_\allowbreak{}colour\_\allowbreak{}list=\textquotedbl{}xkcd\textquotedbl{}} or \code{\textquotedbl{}crayon\textquotedbl{}} reads your own colours from xkcd's colour survey or Crayola's crayons: \code{chart.\allowbreak{}use\_\allowbreak{}colour\_\allowbreak{}scale(\textquotedbl{}pale yellow\textquotedbl{},\allowbreak{} \textquotedbl{}dark red\textquotedbl{},\allowbreak{} from\_\allowbreak{}colour\_\allowbreak{}list=\textquotedbl{}xkcd\textquotedbl{})}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -9657,6 +9751,7 @@ A name: \code{\textquotedbl{}viridis\textquotedbl{}} (normal), \code{\textquoted
 \code{log=} & normally \code{False}\\
 \code{steps=} & \\
 \code{between=} & \\
+\code{from\_\allowbreak{}colour\_\allowbreak{}list=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:use-colour-scale]{How simplydata chooses methods}, page \pageref{basis:use-colour-scale}: the default, the evidence and the checks.}
@@ -9696,11 +9791,12 @@ ax.tick_params(axis="y", rotation=0)
 \wordentry{chart.use\_style()}{word:use-style}
 The overall look. \code{chart.\allowbreak{}use\_\allowbreak{}style(\textquotedbl{}school\textquotedbl{})}
 
-\code{\textquotedbl{}paper\textquotedbl{}} (default), \code{\textquotedbl{}school\textquotedbl{}}, \code{\textquotedbl{}presentation\textquotedbl{}}, \code{\textquotedbl{}dark\textquotedbl{}} or \code{\textquotedbl{}black and white\textquotedbl{}}: greys instead of colours, for print, and each group also gets its own pattern (bars, areas, pies), dashes (lines) or shape (dots). \code{\textquotedbl{}greyscale\textquotedbl{}} and \code{\textquotedbl{}grayscale\textquotedbl{}} mean \code{\textquotedbl{}black and white\textquotedbl{}} too.
+\code{\textquotedbl{}paper\textquotedbl{}} (default), \code{\textquotedbl{}school\textquotedbl{}}, \code{\textquotedbl{}presentation\textquotedbl{}}, \code{\textquotedbl{}dark\textquotedbl{}} or \code{\textquotedbl{}black and white\textquotedbl{}}: greys instead of colours, for print, and each group also gets its own pattern (bars, areas, pies), dashes (lines) or shape (dots). \code{\textquotedbl{}greyscale\textquotedbl{}} and \code{\textquotedbl{}grayscale\textquotedbl{}} mean \code{\textquotedbl{}black and white\textquotedbl{}} too. \code{colour\_\allowbreak{}letters=\textquotedbl{}seaborn\textquotedbl{}} makes the one-letter colours \code{\textquotedbl{}b\textquotedbl{}}, \code{\textquotedbl{}g\textquotedbl{}}, \code{\textquotedbl{}r\textquotedbl{}}, \code{\textquotedbl{}m\textquotedbl{}}, \code{\textquotedbl{}y\textquotedbl{}}, \code{\textquotedbl{}c\textquotedbl{}} and \code{\textquotedbl{}k\textquotedbl{}} seaborn's softer colours on this chart (seaborn \code{set\_\allowbreak{}color\_\allowbreak{}codes}; \code{\textquotedbl{}deep\textquotedbl{}} is the same, and \code{\textquotedbl{}muted\textquotedbl{}}, \code{\textquotedbl{}pastel\textquotedbl{}}, \code{\textquotedbl{}dark\textquotedbl{}}, \code{\textquotedbl{}bright\textquotedbl{}} and \code{\textquotedbl{}colorblind\textquotedbl{}} take another seaborn set); other charts keep matplotlib's letters.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{name} & needed\\
+\code{colour\_\allowbreak{}letters=} & \\
 \end{optiontable}
 
 \wordfield{Why this method}{\hyperref[basis:use-style]{How simplydata chooses methods}, page \pageref{basis:use-style}: the default, the evidence and the checks.}
@@ -9738,6 +9834,28 @@ with plt.rc_context(school):
 \undertext{(1) \code{\textquotedbl{}school\textquotedbl{}} is bigger words and thicker lines, for a classroom screen; \code{\textquotedbl{}presentation\textquotedbl{}} is bigger still, \code{\textquotedbl{}dark\textquotedbl{}} puts light words and brighter colours on a dark background, and \code{\textquotedbl{}paper\textquotedbl{}} is the normal look.}
 \undertext{The style is a set of matplotlib settings used while the chart is drawn and saved, so it never changes your other charts. The marker size and the width of the axis lines are not compared. The rest of simplydata's paper look (colours, no top and right lines) is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the font sizes, the style and width of each line, the lines and the legend (the chart's data, not its pixels).}
+\end{underneathbox}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_use_style_colour_letters.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same colours, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{colour\_\allowbreak{}letters=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+# use_style("paper", colour_letters="seaborn")
+sns.set_color_codes("deep")
+sns.barplot(df, x="subject", y="marks", hue="class", hue_order=["A", "B", "C"],
+            palette=["b", "g", "r"], errorbar=None, saturation=1, ax=ax)
+sns.set_color_codes("reset")   # matplotlib's letters again
+\end{lstlisting}
+\undertext{simplydata changes the letters for this chart only; seaborn changes them for the whole session.}
+\undertext{\textit{Checked:} a test runs both and compares the colours and the bars (the chart's data, not its pixels).}
 \end{underneathbox}
 \wordentry{chart.set\_size()}{word:set-size}
 The size of the chart. \code{chart.\allowbreak{}set\_\allowbreak{}size(width=17,\allowbreak{} height=12,\allowbreak{} unit=\textquotedbl{}cm\textquotedbl{})}
@@ -10290,6 +10408,113 @@ sns.scatterplot(df, x="hours", y="marks", hue="class", style="class",
 \undertext{simplydata names the shapes in words (\code{\textquotedbl{}circle\textquotedbl{}}, \code{\textquotedbl{}square\textquotedbl{}}, \code{\textquotedbl{}triangle\textquotedbl{}}, \code{\textquotedbl{}diamond\textquotedbl{}} ...) and repeats them when there are more groups than shapes. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
 \undertext{\textit{Checked:} a test runs both and compares the dots, which dots share a colour and the legend (the chart's data, not its pixels).}
 \end{underneathbox}
+\wordentry{sdata.show\_colours()}{word:sdata.show-colours}
+Draw a row of colour swatches, to see a set of colours before you use it. \code{sdata.\allowbreak{}show\_\allowbreak{}colours(\textquotedbl{}deep\textquotedbl{})}
+
+\codeline{sdata.show\_colours(\textquotedbl{}Set2\textquotedbl{}) draws seaborn's palplot of the set and prints each colour as a code (\#66c2a5 ...),}\\
+which \code{use\_\allowbreak{}colours()} takes. \code{colours=} is a named set (seaborn's \code{\textquotedbl{}deep\textquotedbl{}}, \code{\textquotedbl{}muted\textquotedbl{}}, \code{\textquotedbl{}pastel\textquotedbl{}}, \code{\textquotedbl{}colorblind\textquotedbl{}}, matplotlib's \code{\textquotedbl{}tab10\textquotedbl{}}, \code{\textquotedbl{}Set2\textquotedbl{}}, a colour scale such as \code{\textquotedbl{}viridis\textquotedbl{}} with \code{how\_\allowbreak{}many=}), or your own list of colours. \code{save\_\allowbreak{}as=\textquotedbl{}colours.\allowbreak{}png\textquotedbl{}} saves the picture; in Jupyter it is shown. Gives back the colour codes, as a list.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{colours=} & \\
+\code{how\_\allowbreak{}many=} & \\
+\code{save\_\allowbreak{}as=} & \\
+\end{optiontable}
+
+\wordfield{Underneath}{seaborn \code{color\_\allowbreak{}palette().\allowbreak{}as\_\allowbreak{}hex()}, \code{palplot()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+codes = sdata.show_colours("deep")
+sdata.show_colours("viridis", how_many=5, save_as="colours.png")
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import seaborn as sns
+# show_colours("tab10")
+colours = sns.color_palette("tab10").as_hex()
+sns.palplot(colours)
+for code in colours:
+    print(code)
+\end{lstlisting}
+\undertext{simplydata also gives back the codes as a list, saves the swatches with \code{save\_\allowbreak{}as=}, and shows them in Jupyter.}
+\undertext{\textit{Checked:} a test runs both and compares what both print (each line the code prints appears in what simplydata prints).}
+\end{underneathbox}
+\wordentry{sdata.change\_colour()}{word:sdata.change-colour}
+A lighter, darker, greyer or stronger colour, as a code. \code{sdata.\allowbreak{}change\_\allowbreak{}colour(\textquotedbl{}navy\textquotedbl{},\allowbreak{} lightness=0.\allowbreak{}6)}
+
+\code{lightness=} sets how light the colour is, from 0 (black) to 1 (white); \code{colour\_\allowbreak{}strength=} sets how strong (saturated) it is, from 0 (grey) to 1 (full colour); \code{hue=} sets the colour round the colour wheel, from 0 to 1 (0 red, 1/3 green, 2/3 blue). These are seaborn \code{set\_\allowbreak{}hls\_\allowbreak{}values(color,\allowbreak{} h=hue,\allowbreak{} l=lightness,\allowbreak{} s=colour\_\allowbreak{}strength)}. \code{colour\_\allowbreak{}strength\_\allowbreak{}times=0.\allowbreak{}5} makes the colour half as strong (seaborn \code{desaturate(color,\allowbreak{} prop)}), and \code{full\_\allowbreak{}colour\_\allowbreak{}strength=True} makes it as strong as it can be (seaborn saturate). Gives back the new colour as a code such as \code{\textquotedbl{}\#3a5fcd\textquotedbl{}}, which every colour word takes.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{colour=} & \\
+\code{lightness=} & \\
+\code{colour\_\allowbreak{}strength=} & \\
+\code{colour\_\allowbreak{}strength\_\allowbreak{}times=} & \\
+\code{hue=} & \\
+\code{full\_\allowbreak{}colour\_\allowbreak{}strength=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Underneath}{seaborn \code{to\_\allowbreak{}hex()}, \code{set\_\allowbreak{}hls\_\allowbreak{}values()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+lighter = sdata.change_colour("navy", lightness=0.6)
+greyer = sdata.change_colour("red", colour_strength_times=0.5)
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import seaborn as sns
+from matplotlib.colors import to_hex
+# change_colour("navy", lightness=0.6)
+to_hex(sns.set_hls_values("navy", l=0.6))
+\end{lstlisting}
+\undertext{simplydata also names each change in its sentence and checks that every share is from 0 to 1.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{colour\_\allowbreak{}strength\_\allowbreak{}times=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import seaborn as sns
+from matplotlib.colors import to_hex
+# change_colour("red", colour_strength_times=0.5)
+to_hex(sns.desaturate("red", 0.5))
+\end{lstlisting}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{seaborn}}
+\undertext{\textbf{With \code{full\_\allowbreak{}colour\_\allowbreak{}strength=}}: the same job with this option.}
+\underlib{seaborn}
+\begin{lstlisting}[style=under]
+import seaborn as sns
+from matplotlib.colors import to_hex
+# change_colour("#7a8f99", full_colour_strength=True)
+to_hex(sns.saturate("#7a8f99"))
+\end{lstlisting}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{sdata.pick\_colours\_with\_sliders()}{word:sdata.pick-colours-with-sliders}
+Choose a set of colours with sliders in Jupyter. \code{sdata.\allowbreak{}pick\_\allowbreak{}colours\_\allowbreak{}with\_\allowbreak{}sliders(kind=\textquotedbl{}dark\textquotedbl{})}
+
+\code{kind=} \code{\textquotedbl{}brewer\textquotedbl{}} (the ColorBrewer sets; \code{brewer\_\allowbreak{}type=} \code{\textquotedbl{}sequential\textquotedbl{}}, \code{\textquotedbl{}diverging\textquotedbl{}} or \code{\textquotedbl{}qualitative\textquotedbl{}}), \code{\textquotedbl{}cubehelix\textquotedbl{}}, \code{\textquotedbl{}dark\textquotedbl{}}, \code{\textquotedbl{}light\textquotedbl{}} or \code{\textquotedbl{}diverging\textquotedbl{}}: seaborn's \code{choose\_\allowbreak{}colorbrewer\_\allowbreak{}palette}, \code{choose\_\allowbreak{}cubehelix\_\allowbreak{}palette}, \code{choose\_\allowbreak{}dark\_\allowbreak{}palette}, \code{choose\_\allowbreak{}light\_\allowbreak{}palette} and \code{choose\_\allowbreak{}diverging\_\allowbreak{}palette}. Gives back the list of colours, which changes as you move the sliders; give it to \code{chart.\allowbreak{}use\_\allowbreak{}colours(.\allowbreak{}.\allowbreak{}.\allowbreak{})}. Needs Jupyter and ipywidgets; anywhere else it says what is needed and gives back nothing. simplydata never installs anything.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{kind=} & normally \code{\textquotedbl{}brewer\textquotedbl{}}\\
+\code{brewer\_\allowbreak{}type=} & normally \code{\textquotedbl{}sequential\textquotedbl{}}\\
+\end{optiontable}
+
+\wordfield{Underneath}{The sliders run only in Jupyter with ipywidgets: seaborn \code{choose\_\allowbreak{}dark\_\allowbreak{}palette()} (and \code{choose\_\allowbreak{}colorbrewer\_\allowbreak{}palette}, \code{choose\_\allowbreak{}cubehelix\_\allowbreak{}palette}, \code{choose\_\allowbreak{}light\_\allowbreak{}palette}, \code{choose\_\allowbreak{}diverging\_\allowbreak{}palette} for the other kinds). Anywhere else simplydata says what is needed and gives back nothing; it never installs anything.}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+# in Jupyter, with ipywidgets: sliders; anywhere else: a sentence
+colours = sdata.pick_colours_with_sliders(kind="dark")
+\end{lstlisting}
+\undertext{\textit{Nothing underneath:} The sliders run only in Jupyter with ipywidgets: seaborn \code{choose\_\allowbreak{}dark\_\allowbreak{}palette()} (and \code{choose\_\allowbreak{}colorbrewer\_\allowbreak{}palette}, \code{choose\_\allowbreak{}cubehelix\_\allowbreak{}palette}, \code{choose\_\allowbreak{}light\_\allowbreak{}palette}, \code{choose\_\allowbreak{}diverging\_\allowbreak{}palette} for the other kinds). Anywhere else simplydata says what is needed and gives back nothing; it never installs anything.}
 \unsection{Order of groups}{group:Order-of-groups}
 \wordentry{chart.order\_x()}{word:order-x}
 Put the groups along the x-axis in your order. \code{chart.\allowbreak{}order\_\allowbreak{}x(\textquotedbl{}C\textquotedbl{},\allowbreak{} \textquotedbl{}B\textquotedbl{},\allowbreak{} \textquotedbl{}A\textquotedbl{})} (with \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}class\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} on \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -18923,7 +19148,8 @@ Find the values that make an equation true.
 One equation with one name: \code{between=[low,\allowbreak{} high]} finds every solution in the range where the two sides cross (Brent's method, R \code{uniroot()} on each sign change, as rootSolve::\code{uniroot.\allowbreak{}all()}); \code{start=} finds one solution by searching from the start (secant method); a polynomial (only + - * and whole powers) needs neither and gives all its solutions, complex ones too (R \code{polyroot()}). Several equations in a list:\\
 \codeline{sdata.solve([\textquotedbl{}x + y = 3\textquotedbl{}, \textquotedbl{}x * y = 2\textquotedbl{}], start=\{\textquotedbl{}x\textquotedbl{}: 0, \textquotedbl{}y\textquotedbl{}: 1\}) (Powell's hybrid method, as}\\
 R nleqslv::\code{nleqslv()}); straight-line equations are solved exactly (R \code{solve()}). \code{known=} fixes some names (a dict, or a one-row result table from \code{table.\allowbreak{}fit\_\allowbreak{}formula}). Gives back a table with one row per solution: each name, \code{\textquotedbl{}left minus right\textquotedbl{}} at the solution (the check: close to 0) and the method. \code{fast=True} gives a Polars table. \code{exactly=True} gives the exact solutions from SymPy solve (simplydata[exact]): \code{sdata.\allowbreak{}solve(\textquotedbl{}x**2 = 2\textquotedbl{},\allowbreak{} exactly=True)} prints x = -\code{sqrt(2)} or x = \code{sqrt(2)}; the table has each decimal and its exact form. With \code{exactly=True}, \code{for\_\allowbreak{}letter=\textquotedbl{}T\textquotedbl{}} solves for that letter and leaves the others as letters (\code{sdata.\allowbreak{}solve(\textquotedbl{}p*V = n*R*T\textquotedbl{},\allowbreak{} for\_\allowbreak{}letter=\textquotedbl{}T\textquotedbl{},\allowbreak{} exactly=True)} gives T = V*p/(R*n)); rules (\textless{}, \textgreater{}, \textless{}=, \textgreater{}=) give the ranges where they hold (\code{sdata.\allowbreak{}solve(\textquotedbl{}x**2 - 4 \textgreater{} 0\textquotedbl{},\allowbreak{} exactly=True)}: x \textless{} -2 or x \textgreater{} 2, SymPy solveset over the real numbers); \code{letters\_\allowbreak{}are=}\{\code{\textquotedbl{}c\textquotedbl{}}: \code{\textquotedbl{}positive\textquotedbl{}}\} says what a letter is. A formula made with \code{sdata.\allowbreak{}formula()} means\\
-\codeline{formula = 0: sdata.solve(formula.find\_slope\_formula(), exactly=True) finds where the slope is flat.}
+\codeline{formula = 0: sdata.solve(formula.find\_slope\_formula(), exactly=True) finds where the slope is flat. Equations}\\
+already written as a grid of numbers (grid times x = b) are solved by \code{grid.\allowbreak{}solve\_\allowbreak{}for(b)}.
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
@@ -29566,6 +29792,157 @@ pd.DataFrame({"eigenvalue": [float(v) for v, _ in rows], "imaginary part": 0.0,
 \undertext{simplydata also says how many times each eigenvalue comes, and refuses grids bigger than 6 x 6.}
 \undertext{\textit{Checked:} a test runs both and compares the table.}
 \end{underneathbox}
+\wordentry{grid.solve\_for()}{word:grid.solve-for}
+Find x with grid times x = b: solve a grid's straight-line equations. \code{grid.\allowbreak{}solve\_\allowbreak{}for([5,\allowbreak{} 7])}
+
+\codeline{sdata.number\_grid([[2, 1], [1, 3]]).solve\_for([5, 10]) gives x = [1, 3], as R solve(a, b) and MATLAB a \textbackslash{} b.}\\
+A square grid uses SciPy linalg.solve (LU decomposition). A grid that is not square (more equations than unknowns, or fewer) has no exact answer, so x is the least-squares answer, the one that makes the squared leftovers smallest (SciPy linalg.lstsq); the sentence says so. \code{with\_\allowbreak{}best\_\allowbreak{}fit=True} asks for least squares on a square grid too (one whose determinant is 0). \code{between=[low,\allowbreak{} high]} keeps every x inside limits (least squares with limits; None is no limit): \code{between=[0,\allowbreak{} None]} is non-negative least squares (SciPy optimize.nnls, as R nnls and MATLAB lsqnonneg), as for unmixing spectra or a diet mix; other limits use optimize.lsq\_linear. \code{exactly=True} gives SymPy's exact answer (the numbers as fractions). b may be a grid: one right side in each column. Gives back numbers (or a grid). For equations written as text, see \code{sdata.\allowbreak{}solve}. Nothing changes in the grid.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{b=} & \\
+\code{between=} & \\
+\code{with\_\allowbreak{}best\_\allowbreak{}fit=} & normally \code{False}\\
+\code{exactly=} & normally \code{False}\\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:grid.solve-for]{How simplydata chooses methods}, page \pageref{basis:grid.solve-for}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{solve()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+grid = sdata.number_grid([[2, 1], [1, 3]])
+x = grid.solve_for([5, 10])
+print(x)
+grid.solve_for([5, 10], exactly=True)
+mix = sdata.number_grid([[2, 0], [1, 1], [0, 3]])
+amounts = mix.solve_for([4, 3, 5], between=[0, None])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6]], dtype=float)
+# solve_for([1, 2, 3])
+linalg.solve(g, [1, 2, 3])   # (1)
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) a square grid uses linalg.solve (the LU decomposition, LAPACK gesv); a grid that is not square has no exact answer, so it uses least squares (linalg.lstsq), and the sentence says so.}
+\undertext{simplydata also says plainly when the grid has no single answer (determinant 0) and what to write instead.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{with\_\allowbreak{}best\_\allowbreak{}fit=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[1, 2], [2, 4]], dtype=float)
+# solve_for([1, 2], with_best_fit=True)
+x, leftover, rank, singular_values = linalg.lstsq(g, [1, 2])
+x
+\end{lstlisting}
+\undertext{simplydata also says that the columns depend on each other (rank 1 of 2), so this answer is the shortest of many that fit equally well.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{between=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import optimize
+g = np.array([[2, 0, 1], [1, 1, 0], [0, 3, 1], [1, 0, 2]], dtype=float)
+# solve_for([4, 1, 2, 5], between=[0, None])
+x, leftover = optimize.nnls(g, [4, 1, 2, 5])   # (1)
+x
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) \code{between=[0,\allowbreak{} None]} is non-negative least squares, SciPy optimize.nnls (Lawson and Hanson's active set method); any other limits use optimize.lsq\_linear with \code{method=\textquotedbl{}bvls\textquotedbl{}} (bounded-variable least squares), whose active-set answer is exact, not iterative.}
+\undertext{simplydata also prints the leftover size and how many of the answers sit at a limit.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SymPy}}
+\undertext{\textbf{With \code{exactly=}}: the same job with this option.}
+\underlib{SymPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+import sympy as sp
+# solve_for([1, 1], exactly=True)
+x = sp.Matrix([[2, 1], [1, 3]]).LUsolve(sp.Matrix([1, 1]))   # (1)
+np.array(x.evalf(), dtype=float).ravel()
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the numbers become the fractions they stand for (0.2 is 1/5), then SymPy LUsolve works exactly; a grid that is not square uses SymPy \code{solve\_\allowbreak{}least\_\allowbreak{}squares}. The answer keeps the decimals of the exact fractions, which are printed.}
+\undertext{simplydata also prints x as fractions (2/5, 1/5).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\wordentry{grid.break\_down()}{word:grid.break-down}
+Break a grid down into the parts of a matrix decomposition. \code{grid.\allowbreak{}break\_\allowbreak{}down(test\_\allowbreak{}method=\textquotedbl{}qr\textquotedbl{})}
+
+\codeline{sdata.number\_grid([[4, 2], [2, 3]]).break\_down(test\_method=\textquotedbl{}cholesky\textquotedbl{}) gives \{\textquotedbl{}U\textquotedbl{}: ...\} with grid = Ut times}\\
+U. Gives back a dict of the parts, each a grid (the singular values and the row order are numbers), and prints what each part is and how they multiply back to the grid. \code{test\_\allowbreak{}method=} \code{\textquotedbl{}svd\textquotedbl{}} (the default: singular values, for any grid; SciPy linalg.svd), \code{\textquotedbl{}qr\textquotedbl{}}, \code{\textquotedbl{}lu\textquotedbl{}}, \code{\textquotedbl{}cholesky\textquotedbl{}} (a symmetric grid with positive eigenvalues), \code{\textquotedbl{}schur\textquotedbl{}}, \code{\textquotedbl{}polar\textquotedbl{}}, \code{\textquotedbl{}ldl\textquotedbl{}} (a symmetric grid), \code{\textquotedbl{}hessenberg\textquotedbl{}} or \code{\textquotedbl{}qz\textquotedbl{}} (two square grids: give the other one with \code{together\_\allowbreak{}with=}). All from SciPy linalg, as R \code{svd()}, \code{qr()}, \code{chol()} and MATLAB svd, qr, lu, chol, schur, ldl, hess, qz. svd and qr give the short (economic) form, as R. Nothing changes in the grid.
+
+\wordfield{Options}{}\par\nopagebreak
+\begin{optiontable}
+\code{test\_\allowbreak{}method=} & normally \code{\textquotedbl{}svd\textquotedbl{}}\\
+\code{together\_\allowbreak{}with=} & \\
+\end{optiontable}
+
+\wordfield{Why this method}{\hyperref[basis:grid.break-down]{How simplydata chooses methods}, page \pageref{basis:grid.break-down}: the default, the evidence and the checks.}
+\wordfield{Underneath}{SciPy \code{svd()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+grid = sdata.number_grid([[4, 2], [2, 3]])
+parts = grid.break_down(test_method="cholesky")
+print(parts["U"])
+parts = grid.break_down(test_method="svd")
+print(parts["singular values"])
+\end{lstlisting}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6], [1, 0, 2]], dtype=float)
+# break_down()
+list(linalg.svd(g, full_matrices=False))   # (1) U, singular values, Vt
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) the singular value decomposition by default, the one every grid has (square or not); its short (economic) form, as R \code{svd()}: U has as many columns as the grid.}
+\undertext{simplydata also prints what each part is and how the parts multiply back to the grid.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{test\_\allowbreak{}method=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+g = np.array([[4, 3, 2], [3, 5, 1], [2, 1, 6]], dtype=float)
+# break_down(test_method="lu")
+list(linalg.lu(g))   # (1) P, L, U
+\end{lstlisting}
+\undertext{\textbf{simplydata chooses}}
+\undertext{(1) each \code{test\_\allowbreak{}method=} is SciPy linalg's own call with its own defaults (lu gives grid = P L U, cholesky the upper triangle, schur the real form); qr is the short (economic) form, as R \code{qr()}; ldl's row order counts from 1.}
+\undertext{simplydata also refuses a grid that does not fit the method (cholesky and ldl need a symmetric grid).}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
+\undertext{\textbf{With \code{together\_\allowbreak{}with=}}: the same job with this option.}
+\underlib{SciPy}
+\begin{lstlisting}[style=under]
+import numpy as np
+from scipy import linalg
+a = np.array([[4, 2], [2, 3]], dtype=float)
+b = np.array([[1, 0], [0, 2]], dtype=float)
+# break_down(test_method="qz", together_with=b)
+list(linalg.qz(a, b, output="real"))   # AA, BB, Q, Z
+\end{lstlisting}
+\undertext{simplydata also checks that the two grids are square and of the same size.}
+\undertext{\textit{Checked:} a test runs both and compares the number.}
+\end{underneathbox}
 \unsection{Numbers: undo and finish}{group:Numbers-undo-and-finish}
 \wordentry{numbers.undo()}{word:nums.undo}
 Take the last step back. \code{numbers.\allowbreak{}undo()}
@@ -32776,6 +33153,18 @@ sdata.go_to_next_day()
 
 \input{from_pandas}
 
+\part{From matplotlib and seaborn}\label{part:from-matplotlib}
+
+\input{from_matplotlib}
+
+\part{From NumPy and SciPy}\label{part:from-numpy}
+
+\input{from_numpy}
+
+\part{From SymPy}\label{part:from-sympy}
+
+\input{from_sympy}
+
 \part{Solutions}\label{part:solutions}
 
 \unchapter{Solutions to the tasks}{solutions}
@@ -34235,7 +34624,7 @@ samples.count_each("crew")
 \part{How simplydata chooses methods}\label{part:basis}
 
 \unchapter{How simplydata chooses methods}{basis}
-simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 612 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 153 defaults rest on published guidelines or method comparisons, 360 follow the convention of the package named so that results match it, and 99 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an automated review pass when they were designed, and in November 2026 every entry, with its references, was read again by automated review passes told to act as hostile statistical referees (AI review, not named human reviewers); their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
+simplydata often chooses a method, an option value or a setting for you. This appendix gives, for each of the 617 choices, what simplydata chooses, what else you can ask for, why (the principle and the published evidence), and what simplydata checks in your data before it uses the method. 156 defaults rest on published guidelines or method comparisons, 362 follow the convention of the package named so that results match it, and 99 are simplydata's own starting values, each changed with the option named. Every DOI was looked up in Crossref; references without a DOI were checked at their URL. The defaults of the later batches were read by an automated review pass when they were designed, and in November 2026 every entry, with its references, was read again by automated review passes told to act as hostile statistical referees (AI review, not named human reviewers); their findings were applied. The same text is in \code{docs/how\_\allowbreak{}simplydata\_\allowbreak{}chooses.\allowbreak{}md}.
 \unsection{The five principles}{basis:principles}
 \begin{enumerate}
 \item \textbf{P1.} Follow published guidelines and consensus statements where they exist (for example the Cochrane Handbook, the ASA statement on p-values, the SAMPL guidelines, ICH E9 for clinical trials, the GUM for measurement). (Wasserstein \& Lazar 2016; Lang \& Altman 2015; ICH E9 1998; Deeks et al. (Cochrane Handbook, ch. 10); JCGM 100:2008 (GUM); Bland \& Altman 1994)
@@ -37955,6 +38344,41 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Checks}{Grids up to 6 x 6: the roots of a polynomial of higher degree seldom have an exact formula.}
 \wordfield{References}{Meurer et al. 2017}
 \wordfield{In the dictionary}{\hyperref[word:grid.find-eigenvalues]{page \pageref{word:grid.find-eigenvalues}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.solve-for}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}solve\_\allowbreak{}for()}}\par\nopagebreak
+\wordfield{Default}{A square grid: SciPy linalg.solve (the LU decomposition, LAPACK gesv). A grid that is not square: least squares, SciPy linalg.lstsq (LAPACK gelsd), the shortest answer when the columns depend on each other; the sentence says which.}
+\wordfield{Alternatives}{\code{with\_\allowbreak{}best\_\allowbreak{}fit=True} for least squares on a square grid too; \code{between=} for limits; \code{exactly=True} for SymPy's exact answer.}
+\wordfield{Why (P3)}{LAPACK's LU solver is what R \code{solve()}, MATLAB a \textbackslash{} b and NumPy use (Anderson et al. 1999); a grid with more rows than columns has no exact answer, and least squares is the standard best fit (Lawson \& Hanson 1995), as MATLAB a \textbackslash{} b gives for a grid that is not square.}
+\wordfield{Checks}{A grid with no empty cells; b needs one number per row; a square grid with determinant 0 is refused with \code{with\_\allowbreak{}best\_\allowbreak{}fit=True} named.}
+\wordfield{References}{Anderson et al. 1999; Lawson \& Hanson 1995}
+\wordfield{In the dictionary}{\hyperref[word:grid.solve-for]{page \pageref{word:grid.solve-for}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.solve-for-between-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}solve\_\allowbreak{}for()} \code{between=}}\par\nopagebreak
+\wordfield{Default}{\code{between=[0,\allowbreak{} None]}: non-negative least squares, SciPy optimize.nnls (the active-set method of Lawson \& Hanson). Other limits: SciPy optimize.lsq\_linear with \code{method=\textquotedbl{}bvls\textquotedbl{}} (bounded-variable least squares).}
+\wordfield{Alternatives}{Without \code{between=}: least squares with no limits (linalg.lstsq).}
+\wordfield{Why (P3)}{The active-set methods end at the exact answer of the problem with limits (no iteration tolerance to choose), as R nnls and MATLAB lsqnonneg (Lawson \& Hanson 1995).}
+\wordfield{Checks}{Two values, each a number or None, the low one first; one right side only; not with \code{exactly=True}.}
+\wordfield{References}{Lawson \& Hanson 1995}
+\wordfield{In the dictionary}{\hyperref[word:grid.solve-for]{page \pageref{word:grid.solve-for}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.solve-for-exactly-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}solve\_\allowbreak{}for()} \code{exactly=}}\par\nopagebreak
+\wordfield{Default}{The numbers become the fractions they stand for (SymPy nsimplify, \code{rational=True}: 0.2 is 1/5), then SymPy LUsolve (a square grid) or \code{solve\_\allowbreak{}least\_\allowbreak{}squares} (a grid that is not square); x keeps the decimals of the exact answer.}
+\wordfield{Alternatives}{Without \code{exactly=True}: SciPy linalg.solve or linalg.lstsq.}
+\wordfield{Why (P5)}{The same reading of typed decimals as \code{find\_\allowbreak{}determinant(exactly=True)}; the fractions are printed for reading and the decimals kept for working on. \textit{Basis: convention.}}
+\wordfield{Checks}{Grids up to 12 x 12; a square grid with determinant exactly 0, or a grid whose columns depend on each other, is refused.}
+\wordfield{References}{Meurer et al. 2017}
+\wordfield{In the dictionary}{\hyperref[word:grid.solve-for]{page \pageref{word:grid.solve-for}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.break-down}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}break\_\allowbreak{}down()}}\par\nopagebreak
+\wordfield{Default}{The singular value decomposition (SciPy linalg.svd), in its short (economic) form: U has as many columns as the grid, as R \code{svd()}.}
+\wordfield{Alternatives}{\code{test\_\allowbreak{}method=\textquotedbl{}qr\textquotedbl{}}, \code{\textquotedbl{}lu\textquotedbl{}}, \code{\textquotedbl{}cholesky\textquotedbl{}}, \code{\textquotedbl{}schur\textquotedbl{}}, \code{\textquotedbl{}polar\textquotedbl{}}, \code{\textquotedbl{}ldl\textquotedbl{}}, \code{\textquotedbl{}hessenberg\textquotedbl{}} or \code{\textquotedbl{}qz\textquotedbl{}}.}
+\wordfield{Why (P3)}{Every grid, square or not, has a singular value decomposition, so the word works without a choice; the short form leaves out columns that multiply only zeros (Anderson et al. 1999).}
+\wordfield{Checks}{A grid with no empty cells.}
+\wordfield{References}{Anderson et al. 1999}
+\wordfield{In the dictionary}{\hyperref[word:grid.break-down]{page \pageref{word:grid.break-down}}}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.break-down-test-method-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}break\_\allowbreak{}down()} \code{test\_\allowbreak{}method=}}\par\nopagebreak
+\wordfield{Default}{Each method is SciPy linalg's own call with its own defaults: lu gives grid = P L U, cholesky the upper triangle (as R \code{chol()} and MATLAB chol), schur the real form; qr is the short (economic) form, as R \code{qr()}; ldl's row order counts from 1, as every position in simplydata.}
+\wordfield{Alternatives}{Without \code{test\_\allowbreak{}method=}: the singular value decomposition.}
+\wordfield{Why (P3)}{SciPy's defaults are LAPACK's (Anderson et al. 1999), which R and MATLAB also call, so the parts agree with theirs up to the signs of columns where a decomposition leaves them free. \textit{Basis: convention.}}
+\wordfield{Checks}{cholesky and ldl need a symmetric grid; cholesky needs eigenvalues above 0; schur, polar, ldl, hessenberg and qz need a square grid.}
+\wordfield{References}{Anderson et al. 1999}
+\wordfield{In the dictionary}{\hyperref[word:grid.break-down]{page \pageref{word:grid.break-down}}}
 \unsection{Numbers: undo and finish}{basis-group:Numbers-undo-and-finish}
 \par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:nums.turn-into-table}\noindent{\sffamily\bfseries\color{brand}\code{numbers.\allowbreak{}turn\_\allowbreak{}into\_\allowbreak{}table()}}\par\nopagebreak
 \wordfield{Default}{One column called \code{\textquotedbl{}value\textquotedbl{}}.}
@@ -38442,6 +38866,7 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \par\noindent\hangindent=1.5em Langan D, Higgins JPT, Jackson D et al. (2019). A comparison of heterogeneity variance estimators in simulated random-effects meta-analyses. Research Synthesis Methods 10:83-98. \href{https://doi.org/10.1002/jrsm.1316}{doi:10.1002/jrsm.1316}
 \par\noindent\hangindent=1.5em Langsrud \O{} (2003). ANOVA for unbalanced data: Use Type II instead of Type III sums of squares. Statistics and Computing 13:163-167. \href{https://doi.org/10.1023/A:1023260610025}{doi:10.1023/A:1023260610025}
 \par\noindent\hangindent=1.5em Latouche A, Allignol A, Beyersmann J et al. (2013). A competing risks analysis should report results on all cause-specific hazards and cumulative incidence functions. Journal of Clinical Epidemiology 66:648-653. \href{https://doi.org/10.1016/j.jclinepi.2012.09.017}{doi:10.1016/j.jclinepi.2012.09.017}
+\par\noindent\hangindent=1.5em Lawson CL, Hanson RJ (1995). Solving Least Squares Problems. Society for Industrial and Applied Mathematics, Philadelphia (first published 1974). \href{https://doi.org/10.1137/1.9781611971217}{doi:10.1137/1.9781611971217}
 \par\noindent\hangindent=1.5em Leeflang MMG, Moons KGM, Reitsma JB et al. (2008). Bias in Sensitivity and Specificity Caused by Data-Driven Selection of Optimal Cutoff Values: Mechanisms, Magnitude, and Solutions. Clinical Chemistry 54:729-737. \href{https://doi.org/10.1373/clinchem.2007.096032}{doi:10.1373/clinchem.2007.096032}
 \par\noindent\hangindent=1.5em Legendre P, Anderson MJ (1999). Distance-based redundancy analysis: testing multispecies responses in multifactorial ecological experiments. Ecological Monographs 69:1-24. \href{https://doi.org/10.1890/0012-9615(1999)069\%5B0001:DBRATM\%5D2.0.CO\%3B2}{doi:10.1890/0012-9615(1999)069[0001:DBRATM]2.0.CO;2}
 \par\noindent\hangindent=1.5em Legendre P, Fortin M, Borcard D (2015). Should the Mantel test be used in spatial analysis?. Methods in Ecology and Evolution 6:1239-1247. \href{https://doi.org/10.1111/2041-210X.12425}{doi:10.1111/2041-210X.12425}
@@ -38688,12 +39113,15 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.agreement-between}{table.agreement\_between()}
 \indexline{word:animate}{chart.animate()}
 \indexline{word:table.as-list}{table.as\_list()}
+\indexline{word:as-matplotlib}{chart.as\_matplotlib()}
 \indexline{word:nums.as-numpy}{numbers.as\_numpy()}
 \indexline{word:table.as-pandas}{table.as\_pandas()}
 \indexline{word:table.as-polars}{table.as\_polars()}
 \indexline{word:f.as-sympy}{formula.as\_sympy()}
 \indexline{word:break-between-y}{chart.break\_between\_y()}
+\indexline{word:grid.break-down}{grid.break\_down()}
 \indexline{word:nums.change-angles-to}{numbers.change\_angles\_to()}
+\indexline{word:sdata.change-colour}{sdata.change\_colour()}
 \indexline{word:table.change-column}{table.change\_column()}
 \indexline{word:block.change-shape-to}{block.change\_shape\_to()}
 \indexline{word:block.change-size-to}{block.change\_size\_to()}
@@ -39018,6 +39446,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:order-legend}{chart.order\_legend()}
 \indexline{word:order-x}{chart.order\_x()}
 \indexline{word:order-y}{chart.order\_y()}
+\indexline{word:sdata.pick-colours-with-sliders}{sdata.pick\_colours\_with\_sliders()}
 \indexline{word:system.poles}{system.poles()}
 \indexline{word:put-chart-inside}{chart.put\_chart\_inside()}
 \indexline{word:put-colour-bar-at-bottom}{chart.put\_color\_bar\_at\_bottom()}
@@ -39117,6 +39546,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:f.show-as-decimal}{formula.show\_as\_decimal()}
 \indexline{word:nums.show-as-fraction}{numbers.show\_as\_fraction()}
 \indexline{word:f.show-as-latex}{formula.show\_as\_latex()}
+\indexline{word:sdata.show-colours}{sdata.show\_colours()}
 \indexline{word:sdata.show-day}{sdata.show\_day()}
 \indexline{word:table.show-differences-from}{table.show\_differences\_from()}
 \indexline{word:table.show-duplicate-rows}{table.show\_duplicate\_rows()}
@@ -39149,6 +39579,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:grid.smooth}{grid.smooth()}
 \indexline{word:nums.smooth}{numbers.smooth()}
 \indexline{word:sdata.solve}{sdata.solve()}
+\indexline{word:grid.solve-for}{grid.solve\_for()}
 \indexline{word:nums.sort}{numbers.sort()}
 \indexline{word:table.sort-by}{table.sort\_by()}
 \indexline{word:table.split-column}{table.split\_column()}

@@ -333,7 +333,7 @@ FULL_POINTERS = [
     ("groupby.any", "check_if_any_value_in"), ("is_monotonic_increasing", "check_if_sorted_by"),
     ("is_monotonic_decreasing", "check_if_sorted_by"), ("pl.DataFrame.is_sorted", "check_if_sorted_by"),
     ("rle_id", "add_run_number_column"), ("rle", "add_run_number_column"), ("str.title", "turn_into_title_case"),
-    ("str.capitalize", "turn_into_title_case"), ("str.to_titlecase", "turn_into_title_case"),
+    ("str.capitalize", "as_pandas"), ("str.to_titlecase", "turn_into_title_case"),
     ("agg", "find_summary_of"), ("groupby.aggregate", "find_summary_of"), ("prod", "find_summary_of"),
     ("product", "find_summary_of"), ("groupby.prod", "find_summary_of"), ("entropy", "find_summary_of"),
     ("implode", "find_summary_of"), ("pl.implode", "find_summary_of"), ("list.join", "split_into_rows"),
