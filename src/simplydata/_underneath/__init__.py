@@ -152,7 +152,7 @@ class Entry:
     r_inputs: str = ""
     r_packages: tuple = ()
     ours_r: tuple = ()
-    needs: tuple = ()  # (("scipy", "1.18"),): skipped, with the reason, where an older version is installed
+    needs: tuple = ()  # ("scipy 1.18",): skipped, with the reason, where an older version is installed
     python_note: str = ""
     note: str = ""
 
@@ -300,13 +300,14 @@ def underneath_line(entry: Entry) -> str:
 
 
 def version_missing(needs: tuple) -> str:
-    """"" when every (package, least version) of needs is installed, else what is missing, in words."""
+    """"" when every "package least-version" of needs ("scipy 1.18") is installed, else what is missing, in words."""
     from importlib.metadata import PackageNotFoundError, version
 
     def numbers(text: str) -> tuple:
         return tuple(int(part) for part in re.findall(r"\d+", text)[:3])
 
-    for package, least in needs:
+    for need in needs:
+        package, least = need.split()
         try:
             have = version(package)
         except PackageNotFoundError:
