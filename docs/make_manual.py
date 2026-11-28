@@ -496,8 +496,9 @@ UNDERNEATH = {
     "table.find_principal_components_of": "statsmodels (multivariate.pca.PCA, by singular value decomposition)",
     "table.add_clusters": "R stats::kmeans (k-means; needs R) or SciPy (cluster.hierarchy, for "
                           "test_method=\"hierarchical\"); the silhouette width from R cluster::silhouette",
-    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist); R vegan::vegdist for the Aitchison, "
-                                         "robust Aitchison and Hellinger distances",
+    "table.find_distances_between_rows": "SciPy (spatial.distance.pdist; spatial.distance.cdist for "
+                                         "measure=\"minkowski\"); R vegan::vegdist for the Aitchison, robust "
+                                         "Aitchison and Hellinger distances",
     "table.add_nmds": "R vegan::metaMDS on vegan::vegdist distances (needs R)",
     "table.compare_profiles_of": "R vegan::adonis2 or anosim, betadisper and permutest; simper for "
                                  "show=\"contributions\" (needs R)",
@@ -546,7 +547,9 @@ UNDERNEATH = {
     "block.turn_into_change_from_average": "xarray (groupby(\"time.month\") minus its mean) or NumPy (nanmean with "
                                            "keepdims=True)",
     "block.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
-    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=)",
+    "grid.smooth": "SciPy (ndimage.uniform_filter, gaussian_filter, median_filter with axes=; maximum_filter, "
+                   "minimum_filter and their 1d forms, percentile_filter, rank_filter, vectorized_filter, "
+                   "fourier_gaussian, fourier_uniform, fourier_ellipsoid; signal.order_filter, spline_filter)",
     "block.change_size_to": "SciPy (ndimage.zoom)",
     "nums.make_random_picks": "NumPy (random.default_rng(seed).choice)",
     "nums.take_log_odds": "SciPy (special.logit)",
@@ -631,7 +634,9 @@ UNDERNEATH = {
     "nums.take_cosine_transform": "SciPy (fft.dct, type 2, orthonormal; dst, idct, idst, and fht for kind=\"hankel\")",
     "grid.get_numbers_at_pairs": "NumPy (indexing with two lists of positions)",
     "grid.get_numbers_from_each_row_at": "NumPy (take_along_axis)",
-    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass)",
+    "grid.find_each_patch_that": "SciPy (ndimage.label, sum_labels, mean, center_of_mass; extrema, median, "
+                                 "standard_deviation, variance, labeled_comprehension, value_indices, histogram "
+                                 "for show=)",
     "grid.change_size_to": "SciPy (ndimage.zoom)",
     "grid.rotate": "SciPy (ndimage.rotate)",
     "grid.take_matrix_exp": "SciPy (linalg.expm)",
@@ -639,6 +644,29 @@ UNDERNEATH = {
     "table.find_nearest_rows_to": "SciPy (spatial.KDTree: query, query_ball_point; spatial.distance.cdist)",
     "table.find_distances_to_rows_of": "SciPy (spatial.distance.cdist)",
     "table.find_fence_around": "SciPy (spatial.ConvexHull, Qhull)",
+    # families for 100 %, batches 19-21 (approved by Manish 2026-11-28, plan sections 2.8 and 2.9)
+    "grid.take_matrix_function": "SciPy (linalg.logm, sqrtm, expm, cosm, sinm, tanm, coshm, sinhm, tanhm, signm, "
+                                 "fractional_matrix_power, funm); NumPy linalg.matrix_power for a whole power",
+    "grid.check_if_grid_is": "SciPy (linalg.issymmetric, ishermitian, bandwidth)",
+    "grid.find_best_rotation_to": "SciPy (linalg.orthogonal_procrustes)",
+    "grid.find_angles_to": "SciPy (linalg.subspace_angles)",
+    "sdata.solve_matrix_equation": "SciPy (linalg.solve_continuous_lyapunov, solve_discrete_lyapunov, solve_sylvester, "
+                                   "solve_continuous_are, solve_discrete_are)",
+    "grid.find_edges": "SciPy (ndimage.sobel, prewitt with generic_gradient_magnitude; laplace, gaussian_laplace, "
+                       "gaussian_gradient_magnitude)",
+    "grid.change_patch_shapes": "SciPy (ndimage.binary_dilation, binary_erosion, binary_opening, binary_closing, "
+                                "binary_fill_holes, binary_hit_or_miss, binary_propagation, grey_dilation, "
+                                "grey_erosion, grey_opening, grey_closing, white_tophat, black_tophat, "
+                                "morphological_gradient, morphological_laplace, generate_binary_structure, "
+                                "iterate_structure)",
+    "grid.find_distance_to_nearest": "SciPy (ndimage.distance_transform_edt, distance_transform_cdt, "
+                                     "distance_transform_bf)",
+    "grid.split_touching_patches": "SciPy (ndimage.watershed_ift)",
+    "grid.move_and_stretch_by": "SciPy (ndimage.affine_transform, geometric_transform; fourier_shift on NumPy's FFT)",
+    "grid.convolve_with": "SciPy (signal.convolve2d, correlate2d, sepfir2d)",
+    "grid.find_envelope": "SciPy (signal.hilbert2)",
+    "table.find_triangles_between_points": "SciPy (spatial.Delaunay, find_simplex; Qhull)",
+    "table.find_regions_around_points": "SciPy (spatial.Voronoi, SphericalVoronoi; ConvexHull for the areas)",
     # numbers phase, batch 4 (each also has a tested entry in simplydata._underneath)
     "f.show_as_decimal": "SymPy (N, evalf with the digits asked for)",
     "f.group_by_powers_of": "SymPy (expand, then collect)",
@@ -647,12 +675,14 @@ UNDERNEATH = {
     "sdata.find_sum_of_series": "SymPy (summation; Sum.is_convergent and evalf when there is no closed form)",
     "grid.find_determinant": "SciPy (linalg.det); SymPy Matrix.det for exactly=True",
     "grid.take_inverse": "SciPy (linalg.inv); SymPy Matrix.inv for exactly=True",
-    "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals); SymPy eigenvals for "
-                             "exactly=True",
+    "grid.find_eigenvalues": "SciPy (linalg.eigvalsh for a symmetric grid, else linalg.eigvals; eigvals_banded, "
+                             "eigvalsh_tridiagonal for structure=); SymPy eigenvals for exactly=True",
     # numbers finishing (P41; each also has a tested entry in simplydata._underneath)
     "grid.solve_for": "SciPy (linalg.solve; linalg.lstsq for least squares; optimize.nnls and optimize.lsq_linear for "
-                      "between=); SymPy LUsolve and solve_least_squares for exactly=True",
-    "grid.break_down": "SciPy (linalg.svd, qr, lu, cholesky, schur, polar, ldl, hessenberg, qz)",
+                      "between=; cholesky_banded, cho_solve_banded, solve_banded for structure=); SymPy LUsolve and "
+                      "solve_least_squares for exactly=True",
+    "grid.break_down": "SciPy (linalg.svd, qr, rq, lu, cholesky, schur, polar, ldl, hessenberg, qz, cossin, eig "
+                       "with cdf2rdf); SymPy jordan_form",
     # families for 100 %, batches 10-13 (approved by Manish 2026-11-28, plan section 2.4)
     "sdata.number_grid": "NumPy (array, full, reshape; eye, diag, tri, vander, block and fromfunction for kind= and "
                          "from_formula=); SciPy linalg (toeplitz, hankel, circulant, companion, hadamard, hilbert, "

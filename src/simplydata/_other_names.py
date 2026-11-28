@@ -1484,9 +1484,53 @@ _LINALG = [
      "matmul_toeplitz"),
     ("numbers.take_fourier_transform(show=\"all\"): the Fourier transform without the grid of complex numbers (NumPy "
      "and SciPy dft makes that grid)", "dft"),
-    (_NUMPY_HAND_OVER + ": np.linalg.matrix_power(grid.as_numpy(), 3)", "matrix_power tensorinv"),
-    (_NUMPY_HAND_OVER + ": scipy.linalg.logm(grid.as_numpy()) or scipy.linalg.sqrtm(grid.as_numpy())",
-     "logm sqrtm"),
+    (_NUMPY_HAND_OVER + ": np.linalg.tensorinv(grid.as_numpy(), ind=1)", "tensorinv"),
+]
+
+# families for 100 %, batch 19 (approved by Manish 2026-11-28, plan section 2.8, G7): the names of scipy.linalg
+_LINALG += [
+    ('grid.take_matrix_function("log")', "logm"),
+    ('grid.take_matrix_function("square root")', "sqrtm"),
+    ('grid.take_matrix_function("cos")', "cosm"),
+    ('grid.take_matrix_function("sin")', "sinm"),
+    ('grid.take_matrix_function("tan")', "tanm"),
+    ('grid.take_matrix_function("cosh")', "coshm"),
+    ('grid.take_matrix_function("sinh")', "sinhm"),
+    ('grid.take_matrix_function("tanh")', "tanhm"),
+    ('grid.take_matrix_function("sign")', "signm"),
+    ('grid.take_matrix_function("power", power=0.5) (a whole power uses NumPy matrix_power)',
+     "fractional_matrix_power matrix_power"),
+    ('grid.take_matrix_function("1 / (1 + x)"): any formula of x', "funm"),
+    ('grid.check_if_grid_is("symmetric")', "issymmetric"),
+    ('grid.check_if_grid_is("hermitian")', "ishermitian"),
+    ('grid.check_if_grid_is("banded"), which prints how many diagonals below and above hold numbers', "bandwidth"),
+    ("grid.find_best_rotation_to(other_grid)", "orthogonal_procrustes"),
+    ("grid.find_angles_to(other_grid)", "subspace_angles"),
+    ('sdata.solve_matrix_equation("lyapunov", a=grid, q=other_grid)', "solve_lyapunov solve_continuous_lyapunov"),
+    ('sdata.solve_matrix_equation("discrete lyapunov", a=grid, q=other_grid)', "solve_discrete_lyapunov"),
+    ('sdata.solve_matrix_equation("sylvester", a=grid, b=other_grid, q=third_grid)', "solve_sylvester"),
+    ('sdata.solve_matrix_equation("riccati", a=grid, b=other_grid, q=third_grid, r=fourth_grid)',
+     "solve_continuous_are"),
+    ('sdata.solve_matrix_equation("discrete riccati", a=grid, b=other_grid, q=third_grid, r=fourth_grid)',
+     "solve_discrete_are"),
+    ('grid.solve_for([1, 2, 3], structure="banded"), on a symmetric banded grid (Cholesky on the band)',
+     "cho_solve_banded cholesky_banded"),
+    ('grid.find_eigenvalues(structure="banded")', "eig_banded eigvals_banded"),
+    ('grid.find_eigenvalues(structure="tridiagonal")', "eigh_tridiagonal eigvalsh_tridiagonal"),
+    ('grid.break_down(test_method="rq")', "rq"),
+    ('grid.break_down(test_method="cs"), on a grid with columns of length 1 at right angles, such as '
+     "sdata.number_grid([[0, 1], [1, 0]])", "cossin"),
+    ('grid.break_down(test_method="real eigen blocks")', "cdf2rdf"),
+    ("grid.make_pair_table_with(other_grid, as_blocks=True, column_by_column=True)", "khatri_rao"),
+    # not user jobs (d): steps inside the solvers, updates of a decomposition and a random sketch
+    (_NUMPY_HAND_OVER + ": scipy.linalg.expm_frechet(grid.as_numpy(), other.as_numpy()); grid.take_matrix_exp() "
+     "gives the matrix exponential itself", "expm_cond expm_frechet"),
+    (_NUMPY_HAND_OVER + ': scipy.linalg.qr_update on the parts of grid.break_down(test_method="qr"); a new '
+     "break_down gives the same parts", "qr_delete qr_insert qr_update qr_multiply"),
+    (_NUMPY_HAND_OVER + ": scipy.linalg.matrix_balance(grid.as_numpy()); SciPy balances the grid inside "
+     "find_eigenvalues already", "matrix_balance"),
+    (_NUMPY_HAND_OVER + ": scipy.linalg.clarkson_woodruff_transform(grid.as_numpy(), 100), a random sketch of a "
+     "tall grid", "clarkson_woodruff_transform"),
 ]
 
 # random.<name>: np.random, a NumPy Generator (rng = np.random.default_rng()) and Python's random
@@ -1947,9 +1991,10 @@ _SCIPY = [
      "choose_conv_method"),
     ('grid.smooth(test_method="median", window=3) (SciPy ndimage.median_filter; signal.medfilt2d pads the edges with '
      "zeros instead)", "medfilt2d"),
+    # cspline2d, qspline2d, spline_filter, sepfir2d, order_filter, hilbert2, correlate2d and firwin_2d: grid words
+    # since batches 20-21 (below)
     (_SIGNAL_HAND_OVER, "BadCoefficients check_COLA closest_STFT_dual_window gauss_spline symiirorder1 symiirorder2 "
-                        "cspline2d qspline2d spline_filter sepfir2d order_filter hilbert2 correlate2d "
-                        "correlation_lags firwin_2d unique_roots"),
+                        "correlation_lags unique_roots"),
 ]
 
 # families for 100 %, batches 14-16 (approved by Manish 2026-11-28): the names of scipy.optimize, integrate and
@@ -2147,8 +2192,100 @@ _SCIPY += [
      'NdBSpline NdPPoly'),
 ]
 
+# families for 100 %, batches 20-21 (approved by Manish 2026-11-28, plan section 2.9, G9): the names of
+# scipy.ndimage and scipy.spatial, and scipy.signal's 2-D names
+_SCIPY += [
+    ('grid.smooth(test_method="biggest", window=3) (along one direction with over="row": maximum_filter1d)',
+     "maximum_filter maximum_filter1d"),
+    ('grid.smooth(test_method="smallest", window=3) (along one direction with over="row": minimum_filter1d)',
+     "minimum_filter minimum_filter1d"),
+    ('grid.smooth(test_method="percentile", percentile=90, window=3)', "percentile_filter"),
+    ('grid.smooth(test_method="rank", rank=2, window=3)', "rank_filter"),
+    ('grid.smooth(test_method="rank", rank=2, window=3, ends="zeros"): the cells outside count as 0',
+     "order_filter"),
+    ('grid.smooth(test_method="summary", summary="range", window=3): any NumPy summary of each window',
+     "generic_filter generic_filter1d vectorized_filter"),
+    ('grid.smooth(over="row", window=3): the moving average along one direction', "uniform_filter1d"),
+    ('grid.smooth(test_method="fourier gaussian", width=2)', "fourier_gaussian"),
+    ('grid.smooth(test_method="fourier uniform", window=3)', "fourier_uniform"),
+    ('grid.smooth(test_method="fourier ellipsoid", window=3)', "fourier_ellipsoid"),
+    ('grid.smooth(test_method="spline", smoothness=5) for signal.spline_filter, on a big grid such as '
+     "sdata.number_grid(rows=30, columns=30, filled_with=1); ndimage.spline_filter is the prefilter inside "
+     'grid.change_size_to(rows=6, columns=6, test_method="cubic")', "spline_filter spline_filter1d"),
+    ('grid.smooth(test_method="spline", smoothness=5), on a big grid such as sdata.number_grid(rows=30, columns=30, '
+     "filled_with=1): the cubic spline coefficients (cspline2d; qspline2d for quadratic ones) are worked out inside "
+     "it", "cspline2d qspline2d"),
+    ("numbers.convolve_with(other.reverse()): a correlation is a convolution with the weights turned round (on a "
+     "grid, grid.convolve_with(kernel, flip=False))", "correlate1d"),
+    ("grid.convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]])", "convolve2d"),
+    ("grid.convolve_with([[1, 2], [0, -1]], flip=False): the weights slide without turning round", "correlate2d"),
+    ("grid.convolve_with(row_weights=[1, 2, 1], column_weights=[1, 2, 1])", "sepfir2d"),
+    ("grid.convolve_with(other), with the kernel other designed by SciPy signal.firwin_2d and made a grid with "
+     "sdata.number_grid", "firwin_2d"),
+    ("grid.find_envelope()", "hilbert2"),
+    ('grid.move_and_stretch_by(shift=[0.5, 1], test_method="fourier")', "fourier_shift"),
+    ('grid.find_edges(test_method="sobel")', "sobel generic_gradient_magnitude"),
+    ('grid.find_edges(test_method="prewitt")', "prewitt"),
+    ('grid.find_edges(test_method="laplace")', "laplace generic_laplace"),
+    ('grid.find_edges(test_method="gaussian laplace")', "gaussian_laplace"),
+    ('grid.find_edges(test_method="gaussian gradient")', "gaussian_gradient_magnitude"),
+    ('grid.change_patch_shapes("grow", by=1) (patches: binary_dilation; numbers: grey_dilation)',
+     "binary_dilation grey_dilation"),
+    ('grid.change_patch_shapes("shrink", by=1)', "binary_erosion grey_erosion"),
+    ('grid.change_patch_shapes("open", by=1)', "binary_opening grey_opening"),
+    ('grid.change_patch_shapes("close", by=1)', "binary_closing grey_closing"),
+    ('grid.change_patch_shapes("fill holes", is_above=0)', "binary_fill_holes"),
+    ('grid.change_patch_shapes("top hat", by=1)', "white_tophat"),
+    ('grid.change_patch_shapes("dark top hat", by=1)', "black_tophat"),
+    ('grid.change_patch_shapes("outline", by=1)', "morphological_gradient"),
+    ('grid.change_patch_shapes("laplace", by=1)', "morphological_laplace"),
+    ('grid.change_patch_shapes("match pattern", is_above=0, pattern=[[1, 1], [1, 0]])', "binary_hit_or_miss"),
+    ('grid.change_patch_shapes("keep patches with points", is_above=0, starting_points=[[1, 1]])',
+     "binary_propagation"),
+    ('grid.change_patch_shapes("grow", by=2): by= grows the neighbourhood (iterate_structure)', "iterate_structure"),
+    ('grid.find_each_patch_that(is_above=0.5, touching="corners"): touching= gives the neighbours '
+     "(generate_binary_structure)", "generate_binary_structure"),
+    ('grid.find_each_patch_that(is_above=0.5, show=["biggest", "smallest", "where biggest", "where smallest"])',
+     "extrema"),
+    ('grid.find_each_patch_that(is_above=0.5, show="where biggest")', "maximum_position"),
+    ('grid.find_each_patch_that(is_above=0.5, show="where smallest")', "minimum_position"),
+    ('grid.find_each_patch_that(is_above=0.5, show="variance")', "variance"),
+    ('grid.find_each_patch_that(is_above=0.5, show="standard deviation")', "standard_deviation"),
+    ('grid.find_each_patch_that(is_above=0.5, show="counts in bins", bins=4)', "histogram"),
+    ('grid.find_each_patch_that(is_above=0.5, show="positions")', "value_indices"),
+    ('grid.find_each_patch_that(is_above=0.5, show="range"): any summary of each patch',
+     "labeled_comprehension"),
+    ("grid.find_distance_to_nearest(is_above=0.5)", "distance_transform_edt"),
+    ('grid.find_distance_to_nearest(is_above=0.5, test_method="city block") ("chessboard" too)',
+     "distance_transform_cdt"),
+    ('grid.find_distance_to_nearest(is_above=0.5, test_method="brute force")', "distance_transform_bf"),
+    ("grid.split_touching_patches(starting_points=[[1, 1], [2, 2]])", "watershed_ift"),
+    ("grid.move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])", "affine_transform"),
+    ('grid.move_and_stretch_by(rule={"row": "row", "column": "column + 0.5*row"})', "geometric_transform"),
+    ('table.find_triangles_between_points(x="east", y="north"), on a table', "Delaunay"),
+    ('table.find_triangles_between_points(x="east", y="north", containing={"east": [4000], "north": [1000]}), on a '
+     "table", "tsearch"),
+    ('table.find_regions_around_points(x="east", y="north"), on a table', "Voronoi"),
+    ("table.find_regions_around_points(longitude=longitude_column, latitude=latitude_column), on a table of places "
+     "spread over the earth", "SphericalVoronoi"),
+    ('table.find_distances_between_rows(columns=["east", "north"], measure="minkowski", power=3), on a table '
+     "(minkowski_distance_p is the same before the last root)", "minkowski_distance minkowski_distance_p"),
+    ('table.find_fence_around(x="east", y="north") gives the corners to draw (matplotlib, as convex_hull_plot_2d)',
+     "convex_hull_plot_2d"),
+    ('table.find_triangles_between_points(x="east", y="north") gives the triangles to draw (matplotlib, as '
+     "delaunay_plot_2d)", "delaunay_plot_2d"),
+    ('table.find_regions_around_points(x="east", y="north") gives the regions to draw (matplotlib, as '
+     "voronoi_plot_2d)", "voronoi_plot_2d"),
+    # not user jobs (d): KDTree's boxes, and a path on a sphere
+    ('table.find_nearest_rows_to({"east": 4000, "north": 1000}, how_many=3): the boxes of the tree (Rectangle) '
+     "stay inside SciPy", "Rectangle"),
+    (_NUMPY_HAND_OVER + ": scipy.spatial.geometric_slerp(start, end, numbers.as_numpy()), the points along a great "
+     "circle", "geometric_slerp"),
+]
+
 # sp.<name> and sympy.<name>: SymPy's top level (and Matrix methods such as Matrix.det)
 _SYMPY = [
+    ('grid.break_down(test_method="jordan") (families for 100 %, batch 19)', "jordan_form"),
     ('sdata.solve("x**2 = 2", exactly=True)', "solve solveset linsolve nonlinsolve roots"),
     ('sdata.solve("x**3 - 2*x = 5", between=[0, 3]) (in decimals, as SymPy nsolve)', "nsolve"),
     ('sdata.formula("(x + 2)**2 - 4")', "symbols Symbol sympify parse_expr S Eq Function"),

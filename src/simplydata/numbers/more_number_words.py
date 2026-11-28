@@ -602,11 +602,13 @@ class MoreNumberWords:
     # ------------------------------------------------------------------ every pair (P06)
     @friendly
     def make_pair_table_with(self, other=None, by_adding=False, by_subtracting=False, by_multiplying=False,
-                             by_dividing=False, as_blocks=False):
+                             by_dividing=False, as_blocks=False, column_by_column=False):
         """A new table of every pair: each number with each of the other numbers (NumPy outer). numbers.make_pair_table_with(depths, by_subtracting=True)
 
         Multiplying is the default (the times table); by_adding=, by_subtracting= or by_dividing=True for the others.
         as_blocks=True puts a copy of the other numbers, times each number, in its place (NumPy kron).
+        column_by_column=True with as_blocks=True does that for each column of two grids with the same number of
+        columns, column 1 with column 1 and so on (the Khatri-Rao product; SciPy linalg.khatri_rao).
         """
         from .blocks import NumberBlock
         from .numbers import NumberGrid
@@ -616,15 +618,29 @@ class MoreNumberWords:
             raise SimplydataError(f"make_pair_table_with() needs the other numbers.\nFor example:  {example}")
         switches = {"adding": by_adding, "subtracting": by_subtracting, "multiplying": by_multiplying,
                     "dividing": by_dividing}
-        for key, value in [*switches.items(), ("as_blocks", as_blocks)]:
+        for key, value in [*switches.items(), ("as_blocks", as_blocks), ("column_by_column", column_by_column)]:
             if not isinstance(value, bool):
-                raise SimplydataError(f"{'by_' + key if key != 'as_blocks' else key}= needs True or False (no quotes).")
+                raise SimplydataError(f"{'by_' + key if key not in ('as_blocks', 'column_by_column') else key}= "
+                                      "needs True or False (no quotes).")
         chosen = [k for k, v in switches.items() if v]
         if len(chosen) > 1:
             raise SimplydataError(f"Give one of by_adding=, by_subtracting=, by_multiplying=, by_dividing=.\nFor example:  {example}")
         how = chosen[0] if chosen else "multiplying"
         b = other._values if isinstance(other, BaseNumbers) else to_array(other, ".make_pair_table_with()", example)
         a = self._values
+        if column_by_column:  # families for 100 %, batch 19 (plan section 2.8): the Khatri-Rao product
+            from scipy import linalg
+
+            if not as_blocks or how != "multiplying":
+                raise SimplydataError("column_by_column=True goes with as_blocks=True (multiplying): "
+                                      "grid.make_pair_table_with(other_grid, as_blocks=True, column_by_column=True).")
+            if np.ndim(a) != 2 or np.ndim(b) != 2 or np.shape(a)[1] != np.shape(b)[1]:
+                raise SimplydataError("column_by_column=True needs two grids with the same number of columns; they "
+                                      f"have shapes {tuple(np.shape(a))} and {tuple(np.shape(b))}.")
+            result = linalg.khatri_rao(np.asarray(a, dtype=float), np.asarray(b, dtype=float))
+            print(f"Each column of the grid with the same column of the other, as blocks (the Khatri-Rao product): "
+                  f"{np.shape(a)[0]} x {np.shape(b)[0]} rows by {np.shape(a)[1]} columns. SciPy linalg.khatri_rao(a, b)")
+            return NumberGrid(result)
         if as_blocks:
             if how != "multiplying":
                 raise SimplydataError("as_blocks=True goes with multiplying (the Kronecker product).")

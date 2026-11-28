@@ -187,7 +187,9 @@ GROUPS = [
     ("Directions, places and extremes", ["table.find_average_direction_of", "table.find_return_levels_of",
                                          "table.find_variogram_of",
                                          # numbers phase, batch 3: nearest rows and the fence around points
-                                         "table.find_nearest_rows_to", "table.find_fence_around"]),
+                                         "table.find_nearest_rows_to", "table.find_fence_around",
+                                         # families for 100 %, batch 21 (plan section 2.9): SciPy spatial
+                                         "table.find_triangles_between_points", "table.find_regions_around_points"]),
     ("Survival", ["table.find_survival_over_time", "table.compare_survival", "table.explain_survival",
                   "draw_survival_curves",
                   # S3b-3 (survival and person-time): core, then the chart twin
@@ -272,7 +274,17 @@ GROUPS = [
                                             "grid.solve_for", "grid.break_down",
                                             # families for 100 %, batches 11-12 (approved by Manish 2026-11-28)
                                             "grid.multiply_as_matrix_by", "grid.find_rank", "grid.find_size",
-                                            "grid.find_condition_number", "grid.find_column_space"]),
+                                            "grid.find_condition_number", "grid.find_column_space",
+                                            # families for 100 %, batch 19 (approved by Manish 2026-11-28, plan
+                                            # section 2.8, G7): scipy.linalg on a grid
+                                            "grid.take_matrix_function", "grid.check_if_grid_is",
+                                            "grid.find_best_rotation_to", "grid.find_angles_to",
+                                            "sdata.solve_matrix_equation",
+                                            # batches 20-21 (plan section 2.9, G9): a grid as a picture (SciPy
+                                            # ndimage, and scipy.signal's 2-D names)
+                                            "grid.find_edges", "grid.change_patch_shapes",
+                                            "grid.find_distance_to_nearest", "grid.split_touching_patches",
+                                            "grid.move_and_stretch_by", "grid.convolve_with", "grid.find_envelope"]),
     ("Numbers: undo and finish", ["nums.undo", "nums.show_steps", "nums.start_again", "nums.turn_into_table", "nums.start_chart",
                                   "nums.save", "nums.as_numpy"]),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): yes or no values, rounding, angles, positions,
@@ -1549,7 +1561,13 @@ HELP_EXAMPLES = {
         import simplydata as sdata
         grid = sdata.make_random_numbers(rows=6, columns=8, average=20, standard_deviation=3, with_seed=1)
         grid.smooth(window=3)
-        print(grid)"""),
+        print(grid)
+        grid.undo()
+        grid.smooth(test_method="biggest", window=3)
+        grid.undo()
+        grid.smooth(test_method="percentile", percentile=90, window=3)
+        big = sdata.number_grid([[row + column ** 1.5 for column in range(30)] for row in range(30)])
+        big.smooth(test_method="spline", smoothness=5)"""),
     # chances and random picks
     "nums.make_random_picks": _nx("again = numbers.make_random_picks(how_many=40, with_seed=1)\n"
                                   "print(again.find_average())\n"
@@ -1765,7 +1783,8 @@ HELP_EXAMPLES.update({
     "nums.take_cosine_transform": _nx("numbers.take_cosine_transform()\nnumbers.show()", "[1, 2, 3, 4]"),
     "grid.get_numbers_at_pairs": _gx("grid.get_numbers_at_pairs(rows=[1, 2], columns=[3, 3])"),
     "grid.get_numbers_from_each_row_at": _gx("grid.get_numbers_from_each_row_at(columns=[2, 1])"),
-    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)"),
+    "grid.find_each_patch_that": _gx("patches = grid.find_each_patch_that(is_above=5)\nprint(patches)\n"
+                                     'grid.find_each_patch_that(is_above=5, show=["biggest", "where biggest"])'),
     "grid.change_size_to": _gx("grid.change_size_to(rows=4, columns=6)\nprint(grid)"),
     "grid.rotate": _gx("grid.rotate(by_degrees=15)\nprint(grid)"),
     "grid.take_matrix_exp": _lines("grid = sdata.number_grid([[0, 1], [-1, 0]])", "grid.take_matrix_exp()",
@@ -1804,7 +1823,63 @@ HELP_EXAMPLES.update({
                              "amounts = mix.solve_for([4, 3, 5], between=[0, None])"),
     "grid.break_down": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
                               'parts = grid.break_down(test_method="cholesky")', 'print(parts["U"])',
-                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])'),
+                              'parts = grid.break_down(test_method="svd")', 'print(parts["singular values"])',
+                              # families for 100 %, batch 19: rq, cs, real eigen blocks, jordan
+                              'parts = grid.break_down(test_method="rq")', 'print(parts["Q"])'),
+})
+
+# Families for 100 %, batches 19-21 (approved by Manish 2026-11-28, plan sections 2.8 and 2.9): matrices of
+# scipy.linalg, grids as pictures (ndimage) and points (spatial)
+_PICTURE = "grid = sdata.number_grid([[0, 0, 0, 0, 0], [0, 7, 8, 1, 0], [0, 9, 6, 0, 0], [0, 0, 0, 0, 5]])"
+HELP_EXAMPLES.update({
+    "grid.take_matrix_function": _lines("grid = sdata.number_grid([[4, 2], [2, 3]])",
+                                        'grid.take_matrix_function("square root")', "print(grid)", "grid.undo()",
+                                        'grid.take_matrix_function("log")', "grid.undo()",
+                                        'grid.take_matrix_function("power", power=0.5)', "grid.undo()",
+                                        'grid.take_matrix_function("1 / (1 + x)")', "print(grid)"),
+    "grid.check_if_grid_is": _lines("grid = sdata.number_grid([[4, 1, 0], [1, 4, 1], [0, 1, 4]])",
+                                    'answer = grid.check_if_grid_is("symmetric")',
+                                    'grid.check_if_grid_is("banded")', 'grid.check_if_grid_is("upper triangle")'),
+    "grid.find_best_rotation_to": _lines("grid = sdata.number_grid([[1, 0], [0, 1], [1, 1]])",
+                                         "other_grid = sdata.number_grid([[0, 1], [-1, 0], [-1, 1]])",
+                                         "rotation = grid.find_best_rotation_to(other_grid)", "print(rotation)"),
+    "grid.find_angles_to": _lines("grid = sdata.number_grid([[1, 0], [0, 1], [0, 0]])",
+                                  "other_grid = sdata.number_grid([[1, 0], [0, 1], [0, 1]])",
+                                  "angles = grid.find_angles_to(other_grid)", "print(angles)"),
+    "sdata.solve_matrix_equation": _lines("grid = sdata.number_grid([[-1, 0.5], [0, -2]])",
+                                          "other_grid = sdata.number_grid([[1, 0], [0, 1]])",
+                                          'answer = sdata.solve_matrix_equation("lyapunov", a=grid, q=other_grid)',
+                                          "print(answer)",
+                                          'sdata.solve_matrix_equation("riccati", a=[[0, 1], [0, 0]], b=[[0], [1]], '
+                                          "q=[[1, 0], [0, 1]], r=[[1]])"),
+    "grid.find_edges": _lines(_PICTURE, 'grid.find_edges(test_method="sobel")', "print(grid)", "grid.undo()",
+                              'grid.find_edges(test_method="laplace")'),
+    "grid.change_patch_shapes": _lines(_PICTURE, 'grid.change_patch_shapes("grow", by=1, is_above=5)',
+                                       "print(grid)", "grid.undo()",
+                                       'grid.change_patch_shapes("fill holes", is_above=0)', "grid.undo()",
+                                       'grid.change_patch_shapes("top hat", by=1)', "print(grid)"),
+    "grid.find_distance_to_nearest": _lines(_PICTURE, "distances = grid.find_distance_to_nearest(is_above=0)",
+                                            "print(distances)",
+                                            'grid.find_distance_to_nearest(is_above=0, test_method="city block")'),
+    "grid.split_touching_patches": _lines("grid = sdata.number_grid([[1, 2, 9, 2, 1], [1, 3, 9, 3, 1], "
+                                          "[1, 2, 9, 2, 1]])",
+                                          "patches = grid.split_touching_patches(starting_points=[[2, 1], [2, 5]])",
+                                          "print(patches)"),
+    "grid.move_and_stretch_by": _lines(_PICTURE, "grid.move_and_stretch_by(shift=[0, 1])", "print(grid)",
+                                       "grid.undo()", "grid.move_and_stretch_by(matrix=[[1, 0.5], [0, 1]])",
+                                       "grid.undo()",
+                                       'grid.move_and_stretch_by(shift=[0.5, 0], test_method="fourier")'),
+    "table.find_triangles_between_points": _tx("stations", 'triangles = table.find_triangles_between_points('
+                                                           'x="east", y="north")\ntriangles.show_first_rows(5)\n'
+                                                           'table.find_triangles_between_points(x="east", y="north", '
+                                                           'containing={"east": [4000], "north": [1000]})'),
+    "grid.convolve_with": _lines(_PICTURE, "grid.convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]], keep='same')",
+                                 "print(grid)", "grid.undo()",
+                                 "grid.convolve_with(row_weights=[1, 2, 1], column_weights=[1, 2, 1])"),
+    "grid.find_envelope": _lines("grid = sdata.number_grid([[0, 1, 0, -1], [1, 0, -1, 0], [0, -1, 0, 1]])",
+                                 "grid.find_envelope()", "print(grid)"),
+    "table.find_regions_around_points": _tx("stations", 'regions = table.find_regions_around_points(x="east", '
+                                                        'y="north")\nregions.show_first_rows(5)'),
 })
 
 # Families for 100 %, batches 1-2 (approved by Manish 2026-11-28): the table words for the pandas and Polars gaps

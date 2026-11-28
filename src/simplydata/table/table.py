@@ -27,6 +27,7 @@ from .more_table_words_2 import MoreTableWords2
 from .more_table_words_3 import MoreTableWordsThree
 from .more_tests import MoreTestWords
 from .nearest_words import NearestWords
+from .point_words import PointWords  # families for 100 %, batch 21: Delaunay and Voronoi (SciPy spatial)
 from .patterns import PatternWords
 from .places import PlaceWords
 from .positions import PositionWords
@@ -47,7 +48,8 @@ class Table(PositionWords, RowWords, ColumnWords, SummaryWords, StatTestWords, M
             AgreementWords, CorrelationWords, FittingWords, LinesMoreWords, ModelWords, ModelToolWords, PatternWords, SurvivalWords, SurvivalMoreWords,
             TimeSeriesWords, TimeStepWords, ForecastWords, SignalTableWords, SignalMoreTableWords, BetweenWords,
             DistributionTableWords, CheckingMoreWords, MetaWords, CommunityWords, HiddenFactorWords, PlaceWords,
-            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, FullWords,
+            CausalWords, SurveyWords, MoreTableWords, MoreTableWords2, MoreTableWordsThree, NearestWords, PointWords,
+            FullWords,
             BaseTable):
     """A table. Make one with sdata.table(...), then add steps: table.keep_rows_where(...), table.sort_by(...)."""
 

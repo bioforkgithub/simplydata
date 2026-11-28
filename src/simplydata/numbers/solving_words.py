@@ -34,7 +34,23 @@ BREAK_DOWN = {
     "hessenberg": ("the Hessenberg form", "SciPy linalg.hessenberg, calc_q=True", "grid = Q times H times Qt"),
     "qz": ("the QZ (generalised Schur) decomposition of two grids", "SciPy linalg.qz, output=\"real\"",
            "grid = Q times AA times Zt, and the other grid = Q times BB times Zt"),
+    # families for 100 %, batch 19 (approved by Manish 2026-11-28, plan section 2.8)
+    "rq": ("the RQ decomposition", "SciPy linalg.rq, mode=\"economic\"", "grid = R times Q"),
+    "cs": ("the CS (cosine-sine) decomposition of a grid with columns of length 1 at right angles",
+           "SciPy linalg.cossin", "grid = U times CS times Vt"),
+    "real eigen blocks": ("the eigen decomposition in real numbers (each pair of complex eigenvalues as a 2 x 2 "
+                          "block)", "SciPy linalg.eig, then linalg.cdf2rdf",
+                          "grid = V times (the eigenvalue blocks) times (V's inverse)"),
+    "jordan": ("the Jordan form, exactly", "SymPy Matrix.jordan_form, the numbers as fractions",
+               "grid = P times J times (P's inverse)"),
 }
+JORDAN_HINT = ('The exact Jordan form is slow when the eigenvalues are not simple numbers (roots of a cubic ...); '
+               'test_method="schur" or "real eigen blocks" give the decimals.')
+# "real eigen blocks": eigenvectors with a condition number above this (NumPy linalg.cond) do not rebuild the grid
+EIGENVECTORS_CONDITION = 1e8
+# other spellings of test_method= of break_down: SciPy's and SymPy's names
+BREAK_DOWN_SPELLINGS = {"cossin": "cs", "cosine-sine": "cs", "cosine sine": "cs", "cdf2rdf": "real eigen blocks",
+                        "jordan_form": "jordan", "jordan form": "jordan"}
 
 PARTS = {
     "svd": {"U": "columns of length 1 at right angles (the directions in the rows' space)",
@@ -56,9 +72,23 @@ PARTS = {
                    "Q": "columns of length 1 at right angles"},
     "qz": {"AA": "almost an upper triangle, from the grid", "BB": "an upper triangle, from the other grid",
            "Q": "columns of length 1 at right angles", "Z": "columns of length 1 at right angles"},
+    "rq": {"R": "an upper triangle (zeros below the diagonal)", "Q": "rows of length 1 at right angles"},
+    "cs": {"U": "a block diagonal grid of two blocks, each with columns of length 1 at right angles",
+           "CS": "the cosines and sines of the angles, in four blocks", "Vt": "a block diagonal grid of two blocks, "
+                                                                            "each with rows of length 1 at right "
+                                                                            "angles"},
+    "real eigen blocks": {"eigenvalue blocks": "the real eigenvalues on the diagonal, and a 2 x 2 block [[a, b], "
+                                               "[-b, a]] for each pair a +- bi",
+                          "V": "the eigenvectors as real columns (the real and imaginary parts of each complex pair)"},
+    "jordan": {"P": "the columns that make the change of basis", "J": "the Jordan form: the eigenvalues on the "
+                                                                    "diagonal, with 1 just above it inside a block "
+                                                                    "for each repeated eigenvalue without enough "
+                                                                    "eigenvectors"},
 }
 
-SQUARE_ONLY = ("cholesky", "schur", "polar", "ldl", "hessenberg", "qz")
+SQUARE_ONLY = ("cholesky", "schur", "polar", "ldl", "hessenberg", "qz", "cs", "real eigen blocks", "jordan")
+# solve_for(structure=): a banded grid is solved from its band only (families for 100 %, batch 19)
+STRUCTURES = ("banded",)
 
 
 def _values_of(b, step: str, example: str):
@@ -140,9 +170,70 @@ def _exact_solve(values, right, least_squares: bool):
     return found, np.array(run_exactly(found.evalf, what="SymPy evalf"), dtype=float)
 
 
+def _split_at(split_at, n: int) -> tuple[int, int]:
+    """split_at=[rows, columns] of break_down(test_method="cs"): where the grid is cut into four blocks."""
+    if split_at is None:
+        return n // 2, n // 2
+    if not isinstance(split_at, (list, tuple)) or len(split_at) != 2 or not all(
+            isinstance(v, (int, np.integer)) and not isinstance(v, bool) and 1 <= v < n for v in split_at):
+        raise SimplydataError(f"split_at= needs two whole numbers from 1 to {n - 1}: the rows and columns of the "
+                              "first block, such as split_at=[2, 2].")
+    return int(split_at[0]), int(split_at[1])
+
+
+@one_deadline
+def _jordan_parts(values) -> dict:
+    """break_down(test_method="jordan"): SymPy jordan_form on the numbers as fractions, under one time limit."""
+    from .._formula import MAX_EXACT_EIGEN, _guarded, _show, exact_matrix, run_exactly
+
+    if values.shape[0] > MAX_EXACT_EIGEN:
+        raise SimplydataError(f'test_method="jordan" works exactly, on grids of up to {MAX_EXACT_EIGEN} x '
+                              f"{MAX_EXACT_EIGEN}; this one is {values.shape[0]} x {values.shape[0]}. "
+                              'test_method="schur" or "real eigen blocks" give the decimals.')
+    matrix = exact_matrix(values, "break_down", MAX_EXACT_EIGEN)
+    p, j = _guarded(matrix.jordan_form, what="SymPy jordan_form", hint=JORDAN_HINT)
+    if not all(v.is_real for v in list(p) + list(j)):
+        raise SimplydataError('test_method="jordan" works when every eigenvalue is real; this grid has complex ones '
+                              '(test_method="real eigen blocks" keeps them as real 2 x 2 blocks).')
+    print("The Jordan form J, exactly: " + "; ".join(
+        "[" + ", ".join(_show(v) for v in j.row(i)) + "]" for i in range(j.rows)) + "   (SymPy jordan_form)")
+    return {"P": np.array(run_exactly(p.evalf, what="SymPy evalf"), dtype=float),
+            "J": np.array(run_exactly(j.evalf, what="SymPy evalf"), dtype=float)}
+
+
+def _band_storage(values, below: int, above: int):
+    """The band of a square grid in LAPACK's banded storage (row above + i - j holds the cell i, j), as SciPy
+    solve_banded and cholesky_banded take it."""
+    n = values.shape[0]
+    band = np.zeros((below + above + 1, n))
+    for k in range(-below, above + 1):
+        band[above - k, max(0, k):n + min(0, k)] = np.diagonal(values, k)
+    return band
+
+
+def _solve_banded(values, right):
+    """solve_for(structure="banded"): Cholesky on the band for a symmetric grid with positive eigenvalues (SciPy
+    cholesky_banded and cho_solve_banded), else solve_banded (LAPACK gbsv)."""
+    from scipy import linalg
+
+    below, above = linalg.bandwidth(values)
+    if linalg.issymmetric(values):
+        try:
+            factor = linalg.cholesky_banded(_band_storage(values, 0, above))
+        except linalg.LinAlgError:
+            pass
+        else:
+            return (linalg.cho_solve_banded((factor, False), right),
+                    f"SciPy linalg.cholesky_banded and cho_solve_banded, on the band of {above} diagonal"
+                    f"{'' if above == 1 else 's'} each side (a symmetric grid with positive eigenvalues)")
+    found = linalg.solve_banded((below, above), _band_storage(values, below, above), right)
+    return found, (f"SciPy linalg.solve_banded, on the band of {below} diagonal{'' if below == 1 else 's'} below "
+                   f"and {above} above")
+
+
 class SolvingWords:
     @friendly
-    def solve_for(self, b=None, between=None, with_best_fit=False, exactly=False):
+    def solve_for(self, b=None, between=None, with_best_fit=False, exactly=False, structure=None):
         """Find x with grid times x = b: solve a grid's straight-line equations. grid.solve_for([5, 7])
 
         sdata.number_grid([[2, 1], [1, 3]]).solve_for([5, 10]) gives x = [1, 3], as R solve(a, b) and MATLAB a \\ b.
@@ -153,8 +244,11 @@ class SolvingWords:
         squares with limits; None is no limit): between=[0, None] is non-negative least squares (SciPy
         optimize.nnls, as R nnls and MATLAB lsqnonneg), as for unmixing spectra or a diet mix; other limits use
         optimize.lsq_linear. exactly=True gives SymPy's exact answer (the numbers as fractions). b may be a grid:
-        one right side in each column. Gives back numbers (or a grid). For equations written as text, see
-        sdata.solve. Nothing changes in the grid.
+        one right side in each column. Gives back numbers (or a grid). structure="banded" solves a square grid
+        whose numbers lie in a band round the diagonal from that band only (SciPy linalg.cholesky_banded and
+        cho_solve_banded for a symmetric grid with positive eigenvalues, else solve_banded), as for the equations
+        of a spline or a diffusion along a line. For equations written as text, see sdata.solve. Nothing changes
+        in the grid.
         """
         from scipy import linalg
 
@@ -163,6 +257,8 @@ class SolvingWords:
         for name, value in (("with_best_fit", with_best_fit), ("exactly", exactly)):
             if not isinstance(value, bool):
                 raise SimplydataError(f"{name}= should be True or False.")
+        if structure is not None and structure not in STRUCTURES:
+            raise choice_error("solve_for", "structure", structure, list(STRUCTURES))
         if b is None:
             raise SimplydataError("solve_for() needs the right side b: one number for each row of the grid."
                                   + self._example("solve_for([5, 10])"))
@@ -177,6 +273,18 @@ class SolvingWords:
             raise SimplydataError(f"b needs one number for each row of the grid: the grid has {amount(rows, 'row')} "
                                   f"and b has {amount(right.shape[0])}.")
         wrap = Numbers if right.ndim == 1 else NumberGrid
+        if structure == "banded":
+            if between is not None or with_best_fit or exactly:
+                raise SimplydataError('structure="banded" solves a square grid exactly from its band; it does not go '
+                                      "with between=, with_best_fit= or exactly=.")
+            values = self._square("solve_for")
+            try:
+                out, how = _solve_banded(values, right)
+            except linalg.LinAlgError:
+                raise SimplydataError(f"The {rows} x {rows} grid has no single answer: it is singular (SciPy "
+                                      "linalg.solve_banded stopped).") from None
+            print(f"x solves grid times x = b, from the band of the grid: {_shown(out)}   ({how})")
+            return wrap(out)
         if between is not None:
             if exactly:
                 raise SimplydataError("exactly=True does not go with between=: limits are worked out in decimals "
@@ -251,23 +359,31 @@ class SolvingWords:
         return out
 
     @friendly
-    def break_down(self, test_method="svd", together_with=None):
+    def break_down(self, test_method="svd", together_with=None, split_at=None):
         """Break a grid down into the parts of a matrix decomposition. grid.break_down(test_method="qr")
 
         sdata.number_grid([[4, 2], [2, 3]]).break_down(test_method="cholesky") gives {"U": ...} with grid = Ut times
         U. Gives back a dict of the parts, each a grid (the singular values and the row order are numbers), and prints
         what each part is and how they multiply back to the grid. test_method= "svd" (the default: singular values,
-        for any grid; SciPy linalg.svd), "qr", "lu", "cholesky" (a symmetric grid with positive eigenvalues),
-        "schur", "polar", "ldl" (a symmetric grid), "hessenberg" or "qz" (two square grids: give the other one with
-        together_with=). All from SciPy linalg, as R svd(), qr(), chol() and MATLAB svd, qr, lu, chol, schur, ldl,
-        hess, qz. svd and qr give the short (economic) form, as R. Nothing changes in the grid.
+        for any grid; SciPy linalg.svd), "qr", "rq", "lu", "cholesky" (a symmetric grid with positive eigenvalues),
+        "schur", "polar", "ldl" (a symmetric grid), "hessenberg", "qz" (two square grids: give the other one with
+        together_with=), "cs" (the cosine-sine decomposition of a grid with columns of length 1 at right angles,
+        cut into four blocks after split_at=[rows, columns], half of each unless given; SciPy linalg.cossin), "real
+        eigen blocks" (the eigen decomposition in real numbers; SciPy linalg.eig then cdf2rdf) or "jordan" (the
+        Jordan form, exactly; SymPy jordan_form). All from SciPy linalg, as R svd(), qr(), chol() and MATLAB svd,
+        qr, lu, chol, schur, ldl, hess, qz, jordan. svd, qr and rq give the short (economic) form, as R. Nothing
+        changes in the grid.
         """
         from scipy import linalg
 
         from .numbers import NumberGrid, Numbers
 
+        if isinstance(test_method, str):
+            test_method = BREAK_DOWN_SPELLINGS.get(test_method.strip().lower(), test_method)
         if test_method not in BREAK_DOWN:
             raise choice_error("break_down", "test_method", test_method, list(BREAK_DOWN))
+        if split_at is not None and test_method != "cs":
+            raise SimplydataError('split_at= goes with test_method="cs" only: where the grid is cut into four blocks.')
         values = np.asarray(self._values, dtype=float)
         _no_empty(values, "break_down")
         if not np.isfinite(values).all():
@@ -309,6 +425,27 @@ class SolvingWords:
         elif test_method == "hessenberg":
             h, q = linalg.hessenberg(values, calc_q=True)
             parts = {"H": h, "Q": q}
+        elif test_method == "rq":
+            r, q = linalg.rq(values, mode="economic")
+            parts = {"R": r, "Q": q}
+        elif test_method == "cs":
+            p, q = _split_at(split_at, values.shape[0])
+            if not np.allclose(values.T @ values, np.eye(values.shape[0]), atol=1e-10):
+                raise SimplydataError('test_method="cs" needs a grid whose columns have length 1 and are at right '
+                                      'angles (an orthogonal grid, such as Q of break_down(test_method="qr")).')
+            u, cs, vdh = linalg.cossin(values, p=p, q=q)
+            parts = {"U": u, "CS": cs, "Vt": vdh}
+        elif test_method == "real eigen blocks":
+            w, v = linalg.eig(values)
+            blocks, vectors = linalg.cdf2rdf(w, v)
+            if not np.linalg.cond(vectors) < EIGENVECTORS_CONDITION:
+                raise SimplydataError('test_method="real eigen blocks": this grid has a repeated eigenvalue without '
+                                      "enough eigenvectors (V has almost no inverse), so grid = V times the blocks "
+                                      "times the inverse of V does not hold. test_method=\"jordan\" gives its Jordan "
+                                      "form.")
+            parts = {"eigenvalue blocks": blocks, "V": vectors}
+        elif test_method == "jordan":
+            parts = _jordan_parts(values)
         else:
             other = _values_of(together_with, "break_down", f'{self._name}.break_down(test_method="qz", '
                                                             "together_with=other_grid)")

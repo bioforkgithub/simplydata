@@ -5137,3 +5137,167 @@ BASIS["grid.break_down test_method="] = _b(
     "theirs up to the signs of columns where a decomposition leaves them free.", ("anderson1999",), "P3",
     "cholesky and ldl need a symmetric grid; cholesky needs eigenvalues above 0; schur, polar, ldl, hessenberg and qz "
     "need a square grid.", "convention")
+
+# ---- Families for 100 %, batches 19-21 (approved by Manish 2026-11-28, plan sections 2.8 and 2.9): matrices of
+# scipy.linalg, grids as pictures (SciPy ndimage, scipy.signal's 2-D names) and points (SciPy spatial). Each choice is
+# SciPy's own default or a plain reading of positions from 1; no study fixes them, so they are conventions.
+_SCIPY_OWN = ("SciPy's own default, so the numbers agree with SciPy (and with R and MATLAB, which call the same "
+              "routines).")
+BASIS["grid.take_matrix_function power="] = _b(
+    "A whole power uses NumPy linalg.matrix_power (repeated matrix products); any other power SciPy "
+    "linalg.fractional_matrix_power.",
+    "take_matrix_function(\"square root\") for the power 0.5 by SciPy sqrtm.",
+    "Repeated products are exact for a whole power; a fractional power needs the Schur-Pade method of "
+    "fractional_matrix_power. " + _SCIPY_OWN, (), "P3", "A square grid; an answer with complex numbers is refused.",
+    "convention")
+BASIS["grid.take_matrix_function function=\"a formula of x\""] = _b(
+    "Any formula of x goes to SciPy linalg.funm (the Schur-Parlett method), read safely by simplydata's formula "
+    "reader.",
+    "The named functions (\"log\", \"square root\", \"cos\" ...) use SciPy's dedicated routines, which are more "
+    "accurate.",
+    "funm is the general matrix function of SciPy; the dedicated routines are preferred where they exist.", (), "P3",
+    "A formula of x; an answer with complex numbers is refused.", "convention")
+BASIS["grid.check_if_grid_is within="] = _b(
+    "Without within=, the grid must be exactly symmetric (SciPy issymmetric's own default); within= is an absolute "
+    "tolerance.",
+    "within=1e-12 (or any number) to allow rounding.",
+    _SCIPY_OWN, (), "P5", "within= is a number of 0 or more.", "convention")
+BASIS["grid.find_angles_to"] = _b(
+    "The angles in degrees, biggest first (SciPy subspace_angles' order).",
+    "in_radians=True keeps SciPy's radians.",
+    "Degrees are the everyday unit, as in grid.rotate(by_degrees=).", (), "P5",
+    "Both grids need the same number of rows.", "starting value")
+BASIS["grid.break_down test_method=\"rq\""] = _b(
+    "The short (economic) form of SciPy linalg.rq, as for qr.",
+    "test_method=\"qr\" for Q times R.", _SCIPY_OWN, (), "P3", "A grid with no empty cells.", "convention")
+BASIS["grid.break_down test_method=\"cs\""] = _b(
+    "The four blocks are cut after half the rows and half the columns, unless split_at= says where (SciPy cossin's p "
+    "and q).",
+    "split_at=[rows, columns].", "SciPy cossin needs p and q; half of each is the even split.", (), "P5",
+    "A square grid whose columns have length 1 and are at right angles.", "starting value")
+BASIS["grid.break_down test_method=\"real eigen blocks\""] = _b(
+    "The eigenvalues and eigenvectors of SciPy linalg.eig, turned into real 2 x 2 blocks by linalg.cdf2rdf.",
+    "test_method=\"schur\" for the real Schur form, find_eigenvalues() for the eigenvalues alone.", _SCIPY_OWN, (),
+    "P3", "A square grid.", "convention")
+BASIS["grid.break_down test_method=\"jordan\""] = _b(
+    "The numbers become exact fractions (SymPy nsimplify), then SymPy Matrix.jordan_form, so the Jordan form is exact.",
+    "test_method=\"real eigen blocks\" or \"schur\" in decimals.",
+    "The Jordan form cannot be worked out reliably in decimals (a small change in the numbers changes its blocks), so "
+    "it is exact or not at all.", ("meurer2017",), "P5",
+    "Real eigenvalues only; SymPy's one time limit.", "convention")
+BASIS["grid.solve_for structure="] = _b(
+    "The band is read with SciPy linalg.bandwidth and put in LAPACK's banded storage; a symmetric grid with positive "
+    "eigenvalues uses Cholesky on the band (cholesky_banded, cho_solve_banded), any other banded grid solve_banded.",
+    "Without structure=: SciPy linalg.solve on the whole grid.",
+    "Cholesky is the standard method for a symmetric positive definite band, LU with pivoting (gbsv) otherwise "
+    "(Anderson et al. 1999).", ("anderson1999",), "P3", "A square grid; not with between=, with_best_fit= or "
+    "exactly=.", "published")
+BASIS["grid.find_eigenvalues structure="] = _b(
+    "Biggest first, as R eigen() for a symmetric grid; \"banded\" uses SciPy eigvals_banded, \"tridiagonal\" "
+    "eigvalsh_tridiagonal.",
+    "Without structure=: linalg.eigvalsh or eigvals on the whole grid.", _SCIPY_OWN, (), "P3",
+    "A symmetric grid; \"tridiagonal\" needs one diagonal each side at most.", "convention")
+BASIS["grid.smooth test_method=\"biggest\""] = _b(
+    "A square window of window= cells; at the edges the edge number is repeated (SciPy mode \"reflect\").",
+    "ends=\"mirror\" or \"nearest\"; over=\"row\" or \"column\" for one direction.", _SCIPY_OWN, (), "P3",
+    "An odd window of at least 3 cells; no empty cells.", "convention")
+BASIS["grid.smooth test_method=\"smallest\""] = _b(
+    "Along one direction (over=), the 1d filter (SciPy minimum_filter1d), with the edge number repeated.",
+    "Without over=: a square window (minimum_filter).", _SCIPY_OWN, (), "P3", "An odd window of at least 3 cells.",
+    "convention")
+BASIS["grid.smooth test_method=\"rank\""] = _b(
+    "rank= counts from 1 in the sorted window (SciPy's rank from 0).",
+    "test_method=\"percentile\" with percentile= for a share of the window.",
+    "Positions count from 1 everywhere in simplydata.", (), "P5", "rank= from 1 to the number of cells in the window.",
+    "starting value")
+BASIS["grid.smooth test_method=\"fourier gaussian\""] = _b(
+    "The smoothing is done in the frequencies (NumPy fft2, then the real part of ifft2), so the picture wraps round "
+    "at its edges.",
+    "test_method=\"gaussian\" smooths in the cells, with ends=.", _SCIPY_OWN, (), "P5",
+    "Both directions; no ends=.", "convention")
+BASIS["grid.smooth test_method=\"spline\""] = _b(
+    "A cubic smoothing spline surface with smoothness=5, SciPy signal.spline_filter's own default (lmbda=5.0).",
+    "smoothness=0 goes through every number; bigger values smooth more.", _SCIPY_OWN, (), "P3",
+    "A grid big enough for SciPy's edge sums to settle (about 30 x 30 at smoothness=5).", "convention")
+BASIS["grid.smooth ends=\"zeros\""] = _b(
+    "The cells outside the grid count as 0, as SciPy signal.order_filter.",
+    "ends=\"reflect\" (the default for test_method=\"rank\") repeats the edge number.", _SCIPY_OWN, (), "P3",
+    "test_method=\"rank\" over both directions.", "convention")
+BASIS["grid.find_edges along="] = _b(
+    "Without along=, the slope size in both directions (SciPy generic_gradient_magnitude); along= gives the signed "
+    "change in one direction.",
+    "along=\"rows\" or \"columns\".", _SCIPY_OWN, (), "P5", "test_method=\"sobel\" or \"prewitt\".", "convention")
+BASIS["grid.change_patch_shapes"] = _b(
+    "The neighbours touch by their sides (SciPy generate_binary_structure(2, 1), the default of binary_dilation), "
+    "by= cells are by= steps (iterations=), and at the edges the edge cells are repeated (the grid padded 2 x by "
+    "cells with NumPy pad \"symmetric\", SciPy's mode \"reflect\"), as for the grey picture, so closing never "
+    "removes a cell.",
+    "touching=\"corners\" lets a shared corner count too.", _SCIPY_OWN, (), "P3",
+    "Patches from a condition, a yes or no grid or a grid of 0 and 1; any other grid changes as a grey picture.",
+    "convention")
+BASIS["grid.change_patch_shapes is_above="] = _b(
+    "The patches are the cells that meet the condition; the grid becomes yes or no.",
+    "No condition: a yes or no grid uses its yes cells, a grid of other numbers changes as a grey picture.",
+    "The same conditions as find_each_patch_that.", (), "P5", "One condition at a time.", "starting value")
+BASIS["grid.change_patch_shapes how=\"grow\" on numbers"] = _b(
+    "Without a condition, a grid of numbers changes as a grey picture: the neighbours touch by their sides, grown to "
+    "by= cells by SciPy iterate_structure, as the footprint of grey_dilation and the others.",
+    "A condition (is_above= ...) works on patches instead.", _SCIPY_OWN, (), "P3", "No empty cells.", "convention")
+BASIS["grid.find_each_patch_that show="] = _b(
+    "Positions count from 1; the standard deviation and variance have n in the bottom (SciPy ndimage, as NumPy).",
+    "table.find_summary_of on the cells of one patch for the sample standard deviation.", _SCIPY_OWN, (), "P5",
+    "show= values from the list; bins= with \"counts in bins\" only.", "convention")
+BASIS["grid.find_distance_to_nearest"] = _b(
+    "The straight-line (Euclidean) distance, exact (SciPy distance_transform_edt), from every cell that does not meet "
+    "the condition to the nearest one that does.",
+    "test_method=\"city block\", \"chessboard\" or \"brute force\"; cell_size= for cells that are not squares of size "
+    "1.", _SCIPY_OWN, (), "P3", "At least one cell meets the condition.", "convention")
+BASIS["grid.split_touching_patches"] = _b(
+    "Each starting point (from 1) gets its own patch number, in the order given; the neighbours touch by their sides.",
+    "touching=\"corners\".", "SciPy watershed_ift with the markers in the order given.", (), "P5",
+    "Whole numbers from 0 to 65535 (grey levels).", "starting value")
+BASIS["grid.move_and_stretch_by"] = _b(
+    "Straight lines between neighbouring cells (order 1), and cells from outside the old grid are empty.",
+    "test_method=\"nearest\" or \"cubic\", as change_size_to.",
+    "Straight lines never overshoot the numbers; empty cells say plainly where the old grid ended (as grid.rotate).",
+    (), "P5", "matrix= is a 2 x 2 grid; no empty cells.", "starting value")
+BASIS["grid.move_and_stretch_by rule="] = _b(
+    "The rule's row and column count from 1, as every position in simplydata.",
+    "matrix= and shift= for straight-line moves.", "Positions count from 1 everywhere in simplydata.", (), "P5",
+    "Formulas of row and column only.", "starting value")
+BASIS["grid.move_and_stretch_by test_method=\"fourier\""] = _b(
+    "shift= says where each new cell takes its number from, as for matrix= (SciPy affine_transform's offset), so "
+    "SciPy fourier_shift is given minus shift=.",
+    "test_method=\"linear\" without wrapping round.", "One meaning of shift= for every test_method=.", (), "P5",
+    "shift= alone.", "starting value")
+BASIS["table.find_triangles_between_points"] = _b(
+    "The Delaunay triangles of SciPy spatial.Delaunay (Qhull); the corners are the table's rows, counted from 1.",
+    "containing= gives the triangle that holds each of some points.", _SCIPY_OWN, (), "P3",
+    "At least 3 points not on one straight line; rows with an empty cell are left out.", "convention")
+BASIS["table.find_triangles_between_points containing="] = _b(
+    "The triangle numbers count from 1; a point outside every triangle is empty.",
+    "Without containing=: every triangle.", "Positions count from 1 everywhere in simplydata.", (), "P5",
+    "As many numbers for x as for y.", "starting value")
+BASIS["table.find_regions_around_points"] = _b(
+    "A region that reaches out without end is open and has no area; a closed region is convex, so SciPy ConvexHull "
+    "gives its area.",
+    "longitude= and latitude= for regions on the earth.", _SCIPY_OWN, (), "P3",
+    "At least 3 points, no two at the same place.", "convention")
+BASIS["table.find_regions_around_points longitude="] = _b(
+    "Areas in square kilometres on a sphere of the earth's mean radius, 6371.0088 km (SciPy SphericalVoronoi's areas "
+    "times the radius squared).",
+    "x= and y= in metres for a small area.", "The mean radius of the earth is the IUGG value.", (), "P5",
+    "At least 4 points spread over the earth.", "convention")
+BASIS["table.find_distances_between_rows measure=\"minkowski\""] = _b(
+    "power= is the p of the Minkowski distance (SciPy distance.cdist): 1 is Manhattan, 2 straight-line.",
+    "measure=\"euclidean\" or \"manhattan\".", _SCIPY_OWN, (), "P3", "power= of 1 or more.", "convention")
+BASIS["grid.convolve_with"] = _b(
+    "Cells outside the grid count as 0 (SciPy convolve2d's boundary \"fill\"), and keep=\"all\" keeps every overlap, "
+    "as numbers.convolve_with.",
+    "keep=\"same\" or \"overlap\"; flip=False for a correlation.", _SCIPY_OWN, (), "P3",
+    "A kernel of numbers; no empty cells.", "convention")
+BASIS["grid.convolve_with row_weights="] = _b(
+    "At the edges the edge numbers are repeated (as SciPy mode \"reflect\") and the grid keeps its size, as SciPy "
+    "sepfir2d.",
+    "A kernel grid with convolve2d (cells outside count as 0).", _SCIPY_OWN, (), "P3",
+    "Two lists of an odd number of weights.", "convention")

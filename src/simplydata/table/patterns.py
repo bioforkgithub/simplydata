@@ -640,7 +640,8 @@ class PatternWords:
         return names, labels
 
     @friendly
-    def find_distances_between_rows(self: _Same, columns=None, measure="bray-curtis", names=None) -> _Same:
+    def find_distances_between_rows(self: _Same, columns=None, measure="bray-curtis", names=None,
+                                    power=None) -> _Same:
         """How different each row is from every other row: a square table of distances.
 
         table.find_distances_between_rows(names="plot")   (with sdata.get_example("meadow"))
@@ -655,21 +656,43 @@ class PatternWords:
         after zeros are replaced by estimated small values (R zCompositions, then
         vegan::vegdist("aitchison")); "robust aitchison" uses the values above 0 only and needs no
         replacement; "hellinger" is the straight-line distance between the square roots of the
-        rows' shares.
+        rows' shares. "minkowski" with power= (such as power=3) is the p-th root of the total of the differences
+        to the power p: power=1 is "manhattan", power=2 "euclidean" (SciPy spatial.distance.cdist, as R
+        dist(method = "minkowski", p =)).
         names= is a column whose values label the rows and columns.
         """
         step = "find_distances_between_rows"
         example = 'with sdata.get_example("meadow"): table.find_distances_between_rows(names="plot")'
-        self._check_choice(step, "measure", measure, list(MEASURES))
+        if (power is not None) != (measure == "minkowski"):
+            raise SimplydataError('power= goes with measure="minkowski", which needs it: a number of 1 or more, such '
+                                  'as find_distances_between_rows(measure="minkowski", power=3).')
+        if measure != "minkowski":
+            self._check_choice(step, "measure", measure, list(MEASURES) + ["minkowski"])
+        elif isinstance(power, bool) or not isinstance(power, (int, float, np.integer, np.floating)) \
+                or not power >= 1 or not np.isfinite(power):
+            raise SimplydataError("power= needs a number of 1 or more (below 1 it is not a distance), such as "
+                                  "power=3.")
         columns = self._pattern_columns(step, columns, example,
                                         leave_out=(names,) if isinstance(names, str) else ())
         x, keep = self._pattern_matrix(step, columns, least_rows=2)
-        self._check_measure(measure, x, columns, step)
+        if measure != "minkowski":
+            self._check_measure(measure, x, columns, step)
         first, labels = self._labels(step, names, keep, example)
-        square = _square(_distances(x, measure))
+        if measure == "minkowski":  # families for 100 %, batch 21 (plan section 2.9); spatial.minkowski_distance
+            from scipy.spatial.distance import cdist  # is deprecated (SciPy 1.20 drops it): cdist does the same
+
+            square = cdist(x, x, "minkowski", p=float(power))
+        else:
+            square = _square(_distances(x, measure))
         data = {first: labels}
         for j, lab in enumerate(labels):
             data[lab] = [float(v) for v in square[:, j]]
+        if measure == "minkowski":
+            print(f"Minkowski distances (power {float(power):g}) between {len(x)} rows from {_columns_used(columns)} "
+                  f"(SciPy spatial.distance.cdist, metric \"minkowski\", as R dist(x, \"minkowski\", p = "
+                  f"{float(power):g})). 0 means the "
+                  "same; the bigger, the more different.")
+            return self._new_table(nw.from_dict(data, backend=self._frame.implementation))
         print(f"{MEASURES[measure]} distances between {len(x)} rows from {_columns_used(columns)}, as R vegan::"
               f"{MEASURE_R[measure]}. 0 means the same; the bigger, the more different.")
         _depth_note(measure, x)

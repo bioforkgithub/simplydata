@@ -37,6 +37,8 @@ from .numbers_4 import GridWords4
 from .solving_words import SolvingWords  # numbers finishing: solve_for and break_down (P41)
 from .numpy_list_words import NumPyListWords, NumPySharedWords  # families for 100 %, batch 10 (plan section 2.4)
 from .numpy_grid_words import NumPyGridWords  # families for 100 %, batches 11-12 (plan section 2.4)
+from .image_words import ImageWords  # families for 100 %, batches 20-21: a grid as a picture (ndimage)
+from .matrix_words import MatrixWords  # families for 100 %, batch 19: scipy.linalg on a grid
 
 
 class Numbers(RandomPickWords, ChanceWords, MoreNumberWords, PickingWords, MathsWords, SummaryWords, DistributionNumberWords, SignalNumberWords,
@@ -93,9 +95,9 @@ _GRID_KEEP_NUMBERS = (
 )
 
 
-class NumberGrid(SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords, GridSummaryWords, MathsWords,
-                 GridWords3, GridWords4, SolvingWords, SharedWords3, NumPyGridWords, NumPySharedWords,
-                 BaseNumbers):
+class NumberGrid(ImageWords, MatrixWords, SmoothOverWords, ChanceWords, MoreNumberWords, ReplacingWords,
+                 GridSummaryWords, MathsWords, GridWords3, GridWords4, SolvingWords, SharedWords3, NumPyGridWords,
+                 NumPySharedWords, BaseNumbers):
     """A grid of numbers in rows and columns. Make one with sdata.number_grid([[1, 2], [3, 4]])."""
 
     _is_simplydata_grid = True

@@ -55,6 +55,7 @@ from ._polynomial import polynomial  # families for 100 %, batch 13 (G5): NumPy,
 from ._pairing import find_best_pairing  # families for 100 %, batch 14: SciPy linear_sum_assignment
 from ._boundary import find_path_between_ends  # families for 100 %, batch 15: SciPy solve_bvp
 from ._curves import curve_through_points  # families for 100 %, batch 16: SciPy splines (G6)
+from ._matrix_equations import solve_matrix_equation  # families for 100 %, batch 19: Lyapunov, Sylvester, Riccati
 
 # Last, on purpose: the old names sdata.words and sdata.numbers (defined below) must win over the subpackages
 # simplydata.words and simplydata.numbers (sdata.table wins over its subpackage the same way, by being imported
@@ -132,6 +133,7 @@ __all__ = [
     "put_in_rows_and_columns",
     "put_one_above_other", "put_side_by_side", "run_sql", "show_all_words", "show_answers", "show_day", "show_lesson",
     "show_colours", "show_packages_used", "show_stretching_notes", "show_whats_inside", "show_today", "solve",
+    "solve_matrix_equation",  # families for 100 %, batch 19
     "stack_up", "start_30_days",
     "stretch_to_same_shape", "system", "table", "__version__",
 ]
