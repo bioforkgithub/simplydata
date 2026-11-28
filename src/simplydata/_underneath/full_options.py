@@ -371,7 +371,7 @@ ENTRIES = [
             """,
             "Polars": """
                 import polars as pl
-                df = pl.DataFrame({"logged": [1764288000, 1764291600.5, 0]})
+                df = pl.DataFrame({"logged": [1764288000.0, 1764291600.5, 0.0]})
                 # turn_into_dates("logged", from_unix_seconds=True)
                 micro = (pl.col("logged") * 1_000_000).round(0).cast(pl.Int64)
                 df.with_columns(pl.from_epoch(micro, time_unit="us").alias("logged"))      # (1)
