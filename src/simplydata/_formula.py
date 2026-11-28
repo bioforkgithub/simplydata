@@ -119,6 +119,7 @@ FROM_SIDE_SPELLINGS = {"right": "above", "+": "above", "from above": "above", "f
 MAX_SLOPE_TIMES = 20  # how_many_times= (a slope of a big product grows quickly)
 MAX_DECIMAL_DIGITS = 10_000  # show_as_decimal(digits=)
 MAX_LETTER_POWER = 100  # a sum with letters raised to a higher whole power is not multiplied out
+NEAR_ZERO = 1e-100  # find_value_at: a decimal this close to 0 is checked exactly (cancellation noise of evalf)
 
 
 def need_sympy(what: str):
@@ -1457,13 +1458,13 @@ class Formula(_AlgebraWords):
 
             key = by_value(PRODUCT, PRODUCT_SPELLINGS, by, "turn_into_product")
             name = PRODUCT[key][0]
-            try:
-                new = _guarded(getattr(sp, name), self._expr, what=f"SymPy {name}")
+            try:  # keep_form: a product as SymPy wrote it (2*(x + 2*y)), for this formula only
+                new = _guarded(getattr(sp, name), self._expr, what=f"SymPy {name}", keep_form=True)
             except _poly_errors() as problem:
                 raise _polynomial_error("turn_into_product", _show(self._expr), problem) from None
             print(f"{_show(self._expr)} as a product ({key}): {_show(new)}   (SymPy {name})")
             return self._change(f"turn into product by {key}", new)
-        new = _guarded(sp.factor, self._expr, what="SymPy factor")
+        new = _guarded(sp.factor, self._expr, what="SymPy factor", keep_form=True)  # 2*(x + 2*y) stays a product
         print(f"{_show(self._expr)} as a product: {_show(new)}   (SymPy factor)")
         return self._change("turn into product", new)
 
@@ -1621,6 +1622,11 @@ class Formula(_AlgebraWords):
                     raise
                 raise SimplydataError(f"SymPy has no value of {_show(self._expr)} at {_places(values)} "
                                       f"({problem}).") from None
+            if found.is_Float and found != 0 and abs(found) < NEAR_ZERO:
+                # evalf with subs leaves the noise of a cancellation (x**2 - 4 at 2 is 9.5e-125): the exact value says
+                # whether it is 0 (SymPy subs, under the time limit)
+                if _guarded(self._expr.subs, swaps, what="SymPy subs") == 0:
+                    found = sp.Float(0)
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
                                       "decimal (float). formula.put_in(...).show_as_decimal() shows it.")
