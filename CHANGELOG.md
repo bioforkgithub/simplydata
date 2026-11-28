@@ -5,6 +5,40 @@ working for one release and prints a one-line note with its new name.
 
 ## Unreleased
 
+### Added: maths on every number, one family for NumPy and scipy.special (families for 100 %, batches 7-9)
+
+Approved by Manish 2026-11-28 (plan section 2.3, G1-G3, G10). One name table holds every function, and the same
+names work for numbers and inside formula text: you learn a name once.
+
+- New word `numbers.take_function(name, **options)` (also on grids and blocks): the functions of scipy.special
+  and NumPy by plain name, such as `numbers.take_function("bessel J", order=1)`, `"inverse error function"`,
+  `"hyperbolic sine"`, `"legendre polynomial"` (degree=), `"lambert W"`, `"zeta"`, `"struve H"`, `"mathieu ce"`
+  and the spheroidal wave functions. The library names work too (`"jv"`, `"special.erfinv"`, `"np.sinh"`).
+  Where a function has no value the answer is empty and a note says how many; an infinite answer is inf.
+  Complex answers give their real part, or `part="imaginary"`, `"size"` or `"angle"`. A library name that gives
+  several answers (`airy`, `sici`, `ellipj`) names its parts, and one that gives a whole run (`legendre_p_all`,
+  `lqmn`, `pbdn_seq`) gives the one you ask for. `numbers.take_function()` with no name lists them all.
+- The same functions inside formula text (`table.add_column`, `table.fit_formula`, `sdata.find_where_smallest`,
+  `sdata.solve`, `sdata.formula`): `bessel_j(1, x)`, `erfinv(x)`, SciPy's names and SymPy's own names in SymPy's
+  order (`besseli(1, x)`, `LambertW(x)`, `Ei(x)`, `elliptic_k(m)`). `sdata.formula` keeps SymPy's function where
+  SymPy has one, so slopes and series work; a function SymPy lacks keeps its name and is worked out by SciPy.
+  Without brackets these names are still column names and values to find (`y0`, `k1`).
+- New word `sdata.find_zeros_of(name, how_many=5, order=0)`: the zeros of Bessel, Airy and Kelvin functions
+  (`jn_zeros`, `ai_zeros`, `ber_zeros` ...), and the complex zeros of the error function and the Fresnel
+  integrals as a table of real and imaginary parts.
+- New word `sdata.find_area_points(name, how_many=5)`: the points and weights of Gauss's area rules
+  (`roots_legendre`, `roots_hermite` ... and `p_roots`, `h_roots` ...), Newton-Cotes and Lebedev, as a table.
+- New word `numbers.work_on_bits(how, with_numbers=, by=)`: NumPy's bit words (`bitwise_and`, `bitwise_or`,
+  `bitwise_xor`, `invert`, `bitwise_count`, `left_shift`, `right_shift`, `packbits`, `unpackbits`).
+- `numbers.turn_into_yes_or_no(is_="finite")`, and `"infinite"`, `"minus infinity"`, `"plus infinity"`, `"real"`,
+  `"complex"`, `"not a time"` (NumPy `isfinite`, `isinf`, `isneginf`, `isposinf`, `isreal`, `iscomplex`, `isnat`).
+- Help pointers for every scipy.special and NumPy name of the family (`special.`, `scipy.special.`, `np.`, `sp.`),
+  made from the same table; the NumPy names that pointed to the hand-over (sign, arcsin ... gcd, lcm) now point
+  to `take_function`.
+- Reliability: every name is tested against its library on negative numbers, 0 and numbers above 0; the study
+  checks published values from the NIST DLMF and Abramowitz and Stegun (Bessel functions and their zeros, Airy,
+  error and elliptic integrals, zeta(3), W(1), Gauss-Legendre points) and base R where R has the function.
+
 ### Added: the last pandas and Polars jobs, and seaborn's Path, Shift and Dash (families for 100 %, batches 1-2)
 
 Approved by Manish 2026-11-28. Each word and option calls pandas, Polars, NumPy, SciPy or seaborn, gives one
