@@ -10,6 +10,20 @@
 
 ***Easy to do, and you know why you're doing it.***
 
+## Documents: everything in one click
+
+| Document | What you find there |
+|---|---|
+| **[30 days of simplydata (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_30_days.pdf)** | a course: one short lesson a day, from your first table to sound statistics |
+| **[The manual (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydata_manual.pdf)** | every word with an example and the same job written in the package underneath, plus the chapters "From pandas", "From matplotlib and seaborn", "From NumPy and SciPy" and "From SymPy" |
+| **[The dictionary (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/manual/simplydataDictionary.pdf)** | every word A to Z, and names from other tools (`groupby`, `iloc`, `hist`, `curve_fit` ...) turned into simplydata words |
+| **[The cheat sheet (PDF)](https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf)** | every word on learning cards, one card for each topic |
+| **[What simplydata handles](https://github.com/bioforkgithub/simplydata/blob/main/docs/what_simplydata_handles.md)** | the packages underneath, the tasks and the fields, in tables |
+| **[How simplydata chooses methods](https://github.com/bioforkgithub/simplydata/blob/main/docs/how_simplydata_chooses.md)** | every default, with the guideline or study behind it |
+| **[The reliability study](https://github.com/bioforkgithub/simplydata/blob/main/validation/report.md)** | every word checked against the package underneath and against R, on real data |
+
+All of them are made from the code, so they always match the newest version.
+
 ## Install
 
 ```

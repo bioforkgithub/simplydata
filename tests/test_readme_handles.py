@@ -220,3 +220,14 @@ def test_the_readme_comparison_shows_the_tested_same_underneath_code():
         library = "\n".join(entry.code.values())
         for line in theirs.strip().splitlines():
             assert line.strip() in library, (word, line)
+
+
+def test_the_documents_are_one_click_from_the_top_of_the_readme():
+    """Manish 2026-11-28: the manuals must be easy to find through links, without searching the folders."""
+    top = README[:README.index("## Install")]
+    assert "## Documents: everything in one click" in top
+    for path in ("docs/manual/simplydata_30_days.pdf", "docs/manual/simplydata_manual.pdf",
+                 "docs/manual/simplydataDictionary.pdf", "docs/simplydata_cheat_sheet.pdf",
+                 "docs/what_simplydata_handles.md", "docs/how_simplydata_chooses.md", "validation/report.md"):
+        assert f"https://github.com/bioforkgithub/simplydata/blob/main/{path})" in top, path
+        assert (ROOT / path).is_file(), path
