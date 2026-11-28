@@ -319,3 +319,77 @@ def test_in_row_order_move_layer_by_and_draw_dashes_match_seaborn():
     assert all(abs(s[1][0] - s[0][0] - 0.8) < 1e-12 for s in segments)
     with pytest.raises(sdata.SimplydataError, match="in_row_order=True"):
         sdata.chart(marks).draw_lines(x="hours", y="marks", in_row_order=True, error="standard error")
+
+
+# ---------------------------------------------------------------- the pointers of plan sections 2.1 and 2.5
+# every pandas, Polars, NumPy and seaborn.objects name the batches close, and the word sdata.help sends it to
+FULL_POINTERS = [
+    ("unique", "get_different_values_in"), ("pd.unique", "get_different_values_in"),
+    ("Series.unique", "get_different_values_in"), ("all", "check_if_all_values_in"),
+    ("pl.all_horizontal", "check_if_all_values_in"), ("any", "check_if_any_value_in"),
+    ("pl.any_horizontal", "check_if_any_value_in"), ("groupby.all", "check_if_all_values_in"),
+    ("groupby.any", "check_if_any_value_in"), ("is_monotonic_increasing", "check_if_sorted_by"),
+    ("is_monotonic_decreasing", "check_if_sorted_by"), ("pl.DataFrame.is_sorted", "check_if_sorted_by"),
+    ("rle_id", "add_run_number_column"), ("rle", "add_run_number_column"), ("str.title", "turn_into_title_case"),
+    ("str.capitalize", "turn_into_title_case"), ("str.to_titlecase", "turn_into_title_case"),
+    ("agg", "find_summary_of"), ("groupby.aggregate", "find_summary_of"), ("prod", "find_summary_of"),
+    ("product", "find_summary_of"), ("groupby.prod", "find_summary_of"), ("entropy", "find_summary_of"),
+    ("implode", "find_summary_of"), ("pl.implode", "find_summary_of"), ("list.join", "split_into_rows"),
+    ("shift", "add_previous_value_column"), ("to_markdown", "save"), ("to_latex", "save"),
+    ("to_clipboard", "save"), ("write_clipboard", "save"), ("str.contains", "keep_rows_where"),
+    ("str.isnumeric", "turn_into_numbers"), ("str.isalpha", "turn_into_numbers"),
+    ("dt.is_month_start", "add_column_with_part_of_date"), ("dt.is_quarter_end", "add_column_with_part_of_date"),
+    ("dt.is_quarter_start", "add_column_with_part_of_date"), ("dt.is_year_end", "add_column_with_part_of_date"),
+    ("dt.is_year_start", "add_column_with_part_of_date"), ("dt.month_end", "add_column_with_part_of_date"),
+    ("dt.is_business_day", "add_column_with_part_of_date"), ("dt.add_business_days", "add_column"),
+    ("dt.epoch", "add_column_with_part_of_date"), ("dt.timestamp", "add_column_with_part_of_date"),
+    ("dt.combine", "turn_into_text"), ("dt.to_period", "find_average_of"), ("to_period", "find_average_of"),
+    ("period_range", "find_average_of"), ("log10", "add_column"), ("log1p", "add_column"), ("cbrt", "add_column"),
+    ("sign", "add_column"), ("pl.Expr.ceil", "add_column"), ("pl.Expr.floor", "add_column"),
+    ("round_sig_figs", "round_numbers_in"), ("between_time", "keep_rows_where"), ("at_time", "keep_rows_where"),
+    ("str.extractall", "add_column_with_part_of_text"), ("str.findall", "add_column_with_part_of_text"),
+    ("str.extract_all", "add_column_with_part_of_text"), ("str.extract_many", "add_column_with_part_of_text"),
+    ("str.find_many", "add_column_with_part_of_text"), ("str.find", "add_column_with_part_of_text"),
+    ("str.index", "add_column_with_part_of_text"), ("str.rfind", "add_column_with_part_of_text"),
+    ("str.rindex", "add_column_with_part_of_text"), ("bdate_range", "make_run_of_dates"),
+    ("pl.business_day_count", "add_column"), ("np.busday_count", "add_column"), ("np.busday_offset", "add_column"),
+    ("np.is_busday", "add_column_with_part_of_date"), ("np.busdaycalendar", "make_run_of_dates"),
+    ("from_epoch", "turn_into_dates"), ("corrwith", "find_correlation_between"),
+    ("rolling_corr", "add_rolling_column"), ("rolling_cov", "add_rolling_column"), ("join_where", "join_with"),
+    ("merge_ordered", "join_with"), ("merge_sorted", "add_rows_from"), ("asof", "join_with"),
+    ("read_html", "table"), ("read_fwf", "table"), ("pd.read_clipboard", "table"), ("json_normalize", "table"),
+    ("combine", "add_column"), ("Series.cat", "turn_into_categories"), ("factorize", "add_rank_column"),
+    ("convert_dtypes", "describe_columns"), ("infer_objects", "describe_columns"), ("memory_usage", "count_rows"),
+    ("estimated_size", "count_rows"), ("shrink_to_fit", "count_rows"), ("shrink_dtype", "count_rows"),
+    ("to_numpy", "get_column"), ("to_xarray", "get_column"), ("to_jax", "get_column"),
+    ("to_torch", "get_column"), ("dot", "as_pandas"),
+    # G12 (approved): left to pandas and Polars, with the hand-over
+    ("set_index", "as_pandas"), ("reset_index", "as_pandas"), ("sort_index", "as_pandas"), ("xs", "as_pandas"),
+    ("swaplevel", "as_pandas"), ("droplevel", "as_pandas"), ("reindex_like", "as_pandas"),
+    ("rename_axis", "as_pandas"), ("reorder_levels", "as_pandas"), ("first_valid_index", "as_pandas"),
+    ("last_valid_index", "as_pandas"), ("align", "as_pandas"), ("DataFrame.index", "as_pandas"),
+    ("pipe", "as_pandas"), ("pl.Expr.pipe_with_dtype", "as_pandas"), ("pl.map_groups", "as_pandas"),
+    ("lazy", "as_polars"), ("scan_csv", "table"), ("scan_parquet", "table"), ("collect_all", "table"),
+    ("defer", "table"), ("pl.align_frames", "as_polars"), ("pl.list", "split_into_rows"),
+    ("Series.arr", "split_into_rows"), ('pl.col("genes").list.sum', "split_into_rows"),
+    ("list.eval", "split_into_rows"), ("arr.max", "split_into_rows"),
+    # seaborn.objects
+    ("so.Path", "draw_lines"), ("so.Paths", "draw_lines"), ("so.Shift", "draw_dots"), ("so.Dash", "draw_dashes"),
+]
+
+
+@pytest.mark.parametrize("typed, word", FULL_POINTERS)
+def test_every_name_the_batches_close_points_to_its_word(typed, word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert "it is a name from other tools" in out, (typed, out)
+    assert f'sdata.help("{word}")' in out.splitlines()[-1], (typed, out)
+
+
+def test_a_table_style_points_to_the_html_file_and_the_hand_over():
+    """sdata.help("style") explains the old chart word (now use_style); on a table, style is pandas' Styler."""
+    from simplydata._errors import MissingWordError
+
+    with pytest.raises(MissingWordError) as info:
+        sdata.table(sdata.get_example("marks")).style  # noqa: B018 - the pointer is the point
+    assert 'table.save("table_1.html")' in str(info.value) and "df.style" in str(info.value)

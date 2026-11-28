@@ -62,6 +62,23 @@ _SDATA = [
     ('sdata.table("my_file.csv")', "read_csv read_excel read_table read_parquet read_json DataFrame data_frame "
      "tibble read"),
     ('sdata.table("survey.sav") for SPSS, or sdata.table("survey.dta") for Stata', "read_spss read_stata"),
+    # families for 100 %, batches 1-2 (approved by Manish 2026-11-28): readers and makers of plan section 2.1
+    ('sdata.table("stations.html", table_number=1), a web page saved on this computer', "read_html"),
+    ('sdata.table("station.txt", fixed_widths=[10, 6, 6])', "read_fwf"),
+    ('sdata.table("clipboard"), what you copied', "read_clipboard"),
+    ('sdata.table("samples.json"): values inside values become columns of their own (site.name)', "json_normalize"),
+    ('sdata.make_run_of_dates("2026-12-01", to="2026-12-31", every="working day")', "bdate_range"),
+    ('table.turn_into_dates("seconds", from_unix_seconds=True), on a table of seconds since 1970', "from_epoch"),
+    ('table.add_column("days", "count_working_days(start, end)"), on a table', "business_day_count"),
+    ('sdata.table("big.csv", fast=True): Polars reads it at once (simplydata runs no lazy plans; they are left to '
+     "Polars: table.as_polars())",
+     "scan_csv scan_parquet scan_ipc scan_ndjson scan_delta scan_iceberg scan_lines scan_lance "
+     "scan_pyarrow_dataset scan_arrow_c_stream scan_external_reader collect_all collect_all_async defer "
+     "explain_all"),
+    ("table.as_polars(), then pl.align_frames(...) in Polars: simplydata tables have no row index to line up",
+     "align_frames"),
+    ('table.as_pandas(), then df.groupby("class").apply(my_function), and give the result to sdata.table to come '
+     "back", "map_groups"),
     # Tables finishing PR (API audit 2026-11-25): a table from data already in Python
     ('sdata.table({"name": ["Asha", "Ben"], "marks": [61, 73]}) for a dict of columns, a list of rows (dicts), '
      "or a pandas or Polars table", "from_dict from_dicts from_records from_arrow from_numpy from_pandas "
@@ -145,7 +162,10 @@ _SDATA = [
 # table.<name>
 _TABLE = [
     ('table.repeat_each_row_by("count")', "uncount expand_counts repeat_rows"),
-    ('table.find_average_of("marks", for_each_group_in="class")', "groupby group_by aggregate agg"),
+    ('table.find_average_of("marks", for_each_group_in="class")', "groupby group_by"),
+    # families for 100 %, batches 1-2: different measures for different columns, one row per group
+    ('table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class")',
+     "aggregate agg"),
     ('table.join_with(other_table, using="name")', "merge join left_join inner_join"),
     # Tables phase, batch 1 (approved by Manish 2026-11-25)
     ('table.join_with(other_table, using="name", keep="all rows from the other table")', "right_join"),
@@ -250,11 +270,9 @@ _TABLE = [
      "interpolate interp interp1d approx approxfun spline splinefun CubicSpline pchip"),
     ('table.make_map_of("height", across=["east", "north"])', "griddata interp2d"),
     ("table.remove_duplicate_rows()", "drop_duplicates distinct"),
-    # Tables finishing PR: pandas Series.unique() is the different values of one column; DataFrame unique is rows
-    ('table.keep_columns("class"), then table.remove_duplicate_rows(), for the different values of one column '
-     "(pandas and Polars unique of a column); table.remove_duplicate_rows() alone for whole rows (Polars "
-     'DataFrame.unique). The manual chapter "From pandas (and Polars) to simplydata" shows both',
-     "unique"),
+    # families for 100 %, batches 1-2 (G18): pandas Series.unique() and pd.unique are the different values of one column
+    ('table.get_different_values_in("class") for the different values of one column (pandas Series.unique, Polars '
+     'unique); table.remove_duplicate_rows() for whole rows', "unique"),
     ("table.describe_columns()", "describe info glimpse dtypes"),
     # R str() describes a table; pandas .str holds the text steps (sdata.help("str.replace") names each one)
     ('table.describe_columns() for R str(); the text steps of pandas and Polars .str are table words that take '
@@ -297,7 +315,8 @@ _TABLE = [
     ("table.start_chart()", "plot ggplot"),
     ('table.add_column("marks_per_hour", "marks / hours")', "assign mutate with_columns transform"),
     ('table.replace_values_in("class", "A", with_value="Alpha")', "replace recode"),
-    ('table.add_previous_value_column("last_year", from_column="population")', "shift lag"),
+    ('table.add_previous_value_column("last_year", from_column="population"), or rows_ahead=1 for the next value '
+     "(shift(-1), lead)", "shift lag lead"),
     ('table.add_change_column("growth", from_column="population")', "diff pct_change"),
     ('table.add_rolling_column("smooth", from_column="temperature")', "rolling rollmean"),
     ('table.add_rank_column("rank", from_column="marks")', "rank"),
@@ -645,6 +664,69 @@ _TABLE = [
      "KDTree cKDTree query_ball_point NearestNeighbors knnsearch rangesearch nn2 get.knnx nearest_neighbours"),
     ('table.find_distances_to_rows_of(other, using=["east", "north"])', "cdist pdist2"),
     ('table.find_fence_around(x="east", y="north")', "ConvexHull convex_hull chull convhull"),
+
+    # ---------------------------------------------------------------- families for 100 %, batches 1-2 (approved by
+    # Manish 2026-11-28): the pandas and Polars names of plan section 2.1, their words, and the hand-over for the rest
+    ('table.check_if_all_values_in("marks", is_above=0), or a list of columns: '
+     'table.check_if_all_values_in(["hours", "marks"], is_above=0)', "all all_horizontal"),
+    ('table.check_if_any_value_in("marks", is_above=90), or a list of columns: '
+     'table.check_if_any_value_in(["hours", "marks"], is_above=90)', "any any_horizontal"),
+    ('table.check_if_sorted_by("marks"), or table.check_if_sorted_by("marks", biggest_first=True)',
+     "is_monotonic_increasing is_monotonic_decreasing is_sorted is_monotonic"),
+    ('table.add_run_number_column("run", from_column="class")', "rle_id consecutive_id"),
+    ('table.add_run_number_column("run", from_column="class"), then table.count_rows(for_each_group_in="run") for '
+     "the length of each run", "rle"),
+    ('table.find_summary_of("marks", show=["product"])', "prod product"),
+    ('table.find_summary_of("marks", show=["entropy"])', "entropy"),
+    ('table.find_summary_of("name", show=["joined text"], separator="; ", for_each_group_in="class")', "implode"),
+    ('table.save("table_1.md"), a Markdown table', "to_markdown"),
+    ('table.save("table_1.tex"), a LaTeX table (also .docx for Word)', "to_latex"),
+    ('table.save("clipboard"), to paste into Excel', "to_clipboard write_clipboard"),
+    ('table.keep_rows_where("time", time_of_day_between=["08:00", "17:00"]), or ["08:00", "08:00"] for one clock '
+     "time", "between_time at_time"),
+    ('table.round_numbers_in("marks", significant_figures=2)', "round_sig_figs signif"),
+    ('table.add_column("level", "log10(marks)"): log10, log1p, sign, cbrt, floor and ceil work in a formula',
+     "log10 log1p sign cbrt ceil ceiling"),
+    ('table.add_column("tens", "floor(marks / 10)")', "floor"),
+    ('table.add_rolling_column("link", from_column="hours", with_column="marks", show="correlation", window=3)',
+     "rolling_corr"),
+    ('table.add_rolling_column("joint", from_column="hours", with_column="marks", show="covariance", window=3)',
+     "rolling_cov"),
+    ('table.find_correlation_between("hours", "marks"), or table.add_rolling_column("link", from_column="hours", '
+     'with_column="marks", show="correlation") for a moving one', "corrwith"),
+    ('table.join_with(other_table, where="marks >= marks_other")', "join_where"),
+    ('table.join_with(other_table, using="name", keep="all rows from both"): every row of both tables, sorted by '
+     "using=", "merge_ordered"),
+    ('table.add_rows_from(other_table), then table.sort_by("marks")', "merge_sorted"),
+    ('table.join_with(other_table, using="date", match="nearest before")', "asof"),
+    ('table.add_column("best", "marks + hours"): a formula works on two columns, cell by cell', "combine"),
+    ('table.turn_into_categories("class")', "cat"),
+    ('table.add_rank_column("group_number", from_column="class", biggest_first=False, when_tied="no gaps")',
+     "factorize"),
+    ('table.find_average_of("marks", for_each_group_in="date", every="month"): every= groups dates by "week", '
+     '"month", "quarter" or "year"', "to_period period_range"),
+    ('table.describe_columns() shows the kind of each column; turn_into_numbers, turn_into_text, turn_into_dates '
+     "and turn_into_categories change them (memory and types are left to pandas: " + "table.as_pandas())",
+     "convert_dtypes infer_objects"),
+    ("table.count_rows() and table.count_columns(); the memory a table takes is left to pandas and Polars: "
+     "table.as_pandas() or table.as_polars()", "memory_usage estimated_size shrink_to_fit shrink_dtype"),
+    ("table.save(\"table_1.html\") for a web page table; colours and formats of the cells are left to pandas: "
+     "table.as_pandas(), then df.style", "style"),
+    ("table.get_column(\"marks\") gives numbers (sdata.number_list); a whole table goes to NumPy by table.as_pandas(), "
+     "then df.to_numpy()", "to_numpy to_xarray to_jax to_torch"),
+    ("table.as_pandas(), then df.dot(other) in pandas, and give the result to sdata.table to come back", "dot"),
+    # G12 (approved): simplydata tables have no row index, keep one value in each cell, run no lazy plans and chain
+    # words without pipe; these jobs are left to pandas and Polars
+    ("table.as_pandas(), then pandas: simplydata tables have no row index (rows are counted from 1: "
+     "table.get_row(3), table.keep_rows_by_position(...)); give the result to sdata.table to come back",
+     "set_index reset_index sort_index reindex_like rename_axis reorder_levels swaplevel droplevel xs index "
+     "first_valid_index last_valid_index align"),
+    ('table.split_into_rows("genes", separator=";"): simplydata keeps one value in each cell; list columns are left '
+     "to Polars: table.as_polars()", "list arr explode_list"),
+    ("table.as_polars(), then Polars: every word already runs at once (fast=True runs Polars underneath), so "
+     "simplydata has no lazy plans", "lazy collect"),
+    ("table.as_pandas(), then df.pipe(my_function): simplydata words chain one after the other already",
+     "pipe pipe_with_dtype"),
 ]
 
 # chart.<name>
@@ -990,13 +1072,14 @@ _BLOCKS = [
 # Tables finishing PR: names inside pandas' and Polars' namespaces, which mean something else on a table.
 # str.<name>: pandas Series.str and Polars Expr.str (the text steps)
 _TEXT = [
-    ('table.keep_rows_where("name", contains="an") to keep the rows; for a yes or no column, count first: '
-     "table.add_column(\"an_count\", \"count_text(name, 'an')\"), then table.add_group_column(\"has_an\", "
-     'rules={"an_count > 0": "yes"}, otherwise="no")', "contains contains_any"),
+    ('table.keep_rows_where("name", contains="an") to keep the rows; for a yes or no column, a written condition: '
+     "table.add_group_column(\"has_an\", rules={\"name contains 'an'\": \"yes\"}, otherwise=\"no\")",
+     "contains contains_any"),
     ('table.keep_rows_where("name", starts_with="A")', "startswith starts_with"),
     ('table.keep_rows_where("name", ends_with="n")', "endswith ends_with"),
     ('table.keep_rows_where("sample_id", matches_pattern="^S[0-9]+$")', "match fullmatch"),
-    ('table.keep_rows_where("sample_id", matches_pattern="^[0-9]+$") for text made of digits (letters: '
+    ('table.turn_into_numbers("sample_id", show_problems=True) shows the cells that are not numbers; '
+     'table.keep_rows_where("sample_id", matches_pattern="^[0-9]+$") keeps text made of digits (letters: '
      '"^[A-Za-z]+$")', "isdigit isnumeric isdecimal isalpha isalnum"),
     ("table.add_column(\"semicolons\", \"count_text(genes, ';')\")", "count count_matches"),
     ('table.add_column("name_length", "length(name)")', "len len_chars"),
@@ -1011,12 +1094,18 @@ _TEXT = [
     ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) for new columns, or '
      'table.split_into_rows("genes", separator=";") for new rows', "split split_exact splitn rsplit"),
     ('table.add_column("name_and_class", by_joining_text=["name", "class"], separator=" ") joins columns side by '
-     'side; joining the text of many rows into one cell is in the manual chapter "From pandas (and Polars) to '
-     'simplydata"', "join cat concat"),
+     'side; table.find_summary_of("name", show=["joined text"], for_each_group_in="class") joins the text of many '
+     "rows into one cell", "join cat concat"),
+    ('table.add_column_with_part_of_text("found", from_column="genes", matches_pattern="[a-z]+[A-Z0-9]", '
+     'every_match=True)',
+     "extractall findall extract_all extract_many find_many"),
+    ('table.add_column_with_part_of_text("where_an", from_column="name", position_of="an")',
+     "find index rfind rindex"),
     ('table.turn_into_lowercase("name")', "lower to_lowercase casefold"),
     ('table.turn_into_uppercase("name")', "upper to_uppercase"),
-    ('table.as_pandas(), then df["name"].str.title() in pandas, and give the result to sdata.table to come back: '
-     "simplydata has no word for Title Case", "title capitalize to_titlecase swapcase"),
+    ('table.turn_into_title_case("name")', "title capitalize to_titlecase"),
+    ('table.as_pandas(), then df["name"].str.swapcase() in pandas, and give the result to sdata.table to come back: '
+     "simplydata has no word that swaps capital and small letters", "swapcase"),
     ('table.remove_extra_spaces_in("name")', "strip lstrip rstrip strip_chars strip_chars_start strip_chars_end"),
     ('table.add_zeros_in_front_of("sample_id", to_length=3), which pads at the start (padding at the end is left '
      "to pandas: table.as_pandas())", "zfill pad rjust ljust center pad_start pad_end"),
@@ -1051,6 +1140,20 @@ _DATES = [
      "days_in_month daysinmonth"),
     ('table.add_column_with_part_of_date("leap", from_column="date", part="is leap year")', "is_leap_year"),
     ('table.add_column_with_part_of_date("month_end", from_column="date", part="is month end")', "is_month_end"),
+    ('table.add_column_with_part_of_date("first_day", from_column="date", part="is month start")', "is_month_start"),
+    ('table.add_column_with_part_of_date("quarter_start", from_column="date", part="is quarter start")',
+     "is_quarter_start"),
+    ('table.add_column_with_part_of_date("quarter_end", from_column="date", part="is quarter end")', "is_quarter_end"),
+    ('table.add_column_with_part_of_date("year_start", from_column="date", part="is year start")', "is_year_start"),
+    ('table.add_column_with_part_of_date("year_end", from_column="date", part="is year end")', "is_year_end"),
+    ('table.add_column_with_part_of_date("last_day", from_column="date", part="month end")', "month_end"),
+    ('table.add_column_with_part_of_date("working", from_column="date", part="is working day")',
+     "is_business_day is_busday"),
+    ('table.add_column("due", "add_working_days(date, 10)")', "add_business_days"),
+    ('table.add_column_with_part_of_date("seconds", from_column="date", part="unix time")', "epoch timestamp"),
+    ('table.turn_into_text("date", written_like="2026-12-31"), then table.add_column("when", by_joining_text=["date", '
+     '"clock"], separator=" "), then table.turn_into_dates("when")', "combine"),
+    ('table.find_average_of("sales", for_each_group_in="date", every="month")', "to_period"),
     ('table.round_dates_in("date", down_to="month")', "floor truncate month_start"),
     ('table.round_dates_in("date", up_to="month")', "ceil"),
     ('table.round_dates_in("time", to_the="hour")', "round"),
@@ -1074,9 +1177,14 @@ _GROUPS = [
     # pandas groupby().count() counts the filled cells of each column in each group
     ('table.find_summary_of(["marks", "hours"], show=["count"], for_each_group_in="class") counts the filled cells '
      "of each column (table.count_rows(for_each_group_in=\"class\") counts the rows)", "count"),
-    ('table.find_summary_of(["marks", "hours"], show=["average", "count"], for_each_group_in="class"); different '
-     'measures for different columns are in the manual chapter "From pandas (and Polars) to simplydata"',
-     "agg aggregate"),
+    ('table.find_summary_of(show={"marks": ["average", "count"], "hours": ["total"]}, for_each_group_in="class"): '
+     "different measures for different columns, one row for each group", "agg aggregate"),
+    ('table.check_if_all_values_in("marks", is_above=40, for_each_group_in="class")', "all"),
+    ('table.check_if_any_value_in("marks", is_above=90, for_each_group_in="class")', "any"),
+    ('table.find_summary_of("marks", show=["product"], for_each_group_in="class")', "prod product"),
+    ('table.find_summary_of("name", show=["joined text"], for_each_group_in="class")', "implode"),
+    ('table.find_correlation_between("hours", "marks") on the rows of one group (table.keep_rows_where first)',
+     "corrwith"),
     ('table.add_column("share", "marks / total(marks) * 100", for_each_group_in="class")', "transform"),
     ('table.as_pandas(), then df.groupby("class").apply(my_function), and give the result to sdata.table to come '
      'back (simplydata runs your own function on each row with table.add_column(by_running=))',
@@ -1102,7 +1210,8 @@ _GROUPS = [
      'for_each_group_in="class")', "var sem skew kurt kurtosis"),
     ('table.find_summary_of("marks", show=["count", "average", "standard deviation", "smallest", "percentile 25", '
      '"median", "percentile 75", "biggest"], for_each_group_in="class")', "describe"),
-    ('table.add_previous_value_column("last_year", from_column="population", for_each_group_in="country")', "shift"),
+    ('table.add_previous_value_column("last_year", from_column="population", for_each_group_in="country"), or '
+     "rows_ahead=1 for the next value", "shift"),
     ('table.add_rank_column("place", from_column="marks", for_each_group_in="class")', "rank"),
     ('table.add_rolling_column("smooth", from_column="sales", for_each_group_in="shop")', "rolling"),
 ]
@@ -1115,6 +1224,16 @@ def _build(groups):
             assert name not in table, f"other name {name} is listed twice"
             table[name] = written
     return table
+
+
+# list.<name> and arr.<name>: Polars list (and array) columns. simplydata keeps one value in each cell (G12, approved
+# by Manish 2026-11-28), so every list job points to split_into_rows and the hand-over to Polars.
+_LIST_POINTER = ('table.split_into_rows("genes", separator=";") gives each value a row of its own, where table words '
+                 "work on it; list columns themselves are left to Polars: table.as_polars(), then pl.col(...).list")
+_LISTS = [(_LIST_POINTER, "agg all any arg_max arg_min concat contains count_matches diff drop_nulls eval explode filter first "
+                         "gather gather_every get head item join last len max mean median min n_unique reverse sample "
+                         "set_difference set_intersection set_symmetric_difference set_union shift slice sort std sum tail "
+                         "to_array to_map to_struct unique var")]
 
 
 # Axes3D.<name>: the 3D Axes of mpl_toolkits.mplot3d, where scatter, plot and bar mean the 3D words
@@ -1142,6 +1261,13 @@ _NUMPY_HAND_OVER = ("numbers.as_numpy() hands the numbers to NumPy (a grid too: 
                     "call works")
 # np.<name>: NumPy's top level
 _NUMPY = [
+    # families for 100 %, batches 1-2: working days (np.busday_count, busday_offset, is_busday, busdaycalendar)
+    ('table.add_column("days", "count_working_days(start, end)"), on a table', "busday_count"),
+    ('table.add_column("due", "add_working_days(date, 10)"), on a table', "busday_offset"),
+    ('table.add_column_with_part_of_date("working", from_column="date", part="is working day"), on a table',
+     "is_busday"),
+    ('sdata.make_run_of_dates("2026-12-01", to="2026-12-31", every="working day"): Monday to Friday (holidays are '
+     "left to NumPy: numbers.as_numpy())", "busdaycalendar"),
     ("numbers.find_average()", "mean average nanmean"),
     ("numbers.find_median()", "median nanmedian"),
     ("numbers.find_total()", "sum nansum"),
@@ -1405,6 +1531,10 @@ _SEABORN_OBJECTS = [
     ('chart.draw_dots(x="hours", y="marks")', "Dot Dots"),
     ('chart.draw_dots(x="hours", y="marks"), then chart.fit_line(): each draw word adds one more layer', "add"),
     ('chart.draw_lines(x="month", y="temperature", colour="city")', "Line Lines"),
+    ('chart.draw_lines(x="hours", y="marks", in_row_order=True): the points joined in the order of the rows',
+     "Path Paths"),
+    ('chart.draw_dots(x="class", y="marks", show="average", move_layer_by=0.2)', "Shift"),
+    ('chart.draw_dashes(x="class", y="marks")', "Dash"),
     ('chart.draw_bars(x="class", y="marks")', "Bar Bars Agg"),
     ('chart.draw_area(x="month", y="rain", colour="city")', "Area"),
     ('chart.draw_band(x="month", between=["lowest", "highest"])', "Band"),
@@ -1464,7 +1594,8 @@ OTHER_NAMES = {"sdata": _build(_SDATA), "table": _build(_TABLE),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
                "numpy": _build(_NUMPY), "linalg": _build(_LINALG), "random": _build(_RANDOM), "fft": _build(_FFT),
                "stats": _build(_STATS), "special": _build(_SPECIAL), "scipy": _build(_SCIPY),
-               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS)}
+               "sympy": _build(_SYMPY), "so": _build(_SEABORN_OBJECTS),
+               "lists": _build(_LISTS)}  # families for 100 %, batches 1-2 (G12)
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -1483,8 +1614,10 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
               "Matrix": "sympy",
               # seaborn's objects interface: so.Dot, so.Plot.facet, seaborn.objects.Hist
-              "so": "so", "objects": "so"}
-NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
+              "so": "so", "objects": "so",
+              # Polars list and array columns (G12): pl.col("genes").list.sum, Series.arr.max
+              "list": "lists", "arr": "lists"}
+NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D", "lists": "list"}
 # A name that a namespace does not list means the same as on a table (groupby().mean() is find_average_of); a
 # text or date name never falls back, because there the table meaning is the wrong one (str.count is not count_rows).
 # A matplotlib or seaborn name a chart does not list may be an sdata word (sns.load_dataset) or a numbers word

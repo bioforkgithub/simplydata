@@ -222,7 +222,7 @@ AUDIT_POINTERS = [
     ("str.rstrip", "remove_extra_spaces_in"), ("str.slice", "add_column_with_part_of_text"),
     ("str.split", "split_column"), ("str.strip_chars", "remove_extra_spaces_in"),
     ("str.strip_chars_end", "remove_extra_spaces_in"), ("str.strip_chars_start", "remove_extra_spaces_in"),
-    ("str.tail", "add_column_with_part_of_text"), ("str.title", "as_pandas"), ("str.to_date", "turn_into_dates"),
+    ("str.tail", "add_column_with_part_of_text"), ("str.title", "turn_into_title_case"), ("str.to_date", "turn_into_dates"),
     ("str.to_decimal", "turn_into_numbers"), ("str.to_integer", "turn_into_numbers"),
     ("str.to_lowercase", "turn_into_lowercase"), ("str.to_time", "turn_into_dates"),
     ("str.to_uppercase", "turn_into_uppercase"), ("time", "add_column_with_part_of_date"), ("to_excel", "save"),
@@ -253,7 +253,7 @@ def test_every_name_the_audit_found_points_to_its_word(typed, word, capsys):
     ("str.slice", "str.slice", "add_column_with_part_of_text", "keep_rows_by_position"),
     ("str.head", "str.head", "first_characters=", "show_first_rows"),
     ("str.join", "str.join", "by_joining_text=", "join_with"),
-    ("str.title", "str.title", "as_pandas", "write_title_on_top"),
+    ("str.title", "str.title", "turn_into_title_case", "write_title_on_top"),
     ("dt.round", "dt.round", "round_dates_in", "round_numbers_in"),
     ("Series.dt.year", "dt.year", 'part="year"', None),
     ('pl.col("date").dt.truncate("1mo")', "dt.truncate", "round_dates_in", None),
@@ -308,8 +308,7 @@ def test_a_text_or_date_name_never_falls_back_to_the_table_meaning(capsys):
     ("isin", ['is_one_of=["A", "B"]', "table.keep_rows_found_in("]),
     ("to_excel", ['table.save("results.xlsx")']),
     ("where", ["table.replace_values_in(", "in_rows_where=", "table.keep_rows_where("]),
-    ("unique", ['table.keep_columns("class"), then table.remove_duplicate_rows()',
-                '"From pandas (and Polars) to simplydata"']),
+    ("unique", ['table.get_different_values_in("class")', "table.remove_duplicate_rows() for whole rows"]),
     ("count", ["table.count_rows()", "table.describe_columns()", 'table.count_each("class")']),
     ("astype", ["turn_into_numbers", "turn_into_text", "turn_into_dates", "turn_into_categories"]),
     ("str", ["table.describe_columns()", "str.replace is replace_text_in"]),
@@ -458,6 +457,8 @@ def _pointer_table():
         "country": ["Applia", "Applia", "Bananda", "Bananda"], "temperature": [8.3, 10.3, 11.0, 9.2],
         "signal": [0.1, 0.4, 0.2, 0.3], "fruit": ["apple", "pear", "apple|pear", "plum"],
         "school": ["X", "X", "Y", "Y"], "week": [1, 1, 2, 2], "people": [3, 1, 2, 5],
+        # families for 100 %, batches 1-2: Unix seconds (from_epoch) and clock times (dt.combine)
+        "seconds": [1764288000, 1764291600, 1764374400, 1764460800], "clock": ["08:30", "09:05", "23:10", "00:30"],
     })
 
 
