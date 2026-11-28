@@ -35485,14 +35485,14 @@ ndimage.watershed_ift(g, markers, structure=ndimage.generate_binary_structure(2,
 \wordentry{grid.move\_and\_stretch\_by()}{word:grid.move-and-stretch-by}
 Move, stretch, shear or turn a grid as a picture, cell by cell from where each new cell comes. \code{grid.\allowbreak{}move\_\allowbreak{}and\_\allowbreak{}stretch\_\allowbreak{}by(matrix=[[1,\allowbreak{} 0.\allowbreak{}5],\allowbreak{} [0,\allowbreak{} 1]])}
 
-Each new cell takes its number from the old grid at matrix times its position, plus \code{shift=} (both in cells, measured from the first cell; SciPy ndimage.affine\_transform). So \code{shift=[0,\allowbreak{} 2]} takes each number from 2 columns further on (the picture moves 2 columns back), \code{matrix=[[2,\allowbreak{} 0],\allowbreak{} [0,\allowbreak{} 2]]} takes from twice as far (the picture shrinks to half). \code{rule=}\{\code{\textquotedbl{}row\textquotedbl{}}: \code{\textquotedbl{}row + 0.\allowbreak{}1*column**2\textquotedbl{}}, \code{\textquotedbl{}column\textquotedbl{}}: \code{\textquotedbl{}column\textquotedbl{}}\} gives where each new cell comes from as formulas of row and column (positions from 1; SciPy ndimage.geometric\_transform). \code{test\_\allowbreak{}method=} \code{\textquotedbl{}linear\textquotedbl{}} (the default), \code{\textquotedbl{}nearest\textquotedbl{}} or \code{\textquotedbl{}cubic\textquotedbl{}}, as \code{change\_\allowbreak{}size\_\allowbreak{}to}; \code{\textquotedbl{}fourier\textquotedbl{}} moves by \code{shift=} alone, also by part of a cell, with the picture wrapping round (ndimage.fourier\_shift on NumPy's FFT). Cells that come from outside the old grid are empty. As MATLAB imwarp, R imager::imwarp. Undo with\\
+Each new cell takes its number from the old grid at matrix times its position, plus \code{shift=} (both in cells, measured from the first cell; SciPy ndimage.affine\_transform). So \code{shift=[0,\allowbreak{} 2]} takes each number from 2 columns further on (the picture moves 2 columns back), \code{matrix=[[2,\allowbreak{} 0],\allowbreak{} [0,\allowbreak{} 2]]} takes from twice as far (the picture shrinks to half). \code{formulas=}\{\code{\textquotedbl{}row\textquotedbl{}}: \code{\textquotedbl{}row + 0.\allowbreak{}1*column**2\textquotedbl{}}, \code{\textquotedbl{}column\textquotedbl{}}: \code{\textquotedbl{}column\textquotedbl{}}\} gives where each new cell comes from as formulas of row and column (positions from 1; SciPy ndimage.geometric\_transform). \code{test\_\allowbreak{}method=} \code{\textquotedbl{}linear\textquotedbl{}} (the default), \code{\textquotedbl{}nearest\textquotedbl{}} or \code{\textquotedbl{}cubic\textquotedbl{}}, as \code{change\_\allowbreak{}size\_\allowbreak{}to}; \code{\textquotedbl{}fourier\textquotedbl{}} moves by \code{shift=} alone, also by part of a cell, with the picture wrapping round (ndimage.fourier\_shift on NumPy's FFT). Cells that come from outside the old grid are empty. As MATLAB imwarp, R imager::imwarp. Undo with\\
 \codeline{grid.undo().}
 
 \wordfield{Options}{}\par\nopagebreak
 \begin{optiontable}
 \code{matrix=} & \\
 \code{shift=} & \\
-\code{rule=} & \\
+\code{formulas=} & \\
 \code{test\_\allowbreak{}method=} & normally \code{\textquotedbl{}linear\textquotedbl{}}\\
 \end{optiontable}
 
@@ -35525,18 +35525,18 @@ ndimage.affine_transform(g, [[1, 0.5], [0, 1]], offset=[0, 1], order=1, mode="co
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
-\undertext{\textbf{With \code{rule=}}: the same job with this option.}
+\undertext{\textbf{With \code{formulas=}}: the same job with this option.}
 \underlib{SciPy}
 \begin{lstlisting}[style=under]
 import numpy as np
 from scipy import ndimage
 g = np.array([[1, 2, 4, 7, 11], [2, 3, 5, 8, 12], [4, 5, 7, 10, 14], [7, 8, 10, 13, 17]], dtype=float)
-# move_and_stretch_by(rule={"row": "row", "column": "column + 0.5*row"})
+# move_and_stretch_by(formulas={"row": "row", "column": "column + 0.5*row"})
 where = lambda p: (p[0], (p[1] + 1) + 0.5 * (p[0] + 1) - 1)   # (1)
 ndimage.geometric_transform(g, where, order=1, mode="constant", cval=np.nan)
 \end{lstlisting}
 \undertext{\textbf{simplydata chooses}}
-\undertext{(1) the rule's row and column count from 1, so 1 is added before and taken away after.}
+\undertext{(1) the formulas' row and column count from 1, so 1 is added before and taken away after.}
 \undertext{simplydata also reads the formulas safely and counts the cells that came from outside.}
 \undertext{\textit{Checked:} a test runs both and compares the number.}
 \end{underneathbox}
@@ -38943,7 +38943,7 @@ system = sdata.system("1 / (s**2 + 2*s + 5)")
 system.table()
 system.table(form="state space")
 system.table(form="partial fractions")
-system.table(form="sections")
+system.in_steps(time_step=0.1).table(form="sections")
 \end{lstlisting}
 \needspace{10\baselineskip}\begin{underneathbox}{\libbadge{SciPy}}
 \underlib{SciPy}
@@ -45419,8 +45419,8 @@ simplydata often chooses a method, an option value or a setting for you. This ap
 \wordfield{Why (P5)}{Straight lines never overshoot the numbers; empty cells say plainly where the old grid ended (as \code{grid.\allowbreak{}rotate}). \textit{Basis: starting value.}}
 \wordfield{Checks}{\code{matrix=} is a 2 x 2 grid; no empty cells.}
 \wordfield{In the dictionary}{\hyperref[word:grid.move-and-stretch-by]{page \pageref{word:grid.move-and-stretch-by}}}
-\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.move-and-stretch-by-rule-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}move\_\allowbreak{}and\_\allowbreak{}stretch\_\allowbreak{}by()} \code{rule=}}\par\nopagebreak
-\wordfield{Default}{The rule's row and column count from 1, as every position in simplydata.}
+\par\needspace{6\baselineskip}\vspace{0.7em}\phantomsection\label{basis:grid.move-and-stretch-by-formulas-eq}\noindent{\sffamily\bfseries\color{brand}\code{grid.\allowbreak{}move\_\allowbreak{}and\_\allowbreak{}stretch\_\allowbreak{}by()} \code{formulas=}}\par\nopagebreak
+\wordfield{Default}{The formulas' row and column count from 1, as every position in simplydata.}
 \wordfield{Alternatives}{\code{matrix=} and \code{shift=} for straight-line moves.}
 \wordfield{Why (P5)}{Positions count from 1 everywhere in simplydata. \textit{Basis: starting value.}}
 \wordfield{Checks}{Formulas of row and column only.}
