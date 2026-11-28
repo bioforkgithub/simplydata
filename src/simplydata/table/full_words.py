@@ -329,13 +329,13 @@ class FullWords:
         table.turn_into_title_case("name")   (with sdata.get_example("marks"))
         The other letters of each word become small ("McDONALD" becomes "Mcdonald"). A new word starts after
         anything that is not a letter, so "o'neil" becomes "O'Neil" and "2nd" becomes "2Nd" (pandas str.title(), on
-        both engines; Polars str.to_titlecase() gives the same answer except for ligatures and letter pairs such as
-        "ﬁ" and "ǆ").
+        both engines; Polars str.to_titlecase() gives the same answer except for ligatures and letter pairs, such as
+        the fi ligature U+FB01 and the dz letter U+01C6).
         """
         step = "turn_into_title_case"
         self._need_text(step, column, f'table.{step}("name")')
         # one rule on both engines: pandas str.title(); Polars to_titlecase()
-        # differs for ligatures and letter pairs such as "ﬁ" and "ǆ"
+        # differs for ligatures and letter pairs (U+FB01, U+01C6)
         native = self._frame[column].to_pandas()
         titled = native.astype("string").str.title().astype(object).where(native.notna(), None)
         changed = self._frame.with_columns(

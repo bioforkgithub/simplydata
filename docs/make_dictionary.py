@@ -44,6 +44,10 @@ import simplydata  # noqa: E402
 from simplydata import learn  # noqa: E402
 from simplydata._other_names import NAMESPACE_SHOWN, NUMBER_SPACES, OTHER_NAMES  # noqa: E402
 
+# the dictionary writes every namespaced name with its namespace; list. names are looked up only with list. in front
+# (so they are not in NAMESPACE_SHOWN), but the dictionary still shows them as list.sum, list.unique ...
+SHOWN_WITH_SPACE = {**NAMESPACE_SHOWN, "lists": "list"}
+
 MANUAL = make_manual.MANUAL
 TEX = MANUAL / "simplydataDictionary.tex"
 PDF = MANUAL / "simplydataDictionary.pdf"
@@ -295,8 +299,8 @@ def other_names() -> dict[str, list[str]]:
         for name, written in OTHER_NAMES[kind].items():
             keys = _calls(written)
             assert keys, f"the other name {name} points to no word"
-            if kind in NAMESPACE_SHOWN or kind in NUMBER_SPACES:  # np.mean, linalg.solve, sympy.diff
-                shown = f"{NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES[kind]}.{name}"
+            if kind in SHOWN_WITH_SPACE or kind in NUMBER_SPACES:  # np.mean, linalg.solve, sympy.diff, list.sum
+                shown = f"{SHOWN_WITH_SPACE.get(kind) or NUMBER_SPACES[kind]}.{name}"
             else:
                 shown = f"{WRITTEN[kind]}.{name}" if name in words else name
             found.setdefault(shown, [])
@@ -309,7 +313,7 @@ def other_names_of() -> dict[str, list[str]]:
     turned: dict[str, list[str]] = {}
     for shown, keys in other_names().items():
         space, _, name = shown.rpartition(".")
-        if space in NAMESPACE_SHOWN.values() or space in NUMBER_SPACES.values():  # str.replace stays str.replace
+        if space in SHOWN_WITH_SPACE.values() or space in NUMBER_SPACES.values():  # str.replace stays str.replace
             name = shown
         for key in keys:
             if name not in turned.setdefault(key, []):
