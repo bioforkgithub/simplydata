@@ -20,6 +20,37 @@ working for one release and prints a one-line note with its new name.
   same way. Your own code can use any name; `sdata.help("numbers.find_average")`, `sdata.help("formula.undo")`
   and `sdata.help("distribution.find_median")` work, as the short names still do.
 
+### Added: `chart.as_matplotlib()`, the door to matplotlib (charts finishing)
+
+- `fig = chart.as_matplotlib()` gives the chart as a plain matplotlib Figure, for a job no simplydata word does,
+  as `table.as_pandas()` gives a pandas table. The charts are the Axes in `fig.axes` (`ax = fig.axes[0]`; a
+  second y-axis, a colour bar and the other charts of a page come after it), so any matplotlib or seaborn code
+  works on them, and `fig.savefig("chart.png")` saves the result. It is a copy: changing `fig` never changes the
+  chart, and later words on the chart never change `fig`. It is the matplotlib Figure also for a chart saved as a
+  web page, and the last frame of an animation. Pages of charts and pairs charts (`sdata.draw_all_pairs`) have it
+  too. 579 words now.
+
+### Added: a manual chapter for readers who know matplotlib or seaborn (charts finishing)
+
+- The manual has a new part, "From matplotlib and seaborn to simplydata", after the pandas one. It follows the
+  matplotlib Quick start guide and User guide, then the seaborn tutorial, with a link to each official page: for
+  each topic, the job, the simplydata words that do it with a short example on the practice tables, and, for the
+  jobs simplydata leaves to matplotlib and seaborn (arrows of your own shape, a tick function, `rcParams`,
+  polygons, vector fields, `boxenplot` and more), how to hand the chart over with `chart.as_matplotlib()` and keep
+  going. A test runs every example in it.
+
+### Changed: names from matplotlib and seaborn point to the right word (charts finishing)
+
+- About 170 more names from matplotlib and seaborn point to their simplydata word: `lineplot`, `relplot`,
+  `displot`, `catplot`, `pairplot`, `clustermap`, `stackplot`, `step`, `bar_label`, `loglog`, `invert_yaxis`,
+  `set_xticklabels`, `tick_params`, `colorbar`, `color_palette`, `despine`, `set_theme`, `subplot_mosaic`,
+  `gcf` and `gca` (to `as_matplotlib`) and more. The jobs simplydata leaves out (`quiver`, `streamplot`,
+  `boxenplot`, `fill` ...) point to the hand-over with `chart.as_matplotlib()`.
+- `sdata.help` reads a name with `plt.`, `ax.`, `fig.` or `sns.` in front as matplotlib's or seaborn's name:
+  `sdata.help("plt.title")` gives `write_title_on_top` (not pandas' `str.title`), `sdata.help("ax.table")` the
+  hand-over, and `fig.axes[0].set_xlabel`, `matplotlib.pyplot.hist` and `df.plot.bar` work too.
+- `subplots` also names `sdata.put_in_rows_and_columns`, for a page of different charts.
+
 ### Added: a manual chapter for readers who know pandas or Polars (tables finishing)
 
 - The manual has a new part, "From pandas (and Polars) to simplydata". It follows the topics of the pandas

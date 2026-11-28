@@ -1,6 +1,7 @@
 """Charts phase, batch 1 (approved by Manish 2026-11-25): reading a chart back (get_text_drawn, get_scales_drawn,
 get_size), a step back (undo), a panel letter (write_letter), the legend inside the chart (put_legend_inside) and
-the dot shapes of the groups (use_shapes).
+the dot shapes of the groups (use_shapes). Charts finishing (approved by Manish 2026-11-27): the matplotlib Figure
+of a chart (as_matplotlib).
 """
 
 from . import Entry
@@ -81,6 +82,34 @@ ENTRIES = [
         tolerance=1e-9,
         also="simplydata also gives the size in inches, mm or pixels, and the size of a whole page of charts; "
              "without set_size it is the size of the page trimmed to what is drawn, as chart.save() writes it.",
+    ),
+    # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
+    Entry(
+        word="as_matplotlib",
+        data="marks",
+        ours="""
+            chart = sdata.chart(sdata.get_example("marks"))
+            chart.draw_dots(x="hours", y="marks")
+            fig = chart.as_matplotlib()
+            ax = fig.axes[0]
+            ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+            fig
+        """,
+        code={"matplotlib": """
+            import matplotlib.pyplot as plt
+            import pandas as pd
+            import seaborn as sns
+            df = pd.read_csv("marks.csv")
+            fig, ax = plt.subplots()
+            sns.scatterplot(df, x="hours", y="marks", ax=ax)
+            # as_matplotlib(): the Figure, to carry on in matplotlib
+            ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+            fig
+        """},
+        compare="chart",
+        check=("dots", "labels", "texts", "limits"),
+        also="simplydata draws a new Figure each time, so changing it never changes the chart; a second y-axis, a "
+             "colour bar and the other charts of a page are in fig.axes too. " + LOOK,
     ),
     Entry(word="undo", ours="""
             chart = sdata.chart(sdata.get_example("marks"))

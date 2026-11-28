@@ -502,3 +502,224 @@ def test_every_table_pointer_call_runs_on_a_practice_table(calls, tmp_path, monk
             assert not any(bad in text for bad in BAD), f"{calls} on {source or 'POINTER_TABLE'}: {text}"
             errors.append(f"{source or 'POINTER_TABLE'}: {text.splitlines()[0]}")
     pytest.fail(f"{calls} ran on no practice table:\n" + "\n".join(errors[:5]))
+
+
+# ---------------------------------------------------------------- charts finishing PR: the chart pointers
+# The API audit of matplotlib 3.11.2 and seaborn 0.13.2 (2026-11-27; plt., Axes, Figure, Axes3D and sns. names): what
+# sdata.help says now. Names typed with plt., ax., fig. or sns. in front look among the chart pointers first.
+CHART_AUDIT_POINTERS = [
+    ("plt.gcf", "as_matplotlib"), ("plt.gca", "as_matplotlib"), ("ax.get_figure", "as_matplotlib"),
+    ("plt.figure", "as_matplotlib"), ("matplotlib", "as_matplotlib"), ("ax.table", "as_matplotlib"),
+    ("sns.lineplot", "draw_lines"), ("sns.relplot", "draw_dots"), ("sns.displot", "draw_histogram"),
+    ("sns.catplot", "draw_bars"), ("sns.pairplot", "draw_all_pairs"), ("sns.PairGrid", "draw_all_pairs"),
+    ("sns.JointGrid", "draw_dots"), ("sns.clustermap", "draw_heatmap"), ("ax.grouped_bar", "draw_bars"),
+    ("plt.stackplot", "draw_area"), ("ax.step", "draw_lines"), ("ax.stairs", "draw_lines"),
+    ("plt.matshow", "draw_heatmap"), ("ax.pcolor", "draw_heatmap"), ("ax.tricontourf", "draw_contour"),
+    ("ax.plot_trisurf", "draw_surface"), ("ax.plot_wireframe", "draw_surface"), ("ax.scatter3D", "draw_dots_3d"),
+    ("ax.set_top_view", "look_from"), ("ax.text3D", "write_note"), ("ax.bar_label", "draw_bars"),
+    ("plt.loglog", "use_log_scale_x"), ("ax.invert_xaxis", "flip_x"), ("ax.invert_yaxis", "flip_y"),
+    ("ax.set_xbound", "set_range_x"), ("ax.set_zlim3d", "set_range_z"), ("ax.set_xticklabels", "put_ticks_x"),
+    ("ax.set_yticklabels", "put_ticks_y"), ("plt.locator_params", "put_ticks_x"),
+    ("ax.ticklabel_format", "write_ticks_y_as"), ("fig.autofmt_xdate", "rotate_labels_x"),
+    ("ax.tick_params", "rotate_labels_x"), ("plt.axis", "hide_frame"), ("sns.despine", "hide_frame"),
+    ("plt.colorbar", "label_colour_bar"), ("plt.clim", "use_colour_scale"), ("plt.get_cmap", "use_colour_scale"),
+    ("plt.viridis", "use_colour_scale"), ("sns.color_palette", "use_colours"), ("sns.set_palette", "use_colours"),
+    ("ax.set_prop_cycle", "use_colours"), ("sns.diverging_palette", "use_colour_scale"),
+    ("sns.set_theme", "use_style"), ("sns.set_style", "use_style"), ("sns.set_context", "use_style"),
+    ("plt.rc_context", "use_style"), ("plt.figtext", "write_caption_at_bottom"), ("fig.set_figwidth", "set_size"),
+    ("fig.set_dpi", "save"), ("ax.indicate_inset_zoom", "add_zoom_box"),
+    ("ax.sharex", "draw_one_chart_for_each_group_in"), ("plt.subplot", "put_in_rows_and_columns"),
+    ("plt.subplot_mosaic", "put_in_rows_and_columns"), ("fig.add_subplot", "put_in_rows_and_columns"),
+    ("fig.subfigures", "put_in_rows_and_columns"), ("plt.figlegend", "put_side_by_side"),
+    ("ax.get_yticklabels", "get_text_drawn"), ("ax.get_legend_handles_labels", "get_text_drawn"),
+    ("fig.get_suptitle", "get_text_drawn"), ("ax.get_lines", "get_numbers_drawn"),
+    ("ax.get_xbound", "get_scales_drawn"), ("ax.xaxis_inverted", "get_scales_drawn"),
+    ("ax.get_zlim", "get_scales_drawn"), ("plt.cohere", "find_coherence_with"),
+    ("sns.get_dataset_names", "get_example"), ("ax.quiver", "as_matplotlib"), ("sns.boxenplot", "as_matplotlib"),
+    ("plt.streamplot", "as_matplotlib"), ("ax.margins", "as_matplotlib"),
+    # review of the charts finishing PR
+    ("ax.triplot", "as_matplotlib"), ("sns.set", "use_style"), ("plt.style.use", "use_style"),
+    ("plt.tight_layout", "set_size"), ("plt.subplots_adjust", "set_size"), ("fig.set_layout_engine", "set_size"),
+    ("Axes3D.scatter", "draw_dots_3d"), ("Axes3D.plot", "draw_lines_3d"), ("Axes3D.bar", "draw_bars_3d"),
+    ("Axes3D.plot_surface", "draw_surface"), ("Axes3D.plot_wireframe", "draw_surface"),
+    ("Axes3D.set_zlabel", "label_z"), ("Axes3D.view_init", "look_from"),
+    ("Axes3D.set_title", "write_title_on_top"),  # not in the 3D list: the chart meaning
+]
+
+
+@pytest.mark.parametrize("typed, word", CHART_AUDIT_POINTERS)
+def test_every_chart_name_the_audit_found_points_to_its_word(typed, word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert "it is a name from other tools" in out, (typed, out)
+    assert f'sdata.help("{word}")' in out.splitlines()[-1], (typed, out)
+
+
+@pytest.mark.parametrize("typed, shown, word, not_word", [
+    ("plt.title", "plt.title", "write_title_on_top", "str.title"),  # not pandas' Title Case
+    ("ax.set_title", "ax.set_title", "write_title_on_top", None),
+    ("fig.axes[0].set_xlabel", "axes.set_xlabel", "label_x", None),  # brackets, and two names in front
+    ("matplotlib.pyplot.hist", "pyplot.hist", "draw_histogram", None),
+    ("df.plot.bar", "plot.bar", "draw_bars", None),  # pandas' plotting namespace
+    ("plt.subplots", "plt.subplots", "put_in_rows_and_columns", "population"),  # the chart meaning, not sdata's
+    ("ax.table", "ax.table", "as_matplotlib", "count_each"),  # not the table pointer
+    ("sns.load_dataset", "sns.load_dataset", "get_example", None),  # not a chart pointer: an sdata one
+    ("Figure", "Figure", "as_matplotlib", None),
+])
+def test_matplotlib_and_seaborn_names_look_among_the_chart_words_first(typed, shown, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(f'simplydata has no word called "{shown}": it is a name from other tools.'), out
+    assert word in out
+    if not_word:
+        assert not_word not in out
+
+
+@pytest.mark.parametrize("typed, heading", [("plt.show", "chart.show()"), ("fig.show", "chart.show()"),
+                                            ("ax.as_matplotlib", "chart.as_matplotlib()")])
+def test_a_chart_word_with_plt_or_ax_in_front_explains_the_word(typed, heading, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(heading), out[:200]
+
+
+def test_other_name_parts_reads_matplotlib_and_seaborn_names():
+    from simplydata._other_names import other_name_parts, other_name_space
+
+    assert other_name_parts("plt.hist") == ("chart", "hist")
+    assert other_name_parts("fig.axes[0].set_title") == ("chart", "set_title")
+    assert other_name_parts("sns.lineplot(data=df, x='a')") == ("chart", "lineplot")
+    assert other_name_parts("chart.hist") is None  # a simplydata object in front, as before
+    assert other_name_space("ax.set_title") == "ax" and other_name_space("Series.str.replace") == "str"
+    assert other_name_space("pd.merge") is None
+
+
+def test_chart_pointers_the_audit_found_wrong_or_missing():
+    chart = sdata.chart(sdata.get_example("marks"))
+    with pytest.raises(MissingWordError, match=r"sdata\.put_in_rows_and_columns\("):
+        chart.subplots  # plt.subplots(2, 2) also makes a page of different charts
+    with pytest.raises(MissingWordError, match=r"In simplydata this is chart\.as_matplotlib\(\)"):
+        chart.gcf
+    with pytest.raises(MissingWordError, match=r'chart\.draw_lines\(x="month", y="temperature", colour="city"\)'):
+        chart.lineplot
+
+
+# Every chart call written in a pointer runs: on a chart of a practice table, at once or after one of the draws below
+# (a word that changes what is drawn, such as label_colour_bar, needs something drawn first), and the chart is then
+# drawn. An option value a word does not know, or an option it lacks, fails the test at once.
+CHART_FIRST = {
+    "marks": ['chart.draw_dots(x="hours", y="marks", colour="class")', 'chart.draw_bars(x="class", y="marks")',
+              'chart.draw_histogram(x="marks")'],
+    "weather": ['chart.draw_heatmap(x="month", y="city", value="rain")',
+                'chart.draw_lines(x="month", y="temperature", colour="city")'],
+    "island": ['chart.draw_surface(x="east", y="north", z="height")'],
+    "sensor": ['chart.draw_lines(x="time", y="signal")'],
+}
+CHART_EXAMPLES = [*CHART_FIRST, *[e for e in EXAMPLES if e not in CHART_FIRST]]
+# The sdata words that make a chart or a page, run like chart calls
+CHART_SDATA = ("draw_all_pairs", "put_side_by_side", "put_one_above_other", "put_in_rows_and_columns")
+# Calls the test does not run: they open a web browser or a window (they are checked by name and options above)
+CHART_NOT_RUN = ("show_in_web_page", "chart.show(")
+# Calls that need a step first, which the pointer leaves out to stay short (they are checked by name only)
+CHART_NEEDS_PREP = {
+    'draw_forest_plot(x="estimate", y="measure")': "a result table with an estimate for each measure",
+    'draw_funnel_plot(x="estimate"': "the result table of table.combine_studies",
+    'draw_band(x="month", between=["lowest", "highest"])': "a table with a lowest and a highest column",
+    'draw_sticks(x="rows back", y="correlation")': "the result table of table.find_autocorrelation_of",
+    '"visitors", sorted_by="month"': "one museum kept first (the visitors table has two)",
+    'x="month", y="visitors"': "one museum kept first (the visitors table has two)",
+    'draw_risk_curves(time="time", event="event"': "a hospital stay table with competing events",
+    "break_between_y(50, 500)": "values both below 50 and above 500",
+}
+
+
+def _chart_runs_here(call: str) -> bool:
+    if call.endswith("=)") or "..." in call or any(skip in call for skip in (*CHART_NOT_RUN, *CHART_NEEDS_PREP)):
+        return False
+    names = {node.id for node in ast.walk(ast.parse(call, mode="eval")) if isinstance(node, ast.Name)}
+    return names <= KNOWN_NAMES | {"chart"}
+
+
+def _runnable_chart_pointers():
+    out = []
+    for kind, name, written in _all_pointer_calls():
+        calls = [c for o, w, c in _pointer_calls(written) if o == "chart" or o == "sdata" and w in CHART_SDATA]
+        if " then " in written:  # one call after the other, on one chart
+            if calls and all(_chart_runs_here(call) for call in calls):
+                out.append(pytest.param(calls, id=f"{kind}.{name}"))
+        else:  # "a, or b": each call on its own
+            out += [pytest.param([call], id=f"{kind}.{name}-{i}") for i, call in enumerate(calls, 1)
+                    if _chart_runs_here(call)]
+    return out
+
+
+def test_the_chart_pointer_calls_are_run():
+    assert len(_runnable_chart_pointers()) > 150
+
+
+@pytest.mark.parametrize("calls", _runnable_chart_pointers())
+def test_every_chart_pointer_call_runs_on_a_practice_table(calls, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # chart.save("chart.png") and friends write here
+    errors = []
+    for source in CHART_EXAMPLES:
+        for first in [None, *CHART_FIRST.get(source, [])]:
+            table = sdata.get_example(source)
+            scope = {"sdata": sdata, "table": table, "chart": sdata.chart(table)}
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    if first:
+                        exec(first, scope)
+                    for call in calls:
+                        exec(f"_made = {call}", scope)  # the pointer's own text, run as written
+                        if hasattr(scope["_made"], "_render"):  # a chart or a page (sdata.draw_all_pairs)
+                            scope["_made"]._render()
+                    scope["chart"]._render()
+                return
+            except Exception as problem:  # noqa: BLE001 - a table without these columns is tried next
+                text = f"{type(problem).__name__}: {problem}"
+                if "needs plotly" in text:  # the web page words: checked where plotly is installed
+                    pytest.skip(f"{calls} needs plotly")
+                if type(problem).__name__ == "RMissing":  # the word runs R, and R is not here: checked where R is
+                    pytest.skip(f"{calls} needs R")
+                assert not any(bad in text for bad in BAD), f"{calls} on {source} after {first}: {text}"
+                errors.append(f"{source} after {first}: {text.splitlines()[0]}")
+    pytest.fail(f"{calls} ran on no practice table:\n" + "\n".join(errors[:6]))
+
+
+
+@pytest.mark.parametrize("typed, old, new", [
+    ("plt.pie", "pie", "draw_pie"), ("ax.pie", "pie", "draw_pie"), ("plt.polar", "polar", "draw_polar"),
+    ("plt.contour", "contour", "draw_contour"), ("ax.contour", "contour", "draw_contour"),
+    ("sns.heatmap", "heatmap", "draw_heatmap"),
+])
+def test_a_matplotlib_name_that_is_an_old_chart_word_gives_the_word(typed, old, new, capsys):
+    """plt.pie, sns.heatmap ... are the old names of chart words (pie, heatmap): help says what they are called now
+    (it said "no word called")."""
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert f'"chart.{old}" is now called "chart.{new}"' in out, out
+    assert "no word called" not in out
+
+
+@pytest.mark.parametrize("typed, heading", [
+    ("fig.keep_rows_where", "table.keep_rows_where()"), ("plot.keep_rows_where", "table.keep_rows_where()"),
+    ("axes.find_average_of", "table.find_average_of()"),
+])
+def test_a_table_word_after_a_matplotlib_name_is_still_found(typed, heading, capsys):
+    """A name with no chart word or pointer falls back to every word, as before the namespaces."""
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert out.startswith(heading), out[:200]
+
+
+def test_axes3d_names_have_their_own_list():
+    from simplydata._other_names import OTHER_NAMES, other_name_parts
+
+    assert other_name_parts("Axes3D.scatter") == ("chart3d", "scatter")
+    assert "draw_dots_3d" in OTHER_NAMES["chart3d"]["scatter"] and "draw_dots(" in OTHER_NAMES["chart"]["scatter"]
+
+
+def test_triplot_is_left_to_matplotlib_not_a_contour_map():
+    from simplydata._other_names import OTHER_NAMES
+
+    assert "as_matplotlib" in OTHER_NAMES["chart"]["triplot"] and "draw_contour" not in OTHER_NAMES["chart"]["triplot"]

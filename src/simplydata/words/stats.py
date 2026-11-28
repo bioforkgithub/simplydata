@@ -53,6 +53,7 @@ from .._stats import ERROR_LONG, error_code, say_error, t_interval
 from ..table.between import MIN_SMOOTHING_POINTS
 from ._helpers import check_thickness, colour_role, default_colour, palette_for
 from .look import LookWords
+from .read_back import ReadBackWords
 from .text import TextWords
 
 try:  # the order seaborn gives to groups, so our colours match the dots
@@ -1002,6 +1003,9 @@ class PairsChart(TextWords, LookWords, BaseChart):
         self._group, self._fixed = group, fixed
         side = float(min(max(2.4 * len(numbers), 5), 12))
         self._settings.update(width=side + (1.5 if group else 0), height=side)
+
+    # charts finishing: the door to matplotlib, as on a chart (a new Figure each time, a copy)
+    as_matplotlib = ReadBackWords.as_matplotlib
 
     def label_x(self, *args, **kwargs):
         raise SimplydataError("A pairs chart already names each column under its panels.")

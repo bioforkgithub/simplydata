@@ -288,7 +288,10 @@ can write it up in a report or a paper.
   \item[{\hyperref[part:from-pandas]{Part V: From pandas and Polars}}] For readers who know pandas or
     Polars: each topic of their user guides, the simplydata words for it, and how to hand a table over
     for the jobs simplydata leaves to them.
-  \item[{\hyperref[part:solutions]{Part VI: Solutions}}] A worked solution for every
+  \item[{\hyperref[part:from-matplotlib]{Part VI: From matplotlib and seaborn}}] For readers who know
+    matplotlib or seaborn: each topic of their guides, the simplydata words for it, and how to hand a chart
+    over with \code{chart.as\_matplotlib()} for the jobs simplydata leaves to them.
+  \item[{\hyperref[part:solutions]{Part VII: Solutions}}] A worked solution for every
     ``Try it yourself'' task.
 \end{description}
 Keep the \href{https://github.com/bioforkgithub/simplydata/blob/main/docs/simplydata_cheat_sheet.pdf}{cheat sheet}
@@ -6027,6 +6030,47 @@ chart.undo()
 chart.save("undo.png")
 \end{lstlisting}
 \undertext{\textit{Nothing underneath:} simplydata's own: a chart is a list of steps drawn only when it is shown or saved, so undo takes the last word's steps and settings back before anything is drawn again. In matplotlib you would draw the chart again without that line.}
+\wordentry{chart.as\_matplotlib()}{word:as-matplotlib}
+Give back the chart as a plain matplotlib Figure, for matplotlib code. fig = \code{chart.\allowbreak{}as\_\allowbreak{}matplotlib()}
+
+Only needed for a job no simplydata word does: simplydata words never need it. The Figure holds the charts as matplotlib Axes in fig.axes: ax = fig.axes[0] is the (first) chart. A second y-axis, a colour bar, a chart put inside and the other charts of a page come after it in fig.axes. Then use any matplotlib method, such as \code{ax.\allowbreak{}annotate(.\allowbreak{}.\allowbreak{}.\allowbreak{})}, and save with \code{fig.\allowbreak{}savefig(\textquotedbl{}chart.\allowbreak{}png\textquotedbl{},\allowbreak{} dpi=300)}.
+
+It is a copy, as \code{table.\allowbreak{}as\_\allowbreak{}pandas()} and \code{numbers.\allowbreak{}as\_\allowbreak{}numpy()} are: changing fig does not change the chart, and later words on the chart do not change fig (\code{chart.\allowbreak{}save()} saves the chart without your matplotlib changes). It is always the matplotlib Figure, also for a chart you save as a web page (\code{chart.\allowbreak{}save(\textquotedbl{}chart.\allowbreak{}html\textquotedbl{})} or \code{show\_\allowbreak{}in\_\allowbreak{}web\_\allowbreak{}page()}, which plotly draws from this same picture), and for an animation it is the last frame. fig.savefig uses matplotlib's own settings; \code{chart.\allowbreak{}save()} also trims the picture to what is drawn and keeps the text as text in \code{.\allowbreak{}pdf}, .eps and \code{.\allowbreak{}svg} files. In Jupyter, put fig on the last line of a cell to see it.
+
+\wordfield{Options}{none: just write the empty brackets.}
+
+\wordfield{Underneath}{matplotlib \code{scatterplot()}, \code{annotate()}}
+\wordfield{Example you can run}{}\par\nopagebreak
+\begin{lstlisting}[style=py]
+import simplydata as sdata
+marks = sdata.get_example("marks")
+chart = sdata.chart(marks)
+chart.draw_dots(x="hours", y="marks")
+fig = chart.as_matplotlib()
+ax = fig.axes[0]
+ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+fig.savefig("as_matplotlib.png", dpi=300)
+\end{lstlisting}
+\begin{center}\begin{minipage}{\linewidth}\centering
+\includegraphics[width=0.52\textwidth,height=0.26\textheight,keepaspectratio]{figures/underneath_as_matplotlib.pdf}
+\captionof*{figure}{The chart simplydata draws. The code below draws the same dots, without simplydata's paper look.}
+\end{minipage}\end{center}
+\needspace{10\baselineskip}\begin{underneathbox}{\libbadge{matplotlib}}
+\underlib{matplotlib}
+\begin{lstlisting}[style=under]
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+df = pd.read_csv("marks.csv")
+fig, ax = plt.subplots()
+sns.scatterplot(df, x="hours", y="marks", ax=ax)
+# as_matplotlib(): the Figure, to carry on in matplotlib
+ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})
+fig
+\end{lstlisting}
+\undertext{simplydata draws a new Figure each time, so changing it never changes the chart; a second y-axis, a colour bar and the other charts of a page are in fig.axes too. simplydata also gives the chart its paper look (fonts, colours, no top and right lines); that is left out here.}
+\undertext{\textit{Checked:} a test runs both and compares the dots, the axis labels, the words written on the chart and the axis ranges (the chart's data, not its pixels).}
+\end{underneathbox}
 \unsection{Chart types}{group:Chart-types}
 \wordentry{chart.draw\_bars()}{word:draw-bars}
 Bars. \code{chart.\allowbreak{}draw\_\allowbreak{}bars(x=\textquotedbl{}name\textquotedbl{},\allowbreak{} y=\textquotedbl{}marks\textquotedbl{})} (with \code{sdata.\allowbreak{}get\_\allowbreak{}example(\textquotedbl{}marks\textquotedbl{})})
@@ -32776,6 +32820,10 @@ sdata.go_to_next_day()
 
 \input{from_pandas}
 
+\part{From matplotlib and seaborn}\label{part:from-matplotlib}
+
+\input{from_matplotlib}
+
 \part{Solutions}\label{part:solutions}
 
 \unchapter{Solutions to the tasks}{solutions}
@@ -38688,6 +38736,7 @@ Every word and option, A to Z, with the page of its dictionary entry. Other spel
 \indexline{word:table.agreement-between}{table.agreement\_between()}
 \indexline{word:animate}{chart.animate()}
 \indexline{word:table.as-list}{table.as\_list()}
+\indexline{word:as-matplotlib}{chart.as\_matplotlib()}
 \indexline{word:nums.as-numpy}{numbers.as\_numpy()}
 \indexline{word:table.as-pandas}{table.as\_pandas()}
 \indexline{word:table.as-polars}{table.as\_polars()}

@@ -2,7 +2,9 @@
 
 chart.get_text_drawn(), chart.get_scales_drawn() and chart.get_size() read what matplotlib drew, as
 chart.get_numbers_drawn() does (simplydata._read_back, simplydata._numbers_drawn): nothing is worked out again.
-chart.undo() takes the last word back, as table.undo() does on a table. Pages of charts have these words too.
+chart.undo() takes the last word back, as table.undo() does on a table. chart.as_matplotlib() (charts finishing,
+approved by Manish 2026-11-27) gives the matplotlib Figure, for the jobs left to matplotlib. Pages of charts have
+these words too.
 """
 
 from __future__ import annotations
@@ -96,6 +98,28 @@ class ReadBackWords:
         width, height = round(float(width), 4), round(float(height), 4)
         print(f"The {self._what_it_is()} is {width:g} x {height:g} {unit} (saved at {SAVE_RESOLUTION} dots per inch).")
         return width, height
+
+    @friendly
+    def as_matplotlib(self):
+        """Give back the chart as a plain matplotlib Figure, for matplotlib code. fig = chart.as_matplotlib()
+
+        Only needed for a job no simplydata word does: simplydata words never need it. The Figure holds the
+        charts as matplotlib Axes in fig.axes: ax = fig.axes[0] is the (first) chart. A second y-axis, a colour
+        bar, a chart put inside and the other charts of a page come after it in fig.axes. Then use any
+        matplotlib method, such as ax.annotate(...), and save with fig.savefig("chart.png", dpi=300).
+
+        It is a copy, as table.as_pandas() and numbers.as_numpy() are: changing fig does not change the chart,
+        and later words on the chart do not change fig (chart.save() saves the chart without your matplotlib
+        changes). It is always the matplotlib Figure, also for a chart you save as a web page
+        (chart.save("chart.html") or show_in_web_page(), which plotly draws from this same picture), and for an
+        animation it is the last frame. fig.savefig uses matplotlib's own settings; chart.save() also trims the
+        picture to what is drawn and keeps the text as text in .pdf, .eps and .svg files. In Jupyter, put fig
+        on the last line of a cell to see it.
+        """
+        object.__setattr__(self, "_cache", None)  # draw a new Figure, so the chart and fig never share one
+        fig = self._render()
+        object.__setattr__(self, "_cache", None)
+        return fig
 
     @friendly
     def undo(self: _Same) -> _Same:

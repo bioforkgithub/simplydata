@@ -26,7 +26,9 @@ WIDTH = 78
 GROUPS = [
     ("Start, show and save", ["sdata.chart", "sdata.get_example", "show", "save", "get_numbers_drawn",
                               # charts phase, batch 1: reading a chart back, and a step back
-                              "get_text_drawn", "get_scales_drawn", "get_size", "undo"]),
+                              "get_text_drawn", "get_scales_drawn", "get_size", "undo",
+                              # charts finishing (approved by Manish 2026-11-27): the door to matplotlib
+                              "as_matplotlib"]),
     ("Chart types", ["draw_bars", "draw_lines", "draw_dots", "draw_area", "draw_histogram", "draw_boxes", "draw_violins",
                      "draw_heatmap", "draw_pie", "draw_polar", "draw_contour", "draw_surface", "draw_dots_3d", "draw_band", "draw_map_of_empty_cells", "draw_sticks"]),
     ("Statistics", ["show=", "error=", "draw_error_bars", "fit_line", "fit_curve", "fit_formula", "fit_distribution",
@@ -457,6 +459,12 @@ HELP_EXAMPLES = {
     "get_size": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.set_size(width=17, height=12, unit="cm")\n'
                              'width, height = chart.get_size(unit="cm")', "get_size"),
     "undo": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.use_log_scale_y()\nchart.undo()', "undo"),
+    # charts finishing: hand the chart to matplotlib for a job no word does, then save it with matplotlib
+    "as_matplotlib": "\n".join([
+        "import simplydata as sdata", 'marks = sdata.get_example("marks")', "chart = sdata.chart(marks)",
+        'chart.draw_dots(x="hours", y="marks")', "fig = chart.as_matplotlib()", "ax = fig.axes[0]",
+        'ax.annotate("most hours", xy=(9, 80), xytext=(6, 95), arrowprops={"arrowstyle": "->"})',
+        'fig.savefig("as_matplotlib.png", dpi=300)']),
     "write_letter": _ex("marks", 'chart.draw_dots(x="hours", y="marks")\nchart.write_letter("B")', "write_letter"),
     "put_legend_inside": _ex("weather", 'chart.draw_lines(x="month", y="temperature", colour="city")\n'
                                         'chart.put_legend_inside("top left")', "put_legend_inside"),
@@ -2176,21 +2184,25 @@ def _print_other_names(word) -> bool:
     Gives back True when something was printed. A name inside a namespace of pandas or Polars looks there first:
     sdata.help("str.replace") (also "Series.str.replace", 'df["name"].str.replace') points to replace_text_in, not
     to replace_values_in, and sdata.help("dt.round") to round_dates_in. A name with pd., pl. or DataFrame. in front
-    is the name itself. A bare name lists every meaning, the namespaced ones included ("str.replace: ...")."""
+    is the name itself. A bare name lists every meaning, the namespaced ones included ("str.replace: ...").
+    matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
+    pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts
+    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, other_name_parts, other_name_space
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
-    if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter
+    if parts is not None and parts[0] is not None:  # str.replace, Series.dt.year, df.groupby("x").filter, ax.hist
         kind, w = parts
+        space = NAMESPACE_SHOWN.get(kind) or other_name_space(_normalise(str(word)))
         if other_name_pointer(kind, w) is None:  # Str.Replace is str.replace: pandas and Polars names are lowercase
             w = w.lower()
         pointer = other_name_pointer(kind, w)
-        if pointer is None and kind in NAMESPACE_FALLBACK:  # groupby().mean() means what mean means on a table
-            pointer = other_name_pointer(NAMESPACE_FALLBACK[kind], w)
+        for other in NAMESPACE_FALLBACK.get(kind, ()):  # groupby().mean() means what mean means on a table
+            if pointer is None:
+                pointer = other_name_pointer(other, w)
         found = [(kind, pointer)] if pointer is not None else []
-        shown = f"{NAMESPACE_SHOWN[kind]}.{w}"
+        shown = f"{space}.{w}"
     else:
         w = parts[1] if parts is not None else w  # pd.merge, DataFrame.merge -> merge
         found = [(kind, other_name_pointer(kind, w)) for kind in ("sdata", "table", "chart", "numbers",
@@ -2227,6 +2239,18 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
             own = str(word).strip().split(".", 1)[0]
             if parts is not None and parts[0] is None and own not in QUALIFIERS:
                 keys = _lookup_all(parts[1])
+            elif parts is not None and parts[0] in ("chart", "chart3d"):  # plt.show, fig.show: a chart word
+                from ._core import BaseChart
+                from ._other_names import OTHER_NAMES
+
+                name = parts[1]
+                keys = [k for k in _lookup_all(name) if _kind(k) == "chart"]
+                pointed = any(n in OTHER_NAMES[kind] for kind in {parts[0], "chart"} for n in (name, name.lower()))
+                if not keys and not pointed:
+                    if name in BaseChart._OLD_WORDS:  # plt.pie, sns.heatmap: the old word's name gives the word
+                        word = name
+                    else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
+                        keys = _lookup_all(name)
     else:
         keys = [k for k in _all_keys() if k not in OPTIONS and _function(k) is word][:1]
         name = getattr(word, "__name__", None)
