@@ -1,23 +1,57 @@
 name: tests
 
+# Quick checks first, the full set last (MAINTAINING.md, "Draft pull requests"): while a pull request is a DRAFT,
+# a push runs only test (ubuntu-latest, 3.12) with R and test-without-r (and oldest-versions in its own workflow).
+# Marking it ready for review (ready_for_review) and every push to a pull request that is not a draft run all of
+# them. Pushes to main always run everything.
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    # The R packages CI installs, in ONE place (tests/test_r_bridge.py checks that every package of
+    # tests/conftest.py R_PACKAGES and R_PACKAGES_HEAVY is here). A hash of the list is part of the cache key of
+    # the kept R library, so a change to the list starts a fresh library.
+    env:
+      R_CRAN_PACKAGES: >-
+        "survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize",
+        "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
+        "tseries", "urca", "lomb", "trend", "forecast", "changepoint",
+        "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
+        "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
+        "outliers", "EnvStats", "icr",
+        "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
+        "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
+        "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
+        "metafor", "metadat", "meta",
+        "gsDesign", "powerSurvEpi", "pwrss",
+        "zCompositions", "compositions", "ca", "cluster",
+        "GPArotation", "lavaan",
+        "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
+        "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
+        "agricolae", "blockrand", "survey", "BayesFactor",
+        "AER", "alr4", "HH", "mediation", "gsignal", "control", "pracma"
+      R_HEAVY_PACKAGES: >-
+        "rstanarm", "rstan", "posterior"
     strategy:
       fail-fast: false
+      # On a draft pull request the matrix holds only ubuntu-latest with Python 3.12; the other 8 jobs are not
+      # made at all (not "skipped"), so their required checks stay missing until the full run after ready_for_review.
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        os: ${{ fromJSON(github.event.pull_request.draft && '["ubuntu-latest"]' || '["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+        python-version: ${{ fromJSON(github.event.pull_request.draft && '["3.12"]' || '["3.11", "3.12", "3.13"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          # pip's downloads are kept between runs (setup-python's cache, keyed on pyproject.toml)
+          cache: pip
+          cache-dependency-path: pyproject.toml
       # R for the methods that only R gives (simplydata[r]): cox.zph, k-means, NMDS, betadisper, ...
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -31,44 +65,64 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libuv1-dev libssl-dev libxml2-dev
           libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
           libudunits2-dev libgdal-dev libgeos-dev libproj-dev libgmp-dev libmpfr-dev libglpk-dev cmake
-      # setup-r sets the repositories (binary packages from Posit's public repository where it has them);
-      # the step fails when any package does not load, not later in the tests. The list is
-      # tests/conftest.py R_PACKAGES.
+      # The names of the two lists above, and the hash of the list for the cache key: the sorted names, the same as
+      # .github/actions/setup-simplydata computes from tests/conftest.py, so on Linux the test jobs and the docs
+      # rebuild share one kept library.
+      - name: Read the R package list
+        id: rlist
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, os, re
+          light = re.findall(r'"([^"]+)"', os.environ["R_CRAN_PACKAGES"])
+          heavy = re.findall(r'"([^"]+)"', os.environ["R_HEAVY_PACKAGES"])
+          print("cran=" + ",".join(light))
+          print("heavy=" + ",".join(heavy))
+          names = ",".join(sorted(set(light))) + "|" + ",".join(sorted(set(heavy))) + "|qvalue"
+          print("hash=" + hashlib.sha256(names.encode()).hexdigest()[:16])
+          PY
+          echo "rversion=$(Rscript -e 'cat(as.character(getRversion()))')" >> "$GITHUB_OUTPUT"
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+      # The installed R packages (R_LIBS_USER, set by setup-r) are kept for a week, then the latest CRAN versions are
+      # installed again. Shared by the three Python versions of one system (R does not depend on Python) and, on
+      # Linux, with the docs rebuild (same key). Only public CRAN/Bioconductor packages are in it, nothing secret.
+      - name: Keep the installed R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: rlib-${{ runner.os }}-${{ steps.rlist.outputs.rversion }}-${{ steps.rlist.outputs.week }}-${{ steps.rlist.outputs.hash }}
+          restore-keys: rlib-${{ runner.os }}-${{ steps.rlist.outputs.rversion }}-${{ steps.rlist.outputs.week }}-
+      # setup-r sets the repositories (binary packages from Posit's public repository where it has them). Only the
+      # packages not already in the kept library are installed; every package is ALWAYS loaded, so the step fails
+      # when any package does not load, not later in the tests.
       - name: Install R packages
+        shell: bash
+        env:
+          PKGS: ${{ steps.rlist.outputs.cran }}
         run: >-
-          Rscript -e 'pkgs <- c("survival", "vegan", "mice", "lme4", "betareg", "pscl", "car", "effectsize",
-          "emmeans", "pbkrtest", "lmerTest", "afex", "geepack", "sandwich", "performance", "mgcv", "MASS", "nnet",
-          "tseries", "urca", "lomb", "trend", "forecast", "changepoint",
-          "pwr", "Exact", "exact2x2", "nortest", "BSDA", "rstatix", "DescTools", "FSA", "PMCMRplus",
-          "multcompView", "TOSTER", "presize", "epiR", "pROC", "irr", "psych", "BlandAltmanLeh", "ppcor", "cocor",
-          "outliers", "EnvStats", "icr",
-          "drc", "segmented", "smatr", "mcr", "quantreg", "deming",
-          "nlme", "glmnet", "boot", "lmtest", "AICcmodavg",
-          "cmprsk", "adjustedCurves", "riskRegression", "KMsurv", "survRM2",
-          "metafor", "metadat", "meta",
-          "gsDesign", "powerSurvEpi", "pwrss",
-          "zCompositions", "compositions", "ca", "cluster",
-          "GPArotation", "lavaan",
-          "circular", "spdep", "sf", "gstat", "extRemes", "ismev", "sp", "ape",
-          "WeightIt", "MatchIt", "cobalt", "miceadds", "epitools",
-          "agricolae", "blockrand", "survey", "BayesFactor",
-          "AER", "alr4", "HH", "mediation", "gsignal", "control", "pracma");
-          install.packages(pkgs); for (p in pkgs) library(p, character.only = TRUE)'
+          Rscript -e 'pkgs <- strsplit(Sys.getenv("PKGS"), ",")[[1]];
+          missing <- setdiff(pkgs, rownames(installed.packages())); cat("installing:", missing, "\n");
+          if (length(missing)) install.packages(missing); for (p in pkgs) library(p, character.only = TRUE)'
       # S3d-3: Bayesian models (explain(bayesian=True)) run on rstanarm, a large package (about 400 MB with Stan and
       # its other packages). Ready-made builds come from CRAN (Windows, macOS) and Posit's public package manager
       # (Linux), so nothing is compiled here; the posterior package gives R-hat and the effective draws.
       - name: Install R packages for Bayesian models
+        shell: bash
+        env:
+          PKGS: ${{ steps.rlist.outputs.heavy }}
         run: >-
-          Rscript -e 'pkgs <- c("rstanarm", "rstan", "posterior"); install.packages(pkgs);
-          for (p in pkgs) library(p, character.only = TRUE)'
+          Rscript -e 'pkgs <- strsplit(Sys.getenv("PKGS"), ",")[[1]];
+          missing <- setdiff(pkgs, rownames(installed.packages())); cat("installing:", missing, "\n");
+          if (length(missing)) install.packages(missing); for (p in pkgs) library(p, character.only = TRUE)'
       # qvalue (Storey's q-values, add_adjusted_p_value_column(method="storey")) is on Bioconductor, not CRAN; it
       # has no compiled code. update = FALSE leaves the CRAN packages above as they are. Between a new R release and
       # the Bioconductor release for it (each spring), BiocManager refuses the release; then the devel branch is used.
       - name: Install Bioconductor packages
+        shell: bash
         run: >-
-          Rscript -e 'install.packages("BiocManager"); tryCatch(BiocManager::install("qvalue", update = FALSE,
-          ask = FALSE), error = function(e) BiocManager::install("qvalue", version = "devel", update = FALSE,
-          ask = FALSE)); library(qvalue)'
+          Rscript -e 'if (!requireNamespace("qvalue", quietly = TRUE)) { install.packages("BiocManager");
+          tryCatch(BiocManager::install("qvalue", update = FALSE, ask = FALSE), error = function(e)
+          BiocManager::install("qvalue", version = "devel", update = FALSE, ask = FALSE)) }; library(qvalue)'
       - name: Tell rpy2 where R is
         shell: bash
         run: echo "R_HOME=$(Rscript -e 'cat(normalizePath(R.home(), winslash = "/"))')" >> "$GITHUB_ENV"
@@ -80,8 +134,10 @@ jobs:
           # rpy2 has no Windows wheel for every Python, and its C part does not build with MSVC;
           # ABI mode needs no compiler (rpy2's documented way on Windows)
           RPY2_CFFI_MODE: ${{ runner.os == 'Windows' && 'ABI' || 'BOTH' }}
+      # In parallel inside the job (pytest-xdist): one worker per processor of the runner. loadgroup keeps tests
+      # marked @pytest.mark.xdist_group(name) on one worker; every other test goes to whichever worker is free.
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q -n auto --dist loadgroup
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_REQUIRE_R: "1"  # in CI the R tests must run, never be skipped
@@ -111,12 +167,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install (no R, no rpy2)
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[test,systems,sql,web,xarray,exact]"
+      # In parallel inside the job (pytest-xdist): one worker per processor of the runner. loadgroup keeps tests
+      # marked @pytest.mark.xdist_group(name) on one worker; every other test goes to whichever worker is free.
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q -n auto --dist loadgroup
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"  # R may be missing only where a word is meant to run R

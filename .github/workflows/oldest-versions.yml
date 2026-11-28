@@ -29,8 +29,9 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           uv pip list --system | grep -iE '^(pandas|numpy|scipy|statsmodels|matplotlib|seaborn|narwhals|openpyxl|polars|pyarrow|python-docx|pyreadstat|control|plotly|xarray|h5netcdf|h5py|sympy|pytest) ' | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+      # In parallel inside the job (pytest-xdist, one worker per processor; tests.yml explains --dist loadgroup)
       - name: Run tests
-        run: python -m pytest -q
+        run: python -m pytest -q -n auto --dist loadgroup
         env:
           MPLBACKEND: Agg
           SIMPLYDATA_NO_R: "1"

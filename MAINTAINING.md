@@ -29,6 +29,36 @@ block the network on every run.
    each PyPI upload it opens a pull request on the feedstock; check that its requirements match
    the ranges in `pyproject.toml`, then merge it.
 
+## Draft pull requests: quick checks first, the full set last
+
+Open every pull request as a **draft** and mark it **ready for review** when the work is done.
+
+- While a pull request is a draft, each push runs only the quick checks: `test (ubuntu-latest,
+  3.12)` with R, `test-without-r` and `oldest-versions`. The other 8 jobs of `tests.yml` are not
+  made at all, and the docs rebuild (`plan`, `examples`, `manual`, `report`, `rebuild`, when the
+  pull request changes the rebuild) is skipped.
+- Marking it ready for review, and every push to a pull request that is not a draft, runs the
+  full set: all 9 operating system and Python jobs, `test-without-r`, `oldest-versions` and,
+  where it applies, the docs rebuild. Pushes to `main` and the weekly runs always run everything.
+- **Never merge without the full set passing on the head commit.** GitHub counts a skipped job
+  as passed for a required check, so look at the run of the `ready_for_review` (or later) event
+  for the head commit and check that all of its jobs ran and passed. A draft cannot be merged,
+  so the skipped jobs of a draft run never let a merge through on their own.
+
+## How CI runs the tests quickly
+
+- The tests run in parallel inside each job with pytest-xdist (`python -m pytest -q -n auto
+  --dist loadgroup`): one worker process per processor of the runner. Every worker has its own
+  temporary folder (`tests/conftest.py`), so no two workers write the same file. A test that
+  must share a worker with others gets `@pytest.mark.xdist_group("name")`. On your own computer
+  `python -m pytest -q` (one process) still works and runs exactly the same tests.
+- pip's downloads are cached by `actions/setup-python` (keyed on `pyproject.toml`).
+- The installed R packages are cached for a week per system and R version; the key also holds
+  a hash of the R package list, which lives in one place, `tests/conftest.py` (`R_PACKAGES`,
+  `R_PACKAGES_HEAVY`). A change to the list starts a fresh library. On a cache hit only the
+  missing packages are installed, and every package is still loaded (`library()`) before the
+  tests run, so a package that does not load fails the install step.
+
 ## The supported version ranges
 
 Every dependency in `pyproject.toml` has a range such as `pandas>=2.2,<4`.
