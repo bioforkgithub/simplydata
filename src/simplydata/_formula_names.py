@@ -305,9 +305,9 @@ def pointer_groups() -> list:
 # SymPy functions that NumPy and SciPy cannot work out (lambdify writes their name, which NumPy does not know):
 # find_value_at works them out value by value with SymPy evalf instead, each under the time limit
 NO_VALUE = (TypeError, ValueError, KeyError, ZeroDivisionError, ArithmeticError)  # SymPy's ways of saying "no value"
-MAX_BY_VALUE = 10_000
+MAX_BY_VALUE = 10_000  # values worked out one at a time at most
 # SymPy functions that SymPy's evalf leaves as they are (no decimal): said plainly instead of an empty answer
-NO_DECIMAL = ("mathieuc", "mathieus", "mathieucprime", "mathieusprime", "marcumq", "stieltjes")  # values worked out one at a time at most
+NO_DECIMAL = ("mathieuc", "mathieus", "mathieucprime", "mathieusprime", "marcumq", "stieltjes")
 
 
 @one_deadline
