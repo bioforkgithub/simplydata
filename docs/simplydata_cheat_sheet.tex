@@ -63,7 +63,7 @@
 {\fontsize{24}{28}\selectfont\sffamily\bfseries\color{brand} simplydata cheat sheet\par}
 \vspace{0.2em}
 {\sffamily Every command on one set of cards: type the command, read what it does, and see which package does the
-work. 580 commands in 67 cards, version 0.2.0.\par}
+work. 581 commands in 67 cards, version 0.2.0.\par}
 \vspace{0.2em}
 {\sffamily\small\color{inkgrey} Start with \code{import simplydata as sdata}. A command that begins with
 \code{table.} works on a table from \code{sdata.table(...)}; \code{chart.} on a chart from
@@ -93,6 +93,8 @@ made from simplydata's own code by \code{docs/make\_cheat\_sheet.py}, so they al
 \cmd{\code{chart.\allowbreak{}get\_\allowbreak{}size(unit=\textquotedbl{}cm\textquotedbl{})}\opts{\code{unit=}}}{The size of the saved chart as (width, height).}{matplotlib \code{figure()}, \code{BytesIO()}, \code{savefig()}, \code{open()}, \code{round()}}
 
 \cmd{\code{chart.\allowbreak{}undo()}}{Take the last step back.}{simplydata's own: a chart is a list of steps drawn only when it is shown or saved, so undo takes the last word's steps and settings back before anything is drawn again. In matplotlib you would draw the chart again without that line.}
+
+\cmd{\code{chart.\allowbreak{}as\_\allowbreak{}matplotlib()}}{Give back the chart as a plain matplotlib Figure, for matplotlib code.}{matplotlib \code{scatterplot()}, \code{annotate()}}
 
 \end{cardtable}
 
