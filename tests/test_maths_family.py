@@ -798,3 +798,18 @@ def test_every_formula_with_sympys_function_is_written_back_as_readable_formula_
     again = sdata.formula(written)
     np.testing.assert_allclose(again.find_value_at(x=x.tolist()).as_numpy(), expected, rtol=1e-9, atol=1e-12,
                                err_msg=written)
+
+
+def test_a_whole_degree_goes_to_scipy_as_a_whole_number():
+    # SciPy uses its exact recurrence for a whole degree and a general formula for any other degree; on macOS the
+    # general formula gave U_3(0) = 2.6e-17 where SciPy's own call with degree 3 gives 0 (PR #81, 2026-11-28)
+    from simplydata._maths_functions import BY_PLAIN, prepare
+
+    for plain in ("chebyshev U", "chebyshev S", "shifted chebyshev U", "legendre polynomial"):
+        entry = BY_PLAIN[plain]
+        values = [3.0 if key == "degree" else np.array([0.0, 0.5]) for key in entry.inputs]
+        ready, _ = prepare(entry, values)
+        degree = ready[entry.inputs.index("degree")]
+        assert np.asarray(degree).dtype.kind == "i", plain
+    ready, _ = prepare(BY_PLAIN["chebyshev U"], [2.5, np.array([0.5])])
+    assert np.asarray(ready[0]).dtype.kind == "f"  # a degree that is not whole stays a number with decimals
