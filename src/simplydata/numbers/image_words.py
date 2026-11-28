@@ -9,7 +9,9 @@ binary_closing, binary_fill_holes, binary_hit_or_miss, binary_propagation, grey_
 grey_closing, white_tophat, black_tophat, morphological_gradient, morphological_laplace, with
 generate_binary_structure and iterate_structure); grid.find_distance_to_nearest (distance_transform_edt, _cdt and
 _bf); grid.split_touching_patches (watershed_ift); grid.move_and_stretch_by (affine_transform, geometric_transform,
-fourier_shift). Every number comes from SciPy (and NumPy's FFT for the Fourier filters). Own code is glue only:
+fourier_shift). scipy.signal's 2-D names join them: order_filter and spline_filter (with cspline2d) as values of
+grid.smooth, grid.convolve_with (convolve2d, correlate2d, sepfir2d) and grid.find_envelope (hilbert2). Every number
+comes from SciPy (and NumPy's FFT for the Fourier filters). Own code is glue only:
 checks, sentences, positions counted from 1.
 """
 
@@ -28,12 +30,13 @@ from .numbers_3 import TOUCHING, ZOOM_ORDERS, _no_empty
 
 # smooth(test_method=) values of a grid that SciPy ndimage adds (families for 100 %, batch 20)
 SMOOTH_MORE = ("biggest", "smallest", "percentile", "rank", "summary", "fourier gaussian", "fourier uniform",
-               "fourier ellipsoid")
+               "fourier ellipsoid", "spline")
 SMOOTH_MORE_SPELLINGS = {"maximum": "biggest", "max": "biggest", "maximum_filter": "biggest",
                          "minimum": "smallest", "min": "smallest", "minimum_filter": "smallest",
                          "percentile_filter": "percentile", "rank_filter": "rank", "generic_filter": "summary",
                          "vectorized_filter": "summary", "fourier_gaussian": "fourier gaussian",
-                         "fourier_uniform": "fourier uniform", "fourier_ellipsoid": "fourier ellipsoid"}
+                         "fourier_uniform": "fourier uniform", "fourier_ellipsoid": "fourier ellipsoid",
+                         "spline_filter": "spline", "smoothing spline": "spline", "order_filter": "rank"}
 # smooth(test_method="summary", summary=): the NumPy summary of the cells in each window
 SUMMARIES = {"average": np.mean, "median": np.median, "total": np.sum, "standard deviation": np.std,
              "range": np.ptp, "biggest": np.max, "smallest": np.min}
@@ -126,7 +129,7 @@ class ImageWords:
     # ------------------------------------------------------------------ smooth: new values (batch 20)
     @friendly(renamed={"method": "test_method"})
     def smooth(self: _Same, over=None, test_method="moving average", window=5, width=None, ends=None,
-               percentile=None, rank=None, summary=None) -> _Same:
+               percentile=None, rank=None, summary=None, smoothness=None) -> _Same:
         """Smooth along some directions: each number becomes a summary of its neighbours, as blurring a picture. grid.smooth(window=3)
 
         over= names the directions (a grid: both, unless you say). test_method= "moving average" (the average of
@@ -142,21 +145,52 @@ class ImageWords:
         (or "average", "median", "total", "standard deviation", "biggest", "smallest": that NumPy summary of each
         window; vectorized_filter, as generic_filter), and the Fourier filters "fourier gaussian" (width=),
         "fourier uniform" and "fourier ellipsoid" (window=), which smooth in the frequencies and wrap round at the
-        edges (fourier_gaussian, fourier_uniform, fourier_ellipsoid on NumPy's FFT). Undo with undo().
+        edges (fourier_gaussian, fourier_uniform, fourier_ellipsoid on NumPy's FFT). "rank" with ends="zeros"
+        counts the cells outside the grid as 0 (SciPy signal.order_filter). "spline" fits a smoothing cubic spline
+        surface, smoothness=5 unless you say (0 goes through every number; SciPy signal.spline_filter, from the
+        spline coefficients of cspline2d). Undo with undo().
         """
         method = test_method.strip().lower() if isinstance(test_method, str) else test_method
         method = SMOOTH_MORE_SPELLINGS.get(method, method)
         if method not in SMOOTH_MORE:
-            for name, value in (("percentile", percentile), ("rank", rank), ("summary", summary)):
+            for name, value in (("percentile", percentile), ("rank", rank), ("summary", summary),
+                                ("smoothness", smoothness)):
                 if value is not None:
                     raise SimplydataError(f'{name}= goes with test_method="{name}"; leave it out for '
                                           f'test_method="{test_method}".')
-            if ends == "nearest":
-                raise SimplydataError('ends="nearest" goes with the new ways of smoothing a grid ("biggest", '
-                                      '"smallest", "percentile", "rank", "summary").')
+            if ends in ("nearest", "zeros"):
+                raise SimplydataError(f'ends="{ends}" goes with the new ways of smoothing a grid ("biggest", '
+                                      '"smallest", "percentile", "rank", "summary"; "zeros" with "rank" only).')
             return SmoothOverWords.smooth(self, over=over, test_method=test_method, window=window, width=width,
                                           ends=ends)
+        if smoothness is not None and method != "spline":
+            raise SimplydataError(f'smoothness= goes with test_method="spline"; leave it out for '
+                                  f'test_method="{method}".')
+        if method == "spline":
+            return self._smooth_spline(over, window, width, ends, percentile, rank, summary, smoothness)
         return self._smooth_picture(method, over, window, width, ends, percentile, rank, summary)
+
+    def _smooth_spline(self, over, window, width, ends, percentile, rank, summary, smoothness):
+        from scipy import signal
+
+        if over is not None or window != 5 or width is not None or ends is not None or any(
+                v is not None for v in (percentile, rank, summary)):
+            raise SimplydataError('test_method="spline" smooths the whole picture with smoothness= alone; leave out '
+                                  "over=, window=, width=, ends= and the other options.")
+        smoothness = 5.0 if smoothness is None else smoothness
+        if not is_number(smoothness) or not smoothness >= 0:
+            raise SimplydataError("smoothness= needs a number of 0 or more (0 goes through every number).")
+        values = np.asarray(self._values, dtype=float)
+        _no_empty(values, "smooth")
+        try:
+            out = signal.spline_filter(values, lmbda=float(smoothness))
+        except ValueError as problem:  # SciPy's edge sums need enough rows and columns to settle
+            raise SimplydataError(f"SciPy signal.spline_filter stopped: {str(problem).splitlines()[0]} The grid is "
+                                  f"probably too small ({values.shape[0]} x {values.shape[1]}) for its edges to "
+                                  "settle; try a bigger grid or a smaller smoothness=.") from None
+        print(f"Smoothed with a cubic smoothing spline surface (smoothness {say(smoothness)}). SciPy "
+              f"signal.spline_filter(grid, lmbda={say(smoothness)})")
+        return self._change("smooth (spline)", np.asarray(out, dtype=float))
 
     def _smooth_picture(self, method, over, window, width, ends, percentile, rank, summary):
         from scipy import ndimage
@@ -188,8 +222,9 @@ class ImageWords:
             if values.shape[a] < k:
                 raise SimplydataError(f"The grid has {values.shape[a]} {names[a]}s, fewer than the window ({k}).")
         mode = "reflect" if ends is None else ends
-        if mode not in SMOOTH_ENDS:
-            raise choice_error(step, "ends", ends, list(SMOOTH_ENDS))
+        zeros = mode == "zeros" and method == "rank" and len(axes) == 2
+        if mode not in SMOOTH_ENDS and not zeros:
+            raise choice_error(step, "ends", ends, list(SMOOTH_ENDS) + (["zeros"] if method == "rank" else []))
         one = len(axes) == 1
         if method in ("biggest", "smallest"):
             scipy_name = ("maximum_filter" if method == "biggest" else "minimum_filter") + ("1d" if one else "")
@@ -212,8 +247,14 @@ class ImageWords:
             if not isinstance(rank, _nb.Integral) or isinstance(rank, bool) or not 1 <= rank <= cells:
                 raise SimplydataError(f'test_method="rank" needs rank= as a whole number from 1 to {cells} (the '
                                       f"place in the sorted window of {cells} cells, counting from 1).")
-            out = ndimage.rank_filter(values, int(rank) - 1, size=k, mode=mode, axes=tuple(axes))
-            call = f"ndimage.rank_filter(grid, {int(rank) - 1}, size={k}, mode=\"{mode}\", axes={tuple(axes)})"
+            if zeros:  # the cells outside count as 0: SciPy signal.order_filter
+                from scipy import signal
+
+                out = signal.order_filter(values, np.ones((k, k)), int(rank) - 1)
+                call = f"signal.order_filter(grid, np.ones(({k}, {k})), {int(rank) - 1})"
+            else:
+                out = ndimage.rank_filter(values, int(rank) - 1, size=k, mode=mode, axes=tuple(axes))
+                call = f"ndimage.rank_filter(grid, {int(rank) - 1}, size={k}, mode=\"{mode}\", axes={tuple(axes)})"
             words = f"number {int(rank)} of the {cells} neighbours along {along}, sorted from the smallest"
         else:
             if summary not in SUMMARIES:
@@ -223,7 +264,8 @@ class ImageWords:
             call = (f"ndimage.vectorized_filter(grid, np.{function.__name__}, size={k}, mode=\"{mode}\", "
                     f"axes={tuple(axes)})")
             words = f"the {summary} of {k} neighbours along {along}"
-        print(f"Smoothed with {words}; {SMOOTH_ENDS[mode]}. SciPy {call}")
+        edge = "the cells outside the grid count as 0" if zeros else SMOOTH_ENDS[mode]
+        print(f"Smoothed with {words}; {edge}. SciPy {call}")
         return self._change(f"smooth ({method}) over {along}", np.asarray(out, dtype=float))
 
     def _smooth_fourier(self, method, axes, window, width, ends):
@@ -488,7 +530,8 @@ class ImageWords:
             call = f"ndimage.distance_transform_bf(~targets, metric=\"{metric}\"" + (
                 f", sampling={sampling})" if sampling else ")")
         out = np.asarray(out, dtype=float)
-        print(f"{how[0].upper()}{how[1:]} distance from each cell to the nearest cell that {words.replace('are ', 'is ')} "
+        print(f"{how[0].upper()}{how[1:]} distance from each cell to the nearest cell that "
+              f"{words.replace('are ', 'is ')} "
               f"({int(targets.sum())} of {targets.size} cells); the farthest is {float(out.max()):.6g} away. SciPy "
               f"{call}")
         return NumberGrid(out)
@@ -496,7 +539,7 @@ class ImageWords:
     # ------------------------------------------------------------------ watershed (batch 21)
     @friendly(renamed={"points": "starting_points", "markers": "starting_points"})
     def split_touching_patches(self, starting_points=None, touching="sides"):
-        """Split a picture into one patch round each starting point, along the ridges between them (watershed). patches = grid.split_touching_patches(starting_points=[[1, 1], [4, 5]])
+        """Split a picture into one patch round each starting point, along the ridges between them (watershed). patches = grid.split_touching_patches(starting_points=[[1, 1], [2, 3]])
 
         Think of the numbers as heights: water rising from each starting point fills the low ground, and where two
         floods meet is the border between their patches. Gives back a new grid of patch numbers (1 for the first
@@ -511,7 +554,7 @@ class ImageWords:
         from .numbers import NumberGrid
 
         step = "split_touching_patches"
-        example = "grid.split_touching_patches(starting_points=[[1, 1], [4, 5]])"
+        example = "grid.split_touching_patches(starting_points=[[1, 1], [2, 3]])"
         if touching not in TOUCHING:
             raise choice_error(step, "touching", touching, list(TOUCHING))
         values = np.asarray(self._values)
@@ -529,7 +572,8 @@ class ImageWords:
         structure = ndimage.generate_binary_structure(2, TOUCHING[touching])
         out = ndimage.watershed_ift(values.astype(np.uint16), markers, structure=structure)
         sizes = np.bincount(out.ravel(), minlength=len(points) + 1)[1:]
-        print(f"{len(points)} patch{'' if len(points) == 1 else 'es'} grown from the starting points along the low ground, touching by their "
+        print(f"{len(points)} patch{'' if len(points) == 1 else 'es'} grown from the starting points along the low "
+              "ground, touching by their "
               f"{touching}: " + ", ".join(f"patch {i} has {int(n)} cells" for i, n in enumerate(sizes[:8], 1))
               + (" ..." if len(sizes) > 8 else "") + ". SciPy ndimage.watershed_ift (positions from 1).")
         return NumberGrid(np.asarray(out, dtype=float))
@@ -618,3 +662,80 @@ class ImageWords:
                          for key in ("row", "column"))
 
         return mapping, f'row from {rule["row"]}, column from {rule["column"]}'
+
+    # ------------------------------------------------------------------ scipy.signal's 2-D words (batch 21)
+    @friendly(renamed={"mode": "keep"})
+    def convolve_with(self: _Same, other=None, keep="all", flip=True, row_weights=None,
+                      column_weights=None) -> _Same:
+        """Convolve a grid with a small grid of weights (a kernel), as filtering a picture. grid.convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]])
+
+        Each new cell is the sum of the weights times the cells under them as the kernel slides over the grid.
+        keep="all" (every overlap: the grid grows by the kernel's size less 1, as numbers.convolve_with), "same"
+        (the grid's own size) or "overlap" (only where the kernel fits fully). SciPy signal.convolve2d, cells
+        outside the grid counting as 0. flip=False slides the weights without turning them round (a
+        correlation; SciPy signal.correlate2d), as for matching a pattern. row_weights= and column_weights=
+        instead give one list of weights along the rows and one down the columns (a separable filter, much
+        faster; SciPy signal.sepfir2d, with the grid mirrored at its edges and its size kept). Undo with
+        grid.undo().
+        """
+        from scipy import signal
+
+        from .fourier_words import KEEPS
+
+        step = "convolve_with"
+        if keep not in KEEPS:
+            raise choice_error(step, "keep", keep, list(KEEPS))
+        if not isinstance(flip, bool):
+            raise SimplydataError("flip= should be True or False.")
+        values = np.asarray(self._values, dtype=float)
+        _no_empty(values, step)
+        separable = row_weights is not None or column_weights is not None
+        if separable:
+            if other is not None or keep != "all" or not flip:
+                raise SimplydataError("row_weights= and column_weights= go on their own (the grid keeps its size); "
+                                      "leave out the kernel, keep= and flip=.")
+            if row_weights is None or column_weights is None:
+                raise SimplydataError("A separable filter needs both row_weights= and column_weights=.")
+            lists = []
+            for name, weights in (("row_weights", row_weights), ("column_weights", column_weights)):
+                found = np.asarray(getattr(weights, "_values", weights), dtype=float)
+                if found.ndim != 1 or found.size % 2 == 0 or not np.isfinite(found).all():
+                    raise SimplydataError(f"{name}= needs a list of an odd number of weights, such as [1, 2, 1].")
+                lists.append(found)
+            out = signal.sepfir2d(values, lists[0], lists[1])
+            print(f"Filtered with {lists[0].size} weights along the rows and {lists[1].size} down the columns (a "
+                  "separable filter; the grid is mirrored at its edges and keeps its size). SciPy signal.sepfir2d")
+            return self._change("separable filter", np.asarray(out, dtype=float))
+        if other is None:
+            raise SimplydataError(f"{step}() needs a small grid of weights (a kernel)."
+                                  + self._example("convolve_with([[0, 1, 0], [1, 4, 1], [0, 1, 0]])"))
+        kernel = np.asarray(getattr(other, "_values", other), dtype=float)
+        if kernel.ndim == 1:
+            kernel = kernel.reshape(1, -1)
+        if kernel.ndim != 2 or kernel.size == 0 or not np.isfinite(kernel).all():
+            raise SimplydataError(f"{step}() needs the kernel as rows of numbers, such as [[0, 1, 0], [1, 4, 1], "
+                                  "[0, 1, 0]].")
+        scipy_name = "convolve2d" if flip else "correlate2d"
+        out = getattr(signal, scipy_name)(values, kernel, mode=KEEPS[keep])
+        print(f"{'Convolved' if flip else 'Correlated'} the {values.shape[0]} x {values.shape[1]} grid with a "
+              f"{kernel.shape[0]} x {kernel.shape[1]} kernel{'' if flip else ' (not turned round)'}: a "
+              f"{out.shape[0]} x {out.shape[1]} grid (keep=\"{keep}\"; cells outside count as 0). SciPy "
+              f"signal.{scipy_name}(grid, kernel, mode=\"{KEEPS[keep]}\")")
+        return self._change("convolve" if flip else "correlate", np.asarray(out, dtype=float))
+
+    @friendly
+    def find_envelope(self: _Same) -> _Same:
+        """The envelope of a grid as a picture: the size of its 2-D analytic signal (Hilbert transform). grid.find_envelope()
+
+        Each cell becomes the size (modulus) of the grid's analytic signal along both directions, which follows
+        the outline of waves and ripples in the picture, as numbers.find_envelope does for one list. SciPy
+        signal.hilbert2 (from NumPy's FFT, so the picture wraps round at its edges). Undo with grid.undo().
+        """
+        from scipy import signal
+
+        values = np.asarray(self._values, dtype=float)
+        _no_empty(values, "find_envelope")
+        out = np.abs(signal.hilbert2(values))
+        print(f"The envelope of the {values.shape[0]} x {values.shape[1]} grid: the size of its analytic signal "
+              "(SciPy signal.hilbert2, then its absolute value).")
+        return self._change("envelope", out)

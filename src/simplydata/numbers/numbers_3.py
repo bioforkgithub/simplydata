@@ -322,8 +322,8 @@ class GridWords3:
         counts the same). touching="sides" (the default: cells that share a side) or "corners" (a shared corner
         is enough). Empty cells are never in a patch. SciPy ndimage.label, sum_labels, mean and center_of_mass.
         show= adds columns, one value or a list: "biggest", "smallest" and "where biggest", "where smallest" (the
-        row and column, from 1; SciPy ndimage.extrema), "median", "standard deviation", "variance" (ndimage.median,
-        standard_deviation, variance: n in the bottom, as NumPy), "range" (biggest minus smallest;
+        row and column, from 1; SciPy ndimage.extrema), "median", "standard deviation", "variance" (SciPy ndimage's
+        own, with n in the bottom, as NumPy), "range" (biggest minus smallest;
         labeled_comprehension with NumPy ptp), "positions" (every cell of the patch, from 1; value_indices) and
         "counts in bins" with bins= a number of equal bins from the smallest to the biggest number of the grid
         (ndimage.histogram).

@@ -77,7 +77,7 @@ def solve_matrix_equation(kind=None, a=None, b=None, q=None, r=None):
         raise SimplydataError(f'kind="{chosen}" ({words}) takes ' + ", ".join(f"{m}=" for m in needed)
                               + " only; leave out " + ", ".join(f"{m}=" for m in extra) + ".")
     grids = {name: _grid_values(given[name], name) for name in needed}
-    for name in ("a", "q", "r") + (("b",) if chosen == "sylvester" else ()):
+    for name in ("a", "b") if chosen == "sylvester" else ("a", "q", "r"):  # Sylvester's q may be any shape
         if name in grids and grids[name].shape[0] != grids[name].shape[1]:
             raise SimplydataError(f"{name}= needs a square grid; it is {grids[name].shape[0]} x "
                                   f"{grids[name].shape[1]}.")

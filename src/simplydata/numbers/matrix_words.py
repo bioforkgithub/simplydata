@@ -79,13 +79,13 @@ def _other_grid(other, step: str, example: str):
 
 
 def _formula_function(text: str, step: str):
-    """A formula of one name (as "1 / (1 + x)") as a NumPy function that also takes complex numbers (for funm)."""
+    """A formula of x (as "1 / (1 + x)") as a NumPy function that also takes complex numbers (for funm). A single
+    other word (a misspelt function name, such as "squareroot") is not a formula of x."""
     from .._maths_formula import read_formula
 
     formula = read_formula(text)
-    if len(formula.names) != 1 or formula.columns_used:
-        raise SimplydataError(f'{step}() takes a formula of one name, such as "1 / (1 + x)"; "{text}" has '
-                              f"{amount(len(formula.names), 'name')}.")
+    if formula.names != ["x"] or formula.columns_used:
+        raise SimplydataError(f'{step}() takes a formula of x, such as "1 / (1 + x)".')
     name = formula.names[0]
 
     def worked_out(values):
@@ -105,7 +105,7 @@ class MatrixWords:
         function= "log" (SciPy linalg.logm), "square root" (sqrtm), "exp" (expm, as take_matrix_exp), "cos",
         "sin", "tan", "cosh", "sinh", "tanh" (cosm, sinm ...), "sign" (signm) or "power" with power= (NumPy
         linalg.matrix_power for a whole power, SciPy fractional_matrix_power for any other). Any other formula of
-        one name, such as "1 / (1 + x)", is worked out by SciPy linalg.funm (Schur-Parlett). SciPy's names (logm,
+        x, such as "1 / (1 + x)", is worked out by SciPy linalg.funm (Schur-Parlett). SciPy's names (logm,
         sqrtm ...) work too. R expm::logm, sqrtm and MATLAB logm, sqrtm, funm. A grid holds real numbers, so an
         answer with complex numbers (a negative eigenvalue, for the log) is refused with the reason. Undo with
         grid.undo().
