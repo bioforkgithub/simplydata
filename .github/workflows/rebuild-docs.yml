@@ -35,8 +35,11 @@ on:
         description: run every example in one job (the whole-book way), to compare with the parts
         type: boolean
         default: false
-  # Only PRs that change the rebuild itself; other branches ask for it with workflow_dispatch
+  # Only PRs that change the rebuild itself; other branches ask for it with workflow_dispatch. On a DRAFT pull
+  # request nothing is built (plan is skipped, so every job after it is too); marking it ready for review
+  # (ready_for_review) runs the whole rebuild (MAINTAINING.md, "Draft pull requests").
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - .github/workflows/rebuild-docs.yml
       - .github/actions/setup-simplydata/**
@@ -56,6 +59,7 @@ env:
 jobs:
   # The exact commit, so that every job builds the same one even if the branch moves during the run
   plan:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.sha.outputs.sha }}

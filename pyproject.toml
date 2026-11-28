@@ -118,7 +118,9 @@ r = ["rpy2>=3.5,<4"]  # the bridge to R for the methods only R gives (R itself: 
 # instead of stored copies (validation/r_data.py), so the tests also use AER, alr4, HH and mediation (CRAN).
 # tzdata: IANA's main time zone data (what simplydata reads through Polars) for Python's zoneinfo on every system;
 # the reliability study's pandas reference for Oslo before 1970 reads it (validation/cases_underneath_tables_2.py)
-test = ["pytest>=7,<10", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1", "tzdata>=2023.3,<2028"]
+# pytest-xdist: CI runs the tests in parallel inside each job (python -m pytest -n auto; approved by Manish 2026-11-28).
+# Lower bound: the oldest release CI tests (oldest-versions); upper bound: the next untested major release.
+test = ["pytest>=7,<10", "statsmodels>=0.15,<0.16", "jedi>=0.19,<1", "tzdata>=2023.3,<2028", "pytest-xdist>=3.6,<4"]
 
 [project.urls]
 Homepage = "https://github.com/bioforkgithub/simplydata"

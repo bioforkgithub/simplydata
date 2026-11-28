@@ -24,6 +24,31 @@ for _name in ("http_proxy", "https_proxy", "ftp_proxy", "all_proxy"):
     os.environ[_name] = os.environ[_name.upper()] = DEAD_PROXY
 os.environ["no_proxy"] = os.environ["NO_PROXY"] = "127.0.0.1,localhost"
 
+# ---------------------------------------------------------------- parallel runs (pytest-xdist; CI: pytest -n auto)
+# Each worker process gets a temporary folder of its own, so code that writes a fixed name in the temporary folder
+# (the manual's examples save tempfile.gettempdir()/"marks.png", "marks_mpl.png" and "growth.gif") never meets the
+# same file of another worker running at the same time. Set before R, rpy2 or any helper process starts, so they
+# inherit it. pytest's own tmp_path folders are given to each worker by pytest-xdist and are not affected. A run
+# without -n (no PYTEST_XDIST_WORKER) is unchanged.
+if os.environ.get("PYTEST_XDIST_WORKER"):
+    import tempfile
+
+    _OWN_TEMP = os.path.join(tempfile.gettempdir(),
+                             f"simplydata-tests-{os.environ['PYTEST_XDIST_WORKER']}-{os.getpid()}")
+    os.makedirs(_OWN_TEMP, exist_ok=True)
+    for _name in ("TMPDIR", "TEMP", "TMP"):
+        os.environ[_name] = _OWN_TEMP
+    tempfile.tempdir = _OWN_TEMP
+    # jedi (tests/test_editor_completion.py) keeps parsed files as pickles in one folder per user, written without
+    # a lock (parso's cache): each worker gets its own folder, so no worker reads a pickle another is still writing
+    # (PR #79: "EOFError: Ran out of input" in parso/cache.py when the workers shared ~/.cache/jedi).
+    try:
+        import jedi.settings
+    except ImportError:
+        pass
+    else:
+        jedi.settings.cache_directory = os.path.join(_OWN_TEMP, "jedi")
+
 NETWORK = {"loopback allowed": False, "attempts": []}
 _LOOPBACK = {"127.0.0.1", "::1", "localhost"}
 
