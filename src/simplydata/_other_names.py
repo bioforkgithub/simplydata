@@ -1007,7 +1007,8 @@ _NUMBERS = [
     ("numbers.turn_into_chances()", "expit sigmoid plogis logsig logistic"),
     ("numbers.count_each()", "value_counts tabulate"),
     # NumPy + SciPy phase, batch 1 (approved by Manish 2026-11-25): words on numbers, grids and blocks alike
-    ("numbers.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater less logical"),
+    ("numbers.turn_into_yes_or_no(is_above=20)", "mask logical_and logical_or logical_not greater logical"),
+    ("numbers.turn_into_yes_or_no(is_below=20)", "less"),  # second review of numbers-int-2: less is below
     ("numbers.keep_numbers_where(yes_no)", "compress extract"),
     ('numbers.replace_numbers_where(yes_no, with_value="empty")', "ifelse"),
     ("numbers.count_numbers_that(is_above=25)", "count_nonzero nnz"),
@@ -2915,6 +2916,13 @@ _TABLE_FINAL = [
      "clear"),
     ("table.swap_rows_and_columns() turns rows into columns; other shapes are left to pandas: table.as_pandas()",
      "reshape squeeze"),
+    # second review of numbers-int-2: pandas and Polars classes whose names SymPy uses too
+    ('table.add_group_column("result", from_column="marks", cut_at=[60], names=["below 60", "60 or more"]) puts '
+     "values into intervals (a pandas Interval is one of them)", "Interval"),
+    ('table.add_column("marks_per_hour", "marks / hours"): a Polars expression is written as a word and a formula',
+     "Expr"),
+    (_POLARS_HAND_OVER + " field works (one field of a struct column; simplydata keeps one value in each cell)",
+     "field"),
     ('table.turn_into_dates("date") turns text or numbers into dates', "to_timestamp"),
     # saving and handing over
     ('table.save("results.csv"): the end of the file name chooses the type (.csv, .xlsx, .parquet, .json, .feather, '
@@ -3178,7 +3186,7 @@ _TABLE_REVIEW = [
      'InMemoryEngine Map ParquetDecryptionProperties ParquetEncryptionProperties PartitionBy QueryOptFlags '
      'RemoteEngine ScanCastOptions StreamingEngine StringCache Struct'),
 ]
-_NUMPY_REVIEW = [
+_NDARRAY = [
     ('grid.swap_rows_and_columns()',
      'T mT'),
     ('grid.get_all_numbers() gives every number of a grid in one list',
@@ -3191,32 +3199,55 @@ _NUMPY_REVIEW = [
      'dump dumps tobytes'),
     ('sdata.number_grid(rows=2, columns=3, filled_with=0) makes a grid of one number',
      'fill'),
+    (_NUMPY_HAND_OVER
+     + ' choose works (a value from one of several lists, by position); a yes or no list picks from '
+     'two: numbers.replace_numbers_where(yes_no, with_value=0)',
+     'choose'),
     (_NUMPY_HAND_OVER + ': its memory, types and devices (simplydata keeps plain decimals)',
      'base byteswap ctypes data device dtype flags getfield itemsize nbytes setfield setflags strides '
      'to_device view'),
+]
+_RANDOM_REVIEW = [
+    ('sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)',
+     'ranf'),
+    (_NUMPY_HAND_OVER
+     + ' the bit generators and their states work; with_seed= in sdata.make_random_numbers gives the '
+     'same numbers again',
+     'BitGenerator MT19937 PCG64 PCG64DXSM Philox SFC64 get_bit_generator get_state set_bit_generator '
+     'set_state'),
+]
+_NUMPY_REVIEW = [
     ('sdata.polynomial("legendre", degree=3), then formula.show_as_latex() writes it as you want it',
-     'set_default_printstyle test'),
+     'set_default_printstyle'),
+]
+_NPMA = [
     ('numbers.remove_empty_numbers() leaves out the empty numbers (a masked value is an empty number'
      ' in simplydata)',
      'compressed compress_cols compress_nd compress_rowcols compress_rows'),
     ('numbers.fill_empty_numbers(with_value=0) fills the empty numbers',
-     'filled fix_invalid set_fill_value default_fill_value common_fill_value maximum_fill_value '
-     'minimum_fill_value'),
+     'filled fix_invalid'),
     ('numbers.count_empty_numbers() counts the empty numbers (a masked value is an empty number in '
      'simplydata)',
-     'count_masked is_masked getmask getmaskarray'),
-    ('numbers.replace_each_number_that(is_above=100, with_value=100) changes the numbers that pass a'
-     ' test; an empty number (None) is what NumPy masks, and every word leaves empty numbers out',
+     'count_masked is_masked'),
+    ('numbers.replace_each_number_that(is_above=100, with_value=None) makes the numbers that pass a '
+     'test empty (what NumPy masks), and every word leaves empty numbers out',
      'masked_where masked_greater masked_greater_equal masked_less masked_less_equal masked_equal '
      'masked_not_equal masked_inside masked_outside masked_invalid masked_values masked_object '
-     'masked_array masked_all masked_all_like mask_cols mask_rows mask_rowcols mask_or make_mask '
-     'make_mask_none masked masked_singleton'),
-    (_NUMPY_HAND_OVER + ': its masked arrays (simplydata keeps an empty number, None, where NumPy masks one)',
-     'MAError MaskError MaskType MaskedArray allequal anom bool_ clump_masked clump_unmasked '
-     'flatnotmasked_contiguous flatnotmasked_edges flatten_mask flatten_structured_array fromflex getdata '
-     'harden_mask ids in1d innerproduct isMA isMaskedArray is_mask isarray make_mask_descr '
-     'masked_print_option mr_ mvoid ndenumerate nomask notmasked_contiguous notmasked_edges outerproduct '
-     'round_ row_stack soften_mask'),
+     'masked_array'),
+    (_NUMPY_HAND_OVER
+     + ': its masked arrays, masks and fill values (simplydata keeps an empty number, None, where '
+     'NumPy masks one)',
+     'MAError MaskError MaskType MaskedArray allequal anom anomalies append atleast_1d atleast_2d '
+     'atleast_3d bool_ clump_masked clump_unmasked common_fill_value concatenate default_fill_value '
+     'expand_dims flatnotmasked_contiguous flatnotmasked_edges flatten_mask flatten_structured_array '
+     'fromflex getdata getmask getmaskarray harden_mask hsplit hstack ids in1d innerproduct isMA '
+     'isMaskedArray is_mask isarray make_mask make_mask_descr make_mask_none mask_cols mask_or '
+     'mask_rowcols mask_rows masked masked_all masked_all_like masked_print_option masked_singleton '
+     'maximum_fill_value minimum_fill_value mr_ mvoid ndenumerate ndim nomask notmasked_contiguous '
+     'notmasked_edges outerproduct repeat reshape resize round_ row_stack set_fill_value shape soften_mask '
+     'squeeze swapaxes take vstack'),
+]
+_NPSTRINGS = [
     ('table.turn_into_uppercase("name")',
      'upper'),
     ('table.turn_into_lowercase("name")',
@@ -3230,30 +3261,34 @@ _NUMPY_REVIEW = [
     ('table.keep_rows_where("name", starts_with="Dr") (ends_with= for the end)',
      'startswith endswith'),
     ('table.add_zeros_in_front_of("sample_id", to_length=3), which pads at the start',
-     'zfill rjust ljust center'),
+     'zfill rjust'),
     ('table.add_column("name_length", "length(name)")',
      'str_len'),
     ('table.add_column_with_part_of_text("code", from_column="sample_id", characters=[2, 4])',
      'slice'),
-    ('table.add_column_with_part_of_text("where_an", from_column="name", position_of="an")',
-     'index rindex rfind'),
+    ('table.add_column_with_part_of_text("where_an", from_column="name", position_of="an") (the '
+     'first match)',
+     'find index'),
+    ('table.add_column("semicolons", "count_text(genes, \';\')") counts a text inside each cell',
+     'count'),
+    ('table.add_column("name_and_class", by_joining_text=["name", "class"], separator=" ") joins ' 'text',
+     'add'),
+    ('table.split_column("name", separator=" ", into=["first_name", "last_name"]) splits text at the'
+     ' separator',
+     'partition'),
+    ('table.keep_rows_where("name", is_equal_to="Chen Li") compares text (is_not_equal_to= for the '
+     'opposite)',
+     'equal not_equal'),
     ('table.keep_rows_where("sample_id", matches_pattern="^[0-9]+$") keeps text made of digits '
      '(letters: "^[A-Za-z]+$")',
      'isalnum isalpha isdecimal isdigit isnumeric islower isupper isspace istitle'),
     (_PANDAS_HAND_OVER
-     + ' the other text steps work (codes, tabs, swapped capitals); text in simplydata lives in table '
-     'columns',
-     'decode encode expandtabs rpartition swapcase translate'),
+     + ' the other text steps on arrays work (padding at the end or both ends, the last match, '
+     'repeating, formatting, comparing text by order, codes); text in simplydata lives in table ' 'columns',
+     'center decode encode expandtabs greater greater_equal less less_equal ljust mod multiply rfind '
+     'rindex rpartition swapcase translate'),
 ]
-_RANDOM_REVIEW = [
-    ('sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)',
-     'ranf'),
-    ('sdata.make_random_numbers(how_many=10, with_seed=1): with_seed= gives the same numbers again; '
-     'the generators and their states are left to NumPy: numbers.as_numpy()',
-     'BitGenerator MT19937 PCG64 PCG64DXSM Philox SFC64 get_bit_generator get_state set_bit_generator '
-     'set_state test'),
-]
-_SCIPY_REVIEW = [
+_SPARSE = [
     ('sdata.number_grid(kind="identity", size=3)',
      'eye eye_array identity'),
     ('sdata.number_grid([1, 2, 3], kind="diagonal")',
@@ -3268,41 +3303,58 @@ _SCIPY_REVIEW = [
      'random_array'),
     ('grid.swap_rows_and_columns()',
      'matrix_transpose'),
+    (_SCIPY_HAND_OVER + ' kron works (the Kronecker product of two sparse grids); for two lists of numbers, '
+     'numbers.make_pair_table_with(other) gives every product',
+     'kron'),
     (_SCIPY_HAND_OVER
-     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage is left to SciPy)',
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
      'SparseEfficiencyWarning SparseWarning bsr_array bsr_matrix coo_array coo_matrix csc_array csc_matrix '
-     'csr_array csr_matrix dia_array dia_matrix dok_array dok_matrix get_index_dtype issparse isspmatrix '
-     'isspmatrix_bsr isspmatrix_coo isspmatrix_csc isspmatrix_csr isspmatrix_dia isspmatrix_dok '
-     'isspmatrix_lil kronsum lil_array lil_matrix load_npz safely_cast_index_arrays save_npz sparray '
-     'spmatrix'),
+     'csr_array csr_matrix dia_array dia_matrix dok_array dok_matrix expand_dims find get_index_dtype '
+     'hstack issparse isspmatrix isspmatrix_bsr isspmatrix_coo isspmatrix_csc isspmatrix_csr '
+     'isspmatrix_dia isspmatrix_dok isspmatrix_lil kronsum lil_array lil_matrix load_npz permute_dims rand '
+     'random safely_cast_index_arrays save_npz sparray spmatrix swapaxes vstack'),
+    ('grid.solve_for([1, 2, 3]) solves the equations grid times x = b (a full grid; sparse solvers '
+     'are left to SciPy: grid.as_numpy())',
+     'spsolve spsolve_triangular bicg bicgstab cg cgs gcrotmk gmres lgmres minres qmr tfqmr lsqr lsmr'),
+    ('grid.find_eigenvalues() (a full grid; the sparse eigenvalue solvers are left to SciPy: '
+     'grid.as_numpy())',
+     'eigs eigsh lobpcg'),
+    ('grid.break_down(test_method="svd")',
+     'svds'),
+    ('grid.break_down(test_method="lu")',
+     'splu spilu factorized SuperLU'),
+    ('grid.take_matrix_exp()',
+     'expm_multiply'),
+    ('grid.find_size(kind="biggest column total") (onenormest estimates it for a big sparse grid)',
+     'onenormest'),
+    ('grid.check_if_grid_is("banded"), which prints how many diagonals below and above hold numbers',
+     'spbandwidth'),
+    ('grid.check_if_grid_is("upper triangle") (or "lower triangle")',
+     'is_sptriangular'),
+    (_SCIPY_HAND_OVER
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
+     'ArpackError ArpackNoConvergence LaplacianNd LinearOperator MatrixRankWarning aslinearoperator expm '
+     'funm_multiply_krylov inv matrix_power norm use_solver'),
     ('sdata.find_best_pairing(costs=grid) pairs each row with one column',
      'maximum_bipartite_matching min_weight_full_bipartite_matching'),
-    ('grid.find_each_patch_that(is_above=0) finds the patches of touching cells',
-     'connected_components'),
     (_SCIPY_HAND_OVER
-     + ' its graph routines work (paths, trees, flows and orderings; networks come in a later phase of'
-     ' simplydata)',
-     'NegativeCycleError bellman_ford breadth_first_order breadth_first_tree construct_dist_matrix '
-     'csgraph_from_dense csgraph_from_masked csgraph_masked_from_dense csgraph_to_dense csgraph_to_masked '
-     'depth_first_order depth_first_tree dijkstra floyd_warshall johnson laplacian maximum_flow '
-     'minimum_spanning_tree reconstruct_path reverse_cuthill_mckee shortest_path structural_rank test yen'),
+     + ' (simplydata keeps every grid as a full grid of numbers; sparse storage, sparse solvers and '
+     'graph routines are left to SciPy; networks come in a later phase)',
+     'NegativeCycleError bellman_ford breadth_first_order breadth_first_tree connected_components '
+     'construct_dist_matrix csgraph_from_dense csgraph_from_masked csgraph_masked_from_dense '
+     'csgraph_to_dense csgraph_to_masked depth_first_order depth_first_tree dijkstra floyd_warshall '
+     'johnson laplacian maximum_flow minimum_spanning_tree reconstruct_path reverse_cuthill_mckee '
+     'shortest_path structural_rank yen'),
+]
+_SCIPY_REVIEW = [
     ('table.add_clusters(how_many=3)',
      'kmeans2 vq py_vq'),
     ('table.add_clusters(how_many=3) puts each column on the same scale first (same_scale=True)',
      'whiten'),
     ('table.add_clusters(how_many=3)',
      'ClusterError'),
-    ('table.add_clusters(how_many=3, test_method="hierarchical") (linkage="ward", "average", '
-     '"complete" or "single")',
-     'linkage average centroid ward weighted fcluster fclusterdata cut_tree leaders'),
-    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])',
-     'dendrogram set_link_color_palette'),
-    (_SCIPY_HAND_OVER
-     + " the cluster tree's own tools work (cophenetic distances, checks and conversions); the "
-     'clusters are table.add_clusters(how_many=3, test_method="hierarchical")',
-     'ClusterNode ClusterWarning DisjointSet cophenet correspond from_mlab_linkage inconsistent '
-     'is_isomorphic is_valid_im is_valid_linkage leaves_list maxRstat maxdists maxinconsts num_obs_linkage '
-     'optimal_leaf_ordering single to_mlab_linkage to_tree'),
     ('sdata.number_block("file.nc") reads a netCDF file',
      'netcdf_file netcdf_variable'),
     (_SCIPY_HAND_OVER
@@ -3310,8 +3362,9 @@ _SCIPY_REVIEW = [
      'sdata.number_list or sdata.table)',
      'FortranEOFError FortranFile FortranFormattingError hb_read hb_write loadmat mminfo mmread mmwrite '
      'readsav savemat whosmat'),
-    ('sdata.formula("m * c**2"), then formula.put_in(c=299792458) puts a physical constant into a '
-     'formula; the constants and units themselves are left to SciPy (from scipy import constants)',
+    (_SCIPY_HAND_OVER
+     + ' its physical constants and units work (simplydata has none of its own; a constant goes into a'
+     ' formula with formula.put_in)',
      'Avogadro Boltzmann Btu Btu_IT Btu_th ConstantWarning G Julian_year N_A Planck R Rydberg '
      'Stefan_Boltzmann Wien acre angstrom arcmin arcminute arcsec arcsecond astronomical_unit atm '
      'atmosphere atomic_mass atto au bar barrel bbl blob c calorie calorie_IT calorie_th carat centi '
@@ -3327,92 +3380,58 @@ _SCIPY_REVIEW = [
      'yobi yocto yotta zebi zepto zero_Celsius zetta'),
     ('table.find_distances_between_rows(measure="bray-curtis") (also "euclidean", "manhattan", '
      '"jaccard", "minkowski" with power=, "hellinger", "aitchison")',
-     'braycurtis euclidean cityblock jaccard minkowski sqeuclidean squareform'),
+     'braycurtis euclidean cityblock jaccard minkowski squareform'),
     ('table.find_distances_to_rows_of(other, using=["east", "north"]) (measure= "chebyshev", '
      '"canberra" or "cosine" too)',
      'chebyshev canberra cosine'),
     (_SCIPY_HAND_OVER
-     + ' the other distances work (correlation, Mahalanobis, Jensen-Shannon, Dice, Yule ...)',
+     + ' the other distances work (squared Euclidean, correlation, Mahalanobis, Jensen-Shannon, Dice, '
+     'Yule ...)',
      'CDistMetricWrapper Callable MetricInfo PDistMetricWrapper correlation dice directed_hausdorff '
      'is_valid_dm is_valid_y jensenshannon mahalanobis num_obs_dm num_obs_y partial rel_entr '
-     'rogerstanimoto russellrao seuclidean sokalsneath yule'),
+     'rogerstanimoto russellrao seuclidean sokalsneath sqeuclidean yule'),
     ('sdata.number_grid(kind="rotation", axis="x", by_degrees=30) makes a rotation; '
      'grid.find_best_rotation_to(...) finds the best one between two sets of points',
      'Rotation'),
     (_SCIPY_HAND_OVER + ' rotations in time and rigid moves work',
      'RigidTransform RotationSpline Slerp'),
 ]
-_LINALG_REVIEW = [
-    ('grid.solve_for([1, 2, 3]) solves the equations grid times x = b (a full grid; sparse solvers '
-     'are left to SciPy: grid.as_numpy())',
-     'spsolve spsolve_triangular bicg bicgstab cg cgs gcrotmk gmres lgmres minres qmr tfqmr lsqr lsmr'),
-    ('grid.find_eigenvalues() (a full grid; the sparse eigenvalue solvers are left to SciPy: '
-     'grid.as_numpy())',
-     'eigs eigsh lobpcg'),
-    ('grid.break_down(test_method="svd")',
-     'svds'),
-    ('grid.break_down(test_method="lu")',
-     'splu spilu factorized SuperLU'),
-    ('grid.take_matrix_exp()',
-     'expm_multiply'),
-    ('grid.find_size()',
-     'onenormest'),
-    ('grid.check_if_grid_is("banded"), which prints how many diagonals below and above hold numbers',
-     'spbandwidth'),
-    ('grid.check_if_grid_is("upper triangle") (or "lower triangle")',
-     'is_sptriangular'),
-    (_SCIPY_HAND_OVER + ' its linear operators and settings work (simplydata keeps full grids)',
-     'ArpackError ArpackNoConvergence LaplacianNd LinearOperator MatrixRankWarning aslinearoperator '
-     'funm_multiply_krylov test use_solver'),
+_HIERARCHY = [
+    ('table.add_clusters(how_many=3, test_method="hierarchical") (linkage="ward" by default for '
+     'straight-line distances)',
+     'linkage ward fcluster fclusterdata cut_tree leaders'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="average")',
+     'average'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="single")',
+     'single'),
+    ('table.add_clusters(how_many=3, test_method="hierarchical", linkage="complete")',
+     'complete'),
+    ('chart.draw_cluster_tree(columns=["blaTEM", "sul1"])',
+     'dendrogram set_link_color_palette'),
+    (_SCIPY_HAND_OVER
+     + " the cluster tree's other tools work (centroid, median and weighted linkage, cophenetic "
+     'distances, checks and conversions); the clusters are table.add_clusters(how_many=3, '
+     'test_method="hierarchical")',
+     'ClusterNode ClusterWarning DisjointSet centroid cophenet correspond from_mlab_linkage inconsistent '
+     'is_isomorphic is_monotonic is_valid_im is_valid_linkage leaves_list maxRstat maxdists maxinconsts '
+     'median num_obs_linkage optimal_leaf_ordering to_mlab_linkage to_tree weighted'),
 ]
 _STATS_REVIEW = [
-    ('sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1) makes random numbers; '
-     'spread-out (quasi-random) points are left to SciPy: numbers.as_numpy(), then stats.qmc',
-     'Sobol Halton LatinHypercube PoissonDisk MultinomialQMC MultivariateNormalQMC QMCEngine scale'),
-    (_SCIPY_HAND_OVER + ' the discrepancy of quasi-random points works',
-     'discrepancy geometric_discrepancy update_discrepancy'),
-    ('sdata.distribution("normal", average=50, ' 'standard_deviation=10).find_chance_that_value(is_below=60)',
-     'P Probability'),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_average()',
-     'E Expectation'),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()',
-     'Variance variance'),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).find_density_at(60)',
-     'density'),
-    ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary() (the skewness '
-     'and kurtosis too)',
-     'skewness smoment cmoment CentralMoment'),
-    ('sdata.distribution("normal", average=50, standard_deviation=10): every distribution has a '
-     'plain name (sdata.distribution with no name lists them), worked out by SciPy; the exact '
-     'distributions, processes and random matrices of SymPy are left to SymPy: formula.as_sympy()',
-     'Arcsin Benini BernoulliProcess BetaBinomial BetaNoncentral BoundedPareto ChiNoncentral ChiSquared '
-     'CircularEnsemble CircularOrthogonalEnsemble CircularSymplecticEnsemble CircularUnitaryEnsemble Coin '
-     'ContinuousDistributionHandmade ContinuousMarkovChain ContinuousRV CrossCovarianceMatrix Dagum Davis '
-     'Die DiscreteDistributionHandmade DiscreteMarkovChain DiscreteRV DiscreteTimeStochasticProcess '
-     'DiscreteUniform ExGaussian ExpectationMatrix Exponential ExponentialPower FDistribution '
-     'FiniteDistributionHandmade FiniteRV FisherZ FlorySchulz Frechet GammaInverse GammaProcess '
-     'GaussianEnsemble GaussianInverse GaussianOrthogonalEnsemble GaussianSymplecticEnsemble '
-     'GaussianUnitaryEnsemble GeneralizedMultivariateLogGamma GeneralizedMultivariateLogGammaOmega '
-     'GeneratorMatrixOf Geometric Gumbel H Hermite Hypergeometric IdealSoliton JointEigenDistribution '
-     'JointRV Kumaraswamy LogCauchy LogLogistic LogNormal Logarithmic LogitNormal MatrixGamma MatrixNormal '
-     'MatrixStudentT MultivariateBeta MultivariateEwens MultivariateLaplace MultivariateNormal '
-     'MultivariateT NegativeBinomial NegativeMultinomial NormalGamma PoissonProcess PowerFunction '
-     'QuadraticU Rademacher RaisedCosine RobustSoliton ShiftedGompertz StochasticProcess '
-     'StochasticStateSpaceOf StudentT TransitionMatrixOf Trapezoidal Triangular UniformSum VarianceMatrix '
-     'Weibull WienerProcess WignerSemicircle Zeta characteristic_function correlation coskewness dependent '
-     'factorial_moment given independent joint_eigen_distribution level_spacing_distribution '
-     'marginal_distribution moment_generating_function pspace random_symbols sample_iter '
-     'sample_stochastic_process sampling_density'),
+    (_SCIPY_HAND_OVER
+     + ' stats.qmc works (spread-out, quasi-random points and their discrepancy); random numbers are '
+     'sdata.make_random_numbers(how_many=100, between=[0, 1], with_seed=1)',
+     'Halton LatinHypercube MultinomialQMC MultivariateNormalQMC PoissonDisk QMCEngine Sobol discrepancy '
+     'geometric_discrepancy scale update_discrepancy'),
 ]
-_SYMPY_REVIEW = [
+_MATRIX = [
     ('grid.find_determinant(exactly=True)',
      'det_LU_decomposition det_bareis berkowitz_det'),
     ('grid.take_inverse(exactly=True)',
      'inverse_ADJ inverse_BLOCK inverse_CH inverse_GE inverse_LDL inverse_LU inverse_QR'),
     ('grid.find_eigenvalues(exactly=True)',
-     'eigenvects left_eigenvects berkowitz_eigenvals'),
+     'eigenvects berkowitz_eigenvals'),
     ('grid.solve_for([5, 10], exactly=True), on a grid of 2 rows',
-     'LDLsolve QRsolve cholesky_solve cramer_solve diagonal_solve gauss_jordan_solve '
+     'solve LDLsolve QRsolve cholesky_solve cramer_solve diagonal_solve gauss_jordan_solve '
      'lower_triangular_solve upper_triangular_solve pinv_solve'),
     ('grid.break_down(test_method="lu")',
      'LUdecomposition LUdecompositionFF LUdecomposition_Simple'),
@@ -3438,6 +3457,12 @@ _SYMPY_REVIEW = [
      'condition_number'),
     ('grid.take_inverse(closest_possible=True)',
      'pinv'),
+    ('grid.find_size() (kind= for the other matrix norms)',
+     'norm'),
+    ('grid.take_matrix_exp()',
+     'exp'),
+    ('grid.take_matrix_function("log")',
+     'log'),
     ('grid.check_if_grid_is("symmetric")',
      'is_symmetric'),
     ('grid.check_if_grid_is("hermitian")',
@@ -3462,29 +3487,216 @@ _SYMPY_REVIEW = [
      'diagonal'),
     ('grid.get_row(1)',
      'row'),
+    ('grid.get_column(1)',
+     'col'),
+    ('grid.find_shape() gives the rows and columns',
+     'shape'),
+    ('sdata.number_grid(rows=2, columns=3, filled_with=1) makes a grid of ones',
+     'ones'),
+    ('sdata.number_grid(rows=2, columns=3, filled_with=0) makes a grid of zeros',
+     'zeros'),
+    ('sdata.number_grid(kind="identity", size=3)',
+     'eye'),
     ('grid.get_all_numbers()',
-     'values flat vec tolist'),
+     'flat tolist'),
     ('grid.get_part("upper triangle") (or "lower triangle")',
      'upper_triangular lower_triangular'),
     ('numbers.take_function("hyperbolic sine") takes a function of every number',
      'applyfunc'),
     (_GRID_HAND_OVER
-     + ' Matrix methods work (row operations, forms such as rref, and the other matrix tools)',
-     'C D H adjugate analytic_func as_immutable as_mutable as_real_imag atoms berkowitz berkowitz_charpoly '
-     'berkowitz_minors bidiagonal_decomposition bidiagonalize charpoly cofactor cofactorMatrix '
-     'cofactor_matrix col_del col_insert col_join col_op col_swap companion connected_components '
-     'connected_components_decomposition copy copyin_list copyin_matrix diagonalize doit dual echelon_form '
-     'elementary_col_op elementary_row_op equals extract fill free_symbols from_dok get_diag_blocks has '
-     'hat hstack inv_mod irregular is_Identity is_Matrix is_MatrixExpr is_anti_symmetric is_diagonalizable '
-     'is_echelon is_indefinite is_lower_hessenberg is_negative_definite is_negative_semidefinite '
-     'is_nilpotent is_positive_definite is_positive_semidefinite is_square is_strongly_diagonally_dominant '
-     'is_symbolic is_upper_hessenberg is_weakly_diagonally_dominant is_zero is_zero_matrix iter_items '
-     'iter_values jacobian jordan_block key2bounds key2ij kind lll lll_transform minor minorEntry '
-     'minorMatrix minor_submatrix n normalized one permute permuteBkwd permuteFwd permute_cols '
-     'permute_rows pow print_nonzero project rank_decomposition replace rmultiply rot90 row_add row_del '
-     'row_insert row_join row_mult row_op row_swap rowspace rref rref_rhs strongly_connected_components '
-     'strongly_connected_components_decomposition to_DM todod todok vech vee vstack wilkinson xreplace '
-     'zero zip_row_op'),
+     + ' Matrix methods work (row operations, forms such as rref, left eigenvectors, the non-zero '
+     'values, stacking into a vector and the other matrix tools)',
+     'C D H add adjugate analytic_func as_immutable as_mutable as_real_imag atoms berkowitz '
+     'berkowitz_charpoly berkowitz_minors bidiagonal_decomposition bidiagonalize charpoly cofactor '
+     'cofactorMatrix cofactor_matrix col_del col_insert col_join col_op col_swap companion '
+     'connected_components connected_components_decomposition copy copyin_list copyin_matrix diagonalize '
+     'doit dual echelon_form elementary_col_op elementary_row_op equals extract fill free_symbols from_dok '
+     'get_diag_blocks has hat hstack inv_mod irregular is_Identity is_Matrix is_MatrixExpr '
+     'is_anti_symmetric is_diagonalizable is_echelon is_indefinite is_lower_hessenberg '
+     'is_negative_definite is_negative_semidefinite is_nilpotent is_positive_definite '
+     'is_positive_semidefinite is_square is_strongly_diagonally_dominant is_symbolic is_upper_hessenberg '
+     'is_weakly_diagonally_dominant is_zero is_zero_matrix iter_items iter_values jacobian jordan_block '
+     'key2bounds key2ij kind left_eigenvects lll lll_transform minor minorEntry minorMatrix '
+     'minor_submatrix n normalized one permute permuteBkwd permuteFwd permute_cols permute_rows pow '
+     'print_nonzero project rank_decomposition replace rmultiply rot90 row_add row_del row_insert row_join '
+     'row_mult row_op row_swap rowspace rref rref_rhs strongly_connected_components '
+     'strongly_connected_components_decomposition table to_DM todod todok values vec vech vee vstack '
+     'wilkinson xreplace zero zip_row_op'),
+]
+_SYMPYSTATS = [
+    ('sdata.distribution("arcsine", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Arcsin'),
+    ('sdata.distribution("bernoulli", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Bernoulli'),
+    ('sdata.distribution("beta", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Beta'),
+    ('sdata.distribution("beta binomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'BetaBinomial'),
+    ('sdata.distribution("beta prime", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'BetaPrime'),
+    ('sdata.distribution("binomial", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Binomial'),
+    ('sdata.distribution("cauchy", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Cauchy'),
+    ('sdata.distribution("chi", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Chi'),
+    ('sdata.distribution("chi-square", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'ChiSquared'),
+    ('sdata.distribution("burr type iii", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Dagum'),
+    ('sdata.distribution("dirichlet", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Dirichlet'),
+    ('sdata.distribution("whole number uniform", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'DiscreteUniform'),
+    ('sdata.distribution("erlang", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Erlang'),
+    ('sdata.distribution("exponentially modified normal", ...) (worked out by SciPy; SymPy\'s exact '
+     'one: formula.as_sympy())',
+     'ExGaussian'),
+    ('sdata.distribution("exponential", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Exponential'),
+    ('sdata.distribution("exponential power", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'ExponentialPower'),
+    ('sdata.distribution("F", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'FDistribution'),
+    ('sdata.distribution("inverse weibull", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Frechet'),
+    ('sdata.distribution("gamma", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Gamma'),
+    ('sdata.distribution("inverse gamma", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'GammaInverse'),
+    ('sdata.distribution("inverse gaussian", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'GaussianInverse'),
+    ('sdata.distribution("geometric", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Geometric'),
+    ('sdata.distribution("gompertz", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Gompertz'),
+    ('sdata.distribution("gumbel", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Gumbel'),
+    ('sdata.distribution("hypergeometric", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Hypergeometric'),
+    ('sdata.distribution("laplace", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Laplace'),
+    ('sdata.distribution("levy", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Levy'),
+    ('sdata.distribution("log-logistic", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'LogLogistic'),
+    ('sdata.distribution("lognormal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'LogNormal'),
+    ('sdata.distribution("logarithmic", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Logarithmic'),
+    ('sdata.distribution("logistic", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Logistic'),
+    ('sdata.distribution("lomax", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Lomax'),
+    ('sdata.distribution("maxwell", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Maxwell'),
+    ('sdata.distribution("moyal", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Moyal'),
+    ('sdata.distribution("multinomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Multinomial'),
+    ('sdata.distribution("multivariate normal", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'MultivariateNormal'),
+    ('sdata.distribution("multivariate t", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'MultivariateT'),
+    ('sdata.distribution("nakagami", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Nakagami'),
+    ('sdata.distribution("negative binomial", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'NegativeBinomial'),
+    ('sdata.distribution("normal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Normal'),
+    ('sdata.distribution("pareto", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Pareto'),
+    ('sdata.distribution("poisson", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Poisson'),
+    ('sdata.distribution("power function", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'PowerFunction'),
+    ('sdata.distribution("cosine", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'RaisedCosine'),
+    ('sdata.distribution("rayleigh", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Rayleigh'),
+    ('sdata.distribution("reciprocal", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Reciprocal'),
+    ('sdata.distribution("skellam", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Skellam'),
+    ('sdata.distribution("t", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'StudentT'),
+    ('sdata.distribution("trapezoidal", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'Trapezoidal'),
+    ('sdata.distribution("triangular", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Triangular'),
+    ('sdata.distribution("uniform", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Uniform'),
+    ('sdata.distribution("irwin-hall", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'UniformSum'),
+    ('sdata.distribution("von mises", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'VonMises'),
+    ('sdata.distribution("weibull", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Weibull'),
+    ('sdata.distribution("semicircular", ...) (worked out by SciPy; SymPy\'s exact one: '
+     'formula.as_sympy())',
+     'WignerSemicircle'),
+    ('sdata.distribution("wishart", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'Wishart'),
+    ('sdata.distribution("yule-simon", ...) (worked out by SciPy; SymPy\'s exact one: ' 'formula.as_sympy())',
+     'YuleSimon'),
+    ('sdata.distribution("zipf", ...) (worked out by SciPy; SymPy\'s exact one: formula.as_sympy())',
+     'Zeta'),
+    ('sdata.distribution("normal", average=50, ' 'standard_deviation=10).find_chance_that_value(is_below=60)',
+     'P Probability cdf'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_average()',
+     'E Expectation'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_variance()',
+     'Variance variance'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_standard_deviation()',
+     'std'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_median()',
+     'median'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_density_at(60)',
+     'density'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).find_percentile(95)',
+     'quantile'),
+    ('sdata.distribution("normal", average=50, ' 'standard_deviation=10).make_random_numbers(how_many=10)',
+     'sample sample_iter'),
+    ('sdata.distribution("normal", average=50, standard_deviation=10).show_summary() (with the '
+     'skewness, excess kurtosis and entropy)',
+     'skewness kurtosis entropy'),
+    (_HAND_OVER
+     + ' its other probability tools work (moments, covariance and correlation of random letters, '
+     'conditions, processes, random matrices and the distributions simplydata does not have); every '
+     'distribution simplydata has: sdata.distribution("normal", average=50, standard_deviation=10)',
+     'Benini BernoulliProcess BetaNoncentral BoundedPareto CentralMoment ChiNoncentral CircularEnsemble '
+     'CircularOrthogonalEnsemble CircularSymplecticEnsemble CircularUnitaryEnsemble Coin '
+     'ContinuousDistributionHandmade ContinuousMarkovChain ContinuousRV Covariance CrossCovarianceMatrix '
+     'Davis Die DiscreteDistributionHandmade DiscreteMarkovChain DiscreteRV DiscreteTimeStochasticProcess '
+     'ExpectationMatrix FiniteDistributionHandmade FiniteRV FisherZ FlorySchulz GammaProcess '
+     'GaussianEnsemble GaussianOrthogonalEnsemble GaussianSymplecticEnsemble GaussianUnitaryEnsemble '
+     'GeneralizedMultivariateLogGamma GeneralizedMultivariateLogGammaOmega GeneratorMatrixOf H Hermite '
+     'IdealSoliton JointEigenDistribution JointRV Kumaraswamy LogCauchy LogitNormal MatrixGamma '
+     'MatrixNormal MatrixStudentT Moment MultivariateBeta MultivariateEwens MultivariateLaplace '
+     'NegativeMultinomial NormalGamma PoissonProcess QuadraticU Rademacher RobustSoliton ShiftedGompertz '
+     'StochasticProcess StochasticStateSpaceOf TransitionMatrixOf VarianceMatrix Wald WienerProcess '
+     'characteristic_function cmoment correlation coskewness covariance dependent factorial_moment given '
+     'independent joint_eigen_distribution level_spacing_distribution marginal_distribution moment '
+     'moment_generating_function pspace random_symbols sample_stochastic_process sampling_density smoment '
+     'where'),
 ]
 _ROLLING = [
     ('table.add_rolling_column("smooth", from_column="temperature", show="average")',
@@ -3542,8 +3754,12 @@ _EXPANDING = [
 ]
 _EWM = [
     ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", '
-     'sorted_by="time")',
+     'sorted_by="time") (as ewm(span=3, adjust=False).mean(): each value is weighted from the start)',
      'mean agg aggregate'),
+    (_PANDAS_HAND_OVER
+     + " ewm(adjust=True) works (weights that start afresh, pandas' default); simplydata's smoothing "
+     'is adjust=False',
+     'adjust'),
     ('table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", span=3, '
      'sorted_by="time") (alpha=, span=, half_life= or com= sets the weights)',
      'alpha span halflife com'),
@@ -3551,8 +3767,8 @@ _EWM = [
      + ' the spread and sum of an exponentially weighted window work; the weighted average is '
      'table.add_smoothed_column("smooth", from_column="signal", test_method="exponential", '
      'sorted_by="time")',
-     'adjust center closed corr cov exclusions ignore_na method min_periods ndim obj on online std step '
-     'sum times var win_type window'),
+     'center closed corr cov exclusions ignore_na method min_periods ndim obj on online std step sum times '
+     'var win_type window'),
 ]
 _RESAMPLE = [
     ('table.find_average_of("sales", for_each_group_in="date", every="month")',
@@ -3563,7 +3779,9 @@ _RESAMPLE = [
     ('table.add_missing_dates("date", every="day")',
      'asfreq'),
     ('table.fill_empty_cells_in("price", with_the="value above")',
-     'ffill bfill'),
+     'ffill'),
+    ('table.fill_empty_cells_in("price", with_the="value below")',
+     'bfill'),
     ('table.fill_empty_cells_in("price", with_the="line between neighbours")',
      'interpolate'),
     (_PANDAS_HAND_OVER + ' the other resampling steps work (the groups themselves, a function of your own)',
@@ -3591,17 +3809,21 @@ OTHER_NAMES = {"sdata": _build(_SDATA + _SDATA_FINAL), "table": _build(_TABLE + 
                "groups": _build(_GROUPS + _GROUPS_FINAL),
                # numbers finishing PR: NumPy's, SciPy's and SymPy's names
                "numpy": _build(_NUMPY + _NUMPY_FINAL + _NUMPY_REVIEW + _MATHS["numpy"]),
-               "linalg": _build(_LINALG + _LINALG_REVIEW),
+               "linalg": _build(_LINALG),
                "random": _build(_RANDOM + _RANDOM_FINAL + _RANDOM_REVIEW),
                "fft": _build(_FFT + _FFT_FINAL),
                "stats": _build(_STATS + _STATS_REVIEW), "special": _build(_SPECIAL + _MATHS["special"]),
                "scipy": _build(_SCIPY + _SCIPY_FINAL + _SCIPY_REVIEW + _MATHS["scipy"]),
-               "sympy": _build(_SYMPY + _SYMPY_FINAL + _SYMPY_REVIEW + _MATHS["sympy"]),
+               "sympy": _build(_SYMPY + _SYMPY_FINAL + _MATHS["sympy"]),
                "so": _build(_SEABORN_OBJECTS + _SEABORN_OBJECTS_FINAL),
                "lists": _build(_LISTS),  # families for 100 %, batches 1-2 (G12)
                # review of numbers-int-2: pandas' window and resample objects, df.rolling(3).mean
                "rolling": _build(_ROLLING), "expanding": _build(_EXPANDING), "ewm": _build(_EWM),
-               "resample": _build(_RESAMPLE)}
+               "resample": _build(_RESAMPLE),
+               # second review of numbers-int-2: each probed part of a library has its own list
+               "ndarray": _build(_NDARRAY), "npma": _build(_NPMA), "npstrings": _build(_NPSTRINGS),
+               "matrix": _build(_MATRIX), "sympystats": _build(_SYMPYSTATS), "hierarchy": _build(_HIERARCHY),
+               "sparse": _build(_SPARSE)}
 
 # The namespaces: how each is typed in pandas and Polars, and how simplydata writes it ("str.replace")
 NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "groups", "GroupBy": "groups",
@@ -3618,13 +3840,17 @@ NAMESPACES = {"str": "text", "dt": "dates", "groupby": "groups", "group_by": "gr
               "Generator": "random", "RandomState": "random", "fft": "fft", "stats": "stats", "special": "special",
               "scipy": "scipy", "optimize": "scipy", "integrate": "scipy", "interpolate": "scipy",
               "signal": "scipy", "ndimage": "scipy", "spatial": "scipy", "sp": "sympy", "sympy": "sympy",
-              "Matrix": "sympy",
+              "Matrix": "matrix",
               # seaborn's objects interface: so.Dot, so.Plot.facet, seaborn.objects.Hist
               "so": "so", "objects": "so",
               # Polars list and array columns (G12): pl.col("genes").list.sum, Series.arr.max
               "list": "lists", "arr": "lists",
               # review of numbers-int-2: pandas' window and resample objects (df.rolling(3).mean, df.resample("M").sum)
-              "rolling": "rolling", "expanding": "expanding", "ewm": "ewm", "resample": "resample"}
+              "rolling": "rolling", "expanding": "expanding", "ewm": "ewm", "resample": "resample",
+              # second review of numbers-int-2: each probed part of a library has its own list, so a name keeps its
+              # own meaning (np.strings.add joins text, np.add adds numbers)
+              "strings": "npstrings", "ma": "npma", "ndarray": "ndarray", "hierarchy": "hierarchy",
+              "sparse": "sparse", "csgraph": "sparse"}
 NAMESPACE_SHOWN = {"text": "str", "dates": "dt", "groups": "groupby", "chart3d": "Axes3D"}
 # list. and arr. names (Polars list columns) are looked up only with list. or arr. in front: a bare sum, first or
 # unique means the table's word, so the list namespace is not among the ones a bare name lists
@@ -3638,7 +3864,16 @@ NAMESPACE_FALLBACK = {"groups": ("table",), "chart": ("sdata", "numbers"), "char
                       "random": ("numbers", "sdata"), "fft": ("numbers", "sdata"),
                       "stats": ("sdata", "numbers", "table"), "special": ("numbers", "sdata"),
                       "scipy": ("sdata", "numbers", "block", "table"), "sympy": ("sdata",),
-                      "so": ("chart", "sdata")}
+                      "so": ("chart", "sdata"),
+                      # second review of numbers-int-2: the probed parts fall back only on lists that mean the same
+                      "ndarray": ("numpy", "numbers", "block", "sdata"), "npma": ("numpy", "numbers", "sdata"),
+                      "npstrings": (), "matrix": ("sympy", "sdata"), "sympystats": (), "hierarchy": (),
+                      "sparse": ()}
+# The probed parts that are not searched for a bare name (np.strings.add must not answer a bare "add"), and how each
+# is shown; ndarray and np.ma names may be words of numbers (np.ndarray.sort is numbers.sort)
+PROBED_SPACES = {"ndarray": "ndarray", "npma": "np.ma", "npstrings": "np.strings", "matrix": "Matrix",
+                 "sympystats": "sympy.stats", "hierarchy": "hierarchy", "sparse": "sparse"}
+WORD_SPACES = ("ndarray", "npma")
 # The NumPy, SciPy and SymPy namespaces (numbers finishing PR) and seaborn.objects, and how a bare name shows each
 NUMBER_SPACES = {"numpy": "np", "linalg": "linalg", "random": "rng", "fft": "fft", "stats": "stats",
                  "special": "special", "scipy": "scipy", "sympy": "sympy",
@@ -3691,7 +3926,12 @@ def _name_parts(typed: str) -> tuple[str | None, str | None, str] | None:
             return part, "so", name
     for part in reversed(before):
         if part.lower() in spaces:
-            return part, spaces[part.lower()], name
+            kind = spaces[part.lower()]
+            if kind == "stats" and any(p in ("sp", "sympy") for p in before):  # sympy.stats.Normal is not SciPy's
+                return part, "sympystats", name
+            if kind == "linalg" and "sparse" in before:  # scipy.sparse.linalg.spsolve
+                return "sparse", "sparse", name
+            return part, kind, name
     if before[0] in SIMPLYDATA_OBJECTS:
         return None
     if all(part in QUALIFIERS for part in before) or len(before) == 1:

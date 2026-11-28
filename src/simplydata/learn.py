@@ -2636,7 +2636,8 @@ def _print_other_names(word) -> bool:
     matplotlib's and seaborn's names with plt., ax., fig. or sns. in front (charts finishing PR) look among the chart
     pointers first: sdata.help("plt.title") points to write_title_on_top, not to pandas' str.title."""
     from ._errors import other_name_pointer, other_name_target
-    from ._other_names import NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, other_name_parts, other_name_space
+    from ._other_names import (NAMESPACE_FALLBACK, NAMESPACE_SHOWN, NUMBER_SPACES, PROBED_SPACES, other_name_parts,
+                               other_name_space)
 
     w = _normalise(str(word))
     parts = other_name_parts(w)
@@ -2672,7 +2673,9 @@ def _print_other_names(word) -> bool:
         print(found[0][1])
     else:
         for kind, pointer in found:
-            print(f"  {NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or _SHOWN.get(kind, kind)}.{w}: "
+            shown_kind = (NAMESPACE_SHOWN.get(kind) or NUMBER_SPACES.get(kind) or PROBED_SPACES.get(kind)
+                          or _SHOWN.get(kind, kind))
+            print(f"  {shown_kind}.{w}: "
                   f"{pointer}")
     targets = list(dict.fromkeys(other_name_target(pointer) for _, pointer in found))
     print("To learn more, type " + " or ".join(f'sdata.help("{t}")' for t in targets) + ".")
@@ -2690,7 +2693,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
     if isinstance(word, str):
         keys = _lookup_all(word)
         if not keys:  # weather.draw_bars, students.save: a name of your own in front of a simplydata word
-            from ._other_names import NUMBER_SPACES, QUALIFIERS, other_name_parts
+            from ._other_names import NUMBER_SPACES, QUALIFIERS, WORD_SPACES, other_name_parts
 
             parts = other_name_parts(_normalise(word))
             own = str(word).strip().split(".", 1)[0]
@@ -2708,7 +2711,7 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
                         word = name
                     else:  # fig.keep_rows_where: a word of a table or of numbers, after a matplotlib name
                         keys = _lookup_all(name)
-            elif parts is not None and parts[0] in NUMBER_SPACES:  # np.sort, np.add: a word of numbers
+            elif parts is not None and (parts[0] in NUMBER_SPACES or parts[0] in WORD_SPACES):  # np.sort: numbers
                 from ._other_names import NAMESPACE_FALLBACK, OTHER_NAMES
 
                 name = parts[1]

@@ -838,7 +838,11 @@ def test_other_name_parts_reads_numpy_scipy_and_sympy_names():
     assert other_name_parts("rng.integers(1, 7)") == ("random", "integers")
     assert other_name_parts("scipy.stats.norm.pdf") == ("stats", "pdf")
     assert other_name_parts("scipy.optimize.nnls") == ("scipy", "nnls")
-    assert other_name_parts("sp.Matrix([[1, 2]]).det") == ("sympy", "det")
+    # second review of numbers-int-2: a SymPy Matrix method has its own list (falling back on SymPy's)
+    assert other_name_parts("sp.Matrix([[1, 2]]).det") == ("matrix", "det")
+    assert other_name_parts("sympy.stats.Normal") == ("sympystats", "Normal")
+    assert other_name_parts("scipy.sparse.linalg.spsolve") == ("sparse", "spsolve")
+    assert other_name_parts("np.strings.add") == ("npstrings", "add")
 
 
 # Every call of numbers, a grid, a formula or a distribution written in a pointer runs (with the sdata words that make
@@ -960,3 +964,70 @@ def test_a_table_name_in_front_narrows_a_shared_word_to_the_table_word(capsys):
     sdata.help("pl.DataFrame.show")
     out = capsys.readouterr().out
     assert out.startswith("table.show()") and "can mean more than one word" not in out, out[:300]
+
+
+# second review of numbers-int-2: the probed parts of NumPy, SciPy and SymPy (np.strings, np.ma, ndarray, Matrix,
+# sympy.stats, cluster.hierarchy, sparse) have their own lists, so a pandas or Polars name never gets their meaning
+_FOREIGN = ("Matrix", "np.ma", "np.strings", "ndarray", "sympy.stats", "hierarchy", "scipy.sparse", "sparse storage",
+            "as_sympy", "polynomial", "NumPy's memory")
+
+
+def _table_library_names():
+    import pandas as pd
+    import polars as pl
+
+    names = set()
+    for front, owner in (("pd", pd.DataFrame), ("pd", pd.Series), ("pl", pl.DataFrame), ("pl", pl.Series),
+                         ("pl", pl.Expr)):
+        names |= {f"{front}.{owner.__name__}.{n}" for n in dir(owner) if not n.startswith("_")}
+    names |= {f"{front}.{n}" for front, module in (("pd", pd), ("pl", pl)) for n in dir(module)
+              if not n.startswith("_")}
+    return sorted(names)
+
+
+def test_a_pandas_or_polars_name_never_gets_the_meaning_of_another_library():
+    bad = []
+    for typed in _table_library_names():
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            sdata.help(typed)
+        text = out.getvalue()
+        hits = [mark for mark in _FOREIGN if mark in text]
+        if hits:
+            bad.append(f"{typed}: {hits}")
+    assert not bad, bad[:20]
+
+
+@pytest.mark.parametrize("typed, word, not_word", [
+    ("np.strings.add", "by_joining_text", "numbers.add"),
+    ("np.strings.multiply", "as_pandas()", "numbers.times"),
+    ("np.strings.less", "as_pandas", "is_below"),
+    ("np.less", "is_below=20", "is_above"),
+    ("np.ndarray.choose", "choose works", "show_all_words"),
+    ("sympy.Matrix.exp", "take_matrix_exp", "take_exp()"),
+    ("sympy.Matrix.solve", "grid.solve_for(", 'sdata.solve("'),
+    ("sympy.Matrix.ones", "filled_with=1", "show_all_words"),
+    ("sympy.stats.median", "find_median()", "find_median_of"),
+    ("sympy.stats.Weibull", 'distribution("weibull"', "show_all_words"),
+    ("sympy.stats.Wald", "as_sympy()", 'distribution("wald"'),
+    ("sympy.stats.covariance", "as_sympy()", "find_correlation_between"),
+    ("scipy.cluster.hierarchy.complete", 'linkage="complete"', "show_all_words"),
+    ("scipy.cluster.hierarchy.median", "as_numpy()", "find_median"),
+    ("scipy.sparse.kron", "kron works", "show_all_words"),
+    ("scipy.sparse.linalg.onenormest", 'kind="biggest column total"', "show_all_words"),
+    ("df.ewm(span=3).mean", "adjust=False", "show_all_words"),
+    ("df.ewm().adjust", "as_pandas()", "show_all_words"),
+    ("df.resample().bfill", '"value below"', '"value above"'),
+    ("np.ma.masked_where", "with_value=None", "with_value=100"),
+    ("np.ma.make_mask", "as_numpy()", "show_all_words"),
+    ("np.strings.ljust", "as_pandas()", "add_zeros_in_front_of"),
+    ("np.strings.rfind", "as_pandas()", "position_of"),
+    ("scipy.spatial.distance.sqeuclidean", "as_numpy()", "find_distances_between_rows"),
+    ("sympy.Matrix.left_eigenvects", "as_sympy", "find_eigenvalues"),
+    ("scipy.sparse.csgraph.connected_components", "as_numpy()", "find_each_patch_that"),
+    ("scipy.constants.c", "as_numpy()", "show_all_words"),
+])
+def test_second_review_fixes_of_the_probed_parts(typed, word, not_word, capsys):
+    sdata.help(typed)
+    out = capsys.readouterr().out
+    assert word in out and not_word not in out, out

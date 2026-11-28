@@ -592,3 +592,9 @@ def test_an_exact_grid_refuses_filled_with(filled_with):
 def test_an_exact_grid_with_the_default_filled_with_works():
     grid = _quiet(sdata.number_grid, [[1, "1/3"], [2, 4]], exactly=True)
     assert grid.count_rows() == 2
+
+
+def test_find_value_at_gives_the_true_tiny_value_not_the_noise():
+    """second review of numbers-int-2: a value SymPy shows is not 0 is worked out exactly, not left as evalf noise."""
+    value = _quiet(_formula("(x + 1)**2 - x**2 - 2*x - 1 + 10**(-150)").find_value_at, x=0.7)
+    assert value == pytest.approx(1e-150, rel=1e-9)

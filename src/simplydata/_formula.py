@@ -1717,10 +1717,19 @@ class Formula(_AlgebraWords, _CalculusWords):
                 # whether it is 0 (SymPy subs, under the time limit)
                 exact = _guarded(self._expr.subs, swaps, what="SymPy subs")
                 # a true 0 that subs leaves unsimplified (sin(x)**2 + cos(x)**2 - 1 at 0.3): SymPy equals decides,
-                # under the same time limit (review of numbers-int-2)
-                if exact == 0 or (isinstance(exact, sp.Basic)
-                                  and _guarded(exact.equals, 0, what="SymPy equals") is True):
+                # under the same time limit (reviews of numbers-int-2). When equals says it is not 0, the exact
+                # value worked out to 15 digits replaces evalf's noise; when it cannot tell in time, the value stays.
+                if exact == 0:
                     found = sp.Float(0)
+                elif isinstance(exact, sp.Basic):
+                    try:
+                        is_zero = _guarded(exact.equals, 0, what="SymPy equals")
+                    except SimplydataError:  # equals ran out of time: keep the value evalf gave
+                        is_zero = None
+                    if is_zero is True:
+                        found = sp.Float(0)
+                    elif is_zero is False:
+                        found = _guarded(exact.evalf, 15, what="SymPy evalf")
             if found.is_real and found.is_finite and not math.isfinite(float(found)):
                 raise SimplydataError(f"At {_places(values)} the formula is about {sp.N(found, 6)}: a number too big for a "
                                       "decimal (float). formula.put_in(...).show_as_decimal() shows it.")
