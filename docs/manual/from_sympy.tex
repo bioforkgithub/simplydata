@@ -260,3 +260,11 @@ p3 = sp.legendre(3, x)                   # the Legendre polynomial of degree 3
 back = sdata.formula(str(p3))            # back to simplydata
 back.find_value_at(x=0.5)
 \end{lstlisting}
+
+\paragraph{How complete is simplydata?}
+We typed every public name of the library into \code{sdata.help()} (the libraries' versions of November 2026).
+Of SymPy's 902 names at its top level, 615 lead to a simplydata
+word or option, 180 hand over to SymPy with a note (most are the classes and tools inside SymPy, such as
+\code{Add}, \code{Dummy} and \code{sift}), and 84 belong to the areas left to SymPy on purpose: sets, logic,
+geometry, tensors and number transforms. The other 23 are SymPy's own errors and settings. Every other name
+has an answer in \code{sdata.help()}.

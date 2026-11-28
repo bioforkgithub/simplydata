@@ -2738,6 +2738,8 @@ def help(word=None) -> None:  # noqa: A001 - meant to be sdata.help
         parts = other_name_parts(_normalise(word))
         if parts is not None and parts[0] is None and _normalise(word) != parts[1]:
             keys = _lookup_all(parts[1])
+            if not keys and _old_names(parts[1]):  # pl.DataFrame.row: an old name of a word (row is get_row)
+                return help(parts[1])
     if not keys:
         known = sorted({_normalise(k) for k in _all_keys()} | {a for v in _aliases().values() for a in v})
         lines = [f'simplydata has no word called "{word}".']

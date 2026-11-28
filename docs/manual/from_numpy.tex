@@ -621,3 +621,13 @@ product = a.as_numpy() @ b.as_numpy()    # NumPy's matrix product
 grid = sdata.number_grid(product)        # back to simplydata
 grid.find_determinant()
 \end{lstlisting}
+
+\paragraph{How complete is simplydata?}
+We typed every public name of the library into \code{sdata.help()} (the libraries' versions of November 2026).
+Of NumPy's 574 names (the top level, \code{linalg}, \code{fft}
+and a random Generator), 450 lead to a simplydata word or option, 4 hand over to NumPy with a note, and 3 are
+left to NumPy on purpose (\code{einsum}, \code{einsum\_path} and \code{tensorinv}). The other 117 are data
+types, classes and settings, which simplydata chooses by itself. Of SciPy's 1,223 names in the ten parts this
+chapter follows, 1,169 lead to a word or option, 17 hand over with a note, one is left to SciPy on purpose
+(\code{HalfspaceIntersection}), and 36 are classes, warnings and settings. Every other name has an
+answer in \code{sdata.help()}.

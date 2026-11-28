@@ -738,3 +738,9 @@ ax = fig.axes[0]
 ax.quiver([4, 10], [4, 10], [1, -1], [1, 0.5], color="white")
 fig.savefig("vectors.png")
 \end{lstlisting}
+
+\paragraph{How complete is simplydata?}
+We typed every public name of the library into \code{sdata.help()} (the libraries' versions of November 2026).
+All 98 functions of seaborn and of \code{seaborn.objects} lead
+to a simplydata word or option. matplotlib is the one library simplydata does not try to cover name by name: its
+jobs are listed above, and \code{chart.as\_matplotlib()} hands a chart over.
